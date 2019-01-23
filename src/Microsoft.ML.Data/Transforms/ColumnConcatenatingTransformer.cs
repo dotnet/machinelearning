@@ -44,7 +44,7 @@ namespace Microsoft.ML.Data
 
         public sealed class Column : ManyToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
                 var res = new Column();
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple, HelpText = "Name of the source column", ShortName = "src")]
             public KeyValuePair<string, string>[] Source;
 
-            public static TaggedColumn Parse(string str)
+            internal static TaggedColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
                 // REVIEW: Support a short form for aliases.
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
                 return taggedColumn;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Source == null || Source.Any(kvp => !string.IsNullOrEmpty(kvp.Key)))

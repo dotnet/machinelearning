@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms.Projections
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation", ShortName = "seed")]
             public int? Seed;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (!string.IsNullOrEmpty(WeightColumn) || Rank != null || Oversampling != null ||

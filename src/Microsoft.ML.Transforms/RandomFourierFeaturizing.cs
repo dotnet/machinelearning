@@ -68,7 +68,7 @@ namespace Microsoft.ML.Transforms.Projections
                            "the global random is used)")]
             public int? Seed;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NewDim != null || MatrixGenerator != null || UseSin != null || Seed != null)

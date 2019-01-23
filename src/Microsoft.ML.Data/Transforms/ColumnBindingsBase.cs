@@ -22,13 +22,17 @@ namespace Microsoft.ML.Data
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the source column", ShortName = "src")]
         public string Source;
 
+        [BestFriend]
+        private protected SourceNameColumnBase() { }
+
         /// <summary>
         /// For parsing from a string. This supports "name" and "name:source".
         /// Derived classes that want to provide parsing functionality to the CmdParser need to implement
         /// a static Parse method. That method can call this (directly or indirectly) to handle the supported
         /// syntax.
         /// </summary>
-        protected virtual bool TryParse(string str)
+        [BestFriend]
+        private protected virtual bool TryParse(string str)
         {
             Contracts.AssertNonEmpty(str);
             return ColumnParsingUtils.TryParse(str, out Name, out Source);
@@ -41,7 +45,8 @@ namespace Microsoft.ML.Data
         /// a static Parse method. That method can call this (directly or indirectly) to handle the supported
         /// syntax.
         /// </summary>
-        protected bool TryParse(string str, out string extra)
+        [BestFriend]
+        private protected bool TryParse(string str, out string extra)
         {
             Contracts.AssertNonEmpty(str);
             return ColumnParsingUtils.TryParse(str, out Name, out Source, out extra);
@@ -50,7 +55,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The core unparsing functionality, for generating succinct command line forms "name" and "name:source".
         /// </summary>
-        protected virtual bool TryUnparseCore(StringBuilder sb)
+        [BestFriend]
+        private protected virtual bool TryUnparseCore(StringBuilder sb)
         {
             Contracts.AssertValue(sb);
 
@@ -68,7 +74,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The core unparsing functionality, for generating the succinct command line form "name:extra:source".
         /// </summary>
-        protected virtual bool TryUnparseCore(StringBuilder sb, string extra)
+        [BestFriend]
+        private protected virtual bool TryUnparseCore(StringBuilder sb, string extra)
         {
             Contracts.AssertValue(sb);
             Contracts.AssertNonEmpty(extra);
@@ -98,6 +105,8 @@ namespace Microsoft.ML.Data
 
     public abstract class OneToOneColumn : SourceNameColumnBase
     {
+        [BestFriend]
+        private protected OneToOneColumn() { }
     }
 
     public interface IOneToOneColumn
@@ -128,11 +137,17 @@ namespace Microsoft.ML.Data
         [Argument(ArgumentType.Multiple, HelpText = "Name of the source column", ShortName = "src")]
         public string[] Source;
 
+        [BestFriend]
+        private protected ManyToOneColumn()
+        {
+        }
+
         /// <summary>
         /// The parsing functionality for custom parsing from a string. This supports "name" and "name:sources",
         /// where sources is a comma separated list of source column names.
         /// </summary>
-        protected virtual bool TryParse(string str)
+        [BestFriend]
+        private protected virtual bool TryParse(string str)
         {
             Contracts.AssertNonEmpty(str);
 
@@ -161,7 +176,8 @@ namespace Microsoft.ML.Data
         /// Parsing functionality for custom parsing from a string with an "extra" value between name and sources.
         /// This supports "name", "name:sources" and "name:extra:sources".
         /// </summary>
-        protected bool TryParse(string str, out string extra)
+        [BestFriend]
+        private protected bool TryParse(string str, out string extra)
         {
             Contracts.AssertNonEmpty(str);
 

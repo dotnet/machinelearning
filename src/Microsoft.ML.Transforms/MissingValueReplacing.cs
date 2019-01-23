@@ -87,7 +87,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to impute values by slot")]
             public bool? Slot;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -95,14 +95,14 @@ namespace Microsoft.ML.Transforms
                 return null;
             }
 
-            protected override bool TryParse(string str)
+            private protected override bool TryParse(string str)
             {
                 // We accept N:R:S where N is the new column name, R is the replacement string,
                 // and S is source column names.
                 return base.TryParse(str, out ReplacementString);
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Kind != null || Slot != null)

@@ -63,7 +63,12 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
             public bool? TextKeyValues;
 
-            protected override bool TryUnparseCore(StringBuilder sb)
+            private protected ColumnBase()
+            {
+            }
+
+            [BestFriend]
+            private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
@@ -77,7 +82,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Column : ColumnBase
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -85,7 +90,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);

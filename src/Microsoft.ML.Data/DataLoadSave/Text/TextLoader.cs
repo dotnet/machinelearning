@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key")]
             public KeyCount KeyCount;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
 
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             ///  Returns <c>true</c> iff the ranges are disjoint, and each range satisfies 0 &lt;= min &lt;= max.
             /// </summary>
-            public bool IsValid()
+            internal bool IsValid()
             {
                 if (Utils.Size(Source) == 0)
                     return false;
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force scalar columns to be treated as vectors of length one", ShortName = "vector")]
             public bool ForceVector;
 
-            public static Range Parse(string str)
+            internal static Range Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 char dash = AllOther ? '~' : '-';

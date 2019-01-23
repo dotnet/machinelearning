@@ -97,7 +97,7 @@ namespace Microsoft.ML.Transforms.Projections
             [Argument(ArgumentType.AtMostOnce, HelpText = "PCA components to keep/drop")]
             public int? PcaNum;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Kind != null || Eps != null || MaxRows != null || SaveInverse != null || PcaNum != null)
