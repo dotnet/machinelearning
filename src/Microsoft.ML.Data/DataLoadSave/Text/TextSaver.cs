@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.ML;
@@ -383,12 +384,13 @@ namespace Microsoft.ML.Data.IO
             ch.AssertNonEmpty(cols);
 
             // Determine the active columns and whether there is header information.
-            bool[] active = new bool[data.Schema.Count];
+            var activeCols = new List<Schema.Column>();
             for (int i = 0; i < cols.Length; i++)
             {
-                ch.Check(0 <= cols[i] && cols[i] < active.Length);
-                ch.Check(data.Schema[cols[i]].Type.GetItemType().RawKind != 0);
-                active[cols[i]] = true;
+                ch.Check(0 <= cols[i] && cols[i] < data.Schema.Count);
+                ColumnType itemType = data.Schema[cols[i]].Type.GetItemType();
+                ch.Check(itemType is KeyType || itemType.IsStandardScalar());
+                activeCols.Add(data.Schema[cols[i]]);
             }
 
             bool hasHeader = false;
@@ -412,7 +414,7 @@ namespace Microsoft.ML.Data.IO
                 }
             }
 
-            using (var cursor = data.GetRowCursor(i => active[i]))
+            using (var cursor = data.GetRowCursor(activeCols))
             {
                 var pipes = new ValueWriter[cols.Length];
                 for (int i = 0; i < cols.Length; i++)
@@ -485,7 +487,6 @@ namespace Microsoft.ML.Data.IO
 
         private TextLoader.Column GetColumn(string name, ColumnType type, int? start)
         {
-            DataKind? kind;
             KeyRange keyRange = null;
             VectorType vectorType = type as VectorType;
             ColumnType itemType = vectorType?.ItemType ?? type;
@@ -500,10 +501,9 @@ namespace Microsoft.ML.Data.IO
                     Contracts.Assert(key.Count >= 1);
                     keyRange = new KeyRange(key.Min, key.Min + (ulong)(key.Count - 1));
                 }
-                kind = key.RawKind;
             }
-            else
-                kind = itemType.RawKind;
+
+            DataKind kind = itemType.GetRawKind();
 
             TextLoader.Range[] source = null;
 

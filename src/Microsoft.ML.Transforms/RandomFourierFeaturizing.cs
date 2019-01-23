@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -307,7 +308,7 @@ namespace Microsoft.ML.Transforms.Projections
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
-            bool[] activeColumns = new bool[input.Schema.Count];
+            var activeColumns = new List<Schema.Column>();
             int[] srcCols = new int[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
@@ -318,10 +319,10 @@ namespace Microsoft.ML.Transforms.Projections
                 if (reason != null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input, reason, type.ToString());
                 srcCols[i] = srcCol;
-                activeColumns[srcCol] = true;
+                activeColumns.Add(input.Schema[srcCol]);
             }
             var reservoirSamplers = new ReservoirSamplerWithReplacement<VBuffer<float>>[columns.Length];
-            using (var cursor = input.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = input.GetRowCursor(activeColumns))
             {
                 for (int i = 0; i < columns.Length; i++)
                 {

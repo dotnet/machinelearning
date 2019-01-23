@@ -84,7 +84,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(TextType.Instance, schema[textIdx].Type);
             Assert.Equal(new VectorType(NumberType.R4, 3), schema[numericFeaturesIdx].Type);
             // Next actually inspect the data.
-            using (var cursor = textData.GetRowCursor(c => true))
+            using (var cursor = textData.GetRowCursorForAllColumns())
             {
                 var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
                 var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);

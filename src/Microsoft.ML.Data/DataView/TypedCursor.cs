@@ -133,15 +133,15 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="memberInfo"/>.
-        /// They must both be vectors or scalars, and the raw data kind should match.
+        /// They must both be vectors or scalars, and the raw data type should match.
         /// </summary>
         private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
         {
-            InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
+            InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type itemType);
             if (isVector)
-                return colType is VectorType vectorType && vectorType.ItemType.RawKind == kind;
+                return colType is VectorType vectorType && vectorType.ItemType.RawType == itemType;
             else
-                return !(colType is VectorType) && colType.RawKind == kind;
+                return !(colType is VectorType) && colType.RawType == itemType;
         }
 
         /// <summary>
@@ -178,7 +178,10 @@ namespace Microsoft.ML.Data
 
             Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
 
-            var cursor = _data.GetRowCursor(GetDependencies(additionalColumnsPredicate), rand);
+            var deps = GetDependencies(additionalColumnsPredicate);
+
+            var inputCols = _data.Schema.Where(x => deps(x.Index));
+            var cursor = _data.GetRowCursor(inputCols, rand);
             return new RowCursorImplementation(new TypedCursor(this, cursor));
         }
 
@@ -199,8 +202,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
             _host.CheckValueOrNull(rand);
 
-            Func<int, bool> inputPredicate = col => _columnIndices.Contains(col) || additionalColumnsPredicate(col);
-            var inputs = _data.GetRowCursorSet(inputPredicate, n, rand);
+            var inputs = _data.GetRowCursorSet(_data.Schema.Where(col => _columnIndices.Contains(col.Index) || additionalColumnsPredicate(col.Index)), n, rand);
             _host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1)
@@ -487,7 +489,6 @@ namespace Microsoft.ML.Data
 
             public RowCursorImplementation(TypedCursor cursor) => _cursor = cursor;
 
-            public override CursorState State => _cursor.State;
             public override long Position => _cursor.Position;
             public override long Batch => _cursor.Batch;
             public override Schema Schema => _cursor.Schema;
@@ -505,9 +506,7 @@ namespace Microsoft.ML.Data
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
             public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
-            public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
-            public override bool MoveMany(long count) => _cursor.MoveMany(count);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 
@@ -523,15 +522,11 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row)
             {
-                Ch.Check(_input.State == CursorState.Good, "Can't fill values: the cursor is not active.");
+                Ch.Check(Position >= 0, "Cannot fill values. The cursor is not active.");
                 base.FillValues(row);
             }
 
-            public CursorState State => _input.State;
-
             public bool MoveNext() => _input.MoveNext();
-            public bool MoveMany(long count) => _input.MoveMany(count);
-            public RowCursor GetRootCursor() => _input.GetRootCursor();
         }
     }
 

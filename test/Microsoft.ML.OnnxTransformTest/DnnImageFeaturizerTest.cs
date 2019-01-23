@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("output_1", out int output);
-            using (var cursor = result.GetRowCursor(col => col == output))
+            using (var cursor = result.GetRowCursor(result.Schema["output_1"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Tests
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
 
                 loadedView.Schema.TryGetColumnIndex(outputNames, out int softMaxOut1);
-                using (var cursor = loadedView.GetRowCursor(col => col == softMaxOut1))
+                using (var cursor = loadedView.GetRowCursor(loadedView.Schema[outputNames]))
                 {
                     VBuffer<float> softMaxValue = default;
                     var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);

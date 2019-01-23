@@ -288,7 +288,7 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 
                 for (int t = 0; t < threadPool.Length; ++t)
                 {
-                    Thread thread = threadPool[t] = Utils.CreateForegroundThread((object io) =>
+                    Thread thread = threadPool[t] = Utils.RunOnForegroundThread((object io) =>
                     {
                         int w = (int)io;
                         AutoResetEvent ev = events[w];

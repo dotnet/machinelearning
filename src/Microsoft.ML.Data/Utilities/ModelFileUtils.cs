@@ -286,7 +286,7 @@ namespace Microsoft.ML.Model
                 var repoStreamWrapper = new RepositoryStreamWrapper(rep, DirTrainingInfo, RoleMappingFile);
                 var loader = new TextLoader(env, dataSample: repoStreamWrapper).Read(repoStreamWrapper);
 
-                using (var cursor = loader.GetRowCursor(c => true))
+                using (var cursor = loader.GetRowCursorForAllColumns())
                 {
                     var roleGetter = cursor.GetGetter<ReadOnlyMemory<char>>(0);
                     var colGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
