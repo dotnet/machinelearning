@@ -257,13 +257,65 @@ namespace Microsoft.ML.SamplesUtils
                 // Initialize an example with a random label and an empty feature vector.
                 var sample = new BinaryLabelFloatFeatureVectorSample() { Label = rnd.Next() % 2 == 0, Features = new float[_simpleBinaryClassSampleFeatureLength] };
                 // Fill feature vector according the assigned label.
-                for (int j = 0; j < 10; ++j)
+                for (int j = 0; j < _simpleBinaryClassSampleFeatureLength; ++j)
                 {
                     var value = (float)rnd.NextDouble();
                     // Positive class gets larger feature value.
                     if (sample.Label)
                         value += 0.2f;
                     sample.Features[j] = value;
+                }
+
+                data.Add(sample);
+            }
+            return data;
+        }
+
+        public class FfmExample
+        {
+            public bool Label;
+
+            [VectorType(_simpleBinaryClassSampleFeatureLength)]
+            public float[] Field0;
+
+            [VectorType(_simpleBinaryClassSampleFeatureLength)]
+            public float[] Field1;
+
+            [VectorType(_simpleBinaryClassSampleFeatureLength)]
+            public float[] Field2;
+        }
+
+        public static  IEnumerable<FfmExample> GenerateFfmSamples(int exampleCount)
+        {
+            var rnd = new Random(0);
+            var data = new List<FfmExample>();
+            for (int i = 0; i < exampleCount; ++i)
+            {
+                // Initialize an example with a random label and an empty feature vector.
+                var sample = new FfmExample() { Label = rnd.Next() % 2 == 0,
+                    Field0 = new float[_simpleBinaryClassSampleFeatureLength],
+                    Field1 = new float[_simpleBinaryClassSampleFeatureLength],
+                    Field2 = new float[_simpleBinaryClassSampleFeatureLength] };
+                // Fill feature vector according the assigned label.
+                for (int j = 0; j < 10; ++j)
+                {
+                    var value0 = (float)rnd.NextDouble();
+                    // Positive class gets larger feature value.
+                    if (sample.Label)
+                        value0 += 0.2f;
+                    sample.Field0[j] = value0;
+
+                    var value1 = (float)rnd.NextDouble();
+                    // Positive class gets smaller feature value.
+                    if (sample.Label)
+                        value1 -= 0.2f;
+                    sample.Field1[j] = value1;
+
+                    var value2 = (float)rnd.NextDouble();
+                    // Positive class gets larger feature value.
+                    if (sample.Label)
+                        value2 += 0.8f;
+                    sample.Field2[j] = value2;
                 }
 
                 data.Add(sample);
