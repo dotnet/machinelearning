@@ -313,7 +313,6 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 var item = args.Column[i];
                 var tempResultType = item.ResultType ?? args.ResultType;
-                DataKind kind;
                 KeyRange range = null;
                 // If KeyRange or Range are defined on this column, set range to the appropriate value.
                 if (item.KeyRange != null)
@@ -330,6 +329,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         range = KeyRange.Parse(args.Range);
                 }
 
+                DataKind kind;
                 if (tempResultType == null)
                 {
                     if (range == null)
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     else
                     {
                         var srcType = input.Schema[item.Source ?? item.Name].Type;
-                        kind = srcType is KeyType ? srcType.RawKind : DataKind.U4;
+                        kind = srcType is KeyType ? srcType.GetRawKind() : DataKind.U4;
                     }
                 }
                 else
