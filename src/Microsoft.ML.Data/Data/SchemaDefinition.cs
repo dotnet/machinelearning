@@ -386,18 +386,18 @@ namespace Microsoft.ML.Data
                 if (!colNames.Add(name))
                     throw Contracts.ExceptParam(nameof(userType), "Duplicate column name '{0}' detected, this is disallowed", name);
 
-                InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
+                InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType);
 
                 PrimitiveType itemType;
                 var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
                 if (keyAttr != null)
                 {
-                    if (!KeyType.IsValidDataKind(kind))
+                    if (!KeyType.IsValidDataType(dataType))
                         throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
-                    itemType = new KeyType(kind, keyAttr.Min, keyAttr.Count, keyAttr.Contiguous);
+                    itemType = new KeyType(dataType, keyAttr.Min, keyAttr.Count, keyAttr.Contiguous);
                 }
                 else
-                    itemType = PrimitiveType.FromKind(kind);
+                    itemType = PrimitiveType.FromType(dataType);
 
                 // Get the column type.
                 ColumnType columnType;

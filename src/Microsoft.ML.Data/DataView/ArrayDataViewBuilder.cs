@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -231,16 +232,18 @@ namespace Microsoft.ML.Data
                 _rowCount = rowCount;
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
+
                 _host.CheckValueOrNull(rand);
                 return new Cursor(_host, this, predicate, rand);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
+
                 _host.CheckValueOrNull(rand);
                 return new RowCursor[] { new Cursor(_host, this, predicate, rand) };
             }
@@ -286,7 +289,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)Position, 0);
                             };
                     }
@@ -295,7 +298,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)MappedIndex(), 0);
                             };
                     }
@@ -318,23 +321,15 @@ namespace Microsoft.ML.Data
                     return
                         (ref TValue value) =>
                         {
-                            Ch.Check(IsGood);
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             column.CopyOut(MappedIndex(), ref value);
                         };
                 }
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(State != CursorState.Done);
                     Ch.Assert(Position < _view._rowCount);
                     return 1 < _view._rowCount - Position;
-                }
-
-                protected override bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    Ch.Assert(Position < _view._rowCount);
-                    return count < _view._rowCount - Position;
                 }
 
                 private int MappedIndex()

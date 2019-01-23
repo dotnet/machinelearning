@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers.FastTree;
@@ -10,15 +12,15 @@ using Microsoft.ML.Trainers.FastTree;
 namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
-    /// FastTree <see cref="TrainContextBase"/> extension methods.
+    /// FastTree <see cref="TrainCatalogBase"/> extension methods.
     /// </summary>
     public static class TreeRegressionExtensions
     {
         /// <summary>
-        /// FastTree <see cref="RegressionContext"/> extension method.
+        /// FastTree <see cref="RegressionCatalog"/> extension method.
         /// Predicts a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
@@ -38,7 +40,7 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FastTreeRegression.cs)]
         /// ]]></format>
         /// </example>
-        public static Scalar<float> FastTree(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> FastTree(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
@@ -62,10 +64,10 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// FastTree <see cref="RegressionContext"/> extension method.
+        /// FastTree <see cref="RegressionCatalog"/> extension method.
         /// Predicts a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
@@ -82,7 +84,7 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FastTreeRegression.cs)]
         /// ]]></format>
         /// </example>
-        public static Scalar<float> FastTree(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> FastTree(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights,
             FastTreeRegressionTrainer.Options options,
             Action<FastTreeRegressionModelParameters> onFit = null)
@@ -93,6 +95,10 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
+                   options.LabelColumn = labelName;
+                   options.FeatureColumn = featuresName;
+                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+
                    var trainer = new FastTreeRegressionTrainer(env, options);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -103,10 +109,10 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// FastTree <see cref="BinaryClassificationContext"/> extension method.
+        /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
         /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
@@ -127,7 +133,7 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FastTreeBinaryClassification.cs)]
         /// ]]></format>
         /// </example>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
@@ -153,10 +159,10 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// FastTree <see cref="BinaryClassificationContext"/> extension method.
+        /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
         /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
@@ -174,7 +180,7 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FastTreeBinaryClassification.cs)]
         /// ]]></format>
         /// </example>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
             FastTreeBinaryClassificationTrainer.Options options,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
@@ -185,6 +191,10 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
+                   options.LabelColumn = labelName;
+                   options.FeatureColumn = featuresName;
+                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+
                    var trainer = new FastTreeBinaryClassificationTrainer(env, options);
 
                    if (onFit != null)
@@ -197,10 +207,10 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// FastTree <see cref="RankingContext"/>.
+        /// FastTree <see cref="RankingCatalog"/>.
         /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
@@ -215,7 +225,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
-        public static Scalar<float> FastTree<TVal>(this RankingContext.RankingTrainers ctx,
+        public static Scalar<float> FastTree<TVal>(this RankingCatalog.RankingTrainers catalog,
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
@@ -239,10 +249,10 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// FastTree <see cref="RankingContext"/>.
+        /// FastTree <see cref="RankingCatalog"/>.
         /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
@@ -254,7 +264,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
-        public static Scalar<float> FastTree<TVal>(this RankingContext.RankingTrainers ctx,
+        public static Scalar<float> FastTree<TVal>(this RankingCatalog.RankingTrainers catalog,
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights,
             FastTreeRankingTrainer.Options options,
             Action<FastTreeRankingModelParameters> onFit = null)
@@ -265,6 +275,11 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
+                   options.LabelColumn = labelName;
+                   options.FeatureColumn = featuresName;
+                   options.GroupIdColumn = groupIdName;
+                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+
                    var trainer = new FastTreeRankingTrainer(env, options);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

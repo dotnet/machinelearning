@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
@@ -351,9 +352,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            var srcCursor = _transform.GetRowCursor(predicate, rand);
+            var srcCursor = _transform.GetRowCursor(columnsNeeded, rand);
             return new Cursor(this, srcCursor);
         }
 
@@ -364,10 +365,8 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return _transform.GetRowCount();
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
-        {
-            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
-        }
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
 
         /// <summary>
         /// A wrapper around the cursor which replaces the schema.

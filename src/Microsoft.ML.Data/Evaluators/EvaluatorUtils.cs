@@ -183,7 +183,7 @@ namespace Microsoft.ML.Data
 
             // Get the score column set id from colScore.
             var type = schema[colScore].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnSetId)?.Type;
-            if (type == null || !(type is KeyType) || type.RawKind != DataKind.U4)
+            if (!(type is KeyType) || type.RawType != typeof(uint))
             {
                 // scoreCol is not part of a score column set, so can't determine an aux column.
                 return null;
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            using (var cursor = metricsView.GetRowCursor(col => true))
+            using (var cursor = metricsView.GetRowCursorForAllColumns())
             {
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
@@ -573,7 +573,7 @@ namespace Microsoft.ML.Data
                 if (keyValueItemType == null || keyValueItemType.RawType != typeof(T))
                     throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type of key values");
                 ColumnType typeItemType = vectorType?.ItemType ?? type;
-                if (!(typeItemType is KeyType itemKeyType) || typeItemType.RawKind != DataKind.U4)
+                if (!(typeItemType is KeyType itemKeyType) || typeItemType.RawType != typeof(uint))
                     throw Contracts.Except($"Column '{columnName}' must be a U4 key type, but is '{typeItemType}'");
 
                 schema[indices[i]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyNamesCur);
@@ -1094,7 +1094,7 @@ namespace Microsoft.ML.Data
             int numResults = 0;
             int numWeightedResults = 0;
             AggregatedMetric[] agg;
-            using (var cursor = data.GetRowCursor(col => true))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
@@ -1438,7 +1438,7 @@ namespace Microsoft.ML.Data
 
             int stratCol;
             var hasStrat = confusionDataView.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol);
-            using (var cursor = confusionDataView.GetRowCursor(col => col == countIndex || hasStrat && col == stratCol))
+            using (var cursor = confusionDataView.GetRowCursor(confusionDataView.Schema.Where(col => col.Index == countIndex || hasStrat && col.Index == stratCol)))
             {
                 var type = cursor.Schema[countIndex].Type as VectorType;
                 Contracts.Check(type != null && type.IsKnownSize && type.ItemType == NumberType.R8);
@@ -1703,7 +1703,7 @@ namespace Microsoft.ML.Data
                 int col;
                 if (warnings.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.WarningText, out col) && warnings.Schema[col].Type is TextType)
                 {
-                    using (var cursor = warnings.GetRowCursor(c => c == col))
+                    using (var cursor = warnings.GetRowCursor(warnings.Schema[MetricKinds.ColumnNames.WarningText]))
                     {
                         var warning = default(ReadOnlyMemory<char>);
                         var getter = cursor.GetGetter<ReadOnlyMemory<char>>(col);

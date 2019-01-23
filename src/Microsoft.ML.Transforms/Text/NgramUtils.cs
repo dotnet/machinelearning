@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Internal.Utilities;
 using Float = System.Single;
 
@@ -198,6 +199,15 @@ namespace Microsoft.ML.Data
                     return false;
             }
             return more;
+        }
+    }
+
+    internal static class NgramUtils
+    {
+        public static bool IsValidNgramRawType(Type rawType)
+        {
+            // Can only accept key types that can be converted to U4 (uint).
+            return rawType != typeof(ulong);
         }
     }
 }

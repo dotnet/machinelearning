@@ -226,8 +226,8 @@ namespace Microsoft.ML.Trainers.FastTree
             if (useTranspose.HasValue)
                 return useTranspose.Value;
 
-            ITransposeDataView td = data.Data as ITransposeDataView;
-            return td != null && td.TransposeSchema.GetSlotType(data.Schema.Feature.Value.Index) != null;
+            var itdv = data.Data as ITransposeDataView;
+            return itdv?.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
         protected void TrainCore(IChannel ch)
@@ -1405,7 +1405,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         BinFinder finder = new BinFinder();
                         FeaturesToContentMap fmap = new FeaturesToContentMap(examples.Schema);
 
-                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<Float>(trans.TransposeSchema.GetSlotType(featIdx));
+                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<Float>(((ITransposeDataView)trans).GetSlotType(featIdx));
                         // There is no good mechanism to filter out rows with missing feature values on transposed data.
                         // So, we instead perform one featurization pass which, if successful, will remain one pass but,
                         // if we ever encounter missing values will become a "detect missing features" pass, which will
@@ -1842,18 +1842,24 @@ namespace Microsoft.ML.Trainers.FastTree
                         e => e.SetProgress(0, pos, rowCountDbl));
                     // REVIEW: Should we ignore rows with bad label, weight, or group? The previous code seemed to let
                     // them through (but filtered out bad features).
-                    CursOpt curOptions = CursOpt.Label | CursOpt.Features | CursOpt.Weight;
+                    CursOpt curOptions = CursOpt.Label | CursOpt.Features;
                     bool hasGroup = false;
                     if (PredictionKind == PredictionKind.Ranking)
                     {
-                        curOptions |= CursOpt.Group;
                         hasGroup = _data.Schema.Group != null;
+
+                        if(hasGroup)
+                            curOptions |= CursOpt.Group;
                     }
                     else
                     {
                         if (_data.Schema.Group != null)
                             ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", _data.Schema.Group.Value.Name);
                     }
+
+                    if (_data.Schema.Weight.HasValue)
+                        curOptions |= CursOpt.Weight;
+
                     using (var cursor = new FloatLabelCursor(_data, curOptions))
                     {
                         ulong groupPrev = 0;

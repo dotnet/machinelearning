@@ -9,7 +9,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Holds information relevant to trainers. Instances of this class are meant to be constructed and passed
     /// into <see cref="ITrainer{TPredictor}.Train(TrainContext)"/> or <see cref="ITrainer.Train(TrainContext)"/>.
-    /// This holds at least a training set, as well as optioonally a predictor.
+    /// This holds at least a training set, as well as optionally a predictor.
     /// </summary>
     [BestFriend]
     internal sealed class TrainContext

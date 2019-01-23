@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -332,29 +333,33 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var input = Source.GetRowCursor(inputPred);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols);
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var inputPred = _bindings.GetDependencies(predicate);
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+
             var active = _bindings.GetActive(predicate);
             RowCursor input;
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
-                var inputs = Source.GetRowCursorSet(inputPred, n);
+                var inputs = Source.GetRowCursorSet(inputCols, n);
                 Host.AssertNonEmpty(inputs);
 
                 if (inputs.Length != 1)
@@ -367,7 +372,7 @@ namespace Microsoft.ML.Transforms
                 input = inputs[0];
             }
             else
-                input = Source.GetRowCursor(inputPred);
+                input = Source.GetRowCursor(inputCols);
 
             return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
@@ -434,7 +439,7 @@ namespace Microsoft.ML.Transforms
             {
                 return (ref long value) =>
                 {
-                    Ch.Check(IsGood);
+                    Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                     value = Input.Position;
                 };
             }
@@ -453,7 +458,7 @@ namespace Microsoft.ML.Transforms
             {
                 return (ref Float value) =>
                 {
-                    Ch.Check(IsGood);
+                    Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                     Ch.Assert(!_bindings.UseCounter[iinfo]);
                     EnsureValue(ref _lastCounters[iinfo], ref _values[iinfo], _rngs[iinfo]);
                     value = _values[iinfo];

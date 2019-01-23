@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var source = new MultiFileSource(dataPath);
-            var loader = ML.Data.CreateTextReader(new[] {
+            var loader = ML.Data.CreateTextLoader(new[] {
                     new TextLoader.Column("Float1", DataKind.R4, 9),
                     new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) })
             }, hasHeader: true);
@@ -77,8 +77,8 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(customEst, data);
             transformedData = customEst.Fit(data).Transform(data);
 
-            var inputs = transformedData.AsEnumerable<MyInput>(ML, true);
-            var outputs = transformedData.AsEnumerable<MyOutput>(ML, true);
+            var inputs = ML.CreateEnumerable<MyInput>(transformedData, true);
+            var outputs = ML.CreateEnumerable<MyOutput>(transformedData, true);
 
             Assert.True(inputs.Zip(outputs, (x, y) => y.Together == $"{x.Float1} + {string.Join(", ", x.Float4)}").All(x => x));
 
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("adult.test");
             var source = new MultiFileSource(dataPath);
-            var loader = ML.Data.CreateTextReader(new[] {
+            var loader = ML.Data.CreateTextLoader(new[] {
                     new TextLoader.Column("Float1", DataKind.R4, 0),
                     new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
                     new TextLoader.Column("Text1", DataKind.Text, 0)

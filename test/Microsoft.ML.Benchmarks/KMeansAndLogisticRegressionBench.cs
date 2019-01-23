@@ -6,6 +6,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Learners;
 using Microsoft.ML.TestFramework;
 
 namespace Microsoft.ML.Benchmarks
@@ -38,7 +39,8 @@ namespace Microsoft.ML.Benchmarks
                 .Append(ml.Transforms.Concatenate("Features", "NumFeatures", "CatFeatures"))
                 .Append(ml.Clustering.Trainers.KMeans("Features"))
                 .Append(ml.Transforms.Concatenate("Features", "Features", "Score"))
-                .Append(ml.BinaryClassification.Trainers.LogisticRegression(advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; }));
+                .Append(ml.BinaryClassification.Trainers.LogisticRegression(
+                    new LogisticRegression.Options { EnforceNonNegativity = true, OptTol = 1e-3f, }));
 
             var model = estimatorPipeline.Fit(input);
             // Return the last model in the chain.

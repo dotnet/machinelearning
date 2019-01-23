@@ -137,11 +137,11 @@ namespace Microsoft.ML.Data
         /// </summary>
         private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
         {
-            InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
+            InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type itemType);
             if (isVector)
-                return colType is VectorType vectorType && vectorType.ItemType.RawKind == kind;
+                return colType is VectorType vectorType && vectorType.ItemType.RawType == itemType;
             else
-                return !(colType is VectorType) && colType.RawKind == kind;
+                return !(colType is VectorType) && colType.RawType == itemType;
         }
 
         /// <summary>
@@ -178,7 +178,10 @@ namespace Microsoft.ML.Data
 
             Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
 
-            var cursor = _data.GetRowCursor(GetDependencies(additionalColumnsPredicate), rand);
+            var deps = GetDependencies(additionalColumnsPredicate);
+
+            var inputCols = _data.Schema.Where(x => deps(x.Index));
+            var cursor = _data.GetRowCursor(inputCols, rand);
             return new RowCursorImplementation(new TypedCursor(this, cursor));
         }
 
@@ -199,8 +202,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
             _host.CheckValueOrNull(rand);
 
-            Func<int, bool> inputPredicate = col => _columnIndices.Contains(col) || additionalColumnsPredicate(col);
-            var inputs = _data.GetRowCursorSet(inputPredicate, n, rand);
+            var inputs = _data.GetRowCursorSet(_data.Schema.Where(col => _columnIndices.Contains(col.Index) || additionalColumnsPredicate(col.Index)), n, rand);
             _host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1)
@@ -487,7 +489,6 @@ namespace Microsoft.ML.Data
 
             public RowCursorImplementation(TypedCursor cursor) => _cursor = cursor;
 
-            public override CursorState State => _cursor.State;
             public override long Position => _cursor.Position;
             public override long Batch => _cursor.Batch;
             public override Schema Schema => _cursor.Schema;
@@ -505,9 +506,7 @@ namespace Microsoft.ML.Data
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
             public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
-            public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
-            public override bool MoveMany(long count) => _cursor.MoveMany(count);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 
@@ -523,15 +522,11 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row)
             {
-                Ch.Check(_input.State == CursorState.Good, "Can't fill values: the cursor is not active.");
+                Ch.Check(Position >= 0, "Cannot fill values. The cursor is not active.");
                 base.FillValues(row);
             }
 
-            public CursorState State => _input.State;
-
             public bool MoveNext() => _input.MoveNext();
-            public bool MoveMany(long count) => _input.MoveMany(count);
-            public RowCursor GetRootCursor() => _input.GetRootCursor();
         }
     }
 
@@ -544,41 +539,41 @@ namespace Microsoft.ML.Data
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
+        /// <param name="catalog">Context for performing this operation.</param>
         /// <param name="data">The underlying data view.</param>
-        /// <param name="env">The environment.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
-        public static ICursorable<TRow> AsCursorable<TRow>(this IDataView data, IHostEnvironment env, bool ignoreMissingColumns = false,
+        [BestFriend]
+        internal static ICursorable<TRow> AsCursorable<TRow>(this DataOperationsCatalog catalog, IDataView data, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
+            catalog.Environment.CheckValue(data, nameof(data));
+            catalog.Environment.CheckValueOrNull(schemaDefinition);
 
-            return TypedCursorable<TRow>.Create(env, data, ignoreMissingColumns, schemaDefinition);
+            return TypedCursorable<TRow>.Create(catalog.Environment, data, ignoreMissingColumns, schemaDefinition);
         }
 
         /// <summary>
         /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
+        /// <param name="mlContext">Context where </param>
         /// <param name="data">The underlying data view.</param>
-        /// <param name="env">The environment.</param>
         /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
-        public static IEnumerable<TRow> AsEnumerable<TRow>(this IDataView data, IHostEnvironment env, bool reuseRowObject,
+        public static IEnumerable<TRow> CreateEnumerable<TRow>(this MLContext mlContext, IDataView data, bool reuseRowObject,
             bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            Contracts.AssertValue(env);
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
+            Contracts.AssertValue(mlContext);
+            mlContext.CheckValue(data, nameof(data));
+            mlContext.CheckValueOrNull(schemaDefinition);
 
-            var engine = new PipeEngine<TRow>(env, data, ignoreMissingColumns, schemaDefinition);
+            var engine = new PipeEngine<TRow>(mlContext, data, ignoreMissingColumns, schemaDefinition);
             return engine.RunPipe(reuseRowObject);
         }
     }

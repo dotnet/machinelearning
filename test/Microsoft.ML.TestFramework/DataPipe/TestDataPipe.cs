@@ -211,7 +211,7 @@ namespace Microsoft.ML.RunTests
                 {
                     // Verify that the Vec columns match the corresponding VecXX columns. This verifies that conversion
                     // happened correctly in KeyToVector.
-                    using (var c = pipe.GetRowCursor(col => true))
+                    using (var c = pipe.GetRowCursorForAllColumns())
                     {
                         var cols = new[] { "MarVec", "MarVecU8", "CombBagVec", "CombBagVecU1", "CombIndVec", "CombIndVecU1" };
                         var getters = new ValueGetter<VBuffer<Float>>[cols.Length];
@@ -571,7 +571,7 @@ namespace Microsoft.ML.RunTests
                     // Column F13 contains the ngram counts of column Two, and column F23 contains the ngram counts
                     // of columns Two and One. Therefore, make sure that the ngrams in column Two were hashed to the same 
                     // slots in F13 as they were in column F23. We do this by checking that for every slot, F23 is >= F13.
-                    using (var c = pipe.GetRowCursor(col => true))
+                    using (var c = pipe.GetRowCursorForAllColumns())
                     {
                         int col1;
                         bool tmp1 = c.Schema.TryGetColumnIndex("F13", out col1);
@@ -584,8 +584,8 @@ namespace Microsoft.ML.RunTests
 
                         var get1 = c.GetGetter<VBuffer<Float>>(col1);
                         var get2 = c.GetGetter<VBuffer<Float>>(col2);
-                        VBuffer<Float> bag1 = default(VBuffer<Float>);
-                        VBuffer<Float> bag2 = default(VBuffer<Float>);
+                        VBuffer<Float> bag1 = default;
+                        VBuffer<Float> bag2 = default;
                         while (c.MoveNext())
                         {
                             get1(ref bag1);
@@ -615,7 +615,7 @@ namespace Microsoft.ML.RunTests
                 (pipe) =>
                 {
                     // Verify that F2 = 2 * F1
-                    using (var c = pipe.GetRowCursor(col => true))
+                    using (var c = pipe.GetRowCursorForAllColumns())
                     {
                         int col1;
                         bool tmp1 = c.Schema.TryGetColumnIndex("F1", out col1);
@@ -628,8 +628,8 @@ namespace Microsoft.ML.RunTests
 
                         var get1 = c.GetGetter<VBuffer<Float>>(col1);
                         var get2 = c.GetGetter<VBuffer<Float>>(col2);
-                        VBuffer<Float> bag1 = default(VBuffer<Float>);
-                        VBuffer<Float> bag2 = default(VBuffer<Float>);
+                        VBuffer<Float> bag1 = default;
+                        VBuffer<Float> bag2 = default;
                         while (c.MoveNext())
                         {
                             get1(ref bag1);
@@ -769,7 +769,7 @@ namespace Microsoft.ML.RunTests
                 (pipe) =>
                 {
                     // Verify that WB2 = 2 * WB1
-                    using (var c = pipe.GetRowCursor(col => true))
+                    using (var c = pipe.GetRowCursorForAllColumns())
                     {
                         var b1 = default(VBuffer<Float>);
                         var b2 = default(VBuffer<Float>);
@@ -918,7 +918,7 @@ namespace Microsoft.ML.RunTests
                     ReadOnlyMemory<char>[] values1 = { "erythromycin".AsMemory(), "treating".AsMemory(), "pneumonia".AsMemory() };
                     expected[1] = new VBuffer<ReadOnlyMemory<char>>(values1.Length, values1);
 
-                    using (var c = pipe.GetRowCursor(col => true))
+                    using (var c = pipe.GetRowCursorForAllColumns())
                     {
                         int col;
                         bool res = c.Schema.TryGetColumnIndex("T", out col);
@@ -1105,7 +1105,7 @@ namespace Microsoft.ML.RunTests
             var srcView = builder.GetDataView();
 
             var hashTransform = new HashingTransformer(Env, new HashingTransformer.ColumnInfo("F1", "F1", 5, 42)).Transform(srcView);
-            using (var cursor = hashTransform.GetRowCursor(c => true))
+            using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
                 uint resultRow = 0;
@@ -1136,7 +1136,7 @@ namespace Microsoft.ML.RunTests
         {
             var srcView = builder.GetDataView();
             var hashTransform = new HashingTransformer(Env, new HashingTransformer.ColumnInfo("F1V", "F1V", 5, 42)).Transform(srcView);
-            using (var cursor = hashTransform.GetRowCursor(c => true))
+            using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);
                 VBuffer<uint> resultRow = new VBuffer<uint>();
@@ -1177,7 +1177,7 @@ namespace Microsoft.ML.RunTests
             var ldaTransformer = est.Fit(srcView);
             var transformedData = ldaTransformer.Transform(srcView);
 
-            using (var cursor = transformedData.GetRowCursor(c => true))
+            using (var cursor = transformedData.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<VBuffer<Float>>(1);
                 VBuffer<Float> resultFirstRow = new VBuffer<Float>();

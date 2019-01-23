@@ -18,7 +18,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <summary>
         /// Predict a target using a tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
@@ -39,7 +39,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         ///  [!code-csharp[LightGBM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBMRegression.cs)]
         /// ]]></format>
         /// </example>
-        public static Scalar<float> LightGbm(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -66,7 +66,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <summary>
         /// Predict a target using a tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
@@ -88,7 +88,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         ///  [!code-csharp[LightGBM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBMBinaryClassification.cs)]
         /// ]]></format>
         /// </example>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -117,7 +117,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <summary>
         /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RankingContext"/>.</param>
+        /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
@@ -134,7 +134,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
-        public static Scalar<float> LightGbm<TVal>(this RankingContext.RankingTrainers ctx,
+        public static Scalar<float> LightGbm<TVal>(this RankingCatalog.RankingTrainers catalog,
            Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -163,7 +163,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <summary>
         /// Predict a target using a tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The weights column.</param>
@@ -189,7 +189,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// </format>
         /// </example>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            LightGbm<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            LightGbm<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights = null,

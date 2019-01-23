@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the data of the newly created column as an IEnumerable of SampleInfertDataWithFeatures.
-            var featuresColumn = transformedData.AsEnumerable<SampleInfertDataWithFeatures>(ml, reuseRowObject: false);
+            var featuresColumn = ml.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             foreach (var featureRow in featuresColumn)

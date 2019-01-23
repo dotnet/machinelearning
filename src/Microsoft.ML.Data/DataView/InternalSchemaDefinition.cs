@@ -119,11 +119,10 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(Generator.GetMethodInfo().ReturnType == typeof(void));
 
                 // Checks that the return type of the generator is compatible with ColumnType.
-                GetVectorAndKind(ComputedReturnType, "return type", out bool isVector, out DataKind datakind);
+                GetVectorAndItemType(ComputedReturnType, "return type", out bool isVector, out Type itemType);
                 Contracts.Assert(isVector == ColumnType is VectorType);
-                Contracts.Assert(datakind == ColumnType.GetItemType().RawKind);
+                Contracts.Assert(itemType == ColumnType.GetItemType().RawType);
             }
-
         }
 
         private InternalSchemaDefinition(Column[] columns)
@@ -139,18 +138,20 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="memberInfo">The field or property info to inspect.</param>
         /// <param name="isVector">Whether this appears to be a vector type.</param>
-        /// <param name="kind">The data kind of the type, or items of this type if vector.</param>
-        public static void GetVectorAndKind(MemberInfo memberInfo, out bool isVector, out DataKind kind)
+        /// <param name="itemType">
+        /// The corresponding <see cref="PrimitiveType"/> RawType of the type, or items of this type if vector.
+        /// </param>
+        public static void GetVectorAndItemType(MemberInfo memberInfo, out bool isVector, out Type itemType)
         {
             Contracts.AssertValue(memberInfo);
             switch (memberInfo)
             {
                 case FieldInfo fieldInfo:
-                    GetVectorAndKind(fieldInfo.FieldType, fieldInfo.Name, out isVector, out kind);
+                    GetVectorAndItemType(fieldInfo.FieldType, fieldInfo.Name, out isVector, out itemType);
                     break;
 
                 case PropertyInfo propertyInfo:
-                    GetVectorAndKind(propertyInfo.PropertyType, propertyInfo.Name, out isVector, out kind);
+                    GetVectorAndItemType(propertyInfo.PropertyType, propertyInfo.Name, out isVector, out itemType);
                     break;
 
                 default:
@@ -160,49 +161,33 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given a parameter info on a type, returns whether this appears to be a vector type,
-        /// and also the associated data kind for this type. If a data kind could not
-        /// be determined, this will throw.
-        /// </summary>
-        /// <param name="parameterInfo">The parameter info to inspect.</param>
-        /// <param name="isVector">Whether this appears to be a vector type.</param>
-        /// <param name="kind">The data kind of the type, or items of this type if vector.</param>
-        public static void GetVectorAndKind(ParameterInfo parameterInfo, out bool isVector, out DataKind kind)
-        {
-            Contracts.AssertValue(parameterInfo);
-            Type rawParameterType = parameterInfo.ParameterType;
-            var name = parameterInfo.Name;
-            GetVectorAndKind(rawParameterType, name, out isVector, out kind);
-        }
-
-        /// <summary>
         /// Given a type and name for a variable, returns whether this appears to be a vector type,
-        /// and also the associated data kind for this type. If a data kind could not
+        /// and also the associated data type for this type. If a valid data type could not
         /// be determined, this will throw.
         /// </summary>
         /// <param name="rawType">The type of the variable to inspect.</param>
         /// <param name="name">The name of the variable to inspect.</param>
         /// <param name="isVector">Whether this appears to be a vector type.</param>
-        /// <param name="kind">The data kind of the type, or items of this type if vector.</param>
-        public static void GetVectorAndKind(Type rawType, string name, out bool isVector, out DataKind kind)
+        /// <param name="itemType">
+        /// The corresponding <see cref="PrimitiveType"/> RawType of the type, or items of this type if vector.
+        /// </param>
+        public static void GetVectorAndItemType(Type rawType, string name, out bool isVector, out Type itemType)
         {
             // Determine whether this is a vector, and also determine the raw item type.
-            Type rawItemType;
             isVector = true;
             if (rawType.IsArray)
-                rawItemType = rawType.GetElementType();
+                itemType = rawType.GetElementType();
             else if (rawType.IsGenericType && rawType.GetGenericTypeDefinition() == typeof(VBuffer<>))
-                rawItemType = rawType.GetGenericArguments()[0];
+                itemType = rawType.GetGenericArguments()[0];
             else
             {
-                rawItemType = rawType;
+                itemType = rawType;
                 isVector = false;
             }
 
-            // Get the data kind, and the item's column type.
-            if (rawItemType == typeof(string))
-                kind = DataKind.Text;
-            else if (!rawItemType.TryGetDataKind(out kind))
+            if (itemType == typeof(string))
+                itemType = typeof(ReadOnlyMemory<char>);
+            else if (!itemType.TryGetDataKind(out _))
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
         }
 
@@ -229,7 +214,7 @@ namespace Microsoft.ML.Data
                     throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Null field name detected in schema definition");
 
                 bool isVector;
-                DataKind kind;
+                Type dataItemType;
                 MemberInfo memberInfo = null;
 
                 if (!col.IsComputed)
@@ -250,14 +235,14 @@ namespace Microsoft.ML.Data
                         (memberInfo is PropertyInfo && (memberInfo as PropertyInfo).PropertyType == typeof(IChannel)))
                         continue;
 
-                    GetVectorAndKind(memberInfo, out isVector, out kind);
+                    GetVectorAndItemType(memberInfo, out isVector, out dataItemType);
                 }
                 else
                 {
                     var parameterType = col.ReturnType;
                     if (parameterType == null)
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "No return parameter found in computed column.");
-                    GetVectorAndKind(parameterType, "returnType", out isVector, out kind);
+                    GetVectorAndItemType(parameterType, "returnType", out isVector, out dataItemType);
                 }
                 // Infer the column name.
                 var colName = string.IsNullOrEmpty(col.ColumnName) ? col.MemberName : col.ColumnName;
@@ -269,7 +254,7 @@ namespace Microsoft.ML.Data
                 if (col.ColumnType == null)
                 {
                     // Infer a type as best we can.
-                    PrimitiveType itemType = PrimitiveType.FromKind(kind);
+                    PrimitiveType itemType = PrimitiveType.FromType(dataItemType);
                     colType = isVector ? new VectorType(itemType) : (ColumnType)itemType;
                 }
                 else
@@ -283,10 +268,10 @@ namespace Microsoft.ML.Data
                             colName, columnVectorType != null ? "vector" : "scalar", col.MemberName, isVector ? "vector" : "scalar");
                     }
                     ColumnType itemType = columnVectorType?.ItemType ?? col.ColumnType;
-                    if (kind != itemType.RawKind)
+                    if (itemType.RawType != dataItemType)
                     {
-                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to have item kind {1}, but associated field has kind {2}",
-                            colName, itemType.RawKind, kind);
+                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to have item type {1}, but associated field has type {2}",
+                            colName, itemType.RawType, dataItemType);
                     }
                     colType = col.ColumnType;
                 }

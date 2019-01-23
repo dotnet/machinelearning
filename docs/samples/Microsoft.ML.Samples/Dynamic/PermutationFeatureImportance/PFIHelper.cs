@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             // First, we define the reader: specify the data columns and where to find them in the text file.
             // The data file is composed of rows of data, with each row having 11 numerical columns
             // separated by whitespace.
-            var reader = mlContext.Data.CreateTextReader(
+            var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         // Read the first column (indexed by 0) in the data file as an R4 (float)

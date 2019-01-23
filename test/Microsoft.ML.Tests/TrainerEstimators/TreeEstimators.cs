@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
@@ -64,10 +65,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new BinaryClassificationGamTrainer(Env, "Label", "Features", advancedSettings: s =>
+            var trainer = new BinaryClassificationGamTrainer(Env, new BinaryClassificationGamTrainer.Options
             {
-                s.GainConfidenceLevel = 0;
-                s.NumIterations = 15;
+                GainConfidenceLevel = 0,
+                NumIterations = 15,
             });
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
@@ -179,10 +180,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void GAMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new RegressionGamTrainer(Env, "Label", "Features", advancedSettings: s =>
+            var trainer = new RegressionGamTrainer(Env, new RegressionGamTrainer.Options
             {
-                s.EnablePruning = false;
-                s.NumIterations = 15;
+                EnablePruning = false,
+                NumIterations = 15,
             });
 
             TestEstimatorCore(trainer, dataView);
@@ -287,7 +288,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 advancedSettings: s => { s.MinDataPerGroup = 1; s.MinDataPerLeaf = 1; s.UseSoftmax = useSoftmax; });
             var gbm = gbmTrainer.Fit(dataView);
             var predicted = gbm.Transform(dataView);
-            mlnetPredictions = new List<GbmExample>(predicted.AsEnumerable<GbmExample>(mlContext, false));
+            mlnetPredictions = mlContext.CreateEnumerable<GbmExample>(predicted, false).ToList();
 
             // Convert training to LightGBM's native format and train LightGBM model via its APIs
             // Convert the whole training matrix to CSC format required by LightGBM interface. Notice that the training matrix
