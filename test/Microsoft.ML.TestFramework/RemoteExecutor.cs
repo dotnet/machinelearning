@@ -20,8 +20,7 @@ namespace Microsoft.ML.TestFramework
         /// <summary>The name of the test console app.</summary>
         public static readonly string TestConsoleApp = Path.GetFullPath(@"RemoteExecutorConsoleApp.dll");
 #if NETFRAMEWORK
-        public static readonly string HostRunner = TestConsoleApp;
-
+        public static readonly string HostRunner = Path.GetFullPath(@"RemoteExecutorConsoleApp.exe");
         private static readonly string ExtraParameter = "";
 #else
         public static readonly string HostRunner = Process.GetCurrentProcess().MainModule.FileName;
