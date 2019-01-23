@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(3);
             var getterE = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(4);
             var getterF = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(5);
