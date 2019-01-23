@@ -8,6 +8,7 @@ namespace Microsoft.ML.Auto.Test
     [TestClass]
     public class GetNextPipelineTests
     {
+        [Ignore]
         [TestMethod]
         public void GetNextPipeline()
         {
