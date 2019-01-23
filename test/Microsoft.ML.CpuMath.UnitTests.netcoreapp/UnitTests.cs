@@ -122,57 +122,57 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         public static TheoryData<string, string, Dictionary<string, string>> AddData() => new TheoryData<string, string, Dictionary<string, string>>()
         {
-            { "0", defaultMode, null },
-            { "1", defaultMode, null },
+            {  defaultMode, "0", null },
+            {  defaultMode, "1", null },
 
 #if NETCOREAPP3_0
-            { "0", disableAvx, DisableAvxEnvironmentVariables },
-            { "1", disableAvx, DisableAvxEnvironmentVariables },
+            { disableAvx, "0", DisableAvxEnvironmentVariables },
+            { disableAvx, "1", DisableAvxEnvironmentVariables },
 
-            { "0", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
-            { "1", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse, "0", DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse, "1", DisableAvxAndSseEnvironmentVariables },
 #endif
         };
 
         public static TheoryData<string, string, string, Dictionary<string, string>> AddScaleData() => new TheoryData<string, string, string, Dictionary<string, string>>()
         {
-            { "0", "1.7", defaultMode, null },
-            { "1", "1.7", defaultMode, null },
-            { "0", "-1.7", defaultMode, null },
-            { "1", "-1.7", defaultMode, null },
+            {  defaultMode, "0", "1.7", null },
+            {  defaultMode, "1", "1.7", null },
+            {  defaultMode, "0", "-1.7", null },
+            {  defaultMode, "1", "-1.7", null },
 
 #if NETCOREAPP3_0
-            { "0", "1.7", disableAvx, DisableAvxEnvironmentVariables },
-            { "1", "1.7", disableAvx, DisableAvxEnvironmentVariables },
-            { "0", "-1.7", disableAvx, DisableAvxEnvironmentVariables },
-            { "1", "-1.7", disableAvx, DisableAvxEnvironmentVariables },
+            {  disableAvx, "0", "1.7", DisableAvxEnvironmentVariables },
+            {  disableAvx, "1", "1.7", DisableAvxEnvironmentVariables },
+            {  disableAvx, "0", "-1.7", DisableAvxEnvironmentVariables },
+            {  disableAvx, "1", "-1.7", DisableAvxEnvironmentVariables },
 
-            { "0", "1.7", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
-            { "1", "1.7", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
-            { "0", "-1.7", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
-            { "1", "-1.7", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse, "0", "1.7", DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse, "1", "1.7", DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse, "0", "-1.7", DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse, "1", "-1.7", DisableAvxAndSseEnvironmentVariables },
 #endif
         };
 
         public static TheoryData<string, string, string, string, Dictionary<string, string>> MatMulData => new TheoryData<string, string, string, string, Dictionary<string, string>>()
         {
-            {"0", "0", "0", defaultMode, null },
-            {"1", "1", "0", defaultMode, null },
-            {"1", "0", "1", defaultMode, null },
+            { defaultMode, "0", "0", "0", null },
+            { defaultMode, "1", "1", "0", null },
+            { defaultMode, "1", "0", "1", null },
 #if NETCOREAPP3_0
-            {"0", "0", "0", disableAvx, DisableAvxEnvironmentVariables },
-            {"1", "1", "0", disableAvx, DisableAvxEnvironmentVariables },
-            {"1", "0", "1", disableAvx, DisableAvxEnvironmentVariables },
+            { disableAvx, "0", "0", "0", DisableAvxEnvironmentVariables },
+            { disableAvx, "1", "1", "0", DisableAvxEnvironmentVariables },
+            { disableAvx, "1", "0", "1", DisableAvxEnvironmentVariables },
 
-            {"0", "0", "0", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
-            {"1", "1", "0", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
-            {"1", "0", "1", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse , "0", "0", "0", DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse , "1", "1", "0", DisableAvxAndSseEnvironmentVariables },
+            { disableAvxAndSse , "1", "0", "1", DisableAvxAndSseEnvironmentVariables },
 #endif
         };
 
         [Theory]
         [MemberData(nameof(MatMulData))]
-        public void MatMulTest(string matTest, string srcTest, string dstTest, string mode, Dictionary<string, string> environmentVariables)
+        public void MatMulTest(string mode, string matTest, string srcTest, string dstTest, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2, arg3) =>
             {
@@ -202,7 +202,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(MatMulData))]
-        public void MatMulTranTest(string matTest, string srcTest, string dstTest, string mode, Dictionary<string, string> environmentVariables)
+        public void MatMulTranTest(string mode, string matTest, string srcTest, string dstTest, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2, arg3) =>
             {
@@ -232,7 +232,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(MatMulData))]
-        public void MatTimesSrcSparseTest(string matTest, string srcTest, string dstTest, string mode, Dictionary<string, string> environmentVariables)
+        public void MatTimesSrcSparseTest(string mode, string matTest, string srcTest, string dstTest, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2, arg3) =>
             {
@@ -266,7 +266,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void AddScalarUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void AddScalarUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -289,7 +289,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void ScaleTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void ScaleTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -312,7 +312,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void ScaleSrcUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void ScaleSrcUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -336,7 +336,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void ScaleAddUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void ScaleAddUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -360,7 +360,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void AddScaleUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void AddScaleUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -384,7 +384,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void AddScaleSUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void AddScaleSUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -409,7 +409,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void AddScaleCopyUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void AddScaleCopyUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -434,7 +434,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void AddUTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void AddUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) => 
             {
@@ -463,7 +463,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void AddSUTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void AddSUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -492,7 +492,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void MulElementWiseUTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void MulElementWiseUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -523,7 +523,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void SumTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void SumTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -543,7 +543,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void SumSqUTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void SumSqUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -563,7 +563,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void SumSqDiffUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void SumSqDiffUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -585,7 +585,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void SumAbsUTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void SumAbsUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -605,7 +605,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void SumAbsDiffUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void SumAbsDiffUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -627,7 +627,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void MaxAbsUTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void MaxAbsUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -652,7 +652,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void MaxAbsDiffUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void MaxAbsDiffUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -677,7 +677,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void DotUTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void DotUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -704,7 +704,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void DotSUTest(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void DotSUTest(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -734,7 +734,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void Dist2Test(string test, string mode, Dictionary<string, string> environmentVariables)
+        public void Dist2Test(string mode, string test, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
@@ -791,7 +791,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void SdcaL1UpdateUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void SdcaL1UpdateUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
@@ -818,7 +818,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void SdcaL1UpdateSUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
+        public void SdcaL1UpdateSUTest(string mode, string test, string scale, Dictionary<string, string> environmentVariables)
         {
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {

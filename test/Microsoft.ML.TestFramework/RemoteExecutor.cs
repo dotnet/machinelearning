@@ -14,7 +14,10 @@ using Xunit.Sdk;
 
 namespace Microsoft.ML.TestFramework
 {
-    /// <summary>Base class used for all tests that need to spawn a remote process.</summary>
+    /// <summary>
+    /// Base class used for all tests that need to spawn a remote process.
+    /// Most of the code has been taken from RemoteExecutorTestBase class in the corefx repo.
+    /// </summary>
     public static class RemoteExecutor
     {
         /// <summary>The name of the test console app.</summary>
