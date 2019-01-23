@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -13,23 +14,29 @@ namespace Microsoft.ML.Auto
         private const int TopKTrainers = 3;
 
         public static Pipeline GetNextPipeline(IEnumerable<PipelineRunResult> history,
-            IEnumerable<SuggestedTransform> transforms,
-            IEnumerable<SuggestedTrainer> availableTrainers,
+            (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
+            TaskKind task,
+            int iterationsRemaining,
             bool isMaximizingMetric = true)
         {
             var inferredHistory = history.Select(r => InferredPipelineRunResult.FromPipelineRunResult(r));
-            var nextInferredPipeline = GetNextInferredPipeline(inferredHistory,
-                transforms, availableTrainers, isMaximizingMetric);
+            var nextInferredPipeline = GetNextInferredPipeline(inferredHistory, columns, task, iterationsRemaining, isMaximizingMetric);
             return nextInferredPipeline.ToPipeline();
         }
 
         public static InferredPipeline GetNextInferredPipeline(IEnumerable<InferredPipelineRunResult> history,
-            IEnumerable<SuggestedTransform> transforms,
-            IEnumerable<SuggestedTrainer> availableTrainers,
+            (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
+            TaskKind task,
+            int iterationsRemaining,
             bool isMaximizingMetric = true)
         {
+            var context = new MLContext();
+
+            var availableTrainers = RecipeInference.AllowedTrainers(context, TaskKind.BinaryClassification, history.Count() + iterationsRemaining);
+            var transforms = TransformInferenceApi.InferTransforms(context, columns);
+
             // if we haven't run all pipelines once
-            if(history.Count() < availableTrainers.Count())
+            if (history.Count() < availableTrainers.Count())
             {
                 return GetNextFirstStagePipeline(history, availableTrainers, transforms);
             }

@@ -16,7 +16,7 @@ namespace Microsoft.ML.Auto
         private readonly IDebugLogger _debugLogger;
         private readonly IList<InferredPipelineRunResult> _history;
         private readonly string _label;
-        private readonly MLContext _mlContext;
+        private readonly MLContext _context;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
         private readonly IDictionary<string, ColumnPurpose> _purposeOverrides;
         private readonly AutoFitSettings _settings;
@@ -24,14 +24,14 @@ namespace Microsoft.ML.Auto
         private readonly TaskKind _task;
         private readonly IDataView _validationData;
 
-        public AutoFitter(MLContext mlContext, OptimizingMetricInfo metricInfo, AutoFitSettings settings, 
+        public AutoFitter(MLContext context, OptimizingMetricInfo metricInfo, AutoFitSettings settings, 
             TaskKind task, string label, IDataView trainData, IDataView validationData,
             IDictionary<string, ColumnPurpose> purposeOverrides, IDebugLogger debugLogger)
         {
             _debugLogger = debugLogger;
             _history = new List<InferredPipelineRunResult>();
             _label = label;
-            _mlContext = mlContext;
+            _context = context;
             _optimizingMetricInfo = metricInfo;
             _settings = settings ?? new AutoFitSettings();
             _purposeOverrides = purposeOverrides;
@@ -49,13 +49,13 @@ namespace Microsoft.ML.Auto
         private void IteratePipelinesAndFit()
         {
             var stopwatch = Stopwatch.StartNew();
-            var transforms = TransformInferenceApi.InferTransforms(_mlContext, _trainData, _label, _purposeOverrides);
-            var availableTrainers = RecipeInference.AllowedTrainers(_mlContext, _task, _settings.StoppingCriteria.MaxIterations);
+            var columns = AutoMlUtils.GetColumnInfoTuples(_context, _trainData, _label, _purposeOverrides);
 
             do
             {
                 // get next pipeline
-                var pipeline = PipelineSuggester.GetNextInferredPipeline(_history, transforms, availableTrainers, _optimizingMetricInfo.IsMaximizing);
+                var iterationsRemaining = _settings.StoppingCriteria.MaxIterations - _history.Count;
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, iterationsRemaining, _optimizingMetricInfo.IsMaximizing);
 
                 // break if no candidates returned, means no valid pipeline available
                 if (pipeline == null)
@@ -113,11 +113,11 @@ namespace Microsoft.ML.Auto
             switch(_task)
             {
                 case TaskKind.BinaryClassification:
-                    return _mlContext.BinaryClassification.EvaluateNonCalibrated(scoredData);
+                    return _context.BinaryClassification.EvaluateNonCalibrated(scoredData);
                 case TaskKind.MulticlassClassification:
-                    return _mlContext.MulticlassClassification.Evaluate(scoredData);
+                    return _context.MulticlassClassification.Evaluate(scoredData);
                 case TaskKind.Regression:
-                    return _mlContext.Regression.Evaluate(scoredData);
+                    return _context.Regression.Evaluate(scoredData);
                 // should not be possible to reach here
                 default:
                     throw new InvalidOperationException($"unsupported machine learning task type {_task}");

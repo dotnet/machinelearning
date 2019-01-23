@@ -67,97 +67,21 @@ namespace Microsoft.ML.Auto
     /// </summary>
     internal static class TransformInference
     {
-        private const double EstimatedSampleFraction = 1.0;
         private const bool ExcludeFeaturesConcatTransforms = false;
-
-        private const int MaxRowsToRead = 1000;
 
         internal class IntermediateColumn
         {
-            private readonly IDataView _data;
-            private readonly int _columnId;
-            private readonly ColumnPurpose _purpose;
-            private readonly Lazy<ColumnType> _type;
-            private readonly Lazy<string> _columnName;
-            private readonly Lazy<bool> _hasMissing;
+            public readonly string ColumnName;
+            public readonly ColumnType Type;
+            public readonly ColumnPurpose Purpose;
+            public readonly ColumnDimensions Dimensions;
 
-            public int ColumnId { get { return _columnId; } }
-            public ColumnPurpose Purpose { get { return _purpose; } }
-            public ColumnType Type { get { return _type.Value; } }
-            public string ColumnName { get { return _columnName.Value; } }
-            public bool HasMissing { get { return _hasMissing.Value; } }
-
-            public IntermediateColumn(IDataView data, PurposeInference.Column column)
+            public IntermediateColumn(string name, ColumnType type, ColumnPurpose purpose, ColumnDimensions dimensions)
             {
-                _data = data;
-                _columnId = column.ColumnIndex;
-                _purpose = column.Purpose;
-                _type = new Lazy<ColumnType>(() => _data.Schema[_columnId].Type);
-                _columnName = new Lazy<string>(() => _data.Schema[_columnId].Name);
-                _hasMissing = new Lazy<bool>(() =>
-                {
-                    if (Type.ItemType() != NumberType.R4)
-                        return false;
-                    return Type.IsVector() ? HasMissingVector() : HasMissingOne();
-                });
-            }
-
-            public string GetTempColumnName(string tag = null) => _data.Schema.GetTemporaryColumnName(tag);
-
-            private bool HasMissingOne()
-            {
-                using (var cursor = _data.GetRowCursor(x => x == _columnId))
-                {
-                    var getter = cursor.GetGetter<Single>(_columnId);
-                    var value = default(Single);
-                    while (cursor.MoveNext())
-                    {
-                        getter(ref value);
-                        if (Single.IsNaN(value))
-                            return true;
-                    }
-                    return false;
-                }
-            }
-
-            private bool HasMissingVector()
-            {
-                using (var cursor = _data.GetRowCursor(x => x == _columnId))
-                {
-                    var getter = cursor.GetGetter<VBuffer<Single>>(_columnId);
-                    var value = default(VBuffer<Single>);
-                    while (cursor.MoveNext())
-                    {
-                        getter(ref value);
-                        if (VBufferUtils.HasNaNs(value))
-                            return true;
-                    }
-                    return false;
-                }
-            }
-
-            public void GetUniqueValueCounts<T>(out int uniqueValueCount, out int singletonCount, out int rowCount)
-            {
-                var seen = new HashSet<string>();
-                var singletons = new HashSet<string>();
-                rowCount = 0;
-                using (var cursor = _data.GetRowCursor(x => x == _columnId))
-                {
-                    var getter = cursor.GetGetter<T>(_columnId);
-                    while (cursor.MoveNext())
-                    {
-                        var value = default(T);
-                        getter(ref value);
-                        var s = value.ToString();
-                        if (seen.Add(s))
-                            singletons.Add(s);
-                        else
-                            singletons.Remove(s);
-                        rowCount++;
-                    }
-                    uniqueValueCount = seen.Count;
-                    singletonCount = singletons.Count;
-                }
+                ColumnName = name;
+                Type = type;
+                Purpose = purpose;
+                Dimensions = dimensions;
             }
         }
 
@@ -245,9 +169,6 @@ namespace Microsoft.ML.Auto
 
             // If there's more than one feature column, concat all into Features. If it isn't called 'Features', rename it.
             yield return new Experts.FeaturesColumnConcatRenameNumericOnly();
-
-            // For text columns, also use TextTransform with Unigram + trichar.
-            //yield return new Experts.TextUniGramTriGram();
         }
 
         internal static class Experts
@@ -308,9 +229,11 @@ namespace Microsoft.ML.Auto
                     foreach (var column in columns)
                     {
                         if (!column.Type.ItemType().IsText() || column.Purpose != ColumnPurpose.CategoricalFeature)
+                        {
                             continue;
+                        }
 
-                        if (IsDictionaryOk(column, EstimatedSampleFraction))
+                        if (column.Dimensions.Cardinality < 100)
                         {
                             foundCat = true;
                             catColumnsNew.Add(column.ColumnName);
@@ -339,23 +262,6 @@ namespace Microsoft.ML.Auto
                         yield return InferenceHelpers.GetRemainingFeatures(featureCols, columns, IncludeFeaturesOverride);
                         IncludeFeaturesOverride = true;
                     }
-                }
-
-                private bool IsDictionaryOk(IntermediateColumn column, Double dataSampleFraction)
-                {
-                    if (column.Type.IsVector())
-                        return false;
-                    int total;
-                    int unique;
-                    int singletons;
-                    // REVIEW: replace with proper Good-Turing estimation.
-                    // REVIEW: This looks correct; cf. equation (8) of Katz S. "Estimation of Probabilities from
-                    // Sparse Data for the Language Model Component of a Speech Recognizer" (1987), taking into account that
-                    // the singleton count was estimated from a fraction of the data (and assuming the estimate is
-                    // roughly the same for the entire sample).
-                    column.GetUniqueValueCounts<ReadOnlyMemory<char>>(out unique, out singletons, out total);
-                    var expectedUnseenValues = singletons / dataSampleFraction;
-                    return expectedUnseenValues < 1000 && unique < 10000;
                 }
             }
 
@@ -403,26 +309,6 @@ namespace Microsoft.ML.Auto
                         newCols.Insert(0, DefaultColumnNames.Features);
                     return ColumnConcatenatingExtension.CreateSuggestedTransform(new MLContext(), newCols.ToArray(), DefaultColumnNames.Features);
                 }
-
-                public static SuggestedTransform TextTransformUnigramTriChar(MLContext context, string srcColumn, string dstColumn)
-                {
-                    //var input = new TextFeaturizingEstimator(context, srcColumn, dstColumn)
-                    //{
-                        //WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 1 },
-                        //CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3 }
-                    //};
-                    return TextFeaturizingExtension.CreateSuggestedTransform(context, srcColumn, dstColumn);
-                }
-
-                public static SuggestedTransform TextTransformBigramTriChar(MLContext context, string srcColumn, string dstColumn)
-                {
-                    //var input = new TextFeaturizingEstimator(env, srcColumn, dstColumn)
-                    //{
-                        //WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2 },
-                        //CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3 }
-                    //};
-                    return TextFeaturizingExtension.CreateSuggestedTransform(context, srcColumn, dstColumn);
-                }
             }
 
             internal sealed class Text : TransformInferenceExpertBase
@@ -454,50 +340,6 @@ namespace Microsoft.ML.Auto
                 }
             }
 
-            internal sealed class TextUniGramTriGram : TransformInferenceExpertBase
-            {
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
-                {
-                    var textColumnNames =
-                        columns.Where(
-                            column => column.Type.ItemType().IsText() && column.Purpose == ColumnPurpose.TextFeature)
-                            .Select(column => column.ColumnName).ToArray();
-
-                    if ((textColumnNames.Length == 0) ||
-                        (columns.Count(col => col.Purpose == ColumnPurpose.Label) != 1))
-                        yield break;
-
-                    //Concat text columns into one.
-                    string concatTextColumnName;
-                    if (textColumnNames.Length > 1)
-                    {
-                        concatTextColumnName = columns[0].GetTempColumnName("TextConcat");
-                        yield return ColumnConcatenatingExtension.CreateSuggestedTransform(Context, textColumnNames, concatTextColumnName);
-                    }
-                    else
-                    {
-                        concatTextColumnName = textColumnNames.First();
-                    }
-
-                    //Get Unigram + Trichar for text transform on the concatenated text column.
-                    string featureTextColumn = columns[0].GetTempColumnName("FeaturesText");
-                    yield return InferenceHelpers.TextTransformUnigramTriChar(Context, concatTextColumnName, featureTextColumn);
-
-                    //Concat text featurized column into feature column.
-                    List<string> featureCols = new List<string>(new[] { featureTextColumn });
-                    if (columns.Any(
-                            col =>
-                                (col.Purpose == ColumnPurpose.NumericFeature) ||
-                                (col.Purpose == ColumnPurpose.CategoricalFeature)))
-                        featureCols.Add(DefaultColumnNames.Features);
-
-                    if (!ExcludeFeaturesConcatTransforms)
-                    {
-                        yield return ColumnConcatenatingExtension.CreateSuggestedTransform(Context, featureCols.ToArray(), DefaultColumnNames.Features);
-                    }
-                }
-            }
-
             internal sealed class NumericMissing : TransformInferenceExpertBase
             {
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
@@ -505,13 +347,11 @@ namespace Microsoft.ML.Auto
                     var columnsWithMissing = new List<string>();
                     foreach (var column in columns)
                     {
-                        if (column.Type.ItemType() != NumberType.R4 || column.Purpose != ColumnPurpose.NumericFeature
-                            || !column.HasMissing)
+                        if (column.Type.ItemType() == NumberType.R4 && column.Purpose == ColumnPurpose.NumericFeature
+                            && column.Dimensions.HasMissing == true)
                         {
-                            continue;
+                            columnsWithMissing.Add(column.ColumnName);
                         }
-
-                        columnsWithMissing.Add(column.ColumnName);
                     }
                     if (columnsWithMissing.Any())
                     {
@@ -628,16 +468,22 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Automatically infer transforms for the data view
         /// </summary>
-        public static SuggestedTransform[] InferTransforms(MLContext env, IDataView data, PurposeInference.Column[] purposes)
+        public static SuggestedTransform[] InferTransforms(MLContext env, (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns)
         {
-            data = data.Take(MaxRowsToRead);
-            var cols = purposes.Where(x => !data.Schema[x.ColumnIndex].IsHidden).Select(x => new IntermediateColumn(data, x)).ToArray();
+            var intermediateCols = new IntermediateColumn[columns.Length];
+            for (var i = 0; i < columns.Length; i++)
+            {
+                var column = columns[i];
+                var intermediateCol = new IntermediateColumn(column.Item1, column.Item2, column.Item3, column.Item4);
+                intermediateCols[i] = intermediateCol;
+            }
+
             var list = new List<SuggestedTransform>();
             var includeFeaturesOverride = false;
             foreach (var expert in GetExperts())
             {
                 expert.IncludeFeaturesOverride = includeFeaturesOverride;
-                SuggestedTransform[] suggestions = expert.Apply(cols).ToArray();
+                SuggestedTransform[] suggestions = expert.Apply(intermediateCols).ToArray();
                 includeFeaturesOverride |= expert.IncludeFeaturesOverride;
 
                 list.AddRange(suggestions);

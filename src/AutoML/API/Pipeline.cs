@@ -5,11 +5,11 @@ namespace Microsoft.ML.Auto
 {
     public class Pipeline
     {
-        public PipelineNode[] Elements { get; set; }
+        public PipelineNode[] Nodes { get; set; }
 
-        public Pipeline(PipelineNode[] elements)
+        public Pipeline(PipelineNode[] nodes)
         {
-            Elements = elements;
+            Nodes = nodes;
         }
 
         // (used by Newtonsoft)
@@ -27,31 +27,31 @@ namespace Microsoft.ML.Auto
     public class PipelineNode
     {
         public string Name { get; set; }
-        public PipelineNodeType ElementType { get; set; }
+        public PipelineNodeType NodeType { get; set; }
         public string[] InColumns { get; set; }
         public string[] OutColumns { get; set; }
         public IDictionary<string, object> Properties { get; set; }
 
-        public PipelineNode(string name, PipelineNodeType elementType,
+        public PipelineNode(string name, PipelineNodeType nodeType,
             string[] inColumns, string[] outColumns,
             IDictionary<string, object> properties = null)
         {
             Name = name;
-            ElementType = elementType;
+            NodeType = nodeType;
             InColumns = inColumns;
             OutColumns = outColumns;
             Properties = properties ?? new Dictionary<string, object>();
         }
 
-        public PipelineNode(string name, PipelineNodeType elementType, 
+        public PipelineNode(string name, PipelineNodeType nodeType, 
             string inColumn, string outColumn, IDictionary<string, object> properties = null) :
-            this(name, elementType, new string[] { inColumn }, new string[] { outColumn }, properties)
+            this(name, nodeType, new string[] { inColumn }, new string[] { outColumn }, properties)
         {
         }
 
-        public PipelineNode(string name, PipelineNodeType elementType,
+        public PipelineNode(string name, PipelineNodeType nodeType,
             string[] inColumns, string outColumn, IDictionary<string, object> properties = null) :
-            this(name, elementType, inColumns, new string[] { outColumn }, properties)
+            this(name, nodeType, inColumns, new string[] { outColumn }, properties)
         {
         }
 

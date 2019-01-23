@@ -70,9 +70,9 @@ namespace Microsoft.ML.Auto
             var transforms = new List<SuggestedTransform>();
             SuggestedTrainer trainer = null;
 
-            foreach(var pipelineNode in pipeline.Elements)
+            foreach(var pipelineNode in pipeline.Nodes)
             {
-                if(pipelineNode.ElementType == PipelineNodeType.Trainer)
+                if(pipelineNode.NodeType == PipelineNodeType.Trainer)
                 {
                     var trainerName = (TrainerName)Enum.Parse(typeof(TrainerName), pipelineNode.Name);
                     var trainerExtension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Auto
                     var hyperParamSet = new ParameterSet(stringParamVals);
                     trainer = new SuggestedTrainer(context, trainerExtension, hyperParamSet);
                 }
-                else if (pipelineNode.ElementType == PipelineNodeType.Transform)
+                else if (pipelineNode.NodeType == PipelineNodeType.Transform)
                 {
                     var estimatorName = (EstimatorName)Enum.Parse(typeof(EstimatorName), pipelineNode.Name);
                     var estimatorExtension = EstimatorExtensionCatalog.GetExtension(estimatorName);
