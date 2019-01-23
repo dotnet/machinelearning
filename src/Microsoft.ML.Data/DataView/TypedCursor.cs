@@ -133,7 +133,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="memberInfo"/>.
-        /// They must both be vectors or scalars, and the raw data kind should match.
+        /// They must both be vectors or scalars, and the raw data type should match.
         /// </summary>
         private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
         {
