@@ -43,7 +43,7 @@ phases:
     - script: $(_buildScript) -$(_configuration) -runtests
       displayName: Run Tests without code coverage.
       condition: eq(variables._codeCoverage, 'false')
-    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecov.proj /t:Codecov /p:UseCodecov=true
+    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /t:Codecov /p:UseCodecov=true
       env:
         CODECOV_TOKEN: $(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io

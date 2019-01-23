@@ -1,8 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project>
-  <Import Project="..\Directory.Build.props" />
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <Target Name="Codecov" Condition="'$(UseCodecov)' == 'true'">
+  <PropertyGroup>
+    <!-- We need to specify a framework in order for the Restore target to work -->
+    <TargetFramework Condition="'$(TargetFramework)' == ''">netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <PackageReference Include="Codecov" Version="$(CodecovVersion)" />
+  </ItemGroup>
+  <Target Name="Codecov" DependsOnTargets="Restore" Condition="'$(UseCodecov)' == 'true'">
     <PropertyGroup>
       <_CodecovPath>$(RestorePackagesPath)codecov\$(CodecovVersion)\tools\Codecov.exe</_CodecovPath>
 
@@ -22,7 +28,6 @@
       <_CodecovArgs Include="-n;$(BUILD_DEFINITIONNAME)" Condition="'$(BUILD_DEFINITIONNAME)' != ''" />
       <_CodecovArgs Include="--flag;$(Configuration)" Condition="'$(Configuration)' != ''" />
       <_CodecovArgs Include="-t;$(CODECOV_TOKEN)" Condition="'$(CODECOV_TOKEN)' != ''" />
-      <_CodecovArgs Include="-Z"/>
     </ItemGroup>
 
     <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
