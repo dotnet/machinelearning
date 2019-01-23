@@ -461,8 +461,8 @@ namespace Microsoft.ML.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
                 individualScores[i] = new ColumnCopyingTransformer(Env,(
-                    MetadataUtils.Const.ScoreValueKind.Score,
-                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString())
+                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString(),
+                     MetadataUtils.Const.ScoreValueKind.Score)
                     ).Transform(individualScores[i]);
 
                 individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
@@ -999,7 +999,7 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = new TextFeaturizingEstimator(Env, "Text", "Features", args =>
+                    data = new TextFeaturizingEstimator(Env, "Features", "Text", args =>
                     {
                         args.UseStopRemover = true;
                     }).Fit(data).Transform(data);
@@ -1198,8 +1198,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features1", "Features", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features2", "Features", 10, false),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
@@ -3660,9 +3660,9 @@ namespace Microsoft.ML.RunTests
                 new[] { "Transforms.TensorFlowScorer" },
                 new[]
                 {
-                    @"'InputColumns': [ 'Placeholder' ],
+                    @"'Sources': [ 'Placeholder' ],
                       'ModelLocation': 'mnist_model/frozen_saved_model.pb',
-                      'OutputColumns': [ 'Softmax' ]"
+                      'Names': [ 'Softmax' ]"
                 });
         }
 
@@ -5600,10 +5600,10 @@ namespace Microsoft.ML.RunTests
                         'Name': 'Transforms.TensorFlowScorer',
                         'Inputs': {
                             'ModelLocation': 'mnist_model/frozen_saved_model.pb',
-                            'InputColumns': [
+                            'Sources': [
                                 'Placeholder'
                             ],
-                            'OutputColumns': [
+                            'Names': [
                                 'Softmax'
                             ],
                             'LabelColumn': null,

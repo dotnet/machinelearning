@@ -158,7 +158,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = "data_0";
             var outputNames = "output_1";
-            var est = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Environment, m.InputColumn, m.OutputColumn), inputNames, outputNames);
+            var est = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Environment, m.InputColumn, m.OutputColumn), outputNames, inputNames);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);

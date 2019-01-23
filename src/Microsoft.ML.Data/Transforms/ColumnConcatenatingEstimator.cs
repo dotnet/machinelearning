@@ -21,20 +21,20 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="ColumnConcatenatingEstimator"/>
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="outputColumn">The name of the resulting column.</param>
-        /// <param name="inputColumns">The columns to concatenate together.</param>
-        public ColumnConcatenatingEstimator (IHostEnvironment env, string outputColumn, params string[] inputColumns)
+        /// <param name="name">The name of the resulting column.</param>
+        /// <param name="sources">The columns to concatenate together.</param>
+        public ColumnConcatenatingEstimator (IHostEnvironment env, string name, params string[] sources)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("ColumnConcatenatingEstimator ");
 
-            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
-            _host.CheckValue(inputColumns, nameof(inputColumns));
-            _host.CheckParam(!inputColumns.Any(r => string.IsNullOrEmpty(r)), nameof(inputColumns),
+            _host.CheckNonEmpty(name, nameof(name));
+            _host.CheckValue(sources, nameof(sources));
+            _host.CheckParam(!sources.Any(r => string.IsNullOrEmpty(r)), nameof(sources),
                 "Contained some null or empty items");
 
-            _name = outputColumn;
-            _source = inputColumns;
+            _name = name;
+            _source = sources;
         }
 
         public ITransformer Fit(IDataView input)

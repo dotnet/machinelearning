@@ -216,9 +216,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline =
                 mlContext.Transforms.Normalize(
-                    new NormalizingEstimator.MinMaxColumn("Features", "MinMaxNormalized", fixZero: true),
-                    new NormalizingEstimator.MeanVarColumn("Features", "MeanVarNormalized", fixZero: true),
-                    new NormalizingEstimator.BinningColumn("Features", "BinNormalized", numBins: 256));
+                    new NormalizingEstimator.MinMaxColumn("MinMaxNormalized", "Features", fixZero: true),
+                    new NormalizingEstimator.MeanVarColumn("MeanVarNormalized", "Features", fixZero: true),
+                    new NormalizingEstimator.BinningColumn("BinNormalized", "Features", numBins: 256));
 
             // Let's train our pipeline of normalizers, and then apply it to the same data.
             var normalizedData = pipeline.Fit(trainData).Transform(trainData);

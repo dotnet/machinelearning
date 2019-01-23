@@ -61,8 +61,8 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new IidChangePointEstimator(env,
-                    inputNames[outCol.Input],
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _changeHistoryLength,
                     _martingale,
@@ -125,8 +125,8 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new IidSpikeEstimator(env,
-                    inputNames[outCol.Input],
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _pvalueHistoryLength,
                     _side);
@@ -204,8 +204,8 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new SsaChangePointEstimator(env,
-                    inputNames[outCol.Input],
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _changeHistoryLength,
                     _trainingWindowSize,
@@ -286,8 +286,8 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new SsaSpikeEstimator(env,
-                    inputNames[outCol.Input],
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _pvalueHistoryLength,
                     _trainingWindowSize,

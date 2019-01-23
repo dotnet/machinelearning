@@ -49,13 +49,13 @@ namespace Microsoft.ML.Transforms
             /// The names of the model inputs.
             /// </summary>
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
-            public string[] InputColumns;
+            public string[] Sources;
 
             /// <summary>
             /// The names of the requested model outputs.
             /// </summary>
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
-            public string[] OutputColumns;
+            public string[] Names;
 
             /// <summary>
             /// The name of the label column in <see cref="IDataView"/> that will be mapped to label node in TensorFlow model.
@@ -185,10 +185,10 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumn">The name of the input data column. Must match model input name.</param>
-        /// <param name="outputColumn">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        public TensorFlowTransformer(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn)
-            : this(env, TensorFlowUtils.GetSession(env, modelFile), new[] { inputColumn }, new[] { outputColumn }, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
+        /// <param name="name">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="source">The name of the input data column. Must match model input name.</param>
+        public TensorFlowTransformer(IHostEnvironment env, string modelFile, string name, string source)
+            : this(env, TensorFlowUtils.GetSession(env, modelFile), new[] { name }, new[] { source }, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
         {
         }
 
@@ -199,10 +199,10 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        public TensorFlowTransformer(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns)
-            : this(env, TensorFlowUtils.GetSession(env, modelFile), inputColumns, outputColumns, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
+        /// <param name="sources">The name of the input data columns. Must match model's input names.</param>
+        /// <param name="names">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        public TensorFlowTransformer(IHostEnvironment env, string modelFile, string[] names, string[] sources)
+            : this(env, TensorFlowUtils.GetSession(env, modelFile), names, sources, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
         {
         }
 
@@ -214,10 +214,10 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="tfModelInfo"> <see cref="TensorFlowModelInfo"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
-        /// <param name="inputColumn">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="outputColumn">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        public TensorFlowTransformer(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string inputColumn, string outputColumn)
-            : this(env, tfModelInfo.Session, new[] { inputColumn }, new[] { outputColumn }, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
+        /// <param name="name">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="source">The name of the input data columns. Must match model's input names.</param>
+        public TensorFlowTransformer(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string name, string source)
+            : this(env, tfModelInfo.Session, new[] { name }, new[] { source }, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
         {
         }
 
@@ -229,10 +229,10 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="tfModelInfo"> <see cref="TensorFlowModelInfo"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
-        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        public TensorFlowTransformer(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string[] inputColumns, string[] outputColumns)
-            : this(env, tfModelInfo.Session, inputColumns, outputColumns, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
+        /// <param name="sources">The name of the input data columns. Must match model's input names.</param>
+        /// <param name="names">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        public TensorFlowTransformer(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string[] names ,string[] sources)
+            : this(env, tfModelInfo.Session, names, sources, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
         {
         }
 
@@ -252,13 +252,13 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen);
+            GetModelInfo(env, ctx, out string[] sources, out string[] names, out bool isFrozen);
             if (isFrozen)
             {
                 byte[] modelBytes = null;
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
-                return new TensorFlowTransformer(env, TensorFlowUtils.LoadTFSession(env, modelBytes), inputs, outputs, null, false);
+                return new TensorFlowTransformer(env, TensorFlowUtils.LoadTFSession(env, modelBytes), names, sources, null, false);
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), nameof(TensorFlowTransformer) + "_" + Guid.NewGuid()));
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms
                     }
                 });
 
-                return new TensorFlowTransformer(env, TensorFlowUtils.GetSession(env, tempDirPath), inputs, outputs, tempDirPath, true);
+                return new TensorFlowTransformer(env, TensorFlowUtils.GetSession(env, tempDirPath), names, sources, tempDirPath, true);
             }
             catch (Exception)
             {
@@ -302,8 +302,8 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckValue(args.InputColumns, nameof(args.InputColumns));
-            env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
+            env.CheckValue(args.Sources, nameof(args.Sources));
+            env.CheckValue(args.Names, nameof(args.Names));
 
             return new TensorFlowTransformer(env, args, input).MakeDataTransform(input);
         }
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal TensorFlowTransformer(IHostEnvironment env, Arguments args, TensorFlowModelInfo tensorFlowModel, IDataView input)
-            : this(env, tensorFlowModel.Session, args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.ModelLocation) ? args.ModelLocation : null, false)
+            : this(env, tensorFlowModel.Session, args.Names, args.Sources, TensorFlowUtils.IsSavedModel(env, args.ModelLocation) ? args.ModelLocation : null, false)
         {
 
             Contracts.CheckValue(env, nameof(env));
@@ -626,19 +626,19 @@ namespace Microsoft.ML.Transforms
                 outputs[j] = ctx.LoadNonEmptyString();
         }
 
-        internal TensorFlowTransformer(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, string savedModelPath, bool isTemporarySavedModel) :
+        internal TensorFlowTransformer(IHostEnvironment env, TFSession session, string[] names, string[] sources, string savedModelPath, bool isTemporarySavedModel) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowTransformer)))
 
         {
             Host.CheckValue(session, nameof(session));
-            Host.CheckNonEmpty(inputs, nameof(inputs));
-            Host.CheckNonEmpty(outputs, nameof(outputs));
+            Host.CheckNonEmpty(sources, nameof(sources));
+            Host.CheckNonEmpty(names, nameof(names));
 
             Session = session;
             _savedModelPath = savedModelPath;
             _isTemporarySavedModel = isTemporarySavedModel;
-            Inputs = inputs;
-            Outputs = outputs;
+            Inputs = sources;
+            Outputs = names;
 
             (TFInputTypes, TFInputShapes) = GetInputInfo(Host, Session, Inputs);
             (TFOutputTypes, OutputTypes) = GetOutputInfo(Host, Session, Outputs);
@@ -1089,13 +1089,13 @@ namespace Microsoft.ML.Transforms
         private readonly ColumnType[] _outputTypes;
         private TensorFlowTransformer _transformer;
 
-        public TensorFlowEstimator(IHostEnvironment env, string modelLocation, string[] inputs, string[] outputs)
-            : this(env, TensorFlowUtils.LoadTensorFlowModel(env, modelLocation), inputs, outputs)
+        public TensorFlowEstimator(IHostEnvironment env, string modelLocation, string[] names, string[] sources)
+            : this(env, TensorFlowUtils.LoadTensorFlowModel(env, modelLocation), names,  sources)
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
-            : this(env, CreateArguments(tensorFlowModel, inputs, outputs), tensorFlowModel)
+        public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModel, string[] names, string[] sources)
+            : this(env, CreateArguments(tensorFlowModel, names, sources), tensorFlowModel)
         {
         }
 
@@ -1109,18 +1109,18 @@ namespace Microsoft.ML.Transforms
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowEstimator));
             _args = args;
             _tensorFlowModel = tensorFlowModel;
-            var inputTuple = TensorFlowTransformer.GetInputInfo(_host, tensorFlowModel.Session, args.InputColumns);
+            var inputTuple = TensorFlowTransformer.GetInputInfo(_host, tensorFlowModel.Session, args.Sources);
             _tfInputTypes = inputTuple.tfInputTypes;
-            var outputTuple = TensorFlowTransformer.GetOutputInfo(_host, tensorFlowModel.Session, args.OutputColumns);
+            var outputTuple = TensorFlowTransformer.GetOutputInfo(_host, tensorFlowModel.Session, args.Names);
             _outputTypes = outputTuple.outputTypes;
         }
 
-        private static TensorFlowTransformer.Arguments CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
+        private static TensorFlowTransformer.Arguments CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] names, string[] sources)
         {
             var args = new TensorFlowTransformer.Arguments();
             args.ModelLocation = tensorFlowModel.ModelPath;
-            args.InputColumns = inputs;
-            args.OutputColumns = outputs;
+            args.Sources = sources;
+            args.Names = names;
             args.ReTrain = false;
             return args;
         }
@@ -1129,9 +1129,9 @@ namespace Microsoft.ML.Transforms
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.ToDictionary(x => x.Name);
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            for (var i = 0; i < _args.InputColumns.Length; i++)
+            for (var i = 0; i < _args.Sources.Length; i++)
             {
-                var input = _args.InputColumns[i];
+                var input = _args.Sources[i];
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector))
@@ -1140,9 +1140,9 @@ namespace Microsoft.ML.Transforms
                 if (col.ItemType != expectedType)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
-            for (var i = 0; i < _args.OutputColumns.Length; i++)
+            for (var i = 0; i < _args.Names.Length; i++)
             {
-                resultDic[_args.OutputColumns[i]] = new SchemaShape.Column(_args.OutputColumns[i],
+                resultDic[_args.Names[i]] = new SchemaShape.Column(_args.Names[i],
                     _outputTypes[i].IsKnownSizeVector() ? SchemaShape.Column.VectorKind.Vector
                     : SchemaShape.Column.VectorKind.VariableVector, _outputTypes[i].GetItemType(), false);
             }
@@ -1155,7 +1155,7 @@ namespace Microsoft.ML.Transforms
             if (_transformer == null)
             {
                 _transformer = _args.ReTrain ? new TensorFlowTransformer(_host, _args, _tensorFlowModel, input) :
-                    new TensorFlowTransformer(_host, _tensorFlowModel.Session, _args.InputColumns, _args.OutputColumns,
+                    new TensorFlowTransformer(_host, _tensorFlowModel.Session, _args.Names, _args.Sources,
                     TensorFlowUtils.IsSavedModel(_host, _args.ModelLocation) ? _args.ModelLocation : null, false);
             }
             // Validate input schema.

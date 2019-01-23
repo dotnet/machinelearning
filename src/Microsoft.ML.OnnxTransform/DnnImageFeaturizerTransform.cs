@@ -31,11 +31,11 @@ namespace Microsoft.ML.Transforms
         public DnnImageModelSelector ModelSelector { get; }
         public string OutputColumn { get; }
 
-        public DnnImageFeaturizerInput(IHostEnvironment env, string inputColumn, string outputColumn, DnnImageModelSelector modelSelector)
+        public DnnImageFeaturizerInput(IHostEnvironment env, string name, string source, DnnImageModelSelector modelSelector)
         {
             Environment = env;
-            InputColumn = inputColumn;
-            OutputColumn = outputColumn;
+            InputColumn = source;
+            OutputColumn = name;
             ModelSelector = modelSelector;
         }
     }
@@ -59,11 +59,11 @@ namespace Microsoft.ML.Transforms
         /// included in a package together with that extension method. It also contains three <see cref="ColumnCopyingEstimator"/>s
         /// to allow arbitrary column naming, as the ONNXEstimators require very specific naming based on the models.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
-        /// <param name="inputColumn">inputColumn column name.</param>
-        /// <param name="outputColumn">Output column name.</param>
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string inputColumn, string outputColumn)
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string name, string source)
         {
-            _modelChain = modelFactory( new DnnImageFeaturizerInput(env, inputColumn, outputColumn, new DnnImageModelSelector()));
+            _modelChain = modelFactory(new DnnImageFeaturizerInput(env, name, source, new DnnImageModelSelector()));
         }
 
         /// <summary>

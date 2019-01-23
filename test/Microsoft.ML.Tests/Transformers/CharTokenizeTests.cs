@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.ReadFromEnumerable(data);
             var invalidData = new[] { new TestWrong() { A = 1, B = new float[2] { 2,3} } };
             var invalidDataView = ML.Data.ReadFromEnumerable(invalidData);
-            var pipe = new TokenizingByCharactersEstimator(Env, columns: new[] { ("A", "TokenizeA"), ("B", "TokenizeB") });
+            var pipe = new TokenizingByCharactersEstimator(Env, columns: new[] { ("TokenizeA", "A"), ("TokenizeB", "B") });
 
             TestEstimatorCore(pipe, dataView, invalidInput:invalidDataView);
             Done();
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TokenizingByCharactersEstimator(Env, columns: new[] { ("A", "TokenizeA"), ("B", "TokenizeB") });
+            var pipe = new TokenizingByCharactersEstimator(Env, columns: new[] { ("TokenizeA", "A"), ("TokenizeB", "B") });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())

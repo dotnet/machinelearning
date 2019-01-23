@@ -155,7 +155,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal const string UserName = "Hash Join Transform";
 
-        public const string LoaderSignature = "HashJoinTransform";
+        internal const string LoaderSignature = "HashJoinTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(

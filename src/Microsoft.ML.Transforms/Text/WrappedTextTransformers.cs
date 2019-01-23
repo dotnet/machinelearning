@@ -16,7 +16,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class WordBagEstimator : TrainedWrapperEstimatorBase
     {
-        private readonly (string[] inputs, string output)[] _columns;
+        private readonly (string name, string[] sources)[] _columns;
         private readonly int _ngramLength;
         private readonly int _skipLength;
         private readonly bool _allLengths;
@@ -24,50 +24,50 @@ namespace Microsoft.ML.Transforms.Text
         private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
-        /// and outputs bag of word vector as <paramref name="outputColumn"/>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="source"/>
+        /// and outputs bag of word vector as <paramref name="name"/>
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing bag of word vector. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public WordBagEstimator(IHostEnvironment env,
-            string inputColumn,
-            string outputColumn = null,
+            string name,
+            string source = null,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : this(env, new[] { (new[] { inputColumn }, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, name, new[] { source ?? name }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumns"/>
-        /// and outputs bag of word vector as <paramref name="outputColumn"/>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="sources"/>
+        /// and outputs bag of word vector as <paramref name="name"/>
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumns">The columns containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing output tokens.</param>
+        /// <param name="name">The column containing output tokens.</param>
+        /// <param name="sources">The columns containing text to compute bag of word vector.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public WordBagEstimator(IHostEnvironment env,
-            string[] inputColumns,
-            string outputColumn,
+            string name,
+            string[] sources,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            : this(env, new[] { (inputColumns, outputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, new[] { (name, sources) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public WordBagEstimator(IHostEnvironment env,
-            (string[] inputs, string output)[] columns,
+            (string name, string[] sources)[] columns,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
@@ -91,10 +91,10 @@ namespace Microsoft.ML.Transforms.Text
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordBagEstimator)))
         {
-            foreach (var (input, output) in columns)
+            foreach (var (name, source) in columns)
             {
-                Host.CheckUserArg(Utils.Size(input) > 0, nameof(input));
-                Host.CheckValue(output, nameof(input));
+                Host.CheckUserArg(Utils.Size(name) > 0, nameof(columns));
+                Host.CheckValue(source, nameof(columns));
             }
 
             _columns = columns;
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Transforms.Text
             // Create arguments.
             var args = new WordBagBuildingTransformer.Arguments
             {
-                Column = _columns.Select(x => new WordBagBuildingTransformer.Column { Source = x.inputs, Name = x.output }).ToArray(),
+                Column = _columns.Select(x => new WordBagBuildingTransformer.Column { Name = x.name, Source = x.sources }).ToArray(),
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
                 AllLengths = _allLengths,
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class WordHashBagEstimator : TrainedWrapperEstimatorBase
     {
-        private readonly (string[] inputs, string output)[] _columns;
+        private readonly (string name, string[] sources)[] _columns;
         private readonly int _hashBits;
         private readonly int _ngramLength;
         private readonly int _skipLength;
@@ -138,12 +138,12 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _invertHash;
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumn"/>
-        /// and outputs bag of word vector as <paramref name="outputColumn"/>
+        /// Produces a bag of counts of hashed ngrams in <paramref name="source"/>
+        /// and outputs bag of word vector as <paramref name="name"/>
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing bag of word vector. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="name">The column containing bag of word vector. Null means <paramref name="source"/> is replaced.</param>
+        /// <param name="source">The column containing text to compute bag of word vector.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -155,8 +155,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public WordHashBagEstimator(IHostEnvironment env,
-            string inputColumn,
-            string outputColumn = null,
+            string name,
+            string source = null,
             int hashBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
@@ -164,17 +164,17 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-            : this(env, new[] { (new[] { inputColumn }, outputColumn ?? inputColumn) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
+            : this(env, new[] { (name, new[] { source ?? name }) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
         {
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumns"/>
-        /// and outputs bag of word vector as <paramref name="outputColumn"/>
+        /// Produces a bag of counts of hashed ngrams in <paramref name="sources"/>
+        /// and outputs bag of word vector as <paramref name="name"/>
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumns">The columns containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing output tokens.</param>
+        /// <param name="name">The column containing output tokens.</param>
+        /// <param name="sources">The columns containing text to compute bag of word vector.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -186,8 +186,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public WordHashBagEstimator(IHostEnvironment env,
-            string[] inputColumns,
-            string outputColumn,
+            string name,
+            string[] sources,
             int hashBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-            : this(env, new[] { (inputColumns, outputColumn) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
+            : this(env, new[] { (name, sources) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
         {
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public WordHashBagEstimator(IHostEnvironment env,
-            (string[] inputs, string output)[] columns,
+            (string name, string[] sources)[] columns,
             int hashBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms.Text
             // Create arguments.
             var args = new WordHashBagProducingTransformer.Arguments
             {
-                Column = _columns.Select(x => new WordHashBagProducingTransformer.Column { Source = x.inputs, Name = x.output }).ToArray(),
+                Column = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.name  ,Source = x.sources}).ToArray(),
                 HashBits = _hashBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,

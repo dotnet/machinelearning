@@ -123,7 +123,7 @@ namespace Microsoft.ML.Transforms
             {
                 Column = new[]
                 {
-                    new Column() { Source = source ?? name, Name = name }
+                    new Column() { Name = name, Source = source ?? name }
                 },
                 ReplaceWith = replaceWith
             };
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Transforms
                 var addInd = column.ConcatIndicator ?? args.Concat;
                 if (!addInd)
                 {
-                    replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Source, column.Name, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
+                    replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Name, column.Source,(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
                     continue;
                 }
 
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 // Add the NAReplaceTransform column.
-                replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Source, tmpReplacementColName, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
+                replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(tmpReplacementColName, column.Source, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
 
                 // Add the ConcatTransform column.
                 if (replaceType is VectorType)

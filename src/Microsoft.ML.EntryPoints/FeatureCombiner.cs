@@ -95,19 +95,19 @@ namespace Microsoft.ML.EntryPoints
                 // when the user has slightly different key values between the training and testing set.
                 // The solution is to apply KeyToValue, then Term using the terms from the key metadata of the original key column
                 // and finally the KeyToVector transform.
-                viewTrain = new KeyToValueMappingTransformer(host, ktv.Select(x => (x.Input, x.Output)).ToArray())
+                viewTrain = new KeyToValueMappingTransformer(host, ktv.Select(x => (x.Name, x.Source)).ToArray())
                     .Transform(viewTrain);
 
                 viewTrain = ValueToKeyMappingTransformer.Create(host,
                     new ValueToKeyMappingTransformer.Arguments()
                     {
                         Column = ktv
-                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
+                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Name, Source = c.Name, Terms = GetTerms(viewTrain, c.Source) })
                             .ToArray(),
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Output, c.Output)).ToArray()).Transform(viewTrain);
+                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Name, c.Name)).ToArray()).Transform(viewTrain);
             }
             return viewTrain;
         }
@@ -145,7 +145,7 @@ namespace Microsoft.ML.EntryPoints
             Contracts.AssertValue(viewTrain);
             Contracts.AssertValue(env);
             if (Utils.Size(cvt) > 0)
-                viewTrain = new TypeConvertingTransformer(env,cvt.ToArray()).Transform(viewTrain);
+                viewTrain = new TypeConvertingTransformer(env, cvt.ToArray()).Transform(viewTrain);
             return viewTrain;
         }
 
@@ -173,8 +173,8 @@ namespace Microsoft.ML.EntryPoints
                         if (keyType.Count > 0)
                         {
                             var colName = GetUniqueName();
-                            concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(col.Name, colName));
+                            concatNames.Add(new KeyValuePair<string, string>(colName, col.Name));
+                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(colName, col.Name));
                             continue;
                         }
                     }
@@ -184,8 +184,8 @@ namespace Microsoft.ML.EntryPoints
                         // The reason is that at scoring time, the column might have a slightly different type (R8 for example).
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
-                        concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(col.Name, colName, DataKind.R4));
+                        concatNames.Add(new KeyValuePair<string, string>(colName, col.Name));
+                        Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(colName, col.Name, DataKind.R4));
                         continue;
                     }
                 }

@@ -60,11 +60,11 @@ namespace Microsoft.ML.Transforms.StaticPipe
                 var outCol = (OutColumn)toOutput[0];
                 if (_modelFile == null)
                 {
-                    return new TensorFlowEstimator(env, _tensorFlowModel, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                    return new TensorFlowEstimator(env, _tensorFlowModel, new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] });
                 }
                 else
                 {
-                    return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                    return new TensorFlowEstimator(env, _modelFile, new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] });
                 }
             }
         }

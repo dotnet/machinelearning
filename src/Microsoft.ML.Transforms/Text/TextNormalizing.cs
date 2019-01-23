@@ -91,7 +91,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private const string RegistrationName = "TextNormalizer";
-        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string name, string source)> Columns => ColumnPairs.AsReadOnly();
 
         private readonly TextNormalizingEstimator.CaseNormalizationMode _textCase;
         private readonly bool _keepDiacritics;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms.Text
             bool keepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics,
             bool keepPunctuations = TextNormalizingEstimator.Defaults.KeepPunctuations,
             bool keepNumbers = TextNormalizingEstimator.Defaults.KeepNumbers,
-            params (string input, string output)[] columns) :
+            params (string name, string source)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
             _textCase = textCase;
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             var type = inputSchema[srcCol].Type;
             if (!TextNormalizingEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextNormalizingEstimator.ExpectedColumnType, type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].source, TextNormalizingEstimator.ExpectedColumnType, type.ToString());
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -176,11 +176,11 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new (string input, string output)[args.Column.Length];
+            var cols = new (string name, string source)[args.Column.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Column[i];
-                cols[i] = (item.Source ?? item.Name, item.Name);
+                cols[i] = (item.Name, item.Source ?? item.Name);
             }
             return new TextNormalizingTransformer(env, args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers, cols).MakeDataTransform(input);
         }
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms.Text
                 _types = new ColumnType[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _types.Length; i++)
                 {
-                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int srcCol);
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out int srcCol);
                     var srcType = inputSchema[srcCol].Type;
                     _types[i] = srcType is VectorType ? new VectorType(TextType.Instance) : srcType;
                 }
@@ -218,9 +218,9 @@ namespace Microsoft.ML.Transforms.Text
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].name, _types[i], null);
                 }
                 return result;
             }
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                var srcType = input.Schema[_parent.ColumnPairs[iinfo].input].Type;
+                var srcType = input.Schema[_parent.ColumnPairs[iinfo].source].Type;
                 Host.Assert(srcType.GetItemType() is TextType);
 
                 if (srcType is VectorType vectorType)
@@ -455,24 +455,23 @@ namespace Microsoft.ML.Transforms.Text
         internal const string ExpectedColumnType = "Text or vector of text.";
 
         /// <summary>
-        /// Normalizes incoming text in <paramref name="inputColumn"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
-        /// and outputs new text as <paramref name="outputColumn"/>.
+        /// Normalizes incoming text in <paramref name="source"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
+        /// and outputs new text as <paramref name="name"/>.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to normalize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
         /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         public TextNormalizingEstimator(IHostEnvironment env,
-            string inputColumn,
-            string outputColumn = null,
+            string name, string source = null,
             CaseNormalizationMode textCase = Defaults.TextCase,
             bool keepDiacritics = Defaults.KeepDiacritics,
             bool keepPunctuations = Defaults.KeepPunctuations,
             bool keepNumbers = Defaults.KeepNumbers)
-            : this(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, (inputColumn, outputColumn ?? inputColumn))
+            : this(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, (name, source ?? name))
         {
         }
 
@@ -491,7 +490,7 @@ namespace Microsoft.ML.Transforms.Text
             bool keepDiacritics = Defaults.KeepDiacritics,
             bool keepPunctuations = Defaults.KeepPunctuations,
             bool keepNumbers = Defaults.KeepNumbers,
-            params (string input, string output)[] columns)
+            params (string name, string source)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizingEstimator)), new TextNormalizingTransformer(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, columns))
         {
         }
@@ -502,11 +501,11 @@ namespace Microsoft.ML.Transforms.Text
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
+                if (!inputSchema.TryFindColumn(colInfo.source, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.source);
                 if (!IsColumnTypeValid(col.ItemType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, TextNormalizingEstimator.ExpectedColumnType, col.ItemType.ToString());
-                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind == SchemaShape.Column.VectorKind.Vector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Scalar, col.ItemType, false);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.source, TextNormalizingEstimator.ExpectedColumnType, col.ItemType.ToString());
+                result[colInfo.name] = new SchemaShape.Column(colInfo.name, col.Kind == SchemaShape.Column.VectorKind.Vector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Scalar, col.ItemType, false);
             }
             return new SchemaShape(result.Values);
         }

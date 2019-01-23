@@ -75,29 +75,29 @@ namespace Microsoft.ML.Core.Data
             }
 
             /// <summary>
-            /// Returns whether <paramref name="inputColumn"/> is a valid input, if this object represents a
+            /// Returns whether <paramref name="source"/> is a valid input, if this object represents a
             /// requirement.
             ///
             /// Namely, it returns true iff:
             ///  - The <see cref="Name"/>, <see cref="Kind"/>, <see cref="ItemType"/>, <see cref="IsKey"/> fields match.
-            ///  - The columns of <see cref="Metadata"/> of <paramref name="inputColumn"/> is a superset of our <see cref="Metadata"/> columns.
+            ///  - The columns of <see cref="Metadata"/> of <paramref name="source"/> is a superset of our <see cref="Metadata"/> columns.
             ///  - Each such metadata column is itself compatible with the input metadata column.
             /// </summary>
             [BestFriend]
-            internal bool IsCompatibleWith(Column inputColumn)
+            internal bool IsCompatibleWith(Column source)
             {
-                Contracts.Check(inputColumn.IsValid, nameof(inputColumn));
-                if (Name != inputColumn.Name)
+                Contracts.Check(source.IsValid, nameof(source));
+                if (Name != source.Name)
                     return false;
-                if (Kind != inputColumn.Kind)
+                if (Kind != source.Kind)
                     return false;
-                if (!ItemType.Equals(inputColumn.ItemType))
+                if (!ItemType.Equals(source.ItemType))
                     return false;
-                if (IsKey != inputColumn.IsKey)
+                if (IsKey != source.IsKey)
                     return false;
                 foreach (var metaCol in Metadata)
                 {
-                    if (!inputColumn.Metadata.TryFindColumn(metaCol.Name, out var inputMetaCol))
+                    if (!source.Metadata.TryFindColumn(metaCol.Name, out var inputMetaCol))
                         return false;
                     if (!metaCol.IsCompatibleWith(inputMetaCol))
                         return false;

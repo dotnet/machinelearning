@@ -187,26 +187,26 @@ namespace Microsoft.ML.Transforms
                 Maximum = 3,
             }
 
-            public readonly string Input;
-            public readonly string Output;
+            public readonly string Name;
+            public readonly string Source;
             public readonly bool ImputeBySlot;
             public readonly ReplacementMode Replacement;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="replacementMode">What to replace the missing value with.</param>
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
-            public ColumnInfo(string input, string output = null, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+            public ColumnInfo(string name, string source = null, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
                 bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
-                Contracts.CheckNonWhiteSpace(input, nameof(input));
-                Input = input;
-                Output = output ?? input;
+                Contracts.CheckNonWhiteSpace(name, nameof(name));
+                Name = name;
+                Source = source ?? name;
                 ImputeBySlot = imputeBySlot;
                 Replacement = replacementMode;
             }
@@ -214,10 +214,10 @@ namespace Microsoft.ML.Transforms
             internal string ReplacementString { get; set; }
         }
 
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Input, x.Output)).ToArray();
+            return columns.Select(x => ( x.Name, x.Source)).ToArray();
         }
 
         // The output column types, parallel to Infos.
@@ -249,8 +249,8 @@ namespace Microsoft.ML.Transforms
             // Check that all the input columns are present and correct.
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
-                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].source, out int srcCol))
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].source);
                 CheckInputColumn(input.Schema, i, srcCol);
             }
             GetReplacementValues(input, columns, out _repValues, out _repIsDefault, out _replaceTypes);
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Transforms
            var sourceColumns = new List<Schema.Column>();
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
-                input.Schema.TryGetColumnIndex(columns[iinfo].Input, out int colSrc);
+                input.Schema.TryGetColumnIndex(columns[iinfo].Source, out int colSrc);
                 sources[iinfo] = colSrc;
                 var type = input.Schema[colSrc].Type;
                 if (type is VectorType vectorType)
@@ -481,8 +481,9 @@ namespace Microsoft.ML.Transforms
                 if (!Enum.IsDefined(typeof(ReplacementKind), kind))
                     throw env.ExceptUserArg(nameof(args.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.Name);
 
-                cols[i] = new ColumnInfo(item.Source,
+                cols[i] = new ColumnInfo(
                     item.Name,
+                    item.Source,
                     (ColumnInfo.ReplacementMode)(item.Kind ?? args.ReplacementKind),
                     item.Slot ?? args.ImputeBySlot);
                 cols[i].ReplacementString = item.ReplacementString;
@@ -629,11 +630,11 @@ namespace Microsoft.ML.Transforms
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].source);
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
                     var type = inputSchema[colSrc].Type;
-                    infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].name, _parent.ColumnPairs[i].source, type);
                 }
                 return infos;
             }
@@ -643,11 +644,11 @@ namespace Microsoft.ML.Transforms
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
                     builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].name, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
@@ -941,18 +942,18 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly MissingValueReplacingTransformer.ColumnInfo[] _columns;
 
-        public MissingValueReplacingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
-            : this(env, new MissingValueReplacingTransformer.ColumnInfo(outputColumn ?? inputColumn, inputColumn, replacementKind))
-        {
+        public MissingValueReplacingEstimator(IHostEnvironment env, string name, string source = null, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
+            : this(env, new MissingValueReplacingTransformer.ColumnInfo(name, source ?? name, replacementKind))
+            {
 
-        }
+            }
 
-        public MissingValueReplacingEstimator(IHostEnvironment env, params MissingValueReplacingTransformer.ColumnInfo[] columns)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(MissingValueReplacingEstimator));
-            _columns = columns;
-        }
+            public MissingValueReplacingEstimator(IHostEnvironment env, params MissingValueReplacingTransformer.ColumnInfo[] columns)
+            {
+                Contracts.CheckValue(env, nameof(env));
+                _host = env.Register(nameof(MissingValueReplacingEstimator));
+                _columns = columns;
+            }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -960,8 +961,8 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
                 string reason = MissingValueReplacingTransformer.TestType(col.ItemType);
                 if (reason != null)
                     throw _host.ExceptParam(nameof(inputSchema), reason);
@@ -973,12 +974,12 @@ namespace Microsoft.ML.Transforms
                 var type = !(col.ItemType is VectorType vectorType) ?
                     col.ItemType :
                     new VectorType(vectorType.ItemType, vectorType);
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Name, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
         }
 
-        public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
-    }
+            public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
+        }
 
-}
+    }
