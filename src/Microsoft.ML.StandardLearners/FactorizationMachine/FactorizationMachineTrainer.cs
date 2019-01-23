@@ -43,12 +43,13 @@ namespace Microsoft.ML.FactorizationMachine
         public sealed class Arguments : LearnerInputBaseWithWeight
         {
             /// <summary>
-            /// Columns to use for features. The i-th string in <see cref="FeatureColumn"/> stores the name of the features
-            /// form the i-th field.
+            /// Extra feature column names. The column named <see cref="LearnerInputBase.FeatureColumn"/> stores features from the first field.
+            /// The i-th string in <see cref="ExtraFeatureColumns"/> stores the name of the (i+1)-th field's feature column.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Columns to use for feature vectors. The i-th specified string denotes the column containing features form the i-th field.",
-                ShortName = "feat", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public new string[] FeatureColumn = { DefaultColumnNames.Features };
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field." +
+                " Note that the first field is specified by \"feat\" instead of \"exfeat\".",
+                ShortName = "exfeat", SortOrder = 2)]
+            public string[] ExtraFeatureColumns = { };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate", ShortName = "lr", SortOrder = 1)]
             [TlcModule.SweepableFloatParam(0.001f, 1.0f, isLogScale: true)]
@@ -131,10 +132,15 @@ namespace Microsoft.ML.FactorizationMachine
             Initialize(env, args);
             Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
 
-            FeatureColumns = new SchemaShape.Column[args.FeatureColumn.Length];
+            // There can be multiple feature columns in FFM, jointly specified by args.FeatureColumn and args.ExtraFeatureColumns.
+            FeatureColumns = new SchemaShape.Column[1 + args.ExtraFeatureColumns.Length];
 
-            for (int i = 0; i < args.FeatureColumn.Length; i++)
-                FeatureColumns[i] = new SchemaShape.Column(args.FeatureColumn[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+            // Treat the default feature column as the 1st field.
+            FeatureColumns[0] = new SchemaShape.Column(args.FeatureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+
+            // Add 2nd, 3rd, and other fields from a FFM-specific argument, args.ExtraFeatureColumns.
+            for (int i = 0; i < args.ExtraFeatureColumns.Length; i++)
+                FeatureColumns[i + 1] = new SchemaShape.Column(args.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             LabelColumn = new SchemaShape.Column(args.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
             WeightColumn = args.WeightColumn.IsExplicit ? new SchemaShape.Column(args.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : default;

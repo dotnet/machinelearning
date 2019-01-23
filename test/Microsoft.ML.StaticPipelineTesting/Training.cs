@@ -299,32 +299,6 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
-        public void FfmBinaryClassificationWithAdvancedArguments()
-        {
-            var mlContext = new MLContext(seed: 0);
-            var data = DatasetUtils.GenerateFfmSamples(500);
-            var dataView = ComponentCreation.CreateDataView(mlContext, data.ToList());
-
-            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Arguments();
-            // Customized field names
-            ffmArgs.FeatureColumn = new[]{
-                nameof(DatasetUtils.FfmExample.Field0),
-                nameof(DatasetUtils.FfmExample.Field1),
-                nameof(DatasetUtils.FfmExample.Field2) };
-            var pipeline = new FieldAwareFactorizationMachineTrainer(mlContext, ffmArgs);
-
-            var model = pipeline.Fit(dataView);
-            var prediction = model.Transform(dataView);
-
-            var metrics = mlContext.BinaryClassification.Evaluate(prediction);
-
-            // Run a sanity check against a few of the metrics.
-            Assert.InRange(metrics.Accuracy, 0.9, 1);
-            Assert.InRange(metrics.Auc, 0.9, 1);
-            Assert.InRange(metrics.Auprc, 0.9, 1);
-        }
-
-        [Fact]
         public void SdcaMulticlass()
         {
             var env = new MLContext(seed: 0);
