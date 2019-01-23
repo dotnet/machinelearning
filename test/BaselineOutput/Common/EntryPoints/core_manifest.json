@@ -10147,21 +10147,6 @@
           "IsNullable": false
         },
         {
-          "Name": "ExtraFeatureColumns",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "String"
-          },
-          "Desc": "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field. Note that the first field is specified by \"feat\" instead of \"exfeat\".",
-          "Aliases": [
-            "exfeat"
-          ],
-          "Required": false,
-          "SortOrder": 2.0,
-          "IsNullable": false,
-          "Default": []
-        },
-        {
           "Name": "Iters",
           "Type": "Int",
           "Desc": "Number of training iterations",
@@ -10318,6 +10303,21 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "Auto"
+        },
+        {
+          "Name": "ExtraFeatureColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field. Note that the first field is specified by \"feat\" instead of \"exfeat\".",
+          "Aliases": [
+            "exfeat"
+          ],
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "Shuffle",

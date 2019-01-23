@@ -42,15 +42,6 @@ namespace Microsoft.ML.FactorizationMachine
 
         public sealed class Arguments : LearnerInputBaseWithWeight
         {
-            /// <summary>
-            /// Extra feature column names. The column named <see cref="LearnerInputBase.FeatureColumn"/> stores features from the first field.
-            /// The i-th string in <see cref="ExtraFeatureColumns"/> stores the name of the (i+1)-th field's feature column.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field." +
-                " Note that the first field is specified by \"feat\" instead of \"exfeat\".",
-                ShortName = "exfeat", SortOrder = 2)]
-            public string[] ExtraFeatureColumns = { };
-
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate", ShortName = "lr", SortOrder = 1)]
             [TlcModule.SweepableFloatParam(0.001f, 1.0f, isLogScale: true)]
             public float LearningRate = (float)0.1;
@@ -73,6 +64,15 @@ namespace Microsoft.ML.FactorizationMachine
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length", ShortName = "norm", SortOrder = 6)]
             public bool Norm = true;
+
+            /// <summary>
+            /// Extra feature column names. The column named <see cref="LearnerInputBase.FeatureColumn"/> stores features from the first field.
+            /// The i-th string in <see cref="ExtraFeatureColumns"/> stores the name of the (i+1)-th field's feature column.
+            /// </summary>
+            [Argument(ArgumentType.Multiple, HelpText = "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field." +
+                " Note that the first field is specified by \"feat\" instead of \"exfeat\".",
+                ShortName = "exfeat", SortOrder = 7)]
+            public string[] ExtraFeatureColumns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf", SortOrder = 90)]
             public bool Shuffle = true;
@@ -139,7 +139,7 @@ namespace Microsoft.ML.FactorizationMachine
             FeatureColumns[0] = new SchemaShape.Column(args.FeatureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             // Add 2nd, 3rd, and other fields from a FFM-specific argument, args.ExtraFeatureColumns.
-            for (int i = 0; i < args.ExtraFeatureColumns.Length; i++)
+            for (int i = 0; args.ExtraFeatureColumns != null && i < args.ExtraFeatureColumns.Length; i++)
                 FeatureColumns[i + 1] = new SchemaShape.Column(args.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             LabelColumn = new SchemaShape.Column(args.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
@@ -150,7 +150,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// Initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="featureColumns">The name of  column hosting the features.</param>
+        /// <param name="featureColumns">The name of column hosting the features. The i-th element stores feature column of the i-th field.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="weights">The name of the optional weights' column.</param>
