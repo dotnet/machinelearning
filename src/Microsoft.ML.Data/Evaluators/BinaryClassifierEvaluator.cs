@@ -1098,18 +1098,18 @@ namespace Microsoft.ML.Data
 
             var t = schema[(int)LabelIndex].Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", LabelCol, t);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float, double, bool or a 2-value key", t.ToString());
 
             t = schema[ScoreIndex].Type;
             if (t != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "float", t.ToString());
 
             if (_probIndex >= 0)
             {
                 Host.Assert(!string.IsNullOrEmpty(_probCol));
                 t = schema[_probIndex].Type;
                 if (t != NumberType.Float)
-                    throw Host.Except("Probability column '{0}' has type '{1}' but must be R4", _probCol, t);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "probability", _probCol, "float", t.ToString());
             }
             else if (!_useRaw)
                 throw Host.Except("Cannot compute the predicted label from the probability column because it does not exist");

@@ -818,7 +818,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.Inputs.Length; i++)
                 {
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
-                        throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
+                        throw Host.ExceptSchemaMismatch(nameof(InputSchema), "source", _parent.Inputs[i]);
 
                     var type = inputSchema[_inputColIndices[i]].Type;
                     if (type is VectorType vecType && vecType.Size == 0)

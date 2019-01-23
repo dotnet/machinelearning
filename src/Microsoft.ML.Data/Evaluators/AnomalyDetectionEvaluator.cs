@@ -96,11 +96,11 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
             if (t != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be R4", score, t).MarkSensitive(MessageSensitivity.Schema);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.Float && t.GetKeyCount() != 2)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4 or a 2-value key", schema.Label.Value.Name, t).MarkSensitive(MessageSensitivity.Schema);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a 2-value key", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -631,13 +631,13 @@ namespace Microsoft.ML.Data
             {
                 int index;
                 if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Instance, out index))
-                    throw Host.Except("Data view does not contain the 'Instance' column");
+                    throw Host.ExceptSchemaMismatch(nameof(top.Schema), "instance", AnomalyDetectionEvaluator.TopKResultsColumns.Instance);
                 var instanceGetter = cursor.GetGetter<ReadOnlyMemory<char>>(index);
                 if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore, out index))
-                    throw Host.Except("Data view does not contain the 'Anomaly Score' column");
+                    throw Host.ExceptSchemaMismatch(nameof(top.Schema), "anomaly score", AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore);
                 var scoreGetter = cursor.GetGetter<Single>(index);
                 if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Label, out index))
-                    throw Host.Except("Data view does not contain the 'Label' column");
+                    throw Host.ExceptSchemaMismatch(nameof(top.Schema), "label", AnomalyDetectionEvaluator.TopKResultsColumns.Label);
                 var labelGetter = cursor.GetGetter<Single>(index);
 
                 bool hasRows = false;
@@ -666,12 +666,12 @@ namespace Microsoft.ML.Data
 
             IDataView overall;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out overall))
-                throw Host.Except("No overall metrics found");
+                throw Host.ExceptSchemaMismatch(nameof(overall.Schema), "overall metrics", MetricKinds.OverallMetrics);
 
             // Find the number of anomalies, and the thresholds.
             int numAnomIndex;
             if (!overall.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies, out numAnomIndex))
-                throw Host.Except("Could not find the 'NumAnomalies' column");
+                throw Host.ExceptSchemaMismatch(nameof(overall.Schema), "number of anomalies", AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies);
 
             int stratCol;
             var hasStrat = overall.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol);

@@ -815,10 +815,10 @@ namespace Microsoft.ML.Data
 
             var scoreType = schema[ScoreIndex].Type as VectorType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be a vector of two or more items of type R4", ScoreCol, scoreType);
+                throw Host.Except(nameof(schema), "score", "vector of two or more items of type float", ScoreCol, scoreType.ToString());
             var labelType = schema[LabelIndex].Type;
             if (labelType != NumberType.Float && labelType.GetKeyCount() <= 0)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be a float or a known-cardinality key", LabelCol, labelType);
+                throw Host.Except(nameof(schema), "label", LabelCol, "float or key", labelType.ToString());
         }
     }
 
@@ -1000,7 +1000,7 @@ namespace Microsoft.ML.Data
             // text file, since if there are different key counts the columns cannot be appended.
             string labelName = schema.Label.Value.Name;
             if (!perInst.Schema.TryGetColumnIndex(labelName, out int labelCol))
-                throw Host.Except("Could not find column '{0}'", labelName);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", labelName);
             var labelType = perInst.Schema[labelCol].Type;
             if (labelType is KeyType keyType && (!perInst.Schema[labelCol].HasKeyValues(keyType) || labelType.RawType != typeof(uint)))
             {
