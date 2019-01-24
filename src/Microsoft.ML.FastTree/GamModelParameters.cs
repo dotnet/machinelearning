@@ -89,7 +89,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 // Check data validity
                 Host.CheckValue(binEffects[i], nameof(binEffects), "Array contained null entries");
                 Host.CheckParam(binUpperBounds[i].Length == binEffects[i].Length, nameof(binEffects), "Array contained wrong number of effect values");
-                Host.CheckParam(Utils.IsSorted(binUpperBounds[i]), nameof(binUpperBounds), "Array must be monotonically increasing");
+                Host.CheckParam(Utils.IsMonotonicallyIncreasing(binUpperBounds[i]), nameof(binUpperBounds), "Array must be monotonically increasing");
 
                 // Update the value at zero
                 _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);

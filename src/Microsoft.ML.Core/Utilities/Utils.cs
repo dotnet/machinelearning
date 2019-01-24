@@ -621,7 +621,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="values">An array of values</param>
         /// <returns>True if the array is monotonically increasing; false otherwise.
         /// ILists containing NaN values are considered to be not monotonically increasing.</returns>
-        public static bool IsSorted(IList<float> values)
+        public static bool IsMonotonicallyIncreasing(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
@@ -646,7 +646,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         /// <param name="values">An array of values</param>
         /// <returns>True if the array is monotonically increasing; false otherwise.</returns>
-        public static bool IsSorted(int[] values)
+        public static bool IsMonotonicallyIncreasing(int[] values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="values">An array of values</param>
         /// <returns>True if the array is monotonically increasing; false otherwise.
         /// Arrays containing NaN values are considered to be not monotonically increasing.</returns>
-        public static bool IsSorted(double[] values)
+        public static bool IsMonotonicallyIncreasing(double[] values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
