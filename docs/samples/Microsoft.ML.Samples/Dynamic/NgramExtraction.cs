@@ -29,11 +29,11 @@ namespace Microsoft.ML.Samples.Dynamic
             var charsPipeline = ml.Transforms.Text.TokenizeCharacters("SentimentText", "Chars", useMarkerCharacters:false);
             var ngramOnePipeline = ml.Transforms.Text.ProduceNgrams("Chars", "CharsUnigrams", ngramLength:1);
             var ngramTwpPipeline = ml.Transforms.Text.ProduceNgrams("Chars", "CharsTwograms");
-            var oneCharsPipeline = charsPipeline.Append(ngramOnePipeline);
+            var oneCharPipeline = charsPipeline.Append(ngramOnePipeline);
             var twoCharsPipeline = charsPipeline.Append(ngramTwpPipeline);
 
             // The transformed data for pipelines.
-            var transformedDataOnechars = oneCharsPipeline.Fit(trainData).Transform(trainData);
+            var transformedDataOnechar = oneCharPipeline.Fit(trainData).Transform(trainData);
             var transformedDataTwochars = twoCharsPipeline.Fit(trainData).Transform(trainData);
 
             // Small helper to print the text inside the columns, in the console. 
@@ -52,8 +52,8 @@ namespace Microsoft.ML.Samples.Dynamic
            };
             // Preview of the CharsUnigrams column obtained after processing the input.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            transformedDataOnechars.Schema["CharsUnigrams"].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
-            var charsOneGramColumn = transformedDataOnechars.GetColumn<VBuffer<float>>(ml, "CharsUnigrams");
+            transformedDataOnechar.Schema["CharsUnigrams"].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
+            var charsOneGramColumn = transformedDataOnechar.GetColumn<VBuffer<float>>(ml, "CharsUnigrams");
             printHelper("CharsUnigrams", charsOneGramColumn, slotNames);
 
             // CharsUnigrams column obtained post-transformation.

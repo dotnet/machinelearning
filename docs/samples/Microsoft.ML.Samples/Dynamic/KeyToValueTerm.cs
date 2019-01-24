@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // The transformed data.
             var transformedDataDefault = defaultPipeline.Fit(trainData).Transform(trainData);
-            var transformedDatacustomized = customizedPipeline.Fit(trainData).Transform(trainData);
+            var transformedDataCustomized = customizedPipeline.Fit(trainData).Transform(trainData);
 
             // Small helper to print the text inside the columns, in the console. 
             Action<string, IEnumerable<VBuffer<uint>>> printHelper = (columnName, column) =>
