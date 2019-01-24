@@ -492,7 +492,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Count is the cardinality of the KeyType. Note that such a key type can be converted to a
+        /// <see cref="Count"/> is the cardinality of the <see cref="KeyType"/>. Note that such a key type can be converted to a
         /// bit vector representation by mapping to a vector of length Count, with "id" mapped to a
         /// vector with 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
         /// representation. Note that an id of 0 is used to represent the notion "none", which is
