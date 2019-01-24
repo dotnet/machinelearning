@@ -44,6 +44,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(MatrixFactorizationPredictor).Assembly.FullName);
         }
+        private const uint VersionNoMinCount = 0x00010002;
 
         private readonly IHost _host;
         // The number of rows.
@@ -78,8 +79,8 @@ namespace Microsoft.ML.Trainers.Recommender
             _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));
 
             buffer.Get(out _numberOfRows, out _numberofColumns, out _approximationRank, out _leftFactorMatrix, out _rightFactorMatrix);
-            _host.Assert(_numberofColumns == matrixColumnIndexType.CheckRangeReturnCount(_host));
-            _host.Assert(_numberOfRows == matrixRowIndexType.CheckRangeReturnCount(_host));
+            _host.Assert(_numberofColumns == matrixColumnIndexType.GetCountAsInt32(_host));
+            _host.Assert(_numberOfRows == matrixRowIndexType.GetCountAsInt32(_host));
             _host.Assert(_leftFactorMatrix.Length == _numberOfRows * _approximationRank);
             _host.Assert(_rightFactorMatrix.Length == _numberofColumns * _approximationRank);
 
@@ -100,7 +101,7 @@ namespace Microsoft.ML.Trainers.Recommender
 
             _numberOfRows = ctx.Reader.ReadInt32();
             _host.CheckDecode(_numberOfRows > 0);
-            if (ctx.Header.ModelVerWritten < 0x00010002)
+            if (ctx.Header.ModelVerWritten < VersionNoMinCount)
             {
                 ulong mMin = ctx.Reader.ReadUInt64();
                 // We no longer support non zero Min for KeyType.
@@ -109,7 +110,7 @@ namespace Microsoft.ML.Trainers.Recommender
             }
             _numberofColumns = ctx.Reader.ReadInt32();
             _host.CheckDecode(_numberofColumns > 0);
-            if (ctx.Header.ModelVerWritten < 0x00010002)
+            if (ctx.Header.ModelVerWritten < VersionNoMinCount)
             {
                 ulong nMin = ctx.Reader.ReadUInt64();
                 // We no longer support non zero Min for KeyType.

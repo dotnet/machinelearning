@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 loaderSignatureAlt: LoaderSignatureOld,
                 loaderAssemblyName: typeof(TypeConvertingTransformer).Assembly.FullName);
         }
-
+        private const uint VersionNoMinCount = 0x00010004;
         private const string RegistrationName = "Convert";
 
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
@@ -281,23 +281,27 @@ namespace Microsoft.ML.Transforms.Conversions
                 var kind = (DataKind)(b & 0x7F);
                 Host.CheckDecode(Enum.IsDefined(typeof(DataKind), kind));
                 KeyCount keyCount = null;
+                ulong count = 0;
                 if ((b & 0x80) != 0)
                 {
-                    if (ctx.Header.ModelVerWritten < 0x00010004)
+                    // Special treatment for versions that had Min and Contiguous fields in KeyType.
+                    if (ctx.Header.ModelVerWritten < VersionNoMinCount)
                     {
                         // We no longer support non zero Min for KeyType.
                         ulong min = ctx.Reader.ReadUInt64();
                         Host.CheckDecode(min == 0);
-                    }
-                    ulong count = ctx.Reader.ReadUInt64();
-                    Host.CheckDecode(0 < count);
-                    keyCount = new KeyCount(count);
-                    if (ctx.Header.ModelVerWritten < 0x00010004)
-                    {
+                        // KeyRange became KeyCount, and its count is 1 + KeyRange.Max.
+                        count = ctx.Reader.ReadUInt64() + 1;
                         // We no longer support non contiguous values for KeyType.
                         bool contiguous = ctx.Reader.ReadBoolByte();
                         Host.CheckDecode(contiguous);
                     }
+                    else
+                        count = ctx.Reader.ReadUInt64();
+
+                    Host.CheckDecode(0 < count);
+                    keyCount = new KeyCount(count);
+
                 }
                 _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, kind, keyCount);
             }

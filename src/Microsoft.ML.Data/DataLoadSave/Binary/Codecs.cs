@@ -1245,11 +1245,11 @@ namespace Microsoft.ML.Data.IO
                 ulong min = reader.ReadUInt64();
                 int count = reader.ReadInt32();
 
-                // Since we no longer support the notion of min != 0 we throw in that case.
+                // Since we no longer support the notion of min != 0 or non contiguous values we throw in that case.
                 Contracts.CheckDecode(min == 0);
                 Contracts.CheckDecode(0 <= count);
                 Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
-                Contracts.CheckDecode(contiguous || count == 0);
+                Contracts.CheckDecode(contiguous);
 
                 // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
                 if (count == 0)

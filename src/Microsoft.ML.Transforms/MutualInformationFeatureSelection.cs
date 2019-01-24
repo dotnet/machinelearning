@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(labelType.RawType);
                     var parameters = new object[] { trans, labelCol, labelType };
                     _labels = (VBuffer<int>)methodInfo.Invoke(this, parameters);
-                    _numLabels = labelType.ChecktRangeReturnCount(_host) + 1;
+                    _numLabels = labelType.GetKeyCountAsInt32(_host) + 1;
 
                     // No need to densify or shift in this case.
                     return;

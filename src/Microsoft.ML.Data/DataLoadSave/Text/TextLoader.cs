@@ -775,7 +775,9 @@ namespace Microsoft.ML.Data
                     {
                         ulong count;
                         Contracts.CheckDecode(KeyType.IsValidDataType(kind.ToType()));
-                        if (ctx.Header.ModelVerWritten < 0x0001000C)
+
+                        // Special treatment for versions that had Min and Contiguous fields in KeyType.
+                        if (ctx.Header.ModelVerWritten < VersionNoMinCount)
                         {
                             bool isContig = ctx.Reader.ReadBoolByte();
                             // We no longer support non contiguous values and non zero Min for KeyType.
@@ -785,12 +787,15 @@ namespace Microsoft.ML.Data
                             int cnt = ctx.Reader.ReadInt32();
                             Contracts.CheckDecode(cnt >= 0);
                             count = (ulong)cnt;
+                            // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
                             if (count == 0)
                                 count = kind.ToMaxInt();
                         }
                         else
+                        {
                             count = ctx.Reader.ReadUInt64();
-
+                            Contracts.CheckDecode(0 < count);
+                        }
                         itemType = new KeyType(kind.ToType(), count);
                     }
                     else
@@ -901,6 +906,7 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
+        private const uint VersionNoMinCount = 0x00010004;
 
         private static VersionInfo GetVersionInfo()
         {

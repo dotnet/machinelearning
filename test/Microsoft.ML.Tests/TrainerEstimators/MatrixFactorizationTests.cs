@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
@@ -415,6 +417,70 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.L2, 0, 0.0016);
+
+            // Create data for testing. Note that the 2nd element is not specified in the training data so it should
+            // be close to the constant specified by s.C = 0.15. Comparing with the data structure used in training phase,
+            // one extra float is added into OneClassMatrixElementZeroBasedForScore for storing the prediction result. Note
+            // that the prediction engine may ignore Value and assign the predicted value to Score.
+            var testDataMatrix = new List<OneClassMatrixElementZeroBasedForScore>();
+            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 0, Score = 0 });
+            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+
+            // Apply the trained model to the test data.
+            var testPrediction = model.Transform(testDataView);
+
+            var testResults = mlContext.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
+            // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
+            CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
+            // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
+            CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        public void MatrixFactorizationBackCompat()
+        {
+            // This test is meant to check backwards compatibility after the change that removed Min and Contiguous from KeyType.
+            // The model that we are loading in this test was generated using ML.Model.Save() on:
+
+            //var dataMatrix = new List<OneClassMatrixElementZeroBased>();
+            //dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 1 });
+            //dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 1, MatrixRowIndex = 1, Value = 1 });
+            //dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 2, Value = 1 });
+            //// Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            //var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            //var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
+            //    nameof(OneClassMatrixElementZeroBased.MatrixColumnIndex),
+            //    nameof(OneClassMatrixElementZeroBased.MatrixRowIndex),
+            //    nameof(OneClassMatrixElementZeroBased.Value),
+            //    advancedSettings: s =>
+            //    {
+            //        s.LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass;
+            //        s.NumIterations = 100;
+            //        s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
+            //        // Let's test non-default regularization coefficient.
+            //        s.Lambda = 0.025;
+            //        s.K = 16;
+            //        // Importance coefficient of loss function over matrix elements not specified in the input matrix.
+            //        s.Alpha = 0.01;
+            //        // Desired value for matrix elements not specified in the input matrix.
+            //        s.C = 0.15;
+            //    });
+            // Train a matrix factorization model.
+            //var model = pipeline.Fit(dataView);
+
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            // Test that we can load model after KeyType change (removed Min and Contiguous).            
+            var modelPath = GetDataPath("backcompat", "matrix-factorization-model.zip");
+            ITransformer model;
+            using (var ch = Env.Start("load"))
+            {
+                using (var fs = File.OpenRead(modelPath))
+                    model = ML.Model.Load(fs);
+            }
 
             // Create data for testing. Note that the 2nd element is not specified in the training data so it should
             // be close to the constant specified by s.C = 0.15. Comparing with the data structure used in training phase,

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
         // REVIEW: Property based, but should I just have a constructor?
 
         /// <summary>
-        /// The key count, if it is a known cardinality key.
+        /// The key count.
         /// </summary>
         public ulong Count { get; set; }
     }

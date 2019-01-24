@@ -25,8 +25,9 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
+        /// Zero return means it's not a key type.
         /// </summary>
-        public static int ChecktRangeReturnCount(this ColumnType columnType, IExceptionContext ectx = null)
+        public static int GetKeyCountAsInt32(this ColumnType columnType, IExceptionContext ectx = null)
         {
             ulong count = columnType.GetKeyCount();
             ectx.Check(count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
@@ -85,22 +86,6 @@ namespace Microsoft.ML.Data
             if (!vectorType.ItemType.Equals(otherVectorType.ItemType))
                 return false;
             return vectorType.Size == otherVectorType.Size;
-        }
-    }
-
-    /// <summary>
-    /// Extension methods related to the KeyType class.
-    /// </summary>
-    [BestFriend]
-    internal static class KeyTypeExtensions
-    {
-        /// <summary>
-        /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
-        /// </summary>
-        public static int CheckRangeReturnCount(this KeyType key, IExceptionContext ectx = null)
-        {
-            ectx.Check(key.Count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
-            return (int)key.Count;
         }
     }
 }

@@ -124,7 +124,7 @@ namespace Microsoft.ML.Data
                         {
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.GetItemType().ChecktRangeReturnCount(Host)), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {

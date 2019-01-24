@@ -1222,7 +1222,7 @@ namespace Microsoft.ML.Data
                 var name = schema[i].Name;
                 if (i == stratCol)
                 {
-                    int typeKeyCount = type.ChecktRangeReturnCount(env);
+                    int typeKeyCount = type.GetKeyCountAsInt32(env);
 
                     var keyValuesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (keyValuesType == null || !(keyValuesType.ItemType is TextType) ||
