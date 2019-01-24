@@ -461,7 +461,7 @@ namespace Microsoft.ML.Data
     /// Note that the underlying representation value does not necessarily match the logical value.
     /// For example, if a KeyType has range 0-5000, then it has a Count of 5001, but
     /// the representational values are 1-5001. The representation value zero is reserved
-    /// to mean none/invalid.
+    /// to mean a missing value (similar to NaN).
     /// </summary>
     public sealed class KeyType : PrimitiveType
     {
