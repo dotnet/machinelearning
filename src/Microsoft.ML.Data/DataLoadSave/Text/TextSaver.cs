@@ -491,14 +491,11 @@ namespace Microsoft.ML.Data.IO
             VectorType vectorType = type as VectorType;
             ColumnType itemType = vectorType?.ItemType ?? type;
             if (itemType is KeyType key)
-            {
                 keyCount = new KeyCount(key.Count);
-            }
 
             DataKind kind = itemType.GetRawKind();
 
             TextLoader.Range[] source = null;
-
             TextLoader.Range range = null;
             int minValue = start ?? -1;
             if (vectorType?.IsKnownSize == true)

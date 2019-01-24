@@ -54,15 +54,14 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(keyCount, nameof(keyCount));
 
-            DataKind kind;
             KeyType keyType;
-            kind = type ?? DataKind.U8;
-            Contracts.CheckUserArg(KeyType.IsValidDataKind(kind), nameof(TextLoader.Column.Type), "Bad item type for Key");
+            Type rawType = type.HasValue ? type.Value.ToType() : DataKind.U8.ToType();
+            Contracts.CheckUserArg(KeyType.IsValidDataType(rawType), nameof(TextLoader.Column.Type), "Bad item type for Key");
 
             if (keyCount.Count == null)
-                keyType = new KeyType(kind, kind.ToMaxInt());
+                keyType = new KeyType(rawType, rawType.ToMaxInt());
             else
-                keyType = new KeyType(kind, keyCount.Count.GetValueOrDefault());
+                keyType = new KeyType(rawType, keyCount.Count.GetValueOrDefault());
 
             return keyType;
         }
@@ -74,9 +73,16 @@ namespace Microsoft.ML.Data
     /// </summary>
     public sealed class KeyCount
     {
+        /// <summary>
+        /// Initializes the cardinality, or count, of valid values of a <see cref="KeyType"/> column to the
+        /// largest integer that can be expresed by the underlying datatype of the <see cref="KeyType"/>.
+        /// </summary>
         public KeyCount() { }
 
-        public KeyCount(ulong? count = null)
+        /// <summary>
+        /// Initializes the cardinality, or count, of valid values of a <see cref="KeyType"/> column to <paramref name="count"/>
+        /// </summary>
+        public KeyCount(ulong count)
         {
             if (count == 0)
                 throw Contracts.ExceptParam(nameof(count), "The cardinality of valid values of a "
@@ -84,7 +90,7 @@ namespace Microsoft.ML.Data
             Count = count;
         }
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Count of valid key values")]
         public ulong? Count;
 
         /// <summary>

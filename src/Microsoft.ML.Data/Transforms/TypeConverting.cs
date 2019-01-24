@@ -374,7 +374,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
             else if (!(srcType.GetItemType() is KeyType key))
                 itemType = PrimitiveType.FromKind(kind);
-            else if (!KeyType.IsValidDataKind(kind))
+            else if (!KeyType.IsValidDataType(kind.ToType()))
             {
                 itemType = PrimitiveType.FromKind(kind);
                 return false;
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ulong max = kind.ToMaxInt();
                 if (count > max)
                     count = max;
-                itemType = new KeyType(kind, count);
+                itemType = new KeyType(kind.ToType(), count);
             }
             return true;
         }

@@ -774,7 +774,7 @@ namespace Microsoft.ML.Data
                     if (isKey)
                     {
                         ulong count;
-                        Contracts.CheckDecode(KeyType.IsValidDataKind(kind));
+                        Contracts.CheckDecode(KeyType.IsValidDataType(kind.ToType()));
                         if (ctx.Header.ModelVerWritten < 0x0001000C)
                         {
                             bool isContig = ctx.Reader.ReadBoolByte();
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Data
                         else
                             count = ctx.Reader.ReadUInt64();
 
-                        itemType = new KeyType(kind, count);
+                        itemType = new KeyType(kind.ToType(), count);
                     }
                     else
                         itemType = PrimitiveType.FromKind(kind);

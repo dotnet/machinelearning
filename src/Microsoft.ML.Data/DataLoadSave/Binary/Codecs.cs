@@ -1245,17 +1245,14 @@ namespace Microsoft.ML.Data.IO
                 ulong min = reader.ReadUInt64();
                 int count = reader.ReadInt32();
 
+                // Since we no longer support the notion of non contiguous, min != 0 and unknown
+                // cardinality we throw when they are encountered.
                 Contracts.CheckDecode(min == 0);
-                Contracts.CheckDecode(0 <= count);
-                Contracts.CheckDecode((ulong)count <= ulong.MaxValue - min);
+                Contracts.CheckDecode(0 < count);
                 Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
-                Contracts.CheckDecode(contiguous || count == 0);
+                Contracts.CheckDecode(contiguous);
 
-                // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
-                if (count == 0)
-                    type = new KeyType(itemType.RawType, itemType.RawKind.ToMaxInt());
-                else
-                    type = new KeyType(itemType.RawType, count);
+                type = new KeyType(itemType.RawType, count);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodecOld<>).MakeGenericType(itemType.RawType);
@@ -1269,7 +1266,7 @@ namespace Microsoft.ML.Data.IO
                 throw Contracts.ExceptParam(nameof(type), "type must be a key type");
             // Create the internal codec the key codec will use to do the actual reading/writing.
             IValueCodec innerCodec;
-            if (!TryGetCodec(NumberType.FromKind(type.RawKind), out innerCodec))
+            if (!TryGetCodec(NumberType.FromKind(type.GetRawKind()), out innerCodec))
             {
                 codec = default;
                 return false;
@@ -1300,7 +1297,7 @@ namespace Microsoft.ML.Data.IO
                 Contracts.AssertValue(type);
                 Contracts.AssertValue(innerCodec);
                 Contracts.Assert(type.RawType == typeof(T));
-                Contracts.Assert(innerCodec.Type.RawKind == type.RawKind);
+                Contracts.Assert(innerCodec.Type.RawType == type.RawType);
                 _factory = factory;
                 _type = type;
                 _innerCodec = innerCodec;
@@ -1351,14 +1348,14 @@ namespace Microsoft.ML.Data.IO
             // Construct the key type.
             var itemType = innerCodec.Type as PrimitiveType;
             Contracts.CheckDecode(itemType != null);
-            Contracts.CheckDecode(KeyType.IsValidDataKind(itemType.RawKind));
+            Contracts.CheckDecode(KeyType.IsValidDataType(itemType.RawType));
             KeyType type;
             using (BinaryReader reader = OpenBinaryReader(definitionStream))
             {
                 ulong count = reader.ReadUInt64();
 
                 Contracts.CheckDecode(0 < count);
-                Contracts.CheckDecode(count <= itemType.RawKind.ToMaxInt());
+                Contracts.CheckDecode(count <= itemType.RawType.ToMaxInt());
 
                 type = new KeyType(itemType.RawType, count);
             }

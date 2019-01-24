@@ -465,68 +465,20 @@ namespace Microsoft.ML.Data
     /// </summary>
     public sealed class KeyType : PrimitiveType
     {
-        private KeyType(Type type, DataKind kind, ulong min, int count, bool contiguous)
+        public KeyType(Type type, ulong count)
             : base(type)
         {
             Contracts.AssertValue(type);
-            Contracts.Assert(kind.ToType() == type);
-            if (count == 0 || kind.ToMaxInt() < count)
+            if (count == 0 || type.ToMaxInt() < count)
                 throw Contracts.ExceptParam(nameof(count), "The cardinality of a {0} must not exceed {1}.MaxValue" +
                     " and must be strictly positive.", nameof(KeyType), type.Name);
             Count = count;
         }
 
-        public KeyType(Type type, ulong count)
-            : this(type, CheckRefRawType(type), count)
-        {
-        }
-
         public KeyType(Type type, int count)
-            : this(type, CheckRefRawType(type), (ulong)count)
+            : this(type, (ulong)count)
         {
             Contracts.CheckParam(0 < count, nameof(count), "The cardinality of a " + nameof(KeyType) + " must be strictly positive.");
-        }
-
-        [BestFriend]
-        internal KeyType(DataKind kind, ulong count)
-            : this(ToRawType(kind), kind, count)
-        {
-        }
-
-        private static DataKind CheckRefRawType(Type type)
-        {
-            Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(IsValidDataType(type), nameof(type));
-            var result = type.TryGetDataKind(out var kind);
-            Contracts.Assert(result);
-            return kind;
-
-        }
-
-        private static Type ToRawType(DataKind kind)
-        {
-            Contracts.CheckParam(IsValidDataKind(kind), nameof(kind));
-            return kind.ToType();
-        }
-
-        /// <summary>
-        /// Returns true iff the given DataKind is valid for a <see cref="KeyType"/>. The valid ones are
-        /// <see cref="DataKind.U1"/>, <see cref="DataKind.U2"/>, <see cref="DataKind.U4"/>, and <see cref="DataKind.U8"/>,
-        /// that is, the unsigned integer kinds.
-        /// </summary>
-        [BestFriend]
-        internal static bool IsValidDataKind(DataKind kind)
-        {
-            switch (kind)
-            {
-                case DataKind.U1:
-                case DataKind.U2:
-                case DataKind.U4:
-                case DataKind.U8:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         /// <summary>
@@ -575,7 +527,7 @@ namespace Microsoft.ML.Data
         public override string ToString()
         {
             DataKind rawKind = this.GetRawKind();
-            return string.Format("Key<{0}, {1}-{2}>", RawKind.GetString(), 0, (ulong)Count - 1);
+            return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), 0, Count - 1);
         }
     }
 
