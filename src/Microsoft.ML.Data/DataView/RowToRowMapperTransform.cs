@@ -48,6 +48,9 @@ namespace Microsoft.ML.Data
         Schema.DetachedColumn[] GetOutputColumns();
 
         /// <summary>
+        /// DO NOT USE IT!
+        /// Purpose of this method is to enable legacy loading and unwrapping of RowToRowTransform.
+        /// It should be removed as soon as we get rid of <see cref="TrainedWrapperEstimatorBase"/>
         /// Returns parent transfomer which uses this mapper.
         /// </summary>
         ITransformer GetTransformer();
