@@ -10,10 +10,6 @@ coverage:
   fixes:
     - "build/::/"
 
-comment:
-  layout: "header,diff,trends,uncovered,flags"
-  behavior: default
-
 flags:
   production:
     paths:
