@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new OneHotEncodingEstimator(Env, new[]{
                     new OneHotEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag),
                     new OneHotEncodingEstimator.ColumnInfo("A", "CatB", OneHotEncodingTransformer.OutputKind.Bin),
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var mlContext = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(mlContext, data);
+            var dataView = mlContext.Data.ReadFromEnumerable(data);
 
             var pipe = mlContext.Transforms.Categorical.OneHotHashEncoding("A", "CatA", 3, 0, OneHotEncodingTransformer.OutputKind.Bag)
                 .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("A", "CatB", 2, 0, OneHotEncodingTransformer.OutputKind.Key))
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var mlContext = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(mlContext, data);
+            var dataView = mlContext.Data.ReadFromEnumerable(data);
 
             var pipe = mlContext.Transforms.Categorical.OneHotEncoding("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag)
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("A", "CatB", OneHotEncodingTransformer.OutputKind.Key))
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(dataPath);
             var wrongCollection = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
+            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
                   A: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotScalarOutputKind.Ind),
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6, E=new float[2] { 5.0f,6.0f}, F = 1.0f ,G= new string[2]{ "D", "E"}, H="D"} };
 
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new OneHotEncodingEstimator(Env, new[] {
                 new OneHotEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag),
                 new OneHotEncodingEstimator.ColumnInfo("B", "CatB", OneHotEncodingTransformer.OutputKind.Bag),
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new OneHotEncodingEstimator(Env, new[]{
                     new OneHotEncodingEstimator.ColumnInfo("A", "TermA"),
                     new OneHotEncodingEstimator.ColumnInfo("B", "TermB"),

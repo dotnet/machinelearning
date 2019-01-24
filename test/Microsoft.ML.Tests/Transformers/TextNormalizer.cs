@@ -42,12 +42,12 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "A 1, b. c! йЁ 24 ", B = new string[2] { "~``ё 52ds й vc", "6ksj94 vd ё dakl Юds Ё q й" } },
                                new TestClass() { A = null, B =new string[2]  { null, string.Empty }  } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new TextNormalizingEstimator(Env, columns: new[] { ("A", "NormA"), ("B", "NormB") });
 
             var invalidData = new[] { new TestClassB() { A = 1, B = new float[2] { 1,4 } },
                                new TestClassB() { A = 2, B =new float[2]  { 3,4 }  } };
-            var invalidDataView = ComponentCreation.CreateDataView(Env, invalidData);
+            var invalidDataView = ML.Data.ReadFromEnumerable(invalidData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
 
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "A 1, b. c! йЁ 24 ", B = new string[2] { "~``ё 52ds й vc", "6ksj94 vd ё dakl Юds Ё q й" } } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new TextNormalizingEstimator(Env, columns: new[] { ("A", "NormA"), ("B", "NormB") });
 
             var result = pipe.Fit(dataView).Transform(dataView);

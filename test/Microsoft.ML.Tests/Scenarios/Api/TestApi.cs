@@ -64,7 +64,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var env = new MLContext(seed: 0);
             // Correct use of CursorChannel attribute.
             var data1 = Utils.CreateArray(10, new OneIChannelWithAttribute());
-            var idv1 = env.CreateDataView(data1);
+            var idv1 = env.Data.ReadFromEnumerable(data1);
             Assert.Null(data1[0].Channel);
 
             var filter1 = LambdaTransform.CreateFilter<OneIChannelWithAttribute, object>(env, idv1,
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Error case: non-IChannel field marked with attribute.
             var data2 = Utils.CreateArray(10, new OneStringWithAttribute());
-            var idv2 = env.CreateDataView(data2);
+            var idv2 = env.Data.ReadFromEnumerable(data2);
             Assert.Null(data2[0].Channel);
 
             var filter2 = LambdaTransform.CreateFilter<OneStringWithAttribute, object>(env, idv2,
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Error case: multiple fields marked with attributes.
             var data3 = Utils.CreateArray(10, new TwoIChannelsWithAttributes());
-            var idv3 = env.CreateDataView(data3);
+            var idv3 = env.Data.ReadFromEnumerable(data3);
             Assert.Null(data3[0].ChannelOne);
             Assert.Null(data3[2].ChannelTwo);
 
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var example4 = new TwoIChannelsOnlyOneWithAttribute();
             Assert.Null(example4.ChannelTwo);
             Assert.Null(example4.ChannelOne);
-            var idv4 = env.CreateDataView(Utils.CreateArray(10, example4));
+            var idv4 = env.Data.ReadFromEnumerable(Utils.CreateArray(10, example4));
 
             var filter4 = LambdaTransform.CreateFilter<TwoIChannelsOnlyOneWithAttribute, object>(env, idv4,
                 (input, state) =>
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var env = new MLContext(seed: 42);
             var data = ReadBreastCancerExamples();
-            var idv = env.CreateDataView(data);
+            var idv = env.Data.ReadFromEnumerable(data);
 
             var filter = LambdaTransform.CreateFilter<BreastCancerExample, object>(env, idv,
                 (input, state) => input.Label == 0, null);
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Null(filter.GetRowCount());
 
             // test re-apply
-            var applied = env.CreateDataView(data);
+            var applied = env.Data.ReadFromEnumerable(data);
             applied = ApplyTransformUtils.ApplyAllTransformsToData(env, filter, applied);
 
             var saver = new TextSaver(env, new TextSaver.Arguments());
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             featureColumnWithMetadata.AddMetadata(kindVBuffer, valueVBuffer);
 
             var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
-            var idv = mlContext.CreateDataView(data, mySchema);
+            var idv = mlContext.Data.ReadFromEnumerable(data, mySchema);
 
             Assert.True(idv.Schema[0].Metadata.Schema.Count == 2);
             Assert.True(idv.Schema[0].Metadata.Schema[0].Name == kindFloat);
