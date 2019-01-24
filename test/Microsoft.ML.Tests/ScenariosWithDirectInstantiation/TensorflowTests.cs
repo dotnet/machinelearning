@@ -798,6 +798,20 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
+        // This test has been created as result of https://github.com/dotnet/machinelearning/issues/2156.
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        public void TensorFlowGettingSchemaMultipleTimes()
+        {
+            var modelLocation = "cifar_saved_model";
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            for (int i = 0; i < 10; i++)
+            {
+                var schema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
+                Assert.NotNull(schema);
+            }
+        }
+
+
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformCifarInvalidShape()
         {
