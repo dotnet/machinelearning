@@ -168,7 +168,7 @@ namespace Microsoft.ML.SamplesUtils
             data.Add(new SampleInfertData
             {
                 RowNum = 2,
-                Education = "0-5yrs",
+                Education = "12+yrs",
                 Age = 39,
                 Parity = 6,
                 Induced = 2,
