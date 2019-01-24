@@ -1245,14 +1245,17 @@ namespace Microsoft.ML.Data.IO
                 ulong min = reader.ReadUInt64();
                 int count = reader.ReadInt32();
 
-                // Since we no longer support the notion of non contiguous, min != 0 and unknown
-                // cardinality we throw when they are encountered.
+                // Since we no longer support the notion of min != 0 we throw in that case.
                 Contracts.CheckDecode(min == 0);
-                Contracts.CheckDecode(0 < count);
+                Contracts.CheckDecode(0 <= count);
                 Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
-                Contracts.CheckDecode(contiguous);
+                Contracts.CheckDecode(contiguous || count == 0);
 
-                type = new KeyType(itemType.RawType, count);
+                // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
+                if (count == 0)
+                    type = new KeyType(itemType.RawType, itemType.RawType.ToMaxInt());
+                else
+                    type = new KeyType(itemType.RawType, count);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodecOld<>).MakeGenericType(itemType.RawType);
