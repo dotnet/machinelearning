@@ -11,12 +11,12 @@ namespace Microsoft.ML.ImageAnalytics.EntryPoints
 {
     public static class ImageAnalytics
     {
-        [TlcModule.EntryPoint(Name = "Transforms.ImageLoader", Desc = ImageLoaderTransform.Summary,
-            UserName = ImageLoaderTransform.UserName, ShortName = ImageLoaderTransform.LoaderSignature)]
-        public static CommonOutputs.TransformOutput ImageLoader(IHostEnvironment env, ImageLoaderTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ImageLoader", Desc = ImageLoaderTransformer.Summary,
+            UserName = ImageLoaderTransformer.UserName, ShortName = ImageLoaderTransformer.LoaderSignature)]
+        public static CommonOutputs.TransformOutput ImageLoader(IHostEnvironment env, ImageLoaderTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageLoaderTransform", input);
-            var xf = ImageLoaderTransform.Create(h, input, input.Data);
+            var xf = ImageLoaderTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),
@@ -24,12 +24,12 @@ namespace Microsoft.ML.ImageAnalytics.EntryPoints
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ImageResizer", Desc = ImageResizerTransform.Summary,
-            UserName = ImageResizerTransform.UserName, ShortName = ImageResizerTransform.LoaderSignature)]
-        public static CommonOutputs.TransformOutput ImageResizer(IHostEnvironment env, ImageResizerTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ImageResizer", Desc = ImageResizerTransformer.Summary,
+            UserName = ImageResizerTransformer.UserName, ShortName = ImageResizerTransformer.LoaderSignature)]
+        public static CommonOutputs.TransformOutput ImageResizer(IHostEnvironment env, ImageResizerTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageResizerTransform", input);
-            var xf = ImageResizerTransform.Create(h, input, input.Data);
+            var xf = ImageResizerTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),
@@ -37,12 +37,12 @@ namespace Microsoft.ML.ImageAnalytics.EntryPoints
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ImagePixelExtractor", Desc = ImagePixelExtractorTransform.Summary,
-            UserName = ImagePixelExtractorTransform.UserName, ShortName = ImagePixelExtractorTransform.LoaderSignature)]
-        public static CommonOutputs.TransformOutput ImagePixelExtractor(IHostEnvironment env, ImagePixelExtractorTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ImagePixelExtractor", Desc = ImagePixelExtractorTransformer.Summary,
+            UserName = ImagePixelExtractorTransformer.UserName, ShortName = ImagePixelExtractorTransformer.LoaderSignature)]
+        public static CommonOutputs.TransformOutput ImagePixelExtractor(IHostEnvironment env, ImagePixelExtractorTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImagePixelExtractorTransform", input);
-            var xf = ImagePixelExtractorTransform.Create(h, input, input.Data);
+            var xf = ImagePixelExtractorTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),
@@ -50,12 +50,12 @@ namespace Microsoft.ML.ImageAnalytics.EntryPoints
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ImageGrayscale", Desc = ImageGrayscaleTransform.Summary,
-            UserName = ImageGrayscaleTransform.UserName, ShortName = ImageGrayscaleTransform.LoaderSignature)]
-        public static CommonOutputs.TransformOutput ImageGrayscale(IHostEnvironment env, ImageGrayscaleTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ImageGrayscale", Desc = ImageGrayscaleTransformer.Summary,
+            UserName = ImageGrayscaleTransformer.UserName, ShortName = ImageGrayscaleTransformer.LoaderSignature)]
+        public static CommonOutputs.TransformOutput ImageGrayscale(IHostEnvironment env, ImageGrayscaleTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageGrayscaleTransform", input);
-            var xf = ImageGrayscaleTransform.Create(h, input, input.Data);
+            var xf = ImageGrayscaleTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),

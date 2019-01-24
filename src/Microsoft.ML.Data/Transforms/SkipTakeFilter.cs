@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -187,21 +188,19 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate);
             Host.AssertValueOrNull(rand);
 
-            var input = Source.GetRowCursor(predicate);
-            var activeColumns = Utils.BuildArray(OutputSchema.Count, predicate);
+            var input = Source.GetRowCursor(columnsNeeded);
+            var activeColumns = Utils.BuildArray(OutputSchema.Count, columnsNeeded);
             return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(predicate) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
         }
 
         private sealed class Cursor : LinkedRowRootCursorBase
@@ -211,10 +210,10 @@ namespace Microsoft.ML.Transforms
             private long _rowsTaken;
             private bool _started;
 
-            public override long Batch {
-                // SkipTakeFilter does not support cursor sets, so the batch number can always be zero.
-                get { return 0; }
-            }
+            /// <summary>
+            /// SkipTakeFilter does not support cursor sets, so this can always be zero.
+            /// </summary>
+            public override long Batch => 0;
 
             public Cursor(IChannelProvider provider, RowCursor input, Schema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
@@ -233,40 +232,36 @@ namespace Microsoft.ML.Transforms
 
             protected override bool MoveNextCore()
             {
-                return MoveManyCore(1);
-            }
-
-            protected override bool MoveManyCore(long count)
-            {
-                Ch.Assert(count > 0);
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
-                // Exit if count + _rowsTaken will overflow.
-                // Exit if we already have taken enough rows.
-                if (count > _take - _rowsTaken)
+                // Exit if 1 + _rowsTaken will overflow, or if we already have taken enough rows.
+                if (1 > _take - _rowsTaken)
                 {
                     _rowsTaken = _take;
                     return false;
                 }
 
-                _rowsTaken += count;
+                ++_rowsTaken;
 
                 if (!_started)
                 {
                     _started = true;
 
-                    // Exit if count + _skip will overflow.
-                    if (count > long.MaxValue - _skip)
+                    // Exit if 1 + _skip will overflow.
+                    if (1 > long.MaxValue - _skip)
                     {
                         _rowsTaken = _take;
                         return false;
                     }
 
-                    return Root.MoveMany(_skip + count);
+                    // Move foward _skip + 1 rows to get to the "first" row of the input.
+                    for (long i = 0; i <= _skip; ++i)
+                    {
+                        if (!Root.MoveNext())
+                            return false;
+                    }
+                    return true;
                 }
 
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                return Root.MoveMany(count);
+                return Root.MoveNext();
             }
         }
     }

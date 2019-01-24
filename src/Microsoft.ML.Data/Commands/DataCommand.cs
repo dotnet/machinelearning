@@ -159,7 +159,8 @@ namespace Microsoft.ML.Data
                 Dictionary<string, double> averageMetric = new Dictionary<string, double>();
                 foreach (Dictionary<string, IDataView> mValue in metricValues)
                 {
-                    using (var cursor = mValue.First().Value.GetRowCursor(col => true))
+                    var data = mValue.First().Value;
+                    using (var cursor = data.GetRowCursorForAllColumns())
                     {
                         while (cursor.MoveNext())
                         {
@@ -167,7 +168,7 @@ namespace Microsoft.ML.Data
                             {
                                 var nameOfMetric = "TLC_" + cursor.Schema[currentIndex].Name;
                                 var type = cursor.Schema[currentIndex].Type;
-                                if (type.IsNumber)
+                                if (type is NumberType)
                                 {
                                     var getter = RowCursorUtils.GetGetterAs<double>(NumberType.R8, cursor, currentIndex);
                                     double metricValue = 0;

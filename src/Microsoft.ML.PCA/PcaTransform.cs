@@ -254,7 +254,7 @@ namespace Microsoft.ML.Transforms.Projections
                 var colInfo = columns[i];
                 var sInfo = _schemaInfos[i] = new Mapper.ColumnSchemaInfo(ColumnPairs[i], input.Schema, colInfo.WeightColumn);
                 ValidatePcaInput(Host, colInfo.Input, sInfo.InputType);
-                _transformInfos[i] = new TransformInfo(colInfo.Rank, sInfo.InputType.ValueCount);
+                _transformInfos[i] = new TransformInfo(colInfo.Rank, sInfo.InputType.GetValueCount());
             }
 
             Train(columns, _transformInfos, input);
@@ -453,7 +453,8 @@ namespace Microsoft.ML.Transforms.Projections
                     activeColumns[sInfo.WeightColumnIndex] = true;
             }
 
-            using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
+            var inputCols = trainingData.Schema.Where(x => activeColumns[x.Index]);
+            using (var cursor = trainingData.GetRowCursor(inputCols))
             {
                 var weightGetters = new ValueGetter<float>[_numColumns];
                 var columnGetters = new ValueGetter<VBuffer<float>>[_numColumns];
@@ -547,7 +548,7 @@ namespace Microsoft.ML.Transforms.Projections
         {
             string inputSchema; // just used for the excpections
 
-            if (!(type.IsKnownSizeVector && type.VectorSize > 1 && type.ItemType.Equals(NumberType.R4)))
+            if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberType.R4)))
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
         }
 
@@ -589,7 +590,7 @@ namespace Microsoft.ML.Transforms.Projections
                     var colPair = _parent.ColumnPairs[i];
                     var colSchemaInfo = new ColumnSchemaInfo(colPair, inputSchema);
                     ValidatePcaInput(Host, colPair.input, colSchemaInfo.InputType);
-                    if (colSchemaInfo.InputType.VectorSize != _parent._transformInfos[i].Dimension)
+                    if (colSchemaInfo.InputType.GetVectorSize() != _parent._transformInfos[i].Dimension)
                     {
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input,
                             new VectorType(NumberType.R4, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());

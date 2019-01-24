@@ -320,7 +320,6 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 var item = args.Column[i];
                 var tempResultType = item.ResultType ?? args.ResultType;
-                DataKind kind;
                 KeyRange range = null;
                 // If KeyRange or Range are defined on this column, set range to the appropriate value.
                 if (item.KeyRange != null)
@@ -337,6 +336,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         range = KeyRange.Parse(args.Range);
                 }
 
+                DataKind kind;
                 if (tempResultType == null)
                 {
                     if (range == null)
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     else
                     {
                         var srcType = input.Schema[item.Source ?? item.Name].Type;
-                        kind = srcType.IsKey ? srcType.RawKind : DataKind.U4;
+                        kind = srcType is KeyType ? srcType.GetRawKind() : DataKind.U4;
                     }
                 }
                 else
@@ -371,10 +371,11 @@ namespace Microsoft.ML.Transforms.Conversions
             if (range != null)
             {
                 itemType = TypeParsingUtils.ConstructKeyType(kind, range);
-                if (!srcType.ItemType.IsKey && !srcType.ItemType.IsText)
+                ColumnType srcItemType = srcType.GetItemType();
+                if (!(srcItemType is KeyType) && !(srcItemType is TextType))
                     return false;
             }
-            else if (!(srcType.ItemType is KeyType key))
+            else if (!(srcType.GetItemType() is KeyType key))
                 itemType = PrimitiveType.FromKind(kind);
             else if (!KeyType.IsValidDataKind(kind))
             {
@@ -383,7 +384,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
             else
             {
-                ectx.Assert(KeyType.IsValidDataKind(key.RawKind));
+                ectx.Assert(KeyType.IsValidDataType(key.RawType));
                 int count = key.Count;
                 // Technically, it's an error for the counts not to match, but we'll let the Conversions
                 // code return false below. There's a possibility we'll change the standard conversions to
@@ -435,7 +436,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 // Ensure that the conversion is legal. We don't actually cache the delegate here. It will get
                 // re-fetched by the utils code when needed.
-                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(srcType.ItemType, itemType, out Delegate del, out bool identity))
+                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(srcType.GetItemType(), itemType, out Delegate del, out bool identity))
                     return false;
 
                 typeDst = itemType;
@@ -452,16 +453,23 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     var builder = new MetadataBuilder();
                     var srcType = InputSchema[_srcCols[i]].Type;
-                    if (_types[i].IsKnownSizeVector)
+                    if (_types[i].IsKnownSizeVector())
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    if (srcType.ItemType.IsKey && _types[i].ItemType.IsKey &&
-                        srcType.ItemType.KeyCount > 0 && srcType.ItemType.KeyCount == _types[i].ItemType.KeyCount)
+
+                    ColumnType srcItemType = srcType.GetItemType();
+                    ColumnType currentItemType = _types[i].GetItemType();
+
+                    KeyType srcItemKeyType = srcItemType as KeyType;
+                    KeyType currentItemKeyType = currentItemType as KeyType;
+                    if (srcItemKeyType != null && currentItemKeyType != null &&
+                        srcItemKeyType.Count > 0 && srcItemKeyType.Count == currentItemKeyType.Count)
                     {
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.KeyValues);
                     }
-                    if (srcType.ItemType.IsNumber && _types[i].ItemType.IsNumber)
+
+                    if (srcItemType is NumberType && currentItemType is NumberType)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.IsNormalized);
-                    if (srcType.IsBool && _types[i].ItemType.IsNumber)
+                    if (srcType is BoolType && currentItemType is NumberType)
                     {
                         ValueGetter<bool> getter = (ref bool dst) => dst = true;
                         builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
@@ -510,7 +518,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
                 if (_parent._columns[iinfo].OutputKeyRange != null)
                 {
-                    var key = (KeyType)_types[iinfo].ItemType;
+                    var key = (KeyType)_types[iinfo].GetItemType();
                     node.AddAttribute("min", key.Min);
                     node.AddAttribute("max", key.Count);
                     node.AddAttribute("contiguous", key.Contiguous);
@@ -565,16 +573,16 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Input} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
-                if (col.ItemType.IsBool && newType.ItemType.IsNumber)
+                if (col.ItemType is BoolType && newType is NumberType)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     if (col.Kind == SchemaShape.Column.VectorKind.Vector)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
-                    if (col.ItemType.IsKey)
+                    if (col.ItemType is KeyType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
-                    if (col.ItemType.IsNumber && newType.ItemType.IsNumber)
+                    if (col.ItemType is NumberType && newType is NumberType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, normMeta.ItemType, false));
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, newType, false, col.Metadata);
             }

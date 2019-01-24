@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
 
                 // Get slot names.
                 var featuresColumn = data.Schema[features];
-                int numSlots = featuresColumn.Type.VectorSize;
+                int numSlots = featuresColumn.Type.GetVectorSize();
                 data.Schema.TryGetColumnIndex(features, out int featuresColumnIndex);
 
                 ch.Info("Number of slots: " + numSlots);
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Transforms
                 var valuesRowCount = 0;
                 // REVIEW: Seems like if the labels are NaN, so that all metrics are NaN, this command will be useless.
                 // In which case probably erroring out is probably the most useful thing.
-                using (var cursor = data.GetRowCursor(col => col == featuresColumnIndex))
+                using (var cursor = data.GetRowCursor(featuresColumn))
                 {
                     var featuresGetter = cursor.GetGetter<VBuffer<float>>(featuresColumnIndex);
                     var featuresBuffer = default(VBuffer<float>);

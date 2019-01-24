@@ -632,22 +632,26 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return typeof(float);
                 case TFDataType.Double:
                     return typeof(double);
-                case TFDataType.Int32:
-                    return typeof(int);
-                case TFDataType.UInt8:
-                    return typeof(byte);
-                case TFDataType.Int16:
-                    return typeof(short);
                 case TFDataType.Int8:
                     return typeof(sbyte);
-                case TFDataType.String:
-                    throw new NotSupportedException();
+                case TFDataType.Int16:
+                    return typeof(short);
+                case TFDataType.Int32:
+                    return typeof(int);
                 case TFDataType.Int64:
                     return typeof(long);
-                case TFDataType.Bool:
-                    return typeof(bool);
+                case TFDataType.UInt8:
+                    return typeof(byte);
                 case TFDataType.UInt16:
                     return typeof(ushort);
+                case TFDataType.UInt32:
+                    return typeof(uint);
+                case TFDataType.UInt64:
+                    return typeof(ulong);
+                case TFDataType.String:
+                    throw new NotSupportedException();
+                case TFDataType.Bool:
+                    return typeof(bool);
                 case TFDataType.Complex128:
                     return typeof(Complex);
                 default:
@@ -666,22 +670,26 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 return TFDataType.Float;
             if (type == typeof(double))
                 return TFDataType.Double;
-            if (type == typeof(int))
-                return TFDataType.Int32;
-            if (type == typeof(byte))
-                return TFDataType.UInt8;
-            if (type == typeof(short))
-                return TFDataType.Int16;
             if (type == typeof(sbyte))
                 return TFDataType.Int8;
-            if (type == typeof(string))
-                return TFDataType.String;
+            if (type == typeof(short))
+                return TFDataType.Int16;
+            if (type == typeof(int))
+                return TFDataType.Int32;
             if (type == typeof(long))
                 return TFDataType.Int64;
-            if (type == typeof(bool))
-                return TFDataType.Bool;
+            if (type == typeof(byte))
+                return TFDataType.UInt8;
             if (type == typeof(ushort))
                 return TFDataType.UInt16;
+            if (type == typeof(uint))
+                return TFDataType.UInt32;
+            if (type == typeof(ulong))
+                return TFDataType.UInt64;
+            if (type == typeof(string))
+                return TFDataType.String;
+            if (type == typeof(bool))
+                return TFDataType.Bool;
             if (type == typeof(Complex))
                 return TFDataType.Complex128;
 
@@ -696,22 +704,26 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return *(float*)data;
                 case TFDataType.Double:
                     return *(double*)data;
-                case TFDataType.Int32:
-                    return *(int*)data;
-                case TFDataType.UInt8:
-                    return *(byte*)data;
-                case TFDataType.Int16:
-                    return *(short*)data;
                 case TFDataType.Int8:
                     return *(sbyte*)data;
-                case TFDataType.String:
-                    throw new NotImplementedException();
+                case TFDataType.Int16:
+                    return *(short*)data;
+                case TFDataType.Int32:
+                    return *(int*)data;
                 case TFDataType.Int64:
                     return *(long*)data;
-                case TFDataType.Bool:
-                    return *(bool*)data;
+                case TFDataType.UInt8:
+                    return *(byte*)data;
                 case TFDataType.UInt16:
                     return *(ushort*)data;
+                case TFDataType.UInt32:
+                    return *(uint*)data;
+                case TFDataType.UInt64:
+                    return *(ulong*)data;
+                case TFDataType.String:
+                    throw new NotImplementedException();
+                case TFDataType.Bool:
+                    return *(bool*)data;
                 case TFDataType.Complex128:
                     return *(Complex*)data;
                 default:

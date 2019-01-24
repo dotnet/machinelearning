@@ -212,12 +212,12 @@ namespace Microsoft.ML.Transforms
             private static Delegate GetIsNADelegate(ColumnType type)
             {
                 Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
-                return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
+                return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
             }
 
             private static Delegate GetIsNADelegate<T>(ColumnType type)
             {
-                return Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+                return Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
             }
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
                 disposer = null;
 
-                if (!_infos[iinfo].InputType.IsVector)
+                if (!(_infos[iinfo].InputType is VectorType))
                     return ComposeGetterOne(input, iinfo);
                 return ComposeGetterVec(input, iinfo);
             }
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for vector valued inputs.
             /// </summary>
             private ValueGetter<VBuffer<bool>> ComposeGetterVec(Row input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].InputType.ItemType.RawType, input, iinfo);
+                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].InputType.GetItemType().RawType, input, iinfo);
 
             private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(Row input, int iinfo)
             {

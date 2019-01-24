@@ -19,9 +19,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var ml = new MLContext();
 
-            // Get a small dataset as an IEnumerable.
+            // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = ml.CreateStreamingDataView(data);
+            var trainData = ml.Data.ReadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the data of the newly created column as an IEnumerable of SampleInfertDataWithFeatures.
-            var featuresColumn = transformedData.AsEnumerable<SampleInfertDataWithFeatures>(ml, reuseRowObject: false);
+            var featuresColumn = ml.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             foreach (var featureRow in featuresColumn)

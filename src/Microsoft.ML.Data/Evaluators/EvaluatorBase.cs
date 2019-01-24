@@ -128,7 +128,7 @@ namespace Microsoft.ML.Data
         // the metric. If there are stratified metrics, an additional column is added to the data view containing the
         // stratification value as text in the format "column x = y".
         private Dictionary<string, IDataView> ProcessData(IDataView data, RoleMappedSchema schema,
-            Func<int, bool> activeCols, TAgg aggregator, AggregatorDictionaryBase[] dictionaries)
+            Func<int, bool> activeColsIndices, TAgg aggregator, AggregatorDictionaryBase[] dictionaries)
         {
             Func<bool> finishPass =
                 () =>
@@ -141,6 +141,7 @@ namespace Microsoft.ML.Data
 
             bool needMorePasses = aggregator.Start();
 
+            var activeCols = data.Schema.Where(x => activeColsIndices(x.Index));
             // REVIEW: Add progress reporting.
             while (needMorePasses)
             {
@@ -366,7 +367,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertNonWhiteSpace(stratCol);
                 Contracts.AssertValue(createAgg);
 
-                if (stratType.KeyCount == 0 && !stratType.IsText)
+                if (stratType.GetKeyCount() == 0 && !(stratType is TextType))
                 {
                     throw Contracts.ExceptUserArg(nameof(MamlEvaluatorBase.ArgumentsBase.StratColumn),
                         "Stratification column '{0}' has type '{1}', but must be a known count key or text", stratCol, stratType);

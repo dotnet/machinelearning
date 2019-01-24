@@ -24,9 +24,9 @@ namespace Microsoft.ML.LightGBM
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OvaModelParameters>, OvaModelParameters>
     {
-        public const string Summary = "LightGBM Multi Class Classifier";
-        public const string LoadNameValue = "LightGBMMulticlass";
-        public const string ShortName = "LightGBMMC";
+        internal const string Summary = "LightGBM Multi Class Classifier";
+        internal const string LoadNameValue = "LightGBMMulticlass";
+        internal const string ShortName = "LightGBMMC";
         private const int _minDataToUseSoftmax = 50000;
 
         private const double _maxNumClass = 1e6;
@@ -44,7 +44,7 @@ namespace Microsoft.ML.LightGBM
         /// Initializes a new instance of <see cref="LightGbmMulticlassTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the labelColumn column.</param>
+        /// <param name="labelColumn">The name of The label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weights">The name for the column containing the initial weight.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
@@ -113,7 +113,7 @@ namespace Microsoft.ML.LightGBM
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
             var labelType = data.Schema.Label.Value.Type;
-            if (!(labelType.IsBool || labelType.IsKey || labelType == NumberType.R4))
+            if (!(labelType is BoolType || labelType is KeyType || labelType == NumberType.R4))
             {
                 throw ch.ExceptParam(nameof(data),
                     $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType}', but must be key, boolean or R4.");

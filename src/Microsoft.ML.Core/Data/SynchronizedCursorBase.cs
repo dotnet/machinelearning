@@ -15,30 +15,39 @@ namespace Microsoft.ML.Data
     {
         protected readonly IChannel Ch;
 
-        private readonly RowCursor _root;
+        /// <summary>
+        /// The synchronized cursor base, as it merely passes through requests for all "positional" calls (including
+        /// <see cref="MoveNext"/>, <see cref="Position"/>, <see cref="Batch"/>, and so forth), offers an opportunity
+        /// for optimization for "wrapping" cursors (which are themselves often <see cref="SynchronizedCursorBase"/>
+        /// implementors) to get this root cursor. But, this can only be done by exposing this root cursor, as we do here.
+        /// Internal code should be quite careful in using this as the potential for misuse is quite high.
+        /// </summary>
+        internal readonly RowCursor Root;
         private bool _disposed;
 
         protected RowCursor Input { get; }
 
-        public sealed override long Position => _root.Position;
+        public sealed override long Position => Root.Position;
 
-        public sealed override long Batch => _root.Batch;
-
-        public sealed override CursorState State => _root.State;
+        public sealed override long Batch => Root.Batch;
 
         /// <summary>
-        /// Convenience property for checking whether the current state is CursorState.Good.
+        /// Convenience property for checking whether the cursor is in a good state where values
+        /// can be retrieved, that is, whenever <see cref="Position"/> is non-negative.
         /// </summary>
-        protected bool IsGood => _root.State == CursorState.Good;
+        protected bool IsGood => Position >= 0;
 
         protected SynchronizedCursorBase(IChannelProvider provider, RowCursor input)
         {
-            Contracts.AssertValue(provider, "provider");
+            Contracts.AssertValue(provider);
             Ch = provider.Start("Cursor");
 
-            Ch.AssertValue(input, "input");
+            Ch.AssertValue(input);
             Input = input;
-            _root = Input.GetRootCursor();
+            // If this thing happens to be itself an instance of this class (which, practically, it will
+            // be in the majority of situations), we can treat the input as likewise being a passthrough,
+            // thereby saving lots of "nested" calls on the stack when doing common operations like movement.
+            Root = Input is SynchronizedCursorBase syncInput ? syncInput.Root : input;
         }
 
         protected override void Dispose(bool disposing)
@@ -54,11 +63,7 @@ namespace Microsoft.ML.Data
             _disposed = true;
         }
 
-        public sealed override bool MoveNext() => _root.MoveNext();
-
-        public sealed override bool MoveMany(long count) => _root.MoveMany(count);
-
-        public sealed override RowCursor GetRootCursor() => _root;
+        public sealed override bool MoveNext() => Root.MoveNext();
 
         public sealed override ValueGetter<RowId> GetIdGetter() => Input.GetIdGetter();
     }

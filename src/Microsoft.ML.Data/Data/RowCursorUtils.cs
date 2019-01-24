@@ -46,13 +46,13 @@ namespace Microsoft.ML.Data
         public static Delegate GetGetterAs(ColumnType typeDst, Row row, int col)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsPrimitive, nameof(typeDst));
+            Contracts.CheckParam(typeDst is PrimitiveType, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<int>> del = GetGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeDst.RawType);
@@ -66,14 +66,14 @@ namespace Microsoft.ML.Data
         public static ValueGetter<TDst> GetGetterAs<TDst>(ColumnType typeDst, Row row, int col)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsPrimitive, nameof(typeDst));
+            Contracts.CheckParam(typeDst is PrimitiveType, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<TDst>> del = GetGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeof(TDst));
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
             return Utils.MarshalInvoke(GetGetterAsStringBuilderCore<int>, typeSrc.RawType, typeSrc, row, col);
         }
 
@@ -150,8 +150,8 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeDst.RawType);
@@ -170,8 +170,8 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
@@ -182,7 +182,8 @@ namespace Microsoft.ML.Data
         /// Given the item type, typeDst, and a slot cursor, return a ValueGetter{VBuffer{TDst}} for the
         /// vector-valued column with a conversion to a vector of typeDst, if needed.
         /// </summary>
-        public static ValueGetter<VBuffer<TDst>> GetVecGetterAs<TDst>(PrimitiveType typeDst, SlotCursor cursor)
+        [BestFriend]
+        internal static ValueGetter<VBuffer<TDst>> GetVecGetterAs<TDst>(PrimitiveType typeDst, SlotCursor cursor)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
@@ -259,7 +260,7 @@ namespace Microsoft.ML.Data
                 return (ValueGetter<VBuffer<TDst>>)(Delegate)getter;
             }
 
-            int size = typeSrc.VectorSize;
+            int size = typeSrc.Size;
             var src = default(VBuffer<TSrc>);
             return (ref VBuffer<TDst> dst) =>
             {
@@ -298,7 +299,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(cursor, nameof(cursor));
             Contracts.Check(0 <= col && col < cursor.Schema.Count);
             ColumnType type = cursor.Schema[col].Type;
-            Contracts.Check(type.IsKey);
+            Contracts.Check(type is KeyType);
             return Utils.MarshalInvoke(GetIsNewGroupDelegateCore<int>, type.RawType, cursor, col);
         }
 
@@ -325,30 +326,6 @@ namespace Microsoft.ML.Data
             };
         }
 
-        [Obsolete("The usages of this appear to be based on a total misunderstanding of what Batch actually is. It is a mechanism " +
-            "to enable sharding and recovery of parallelized data, and has nothing to do with actual data.")]
-        [BestFriend]
-        internal static Func<bool> GetIsNewBatchDelegate(Row cursor, int batchSize)
-        {
-            Contracts.CheckParam(batchSize > 0, nameof(batchSize), "Batch size must be > 0");
-            long lastNewBatchPosition = -1;
-            return () =>
-            {
-                if (cursor.Position % batchSize != 0)
-                    return false;
-
-                // If the cursor just moved to a new batch, we need to return true.
-                if (lastNewBatchPosition != cursor.Position)
-                {
-                    lastNewBatchPosition = cursor.Position;
-                    return true;
-                }
-
-                // The cursor is already in the new batch, if the condition is tested again, we need to return false.
-                return false;
-            };
-        }
-
         public static string TestGetLabelGetter(ColumnType type)
         {
             return TestGetLabelGetter(type, true);
@@ -356,10 +333,10 @@ namespace Microsoft.ML.Data
 
         public static string TestGetLabelGetter(ColumnType type, bool allowKeys)
         {
-            if (type == NumberType.R4 || type == NumberType.R8 || type.IsBool)
+            if (type == NumberType.R4 || type == NumberType.R8 || type is BoolType)
                 return null;
 
-            if (allowKeys && type.IsKey)
+            if (allowKeys && type is KeyType)
                 return null;
 
             return allowKeys ? "Expected R4, R8, Bool or Key type" : "Expected R4, R8 or Bool type";
@@ -394,7 +371,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(type != NumberType.R4 && type != NumberType.R8);
 
             // boolean type label mapping: True -> 1, False -> 0.
-            if (type.IsBool)
+            if (type is BoolType)
             {
                 var getBoolSrc = cursor.GetGetter<bool>(labelIndex);
                 return
@@ -406,9 +383,11 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            Contracts.Check(type.IsKey, "Only floating point number, boolean, and key type values can be used as label.");
+            if (!(type is KeyType keyType))
+                throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
+
             Contracts.Assert(TestGetLabelGetter(type) == null);
-            ulong keyMax = (ulong)type.KeyCount;
+            ulong keyMax = (ulong)keyType.Count;
             if (keyMax == 0)
                 keyMax = ulong.MaxValue;
             var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, cursor, labelIndex);
@@ -424,16 +403,20 @@ namespace Microsoft.ML.Data
                 };
         }
 
-        public static ValueGetter<VBuffer<Single>> GetLabelGetter(SlotCursor cursor)
+        [BestFriend]
+        internal static ValueGetter<VBuffer<Single>> GetLabelGetter(SlotCursor cursor)
         {
             var type = cursor.GetSlotType().ItemType;
             if (type == NumberType.R4)
                 return cursor.GetGetter<Single>();
-            if (type == NumberType.R8 || type.IsBool)
+            if (type == NumberType.R8 || type is BoolType)
                 return GetVecGetterAs<Single>(NumberType.R4, cursor);
-            Contracts.Check(type.IsKey, "Only floating point number, boolean, and key type values can be used as label.");
+            if (!(type is KeyType keyType))
+            {
+                throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
+            }
             Contracts.Assert(TestGetLabelGetter(type) == null);
-            ulong keyMax = (ulong)type.KeyCount;
+            ulong keyMax = (ulong)keyType.Count;
             if (keyMax == 0)
                 keyMax = ulong.MaxValue;
             var getSrc = RowCursorUtils.GetVecGetterAs<ulong>(NumberType.U8, cursor);
@@ -488,6 +471,32 @@ namespace Microsoft.ML.Data
             return new OneRowDataView(env, row);
         }
 
+        /// <summary>
+        /// Given a collection of <see cref="Schema.Column"/>, that is a subset of the Schema of the data, create a predicate,
+        /// that when passed a column index, will return <langword>true</langword> or <langword>false</langword>, based on whether
+        /// the column with the given <see cref="Schema.Column.Index"/> is part of the <paramref name="columnsNeeded"/>.
+        /// </summary>
+        /// <param name="columnsNeeded">The subset of columns from the <see cref="Schema"/> that are needed from this <see cref="RowCursor"/>.</param>
+        /// <param name="sourceSchema">The <see cref="Schema"/> from where the columnsNeeded originate.</param>
+        [BestFriend]
+        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<Schema.Column> columnsNeeded, Schema sourceSchema)
+        {
+            Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
+            Contracts.CheckValue(sourceSchema, nameof(sourceSchema));
+
+            bool[] indicesRequested = new bool[sourceSchema.Count];
+
+            foreach (var col in columnsNeeded)
+            {
+                if (col.Index >= indicesRequested.Length)
+                    throw Contracts.Except($"The requested column: {col} is not part of the {nameof(sourceSchema)}");
+
+                indicesRequested[col.Index] = true;
+            }
+
+            return c => indicesRequested[c];
+        }
+
         private sealed class OneRowDataView : IDataView
         {
             private readonly Row _row;
@@ -506,19 +515,17 @@ namespace Microsoft.ML.Data
                 _row = row;
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnNeeded, Random rand = null)
             {
-                _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
-                bool[] active = Utils.BuildArray(Schema.Count, needCol);
+                bool[] active = Utils.BuildArray(Schema.Count, columnNeeded);
                 return new Cursor(_host, this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
-                return new RowCursor[] { GetRowCursor(needCol, rand) };
+                return new RowCursor[] { GetRowCursor(columnNeeded, rand) };
             }
 
             public long? GetRowCount()
@@ -532,7 +539,7 @@ namespace Microsoft.ML.Data
                 private readonly bool[] _active;
 
                 public override Schema Schema => _parent.Schema;
-                public override long Batch { get { return 0; } }
+                public override long Batch => 0;
 
                 public Cursor(IHost host, OneRowDataView parent, bool[] active)
                     : base(host)
@@ -544,10 +551,7 @@ namespace Microsoft.ML.Data
                     _active = active;
                 }
 
-                protected override bool MoveNextCore()
-                {
-                    return State == CursorState.NotStarted;
-                }
+                protected override bool MoveNextCore() => Position < 0;
 
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
@@ -576,11 +580,19 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
             }
         }
+
+        /// <summary>
+        /// This is an error message meant to be used in the situation where a user calls a delegate as returned from
+        /// <see cref="Row.GetIdGetter"/> or <see cref="Row.GetGetter{TValue}(int)"/>.
+        /// </summary>
+        [BestFriend]
+        internal const string FetchValueStateError = "Values cannot be fetched at this time. This method was called either before the first call to "
+            + nameof(RowCursor.MoveNext) + ", or at any point after that method returned false.";
     }
 }

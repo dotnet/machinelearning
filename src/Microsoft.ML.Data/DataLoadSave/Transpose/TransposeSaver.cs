@@ -64,17 +64,17 @@ namespace Microsoft.ML.Data.IO
         {
             _host.CheckValue(type, nameof(type));
             // We can't transpose variable length columns at all, so nor can we save them.
-            if (type.IsVector && !type.IsKnownSizeVector)
+            if (type is VectorType vectorType && !vectorType.IsKnownSize)
                 return false;
             // Since we'll be presumably saving vectors of these, attempt to construct
             // an artificial vector type out of this. Obviously if you can't make a vector
             // out of the items, then you could not save each slot's values.
-            var itemType = type.ItemType;
+            var itemType = type.GetItemType();
             var primitiveType = itemType as PrimitiveType;
             if (primitiveType == null)
                 return false;
-            var vectorType = new VectorType(primitiveType, size: 2);
-            return _internalSaver.IsColumnSavable(vectorType);
+            var newVectorType = new VectorType(primitiveType, size: 2);
+            return _internalSaver.IsColumnSavable(newVectorType);
         }
 
         public void SaveData(Stream stream, IDataView data, params int[] cols)
@@ -109,9 +109,9 @@ namespace Microsoft.ML.Data.IO
             header.Signature = TransposeLoader.Header.SignatureValue;
             header.Version = TransposeLoader.Header.WriterVersion;
             header.CompatibleVersion = TransposeLoader.Header.WriterVersion;
-            VectorType slotType = data.TransposeSchema.GetSlotType(cols[0]);
+            var slotType = data.GetSlotType(cols[0]);
             ch.AssertValue(slotType);
-            header.RowCount = slotType.ValueCount;
+            header.RowCount = slotType.Size;
             header.ColumnCount = cols.Length;
 
             // We keep track of the offsets of the start of each sub-IDV, for use in writing out the

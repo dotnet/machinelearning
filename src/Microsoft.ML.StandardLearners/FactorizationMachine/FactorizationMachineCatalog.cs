@@ -16,7 +16,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Predict a target using a field-aware factorization machine algorithm.
         /// </summary>
-        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="featureColumns">The features, or independent variables.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -24,14 +24,14 @@ namespace Microsoft.ML
         /// The settings here will override the ones provided in the direct method signature,
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
-        public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
             string weights = null,
             Action<FieldAwareFactorizationMachineTrainer.Arguments> advancedSettings = null)
         {
-            Contracts.CheckValue(ctx, nameof(ctx));
-            var env = CatalogUtils.GetEnvironment(ctx);
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
             return new FieldAwareFactorizationMachineTrainer(env, featureColumns, labelColumn, weights, advancedSettings: advancedSettings);
         }
     }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -175,7 +176,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
+            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -222,10 +223,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
 
             // Again, convert the test data to a format supported by ML.NET.
-            var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);
+            var testDataView = mlContext.Data.ReadFromEnumerable(testMatrix);
 
             // Feed the test data into the model and then iterate through all predictions.
-            foreach (var pred in model.Transform(testDataView).AsEnumerable<MatrixElementForScore>(mlContext, false))
+            foreach (var pred in mlContext.CreateEnumerable<MatrixElementForScore>(model.Transform(testDataView), false))
                 Assert.True(pred.Score != 0);
         }
 
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     dataMatrix.Add(new MatrixElementZeroBased() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
+            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -308,7 +309,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.L2, 0, 0.1);
 
-            foreach (var pred in prediction.AsEnumerable<MatrixElementZeroBasedForScore>(mlContext, false))
+            foreach (var pred in mlContext.CreateEnumerable<MatrixElementZeroBasedForScore>(prediction, false))
                 // Test data contains no out-of-range indexes (i.e., all indexes can be found in the training matrix),
                 // so NaN should never happen.
                 Assert.True(!float.IsNaN(pred.Score));
@@ -323,12 +324,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             };
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var invalidTestDataView = ComponentCreation.CreateDataView(mlContext, invalidTestMatrix);
+            var invalidTestDataView = mlContext.Data.ReadFromEnumerable(invalidTestMatrix);
 
             // Apply the trained model to the examples with out-of-range indexes. 
             var invalidPrediction = model.Transform(invalidTestDataView);
 
-            foreach (var pred in invalidPrediction.AsEnumerable<MatrixElementZeroBasedForScore>(mlContext, false))
+            foreach (var pred in mlContext.CreateEnumerable<MatrixElementZeroBasedForScore>(invalidPrediction, false))
                 // The presence of out-of-range indexes may lead to NaN
                 Assert.True(float.IsNaN(pred.Score));
         }
@@ -387,7 +388,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 2, Value = 1 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
+            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
@@ -431,12 +432,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var testDataView = ComponentCreation.CreateDataView(Env, testDataMatrix);
+            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
 
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);
 
-            var testResults = new List<OneClassMatrixElementZeroBasedForScore>(testPrediction.AsEnumerable<OneClassMatrixElementZeroBasedForScore>(mlContext, false));
+            var testResults = mlContext.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
             CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
             // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).

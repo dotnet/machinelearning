@@ -13,6 +13,10 @@ namespace Microsoft.ML
     /// </summary>
     public sealed class ModelOperationsCatalog
     {
+        /// <summary>
+        /// This is a best friend because an extension method defined in another assembly needs this field.
+        /// </summary>
+        [BestFriend]
         internal IHostEnvironment Environment { get; }
 
         public ExplainabilityTransforms Explainability { get; }
@@ -33,7 +37,6 @@ namespace Microsoft.ML
             {
                 Environment = owner.Environment;
             }
-
         }
 
         /// <summary>

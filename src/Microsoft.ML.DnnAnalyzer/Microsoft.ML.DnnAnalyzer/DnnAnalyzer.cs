@@ -17,7 +17,7 @@ namespace Microsoft.ML.DnnAnalyzer
                 return;
             }
 
-            foreach (var (name, opType, type, inputs) in TensorFlowUtils.GetModelNodes(args[0]))
+            foreach (var (name, opType, type, inputs) in TensorFlowUtils.GetModelNodes(new MLContext(), args[0]))
             {
                 var inputsString = inputs.Length == 0 ? "" : $", input nodes: {string.Join(", ", inputs)}";
                 Console.WriteLine($"Graph node: '{name}', operation type: '{opType}', output type: '{type}'{inputsString}");

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
@@ -17,7 +18,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            var trainer = new LogisticRegression(Env, "Label", "Features");
+            var trainer = ML.BinaryClassification.Trainers.LogisticRegression();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMulticlassLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
-            var trainer = new MulticlassLogisticRegression(Env, "Label", "Features");
+            var trainer = ML.MulticlassClassification.Trainers.LogisticRegression();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorPoissonRegression()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new PoissonRegression(Env, "Label", "Features");
+            var trainer = ML.Regression.Trainers.PoissonRegression();
             TestEstimatorCore(trainer, dataView);
 
             var model = trainer.Fit(dataView);
@@ -54,11 +55,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void TestLogisticRegressionStats()
+        public void TestLogisticRegressionNoStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(new LogisticRegression(Env, "Label", "Features", advancedSettings: s => { s.ShowTrainingStats = true; }));
+            pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(new LogisticRegression.Options { ShowTrainingStats = true }));
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
 
             var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryModelParameters;
@@ -70,24 +71,34 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void TestLogisticRegressionStats_MKL()
+        public void TestLogisticRegressionWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(new LogisticRegression(Env, "Label", "Features", advancedSettings: s =>
-            {
-                s.ShowTrainingStats = true;
-                s.StdComputer = new ComputeLRTrainingStdThroughHal();
+            pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(
+                new LogisticRegression.Options { 
+                    ShowTrainingStats = true,
+                    StdComputer = new ComputeLRTrainingStdThroughHal(),
             }));
 
-            var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
+            var transformer = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
 
-            var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryModelParameters;
+            var linearModel = transformer.LastTransformer.Model.SubPredictor as LinearBinaryModelParameters;
             var stats = linearModel.Statistics;
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 
             CompareNumbersWithTolerance(stdError, 0.250672936);
             CompareNumbersWithTolerance(zScore, 7.97852373);
+
+            var scoredData = transformer.Transform(dataView);
+
+            var coeffcients  = stats.GetCoefficientStatistics(linearModel, scoredData.Schema["Features"], 100);
+
+            Assert.Equal(19, coeffcients.Length);
+
+            foreach(var coefficient in coeffcients)
+                Assert.True(coefficient.StandardError < 1.0);
+
         }
     }
 }

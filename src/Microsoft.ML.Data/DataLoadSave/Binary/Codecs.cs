@@ -154,27 +154,6 @@ namespace Microsoft.ML.Data.IO
 
             private readonly UnsafeTypeOps<T> _ops;
 
-            public override string LoadName
-            {
-                get
-                {
-                    switch (Type.RawKind)
-                    {
-                        case DataKind.I1:
-                            return typeof(sbyte).Name;
-                        case DataKind.I2:
-                            return typeof(short).Name;
-                        case DataKind.I4:
-                            return typeof(int).Name;
-                        case DataKind.I8:
-                            return typeof(long).Name;
-                        case DataKind.TS:
-                            return typeof(TimeSpan).Name;
-                    }
-                    return base.LoadName;
-                }
-            }
-
             // Gatekeeper to ensure T is a type that is supported by UnsafeTypeCodec.
             // Throws an exception if T is neither a TimeSpan nor a NumberType.
             private static ColumnType UnsafeColumnType(Type type)
@@ -857,7 +836,7 @@ namespace Microsoft.ML.Data.IO
                 public Writer(VBufferCodec<T> codec, Stream stream)
                     : base(codec._factory, stream)
                 {
-                    _size = codec._type.VectorSize;
+                    _size = codec._type.Size;
                     _lengths = FixedLength ? null : new List<int>();
                     _counts = new List<int>();
                     _indices = new List<int>();
@@ -1002,8 +981,8 @@ namespace Microsoft.ML.Data.IO
 
                     // The length of all those vectors.
                     _size = Reader.ReadInt32();
-                    if (codec._type.IsKnownSizeVector)
-                        Contracts.CheckDecode(codec._type.VectorSize == _size);
+                    if (codec._type.IsKnownSize)
+                        Contracts.CheckDecode(codec._type.Size == _size);
                     else
                         Contracts.CheckDecode(_size >= 0);
                     if (!FixedLength)
@@ -1171,10 +1150,8 @@ namespace Microsoft.ML.Data.IO
             return true;
         }
 
-        private bool GetVBufferCodec(ColumnType type, out IValueCodec codec)
+        private bool GetVBufferCodec(VectorType type, out IValueCodec codec)
         {
-            if (!type.IsVector)
-                throw Contracts.ExceptParam(nameof(type), "type must be a vector type");
             ColumnType itemType = type.ItemType;
             // First create the element codec.
             IValueCodec innerCodec;
@@ -1209,7 +1186,7 @@ namespace Microsoft.ML.Data.IO
                 Contracts.AssertValue(type);
                 Contracts.AssertValue(innerCodec);
                 Contracts.Assert(type.RawType == typeof(T));
-                Contracts.Assert(innerCodec.Type.RawKind == type.RawKind);
+                Contracts.Assert(innerCodec.Type.RawType == type.RawType);
                 _factory = factory;
                 _type = type;
                 _innerCodec = innerCodec;
@@ -1264,7 +1241,7 @@ namespace Microsoft.ML.Data.IO
             // Construct the key type.
             var itemType = innerCodec.Type as PrimitiveType;
             Contracts.CheckDecode(itemType != null);
-            Contracts.CheckDecode(KeyType.IsValidDataKind(itemType.RawKind));
+            Contracts.CheckDecode(KeyType.IsValidDataType(itemType.RawType));
             KeyType type;
             using (BinaryReader reader = OpenBinaryReader(definitionStream))
             {
@@ -1275,10 +1252,10 @@ namespace Microsoft.ML.Data.IO
                 Contracts.CheckDecode(min >= 0);
                 Contracts.CheckDecode(0 <= count);
                 Contracts.CheckDecode((ulong)count <= ulong.MaxValue - min);
-                Contracts.CheckDecode((ulong)count <= itemType.RawKind.ToMaxInt());
+                Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
                 Contracts.CheckDecode(contiguous || count == 0);
 
-                type = new KeyType(itemType.RawKind, min, count, contiguous);
+                type = new KeyType(itemType.RawType, min, count, contiguous);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodec<>).MakeGenericType(itemType.RawType);
@@ -1288,11 +1265,11 @@ namespace Microsoft.ML.Data.IO
 
         private bool GetKeyCodec(ColumnType type, out IValueCodec codec)
         {
-            if (!type.IsKey)
+            if (!(type is KeyType))
                 throw Contracts.ExceptParam(nameof(type), "type must be a key type");
             // Create the internal codec the key codec will use to do the actual reading/writing.
             IValueCodec innerCodec;
-            if (!TryGetCodec(NumberType.FromKind(type.RawKind), out innerCodec))
+            if (!TryGetCodec(NumberType.FromType(type.RawType), out innerCodec))
             {
                 codec = default(IValueCodec);
                 return false;

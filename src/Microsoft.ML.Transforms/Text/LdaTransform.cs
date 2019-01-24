@@ -713,7 +713,8 @@ namespace Microsoft.ML.Transforms.Text
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
 
                     var srcCol = inputSchema[_srcCols[i]];
-                    if (!srcCol.Type.IsKnownSizeVector || !(srcCol.Type.ItemType is NumberType))
+                    var srcType = srcCol.Type as VectorType;
+                    if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input, "a fixed vector of floats", srcCol.Type.ToString());
                 }
             }
@@ -933,7 +934,7 @@ namespace Microsoft.ML.Transforms.Text
             ch.AssertValue(states);
             ch.Assert(states.Length == columns.Length);
 
-            bool[] activeColumns = new bool[inputData.Schema.Count];
+            var activeColumns = new List<Schema.Column>();
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
 
@@ -945,16 +946,16 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputData.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol))
                     throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].Input);
 
-                var srcColType = inputSchema[srcCol].Type;
-                if (!srcColType.IsKnownSizeVector || !(srcColType.ItemType is NumberType))
+                var srcColType = inputSchema[srcCol].Type as VectorType;
+                if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberType))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
 
                 srcCols[i] = srcCol;
-                activeColumns[srcCol] = true;
+                activeColumns.Add(inputData.Schema[srcCol]);
                 numVocabs[i] = 0;
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;
-                if (inputSchema[srcCol].HasSlotNames(srcColType.ValueCount))
+                if (inputSchema[srcCol].HasSlotNames(srcColType.Size))
                     inputSchema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
                 else
                     dst = default(VBuffer<ReadOnlyMemory<char>>);
@@ -967,7 +968,7 @@ namespace Microsoft.ML.Transforms.Text
             long[] corpusSize = new long[columns.Length];
             int[] numDocArray = new int[columns.Length];
 
-            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = inputData.GetRowCursor(activeColumns))
             {
                 var getters = new ValueGetter<VBuffer<Double>>[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
@@ -976,7 +977,7 @@ namespace Microsoft.ML.Transforms.Text
                     numDocArray[i] = 0;
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
                 }
-                VBuffer<Double> src = default(VBuffer<Double>);
+                VBuffer<Double> src = default;
                 long rowCount = 0;
                 while (cursor.MoveNext())
                 {
@@ -1044,7 +1045,7 @@ namespace Microsoft.ML.Transforms.Text
                 states[i] = state;
             }
 
-            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = inputData.GetRowCursor(activeColumns))
             {
                 int[] docSizeCheck = new int[columns.Length];
                 // This could be optimized so that if multiple trainers consume the same column, it is
@@ -1056,7 +1057,7 @@ namespace Microsoft.ML.Transforms.Text
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
                 }
 
-                VBuffer<Double> src = default(VBuffer<Double>);
+                VBuffer<double> src = default;
 
                 while (cursor.MoveNext())
                 {
@@ -1158,7 +1159,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if (col.ItemType.RawKind != DataKind.R4 || col.Kind == SchemaShape.Column.VectorKind.Scalar)
+                if (col.ItemType.RawType != typeof(float) || col.Kind == SchemaShape.Column.VectorKind.Scalar)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, "a vector of floats", col.GetTypeString());
 
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);

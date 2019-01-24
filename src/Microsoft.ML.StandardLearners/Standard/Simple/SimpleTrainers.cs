@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
@@ -291,11 +292,13 @@ namespace Microsoft.ML.Trainers
             double pos = 0;
             double neg = 0;
 
-            int col = labelCol.Index;
             int colWeight = -1;
             if (data.Schema.Weight?.Type == NumberType.Float)
                 colWeight = data.Schema.Weight.Value.Index;
-            using (var cursor = data.Data.GetRowCursor(c => c == col || c == colWeight))
+
+            var cols = colWeight > -1 ? new Schema.Column[] { labelCol, data.Schema.Weight.Value } : new Schema.Column[] { labelCol };
+
+            using (var cursor = data.Data.GetRowCursor(cols))
             {
                 var getLab = cursor.GetLabelFloatGetter(data);
                 var getWeight = colWeight >= 0 ? cursor.GetGetter<float>(colWeight) : null;

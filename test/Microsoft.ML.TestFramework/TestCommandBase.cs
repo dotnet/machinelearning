@@ -516,7 +516,7 @@ namespace Microsoft.ML.RunTests
                     out pipe, rep, ModelFileUtils.DirDataLoaderModel, files);
             }
 
-            using (var c = pipe.GetRowCursor(col => true))
+            using (var c = pipe.GetRowCursorForAllColumns())
                 tmp = CheckSameValues(c, pipe, true, true, true);
             Check(tmp, "Single value same failed");
         }

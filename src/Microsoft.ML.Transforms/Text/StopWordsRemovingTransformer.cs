@@ -540,7 +540,8 @@ namespace Microsoft.ML.Transforms.Text
             public const Language DefaultLanguage = Language.English;
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType.IsText && type.IsVector;
+        public static bool IsColumnTypeValid(ColumnType type) =>
+            type is VectorType vectorType && vectorType.ItemType is TextType;
 
         internal const string ExpectedColumnType = "vector of Text type";
 
@@ -582,7 +583,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if (col.Kind == SchemaShape.Column.VectorKind.Scalar || !col.ItemType.IsText)
+                if (col.Kind == SchemaShape.Column.VectorKind.Scalar || !(col.ItemType is TextType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, ExpectedColumnType, col.ItemType.ToString());
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.VariableVector, TextType.Instance, false);
             }
@@ -768,17 +769,17 @@ namespace Microsoft.ML.Transforms.Text
             {
                 string srcCol = stopwordsColumn;
                 var loader = GetLoaderForStopwords(ch, dataFile, loaderFactory, ref srcCol);
-                int colSrc;
-                if (!loader.Schema.TryGetColumnIndex(srcCol, out colSrc))
+
+                if (!loader.Schema.TryGetColumnIndex(srcCol, out int colSrcIndex))
                     throw ch.ExceptUserArg(nameof(Arguments.StopwordsColumn), "Unknown column '{0}'", srcCol);
-                var typeSrc = loader.Schema[colSrc].Type;
-                ch.CheckUserArg(typeSrc.IsText, nameof(Arguments.StopwordsColumn), "Must be a scalar text column");
+                var typeSrc = loader.Schema[colSrcIndex].Type;
+                ch.CheckUserArg(typeSrc is TextType, nameof(Arguments.StopwordsColumn), "Must be a scalar text column");
 
                 // Accumulate the stopwords.
-                using (var cursor = loader.GetRowCursor(col => col == colSrc))
+                using (var cursor = loader.GetRowCursor(loader.Schema[srcCol]))
                 {
                     bool warnEmpty = true;
-                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colSrc);
+                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colSrcIndex);
                     while (cursor.MoveNext())
                     {
                         getter(ref src);
@@ -1072,7 +1073,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(colInfo.input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
-                if (col.Kind == SchemaShape.Column.VectorKind.Scalar || !col.ItemType.IsText)
+                if (col.Kind == SchemaShape.Column.VectorKind.Scalar || !(col.ItemType is TextType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, ExpectedColumnType, col.ItemType.ToString());
                 result[colInfo.output] = new SchemaShape.Column(colInfo.output, SchemaShape.Column.VectorKind.VariableVector, TextType.Instance, false);
             }

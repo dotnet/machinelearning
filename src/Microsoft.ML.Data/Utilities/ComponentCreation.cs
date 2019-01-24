@@ -58,32 +58,6 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Create a new <see cref="IDataView"/> over an in-memory collection of the items of user-defined type.
-        /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
-        /// never alter the contents of the <paramref name="data"/>.
-        /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to not
-        /// modify the contents of <paramref name="data"/> while the data view is being actively cursored.
-        ///
-        /// One typical usage for in-memory data view could be: create the data view, train a predictor.
-        /// Once the predictor is fully trained, modify the contents of the underlying collection and
-        /// train another predictor.
-        /// </summary>
-        /// <typeparam name="TRow">The user-defined item type.</typeparam>
-        /// <param name="env">The host environment to use for data view creation.</param>
-        /// <param name="data">The data to wrap around.</param>
-        /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
-        /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
-        /// <returns>The constructed <see cref="IDataView"/>.</returns>
-        public static IDataView CreateDataView<TRow>(this IHostEnvironment env, IList<TRow> data, SchemaDefinition schemaDefinition = null)
-            where TRow : class
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
-            return DataViewConstructionUtils.CreateFromList(env, data, schemaDefinition);
-        }
-
-        /// <summary>
         /// Create a new <see cref="IDataView"/> over an enumerable of the items of user-defined type.
         /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
         /// never alter the contents of the <paramref name="data"/>.
@@ -93,61 +67,20 @@ namespace Microsoft.ML.Data
         ///
         /// One typical usage for streaming data view could be: create the data view that lazily loads data
         /// as needed, then apply pre-trained transformations to it and cursor through it for transformation
-        /// results. This is how <see cref="BatchPredictionEngine{TSrc,TDst}"/> is implemented.
+        /// results.
         /// </summary>
         /// <typeparam name="TRow">The user-defined item type.</typeparam>
-        /// <param name="env">The host environment to use for data view creation.</param>
+        /// <param name="catalog">The context to use for data view creation.</param>
         /// <param name="data">The data to wrap around.</param>
         /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
         /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
         /// <returns>The constructed <see cref="IDataView"/>.</returns>
-        public static IDataView CreateStreamingDataView<TRow>(this IHostEnvironment env, IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
+        public static IDataView ReadFromEnumerable<TRow>(this DataOperationsCatalog catalog, IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
             where TRow : class
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
-            return DataViewConstructionUtils.CreateFromEnumerable(env, data, schemaDefinition);
-        }
-
-        /// <summary>
-        /// Create a batch prediction engine.
-        /// </summary>
-        /// <param name="env">The host environment to use.</param>
-        /// <param name="modelStream">The stream to deserialize the pipeline (transforms and predictor) from.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
-        /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
-        /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
-        internal static BatchPredictionEngine<TSrc, TDst> CreateBatchPredictionEngine<TSrc, TDst>(this IHostEnvironment env, Stream modelStream,
-            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            where TSrc : class
-            where TDst : class, new()
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(modelStream, nameof(modelStream));
-            env.CheckValueOrNull(inputSchemaDefinition);
-            env.CheckValueOrNull(outputSchemaDefinition);
-            return new BatchPredictionEngine<TSrc, TDst>(env, modelStream, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
-        }
-
-        /// <summary>
-        /// Create a batch prediction engine.
-        /// </summary>
-        /// <param name="env">The host environment to use.</param>
-        /// <param name="dataPipe">The transformation pipe that may or may not include a scorer.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
-        /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
-        /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
-        internal static BatchPredictionEngine<TSrc, TDst> CreateBatchPredictionEngine<TSrc, TDst>(this IHostEnvironment env, IDataView dataPipe,
-            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            where TSrc : class
-            where TDst : class, new()
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(dataPipe, nameof(dataPipe));
-            env.CheckValueOrNull(inputSchemaDefinition);
-            env.CheckValueOrNull(outputSchemaDefinition);
-            return new BatchPredictionEngine<TSrc, TDst>(env, dataPipe, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+            catalog.Environment.CheckValue(data, nameof(data));
+            catalog.Environment.CheckValueOrNull(schemaDefinition);
+            return DataViewConstructionUtils.CreateFromEnumerable(catalog.Environment, data, schemaDefinition);
         }
 
         /// <summary>

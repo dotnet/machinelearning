@@ -122,6 +122,13 @@ namespace Microsoft.ML.Calibrator
             return new SchemaShape(outColumns.Values);
         }
 
+        /// <summary>
+        /// Fits the scored <see cref="IDataView"/> creating a <see cref="CalibratorTransformer{TICalibrator}"/> that can transform the data by adding a
+        /// <see cref="DefaultColumnNames.Probability"/> column containing the calibrated <see cref="DefaultColumnNames.Score"/>.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns>A trained <see cref="CalibratorTransformer{TICalibrator}"/> that will transform the data by adding the
+        /// <see cref="DefaultColumnNames.Probability"/> column.</returns>
         public CalibratorTransformer<TICalibrator> Fit(IDataView input)
         {
             TICalibrator calibrator = null;

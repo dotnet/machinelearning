@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1, C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new MissingValueIndicatorEstimator(Env,
                 new (string input, string output)[] { ("A", "NAA"), ("B", "NAB"), ("C", "NAC"), ("D", "NAD") });
             TestEstimatorCore(pipe, dataView);
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 , C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new MissingValueIndicatorEstimator(Env,
                 new (string input, string output)[] { ("A", "NAA"), ("B", "NAB"), ("C", "NAC"), ("D", "NAD") });
             var result = pipe.Fit(dataView).Transform(dataView);
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
-            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
+            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
             var est = new MissingValueIndicatorEstimator(Env,
                new (string input, string output)[] { ("ScalarFloat", "A"), ("ScalarDouble", "B"), ("VectorFloat", "C"), ("VectorDoulbe", "D") });
 
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1, C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new OneHotEncodingEstimator(Env, "A", "CatA");
             var newpipe = pipe.Append(new MissingValueIndicatorEstimator(Env, new (string input, string output)[] { ("CatA", "NAA") }));
             var result = newpipe.Fit(dataView).Transform(dataView);
