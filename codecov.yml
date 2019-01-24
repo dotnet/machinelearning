@@ -10,7 +10,7 @@ coverage:
   fixes:
     - "build/::/"
   ignore:
-    _ "test"
+    - "test"
 
 comment:
   layout: "diff"
