@@ -108,7 +108,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 if ((originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
                     originalColumn.Kind == SchemaShape.Column.VectorKind.Vector) && Transformer.ValueColumnType is VectorType)
-                    throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when both input and values are of vector type.", Input);
+                    throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", Input);
                 // Create the Value column
                 var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, metadataShape);
                 resultDic[Output] = col;
@@ -1024,7 +1024,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     if (_inputSchema[_columns[i].Source].Type is VectorType && _valueMap.ValueType is VectorType)
-                        throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when both input and values are of vector type.", _columns[i].Source);
+                        throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", _columns[i].Source);
                     var colType = _valueMap.ValueType;
                     if (_inputSchema[_columns[i].Source].Type is VectorType)
                         colType = new VectorType(PrimitiveType.FromType(_valueMap.ValueType.GetItemType().RawType));
