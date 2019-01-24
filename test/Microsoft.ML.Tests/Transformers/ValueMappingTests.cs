@@ -177,6 +177,46 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(values[0].Length, fValue.Length);
         }
 
+        class Map
+        {
+            public string Key;
+            public int Value;
+        }
+
+        [Fact]
+        public void ValueMapDataViewAsMapTest()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
+            var dataView = ML.Data.ReadFromEnumerable(data);
+
+            var map = new[] { new Map() { Key = "foo", Value = 1 },
+                              new Map() { Key = "bar", Value = 2 },
+                              new Map() { Key = "test", Value = 3 },
+                              new Map() { Key = "wahoo", Value = 4 }
+                            };
+            var mapView = ML.Data.ReadFromEnumerable(map);
+
+            var estimator = new ValueMappingEstimator(Env, mapView, "Key", "Value", new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursorForAllColumns();
+            var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
+            cursor.MoveNext();
+
+            int dValue = 0;
+            getterD(ref dValue);
+            Assert.Equal(2, dValue);
+            int eValue = 0;
+            getterE(ref eValue);
+            Assert.Equal(3, eValue);
+            int fValue = 0;
+            getterF(ref fValue);
+            Assert.Equal(1, fValue);
+        }
+
         [Fact]
         public void ValueMapVectorStringValueTest()
         {

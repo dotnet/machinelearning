@@ -33,6 +33,55 @@ using Microsoft.ML.Transforms.Conversions;
 namespace Microsoft.ML.Transforms.Conversions
 {
     /// <summary>
+    /// The ValueMappingEstimator is a 1-1 mapping from a key to value. This particular class load the mappings from an <see cref="IDataView"/>.
+    /// This gives user the flexibility to load the mapping from file instead of using IEnumerable in <see cref="ValueMappingEstimator{TKey, TValue}"/>
+    /// </summary>
+    public sealed class ValueMappingEstimator : TrivialEstimator<ValueMappingTransformer>
+    {
+        private readonly (string input, string output)[] _columns;
+
+        /// <summary>
+        /// Constructs the ValueMappingEstimator, key type -> value type mapping
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
+        /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>
+        /// <param name="valueColumn">Name of the value column in <paramref name="lookupMap"/>.</param>
+        /// <param name="columns">The list of columns to apply.</param>
+        public ValueMappingEstimator(IHostEnvironment env, IDataView lookupMap, string keyColumn, string valueColumn, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ValueMappingEstimator)),
+                    new ValueMappingTransformer(env, lookupMap, keyColumn, valueColumn, columns))
+        {
+            _columns = columns;
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
+            var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
+            var isKey = Transformer.ValueColumnType is KeyType;
+            var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
+                                    Transformer.ValueColumnType;
+            var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
+            foreach (var (Input, Output) in _columns)
+            {
+                if (!inputSchema.TryFindColumn(Input, out var originalColumn))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Input);
+
+                if ((originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
+                   originalColumn.Kind == SchemaShape.Column.VectorKind.Vector) && Transformer.ValueColumnType is VectorType)
+                    throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", Input);
+                // Create the Value column
+                var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, metadataShape);
+                resultDic[Output] = col;
+            }
+            return new SchemaShape(resultDic.Values);
+        }
+    }
+
+    /// <summary>
     /// The ValueMappingEstimator is a 1-1 mapping from a key to value. The key type and value type are specified
     /// through TKey and TValue. TKey is always a scalar. TValue can be either a scalar or an array (array is only possible when input is scalar).
     /// The mapping is specified, not trained by providing a list of keys and a list of values.
@@ -410,7 +459,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public bool ValuesAsKeyType = true;
         }
 
-        protected ValueMappingTransformer(IHostEnvironment env, IDataView lookupMap,
+        internal ValueMappingTransformer(IHostEnvironment env, IDataView lookupMap,
             string keyColumn, string valueColumn, (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ValueMappingTransformer)), columns)
         {
