@@ -12,6 +12,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -74,6 +75,72 @@ namespace Microsoft.ML.Tests.Transformers
             int fValue = 0;
             getterF(ref fValue);
             Assert.Equal(1, fValue);
+        }
+
+        [Fact]
+        public void ValueMapInputIsVectorTest()
+        {
+            var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<int>() { 1, 2, 3, 4 };
+
+            var estimator = new WordTokenizingEstimator(Env, new[]{
+                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA")
+                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("TokenizeA", "VecD"), ("B", "E"), ("C", "F") }));
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursorForAllColumns();
+            var getterVecD = cursor.GetGetter<VBuffer<int>>(result.Schema["VecD"].Index);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
+            cursor.MoveNext();
+
+            VBuffer<int> dValue = default;
+            getterVecD(ref dValue);
+            Assert.True(dValue.GetValues().SequenceEqual(new int[] { 2, 3, 1 }));
+
+            int eValue = 0;
+            getterE(ref eValue);
+            Assert.Equal(3, eValue);
+            int fValue = 0;
+            getterF(ref fValue);
+            Assert.Equal(1, fValue);
+        }
+
+        [Fact]
+        public void ValueMapInputIsVectorAndValueAsStringKeyTypeTest()
+        {
+            var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<ReadOnlyMemory<char>>() { "a".AsMemory(), "b".AsMemory(), "c".AsMemory(), "d".AsMemory() };
+
+            var estimator = new WordTokenizingEstimator(Env, new[]{
+                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA")
+                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("TokenizeA", "VecD"), ("B", "E"), ("C", "F") }));
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursorForAllColumns();
+            var getterVecD = cursor.GetGetter<VBuffer<uint>>(result.Schema["VecD"].Index);
+            var getterE = cursor.GetGetter<uint>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<uint>(result.Schema["F"].Index);
+            cursor.MoveNext();
+
+            VBuffer<uint> dValue = default;
+            getterVecD(ref dValue);
+            Assert.True(dValue.GetValues().SequenceEqual(new uint[] { 2, 3, 1 }));
+
+            uint eValue = 0;
+            getterE(ref eValue);
+            Assert.Equal(3u, eValue);
+            uint fValue = 0;
+            getterF(ref fValue);
+            Assert.Equal(1u, fValue);
         }
 
         [Fact]
