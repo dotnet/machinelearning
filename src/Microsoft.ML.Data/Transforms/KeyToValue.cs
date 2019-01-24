@@ -69,7 +69,7 @@ namespace Microsoft.ML.Transforms.Conversions
         [BestFriend]
         internal const string UserName = "Key To Value Transform";
 
-        public IReadOnlyCollection<(string name, string source)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string outputColumnName, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
         {
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        public KeyToValueMappingTransformer(IHostEnvironment env, params (string name, string source)[] columns)
+        public KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string sourceColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingTransformer)), columns)
         {
         }
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     var meta = new MetadataBuilder();
                     meta.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].name, _types[i], meta.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
@@ -193,20 +193,20 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
                 {
                     var info = _parent.ColumnPairs[iinfo];
-                    var srcName = info.source;
+                    var srcName = info.sourceColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {
-                        toHide.Add(info.name);
+                        toHide.Add(info.outputColumnName);
                         continue;
                     }
                     var result = _kvMaps[iinfo].SavePfa(ctx, srcToken);
                     if (result == null)
                     {
-                        toHide.Add(info.name);
+                        toHide.Add(info.outputColumnName);
                         continue;
                     }
-                    toDeclare.Add(new KeyValuePair<string, JToken>(info.name, result));
+                    toDeclare.Add(new KeyValuePair<string, JToken>(info.outputColumnName, result));
                 }
                 ctx.Hide(toHide.ToArray());
                 ctx.DeclareVar(toDeclare.ToArray());
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        public KeyToValueMappingEstimator(IHostEnvironment env, params (string name, string source)[] columns)
+        public KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string sourceColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columns))
         {
         }
@@ -521,19 +521,19 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.source, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.source);
+                if (!inputSchema.TryFindColumn(colInfo.sourceColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.sourceColumnName);
                 if (!col.IsKey)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.source, "key type", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.sourceColumnName, "key type", col.GetTypeString());
 
                 if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMetaCol))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.source}' doesn't contain key values metadata");
+                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.sourceColumnName}' doesn't contain key values metadata");
 
                 SchemaShape metadata = null;
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotCol))
                     metadata = new SchemaShape(new[] { slotCol });
 
-                result[colInfo.name] = new SchemaShape.Column(colInfo.name, col.Kind, keyMetaCol.ItemType, keyMetaCol.IsKey, metadata);
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, keyMetaCol.ItemType, keyMetaCol.IsKey, metadata);
             }
 
             return new SchemaShape(result.Values);

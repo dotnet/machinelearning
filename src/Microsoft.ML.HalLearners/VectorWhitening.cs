@@ -129,18 +129,18 @@ namespace Microsoft.ML.Transforms.Projections
             /// <summary>
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="kind">Whitening kind (PCA/ZCA).</param>
             /// <param name="eps">Whitening constant, prevents division by zero.</param>
             /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
             /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
-            public ColumnInfo(string name, string source = null, WhiteningKind kind = Defaults.Kind, float eps = Defaults.Eps,
+            public ColumnInfo(string name, string sourceColumnName = null, WhiteningKind kind = Defaults.Kind, float eps = Defaults.Eps,
                 int maxRows = Defaults.MaxRows, int pcaNum = Defaults.PcaNum)
             {
                 Name = name;
                 Contracts.CheckValue(Name, nameof(Name));
-                Source = source ?? name;
+                Source = sourceColumnName ?? name;
                 Contracts.CheckValue(Source, nameof(Source));
                 Kind = kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(Kind));
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Transforms.Projections
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
             => columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray();
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
@@ -665,8 +665,8 @@ namespace Microsoft.ML.Transforms.Projections
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out _cols[i]))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].source);
+                    if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out _cols[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].sourceColumnName);
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
                     ValidateModel(Host, _parent._models[i], _srcTypes[i]);
                     if (_parent._columns[i].SaveInv)
@@ -688,11 +688,11 @@ namespace Microsoft.ML.Transforms.Projections
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; iinfo++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].source, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].sourceColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var info = _parent._columns[iinfo];
                     ColumnType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberType.Float, info.PcaNum) : _srcTypes[iinfo];
-                    result[iinfo] = new Schema.DetachedColumn(_parent.ColumnPairs[iinfo].name, outType, null);
+                    result[iinfo] = new Schema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, outType, null);
                 }
                 return result;
             }
@@ -786,18 +786,18 @@ namespace Microsoft.ML.Transforms.Projections
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
         /// <param name="eps">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
-        public VectorWhiteningEstimator(IHostEnvironment env, string name, string source = null,
+        public VectorWhiteningEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null,
             WhiteningKind kind = VectorWhiteningTransformer.Defaults.Kind,
             float eps = VectorWhiteningTransformer.Defaults.Eps,
             int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
             int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
-            : this(env, new VectorWhiteningTransformer.ColumnInfo(name, source, kind, eps, maxRows, pcaNum))
+            : this(env, new VectorWhiteningTransformer.ColumnInfo(outputColumnName, sourceColumnName, kind, eps, maxRows, pcaNum))
         {
         }
 

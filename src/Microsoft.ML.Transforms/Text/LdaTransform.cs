@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms.Text
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly int NumTopic;
             public readonly float AlphaSum;
             public readonly float Beta;
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms.Text
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">The column containing the output scores over a set of topics, represented as a vector of floats. </param>
-            /// <param name="source">The column representing the document as a vector of floats.A null value for the column means <paramref name="source"/> is replaced. </param>
+            /// <param name="sourceColumnName">The column representing the document as a vector of floats.A null value for the column means <paramref name="sourceColumnName"/> is replaced. </param>
             /// <param name="numTopic">The number of topics.</param>
             /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
             /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="numBurninIter">The number of burn-in iterations.</param>
             /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
             public ColumnInfo(string name,
-                string source = null,
+                string sourceColumnName = null,
                 int numTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic,
                 float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
                 float beta = LatentDirichletAllocationEstimator.Defaults.Beta,
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms.Text
                 bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
             {
                 Contracts.CheckValue(name, nameof(name));
-                Contracts.CheckValueOrNull(source);
+                Contracts.CheckValueOrNull(sourceColumnName);
                 Contracts.CheckParam(numTopic > 0, nameof(numTopic), "Must be positive.");
                 Contracts.CheckParam(mhStep > 0, nameof(mhStep), "Must be positive.");
                 Contracts.CheckParam(numIter > 0, nameof(numIter), "Must be positive.");
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.CheckParam(numBurninIter >= 0, nameof(numBurninIter), "Must be non-negative.");
 
                 Name = name;
-                Source = source ?? name;
+                SourceColumnName = sourceColumnName ?? name;
                 NumTopic = numTopic;
                 AlphaSum = alphaSum;
                 Beta = beta;
@@ -711,13 +711,13 @@ namespace Microsoft.ML.Transforms.Text
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out _srcCols[i]))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].source);
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out _srcCols[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].sourceColumnName);
 
                     var srcCol = inputSchema[_srcCols[i]];
                     var srcType = srcCol.Type as VectorType;
                     if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberType))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].source, "a fixed vector of floats", srcCol.Type.ToString());
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].sourceColumnName, "a fixed vector of floats", srcCol.Type.ToString());
                 }
             }
 
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var info = _parent._columns[i];
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].name, new VectorType(NumberType.Float, info.NumTopic), null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberType.Float, info.NumTopic), null);
                 }
                 return result;
             }
@@ -781,10 +781,10 @@ namespace Microsoft.ML.Transforms.Text
         internal const string UserName = "Latent Dirichlet Allocation Transform";
         internal const string ShortName = "LightLda";
 
-        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         /// <summary>
@@ -945,12 +945,12 @@ namespace Microsoft.ML.Transforms.Text
             var inputSchema = inputData.Schema;
             for (int i = 0; i < columns.Length; i++)
             {
-                if (!inputData.Schema.TryGetColumnIndex(columns[i].Source, out int srcCol))
-                    throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].Source);
+                if (!inputData.Schema.TryGetColumnIndex(columns[i].SourceColumnName, out int srcCol))
+                    throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].SourceColumnName);
 
                 var srcColType = inputSchema[srcCol].Type as VectorType;
                 if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberType))
-                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Source, "a fixed vector of floats", srcColType.ToString());
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].SourceColumnName, "a fixed vector of floats", srcColType.ToString());
 
                 srcCols[i] = srcCol;
                 activeColumns.Add(inputData.Schema[srcCol]);
@@ -1030,7 +1030,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (numDocArray[i] != rowCount)
                     {
                         ch.Assert(numDocArray[i] < rowCount);
-                        ch.Warning($"Column '{columns[i].Source}' has skipped {rowCount - numDocArray[i]} of {rowCount} rows either empty or with negative, non-finite, or fractional values.");
+                        ch.Warning($"Column '{columns[i].SourceColumnName}' has skipped {rowCount - numDocArray[i]} of {rowCount} rows either empty or with negative, non-finite, or fractional values.");
                     }
                 }
             }
@@ -1041,7 +1041,7 @@ namespace Microsoft.ML.Transforms.Text
                 var state = new LdaState(env, columns[i], numVocabs[i]);
 
                 if (numDocArray[i] == 0 || corpusSize[i] == 0)
-                    throw ch.Except("The specified documents are all empty in column '{0}'.", columns[i].Source);
+                    throw ch.Except("The specified documents are all empty in column '{0}'.", columns[i].SourceColumnName);
 
                 state.AllocateDataMemory(numDocArray[i], corpusSize[i]);
                 states[i] = state;
@@ -1108,8 +1108,8 @@ namespace Microsoft.ML.Transforms.Text
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="numTopic">The number of topics.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
@@ -1122,7 +1122,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="numBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         public LatentDirichletAllocationEstimator(IHostEnvironment env,
-            string name, string source = null,
+            string outputColumnName, string sourceColumnName = null,
             int numTopic = Defaults.NumTopic,
             float alphaSum = Defaults.AlphaSum,
             float beta = Defaults.Beta,
@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Transforms.Text
             int numSummaryTermPerTopic = Defaults.NumSummaryTermPerTopic,
             int numBurninIterations = Defaults.NumBurninIterations,
             bool resetRandomGenerator = Defaults.ResetRandomGenerator)
-            : this(env, new[] { new LatentDirichletAllocationTransformer.ColumnInfo(name, source ?? name,
+            : this(env, new[] { new LatentDirichletAllocationTransformer.ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName,
                 numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
                 numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator) })
         { }
@@ -1158,10 +1158,10 @@ namespace Microsoft.ML.Transforms.Text
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
                 if (col.ItemType.RawType != typeof(float) || col.Kind == SchemaShape.Column.VectorKind.Scalar)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source, "a vector of floats", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, "a vector of floats", col.GetTypeString());
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
             }

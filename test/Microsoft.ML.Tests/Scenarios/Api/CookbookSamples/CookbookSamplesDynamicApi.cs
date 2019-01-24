@@ -167,7 +167,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
                 // Apply the inverse conversion from 'PredictedLabel' column back to string value.
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("Data", "PredictedLabel")));
 
             // Train the model.
             var model = dynamicPipeline.Fit(trainData);

@@ -78,14 +78,14 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = nameof(MissingValueIndicatorTransformer);
 
-        public IReadOnlyList<(string name, string source)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyList<(string outputColumnName, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="MissingValueIndicatorTransformer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public MissingValueIndicatorTransformer(IHostEnvironment env, params (string name, string source)[] columns)
+        public MissingValueIndicatorTransformer(IHostEnvironment env, params (string outputColumnName, string sourceColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), columns)
         {
         }
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(ctx, nameof(ctx));
         }
 
-        private static (string name, string source)[] GetColumnPairs(Column[] columns)
+        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(Column[] columns)
             => columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray();
 
         // Factory method for SignatureLoadModel
@@ -174,8 +174,8 @@ namespace Microsoft.ML.Transforms
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out int colSrc))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].source);
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].sourceColumnName);
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
                     var inType = inputSchema[colSrc].Type;
                     ColumnType outType;
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms
                         outType = BoolType.Instance;
                     else
                         outType = new VectorType(BoolType.Instance, vectorType);
-                    infos[i] = new ColInfo(_parent.ColumnPairs[i].source, _parent.ColumnPairs[i].name, inType, outType);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].sourceColumnName, _parent.ColumnPairs[i].outputColumnName, inType, outType);
                 }
                 return infos;
             }
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public MissingValueIndicatorEstimator(IHostEnvironment env, params (string name, string source)[] columns)
+        public MissingValueIndicatorEstimator(IHostEnvironment env, params (string outputColumnName, string sourceColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), new MissingValueIndicatorTransformer(env, columns))
         {
             Contracts.CheckValue(env, nameof(env));
@@ -444,10 +444,10 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="MissingValueIndicatorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-        public MissingValueIndicatorEstimator(IHostEnvironment env, string name, string source = null)
-            : this(env, (name, source ?? name))
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public MissingValueIndicatorEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null)
+            : this(env, (outputColumnName, sourceColumnName ?? outputColumnName))
         {
         }
 
@@ -460,8 +460,8 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.source, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.source);
+                if (!inputSchema.TryFindColumn(colPair.sourceColumnName, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.sourceColumnName);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms
                 ColumnType type = !(col.ItemType is VectorType vectorType) ?
                     (ColumnType)BoolType.Instance :
                     new VectorType(BoolType.Instance, vectorType);
-                result[colPair.name] = new SchemaShape.Column(colPair.name, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
+                result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
         }

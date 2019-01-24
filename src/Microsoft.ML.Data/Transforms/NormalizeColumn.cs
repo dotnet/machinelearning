@@ -269,13 +269,13 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        public static IDataView CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
+        /// <param name="outputColumnName">Name of the output column.</param>
+        /// <param name="sourceColumnName">Name of the column to be transformed. If this is null '<paramref name="outputColumnName"/>' will be used.</param>
+        public static IDataView CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string outputColumnName, string sourceColumnName = null)
         {
             Contracts.CheckValue(env, nameof(env));
 
-            var normalizer = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumn(name, source ?? name));
+            var normalizer = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumn(outputColumnName, sourceColumnName ?? outputColumnName));
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 

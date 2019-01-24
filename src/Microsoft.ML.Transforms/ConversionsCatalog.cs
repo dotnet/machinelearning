@@ -26,11 +26,11 @@ namespace Microsoft.ML
         ///  Convert the key types back to binary verctor.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         public static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.ConversionTransforms catalog,
-            string name,
-            string source = null)
-            => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), name, source);
+            string outputColumnName,
+            string sourceColumnName = null)
+            => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, sourceColumnName);
     }
 }

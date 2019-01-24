@@ -114,29 +114,29 @@ namespace Microsoft.ML.Transforms.Text
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly char[] Separators;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="separators">Casing text using the rules of the invariant culture. If not specified, space will be used as separator.</param>
-            public ColumnInfo(string name, string source = null, char[] separators = null)
+            public ColumnInfo(string name, string sourceColumnName = null, char[] separators = null)
             {
                 Name = name;
-                Source = source ?? name;
+                SourceColumnName = sourceColumnName ?? name;
                 Separators = separators ?? new[] { ' ' };
             }
         }
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
         private readonly ColumnInfo[] _columns;
 
-        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string name, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckNonEmpty(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         public WordTokenizingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             var type = inputSchema[srcCol].Type;
             if (!WordTokenizingEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].source, WordTokenizingEstimator.ExpectedColumnType, type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].sourceColumnName, WordTokenizingEstimator.ExpectedColumnType, type.ToString());
         }
 
         private WordTokenizingTransformer(IHost host, ModelLoadContext ctx) :
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var separators = ctx.Reader.ReadCharArray();
                 Contracts.CheckDecode(Utils.Size(separators) > 0);
-                _columns[i] = new ColumnInfo(ColumnPairs[i].name, ColumnPairs[i].source, separators);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].sourceColumnName, separators);
             }
         }
 
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Transforms.Text
                 _isSourceVector = new bool[_parent._columns.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
                 {
-                    inputSchema.TryGetColumnIndex(_parent._columns[i].Source, out int srcCol);
+                    inputSchema.TryGetColumnIndex(_parent._columns[i].SourceColumnName, out int srcCol);
                     var srcType = inputSchema[srcCol].Type;
                     _isSourceVector[i] = srcType is VectorType;
                 }
@@ -250,9 +250,9 @@ namespace Microsoft.ML.Transforms.Text
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].name, _type, null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, null);
                 }
                 return result;
             }
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
                 disposer = null;
 
-                input.Schema.TryGetColumnIndex(_parent._columns[iinfo].Source, out int srcCol);
+                input.Schema.TryGetColumnIndex(_parent._columns[iinfo].SourceColumnName, out int srcCol);
                 var srcType = input.Schema[srcCol].Type;
                 Host.Assert(srcType.GetItemType() is TextType);
 
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
                     var info = _parent._columns[iinfo];
-                    var srcName = info.Source;
+                    var srcName = info.SourceColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {
@@ -433,14 +433,14 @@ namespace Microsoft.ML.Transforms.Text
         internal const string ExpectedColumnType = "Text";
 
         /// <summary>
-        /// Tokenize incoming text in <paramref name="source"/> and output the tokens as <paramref name="name"/>.
+        /// Tokenize incoming text in <paramref name="sourceColumnName"/> and output the tokens as <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public WordTokenizingEstimator(IHostEnvironment env, string name, string source = null, char[] separators = null)
-            : this(env, new[] { (name, source ?? name) }, separators)
+        public WordTokenizingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null, char[] separators = null)
+            : this(env, new[] { (outputColumnName, sourceColumnName ?? outputColumnName) }, separators)
         {
         }
 
@@ -450,8 +450,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public WordTokenizingEstimator(IHostEnvironment env, (string name, string source)[] columns, char[] separators = null)
-            : this(env, columns.Select(x => new WordTokenizingTransformer.ColumnInfo(x.name, x.source, separators)).ToArray())
+        public WordTokenizingEstimator(IHostEnvironment env, (string outputColumnName, string sourceColumnName)[] columns, char[] separators = null)
+            : this(env, columns.Select(x => new WordTokenizingTransformer.ColumnInfo(x.outputColumnName, x.sourceColumnName, separators)).ToArray())
         {
         }
 
@@ -471,10 +471,10 @@ namespace Microsoft.ML.Transforms.Text
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
                 if (!IsColumnTypeValid(col.ItemType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source, ExpectedColumnType, col.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, ExpectedColumnType, col.ItemType.ToString());
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false);
             }
 

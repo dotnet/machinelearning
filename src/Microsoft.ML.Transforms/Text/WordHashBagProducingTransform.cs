@@ -395,7 +395,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 if (termLoaderArgs.DropUnknowns)
                 {
-                    var missingDropColumns = new (string name, string source)[termCols.Count];
+                    var missingDropColumns = new (string outputColumnName, string sourceColumnName)[termCols.Count];
                     for (int iinfo = 0; iinfo < termCols.Count; iinfo++)
                         missingDropColumns[iinfo] = (termCols[iinfo].Name, termCols[iinfo].Name);
                     view = new MissingValueDroppingTransformer(h, missingDropColumns).Transform(view);

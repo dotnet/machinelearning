@@ -185,10 +185,10 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="name">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        /// <param name="source">The name of the input data column. Must match model input name.</param>
-        public TensorFlowTransformer(IHostEnvironment env, string modelFile, string name, string source)
-            : this(env, TensorFlowUtils.GetSession(env, modelFile), new[] { name }, new[] { source }, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
+        /// <param name="outputColumnName">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="sourceColumnName">The name of the input data column. Must match model input name. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public TensorFlowTransformer(IHostEnvironment env, string modelFile, string outputColumnName, string sourceColumnName = null)
+            : this(env, TensorFlowUtils.GetSession(env, modelFile), new[] { outputColumnName }, new[] { sourceColumnName ?? outputColumnName }, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
         {
         }
 
@@ -199,10 +199,10 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="sources">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="names">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        public TensorFlowTransformer(IHostEnvironment env, string modelFile, string[] names, string[] sources)
-            : this(env, TensorFlowUtils.GetSession(env, modelFile), names, sources, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
+        /// <param name="sourceColumnNames">The name of the input data columns. Must match model's input names.</param>
+        /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        public TensorFlowTransformer(IHostEnvironment env, string modelFile, string[] outputColumnNames, string[] sourceColumnNames)
+            : this(env, TensorFlowUtils.GetSession(env, modelFile), outputColumnNames, sourceColumnNames, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
         {
         }
 
@@ -214,10 +214,10 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="tfModelInfo"> <see cref="TensorFlowModelInfo"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
-        /// <param name="name">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
-        /// <param name="source">The name of the input data columns. Must match model's input names.</param>
-        public TensorFlowTransformer(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string name, string source)
-            : this(env, tfModelInfo.Session, new[] { name }, new[] { source }, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
+        /// <param name="outputColumnName">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="sourceColumnName">The name of the input data columns. Must match model's input names. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public TensorFlowTransformer(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string outputColumnName, string sourceColumnName = null)
+            : this(env, tfModelInfo.Session, new[] { outputColumnName }, new[] { sourceColumnName ?? outputColumnName }, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
         {
         }
 

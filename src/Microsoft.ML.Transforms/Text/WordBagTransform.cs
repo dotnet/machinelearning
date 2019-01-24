@@ -353,12 +353,13 @@ namespace Microsoft.ML.Transforms.Text
             for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
             {
                 var column = args.Column[iinfo];
-                ngramColumns[iinfo] = new NgramExtractingTransformer.ColumnInfo(column.Name, isTermCol[iinfo] ? column.Name : column.Source,
+                ngramColumns[iinfo] = new NgramExtractingTransformer.ColumnInfo(column.Name,
                     column.NgramLength ?? args.NgramLength,
                     column.SkipLength ?? args.SkipLength,
                     column.AllLengths ?? args.AllLengths,
                     column.Weighting ?? args.Weighting,
-                    column.MaxNumTerms ?? args.MaxNumTerms
+                    column.MaxNumTerms ?? args.MaxNumTerms,
+                    isTermCol[iinfo] ? column.Name : column.Source
                     );
             }
 

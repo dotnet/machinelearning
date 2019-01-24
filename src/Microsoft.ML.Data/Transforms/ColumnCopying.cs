@@ -35,12 +35,12 @@ namespace Microsoft.ML.Transforms
 {
     public sealed class ColumnCopyingEstimator : TrivialEstimator<ColumnCopyingTransformer>
     {
-        public ColumnCopyingEstimator(IHostEnvironment env, string name, string source) :
-            this(env, (name, source))
+        public ColumnCopyingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName) :
+            this(env, (outputColumnName, sourceColumnName))
         {
         }
 
-        public ColumnCopyingEstimator(IHostEnvironment env, params (string name, string source)[] columns)
+        public ColumnCopyingEstimator(IHostEnvironment env, params (string name, string sourceColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnCopyingEstimator)), new ColumnCopyingTransformer(env, columns))
         {
         }
@@ -50,12 +50,12 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            foreach (var (Name, Source) in Transformer.Columns)
+            foreach (var (outputColumnName, sourceColumnName) in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(Source, out var originalColumn))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Source);
-                var col = new SchemaShape.Column(Name, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Metadata);
-                resultDic[Name] = col;
+                if (!inputSchema.TryFindColumn(sourceColumnName, out var originalColumn))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", sourceColumnName);
+                var col = new SchemaShape.Column(outputColumnName, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Metadata);
+                resultDic[outputColumnName] = col;
             }
             return new SchemaShape(resultDic.Values);
         }
@@ -63,12 +63,13 @@ namespace Microsoft.ML.Transforms
 
     public sealed class ColumnCopyingTransformer : OneToOneTransformerBase
     {
-        public const string LoaderSignature = "CopyTransform";
+        [BestFriend]
+        internal const string LoaderSignature = "CopyTransform";
         internal const string Summary = "Copy a source column to a new column.";
         internal const string UserName = "Copy Columns Transform";
         internal const string ShortName = "Copy";
 
-        public IReadOnlyCollection<(string name, string source)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string name, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
         {
@@ -81,7 +82,7 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(ColumnCopyingTransformer).Assembly.FullName);
         }
 
-        public ColumnCopyingTransformer(IHostEnvironment env, params (string name, string source)[] columns)
+        public ColumnCopyingTransformer(IHostEnvironment env, params (string outputColumnName, string sourceColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnCopyingTransformer)), columns)
         {
         }
@@ -135,11 +136,11 @@ namespace Microsoft.ML.Transforms
             //   string: input column name
 
             var length = ctx.Reader.ReadInt32();
-            var columns = new (string name, string source)[length];
+            var columns = new (string outputColumnName, string sourceColumnName)[length];
             for (int i = 0; i < length; i++)
             {
-                columns[i].name = ctx.LoadNonEmptyString(); //sefilipi: double-check order?
-                columns[i].source = ctx.LoadNonEmptyString();
+                columns[i].outputColumnName = ctx.LoadNonEmptyString();
+                columns[i].sourceColumnName = ctx.LoadNonEmptyString();
             }
             return new ColumnCopyingTransformer(env, columns);
         }
@@ -164,11 +165,11 @@ namespace Microsoft.ML.Transforms
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly Schema _schema;
-            private readonly (string Name, string Source)[] _columns;
+            private readonly (string outputColumnName, string sourceColumnName)[] _columns;
 
             public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
-            internal Mapper(ColumnCopyingTransformer parent, Schema inputSchema, (string name, string source)[] columns)
+            internal Mapper(ColumnCopyingTransformer parent, Schema inputSchema, (string outputColumnName, string sourceColumnName)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _schema = inputSchema;
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Transforms
                 Delegate MakeGetter<T>(Row row, int index)
                     => input.GetGetter<T>(index);
 
-                input.Schema.TryGetColumnIndex(_columns[iinfo].Source, out int colIndex);
+                input.Schema.TryGetColumnIndex(_columns[iinfo].sourceColumnName, out int colIndex);
                 var type = input.Schema[colIndex].Type;
                 return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
             }
@@ -194,8 +195,8 @@ namespace Microsoft.ML.Transforms
                 var result = new Schema.DetachedColumn[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
-                    var srcCol = _schema[_columns[i].Source];
-                    result[i] = new Schema.DetachedColumn(_columns[i].Name, srcCol.Type, srcCol.Metadata);
+                    var srcCol = _schema[_columns[i].sourceColumnName];
+                    result[i] = new Schema.DetachedColumn(_columns[i].outputColumnName, srcCol.Type, srcCol.Metadata);
                 }
                 return result;
             }
@@ -206,9 +207,9 @@ namespace Microsoft.ML.Transforms
 
                 foreach (var column in _columns)
                 {
-                    var srcVariableName = ctx.GetVariableName(column.Source);
-                    _schema.TryGetColumnIndex(column.Name, out int colIndex);
-                    var dstVariableName = ctx.AddIntermediateVariable(_schema[colIndex].Type, column.Name);
+                    var srcVariableName = ctx.GetVariableName(column.sourceColumnName);
+                    _schema.TryGetColumnIndex(column.outputColumnName, out int colIndex);
+                    var dstVariableName = ctx.AddIntermediateVariable(_schema[colIndex].Type, column.outputColumnName);
                     var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                     node.AddAttribute("type", LoaderSignature);
                 }

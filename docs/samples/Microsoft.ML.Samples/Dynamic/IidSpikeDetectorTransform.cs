@@ -50,10 +50,10 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(IidSpikePrediction.Prediction);
-            string inputColumnName = nameof(IidSpikeData.Value);
+            string sourceColumnName = nameof(IidSpikeData.Value);
             var args = new IidSpikeDetector.Arguments()
             {
-                Source = inputColumnName,
+                Source = sourceColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
                 PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
@@ -107,10 +107,10 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(IidSpikePrediction.Prediction);
-            string inputColumnName = nameof(IidSpikeData.Value);
+            string sourceColumnName = nameof(IidSpikeData.Value);
             var args = new IidSpikeDetector.Arguments()
             {
-                Source = inputColumnName,
+                Source = sourceColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
                 PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.

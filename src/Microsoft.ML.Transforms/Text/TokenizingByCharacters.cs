@@ -109,13 +109,13 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         public TokenizingByCharactersTransformer(IHostEnvironment env, bool useMarkerCharacters = TokenizingByCharactersEstimator.Defaults.UseMarkerCharacters,
-            params (string name, string source)[] columns) :
+            params (string outputColumnName, string sourceColumnName)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
             _useMarkerChars = useMarkerCharacters;
         }
 
-        public IReadOnlyCollection<(string name, string source)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string outputColumnName, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new (string name, string source)[args.Column.Length];
+            var cols = new (string outputColumnName, string sourceColumnName)[args.Column.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Column[i];
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Transforms.Text
                 _type = new VectorType(keyType);
                 _isSourceVector = new bool[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
-                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].source].Type is VectorType;
+                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].sourceColumnNames].Type is VectorType;
             }
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
@@ -212,14 +212,14 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].name, _type, builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.GetMetadata());
                 }
                 return result;
             }
 
             private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
-                builder.Add(InputSchema[_parent.ColumnPairs[iinfo].source].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                builder.Add(InputSchema[_parent.ColumnPairs[iinfo].sourceColumnName].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                        {
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                if (!(input.Schema[_parent.ColumnPairs[iinfo].source].Type is VectorType))
+                if (!(input.Schema[_parent.ColumnPairs[iinfo].sourceColumnNames].Type is VectorType))
                     return MakeGetterOne(input, iinfo);
                 return MakeGetterVec(input, iinfo);
             }
@@ -561,15 +561,15 @@ namespace Microsoft.ML.Transforms.Text
         internal const string ExpectedColumnType = "Text";
 
         /// <summary>
-        /// Tokenize incoming text in <paramref name="source"/> and output the tokens as <paramref name="name"/>.
+        /// Tokenize incoming text in <paramref name="sourceColumnName"/> and output the tokens as <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public TokenizingByCharactersEstimator(IHostEnvironment env, string name, string source = null,
+        public TokenizingByCharactersEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null,
             bool useMarkerCharacters = Defaults.UseMarkerCharacters)
-            : this(env, useMarkerCharacters, new[] { (name, source ?? name) })
+            : this(env, useMarkerCharacters, new[] { (outputColumnName, sourceColumnName ?? outputColumnName) })
         {
         }
 
@@ -581,7 +581,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
         public TokenizingByCharactersEstimator(IHostEnvironment env, bool useMarkerCharacters = Defaults.UseMarkerCharacters,
-            params (string name, string source)[] columns)
+            params (string outputColumnName, string sourceColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TokenizingByCharactersEstimator)), new TokenizingByCharactersTransformer(env, useMarkerCharacters, columns))
         {
         }
@@ -592,15 +592,15 @@ namespace Microsoft.ML.Transforms.Text
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.source, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.source);
+                if (!inputSchema.TryFindColumn(colInfo.sourceColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.sourceColumnName);
                 if (!IsColumnTypeValid(col.ItemType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.source, ExpectedColumnType, col.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.sourceColumnName, ExpectedColumnType, col.ItemType.ToString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
                 metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.name] = new SchemaShape.Column(colInfo.name, SchemaShape.Column.VectorKind.VariableVector, NumberType.U2, true, new SchemaShape(metadata.ToArray()));
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, NumberType.U2, true, new SchemaShape(metadata.ToArray()));
             }
 
             return new SchemaShape(result.Values);

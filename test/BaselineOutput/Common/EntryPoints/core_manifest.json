@@ -22139,7 +22139,7 @@
           "IsNullable": false
         },
         {
-          "Name": "InputColumns",
+          "Name": "Sources",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
@@ -22161,7 +22161,7 @@
           "IsNullable": false
         },
         {
-          "Name": "OutputColumns",
+          "Name": "Names",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"

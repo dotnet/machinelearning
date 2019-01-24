@@ -54,11 +54,11 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
-            var inputColumnName = nameof(SsaSpikeData.Value);
+            var sourceColumnName = nameof(SsaSpikeData.Value);
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
             var args = new SsaSpikeDetector.Arguments()
             {
-                Source = inputColumnName,
+                Source = sourceColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                          // The confidence for spike detection in the range [0, 100]
                 PvalueHistoryLength = 8,                  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
@@ -125,11 +125,11 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
-            var inputColumnName = nameof(SsaSpikeData.Value);
+            var sourceColumnName = nameof(SsaSpikeData.Value);
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
             var args = new SsaSpikeDetector.Arguments()
             {
-                Source = inputColumnName,
+                Source = sourceColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                          // The confidence for spike detection in the range [0, 100]
                 PvalueHistoryLength = 8,                  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.

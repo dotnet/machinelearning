@@ -13,13 +13,13 @@ namespace Microsoft.ML
     public static class TransformExtensionsCatalog
     {
         /// <summary>
-        /// Copies the input column to another column named as specified in <paramref name="name"/>.
+        /// Copies the input column to another column named as specified in <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, string name, string source)
-            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), name, source);
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnNames"/>.</param>
+        /// <param name="sourceColumnNames">Name of the columns to transform.</param>
+        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, string outputColumnName, string sourceColumnNames)
+            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, sourceColumnNames);
 
         /// <summary>
         /// Copies the input column, name specified in the first item of the tuple,
@@ -27,17 +27,17 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog</param>
         /// <param name="columns">The pairs of input and output columns.</param>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params (string name, string source)[] columns)
+        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params (string outputColumnName, string sourceColumnName)[] columns)
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
         /// Concatenates two columns together.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="sources"/>.</param>
-        /// <param name="sources">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-        public static ColumnConcatenatingEstimator Concatenate(this TransformsCatalog catalog, string name, params string[] sources)
-            => new ColumnConcatenatingEstimator(CatalogUtils.GetEnvironment(catalog), name, sources);
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnNames"/>.</param>
+        /// <param name="sourceColumnNames">Name of the columns to transform.</param>
+        public static ColumnConcatenatingEstimator Concatenate(this TransformsCatalog catalog, string outputColumnName, params string[] sourceColumnNames)
+            => new ColumnConcatenatingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, sourceColumnNames);
 
         /// <summary>
         /// DropColumns is used to select a list of columns that user wants to drop from a given input. Any column not specified will

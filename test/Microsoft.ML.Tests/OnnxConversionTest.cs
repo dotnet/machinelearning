@@ -453,7 +453,7 @@ namespace Microsoft.ML.Tests
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
             var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, hasHeader: false, separatorChar: '\t');
 
-            var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", "Tokens", embedNetworkPath);
+            var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 

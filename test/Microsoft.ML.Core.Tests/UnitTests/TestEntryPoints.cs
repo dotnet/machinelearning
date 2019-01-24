@@ -460,7 +460,7 @@ namespace Microsoft.ML.RunTests
                     ScoreModel.Score(Env,
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
-                individualScores[i] = new ColumnCopyingTransformer(Env,(
+                individualScores[i] = new ColumnCopyingTransformer(Env, (
                     (MetadataUtils.Const.ScoreValueKind.Score + i).ToString(),
                      MetadataUtils.Const.ScoreValueKind.Score)
                     ).Transform(individualScores[i]);
@@ -746,8 +746,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
@@ -1198,8 +1198,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features1", "Features", 10, false),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features2", "Features", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 

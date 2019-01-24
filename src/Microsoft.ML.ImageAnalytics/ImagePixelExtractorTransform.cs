@@ -194,15 +194,15 @@ namespace Microsoft.ML.ImageAnalytics
             /// <summary>
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="colors">What colors to extract.</param>
             /// <param name="interleave"></param>
             /// <param name="scale">Scale color pixel value by this amount.</param>
             /// <param name="offset">Offset color pixel value by this amount.</param>
             /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
 
-            public ColumnInfo(string name, string source = null,
+            public ColumnInfo(string name, string sourceColumnName = null,
                 ColorBits colors = Defaults.Colors,
                 bool interleave = Defaults.Interleave,
                 float scale = Defaults.Scale,
@@ -212,7 +212,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
 
                 Name = name;
-                Source = source ?? name;
+                Source = sourceColumnName ?? name;
                 Colors = colors;
 
                 if ((Colors & ColorBits.Alpha) == ColorBits.Alpha) Planes++;
@@ -238,14 +238,14 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(scale));
             }
 
-            internal ColumnInfo(string name, string source, ModelLoadContext ctx)
+            internal ColumnInfo(string name, string sourceColumnName, ModelLoadContext ctx)
             {
                 Contracts.AssertNonEmpty(name);
-                Contracts.AssertNonEmpty(source);
+                Contracts.AssertNonEmpty(sourceColumnName);
                 Contracts.AssertValue(ctx);
 
                 Name = name;
-                Source = source;
+                Source = sourceColumnName;
 
                 // *** Binary format ***
                 // byte: colors
@@ -329,22 +329,22 @@ namespace Microsoft.ML.ImageAnalytics
         /// Extract pixels values from image and produce array of values.
         ///</summary>
         /// <param name="env">The host environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="colors">What colors to extract.</param>
         /// <param name="interleave"></param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
         /// <param name="offset">Offset color pixel value by this amount.</param>
         /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
         public ImagePixelExtractorTransformer(IHostEnvironment env,
-            string name,
-            string source = null,
+            string outputColumnName,
+            string sourceColumnName = null,
             ColorBits colors = ColorBits.Rgb,
             bool interleave = Defaults.Interleave,
             float scale = Defaults.Scale,
             float offset = Defaults.Offset,
             bool asFloat = Defaults.Convert)
-            : this(env, new ColumnInfo(name, source, colors, interleave, scale, offset, asFloat))
+            : this(env, new ColumnInfo(outputColumnName, sourceColumnName, colors, interleave, scale, offset, asFloat))
         {
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.ML.ImageAnalytics
             _columns = columns.ToArray();
         }
 
-        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.Source)).ToArray();
@@ -407,7 +407,7 @@ namespace Microsoft.ML.ImageAnalytics
 
             _columns = new ColumnInfo[ColumnPairs.Length];
             for (int i = 0; i < _columns.Length; i++)
-                _columns[i] = new ColumnInfo(ColumnPairs[i].name, ColumnPairs[i].source, ctx);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].sourceColumnName, ctx);
         }
 
         // Factory method for SignatureLoadDataTransform.

@@ -96,20 +96,20 @@ namespace Microsoft.ML.Transforms.Conversions
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly bool Bag;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="bag">Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input column is a vector.</param>
-            public ColumnInfo(string name, string source = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
+            public ColumnInfo(string name, string sourceColumnName = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
-                Source = source ?? name;
+                SourceColumnName = sourceColumnName ?? name;
                 Bag = bag;
             }
         }
@@ -119,10 +119,10 @@ namespace Microsoft.ML.Transforms.Conversions
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
         private readonly ColumnInfo[] _columns;
 
-        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         private string TestIsKey(ColumnType type)
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var type = inputSchema[srcCol].Type;
             string reason = TestIsKey(type);
             if (reason != null)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].source, reason, type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].sourceColumnName, reason, type.ToString());
         }
 
         public KeyToVectorMappingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             _columns = new ColumnInfo[columnsLength];
             for (int i = 0; i < columnsLength; i++)
-                _columns[i] = new ColumnInfo(ColumnPairs[i].name, ColumnPairs[i].source, bags[i]);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].sourceColumnName, bags[i]);
         }
 
         // Factory method for SignatureDataTransform.
@@ -249,10 +249,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 public readonly string Source;
                 public readonly ColumnType TypeSrc;
 
-                public ColInfo(string name, string source, ColumnType type)
+                public ColInfo(string outputColumnName, string sourceColumnName, ColumnType type)
                 {
-                    Name = name;
-                    Source = source;
+                    Name = outputColumnName;
+                    Source = sourceColumnName;
                     TypeSrc = type;
                 }
             }
@@ -284,11 +284,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out int colSrc))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].name);
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].sourceColumnName);
                     var type = inputSchema[colSrc].Type;
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
-                    infos[i] = new ColInfo(_parent.ColumnPairs[i].name, _parent.ColumnPairs[i].source, type);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].sourceColumnName, type);
                 }
                 return infos;
             }
@@ -298,11 +298,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].name, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
@@ -754,8 +754,8 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        public KeyToVectorMappingEstimator(IHostEnvironment env, string name, string source = null, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(name, source ?? name, bag)))
+        public KeyToVectorMappingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null, bool bag = Defaults.Bag)
+            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName, bag)))
         {
         }
 
@@ -770,10 +770,10 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
                 if (!col.ItemType.IsStandardScalar())
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
 
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))

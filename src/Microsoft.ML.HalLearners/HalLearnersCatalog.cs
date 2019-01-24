@@ -98,8 +98,8 @@ namespace Microsoft.ML
         /// meaning that they are uncorrelated and each have variance 1.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
         /// <param name="eps">Whitening constant, prevents division by zero.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
@@ -111,12 +111,12 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, string name, string source = null,
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string sourceColumnName = null,
             WhiteningKind kind = VectorWhiteningTransformer.Defaults.Kind,
             float eps = VectorWhiteningTransformer.Defaults.Eps,
             int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
             int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
-                => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), name, source, kind, eps, maxRows, pcaNum);
+                => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, sourceColumnName, kind, eps, maxRows, pcaNum);
 
         /// <summary>
         /// Takes columns filled with a vector of random variables with a known covariance matrix into a set of new variables whose

@@ -55,7 +55,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var pairs = new List<(string name, string source)>();
+                var pairs = new List<(string outputColumnName, string sourceColumnName)>();
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input]));
 
@@ -118,7 +118,7 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var pairs = new List<(string name, string source)>();
+                var pairs = new List<(string outputColumnName, string sourceColumnName)>();
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn<T>)outCol).Input]));
 
@@ -937,7 +937,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input], tcol.Kind);
+                    infos[i] = new TypeConvertingTransformer.ColumnInfo(outputNames[toOutput[i]], tcol.Kind, inputNames[tcol.Input]);
                 }
                 return new TypeConvertingEstimator(env, infos);
             }
@@ -1112,7 +1112,7 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var cols = new (string name, string source)[toOutput.Length];
+                var cols = new (string outputColumnName, string sourceColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (IColInput)toOutput[i];
@@ -1423,7 +1423,7 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var columnPairs = new (string name, string source)[toOutput.Length];
+                var columnPairs = new (string outputColumnName, string sourceColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
@@ -1599,7 +1599,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
                 }
                 return new RandomFourierFeaturizingEstimator(env, infos);
             }

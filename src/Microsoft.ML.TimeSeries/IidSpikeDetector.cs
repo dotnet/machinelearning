@@ -191,18 +191,18 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// Create a new instance of <see cref="IidSpikeEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.
-        /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.
+        /// Column is a vector of type double and size 4. The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
+        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
-        public IidSpikeEstimator(IHostEnvironment env, string name, string source, int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
+        public IidSpikeEstimator(IHostEnvironment env, string outputColumnName, int confidence, int pvalueHistoryLength, string sourceColumnName, AnomalySide side = AnomalySide.TwoSided)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
                 new IidSpikeDetector(env, new IidSpikeDetector.Arguments
                 {
-                    Name = name,
-                    Source = source,
+                    Name = outputColumnName,
+                    Source = sourceColumnName,
                     Confidence = confidence,
                     PvalueHistoryLength = pvalueHistoryLength,
                     Side = side

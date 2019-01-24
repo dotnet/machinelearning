@@ -99,7 +99,7 @@ namespace Microsoft.ML.Transforms.Projections
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly string WeightColumn;
             public readonly int Rank;
             public readonly int Oversampling;
@@ -109,15 +109,16 @@ namespace Microsoft.ML.Transforms.Projections
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+            /// <param name="sourceColumnName">Name of column to transform.
+            /// If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="weightColumn">The name of the weight column.</param>
             /// <param name="rank">The number of components in the PCA.</param>
             /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
             /// <param name="center">If enabled, data is centered to be zero mean.</param>
             /// <param name="seed">The seed for random number generation.</param>
             public ColumnInfo(string name,
-                              string source,
+                              string sourceColumnName = null,
                               string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
                               int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
                               int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
@@ -125,7 +126,7 @@ namespace Microsoft.ML.Transforms.Projections
                               int? seed = null)
             {
                 Name = name;
-                Source = source;
+                SourceColumnName = sourceColumnName ?? name;
                 WeightColumn = weightColumn;
                 Rank = rank;
                 Oversampling = overSampling;
@@ -254,7 +255,7 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 var colInfo = columns[i];
                 var sInfo = _schemaInfos[i] = new Mapper.ColumnSchemaInfo(ColumnPairs[i], input.Schema, colInfo.WeightColumn);
-                ValidatePcaInput(Host, colInfo.Source, sInfo.InputType);
+                ValidatePcaInput(Host, colInfo.SourceColumnName, sInfo.InputType);
                 _transformInfos[i] = new TransformInfo(colInfo.Rank, sInfo.InputType.GetValueCount());
             }
 
@@ -332,10 +333,10 @@ namespace Microsoft.ML.Transforms.Projections
             for (int i = 0; i < _transformInfos.Length; i++)
                 _transformInfos[i].Save(ctx);
         }
-        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         private void Train(ColumnInfo[] columns, TransformInfo[] transformInfos, IDataView trainingData)
@@ -358,7 +359,7 @@ namespace Microsoft.ML.Transforms.Projections
                     using (var ch = Host.Start("Memory usage"))
                     {
                         ch.Info("Estimate memory usage for transforming column {1}: {0:G2} GB. If running out of memory, reduce rank and oversampling factor.",
-                            colMemoryUsageEstimate, ColumnPairs[iinfo].source);
+                            colMemoryUsageEstimate, ColumnPairs[iinfo].sourceColumnName);
                     }
                 }
 
@@ -493,7 +494,7 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
                     if (totalColWeight[iinfo] <= 0)
-                        throw Host.Except("Empty data in column '{0}'", ColumnPairs[iinfo].source);
+                        throw Host.Except("Empty data in column '{0}'", ColumnPairs[iinfo].sourceColumnName);
                 }
 
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
@@ -561,11 +562,11 @@ namespace Microsoft.ML.Transforms.Projections
                 public int InputIndex { get; }
                 public int WeightColumnIndex { get; }
 
-                public ColumnSchemaInfo((string name, string source) columnPair, Schema schema, string weightColumn = null)
+                public ColumnSchemaInfo((string outputColumnName, string sourceColumnName) columnPair, Schema schema, string weightColumn = null)
                 {
-                    schema.TryGetColumnIndex(columnPair.source, out int inputIndex);
+                    schema.TryGetColumnIndex(columnPair.sourceColumnName, out int inputIndex);
                     InputIndex = inputIndex;
-                    InputType = schema[columnPair.source].Type;
+                    InputType = schema[columnPair.sourceColumnName].Type;
 
                     var weightIndex = -1;
                     if (weightColumn != null)
@@ -590,10 +591,10 @@ namespace Microsoft.ML.Transforms.Projections
                 {
                     var colPair = _parent.ColumnPairs[i];
                     var colSchemaInfo = new ColumnSchemaInfo(colPair, inputSchema);
-                    ValidatePcaInput(Host, colPair.source, colSchemaInfo.InputType);
+                    ValidatePcaInput(Host, colPair.sourceColumnName, colSchemaInfo.InputType);
                     if (colSchemaInfo.InputType.GetVectorSize() != _parent._transformInfos[i].Dimension)
                     {
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.source,
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.sourceColumnName,
                             new VectorType(NumberType.R4, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
                     }
                 }
@@ -603,7 +604,7 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 var result = new Schema.DetachedColumn[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].name, _parent._transformInfos[i].OutputType, null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _parent._transformInfos[i].OutputType, null);
                 return result;
             }
 
@@ -676,20 +677,25 @@ namespace Microsoft.ML.Transforms.Projections
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform.
+        /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
         public PrincipalComponentAnalysisEstimator(IHostEnvironment env,
-            string name,
-            string source = null,
+            string outputColumnName,
+            string sourceColumnName = null,
             string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
             int overSampling = Defaults.Oversampling, bool center = Defaults.Center,
             int? seed = null)
+<<<<<<< HEAD:src/Microsoft.ML.PCA/PcaTransformer.cs
             : this(env, new PcaTransformer.ColumnInfo(name, source ?? name, weightColumn, rank, overSampling, center, seed))
+=======
+            : this(env, new PcaTransform.ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName, weightColumn, rank, overSampling, center, seed))
+>>>>>>> 1 - Changing the "source" parameter name and field in the Columninfo classes, to be "sourceColumnName", as suggested.:src/Microsoft.ML.PCA/PcaTransform.cs
         {
         }
 
@@ -711,11 +717,11 @@ namespace Microsoft.ML.Transforms.Projections
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
 
                 if (col.Kind != SchemaShape.Column.VectorKind.Vector || !col.ItemType.Equals(NumberType.R4))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name,
                     SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);

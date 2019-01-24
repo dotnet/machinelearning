@@ -70,7 +70,7 @@ namespace Microsoft.ML.Data
             // tag if it is non empty. For vector columns, the slot names will be 'ColumnName.SlotName' if the
             // tag is empty, 'Tag.SlotName' if tag is non empty, and simply the slot name if tag is non empty
             // and equal to the column name.
-            [Argument(ArgumentType.Multiple, HelpText = "Name of the source column", ShortName = "src")]
+            [Argument(ArgumentType.Multiple, HelpText = "Names of the source columns", ShortName = "src")]
             public KeyValuePair<string, string>[] Source;
 
             internal static TaggedColumn Parse(string str)
@@ -131,17 +131,17 @@ namespace Microsoft.ML.Data
             public IReadOnlyList<(string name, string alias)> Sources => _sources.AsReadOnly();
 
             /// <summary>
-            /// This denotes a concatenation of all <paramref name="sources"/> into column called <paramref name="name"/>.
+            /// This denotes a concatenation of all <paramref name="sourceColumnNames"/> into column called <paramref name="name"/>.
             /// </summary>
-            public ColumnInfo(string name, params string[] sources)
-                : this(name, GetPairs(sources))
+            public ColumnInfo(string name, params string[] sourceColumnNames)
+                : this(name, GetPairs(sourceColumnNames))
             {
             }
 
-            private static IEnumerable<(string name, string alias)> GetPairs(string[] sources)
+            private static IEnumerable<(string name, string alias)> GetPairs(string[] sourceColumnNames)
             {
-                Contracts.CheckValue(sources, nameof(sources));
-                return sources.Select(name => (name, (string)null));
+                Contracts.CheckValue(sourceColumnNames, nameof(sourceColumnNames));
+                return sourceColumnNames.Select(name => (name, (string)null));
             }
 
             /// <summary>
@@ -149,20 +149,20 @@ namespace Microsoft.ML.Data
             /// For each input column, an 'alias' can be specified, to be used in constructing the resulting slot names.
             /// If the alias is not specified, it defaults to be column name.
             /// </summary>
-            public ColumnInfo(string name, IEnumerable<(string name, string alias)> sources)
+            public ColumnInfo(string name, IEnumerable<(string name, string alias)> sourceColumnNames)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckValue(sources, nameof(sources));
-                Contracts.CheckParam(sources.Any(), nameof(sources), "Can not be empty");
+                Contracts.CheckValue(sourceColumnNames, nameof(sourceColumnNames));
+                Contracts.CheckParam(sourceColumnNames.Any(), nameof(sourceColumnNames), "Can not be empty");
 
-                foreach (var (output, alias) in sources)
+                foreach (var (output, alias) in sourceColumnNames)
                 {
-                    Contracts.CheckNonEmpty(output, nameof(sources));
+                    Contracts.CheckNonEmpty(output, nameof(sourceColumnNames));
                     Contracts.CheckValueOrNull(alias);
                 }
 
                 Name = name;
-                _sources = sources.ToArray();
+                _sources = sourceColumnNames.ToArray();
             }
 
             public void Save(ModelSaveContext ctx)
@@ -213,12 +213,12 @@ namespace Microsoft.ML.Data
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
 
         /// <summary>
-        /// Concatename columns in <paramref name="sources"/> into one column <paramref name="name"/>.
+        /// Concatename columns in <paramref name="sourceColumnNames"/> into one column <paramref name="outputColumnName"/>.
         /// Original columns are also preserved.
         /// The column types must match, and the output column type is always a vector.
         /// </summary>
-        public ColumnConcatenatingTransformer(IHostEnvironment env, string name, params string[] sources)
-            : this(env, new ColumnInfo(name, sources))
+        public ColumnConcatenatingTransformer(IHostEnvironment env, string outputColumnName, params string[] sourceColumnNames)
+            : this(env, new ColumnInfo(outputColumnName, sourceColumnNames))
         {
         }
 

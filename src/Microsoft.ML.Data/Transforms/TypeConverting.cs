@@ -178,21 +178,21 @@ namespace Microsoft.ML.Transforms.Conversions
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly DataKind OutputKind;
             public readonly KeyCount OutputKeyCount;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
             /// <param name="outputKind">The expected kind of the converted column.</param>
+            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKeyRange">New key range, if we work with key type.</param>
-            public ColumnInfo(string name, string source, DataKind outputKind, KeyCount outputKeyCount = null)
+            public ColumnInfo(string name, string sourceColumnName, DataKind outputKind, KeyCount outputKeyCount = null)
             {
-                Source = source;
                 Name = name;
+                SourceColumnName = sourceColumnName ?? name;
                 OutputKind = outputKind;
                 OutputKeyCount = outputKeyCount;
             }
@@ -200,22 +200,22 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private readonly ColumnInfo[] _columns;
 
-        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckNonEmpty(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         /// <summary>
         /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="outputColumnName">Name of the output column.</param>
+        /// <param name="sourceColumnName">Name of the column to be transformed. If this is null '<paramref name="outputColumnName"/>' will be used.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
         /// <param name="outputKeyRange">New key range if we work with key type.</param>
-        public TypeConvertingTransformer(IHostEnvironment env, string name, string source, DataKind outputKind, KeyCount outputKeyCount = null)
-            : this(env, new ColumnInfo(name, source ?? name, outputKind, outputKeyCount))
+        public TypeConvertingTransformer(IHostEnvironment env, string name, string sourceColumnName, DataKind outputKind, KeyCount outputKeyCount = null)
+            : this(env, new ColumnInfo(name, sourceColumnName ?? name, outputKind, outputKeyCount))
         {
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     keyCount = new KeyCount(count);
 
                 }
-                _columns[i] = new ColumnInfo(ColumnPairs[i].name, ColumnPairs[i].source, kind, keyCount);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].name, ColumnPairs[i].sourceColumnName, kind, keyCount);
             }
         }
 
@@ -422,13 +422,13 @@ namespace Microsoft.ML.Transforms.Conversions
                 _srcCols = new int[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
-                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].source, out _srcCols[i]);
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind, _parent._columns[i].OutputKeyCount, out PrimitiveType itemType, out _types[i]))
                     {
                         throw Host.ExceptParam(nameof(inputSchema),
                         "source column '{0}' with item type '{1}' is not compatible with destination type '{2}'",
-                        _parent._columns[i].Source, srcCol.Type, itemType);
+                        _parent._columns[i].SourceColumnName, srcCol.Type, itemType);
                     }
                 }
             }
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
-                    string sourceColumnName = _parent._columns[iinfo].Source;
+                    string sourceColumnName = _parent._columns[iinfo].SourceColumnName;
                     if (!ctx.ContainsColumn(sourceColumnName))
                     {
                         ctx.RemoveColumn(_parent._columns[iinfo].Name, false);
@@ -549,13 +549,13 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
         public TypeConvertingEstimator(IHostEnvironment env,
-            string name, string source = null,
+            string outputColumnName, string sourceColumnName = null,
             DataKind outputKind = Defaults.DefaultOutputKind)
-            : this(env, new TypeConvertingTransformer.ColumnInfo(name, source ?? name, outputKind))
+            : this(env, new TypeConvertingTransformer.ColumnInfo(outputColumnName, outputKind, sourceColumnName ?? outputColumnName))
         {
         }
 
@@ -573,12 +573,12 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
                 if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind, colInfo.OutputKeyCount, out PrimitiveType newType))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.Source} into {newType.ToString()}");
+                    throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.SourceColumnName} into {newType.ToString()}");
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Source} into {newType.ToString()}");
+                    throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.SourceColumnName} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
                 if (col.ItemType is BoolType && newType is NumberType)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));

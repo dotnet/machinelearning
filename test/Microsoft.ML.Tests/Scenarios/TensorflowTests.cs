@@ -35,7 +35,7 @@ namespace Microsoft.ML.Scenarios
             }, new MultiFileSource(dataFile));
 
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
-                    .Append(new ImageResizingEstimator(mlContext, "ImageCropped", "ImageReal", imageHeight, imageWidth))
+                    .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
                     .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true))
                     .Append(new TensorFlowEstimator(mlContext, model_location, new[] { "Output" }, new[] { "Input" }))
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))

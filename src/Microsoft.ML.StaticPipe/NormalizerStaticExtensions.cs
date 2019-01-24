@@ -271,7 +271,7 @@ namespace Microsoft.ML.StaticPipe
         public delegate void OnFitBinned<TData>(ImmutableArray<TData> upperBounds);
 
         #region Implementation support
-        private delegate NormalizingEstimator.ColumnBase CreateNormCol(string name, string source);
+        private delegate NormalizingEstimator.ColumnBase CreateNormCol(string outputColumnName, string sourceColumnName);
 
         private sealed class Rec : EstimatorReconciler
         {

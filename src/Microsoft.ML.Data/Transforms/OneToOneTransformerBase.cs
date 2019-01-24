@@ -14,19 +14,19 @@ namespace Microsoft.ML.Data
     /// </summary>
     public abstract class OneToOneTransformerBase : RowToRowTransformerBase
     {
-        protected readonly (string name, string source)[] ColumnPairs;
+        protected readonly (string outputColumnName, string sourceColumnName)[] ColumnPairs;
 
-        protected OneToOneTransformerBase(IHost host, params (string name, string source)[] columns) : base(host)
+        protected OneToOneTransformerBase(IHost host, params (string outputColumnName, string sourceColumnName)[] columns) : base(host)
         {
             host.CheckValue(columns, nameof(columns));
             var newNames = new HashSet<string>();
             foreach (var column in columns)
             {
-                host.CheckNonEmpty(column.source, nameof(columns));
-                host.CheckNonEmpty(column.name, nameof(columns));
+                host.CheckNonEmpty(column.sourceColumnName, nameof(columns));
+                host.CheckNonEmpty(column.outputColumnName, nameof(columns));
 
-                if (!newNames.Add(column.name))
-                    throw Contracts.ExceptParam(nameof(columns), $"Name of the result column '{column.name}' specified multiple times");
+                if (!newNames.Add(column.outputColumnName))
+                    throw Contracts.ExceptParam(nameof(columns), $"Name of the result column '{column.outputColumnName}' specified multiple times");
             }
 
             ColumnPairs = columns;
@@ -41,12 +41,12 @@ namespace Microsoft.ML.Data
             //   int: id of input column name
 
             int n = ctx.Reader.ReadInt32();
-            ColumnPairs = new (string name, string source)[n];
+            ColumnPairs = new (string outputColumnName, string sourceColumnName)[n];
             for (int i = 0; i < n; i++)
             {
-                string name = ctx.LoadNonEmptyString();
-                string source = ctx.LoadNonEmptyString();
-                ColumnPairs[i] = (name, source);
+                string outputColumnName = ctx.LoadNonEmptyString();
+                string sourceColumnName = ctx.LoadNonEmptyString();
+                ColumnPairs[i] = (outputColumnName, sourceColumnName);
             }
         }
 
@@ -63,8 +63,8 @@ namespace Microsoft.ML.Data
             ctx.Writer.Write(ColumnPairs.Length);
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                ctx.SaveNonEmptyString(ColumnPairs[i].name);
-                ctx.SaveNonEmptyString(ColumnPairs[i].source);
+                ctx.SaveNonEmptyString(ColumnPairs[i].outputColumnName);
+                ctx.SaveNonEmptyString(ColumnPairs[i].sourceColumnName);
             }
         }
 
@@ -73,8 +73,8 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(inputSchema);
             Contracts.Assert(0 <= col && col < ColumnPairs.Length);
 
-            if (!inputSchema.TryGetColumnIndex(ColumnPairs[col].source, out srcCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].source);
+            if (!inputSchema.TryGetColumnIndex(ColumnPairs[col].sourceColumnName, out srcCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].sourceColumnName);
             CheckInputColumn(inputSchema, col, srcCol);
         }
 

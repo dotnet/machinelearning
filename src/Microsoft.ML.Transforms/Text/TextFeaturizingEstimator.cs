@@ -258,9 +258,9 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
-        public TextFeaturizingEstimator(IHostEnvironment env, string name, string source = null,
+        public TextFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null,
             Action<Settings> advancedSettings = null)
-            : this(env, name, new[] { source ?? name }, advancedSettings)
+            : this(env, outputColumnName, new[] { sourceColumnName ?? outputColumnName }, advancedSettings)
         {
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.NeedsNormalizeTransform)
             {
-                var xfCols = new (string name, string source)[textCols.Length];
+                var xfCols = new (string outputColumnName, string sourceColumnName)[textCols.Length];
                 string[] dstCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
@@ -384,12 +384,12 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var srcCols = tparams.UsePredefinedStopWordRemover ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
-                    var xfCols = new (string name, string source)[srcCols.Length];
+                    var xfCols = new (string outputColumnName, string sourceColumnName)[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
                     {
                         xfCols[i] = (GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"), srcCols[i]);
-                        tempCols.Add(xfCols[i].name);
-                        charTokCols[i] = xfCols[i].name;
+                        tempCols.Add(xfCols[i].outputColumnName);
+                        charTokCols[i] = xfCols[i].outputColumnName;
                     }
                     view = new TokenizingByCharactersTransformer(h, columns: xfCols).Transform(view);
                 }

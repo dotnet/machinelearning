@@ -270,20 +270,20 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// <param name="host">The host.</param>
         /// <param name="windowSize">The size of buffer used for windowed buffering.</param>
         /// <param name="initialWindowSize">The number of datapoints picked from the beginning of the series for training the transform parameters if needed.</param>
-        /// <param name="inputColumnName">The name of the input column.</param>
         /// <param name="outputColumnName">The name of the dst column.</param>
+        /// <param name="sourceColumnName">The name of the input column.</param>
         /// <param name="outputColType"></param>
-        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, ColumnType outputColType)
+        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string outputColumnName, string sourceColumnName, ColumnType outputColType)
         {
             Host = host;
             Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
             Host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
             // REVIEW: Very bad design. This base class is responsible for reporting errors on
             // the arguments, but the arguments themselves are not derived form any base class.
-            Host.CheckNonEmpty(inputColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
+            Host.CheckNonEmpty(sourceColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
             Host.CheckNonEmpty(outputColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
 
-            InputColumnName = inputColumnName;
+            InputColumnName = sourceColumnName;
             OutputColumnName = outputColumnName;
             OutputColumnType = outputColType;
             InitialWindowSize = initialWindowSize;
@@ -298,7 +298,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // int: _windowSize
             // int: _initialWindowSize
-            // int (string ID): _inputColumnName
+            // int (string ID): _sourceColumnName
             // int (string ID): _outputColumnName
             // ColumnType: _transform.Schema.GetColumnType(0)
 
@@ -308,10 +308,10 @@ namespace Microsoft.ML.TimeSeriesProcessing
             var initialWindowSize = ctx.Reader.ReadInt32();
             Host.CheckDecode(initialWindowSize >= 0);
 
-            var inputColumnName = ctx.LoadNonEmptyString();
+            var sourceColumnName = ctx.LoadNonEmptyString();
             var outputColumnName = ctx.LoadNonEmptyString();
 
-            InputColumnName = inputColumnName;
+            InputColumnName = sourceColumnName;
             OutputColumnName = outputColumnName;
             InitialWindowSize = initialWindowSize;
             WindowSize = windowSize;
@@ -329,7 +329,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // int: _windowSize
             // int: _initialWindowSize
-            // int (string ID): _inputColumnName
+            // int (string ID): _sourceColumnName
             // int (string ID): _outputColumnName
             // ColumnType: _transform.Schema.GetColumnType(0)
 
@@ -392,11 +392,11 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             public void CloneStateInMapper() => _mapper.CloneState();
 
-            private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName,
+            private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string sourceColumnName,
                 string outputColumnName, Action<TState> initFunction, bool hasBuffer, ColumnType outputColTypeOverride)
             {
                 var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
-                inputSchema[0].ColumnName = inputColumnName;
+                inputSchema[0].ColumnName = sourceColumnName;
 
                 var outputSchema = SchemaDefinition.Create(typeof(DataBox<TOutput>));
                 outputSchema[0].ColumnName = outputColumnName;

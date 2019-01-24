@@ -62,9 +62,9 @@ namespace Microsoft.ML.StaticPipe
                 var outCol = (OutColumn)toOutput[0];
                 return new IidChangePointEstimator(env,
                     outputNames[outCol],
-                    inputNames[outCol.Input],
                     _confidence,
                     _changeHistoryLength,
+                    inputNames[outCol.Input],
                     _martingale,
                     _eps);
             }
@@ -126,9 +126,9 @@ namespace Microsoft.ML.StaticPipe
                 var outCol = (OutColumn)toOutput[0];
                 return new IidSpikeEstimator(env,
                     outputNames[outCol],
-                    inputNames[outCol.Input],
                     _confidence,
                     _pvalueHistoryLength,
+                    inputNames[outCol.Input],
                     _side);
             }
         }
@@ -205,11 +205,11 @@ namespace Microsoft.ML.StaticPipe
                 var outCol = (OutColumn)toOutput[0];
                 return new SsaChangePointEstimator(env,
                     outputNames[outCol],
-                    inputNames[outCol.Input],
                     _confidence,
                     _changeHistoryLength,
                     _trainingWindowSize,
                     _seasonalityWindowSize,
+                    inputNames[outCol.Input],
                     _errorFunction,
                     _martingale,
                     _eps);
@@ -287,11 +287,11 @@ namespace Microsoft.ML.StaticPipe
                 var outCol = (OutColumn)toOutput[0];
                 return new SsaSpikeEstimator(env,
                     outputNames[outCol],
-                    inputNames[outCol.Input],
                     _confidence,
                     _pvalueHistoryLength,
                     _trainingWindowSize,
                     _seasonalityWindowSize,
+                    inputNames[outCol.Input],
                     _side,
                     _errorFunction);
             }

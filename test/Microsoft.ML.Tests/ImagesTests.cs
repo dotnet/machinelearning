@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests
             }, new MultiFileSource(dataFile));
 
             var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(env, "ImageReal", "ImageReal", 100, 100))
+                .Append(new ImageResizingEstimator(env, "ImageReal", 100, 100, "ImageReal"))
                 .Append(new ImagePixelExtractingEstimator(env, "ImagePixels", "ImageReal"))
                 .Append(new ImageGrayscalingEstimator(env, ("ImageGray", "ImageReal")));
 
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests
             }, new MultiFileSource(dataFile));
 
             var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(env, "ImageReal", "ImageReal", 100, 100))
+                .Append(new ImageResizingEstimator(env, "ImageReal", 100, 100, "ImageReal"))
                 .Append(new ImagePixelExtractingEstimator(env, "ImagePixels", "ImageReal"))
                 .Append(new ImageGrayscalingEstimator(env, ("ImageGray", "ImageReal")));
 
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal",  100, 100, ImageResizerTransformer.ResizingKind.IsoPad).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", 100, 100, "ImageReal", ImageResizerTransformer.ResizingKind.IsoPad).Transform(images);
 
             cropped.Schema.TryGetColumnIndex("ImagePath", out int pathColumn);
             cropped.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
 
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             IDataView grey = new ImageGrayscaleTransformer(env, ("ImageGrey", "ImageCropped")).Transform(cropped);
             var fname = nameof(TestGreyscaleTransformImages) + "_model.zip";
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractorTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractorTransformer.ColorBits.All, true, 2f / 255, 127.5f).Transform(cropped);
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractorTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractorTransformer.ColorBits.Rgb, true, 2f / 255, 127.5f).Transform(cropped);
 
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractorTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractorTransformer.ColorBits.All, false, 2f / 255, 127.5f).Transform(cropped);
 
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractorTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractorTransformer.ColorBits.Rgb, false, 2f / 255, 127.5f).Transform(cropped);
 
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractorTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractorTransformer.ColorBits.All, true).Transform(cropped);
 
@@ -531,7 +531,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractorTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractorTransformer.ColorBits.Rgb, true).Transform(cropped);
 
@@ -597,7 +597,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractorTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractorTransformer.ColorBits.All).Transform(cropped);
 
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Tests
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(env, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractorTransformer(env, "ImagePixels", "ImageCropped").Transform(cropped);
 
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()

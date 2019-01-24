@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _linesToSkip;
         private readonly Model _currentVocab;
         private static Dictionary<string, WeakReference<Model>> _vocab = new Dictionary<string, WeakReference<Model>>();
-        public IReadOnlyCollection<(string name, string source)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string outputColumnName, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private sealed class Model
         {
@@ -154,14 +154,14 @@ namespace Microsoft.ML.Transforms.Text
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
 
-            public ColumnInfo(string name, string source = null)
+            public ColumnInfo(string name, string sourceColumnName = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
 
                 Name = name;
-                Source = source ?? name;
+                SourceColumnName = sourceColumnName ?? name;
             }
         }
 
@@ -173,12 +173,12 @@ namespace Microsoft.ML.Transforms.Text
         /// Instantiates <see cref="WordEmbeddingsExtractingTransformer"/> using the pretrained word embedding model specified by <paramref name="modelKind"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of column to transform. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
-        public WordEmbeddingsExtractingTransformer(IHostEnvironment env, string name, string source,
+        public WordEmbeddingsExtractingTransformer(IHostEnvironment env, string outputColumnName, string sourceColumnName = null,
            PretrainedModelKind modelKind = PretrainedModelKind.Sswe)
-           : this(env, modelKind, new ColumnInfo(name, source))
+           : this(env, modelKind, new ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName))
         {
         }
 
@@ -186,11 +186,11 @@ namespace Microsoft.ML.Transforms.Text
         /// Instantiates <see cref="WordEmbeddingsExtractingTransformer"/> using the custom word embedding model by loading it from the file specified by the <paramref name="customModelFile"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of column to transform.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
         /// <param name="customModelFile">Filename for custom word embedding model.</param>
-        public WordEmbeddingsExtractingTransformer(IHostEnvironment env, string name, string source, string customModelFile)
-           : this(env, customModelFile, new ColumnInfo(name, source))
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public WordEmbeddingsExtractingTransformer(IHostEnvironment env, string outputColumnName, string customModelFile, string sourceColumnName = null)
+           : this(env, customModelFile, new ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName))
         {
         }
 
@@ -228,10 +228,10 @@ namespace Microsoft.ML.Transforms.Text
             _currentVocab = GetVocabularyDictionary(env);
         }
 
-        private static (string name, string source)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         // Factory method for SignatureDataTransform.
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             var colType = inputSchema[srcCol].Type;
             if (!(colType is VectorType vectorType && vectorType.ItemType is TextType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].source, "Text", inputSchema[srcCol].Type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].sourceColumnNames, "Text", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
@@ -346,15 +346,15 @@ namespace Microsoft.ML.Transforms.Text
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent.ColumnPairs.Select(x => new Schema.DetachedColumn(x.name, _outputType, null)).ToArray();
+                => _parent.ColumnPairs.Select(x => new Schema.DetachedColumn(x.outputColumnName, _outputType, null)).ToArray();
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                foreach (var (name, source) in _parent.Columns)
+                foreach (var (outputColumnName, sourceColumnName) in _parent.Columns)
                 {
-                    var srcVariableName = ctx.GetVariableName(source);
+                    var srcVariableName = ctx.GetVariableName(sourceColumnName);
                     var schema = _parent.GetOutputSchema(InputSchema);
-                    var dstVariableName = ctx.AddIntermediateVariable(schema[name].Type, name);
+                    var dstVariableName = ctx.AddIntermediateVariable(schema[outputColumnName].Type, outputColumnName);
                     SaveAsOnnxCore(ctx, srcVariableName, dstVariableName);
                 }
             }
@@ -794,12 +794,12 @@ namespace Microsoft.ML.Transforms.Text
         /// Initializes a new instance of <see cref="WordEmbeddingsExtractingEstimator"/>
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
-        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string name, string source = null,
+        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null,
            WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
-            : this(env, modelKind, new WordEmbeddingsExtractingTransformer.ColumnInfo(name, source ?? name))
+            : this(env, modelKind, new WordEmbeddingsExtractingTransformer.ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName))
         {
         }
 
@@ -807,11 +807,11 @@ namespace Microsoft.ML.Transforms.Text
         /// Initializes a new instance of <see cref="WordEmbeddingsExtractingEstimator"/>
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
-        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
-        /// <param name="source">Name of the column to transform. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
-        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string name, string source, string customModelFile)
-            : this(env, customModelFile, new WordEmbeddingsExtractingTransformer.ColumnInfo(name, source ?? name))
+        /// <param name="sourceColumnName">Name of the column to transform. </param>
+        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string outputColumnName, string customModelFile, string sourceColumnName = null)
+            : this(env, customModelFile, new WordEmbeddingsExtractingTransformer.ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName))
         {
         }
 
@@ -847,10 +847,10 @@ namespace Microsoft.ML.Transforms.Text
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
                 if (!(col.ItemType is TextType) || (col.Kind != SchemaShape.Column.VectorKind.VariableVector && col.Kind != SchemaShape.Column.VectorKind.Vector))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source, new VectorType(TextType.Instance).ToString(), col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, new VectorType(TextType.Instance).ToString(), col.GetTypeString());
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
             }

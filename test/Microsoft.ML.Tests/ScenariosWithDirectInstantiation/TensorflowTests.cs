@@ -234,7 +234,7 @@ namespace Microsoft.ML.Scenarios
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", "ImageReal", 32, 32).Transform(images);
+            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", 32, 32, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractorTransformer(mlContext, "image_tensor", "ImageCropped", asFloat: false).Transform(cropped);
             var tf = new TensorFlowTransformer(mlContext, modelLocation, 
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Scenarios
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
             var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", "ImageReal", 224, 224).Transform(images);
+            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", 224, 224 , "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractorTransformer(mlContext, "input","ImageCropped").Transform(cropped);
             var tf = new TensorFlowTransformer(mlContext, modelLocation, "softmax2_pre_activation", "input").Transform(pixels);
 
@@ -737,7 +737,7 @@ namespace Microsoft.ML.Scenarios
                 );
 
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(mlContext, "ImageCropped", "ImageReal", imageWidth, imageHeight))
+                .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal"))
                 .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
@@ -780,7 +780,7 @@ namespace Microsoft.ML.Scenarios
                 }
             );
             var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractorTransformer(mlContext, "Input", "ImageCropped", interleave: true).Transform(cropped);
             IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Output", "Input").Transform(pixels);
 
@@ -832,7 +832,7 @@ namespace Microsoft.ML.Scenarios
                 }
             );
             var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", "ImageReal", imageWidth, imageHeight).Transform(images);
+            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractorTransformer(mlContext, "Input", "ImageCropped").Transform(cropped);
 
             var thrown = false;

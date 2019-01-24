@@ -78,8 +78,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("ConvA", "A", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvB", "B", DataKind.R4)});
+            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", "ConvA", DataKind.R4),
+                new TypeConvertingTransformer.ColumnInfo("B", "ConvB", DataKind.R4)});
 
             TestEstimatorCore(pipe, dataView);
             var allTypesData = new[]
@@ -118,18 +118,18 @@ namespace Microsoft.ML.Tests.Transformers
 
             var allTypesDataView = ML.Data.ReadFromEnumerable(allTypesData);
             var allTypesPipe = new TypeConvertingEstimator(Env, columns: new[] {
-                new TypeConvertingTransformer.ColumnInfo("ConvA", "AA", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvB", "AB", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvC", "AC", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvD", "AD", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvE", "AE", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvF", "AF", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvG", "AG", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvH", "AH", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvK", "AK", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvL", "AL", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvM", "AM", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("ConvN", "AN", DataKind.R4)}
+                new TypeConvertingTransformer.ColumnInfo("ConvA", DataKind.R4, "AA"),
+                new TypeConvertingTransformer.ColumnInfo("ConvB", DataKind.R4, "AB"),
+                new TypeConvertingTransformer.ColumnInfo("ConvC", DataKind.R4, "AC"),
+                new TypeConvertingTransformer.ColumnInfo("ConvD", DataKind.R4, "AD"),
+                new TypeConvertingTransformer.ColumnInfo("ConvE", DataKind.R4, "AE"),
+                new TypeConvertingTransformer.ColumnInfo("ConvF", DataKind.R4, "AF"),
+                new TypeConvertingTransformer.ColumnInfo("ConvG", DataKind.R4, "AG"),
+                new TypeConvertingTransformer.ColumnInfo("ConvH", DataKind.R4, "AH"),
+                new TypeConvertingTransformer.ColumnInfo("ConvK", DataKind.R4, "AK"),
+                new TypeConvertingTransformer.ColumnInfo("ConvL", DataKind.R4, "AL"),
+                new TypeConvertingTransformer.ColumnInfo("ConvM", DataKind.R4, "AM"),
+                new TypeConvertingTransformer.ColumnInfo("ConvN", DataKind.R4, "AN")}
             );
             TestEstimatorCore(allTypesPipe, allTypesDataView);
 
@@ -192,8 +192,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("ConvA","A", DataKind.R8),
-                new TypeConvertingTransformer.ColumnInfo("ConvB","B", DataKind.R8)});
+            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", "ConvA", DataKind.R8),
+                new TypeConvertingTransformer.ColumnInfo("B", "ConvB", DataKind.R8)});
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -214,8 +214,8 @@ namespace Microsoft.ML.Tests.Transformers
                 new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Ind),
                 new OneHotEncodingEstimator.ColumnInfo("CatB", "B", OneHotEncodingTransformer.OutputKind.Key)
             }).Append(new TypeConvertingEstimator(Env, new[] {
-                new TypeConvertingTransformer.ColumnInfo("ConvA", "CatA", DataKind.R8),
-                new TypeConvertingTransformer.ColumnInfo("ConvB", "CatB", DataKind.U2)
+                new TypeConvertingTransformer.ColumnInfo("ConvA", DataKind.R8, "CatA"),
+                new TypeConvertingTransformer.ColumnInfo("ConvB", DataKind.U2, "CatB")
             }));
             var dataView = ML.Data.ReadFromEnumerable(data);
             dataView = pipe.Fit(dataView).Transform(dataView);

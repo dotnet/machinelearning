@@ -59,7 +59,7 @@ namespace Microsoft.ML.StaticPipe
                     IReadOnlyDictionary<PipelineColumn, string> outputNames,
                     IReadOnlyCollection<string> usedNames)
                 {
-                    var cols = new (string name, string source)[toOutput.Length];
+                    var cols = new (string outputColumnName, string sourceColumnName)[toOutput.Length];
                     for (int i = 0; i < toOutput.Length; ++i)
                     {
                         var outCol = (OutPipelineColumn)toOutput[i];
@@ -109,7 +109,7 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var cols = new (string name, string source)[toOutput.Length];
+                var cols = new (string outputColumnName, string sourceColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (IColInput)toOutput[i];
@@ -142,8 +142,8 @@ namespace Microsoft.ML.StaticPipe
                 _cropAnchor = cropAnchor;
             }
 
-            private ImageResizerTransformer.ColumnInfo MakeColumnInfo(string name, string source)
-                => new ImageResizerTransformer.ColumnInfo(name, source, _width, _height, _resizing, _cropAnchor);
+            private ImageResizerTransformer.ColumnInfo MakeColumnInfo(string outputColumnName, string sourceColumnName)
+                => new ImageResizerTransformer.ColumnInfo(outputColumnName, _width, _height, sourceColumnName, _resizing, _cropAnchor);
 
             /// <summary>
             /// Reconciler to an <see cref="ImageResizerTransformer"/> for the <see cref="PipelineColumn"/>.
@@ -182,7 +182,7 @@ namespace Microsoft.ML.StaticPipe
         {
             Custom<Bitmap> Input { get; }
 
-            ImagePixelExtractorTransformer.ColumnInfo MakeColumnInfo(string name, string source);
+            ImagePixelExtractorTransformer.ColumnInfo MakeColumnInfo(string outputColumnName, string sourceColumnName);
         }
 
         internal sealed class OutPipelineColumn<T> : Vector<T>, IColInput
@@ -200,14 +200,14 @@ namespace Microsoft.ML.StaticPipe
                 _colParam = col;
             }
 
-            public ImagePixelExtractorTransformer.ColumnInfo MakeColumnInfo(string name, string source)
+            public ImagePixelExtractorTransformer.ColumnInfo MakeColumnInfo(string outputColumnName, string sourceColumnName)
             {
                 // In principle, the analyzer should only call the the reconciler once for these columns.
                 Contracts.Assert(_colParam.Source == null);
                 Contracts.Assert(_colParam.Name == null);
 
-                _colParam.Name = name;
-                _colParam.Source = source;
+                _colParam.Name = outputColumnName;
+                _colParam.Source = sourceColumnName;
                 return new ImagePixelExtractorTransformer.ColumnInfo(_colParam, _defaultArgs);
             }
         }
