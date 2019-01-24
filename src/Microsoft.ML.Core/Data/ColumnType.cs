@@ -471,7 +471,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(type);
             if (count == 0 || type.ToMaxInt() < count)
                 throw Contracts.ExceptParam(nameof(count), "The cardinality of a {0} must not exceed {1}.MaxValue" +
-                    " and must be strictly positive.", nameof(KeyType), type.Name);
+                    " and must be strictly positive but got {2}.", nameof(KeyType), type.Name, count);
             Count = count;
         }
 
