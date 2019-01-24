@@ -79,7 +79,7 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
             var pipe = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
 
-            var invalidDataWrongNames = ML.Data.ReadFromEnumerable( xyData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.ReadFromEnumerable( stringData);
             var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable( sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
