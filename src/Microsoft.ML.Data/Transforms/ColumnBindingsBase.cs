@@ -109,26 +109,6 @@ namespace Microsoft.ML.Data
         private protected OneToOneColumn() { }
     }
 
-    public interface IOneToOneColumn
-    {
-        string Name { get; set; }
-        string Source { get; set; }
-    }
-
-    public abstract class OneToOneColumn<T>
-        where T : IOneToOneColumn, new()
-    {
-        public static T Create(string source)
-        {
-            return new T() { Name = source, Source = source };
-        }
-
-        public static T Create(string name, string source)
-        {
-            return new T() { Name = name, Source = source };
-        }
-    }
-
     public abstract class ManyToOneColumn
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", ShortName = "name")]
@@ -255,21 +235,6 @@ namespace Microsoft.ML.Data
                 pre = ",";
             }
             return true;
-        }
-    }
-
-    public interface IManyToOneColumn
-    {
-        string Name { get; set; }
-        string[] Source { get; set; }
-    }
-
-    public abstract class ManyToOneColumn<T>
-        where T : IManyToOneColumn, new()
-    {
-        public static T Create(string name, params string[] source)
-        {
-            return new T() { Name = name, Source = source };
         }
     }
 
