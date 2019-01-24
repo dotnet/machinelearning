@@ -199,7 +199,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)_total, 0);
                     };
             }
@@ -286,8 +286,6 @@ namespace Microsoft.ML.Data
 
             protected override bool MoveNextCore()
             {
-                Contracts.Assert(State != CursorState.Done);
-
                 if (_ator.MoveNext())
                 {
                     _rows.Index = _ator.Current;

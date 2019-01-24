@@ -46,7 +46,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 data.Add(new IidSpikeData(5));
 
             // Convert data to IDataView.
-            var dataView = ml.CreateStreamingDataView(data);
+            var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(IidSpikePrediction.Prediction);
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 data.Add(new IidSpikeData(5));
 
             // Convert data to IDataView.
-            var dataView = ml.CreateStreamingDataView(data);
+            var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(IidSpikePrediction.Prediction);

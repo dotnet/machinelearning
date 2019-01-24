@@ -534,46 +534,46 @@ namespace Microsoft.ML.Internal.Utilities
             return res;
         }
 
-        public static bool AreEqual(Single[] arr1, Single[] arr2)
-        {
-            if (arr1 == arr2)
-                return true;
-            if (arr1 == null || arr2 == null)
-                return false;
-            if (arr1.Length != arr2.Length)
-                return false;
-
-            for (int i = 0; i < arr1.Length; i++)
-            {
-                if (arr1[i] != arr2[i])
-                    return false;
-            }
-            return true;
-        }
-
-        public static bool AreEqual(Double[] arr1, Double[] arr2)
-        {
-            if (arr1 == arr2)
-                return true;
-            if (arr1 == null || arr2 == null)
-                return false;
-            if (arr1.Length != arr2.Length)
-                return false;
-
-            for (int i = 0; i < arr1.Length; i++)
-            {
-                if (arr1[i] != arr2[i])
-                    return false;
-            }
-            return true;
-        }
-
         public static void Shuffle<T>(Random rand, Span<T> rgv)
         {
             Contracts.AssertValue(rand);
 
             for (int iv = 0; iv < rgv.Length; iv++)
                 Swap(ref rgv[iv], ref rgv[iv + rand.Next(rgv.Length - iv)]);
+        }
+
+        public static bool AreEqual(float[] arr1, float[] arr2)
+        {
+            if (arr1 == arr2)
+                return true;
+            if (arr1 == null || arr2 == null)
+                return false;
+            if (arr1.Length != arr2.Length)
+                return false;
+
+            for (int i = 0; i < arr1.Length; i++)
+            {
+                if (arr1[i] != arr2[i])
+                    return false;
+            }
+            return true;
+        }
+
+        public static bool AreEqual(double[] arr1, double[] arr2)
+        {
+            if (arr1 == arr2)
+                return true;
+            if (arr1 == null || arr2 == null)
+                return false;
+            if (arr1.Length != arr2.Length)
+                return false;
+
+            for (int i = 0; i < arr1.Length; i++)
+            {
+                if (arr1[i] != arr2[i])
+                    return false;
+            }
+            return true;
         }
 
         public static bool AreEqual(int[] arr1, int[] arr2)

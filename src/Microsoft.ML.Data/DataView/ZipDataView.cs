@@ -141,31 +141,16 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)Position, 0);
                     };
             }
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State != CursorState.Done);
                 foreach (var cursor in _cursors)
                 {
-                    Ch.Assert(cursor.State != CursorState.Done);
                     if (!cursor.MoveNext())
-                        return false;
-                }
-
-                return true;
-            }
-
-            protected override bool MoveManyCore(long count)
-            {
-                Ch.Assert(State != CursorState.Done);
-                foreach (var cursor in _cursors)
-                {
-                    Ch.Assert(cursor.State != CursorState.Done);
-                    if (!cursor.MoveMany(count))
                         return false;
                 }
 

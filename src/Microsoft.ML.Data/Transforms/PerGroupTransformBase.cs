@@ -303,7 +303,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)Position, 0);
                     };
             }
@@ -317,16 +317,17 @@ namespace Microsoft.ML.Data
 
                 // If this is the first step, we need to move next on _groupCursor. Otherwise, the position of _groupCursor is
                 // at the start of the next group.
-                if (_groupCursor.State == CursorState.NotStarted)
+                if (_groupCursor.Position < 0)
                 {
                     // The two cursors should have the same number of elements, so if _input.MoveNext() returned true,
                     // then it must return true here too.
                     var good = _groupCursor.MoveNext() && _newGroupInGroupCursorDel();
                     Ch.Assert(good);
                 }
+                Ch.Assert(_groupCursor.Position >= 0);
 
                 // Read the whole group from the auxiliary cursor.
-                while (_groupCursor.State != CursorState.Done && !_newGroupInGroupCursorDel())
+                while (_groupCursor.Position >= 0 && !_newGroupInGroupCursorDel())
                 {
                     TLabel label = default;
                     TScore score = default;

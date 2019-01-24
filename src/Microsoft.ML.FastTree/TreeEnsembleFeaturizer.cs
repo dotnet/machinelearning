@@ -307,7 +307,7 @@ namespace Microsoft.ML.Data
 
                 private void EnsureCachedPosition()
                 {
-                    _ectx.Check(_input.Position >= 0, "Getter was called on an inactive cursor.");
+                    _ectx.Check(_input.Position >= 0, RowCursorUtils.FetchValueStateError);
                     if (_cachedPosition != _input.Position)
                     {
                         _featureGetter(ref _src);

@@ -675,8 +675,7 @@ namespace Microsoft.ML.Data
                     }
 
                     ColumnType itemType = vectorType?.ItemType ?? info.ColType;
-                    DataKind kind = itemType.RawKind;
-                    Contracts.Assert(kind != 0);
+                    Contracts.Assert(itemType is KeyType || itemType.IsStandardScalar());
                     var map = vectorType != null ? mapVec : mapOne;
                     if (!map.TryGetValue(info.Kind, out _creator[i]))
                     {

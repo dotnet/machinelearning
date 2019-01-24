@@ -18,6 +18,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public class TreeEnsemble
     {
+        /// <summary>
+        /// String appended to the text representation of <see cref="TreeEnsemble"/>. This is mainly used in <see cref="ToTreeEnsembleIni"/>.
+        /// </summary>
         private readonly string _firstInputInitializationContent;
         private readonly List<RegressionTree> _trees;
 

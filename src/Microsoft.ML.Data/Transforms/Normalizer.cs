@@ -352,7 +352,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 ctx.Writer.Write(vectorType?.Size ?? 0);
 
                 ColumnType itemType = vectorType?.ItemType ?? type;
-                var itemKind = itemType.RawKind;
+                itemType.RawType.TryGetDataKind(out DataKind itemKind);
                 Contracts.Assert(itemKind == DataKind.R4 || itemKind == DataKind.R8);
                 ctx.Writer.Write((byte)itemKind);
             }

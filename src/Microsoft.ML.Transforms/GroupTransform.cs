@@ -568,23 +568,21 @@ namespace Microsoft.ML.Transforms
             protected override bool MoveNextCore()
             {
                 // If leading cursor is not started, start it.
-                if (_leadingCursor.State == CursorState.NotStarted)
-                {
-                    _leadingCursor.MoveNext();
-                }
+                // But, if in moving it we find we've reached the end, we have the degenerate case where
+                // there are no rows, in which case we ourselves should return false immedaitely.
 
-                if (_leadingCursor.State == CursorState.Done)
-                {
-                    // Leading cursor reached the end of the input on the previous MoveNext.
+                if (_leadingCursor.Position < 0 && !_leadingCursor.MoveNext())
                     return false;
-                }
+                Ch.Assert(_leadingCursor.Position >= 0);
 
-                // Then, advance the leading cursor until it hits the end of the group (or the end of the data).
+                // We are now in a "valid" place. Advance the leading cursor until it hits
+                // the end of the group (or the end of the data).
                 int groupSize = 0;
-                while (_leadingCursor.State == CursorState.Good && IsSameGroup())
+                while (_leadingCursor.Position >= 0 && IsSameGroup())
                 {
                     groupSize++;
-                    _leadingCursor.MoveNext();
+                    if (!_leadingCursor.MoveNext())
+                        break;
                 }
 
                 // The group can only be empty if the leading cursor immediately reaches the end of the data.

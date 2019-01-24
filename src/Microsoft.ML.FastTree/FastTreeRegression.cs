@@ -386,15 +386,15 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             private readonly float[] _labels;
 
-            public ObjectiveImpl(Dataset trainData, RegressionGamTrainer.Arguments args) :
+            public ObjectiveImpl(Dataset trainData, RegressionGamTrainer.Options options) :
                 base(
                     trainData,
-                    args.LearningRates,
+                    options.LearningRates,
                     0,
-                    args.MaxOutput,
-                    args.GetDerivativesSampleRate,
+                    options.MaxOutput,
+                    options.GetDerivativesSampleRate,
                     false,
-                    args.RngSeed)
+                    options.RngSeed)
             {
                 _labels = GetDatasetRegressionLabels(trainData);
             }

@@ -513,10 +513,7 @@ namespace Microsoft.ML.Transforms
 
             }
 
-            public override long Batch
-            {
-                get { return Input.Batch; }
-            }
+            public override long Batch => Input.Batch;
 
             public override ValueGetter<RowId> GetIdGetter()
             {
@@ -530,8 +527,7 @@ namespace Microsoft.ML.Transforms
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State == CursorState.NotStarted ||
-                           (0 <= _pivotColPosition && _pivotColPosition < _pivotColSize));
+                Ch.Assert(Position < 0 || (0 <= _pivotColPosition && _pivotColPosition < _pivotColSize));
                 // In the very first call to MoveNext, both _pivotColPosition and _pivotColSize are equal to zero.
                 // So, the below code will work seamlessly, advancing the input cursor.
 
@@ -639,7 +635,7 @@ namespace Microsoft.ML.Transforms
                     (ref T value) =>
                     {
                         // This delegate can be called from within MoveNext, so our own IsGood is not yet set.
-                        Ch.Check(Input.State == CursorState.Good, "Cursor is not active");
+                        Ch.Check(Input.Position >= 0, RowCursorUtils.FetchValueStateError);
 
                         Ch.Assert(cachedPosition <= Input.Position);
                         if (cachedPosition < Input.Position)

@@ -183,7 +183,7 @@ namespace Microsoft.ML.Data
 
             // Get the score column set id from colScore.
             var type = schema[colScore].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnSetId)?.Type;
-            if (type == null || !(type is KeyType) || type.RawKind != DataKind.U4)
+            if (!(type is KeyType) || type.RawType != typeof(uint))
             {
                 // scoreCol is not part of a score column set, so can't determine an aux column.
                 return null;
@@ -573,7 +573,7 @@ namespace Microsoft.ML.Data
                 if (keyValueItemType == null || keyValueItemType.RawType != typeof(T))
                     throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type of key values");
                 ColumnType typeItemType = vectorType?.ItemType ?? type;
-                if (!(typeItemType is KeyType itemKeyType) || typeItemType.RawKind != DataKind.U4)
+                if (!(typeItemType is KeyType itemKeyType) || typeItemType.RawType != typeof(uint))
                     throw Contracts.Except($"Column '{columnName}' must be a U4 key type, but is '{typeItemType}'");
 
                 schema[indices[i]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyNamesCur);
