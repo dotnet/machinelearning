@@ -30,11 +30,11 @@ The datasets are provided under the original terms that Microsoft received such 
 
 ### UCI Iris Flower Dataset
 
->Redistributing the dataset "iris.txt" with attribution:
+>Redistributing the datasets "iris.data" and "iris.txt" with attribution:
 >
 >Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [https://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
 >
->With modifications by changing the separator character, order of columns, and numerical encoding of labels.
+>With modifications to "iris.txt" by changing the separator character, order of columns, and numerical encoding of labels.
 >
 >https://archive.ics.uci.edu/ml/datasets/iris
 
