@@ -496,7 +496,7 @@ namespace Microsoft.ML.Data
         /// bit vector representation by mapping to a vector of length Count, with "id" mapped to a
         /// vector with 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
         /// representation. Note that an id of 0 is used to represent the notion "none", which is
-        /// typically mapped to a vector of all zeros (of length Count).
+        /// typically mapped, by for example, one-hot encoding, to a vector of all zeros (of length Count).
         /// </summary>
         public ulong Count { get; }
 
