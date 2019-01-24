@@ -11,7 +11,7 @@ coverage:
     - "build/::/"
 
 comment:
-  layout: "header, diff, trends, uncovered, flags"
+  layout: "header,diff,trends,uncovered,flags"
   behavior: default
 
 flags:
