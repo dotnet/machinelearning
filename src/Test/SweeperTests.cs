@@ -14,10 +14,10 @@ namespace Microsoft.ML.Auto.Test
 
             var sweeper = new SmacSweeper(new SmacSweeper.Arguments()
             {
-                SweptParameters = new INumericValueGenerator[] {
+                SweptParameters = new IValueGenerator[] {
                     new FloatValueGenerator(new FloatParamArguments() { Name = "x1", Min = 1, Max = 1000}),
-                    new FloatValueGenerator(new FloatParamArguments() { Name = "x2", Min = 1, Max = 1000}),
-                    new FloatValueGenerator(new FloatParamArguments() { Name = "x3", Min = 1, Max = 1000}),
+                    new LongValueGenerator(new LongParamArguments() { Name = "x2", Min = 1, Max = 1000}),
+                    new DiscreteValueGenerator(new DiscreteParamArguments() { Name = "x3", Values = new[] { "200", "400", "600", "800" } }),
                 },
                 NumberInitialPopulation = numInitialPopulation
             });
@@ -32,8 +32,8 @@ namespace Microsoft.ML.Auto.Test
                 foreach (ParameterSet p in pars)
                 {
                     float x1 = (p["x1"] as FloatParameterValue).Value;
-                    float x2 = (p["x2"] as FloatParameterValue).Value;
-                    float x3 = (p["x3"] as FloatParameterValue).Value;
+                    float x2 = (p["x2"] as LongParameterValue).Value;
+                    float x3 = float.Parse(p["x3"].ValueText);
 
                     double metric = -200 * (Math.Abs(100 - x1) +
                         Math.Abs(300 - x2) + Math.Abs(500 - x3));

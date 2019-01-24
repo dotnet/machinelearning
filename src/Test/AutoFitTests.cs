@@ -6,7 +6,7 @@ namespace Microsoft.ML.Auto.Test
     public class AutoFitTests
     {
         [TestMethod]
-        public void Hello()
+        public void AutoFitTest()
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadUciAdultDataset();

@@ -10,26 +10,6 @@ namespace Microsoft.ML.Auto
 {
     internal sealed class SweeperProbabilityUtils
     {
-        public SweeperProbabilityUtils()
-        {
-        }
-
-        public static double Sum(double[] a)
-        {
-            double total = 0;
-            foreach (double d in a)
-                total += d;
-            return total;
-        }
-
-        public static double NormalCdf(double x, double mean, double variance)
-        {
-            double centered = x - mean;
-            double ztrans = centered / (Math.Sqrt(variance) * Math.Sqrt(2));
-
-            return 0.5 * (1 + ProbabilityFunctions.Erf(ztrans));
-        }
-
         public static double StdNormalPdf(double x)
         {
             return 1 / Math.Sqrt(2 * Math.PI) * Math.Exp(-Math.Pow(x, 2) / 2);
@@ -64,45 +44,6 @@ namespace Microsoft.ML.Auto
         }
 
         /// <summary>
-        /// This performs (slow) roulette-wheel sampling of a categorical distribution. Should be swapped for other
-        /// method as soon as one is available.
-        /// </summary>
-        /// <param name="numSamples">Number of samples to draw.</param>
-        /// <param name="weights">Weights for distribution (should sum to 1).</param>
-        /// <returns>A set of indicies indicating which element was chosen for each sample.</returns>
-        public int[] SampleCategoricalDistribution(int numSamples, double[] weights)
-        {
-            // Normalize weights if necessary.
-            double total = Sum(weights);
-            if (Math.Abs(1.0 - total) > 0.0001)
-                weights = Normalize(weights);
-
-            // Build roulette wheel.
-            double[] rw = new double[weights.Length];
-            double cs = 0.0;
-            for (int i = 0; i < weights.Length; i++)
-            {
-                cs += weights[i];
-                rw[i] = cs;
-            }
-
-            // Draw samples.
-            int[] results = new int[numSamples];
-            for (int i = 0; i < results.Length; i++)
-            {
-                double u = AutoMlUtils.Random.NextDouble();
-                results[i] = BinarySearch(rw, u, 0, rw.Length - 1);
-            }
-
-            return results;
-        }
-
-        public double SampleUniform()
-        {
-            return AutoMlUtils.Random.NextDouble();
-        }
-
-        /// <summary>
         /// Simple binary search method for finding smallest index in array where value
         /// meets or exceeds what you're looking for.
         /// </summary>
@@ -118,36 +59,6 @@ namespace Microsoft.ML.Auto
                 return a[low] >= u ? low : high;
             int mid = low + (diff / 2);
             return a[mid] >= u ? BinarySearch(a, u, low, mid) : BinarySearch(a, u, mid, high);
-        }
-
-        public static double[] Normalize(double[] weights)
-        {
-            double total = Sum(weights);
-
-            // If all weights equal zero, set to 1 (to avoid divide by zero).
-            if (total <= Double.Epsilon)
-            {
-                Console.WriteLine($"{total} {Double.Epsilon}");
-                for(var i = 0; i < weights.Length; i++)
-                {
-                    weights[i] = 1;
-                }
-                total = weights.Length;
-            }
-
-            for (int i = 0; i < weights.Length; i++)
-                weights[i] /= total;
-            return weights;
-        }
-
-        public static double[] InverseNormalize(double[] weights)
-        {
-            weights = Normalize(weights);
-
-            for (int i = 0; i < weights.Length; i++)
-                weights[i] = 1 - weights[i];
-
-            return Normalize(weights);
         }
 
         public static Float[] ParameterSetAsFloatArray(IValueGenerator[] sweepParams, ParameterSet ps, bool expandCategoricals = true)

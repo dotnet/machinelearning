@@ -97,7 +97,7 @@ namespace Microsoft.ML.Auto
                 return CreateFromHead(stream);
             }
             var fileSize = stream.Length;
-
+            
             if (fileSize <= 2 * BufferSizeMb * (1 << 20))
             {
                 return CreateFromHead(stream);
@@ -288,11 +288,13 @@ namespace Microsoft.ML.Auto
                 break;
             }
             if (utf8)
+            {
                 return true;
+            }
 
             if (buffer.Take(sniffLim).Any(x => x == 0))
             {
-                // likely a UTF-16 or UTF-32 wuthout a BOM.
+                // likely a UTF-16 or UTF-32 without a BOM.
                 return false;
             }
 

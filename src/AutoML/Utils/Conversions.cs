@@ -17,21 +17,6 @@ namespace Microsoft.ML.Auto
     internal static class Conversions
     {
         /// <summary>
-        /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// </summary>
-        public static bool TryParse(in TX src, out U1 dst)
-        {
-            ulong res;
-            if (!TryParse(in src, out res) || res > U1.MaxValue)
-            {
-                dst = 0;
-                return false;
-            }
-            dst = (U1)res;
-            return true;
-        }
-
-        /// <summary>
         /// This produces zero for empty. It returns false if the text is not parsable.
         /// On failure, it sets dst to the NA value.
         /// </summary>
@@ -205,50 +190,6 @@ namespace Microsoft.ML.Auto
             }
 
             dst = false;
-            return false;
-        }
-
-        /// <summary>
-        /// This produces zero for empty. It returns false if the text is not parsable or overflows.
-        /// </summary>
-        public static bool TryParse(in TX src, out U8 dst)
-        {
-            if (src.IsEmpty)
-            {
-                dst = 0;
-                return false;
-            }
-
-            return TryParseCore(src.Span, out dst);
-        }
-
-        private static bool TryParseCore(ReadOnlySpan<char> span, out ulong dst)
-        {
-            ulong res = 0;
-            int ich = 0;
-            while (ich < span.Length)
-            {
-                uint d = (uint)span[ich++] - (uint)'0';
-                if (d >= 10)
-                    goto LFail;
-
-                // If any of the top three bits of prev are set, we're guaranteed to overflow.
-                if ((res & 0xE000000000000000UL) != 0)
-                    goto LFail;
-
-                // Given that tmp = 8 * res doesn't overflow, if 10 * res + d overflows, then it overflows to
-                // 10 * res + d - 2^n = tmp + (2 * res + d - 2^n). Clearly the paren group is negative,
-                // so the new result (after overflow) will be less than tmp. The converse is also true.
-                ulong tmp = res << 3;
-                res = tmp + (res << 1) + d;
-                if (res < tmp)
-                    goto LFail;
-            }
-            dst = res;
-            return true;
-
-        LFail:
-            dst = 0;
             return false;
         }
     }

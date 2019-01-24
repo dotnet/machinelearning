@@ -12,16 +12,10 @@ namespace Microsoft.ML.Auto
             AutoFitSettings settings, IEnumerable<(string, ColumnPurpose)> purposeOverrides)
         {
             ValidateTrainData(trainData);
-            ValidateLabel(trainData, validationData, label);
             ValidateValidationData(trainData, validationData);
+            ValidateLabel(trainData, validationData, label);
             ValidateSettings(settings);
             ValidatePurposeOverrides(trainData, validationData, label, purposeOverrides);
-        }
-
-        public static void ValidateInferTransformArgs(IDataView data, string label)
-        {
-            ValidateTrainData(data);
-            ValidateLabel(data, null, label);
         }
 
         public static void ValidateInferColumnsArgs(string path, string label)
@@ -36,36 +30,31 @@ namespace Microsoft.ML.Auto
             ValidatePath(path);
         }
 
-        public static void ValidateAutoReadArgs(IMultiStreamSource source, string label)
-        {
-            ValidateLabel(label);
-
-            if(source == null)
-            {
-                throw new ArgumentNullException(nameof(source), $"Source parameter cannot be null");
-            }
-
-            if(source.Count < 0)
-            {
-                throw new ArgumentException(nameof(source), $"Multistream source cannot be empty");
-            }
-        }
-
         public static void ValidateCreateTextReaderArgs(ColumnInferenceResult columnInferenceResult)
         {
             if(columnInferenceResult == null)
             {
-                throw new ArgumentNullException(nameof(columnInferenceResult), $"Column inference result cannot be null");
+                throw new ArgumentNullException($"Column inference result cannot be null", nameof(columnInferenceResult));
             }
 
-            if(columnInferenceResult.Columns == null || !columnInferenceResult.Columns.Any())
+            if (string.IsNullOrEmpty(columnInferenceResult.Separator))
             {
-                throw new ArgumentException(nameof(columnInferenceResult), $"Column inference result must contain at least one column");
+                throw new ArgumentException($"Column inference result cannot have null or empty separator", nameof(columnInferenceResult));
+            }
+
+            if (columnInferenceResult.Columns == null || !columnInferenceResult.Columns.Any())
+            {
+                throw new ArgumentException($"Column inference result must contain at least one column", nameof(columnInferenceResult));
             }
             
             if(columnInferenceResult.Columns.Any(c => c.Item1 == null))
             {
-                throw new ArgumentException(nameof(columnInferenceResult), $"Column inference result cannot contain null columns");
+                throw new ArgumentException($"Column inference result cannot contain null columns", nameof(columnInferenceResult));
+            }
+
+            if (columnInferenceResult.Columns.Any(c => c.Item1.Name == null || c.Item1.Type == null || c.Item1.Source == null))
+            {
+                throw new ArgumentException($"Column inference result cannot contain a column that has a null name, type, or source", nameof(columnInferenceResult));
             }
         }
 
@@ -73,7 +62,7 @@ namespace Microsoft.ML.Auto
         {
             if(trainData == null)
             {
-                throw new ArgumentNullException(nameof(trainData), "Training data cannot be null");
+                throw new ArgumentNullException("Training data cannot be null", nameof(trainData));
             }
         }
 
@@ -83,12 +72,7 @@ namespace Microsoft.ML.Auto
 
             if(trainData.Schema.GetColumnOrNull(label) == null)
             {
-                throw new ArgumentException(nameof(label), $"Provided label column '{label}' not found in training data.");
-            }
-
-            if (validationData.Schema.GetColumnOrNull(label) == null)
-            {
-                throw new ArgumentException(nameof(label), $"Provided label column '{label}' not found in validation data.");
+                throw new ArgumentException($"Provided label column '{label}' not found in training data.", nameof(label));
             }
         }
 
@@ -96,7 +80,7 @@ namespace Microsoft.ML.Auto
         {
             if (label == null)
             {
-                throw new ArgumentNullException(nameof(label), "Provided label cannot be null");
+                throw new ArgumentNullException("Provided label cannot be null", nameof(label));
             }
         }
 
@@ -104,19 +88,19 @@ namespace Microsoft.ML.Auto
         {
             if (path == null)
             {
-                throw new ArgumentNullException(nameof(path), "Provided path cannot be null");
+                throw new ArgumentNullException("Provided path cannot be null", nameof(path));
             }
 
             var fileInfo = new FileInfo(path);
 
             if (!fileInfo.Exists)
             {
-                throw new ArgumentException(nameof(path), $"File '{path}' does not exist");
+                throw new ArgumentException($"File '{path}' does not exist", nameof(path));
             }
 
             if (fileInfo.Length == 0)
             {
-                throw new ArgumentException(nameof(path), $"File at path '{path}' cannot be empty");
+                throw new ArgumentException($"File at path '{path}' cannot be empty", nameof(path));
             }
         }
 
@@ -124,15 +108,15 @@ namespace Microsoft.ML.Auto
         {
             if(validationData == null)
             {
-                throw new ArgumentNullException(nameof(validationData), "Validation data cannot be null");
+                throw new ArgumentNullException("Validation data cannot be null", nameof(validationData));
             }
 
             const string schemaMismatchError = "Training data and validation data schemas do not match.";
 
             if (trainData.Schema.Count != validationData.Schema.Count)
             {
-                throw new ArgumentException(nameof(validationData), $"{schemaMismatchError} Train data has '{trainData.Schema.Count}' columns," +
-                    $"and validation data has '{validationData.Schema.Count}' columns.");
+                throw new ArgumentException($"{schemaMismatchError} Train data has '{trainData.Schema.Count}' columns," +
+                    $"and validation data has '{validationData.Schema.Count}' columns.", nameof(validationData));
             }
 
             foreach(var trainCol in trainData.Schema)
@@ -140,13 +124,13 @@ namespace Microsoft.ML.Auto
                 var validCol = validationData.Schema.GetColumnOrNull(trainCol.Name);
                 if(validCol == null)
                 {
-                    throw new ArgumentException(nameof(validationData), $"{schemaMismatchError} Column '{trainCol.Name}' exsits in train data, but not in validation data.");
+                    throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' exsits in train data, but not in validation data.", nameof(validationData));
                 }
 
                 if(trainCol.Type != validCol.Value.Type)
                 {
-                    throw new ArgumentException(nameof(validationData), $"{schemaMismatchError} Column '{trainCol.Name}' is of type {trainCol.Type} in train data, and type " +
-                        $"{validCol.Value.Type} in validation data.");
+                    throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' is of type {trainCol.Type} in train data, and type " +
+                        $"{validCol.Value.Type} in validation data.", nameof(validationData));
                 }
             }
         }
@@ -160,7 +144,7 @@ namespace Microsoft.ML.Auto
 
             if(settings.StoppingCriteria.MaxIterations <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(settings), "Max iterations must be > 0");
+                throw new ArgumentOutOfRangeException("Max iterations must be > 0", nameof(settings));
             }
         }
 
@@ -179,34 +163,34 @@ namespace Microsoft.ML.Auto
 
                 if (colName == null)
                 {
-                    throw new ArgumentException(nameof(purposeOverrides), "Purpose override column name cannot be null.");
+                    throw new ArgumentException("Purpose override column name cannot be null.", nameof(purposeOverrides));
                 }
 
                 if (trainData.Schema.GetColumnOrNull(colName) == null)
                 {
-                    throw new ArgumentException(nameof(purposeOverride), $"Purpose override column name '{colName}' not found in training data.");
-                }
-
-                if(validationData.Schema.GetColumnOrNull(colName) == null)
-                {
-                    throw new ArgumentException(nameof(purposeOverride), $"Purpose override column name '{colName}' not found in validation data.");
+                    throw new ArgumentException($"Purpose override column name '{colName}' not found in training data.", nameof(purposeOverride));
                 }
 
                 // if column w/ purpose = 'Label' found, ensure it matches the passed-in label
                 if(colPurpose == ColumnPurpose.Label && colName != label)
                 {
-                    throw new ArgumentException(nameof(purposeOverrides), $"Label column name in provided list of purposes '{colName}' must match " +
-                        $"the label column name '{label}'");
+                    throw new ArgumentException($"Label column name in provided list of purposes '{colName}' must match " +
+                        $"the label column name '{label}'", nameof(purposeOverrides));
                 }
             }
 
             // ensure all column names unique
-            var groups = purposeOverrides.GroupBy(p => p.Item1);
-            var duplicateColName = groups.FirstOrDefault(g => g.Count() > 1)?.First().Item1;
+            var duplicateColName = FindFirstDuplicate(purposeOverrides.Select(p => p.Item1));
             if (duplicateColName != null)
             {
-                throw new ArgumentException(nameof(purposeOverrides), $"Duplicate column name '{duplicateColName}' in purpose overrides.");
+                throw new ArgumentException($"Duplicate column name '{duplicateColName}' in purpose overrides.", nameof(purposeOverrides));
             }
+        }
+
+        private static string FindFirstDuplicate(IEnumerable<string> values)
+        {
+            var groups = values.GroupBy(v => v);
+            return groups.FirstOrDefault(g => g.Count() > 1)?.Key;
         }
     }
 }
