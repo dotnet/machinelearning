@@ -120,7 +120,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for transforms that filter out rows without changing the schema.
     /// </summary>
-    public abstract class FilterBase : TransformBase, ITransformCanSavePfa
+    [BestFriend]
+    internal abstract class FilterBase : TransformBase, ITransformCanSavePfa
     {
         [BestFriend]
         private protected FilterBase(IHostEnvironment env, string name, IDataView input)

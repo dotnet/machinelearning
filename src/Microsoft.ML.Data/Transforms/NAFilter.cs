@@ -28,7 +28,8 @@ using Float = System.Single;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAFilter"]'/>
-    public sealed class NAFilter : FilterBase
+    [BestFriend]
+    internal sealed class NAFilter : FilterBase
     {
         private static class Defaults
         {

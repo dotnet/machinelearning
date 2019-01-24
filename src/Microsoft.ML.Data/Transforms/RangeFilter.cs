@@ -30,7 +30,8 @@ namespace Microsoft.ML.Transforms
     /// Keeps the values that are in the specified min/max range. NaNs are always filtered out.
     /// If the input is a Key type, the min/max are considered percentages of the number of values.
     /// </summary>
-    public sealed class RangeFilter : FilterBase
+    [BestFriend]
+    internal sealed class RangeFilter : FilterBase
     {
         public sealed class Arguments : TransformInputBase
         {
