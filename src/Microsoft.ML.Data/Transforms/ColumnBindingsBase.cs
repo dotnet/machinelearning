@@ -632,7 +632,8 @@ namespace Microsoft.ML.Data
     /// at the end.
     /// This class is intended to simplify predicate propagation for this case.
     /// </summary>
-    public sealed class ColumnBindings
+    [BestFriend]
+    internal sealed class ColumnBindings
     {
         // Indices of columns in the merged schema. Old indices are as is, new indices are stored as ~idx.
         private readonly int[] _colMap;
@@ -768,7 +769,8 @@ namespace Microsoft.ML.Data
     /// Parsing utilities for converting between transform column argument objects and
     /// command line representations.
     /// </summary>
-    public static class ColumnParsingUtils
+    [BestFriend]
+    internal static class ColumnParsingUtils
     {
         /// <summary>
         /// For parsing name and source from a string. This supports "name" and "name:source".
