@@ -63,7 +63,7 @@ namespace Microsoft.ML.Auto
             {
                 return GetBinaryLearners(maxIterations);
             }
-            else if (task == TaskKind.BinaryClassification)
+            else if (task == TaskKind.MulticlassClassification)
             {
                 return GetMultiLearners(maxIterations);
             }

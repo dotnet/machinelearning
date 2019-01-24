@@ -48,8 +48,6 @@ namespace Microsoft.ML.Auto
 
     internal class LightGbmMultiExtension : ITrainerExtension
     {
-        private static readonly ITrainerExtension _binaryLearnerCatalogItem = new LightGbmBinaryExtension();
-
         public IEnumerable<SweepableParam> GetHyperparamSweepRanges()
         {
             return SweepableParams.BuildLightGbmParams();
@@ -80,8 +78,6 @@ namespace Microsoft.ML.Auto
 
     internal class SdcaMultiExtension : ITrainerExtension
     {
-        private static readonly ITrainerExtension _binaryLearnerCatalogItem = new SdcaBinaryExtension();
-
         public IEnumerable<SweepableParam> GetHyperparamSweepRanges()
         {
             return SweepableParams.BuildSdcaParams();
@@ -161,8 +157,6 @@ namespace Microsoft.ML.Auto
 
     internal class LogisticRegressionMultiExtension : ITrainerExtension
     {
-        private static readonly ITrainerExtension _binaryLearnerCatalogItem = new LogisticRegressionBinaryExtension();
-
         public IEnumerable<SweepableParam> GetHyperparamSweepRanges()
         {
             return SweepableParams.BuildLogisticRegressionParams();

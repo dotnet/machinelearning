@@ -150,6 +150,17 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
+        public void ValidateAutoFitArgsPurposeOverrideSuccess()
+        {
+            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
+                DatasetUtil.UciAdultLabel, DatasetUtil.GetUciAdultDataView(),
+                null, new List<(string, ColumnPurpose)>()
+                {
+                    ("Workclass", ColumnPurpose.CategoricalFeature)
+                });
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void ValidateAutoFitArgsTrainValidColCountMismatch()
         {

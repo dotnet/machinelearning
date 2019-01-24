@@ -8,19 +8,34 @@ namespace Microsoft.ML.Auto.Test
     public class SweeperTests
     {
         [TestMethod]
-        public void Smac3ParamsTest()
+        public void SmacQuickRunTest()
         {
             var numInitialPopulation = 10;
+
+            var floatValueGenerator = new FloatValueGenerator(new FloatParamArguments() { Name = "float", Min = 1, Max = 1000 });
+            var floatLogValueGenerator = new FloatValueGenerator(new FloatParamArguments() { Name = "floatLog", Min = 1, Max = 1000, LogBase = true });
+            var longValueGenerator = new LongValueGenerator(new LongParamArguments() { Name = "long", Min = 1, Max = 1000 });
+            var longLogValueGenerator = new LongValueGenerator(new LongParamArguments() { Name = "longLog", Min = 1, Max = 1000, LogBase = true });
+            var discreteValueGeneator = new DiscreteValueGenerator(new DiscreteParamArguments() { Name = "discrete", Values = new[] { "200", "400", "600", "800" } });
 
             var sweeper = new SmacSweeper(new SmacSweeper.Arguments()
             {
                 SweptParameters = new IValueGenerator[] {
-                    new FloatValueGenerator(new FloatParamArguments() { Name = "x1", Min = 1, Max = 1000}),
-                    new LongValueGenerator(new LongParamArguments() { Name = "x2", Min = 1, Max = 1000}),
-                    new DiscreteValueGenerator(new DiscreteParamArguments() { Name = "x3", Values = new[] { "200", "400", "600", "800" } }),
+                    floatValueGenerator,
+                    floatLogValueGenerator,
+                    longValueGenerator,
+                    longLogValueGenerator,
+                    discreteValueGeneator
                 },
                 NumberInitialPopulation = numInitialPopulation
             });
+
+            // sanity check grid
+            Assert.IsNotNull(floatValueGenerator[0].ValueText);
+            Assert.IsNotNull(floatLogValueGenerator[0].ValueText);
+            Assert.IsNotNull(longValueGenerator[0].ValueText);
+            Assert.IsNotNull(longLogValueGenerator[0].ValueText);
+            Assert.IsNotNull(discreteValueGeneator[0].ValueText);
 
             List<RunResult> results = new List<RunResult>();
 
@@ -31,12 +46,13 @@ namespace Microsoft.ML.Auto.Test
 
                 foreach (ParameterSet p in pars)
                 {
-                    float x1 = (p["x1"] as FloatParameterValue).Value;
-                    float x2 = (p["x2"] as LongParameterValue).Value;
-                    float x3 = float.Parse(p["x3"].ValueText);
+                    float x1 = float.Parse(p["float"].ValueText);
+                    float x2 = float.Parse(p["floatLog"].ValueText);
+                    long x3 = long.Parse(p["long"].ValueText);
+                    long x4 = long.Parse(p["longLog"].ValueText);
+                    int x5 = int.Parse(p["discrete"].ValueText);
 
-                    double metric = -200 * (Math.Abs(100 - x1) +
-                        Math.Abs(300 - x2) + Math.Abs(500 - x3));
+                    double metric = x1 + x2 + x3 + x4 + x5;
 
                     RunResult result = new RunResult(p, metric, true);
                     if (bestResult == null || bestResult.MetricValue < metric)
@@ -53,7 +69,7 @@ namespace Microsoft.ML.Auto.Test
             Console.WriteLine($"Best: {bestResult.MetricValue}");
 
             Assert.IsNotNull(bestResult);
-            Assert.IsTrue(bestResult.MetricValue != 0);
+            Assert.IsTrue(bestResult.MetricValue > 0);
         }
 
 

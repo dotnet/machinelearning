@@ -76,14 +76,6 @@ namespace Microsoft.ML.Auto
                     RawValue = i;
         }
 
-        public int IndexOf(object option)
-        {
-            for (int i = 0; i < Options.Length; i++)
-                if (option == Options[i])
-                    return i;
-            return -1;
-        }
-
         private static string TranslateOption(object o)
         {
             switch (o)
