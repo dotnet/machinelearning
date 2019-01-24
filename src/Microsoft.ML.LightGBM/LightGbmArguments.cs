@@ -59,20 +59,13 @@ namespace Microsoft.ML.LightGBM
                 FieldInfo[] fields = Args.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var field in fields)
                 {
-                    var attribute = GetAttribute(field);
+                    var attribute = field.GetCustomAttribute<ArgumentAttribute>(false);
 
                     if (attribute == null)
-                    {
                         continue;
-                    }
 
                     res[GetArgName(field.Name)] = field.GetValue(Args);
                 }
-            }
-
-            private ArgumentAttribute GetAttribute(FieldInfo field)
-            {
-                return field.GetCustomAttribute<ArgumentAttribute>(false);
             }
         }
 
