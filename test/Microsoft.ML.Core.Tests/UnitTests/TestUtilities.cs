@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
@@ -40,6 +41,10 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             x[1] = x[6];
             Assert.False(Utils.IsSorted(x));
             x[1] = x1Temp;
+
+            // Null lists are considered to be sorted
+            int[] nullX = null;
+            Assert.True(Utils.IsSorted(nullX));
         }
 
         [Fact]
@@ -70,6 +75,10 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             x[0] = float.NaN;
             Assert.False(Utils.IsSorted(x));
             x[0] = x0Temp;
+
+            // Null lists are considered to be sorted
+            List<float> nullX = null;
+            Assert.True(Utils.IsSorted(nullX));
         }
 
         [Fact]
@@ -83,8 +92,13 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.False(Utils.IsIncreasing(1, x, 10));
             // The upper bound should be exclusive
             Assert.False(Utils.IsIncreasing(0, x, 9));
-            // Any len should work
+            // Any length shorter than the array should work
+            Assert.True(Utils.IsIncreasing(0, x, 0, 10));
+            Assert.True(Utils.IsIncreasing(0, x, 1, 10));
             Assert.True(Utils.IsIncreasing(0, x, 5, 10));
+            Assert.True(Utils.IsIncreasing(0, x, 10, 10));
+            // Lengths longer than the array shall throw
+            Assert.Throws<InvalidOperationException>(() => Utils.IsIncreasing(0, x, 11, 10));
 
             // A monotonically increasing array should fail
             var x7Temp = x[7];
@@ -100,6 +114,13 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             // Before the mismatched entry, it should be fine
             Assert.True(Utils.IsIncreasing(0, x, 7, 10));
             x[1] = x7Temp;
+
+            // Null arrays return true
+            int[] nullX = null;
+            Assert.True(Utils.IsIncreasing(0, nullX, 10));
+
+            // Null arrays with a length accession shall throw an exception
+            Assert.Throws<InvalidOperationException>(() => Utils.IsIncreasing(0, nullX, 7, 10));
         }
 
         [Fact]
