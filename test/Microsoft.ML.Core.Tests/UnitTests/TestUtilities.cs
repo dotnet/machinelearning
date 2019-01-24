@@ -46,7 +46,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             int[] nullX = null;
             Assert.True(Utils.IsSorted(nullX));
         }
-
+        
         [Fact]
         [TestCategory("Utilities")]
         public void CheckIsSortedFloat()
@@ -69,6 +69,40 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.False(Utils.IsSorted(x));
             x[1] = x1Temp;
             
+            // NaN: `Array.Sort()` will put NaNs into the first position,
+            // but we want to guarantee that NaNs aren't allowed in these arrays.
+            var x0Temp = x[0];
+            x[0] = float.NaN;
+            Assert.False(Utils.IsSorted(x));
+            x[0] = x0Temp;
+
+            // Null lists are considered to be sorted
+            List<float> nullX = null;
+            Assert.True(Utils.IsSorted(nullX));
+        }
+
+        [Fact]
+        [TestCategory("Utilities")]
+        public void CheckIsSortedDouble()
+        {
+            // A sorted (increasing) array
+            double[] x = Enumerable.Range(0, 1000000).Select(i => (double)i).ToArray();
+            Assert.True(Utils.IsSorted(x));
+
+            // A monotonically increasing array
+            var x1Temp = x[1];
+            var x7Temp = x[7];
+            x[1] = x[0];
+            x[7] = x[6];
+            Assert.True(Utils.IsSorted(x));
+            x[1] = x1Temp;
+            x[7] = x7Temp;
+
+            // Not sorted
+            x[1] = x[6];
+            Assert.False(Utils.IsSorted(x));
+            x[1] = x1Temp;
+
             // NaN: `Array.Sort()` will put NaNs into the first position,
             // but we want to guarantee that NaNs aren't allowed in these arrays.
             var x0Temp = x[0];
