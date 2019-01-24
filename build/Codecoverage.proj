@@ -31,10 +31,6 @@
       <_CodecovArgs Include="-n;$(BUILD_DEFINITIONNAME)" Condition="'$(BUILD_DEFINITIONNAME)' != ''" />
       <_CodecovArgs Include="--flag;$(Configuration)" Condition="'$(Configuration)' != ''" />
       <_CodecovArgs Include="-t;$(CodeCovToken)" Condition="'$(CodeCovToken)' != ''" />
-
-      <_ReportGeneratorArgs Include="-reports;$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage" />
-      <_ReportGeneratorArgs Include="-targetdir;$(BaseOutputPath)$(PlatformConfig)\coverage" />
-      <_ReportGeneratorArgs Include="-reporttypes;Cobertura" />
     </ItemGroup>
 
     <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />

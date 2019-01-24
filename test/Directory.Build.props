@@ -36,7 +36,7 @@
   <PropertyGroup Condition="'$(Coverage)' == 'true'">
       <CollectCoverage>true</CollectCoverage>
       <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> <!-- https://github.com/tonerdo/coverlet/issues/72 -->
-      <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+      <CoverletOutputFormat>opencover</CoverletOutputFormat>
       <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).coverage</CoverletOutput>
       <Include>[Microsoft.ML.*]*</Include>
       <!-- Excluding for perf reasons. These classes have tests that can be run conditionally
