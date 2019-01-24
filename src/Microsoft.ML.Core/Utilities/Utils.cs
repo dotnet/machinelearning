@@ -534,7 +534,7 @@ namespace Microsoft.ML.Internal.Utilities
             return res;
         }
 
-        public static bool AreEqual(Single[] arr1, Single[] arr2)
+        public static bool AreEqual(float[] arr1, float[] arr2)
         {
             if (arr1 == arr2)
                 return true;
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Internal.Utilities
             return true;
         }
 
-        public static bool AreEqual(Double[] arr1, Double[] arr2)
+        public static bool AreEqual(double[] arr1, double[] arr2)
         {
             if (arr1 == arr2)
                 return true;
