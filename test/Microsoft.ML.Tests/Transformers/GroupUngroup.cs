@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new GroupExample { Age=18, UserName="Willy", Gender="Boy"},
                 new GroupExample { Age=20, UserName="Dori", Gender="Fish" },
                 new GroupExample { Age=20, UserName="Ariel", Gender="Mermaid" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var groupTransform = new GroupTransform(Env, dataView, "Age", "UserName", "Gender");
             var grouped = ML.CreateEnumerable<UngroupExample>(groupTransform, false).ToList();
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new List<UngroupExample> {
                 new UngroupExample { Age=18, UserName=new[]{"Amy", "Willy"}, Gender=new[]{"Girl", "Boy"} },
                 new UngroupExample { Age=20, UserName=new[]{"Dori", "Ariel"}, Gender=new[]{"Fish", "Mermaid"} } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var ungroupTransform = new UngroupTransform(Env, dataView, UngroupTransform.UngroupMode.Inner, "UserName", "Gender");
             var ungrouped = ML.CreateEnumerable<GroupExample>(ungroupTransform, false).ToList();

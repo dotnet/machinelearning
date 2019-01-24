@@ -32,11 +32,12 @@ namespace Microsoft.ML.Scenarios
             var modelLocation = "model_matmul/frozen_saved_model.pb";
             var mlContext = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = ComponentCreation.CreateDataView(mlContext,
-                    new List<TestData>(new TestData[] { new TestData() { a = new[] { 1.0f, 2.0f,
-                                                                                     3.0f, 4.0f },
-                                                                         b = new[] { 1.0f, 2.0f,
-                                                                                     3.0f, 4.0f } },
+            var loader = mlContext.Data.ReadFromEnumerable(
+                    new List<TestData>(new TestData[] {
+                        new TestData() { a = new[] { 1.0f, 2.0f,
+                                                     3.0f, 4.0f },
+                                         b = new[] { 1.0f, 2.0f,
+                                                     3.0f, 4.0f } },
                         new TestData() { a = new[] { 2.0f, 2.0f,
                                                      2.0f, 2.0f },
                                          b = new[] { 3.0f, 3.0f,
@@ -136,7 +137,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1, conc: 1);
             // Pipeline
 
-            var loader = ComponentCreation.CreateDataView(mlContext,data);
+            var loader = mlContext.Data.ReadFromEnumerable(data);
 
             var inputs = new string[]{"f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8","b"};
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
@@ -797,6 +798,20 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(4, numRows);
             }
         }
+
+        // This test has been created as result of https://github.com/dotnet/machinelearning/issues/2156.
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        public void TensorFlowGettingSchemaMultipleTimes()
+        {
+            var modelLocation = "cifar_saved_model";
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            for (int i = 0; i < 10; i++)
+            {
+                var schema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
+                Assert.NotNull(schema);
+            }
+        }
+
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformCifarInvalidShape()

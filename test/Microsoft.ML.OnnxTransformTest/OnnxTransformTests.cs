@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests
 
             var samplevector = GetSampleArrayData();
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -110,9 +110,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = new OnnxScoringEstimator(Env, modelFile, new[] { "data_0" }, new[] { "softmaxout_1" });
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
-            var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Tests
 
             var samplevector = GetSampleArrayData();
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -255,12 +255,12 @@ namespace Microsoft.ML.Tests
             {
                 var samplevector = GetSampleArrayData();
 
-                var dataView = ComponentCreation.CreateDataView(Env,
+                var dataView = ML.Data.ReadFromEnumerable(
                     new TestData[] {
-                    new TestData()
-                    {
-                        data_0 = samplevector
-                    }
+                        new TestData()
+                        {
+                            data_0 = samplevector
+                        }
                     });
 
                 var onnx = new OnnxTransformer(env, modelFile, "data_0", "softmaxout_1").Transform(dataView);
@@ -291,13 +291,13 @@ namespace Microsoft.ML.Tests
             {
                 var samplevector = GetSampleArrayData();
 
-                var dataView = ComponentCreation.CreateDataView(Env,
+                var dataView = ML.Data.ReadFromEnumerable(
                     new TestDataMulti[] {
-                    new TestDataMulti()
-                    {
-                        ina = new float[] {1,2,3,4,5},
-                        inb = new float[] {1,2,3,4,5}
-                    }
+                        new TestDataMulti()
+                        {
+                            ina = new float[] {1,2,3,4,5},
+                            inb = new float[] {1,2,3,4,5}
+                        }
                     });
                 var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }).Transform(dataView);
 
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Tests
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, -1.2f }},
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, 1.2f }},
                 };
-            var idv = mlContext.CreateStreamingDataView(data);
+            var idv = mlContext.Data.ReadFromEnumerable(data);
             var pipeline = new OnnxScoringEstimator(mlContext, modelFile);
             var transformedValues = pipeline.Fit(idv).Transform(idv);
             var predictions = mlContext.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();
