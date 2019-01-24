@@ -9,8 +9,6 @@ coverage:
       default: false
   fixes:
     - "build/::/"
-  ignore:
-    - "test"
 
 comment:
   layout: "diff"
