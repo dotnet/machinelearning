@@ -345,12 +345,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                 //   - bool: is vector
                 //   - int: vector size
                 //   - byte: ItemKind of input column (only R4 and R8 are valid)
-                ctx.Writer.Write(type.IsVector);
+                VectorType vectorType = type as VectorType;
+                ctx.Writer.Write(vectorType != null);
 
-                Contracts.Assert(!type.IsVector || type.VectorSize > 0);
-                ctx.Writer.Write(type.VectorSize);
+                Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
+                ctx.Writer.Write(vectorType?.Size ?? 0);
 
-                var itemKind = type.ItemType.RawKind;
+                ColumnType itemType = vectorType?.ItemType ?? type;
+                itemType.RawType.TryGetDataKind(out DataKind itemKind);
                 Contracts.Assert(itemKind == DataKind.R4 || itemKind == DataKind.R8);
                 ctx.Writer.Write((byte)itemKind);
             }
@@ -389,7 +391,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(data, nameof(data));
             env.CheckValue(columns, nameof(columns));
 
-            bool[] activeInput = new bool[data.Schema.Count];
+            var activeCols = new List<Schema.Column>();
 
             var srcCols = new int[columns.Length];
             var srcTypes = new ColumnType[columns.Length];
@@ -400,14 +402,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                 if (!success)
                     throw env.ExceptSchemaMismatch(nameof(data), "input", info.Input);
                 srcTypes[i] = data.Schema[srcCols[i]].Type;
-                activeInput[srcCols[i]] = true;
+                activeCols.Add(data.Schema[srcCols[i]]);
 
                 var supervisedBinColumn = info as NormalizingEstimator.SupervisedBinningColumn;
                 if(supervisedBinColumn != null)
-                {
-                    var labelColumnId = SupervisedBinUtils.GetLabelColumnId(env, data.Schema, supervisedBinColumn.LabelColumn);
-                    activeInput[labelColumnId] = true;
-                }
+                    activeCols.Add(data.Schema[supervisedBinColumn.LabelColumn]);
             }
 
             var functionBuilders = new IColumnFunctionBuilder[columns.Length];
@@ -419,7 +418,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 long numRows = 0;
 
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, numRows));
-                using (var cursor = data.GetRowCursor(col => activeInput[col]))
+                using (var cursor = data.GetRowCursor(activeCols))
                 {
                     for (int i = 0; i < columns.Length; i++)
                     {
@@ -442,7 +441,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                             if (!needMoreData[i])
                                 continue;
                             var info = columns[i];
-                            env.Assert(!srcTypes[i].IsVector || srcTypes[i].IsVector && srcTypes[i].IsKnownSizeVector);
+                            env.Assert(!(srcTypes[i] is VectorType vectorType) || vectorType.IsKnownSize);
                             env.Assert(functionBuilders[i] != null);
                             any |= needMoreData[i] = functionBuilders[i].ProcessValue();
                         }
@@ -560,9 +559,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             const string expectedType = "scalar or known-size vector of R4";
 
             var colType = inputSchema[srcCol].Type;
-            if (colType.IsVector && !colType.IsKnownSizeVector)
+            VectorType vectorType = colType as VectorType;
+            if (vectorType != null && !vectorType.IsKnownSize)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, expectedType, "variable-size vector");
-            if (!colType.ItemType.Equals(NumberType.R4) && !colType.ItemType.Equals(NumberType.R8))
+            ColumnType itemType = vectorType?.ItemType ?? colType;
+            if (!itemType.Equals(NumberType.R4) && !itemType.Equals(NumberType.R8))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, expectedType, colType.ToString());
         }
 
@@ -682,14 +683,15 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.Assert(_parent.Columns[iinfo] == info);
                 Contracts.Assert(CanSaveOnnx(ctx));
 
-                if (info.InputType.ValueCount == 0)
+                int valueCount = info.InputType.GetValueCount();
+                if (valueCount == 0)
                     return false;
 
                 if (info.ColumnFunction.CanSaveOnnx(ctx))
                 {
                     string opType = "Scaler";
                     var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                    info.ColumnFunction.OnnxInfo(ctx, node, info.InputType.ValueCount);
+                    info.ColumnFunction.OnnxInfo(ctx, node, valueCount);
                     return true;
                 }
 

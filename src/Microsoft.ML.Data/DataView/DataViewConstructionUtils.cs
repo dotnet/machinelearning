@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -116,7 +117,7 @@ namespace Microsoft.ML.Data
 
             protected override TRow GetCurrentRowObject()
             {
-                Host.Check(Position >= 0, "Can't call a getter on an inactive cursor.");
+                Host.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                 return _value;
             }
         }
@@ -164,31 +165,33 @@ namespace Microsoft.ML.Data
 
                 if (outputType.IsArray)
                 {
-                    Host.Assert(colType.IsVector);
+                    VectorType vectorType = colType as VectorType;
+                    Host.Assert(vectorType != null);
+
                     // String[] -> ReadOnlyMemory<char>
                     if (outputType.GetElementType() == typeof(string))
                     {
-                        Host.Assert(colType.ItemType is TextType);
+                        Host.Assert(vectorType.ItemType is TextType);
                         return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(peek, x => x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
                     }
 
                     // T[] -> VBuffer<T>
                     if (outputType.GetElementType().IsGenericType && outputType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
-                        Host.Assert(Nullable.GetUnderlyingType(outputType.GetElementType()) == colType.ItemType.RawType);
+                        Host.Assert(Nullable.GetUnderlyingType(outputType.GetElementType()) == vectorType.ItemType.RawType);
                     else
-                        Host.Assert(outputType.GetElementType() == colType.ItemType.RawType);
+                        Host.Assert(outputType.GetElementType() == vectorType.ItemType.RawType);
                     del = CreateDirectArrayGetterDelegate<int>;
                     genericType = outputType.GetElementType();
                 }
-                else if (colType.IsVector)
+                else if (colType is VectorType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
                     // REVIEW: Do we care about accomodating VBuffer<string> -> ReadOnlyMemory<char>?
                     Host.Assert(outputType.IsGenericType);
                     Host.Assert(outputType.GetGenericTypeDefinition() == typeof(VBuffer<>));
-                    Host.Assert(outputType.GetGenericArguments()[0] == colType.ItemType.RawType);
+                    Host.Assert(outputType.GetGenericArguments()[0] == vectorType.ItemType.RawType);
                     del = CreateDirectVBufferGetterDelegate<int>;
-                    genericType = colType.ItemType.RawType;
+                    genericType = vectorType.ItemType.RawType;
                 }
                 else if (colType is PrimitiveType)
                 {
@@ -394,11 +397,11 @@ namespace Microsoft.ML.Data
 
             public abstract long? GetRowCount();
 
-            public abstract RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null);
+            public abstract RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null);
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                return new[] { GetRowCursor(predicate, rand) };
+                return new[] { GetRowCursor(columnsNeeded, rand) };
             }
 
             public sealed class WrappedCursor : RowCursor
@@ -407,7 +410,6 @@ namespace Microsoft.ML.Data
 
                 public WrappedCursor(DataViewCursorBase toWrap) => _toWrap = toWrap;
 
-                public override CursorState State => _toWrap.State;
                 public override long Position => _toWrap.Position;
                 public override long Batch => _toWrap.Batch;
                 public override Schema Schema => _toWrap.Schema;
@@ -421,9 +423,7 @@ namespace Microsoft.ML.Data
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     => _toWrap.GetGetter<TValue>(col);
                 public override ValueGetter<RowId> GetIdGetter() => _toWrap.GetIdGetter();
-                public override RowCursor GetRootCursor() => this;
                 public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
-                public override bool MoveMany(long count) => _toWrap.MoveMany(count);
                 public override bool MoveNext() => _toWrap.MoveNext();
             }
 
@@ -436,6 +436,7 @@ namespace Microsoft.ML.Data
                 protected readonly DataViewBase<TRow> DataView;
                 protected readonly IChannel Ch;
                 private long _position;
+                private bool _disposed;
 
                 /// <summary>
                 /// Zero-based position of the cursor.
@@ -453,62 +454,35 @@ namespace Microsoft.ML.Data
 
                     DataView = dataView;
                     _position = -1;
-                    State = CursorState.NotStarted;
                 }
 
-                public CursorState State { get; private set; }
-
                 /// <summary>
-                /// Convenience property for checking whether the current state of the cursor is <see cref="CursorState.Good"/>.
+                /// Convenience property for checking whether the cursor is in a good state where values
+                /// can be retrieved, that is, whenever <see cref="Position"/> is non-negative.
                 /// </summary>
-                protected bool IsGood => State == CursorState.Good;
+                protected bool IsGood => Position >= 0;
 
                 protected sealed override void Dispose(bool disposing)
                 {
-                    if (State == CursorState.Done)
+                    if (_disposed)
                         return;
-                    Ch.Dispose();
-                    _position = -1;
+                    if (disposing)
+                    {
+                        Ch.Dispose();
+                        _position = -1;
+                    }
+                    _disposed = true;
                     base.Dispose(disposing);
-                    State = CursorState.Done;
                 }
 
                 public bool MoveNext()
                 {
-                    if (State == CursorState.Done)
+                    if (_disposed)
                         return false;
 
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
                     if (MoveNextCore())
                     {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
                         _position++;
-                        State = CursorState.Good;
-                        return true;
-                    }
-
-                    Dispose();
-                    return false;
-                }
-
-                public bool MoveMany(long count)
-                {
-                    // Note: If we decide to allow count == 0, then we need to special case
-                    // that MoveNext() has never been called. It's not entirely clear what the return
-                    // result would be in that case.
-                    Ch.CheckParam(count > 0, nameof(count));
-
-                    if (State == CursorState.Done)
-                        return false;
-
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                    if (MoveManyCore(count))
-                    {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
-                        _position += count;
-                        State = CursorState.Good;
                         return true;
                     }
 
@@ -517,29 +491,8 @@ namespace Microsoft.ML.Data
                 }
 
                 /// <summary>
-                /// Default implementation is to simply call MoveNextCore repeatedly. Derived classes should
-                /// override if they can do better.
-                /// </summary>
-                /// <param name="count">The number of rows to move forward.</param>
-                /// <returns>Whether the move forward is on a valid row</returns>
-                protected virtual bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                    Ch.Assert(count > 0);
-
-                    while (MoveNextCore())
-                    {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                        if (--count <= 0)
-                            return true;
-                    }
-
-                    return false;
-                }
-
-                /// <summary>
-                /// Core implementation of <see cref="MoveNext"/>, called if the cursor state is not
-                /// <see cref="CursorState.Done"/>.
+                /// Core implementation of <see cref="MoveNext"/>, called if no prior call to this method
+                /// has returned <see langword="false"/>.
                 /// </summary>
                 protected abstract bool MoveNextCore();
             }
@@ -561,19 +514,16 @@ namespace Microsoft.ML.Data
                 _data = data;
             }
 
-            public override bool CanShuffle
-            {
-                get { return true; }
-            }
+            public override bool CanShuffle => true;
 
             public override long? GetRowCount()
             {
                 return _data.Count;
             }
 
-            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                Host.CheckValue(predicate, nameof(predicate));
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
                 return new WrappedCursor(new Cursor(Host, "ListDataView", this, predicate, rand));
             }
 
@@ -604,7 +554,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)Position, 0);
                             };
                     }
@@ -613,7 +563,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)Index, 0);
                             };
                     }
@@ -621,22 +571,14 @@ namespace Microsoft.ML.Data
 
                 protected override TRow GetCurrentRowObject()
                 {
-                    Ch.Check(0 <= Position && Position < _data.Count, "Can't call a getter on an inactive cursor.");
+                    Ch.Check(0 <= Position && Position < _data.Count, RowCursorUtils.FetchValueStateError);
                     return _data[Index];
                 }
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(State != CursorState.Done);
                     Ch.Assert(Position < _data.Count);
                     return Position + 1 < _data.Count;
-                }
-
-                protected override bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    Ch.Assert(Position < _data.Count);
-                    return count < _data.Count - Position;
                 }
             }
         }
@@ -657,18 +599,14 @@ namespace Microsoft.ML.Data
                 _data = data;
             }
 
-            public override bool CanShuffle
-            {
-                get { return false; }
-            }
+            public override bool CanShuffle => false;
 
             public override long? GetRowCount()
-            {
-                return (_data as ICollection<TRow>)?.Count;
-            }
+                => (_data as ICollection<TRow>)?.Count;
 
-            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
                 return new WrappedCursor (new Cursor(Host, this, predicate));
             }
 
@@ -689,7 +627,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
@@ -701,7 +639,6 @@ namespace Microsoft.ML.Data
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(State != CursorState.Done);
                     var result = _enumerator.MoveNext();
                     _currentRow = result ? _enumerator.Current : null;
                     if (result && _currentRow == null)
@@ -736,9 +673,10 @@ namespace Microsoft.ML.Data
                 _current = value;
             }
 
-            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
                 return new WrappedCursor (new Cursor(Host, this, predicate));
             }
 
@@ -757,24 +695,14 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
 
                 protected override TRow GetCurrentRowObject() => _currentRow;
 
-                protected override bool MoveNextCore()
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    return true;
-                }
-
-                protected override bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    return true;
-                }
+                protected override bool MoveNextCore() => true;
             }
         }
 
@@ -843,28 +771,32 @@ namespace Microsoft.ML.Data
         {
             Contracts.Assert(value != null);
             bool isVector;
-            DataKind dataKind;
-            InternalSchemaDefinition.GetVectorAndKind(typeof(T), "metadata value", out isVector, out dataKind);
+            Type itemType;
+            InternalSchemaDefinition.GetVectorAndItemType(typeof(T), "metadata value", out isVector, out itemType);
 
             if (metadataType == null)
             {
                 // Infer a type as best we can.
-                var itemType = PrimitiveType.FromKind(dataKind);
-                metadataType = isVector ? new VectorType(itemType) : (ColumnType)itemType;
+                var primitiveItemType = PrimitiveType.FromType(itemType);
+                metadataType = isVector ? new VectorType(primitiveItemType) : (ColumnType)primitiveItemType;
             }
             else
             {
                 // Make sure that the types are compatible with the declared type, including whether it is a vector type.
-                if (isVector != metadataType.IsVector)
+                VectorType metadataVectorType = metadataType as VectorType;
+                bool metadataIsVector = metadataVectorType != null;
+                if (isVector != metadataIsVector)
                 {
                     throw Contracts.Except("Value inputted is supposed to be {0}, but type of Metadatainfo is {1}",
-                        isVector ? "vector" : "scalar", metadataType.IsVector ? "vector" : "scalar");
+                        isVector ? "vector" : "scalar", metadataIsVector ? "vector" : "scalar");
                 }
-                if (dataKind != metadataType.ItemType.RawKind)
+
+                ColumnType metadataItemType = metadataVectorType?.ItemType ?? metadataType;
+                if (itemType != metadataItemType.RawType)
                 {
                     throw Contracts.Except(
-                        "Value inputted is supposed to have dataKind {0}, but type of Metadatainfo has {1}",
-                        dataKind.ToString(), metadataType.ItemType.RawKind.ToString());
+                        "Value inputted is supposed to have Type {0}, but type of Metadatainfo has {1}",
+                        itemType.ToString(), metadataItemType.RawType.ToString());
                 }
             }
             MetadataType = metadataType;
@@ -876,7 +808,7 @@ namespace Microsoft.ML.Data
             var typeT = typeof(T);
             if (typeT.IsArray)
             {
-                Contracts.Assert(MetadataType.IsVector);
+                Contracts.Assert(MetadataType is VectorType);
                 Contracts.Check(typeof(TDst).IsGenericType && typeof(TDst).GetGenericTypeDefinition() == typeof(VBuffer<>));
                 var itemType = typeT.GetElementType();
                 var dstItemType = typeof(TDst).GetGenericArguments()[0];
@@ -898,7 +830,7 @@ namespace Microsoft.ML.Data
                 return srcMethod.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstItemType)
                     .Invoke(this, new object[] { }) as ValueGetter<TDst>;
             }
-            if (MetadataType.IsVector)
+            if (MetadataType is VectorType metadataVectorType)
             {
                 // VBuffer<T> -> VBuffer<T>
                 // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
@@ -909,12 +841,12 @@ namespace Microsoft.ML.Data
                 Contracts.Check(typeof(TDst).GetGenericTypeDefinition() == typeof(VBuffer<>));
                 var dstItemType = typeof(TDst).GetGenericArguments()[0];
                 var itemType = typeT.GetGenericArguments()[0];
-                Contracts.Assert(itemType == MetadataType.ItemType.RawType);
+                Contracts.Assert(itemType == metadataVectorType.ItemType.RawType);
                 Contracts.Check(itemType == dstItemType);
 
                 Func<ValueGetter<VBuffer<int>>> srcMethod = GetVBufferGetter<int>;
                 return srcMethod.GetMethodInfo().GetGenericMethodDefinition()
-                    .MakeGenericMethod(MetadataType.ItemType.RawType)
+                    .MakeGenericMethod(metadataVectorType.ItemType.RawType)
                     .Invoke(this, new object[] { }) as ValueGetter<TDst>;
             }
             if (MetadataType is PrimitiveType)

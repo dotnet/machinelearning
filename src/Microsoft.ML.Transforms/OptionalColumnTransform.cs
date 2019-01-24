@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -296,29 +297,33 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var input = Source.GetRowCursor(inputPred);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols);
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var inputPred = _bindings.GetDependencies(predicate);
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+
             var active = _bindings.GetActive(predicate);
             RowCursor input;
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
-                var inputs = Source.GetRowCursorSet(inputPred, n);
+                var inputs = Source.GetRowCursorSet(inputCols, n);
                 Host.AssertNonEmpty(inputs);
 
                 if (inputs.Length != 1)
@@ -331,7 +336,7 @@ namespace Microsoft.ML.Transforms
                 input = inputs[0];
             }
             else
-                input = Source.GetRowCursor(inputPred);
+                input = Source.GetRowCursor(inputCols);
 
             return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
@@ -368,7 +373,7 @@ namespace Microsoft.ML.Transforms
                     else
                     {
                         Func<Row, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
-                        var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].ItemType.RawType);
+                        var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].GetItemType().RawType);
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
                 }
@@ -384,8 +389,8 @@ namespace Microsoft.ML.Transforms
         private Delegate MakeGetter(int iinfo)
         {
             var columnType = _bindings.ColumnTypes[iinfo];
-            if (columnType.IsVector)
-                return Utils.MarshalInvoke(MakeGetterVec<int>, columnType.ItemType.RawType, columnType.VectorSize);
+            if (columnType is VectorType vectorType)
+                return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
             return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
         }
 
@@ -454,8 +459,8 @@ namespace Microsoft.ML.Transforms
             private Delegate MakeGetter(int iinfo)
             {
                 var columnType = _bindings.ColumnTypes[iinfo];
-                if (columnType.IsVector)
-                    return Utils.MarshalInvoke(MakeGetterVec<int>, columnType.ItemType.RawType, columnType.VectorSize);
+                if (columnType is VectorType vectorType)
+                    return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
                 return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
             }
 

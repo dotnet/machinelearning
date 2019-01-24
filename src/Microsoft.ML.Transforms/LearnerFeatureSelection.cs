@@ -82,10 +82,8 @@ namespace Microsoft.ML.Transforms
 
         internal static string RegistrationName = "LearnerFeatureSelectionTransform";
 
-        /// <summary>
-        /// Create method corresponding to SignatureDataTransform.
-        /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);

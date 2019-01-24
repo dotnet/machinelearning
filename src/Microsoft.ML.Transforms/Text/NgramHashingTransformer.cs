@@ -345,7 +345,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private readonly ImmutableArray<ColumnInfo> _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
-        private readonly ColumnType[] _slotNamesTypes;
+        private readonly VectorType[] _slotNamesTypes;
 
         /// <summary>
         /// Constructor for case where you don't need to 'train' transform on data, for example, InvertHash for all columns set to zero.
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Transforms.Text
             // Let's validate input schema and check which columns requried invertHash.
             int[] invertHashMaxCounts = new int[_columns.Length];
             HashSet<int> columnWithInvertHash = new HashSet<int>();
-            HashSet<int> sourceColumnsForInvertHash = new HashSet<int>();
+            var sourceColumnsForInvertHash = new List<Schema.Column>();
             for (int i = 0; i < _columns.Length; i++)
             {
                 int invertHashMaxCount;
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Transforms.Text
                         var columnType = input.Schema[srcCol].Type;
                         if (!NgramHashingEstimator.IsColumnTypeValid(input.Schema[srcCol].Type))
                             throw Host.ExceptSchemaMismatch(nameof(input), "input", _columns[i].Inputs[j], NgramHashingEstimator.ExpectedColumnType, columnType.ToString());
-                        sourceColumnsForInvertHash.Add(srcCol);
+                        sourceColumnsForInvertHash.Add(input.Schema[srcCol]);
                     }
                 }
             }
@@ -401,11 +401,11 @@ namespace Microsoft.ML.Transforms.Text
                 var active = new bool[1];
                 string[][] friendlyNames = _columns.Select(c => c.FriendlyNames).ToArray();
                 // We will create invert hash helper class, which would store in itself all original ngrams and their mapping into hash values.
-                var helper = new InvertHashHelper(this, input.Schema, friendlyNames, sourceColumnsForInvertHash.Contains, invertHashMaxCounts);
+                var helper = new InvertHashHelper(this, input.Schema, friendlyNames, sourceColumnsForInvertHash, invertHashMaxCounts);
                 // in order to get all original ngrams we have to go data in same way as we would process it, so let's create mapper with decorate function.
                 var mapper = new Mapper(this, input.Schema, helper.Decorate);
                 // Let's create cursor to iterate over input data.
-                using (var rowCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
+                using (var rowCursor = input.GetRowCursor(sourceColumnsForInvertHash))
                 {
                     Action disp;
                     // We create mapper getters on top of input cursor
@@ -548,7 +548,7 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Mapper : MapperBase
         {
             private readonly NgramHashingTransformer _parent;
-            private readonly ColumnType[] _types;
+            private readonly VectorType[] _types;
             private readonly int[][] _srcIndices;
             private readonly ColumnType[][] _srcTypes;
             private readonly FinderDecorator _decorator;
@@ -558,7 +558,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 _parent = parent;
                 _decorator = decorator;
-                _types = new ColumnType[_parent._columns.Length];
+                _types = new VectorType[_parent._columns.Length];
                 _srcIndices = new int[_parent._columns.Length][];
                 _srcTypes = new ColumnType[_parent._columns.Length][];
                 for (int i = 0; i < _parent._columns.Length; i++)
@@ -741,9 +741,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (_decorator != null)
                     ngramIdFinder = _decorator(iinfo, ngramIdFinder);
                 var bldr = new NgramBufferBuilder(_parent._columns[iinfo].NgramLength, _parent._columns[iinfo].SkipLength,
-                    _types[iinfo].ValueCount, ngramIdFinder);
+                    _types[iinfo].Size, ngramIdFinder);
                 var keyCounts = _srcTypes[iinfo].Select(
-                    t => t.ItemType.KeyCount > 0 ? (uint)t.ItemType.KeyCount : uint.MaxValue).ToArray();
+                    t => (t.GetItemType() is KeyType keyType && keyType.Count > 0) ? (uint)keyType.Count : uint.MaxValue).ToArray();
 
                 // REVIEW: Special casing the srcCount==1 case could potentially improve perf.
                 ValueGetter<VBuffer<float>> del =
@@ -817,12 +817,12 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int[] _invertHashMaxCounts;
             private readonly int[][] _srcIndices;
 
-            public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, Func<int, bool> inputPred, int[] invertHashMaxCounts)
+            public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, IEnumerable<Schema.Column> columnsNeeded, int[] invertHashMaxCounts)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(friendlyNames);
                 Contracts.Assert(friendlyNames.Length == parent._columns.Length);
-                Contracts.AssertValue(inputPred);
+                Contracts.AssertValue(columnsNeeded);
                 Contracts.AssertValue(invertHashMaxCounts);
                 Contracts.Assert(invertHashMaxCounts.Length == parent._columns.Length);
                 _parent = parent;
@@ -831,11 +831,13 @@ namespace Microsoft.ML.Transforms.Text
                 // One per source column (some may be null).
                 _srcTextGetters = new ValueMapper<uint, StringBuilder>[inputSchema.Count];
                 _invertHashMaxCounts = invertHashMaxCounts;
-                for (int i = 0; i < _srcTextGetters.Length; ++i)
+
+                foreach(var col in columnsNeeded)
                 {
-                    if (inputPred(i))
-                        _srcTextGetters[i] = InvertHashUtils.GetSimpleMapper<uint>(inputSchema, i);
+                    Contracts.Assert(col.Index < _srcTextGetters.Length);
+                    _srcTextGetters[col.Index] = InvertHashUtils.GetSimpleMapper<uint>(inputSchema, col.Index);
                 }
+
                 _srcIndices = new int[_parent._columns.Length][];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
@@ -1011,10 +1013,10 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            public VBuffer<ReadOnlyMemory<char>>[] SlotNamesMetadata(out ColumnType[] types)
+            public VBuffer<ReadOnlyMemory<char>>[] SlotNamesMetadata(out VectorType[] types)
             {
                 var values = new VBuffer<ReadOnlyMemory<char>>[_iinfoToCollector.Length];
-                types = new ColumnType[_iinfoToCollector.Length];
+                types = new VectorType[_iinfoToCollector.Length];
                 for (int iinfo = 0; iinfo < _iinfoToCollector.Length; ++iinfo)
                 {
                     if (_iinfoToCollector[iinfo] != null)
@@ -1172,12 +1174,12 @@ namespace Microsoft.ML.Transforms.Text
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
-            if (!type.IsVector)
+            if (!(type is VectorType vectorType))
                 return false;
-            if (!type.ItemType.IsKey)
+            if (!(vectorType.ItemType is KeyType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (type.ItemType.KeyCount == 0 && type.ItemType.RawKind > DataKind.U4)
+            if (itemKeyType.Count == 0 && !NgramUtils.IsValidNgramRawType(itemKeyType.RawType))
                 return false;
             return true;
         }
@@ -1189,7 +1191,7 @@ namespace Microsoft.ML.Transforms.Text
             if (!col.IsKey)
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (col.ItemType.RawKind > DataKind.U4)
+            if (!NgramUtils.IsValidNgramRawType(col.ItemType.RawType))
                 return false;
             return true;
         }

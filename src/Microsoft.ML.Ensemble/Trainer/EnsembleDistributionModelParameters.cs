@@ -45,7 +45,7 @@ namespace Microsoft.ML.Ensemble
         private readonly Median _probabilityCombiner;
         private readonly IValueMapperDist[] _mappers;
 
-        private readonly ColumnType _inputType;
+        private readonly VectorType _inputType;
 
         ColumnType IValueMapper.InputType => _inputType;
         ColumnType IValueMapper.OutputType => NumberType.Float;
@@ -80,22 +80,22 @@ namespace Microsoft.ML.Ensemble
             ComputeAveragedWeights(out _averagedWeights);
         }
 
-        private ColumnType InitializeMappers(out IValueMapperDist[] mappers)
+        private VectorType InitializeMappers(out IValueMapperDist[] mappers)
         {
             Host.AssertNonEmpty(Models);
 
             mappers = new IValueMapperDist[Models.Length];
-            ColumnType inputType = null;
+            VectorType inputType = null;
             for (int i = 0; i < Models.Length; i++)
             {
                 var vmd = Models[i].Predictor as IValueMapperDist;
-                if (!IsValid(vmd))
+                if (!IsValid(vmd, out VectorType vmdInputType))
                     throw Host.Except("Predictor does not implement expected interface");
-                if (vmd.InputType.VectorSize > 0)
+                if (vmdInputType.Size > 0)
                 {
                     if (inputType == null)
-                        inputType = vmd.InputType;
-                    else if (vmd.InputType.VectorSize != inputType.VectorSize)
+                        inputType = vmdInputType;
+                    else if (vmdInputType.Size != inputType.Size)
                         throw Host.Except("Predictor input type mismatch");
                 }
                 mappers[i] = vmd;
@@ -103,12 +103,21 @@ namespace Microsoft.ML.Ensemble
             return inputType ?? new VectorType(NumberType.Float);
         }
 
-        private bool IsValid(IValueMapperDist mapper)
+        private bool IsValid(IValueMapperDist mapper, out VectorType inputType)
         {
-            return mapper != null
-                && mapper.InputType.IsVector && mapper.InputType.ItemType == NumberType.Float
+            if (mapper != null
+                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberType.Float
                 && mapper.OutputType == NumberType.Float
-                && mapper.DistType == NumberType.Float;
+                && mapper.DistType == NumberType.Float)
+            {
+                inputType = inVectorType;
+                return true;
+            }
+            else
+            {
+                inputType = null;
+                return false;
+            }
         }
 
         private static EnsembleDistributionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -142,8 +151,8 @@ namespace Microsoft.ML.Ensemble
             ValueMapper<VBuffer<Single>, Single> del =
                 (in VBuffer<Single> src, ref Single dst) =>
                 {
-                    if (_inputType.VectorSize > 0)
-                        Host.Check(src.Length == _inputType.VectorSize);
+                    if (_inputType.Size > 0)
+                        Host.Check(src.Length == _inputType.Size);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>
@@ -180,8 +189,8 @@ namespace Microsoft.ML.Ensemble
             ValueMapper<VBuffer<Single>, Single, Single> del =
                 (in VBuffer<Single> src, ref Single score, ref Single prob) =>
                 {
-                    if (_inputType.VectorSize > 0)
-                        Host.Check(src.Length == _inputType.VectorSize);
+                    if (_inputType.Size > 0)
+                        Host.Check(src.Length == _inputType.Size);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>

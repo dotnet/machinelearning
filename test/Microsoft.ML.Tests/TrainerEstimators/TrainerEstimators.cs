@@ -71,8 +71,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weights: weights,
-                            advancedSettings: s => { s.InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel; });
+            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options {
+                FeatureColumn = featureColumn,
+                WeightColumn = weights,
+                InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel,
+            });
 
             TestEstimatorCore(pipeline, data);
 
@@ -86,7 +89,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            var trainer = new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features");
+            var trainer = ML.BinaryClassification.Trainers.StochasticGradientDescent();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 

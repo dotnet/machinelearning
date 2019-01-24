@@ -94,7 +94,7 @@ namespace Microsoft.ML.LightGBM
         }
 
         private protected LightGbmTrainerBase(IHostEnvironment env, string name, LightGbmArguments args, SchemaShape.Column label)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
 
@@ -197,9 +197,12 @@ namespace Microsoft.ML.LightGBM
 
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
-            var loadFlags = CursOpt.AllLabels | CursOpt.AllWeights | CursOpt.Features;
+            var loadFlags = CursOpt.AllLabels | CursOpt.Features;
             if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
+
+            if (data.Schema.Weight.HasValue)
+                loadFlags |= CursOpt.AllWeights;
 
             var factory = new FloatLabelCursor.Factory(data, loadFlags);
             return factory;
@@ -285,11 +288,11 @@ namespace Microsoft.ML.LightGBM
                 ch.Info("Auto-tuning parameters: " + nameof(Args.UseCat) + " = " + useCat);
             if (useCat)
             {
-                trainData.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
-                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureIndex, out categoricalFeatures);
+                var featureCol = trainData.Schema.Schema[DefaultColumnNames.Features];
+                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
-            int rawNumCol = colType.VectorSize;
+            int rawNumCol = colType.GetVectorSize();
             FeatureCount = rawNumCol;
             catMetaData.TotalCats = 0;
             if (categoricalFeatures == null)

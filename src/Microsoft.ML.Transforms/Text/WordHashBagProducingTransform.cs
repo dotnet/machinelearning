@@ -329,7 +329,7 @@ namespace Microsoft.ML.Transforms.Text
             List<ValueToKeyMappingTransformer.Column> termCols = null;
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
-            var hashColumns = new List<HashingTransformer.Column>();
+            var hashColumns = new List<HashingTransformer.ColumnInfo>();
             var ngramHashColumns = new NgramHashingTransformer.ColumnInfo[args.Column.Length];
 
             var colCount = args.Column.Length;
@@ -359,16 +359,8 @@ namespace Microsoft.ML.Transforms.Text
                             });
                     }
 
-                    hashColumns.Add(
-                        new HashingTransformer.Column
-                        {
-                            Name = tmpName,
-                            Source = termLoaderArgs == null ? column.Source[isrc] : tmpName,
-                            HashBits = 30,
-                            Seed = column.Seed,
-                            Ordered = false,
-                            InvertHash = column.InvertHash
-                        });
+                    hashColumns.Add(new HashingTransformer.ColumnInfo(termLoaderArgs == null ? column.Source[isrc] : tmpName,
+                        tmpName, 30, column.Seed ?? args.Seed, false, column.InvertHash ?? args.InvertHash));
                 }
 
                 ngramHashColumns[iinfo] =
@@ -408,21 +400,8 @@ namespace Microsoft.ML.Transforms.Text
                     view = new MissingValueDroppingTransformer(h, missingDropColumns).Transform(view);
                 }
             }
-
-            // Args for the Hash function with multiple columns
-            var hashArgs =
-                new HashingTransformer.Arguments
-                {
-                    HashBits = 31,
-                    Seed = args.Seed,
-                    Ordered = false,
-                    Column = hashColumns.ToArray(),
-                    InvertHash = args.InvertHash
-                };
-
-            view = HashingTransformer.Create(h, hashArgs, view);
-
-            view =  new NgramHashingEstimator(h, ngramHashColumns).Fit(view).Transform(view);
+            view = new HashingEstimator(h, hashColumns.ToArray()).Fit(view).Transform(view);
+            view = new NgramHashingEstimator(h, ngramHashColumns).Fit(view).Transform(view);
             return ColumnSelectingTransformer.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray());
         }
 

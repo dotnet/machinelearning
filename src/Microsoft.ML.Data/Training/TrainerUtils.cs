@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Training
@@ -67,9 +69,10 @@ namespace Microsoft.ML.Training
             Contracts.Assert(data.Schema.Feature.HasValue);
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            Contracts.Assert(col.Type.IsKnownSizeVector);
-            Contracts.Assert(col.Type.ItemType == NumberType.Float);
-            length = col.Type.VectorSize;
+            var colType = col.Type as VectorType;
+            Contracts.Assert(colType != null && colType.IsKnownSize);
+            Contracts.Assert(colType.ItemType == NumberType.Float);
+            length = colType.Size;
         }
 
         /// <summary>
@@ -85,15 +88,16 @@ namespace Microsoft.ML.Training
             Contracts.Assert(!col.IsHidden);
             if (col.Type != BoolType.Instance && col.Type != NumberType.R4 && col.Type != NumberType.R8 && !(col.Type is KeyType keyType && keyType.Count == 2))
             {
-                if (col.Type.IsKey)
+                KeyType colKeyType = col.Type as KeyType;
+                if (colKeyType != null)
                 {
-                    if (col.Type.KeyCount == 1)
+                    if (colKeyType.Count == 1)
                     {
                         throw Contracts.ExceptParam(nameof(data),
                             "The label column '{0}' of the training data has only one class. Two classes are required for binary classification.",
                             col.Name);
                     }
-                    else if (col.Type.KeyCount > 2)
+                    else if (colKeyType.Count > 2)
                     {
                         throw Contracts.ExceptParam(nameof(data),
                             "The label column '{0}' of the training data has more than two classes. Only two classes are allowed for binary classification.",
@@ -183,7 +187,9 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
+            if (!(col.Type is VectorType vectorType
+                && vectorType.IsKnownSize
+                && vectorType.ItemType == NumberType.Float))
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -212,26 +218,22 @@ namespace Microsoft.ML.Training
             throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);
         }
 
-        private static Func<int, bool> CreatePredicate(RoleMappedData data, CursOpt opt, IEnumerable<int> extraCols)
+        private static IEnumerable<Schema.Column> CreatePredicate(RoleMappedData data, CursOpt opt, IEnumerable<int> extraCols)
         {
             Contracts.AssertValue(data);
             Contracts.AssertValueOrNull(extraCols);
 
-            var cols = new HashSet<int>();
+            var columns = data.Data.Schema.Where(c => extraCols.Contains(c.Index));
+
             if ((opt & CursOpt.Label) != 0)
-                AddOpt(cols, data.Schema.Label);
+                columns = columns.Append(data.Schema.Label.Value);
             if ((opt & CursOpt.Features) != 0)
-                AddOpt(cols, data.Schema.Feature);
+                columns = columns.Append(data.Schema.Feature.Value);
             if ((opt & CursOpt.Weight) != 0)
-                AddOpt(cols, data.Schema.Weight);
+                columns = columns.Append(data.Schema.Weight.Value);
             if ((opt & CursOpt.Group) != 0)
-                AddOpt(cols, data.Schema.Group);
-            if (extraCols != null)
-            {
-                foreach (var col in extraCols)
-                    cols.Add(col);
-            }
-            return cols.Contains;
+                columns = columns.Append(data.Schema.Group.Value);
+            return columns;
         }
 
         /// <summary>
@@ -381,10 +383,20 @@ namespace Microsoft.ML.Training
         /// The <see cref="SchemaShape.Column"/> for the weight column.
         /// </summary>
         /// <param name="weightColumn">name of the weight column</param>
-        /// <param name="isExplicit">whether the column is implicitly, or explicitly defined</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit = true)
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
         {
-            if (weightColumn == null || !isExplicit)
+            if (weightColumn == null)
+                return default;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the weight column.
+        /// </summary>
+        /// <param name="weightColumn">name of the weight column</param>
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(Optional<string> weightColumn)
+        {
+            if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
@@ -510,7 +522,7 @@ namespace Microsoft.ML.Training
             private readonly object _lock;
             private CursOpt _opts;
 
-            public RoleMappedData Data { get { return _data; } }
+            public RoleMappedData Data => _data;
 
             protected FactoryBase(RoleMappedData data, CursOpt opt)
             {
@@ -528,7 +540,7 @@ namespace Microsoft.ML.Training
             }
 
             /// <summary>
-            /// The typed analog to <see cref="IDataView.GetRowCursor(Func{int,bool},Random)"/>.
+            /// The typed analog to <see cref="IDataView.GetRowCursor(IEnumerable{Schema.Column},Random)"/>.
             /// </summary>
             /// <param name="rand">Non-null if we are requesting a shuffled cursor.</param>
             /// <param name="extraCols">The extra columns to activate on the row cursor

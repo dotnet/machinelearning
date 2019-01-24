@@ -44,7 +44,7 @@ namespace Microsoft.ML.Ensemble
 
         private readonly IValueMapper[] _mappers;
 
-        private readonly ColumnType _inputType;
+        private readonly VectorType _inputType;
         ColumnType IValueMapper.InputType => _inputType;
         ColumnType IValueMapper.OutputType => NumberType.Float;
         public override PredictionKind PredictionKind { get; }
@@ -72,22 +72,22 @@ namespace Microsoft.ML.Ensemble
             _inputType = InitializeMappers(out _mappers);
         }
 
-        private ColumnType InitializeMappers(out IValueMapper[] mappers)
+        private VectorType InitializeMappers(out IValueMapper[] mappers)
         {
             Host.AssertNonEmpty(Models);
 
             mappers = new IValueMapper[Models.Length];
-            ColumnType inputType = null;
+            VectorType inputType = null;
             for (int i = 0; i < Models.Length; i++)
             {
                 var vm = Models[i].Predictor as IValueMapper;
-                if (!IsValid(vm))
+                if (!IsValid(vm, out VectorType vmInputType))
                     throw Host.Except("Predictor does not implement expected interface");
-                if (vm.InputType.VectorSize > 0)
+                if (vmInputType.Size > 0)
                 {
                     if (inputType == null)
-                        inputType = vm.InputType;
-                    else if (vm.InputType.VectorSize != inputType.VectorSize)
+                        inputType = vmInputType;
+                    else if (vmInputType.Size != inputType.Size)
                         throw Host.Except("Predictor input type mismatch");
                 }
                 mappers[i] = vm;
@@ -96,11 +96,20 @@ namespace Microsoft.ML.Ensemble
             return inputType ?? new VectorType(NumberType.Float);
         }
 
-        private bool IsValid(IValueMapper mapper)
+        private bool IsValid(IValueMapper mapper, out VectorType inputType)
         {
-            return mapper != null
-                && mapper.InputType.IsVector && mapper.InputType.ItemType == NumberType.Float
-                && mapper.OutputType == NumberType.Float;
+            if (mapper != null
+                && mapper.InputType is VectorType inputVectorType && inputVectorType.ItemType == NumberType.Float
+                && mapper.OutputType == NumberType.Float)
+            {
+                inputType = inputVectorType;
+                return true;
+            }
+            else
+            {
+                inputType = null;
+                return false;
+            }
         }
 
         private static EnsembleModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -136,8 +145,8 @@ namespace Microsoft.ML.Ensemble
             ValueMapper<VBuffer<Single>, Single> del =
                 (in VBuffer<Single> src, ref Single dst) =>
                 {
-                    if (_inputType.VectorSize > 0)
-                        Host.Check(src.Length == _inputType.VectorSize);
+                    if (_inputType.Size > 0)
+                        Host.Check(src.Length == _inputType.Size);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>

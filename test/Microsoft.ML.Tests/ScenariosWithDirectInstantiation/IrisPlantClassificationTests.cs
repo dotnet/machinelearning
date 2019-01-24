@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Scenarios
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var reader = mlContext.Data.CreateTextReader(columns: new[]
+            var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column("SepalLength", DataKind.R4, 1),
@@ -28,7 +29,8 @@ namespace Microsoft.ML.Scenarios
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(mlContext.Transforms.Normalize("Features"))
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
+                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaMultiClassTrainer.Options { NumThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);

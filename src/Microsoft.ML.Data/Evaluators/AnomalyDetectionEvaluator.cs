@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", score, t).MarkSensitive(MessageSensitivity.Schema);
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
-            if (t != NumberType.Float && t.KeyCount != 2)
+            if (t != NumberType.Float && t.GetKeyCount() != 2)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4 or a 2-value key", schema.Label.Value.Name, t).MarkSensitive(MessageSensitivity.Schema);
         }
 
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(AnomalyDetectionEvaluator.TopKResults, out top))
                 throw Host.Except("Did not find the top-k results data view");
             var sb = new StringBuilder();
-            using (var cursor = top.GetRowCursor(col => true))
+            using (var cursor = top.GetRowCursorForAllColumns())
             {
                 int index;
                 if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Instance, out index))
@@ -678,8 +678,8 @@ namespace Microsoft.ML.Data
             bool hasStratVals = overall.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             Contracts.Assert(hasStrat == hasStratVals);
             long numAnomalies = 0;
-            using (var cursor = overall.GetRowCursor(col => col == numAnomIndex ||
-                (hasStrat && col == stratCol)))
+            using (var cursor = overall.GetRowCursor(overall.Schema.Where(col => col.Name.Equals(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies)||
+                (hasStrat && col.Name.Equals(MetricKinds.ColumnNames.StratCol)))))
             {
                 var numAnomGetter = cursor.GetGetter<long>(numAnomIndex);
                 ValueGetter<uint> stratGetter = null;

@@ -216,7 +216,7 @@ namespace Microsoft.ML.Internal.Calibration
         ColumnType IValueMapperDist.DistType => NumberType.Float;
         bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
 
-        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
@@ -537,8 +537,8 @@ namespace Microsoft.ML.Internal.Calibration
                 if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
                 var scoreType = _predictor.OutputSchema[_scoreCol].Type;
-                env.Check(!scoreType.IsVector && scoreType is NumberType);
-                OutputSchema = Schema.Create(new BinaryClassifierSchema());
+                env.Check(scoreType is NumberType);
+                OutputSchema = ScoreSchemaFactory.CreateBinaryClassificationSchema();
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -822,7 +822,12 @@ namespace Microsoft.ML.Internal.Calibration
                 if (data.Schema.Weight?.Name is string weightName && scored.Schema.GetColumnOrNull(weightName)?.Index is int weightIdx)
                     weightCol = weightIdx;
                 ch.Info("Training calibrator.");
-                using (var cursor = scored.GetRowCursor(col => col == labelCol || col == scoreCol || col == weightCol))
+
+                var cols = weightCol > -1 ?
+                    new Schema.Column[] { scored.Schema[labelCol], scored.Schema[scoreCol], scored.Schema[weightCol] } :
+                    new Schema.Column[] { scored.Schema[labelCol], scored.Schema[scoreCol] };
+
+                using (var cursor = scored.GetRowCursor(cols))
                 {
                     var labelGetter = RowCursorUtils.GetLabelGetter(cursor, labelCol);
                     var scoreGetter = RowCursorUtils.GetGetterAs<Single>(NumberType.R4, cursor, scoreCol);

@@ -146,9 +146,9 @@ namespace Microsoft.ML.Trainers
         {
             var lab = data.Schema.Label.Value;
             Host.Assert(!lab.IsHidden);
-            Host.Assert(lab.Type.KeyCount > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
+            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
 
-            if (lab.Type.KeyCount > 0)
+            if (lab.Type.GetKeyCount() > 0)
             {
                 // Key values are 1-based.
                 uint key1 = (uint)(cls1 + 1);
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Trainers
         private readonly IValueMapperDist[] _mappers;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        private readonly ColumnType _inputType;
+        private readonly VectorType _inputType;
         private readonly ColumnType _outputType;
         ColumnType IValueMapper.InputType => _inputType;
         ColumnType IValueMapper.OutputType => _outputType;
@@ -300,10 +300,10 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorType(NumberType.Float, _numClasses);
         }
 
-        private ColumnType InitializeMappers(out IValueMapperDist[] mappers)
+        private VectorType InitializeMappers(out IValueMapperDist[] mappers)
         {
             mappers = new IValueMapperDist[_predictors.Length];
-            ColumnType inputType = null;
+            VectorType inputType = null;
             for (int i = 0; i < _predictors.Length; i++)
             {
                 var vmd = _predictors[i] as IValueMapperDist;
@@ -313,15 +313,16 @@ namespace Microsoft.ML.Trainers
             return inputType;
         }
 
-        private bool IsValid(IValueMapperDist mapper, ref ColumnType inputType)
+        private bool IsValid(IValueMapperDist mapper, ref VectorType inputType)
         {
             if (mapper == null)
                 return false;
-            if (!mapper.InputType.IsKnownSizeVector || mapper.InputType.ItemType != NumberType.Float)
+            VectorType vectorType = mapper.InputType as VectorType;
+            if (vectorType == null || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
                 return false;
             if (inputType == null)
-                inputType = mapper.InputType;
-            else if (inputType.VectorSize != mapper.InputType.VectorSize)
+                inputType = vectorType;
+            else if (inputType.Size != vectorType.Size)
                 return false;
             if (mapper.OutputType != NumberType.Float)
                 return false;
@@ -456,8 +457,8 @@ namespace Microsoft.ML.Trainers
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
                 (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
-                    if (_inputType.VectorSize > 0)
-                        Host.Check(src.Length == _inputType.VectorSize);
+                    if (_inputType.Size > 0)
+                        Host.Check(src.Length == _inputType.Size);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, parallelOptions, i =>

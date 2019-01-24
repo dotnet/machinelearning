@@ -18,7 +18,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 1: Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(
+            var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
@@ -59,12 +59,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a Feature Contribution Calculator
             // Calculate the feature contributions for all features given trained model parameters
             // And don't normalize the contribution scores
-            var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11, normalize: false);
+            var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, numPositiveContributions: 11, normalize: false);
             var outputData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
             // FeatureContributionCalculatingEstimator can be use as an intermediary step in a pipeline. 
             // The features retained by FeatureContributionCalculatingEstimator will be in the FeatureContribution column.
-            var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11)
+            var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, numPositiveContributions: 11)
                 .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(featureColumn: "FeatureContributions"));
             var outData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's now walk through the first ten records and see which feature drove the values the most
             // Get prediction scores and contributions
-            var scoringEnumerator = outputData.AsEnumerable<HousingRegressionScoreAndContribution>(mlContext, true).GetEnumerator();
+            var scoringEnumerator = mlContext.CreateEnumerable<HousingRegressionScoreAndContribution>(outputData, true).GetEnumerator();
             int index = 0;
             Console.WriteLine("Label\tScore\tBiggestFeature\tValue\tWeight\tContribution");
             while (scoringEnumerator.MoveNext() && index < 10)

@@ -176,7 +176,7 @@ namespace Microsoft.ML.Data
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             RegressionMetrics result;
-            using (var cursor = overall.GetRowCursor(i => true))
+            using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Data
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4", LabelCol, t);
 
             t = schema[ScoreIndex].Type;
-            if (t.IsVector || t.ItemType != NumberType.Float)
+            if (t != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
         }
     }

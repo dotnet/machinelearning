@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.ML;
@@ -52,8 +53,8 @@ namespace Microsoft.ML.Data.IO
 
                 ColumnType type = cursor.Schema[col].Type;
                 Type writePipeType;
-                if (type.IsVector)
-                    writePipeType = typeof(VecValueWriter<>).MakeGenericType(type.ItemType.RawType);
+                if (type is VectorType vectorType)
+                    writePipeType = typeof(VecValueWriter<>).MakeGenericType(vectorType.ItemType.RawType);
                 else
                     writePipeType = typeof(ValueWriter<>).MakeGenericType(type.RawType);
 
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Data.IO
             protected ValueWriterBase(PrimitiveType type, int source, char sep)
                 : base(source)
             {
-                Contracts.Assert(type.IsStandardScalar() || type.IsKey);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(type.RawType == typeof(T));
 
                 Sep = sep;
@@ -151,15 +152,15 @@ namespace Microsoft.ML.Data.IO
                 : base(type.ItemType, source, sep)
             {
                 _getSrc = cursor.GetGetter<VBuffer<T>>(source);
-                ColumnType typeNames;
-                if (type.IsKnownSizeVector &&
-                    (typeNames = cursor.Schema[source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) != null &&
-                    typeNames.VectorSize == type.VectorSize && typeNames.ItemType is TextType)
+                VectorType typeNames;
+                if (type.IsKnownSize
+                    && (typeNames = cursor.Schema[source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType) != null
+                    && typeNames.Size == type.Size && typeNames.ItemType is TextType)
                 {
                     cursor.Schema[source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
-                    Contracts.Check(_slotNames.Length == typeNames.VectorSize, "Unexpected slot names length");
+                    Contracts.Check(_slotNames.Length == typeNames.Size, "Unexpected slot names length");
                 }
-                _slotCount = type.VectorSize;
+                _slotCount = type.Size;
             }
 
             public override void WriteData(Action<StringBuilder, int> appendItem, out int length)
@@ -313,8 +314,8 @@ namespace Microsoft.ML.Data.IO
 
         public bool IsColumnSavable(ColumnType type)
         {
-            var item = type.ItemType;
-            return item.IsStandardScalar() || item.IsKey;
+            var item = type.GetItemType();
+            return item.IsStandardScalar() || item is KeyType;
         }
 
         public void SaveData(Stream stream, IDataView data, params int[] cols)
@@ -383,12 +384,13 @@ namespace Microsoft.ML.Data.IO
             ch.AssertNonEmpty(cols);
 
             // Determine the active columns and whether there is header information.
-            bool[] active = new bool[data.Schema.Count];
+            var activeCols = new List<Schema.Column>();
             for (int i = 0; i < cols.Length; i++)
             {
-                ch.Check(0 <= cols[i] && cols[i] < active.Length);
-                ch.Check(data.Schema[cols[i]].Type.ItemType.RawKind != 0);
-                active[cols[i]] = true;
+                ch.Check(0 <= cols[i] && cols[i] < data.Schema.Count);
+                ColumnType itemType = data.Schema[cols[i]].Type.GetItemType();
+                ch.Check(itemType is KeyType || itemType.IsStandardScalar());
+                activeCols.Add(data.Schema[cols[i]]);
             }
 
             bool hasHeader = false;
@@ -399,20 +401,20 @@ namespace Microsoft.ML.Data.IO
                     if (hasHeader)
                         continue;
                     var type = data.Schema[cols[i]].Type;
-                    if (!type.IsVector)
+                    if (!(type is VectorType vectorType))
                     {
                         hasHeader = true;
                         continue;
                     }
-                    if (!type.IsKnownSizeVector)
+                    if (!vectorType.IsKnownSize)
                         continue;
-                    var typeNames = data.Schema[cols[i]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
-                    if (typeNames != null && typeNames.VectorSize == type.VectorSize && typeNames.ItemType is TextType)
+                    var typeNames = data.Schema[cols[i]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+                    if (typeNames != null && typeNames.Size == vectorType.Size && typeNames.ItemType is TextType)
                         hasHeader = true;
                 }
             }
 
-            using (var cursor = data.GetRowCursor(i => active[i]))
+            using (var cursor = data.GetRowCursor(activeCols))
             {
                 var pipes = new ValueWriter[cols.Length];
                 for (int i = 0; i < cols.Length; i++)
@@ -471,13 +473,13 @@ namespace Microsoft.ML.Data.IO
                     var settings = CmdParser.GetSettings(_host, column, new TextLoader.Column());
                     CmdQuoter.QuoteValue(settings, sb, true);
                 }
-                if (type.IsVector && !type.IsKnownSizeVector && i != pipes.Length - 1)
+                if (type is VectorType vectorType && !vectorType.IsKnownSize && i != pipes.Length - 1)
                 {
                     ch.Warning("Column '{0}' is variable length, so it must be the last, or the file will be unreadable. Consider switching to binary format or use xf=Choose to make '{0}' the last column.", name);
                     index = null;
                 }
 
-                index += type.ValueCount;
+                index += type.GetValueCount();
             }
 
             return sb.ToString();
@@ -485,9 +487,10 @@ namespace Microsoft.ML.Data.IO
 
         private TextLoader.Column GetColumn(string name, ColumnType type, int? start)
         {
-            DataKind? kind;
             KeyRange keyRange = null;
-            if (type.ItemType is KeyType key)
+            VectorType vectorType = type as VectorType;
+            ColumnType itemType = vectorType?.ItemType ?? type;
+            if (itemType is KeyType key)
             {
                 if (!key.Contiguous)
                     keyRange = new KeyRange(key.Min, contiguous: false);
@@ -498,18 +501,17 @@ namespace Microsoft.ML.Data.IO
                     Contracts.Assert(key.Count >= 1);
                     keyRange = new KeyRange(key.Min, key.Min + (ulong)(key.Count - 1));
                 }
-                kind = key.RawKind;
             }
-            else
-                kind = type.ItemType.RawKind;
+
+            DataKind kind = itemType.GetRawKind();
 
             TextLoader.Range[] source = null;
 
             TextLoader.Range range = null;
             int minValue = start ?? -1;
-            if (type.IsKnownSizeVector)
-                range = new TextLoader.Range { Min = minValue, Max = minValue + type.ValueCount - 1, ForceVector = true };
-            else if (type.IsVector)
+            if (vectorType?.IsKnownSize == true)
+                range = new TextLoader.Range { Min = minValue, Max = minValue + vectorType.Size - 1, ForceVector = true };
+            else if (vectorType != null)
                 range = new TextLoader.Range { Min = minValue, VariableEnd = true };
             else
                 range = new TextLoader.Range { Min = minValue };

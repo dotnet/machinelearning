@@ -6,6 +6,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms.Conversions;
 using System.IO;
@@ -21,8 +22,8 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _mslrWeb10k_Validate = Path.GetFullPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10k_Train = Path.GetFullPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10k_Validate = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10k_Train = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10k_Validate))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Validate));
@@ -71,9 +72,9 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _mslrWeb10k_Test = Path.GetFullPath(TestDatasets.MSLRWeb.testFilename);
-            _mslrWeb10k_Validate = Path.GetFullPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10k_Train = Path.GetFullPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10k_Test = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.testFilename);
+            _mslrWeb10k_Validate = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10k_Train = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10k_Test))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Test));
@@ -84,7 +85,7 @@ namespace Microsoft.ML.Benchmarks
             if (!File.Exists(_mslrWeb10k_Train))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Train));
 
-            _modelPath_MSLR = Path.Combine(Directory.GetCurrentDirectory(), @"FastTreeRankingModel.zip");
+            _modelPath_MSLR = Path.Combine(Path.GetDirectoryName(typeof(RankingTest).Assembly.Location), "FastTreeRankingModel.zip");
 
             string cmd = @"TrainTest test=" + _mslrWeb10k_Validate +
                 " eval=RankingEvaluator{t=10}" +

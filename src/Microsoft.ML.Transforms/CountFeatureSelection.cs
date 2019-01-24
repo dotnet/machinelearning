@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeInput = new bool[schema.Count];
+            var activeCols = new List<Schema.Column>();
             var colSrcs = new int[size];
             var colTypes = new ColumnType[size];
             colSizes = new int[size];
@@ -246,27 +246,27 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Source column '{0}' not found", colName);
 
                 var colType = schema[colSrc].Type;
-                if (colType.IsVector && !colType.IsKnownSizeVector)
+                if (colType is VectorType vectorType && !vectorType.IsKnownSize)
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
 
-                activeInput[colSrc] = true;
+                activeCols.Add(schema[colSrc]);
                 colSrcs[i] = colSrc;
                 colTypes[i] = colType;
-                colSizes[i] = colType.ValueCount;
+                colSizes[i] = colType.GetValueCount();
             }
 
             var aggregators = new CountAggregator[size];
             long rowCur = 0;
             double rowCount = input.GetRowCount() ?? double.NaN;
             using (var pch = env.StartProgressChannel("Aggregating counts"))
-            using (var cursor = input.GetRowCursor(col => activeInput[col]))
+            using (var cursor = input.GetRowCursor(activeCols))
             {
                 var header = new ProgressHeader(new[] { "rows" });
                 pch.SetHeader(header, e => { e.SetProgress(0, rowCur, rowCount); });
                 for (int i = 0; i < size; i++)
                 {
-                    if (colTypes[i].IsVector)
-                        aggregators[i] = GetVecAggregator(cursor, colTypes[i], colSrcs[i]);
+                    if (colTypes[i] is VectorType vectorType)
+                        aggregators[i] = GetVecAggregator(cursor, vectorType, colSrcs[i]);
                     else
                         aggregators[i] = GetOneAggregator(cursor, colTypes[i], colSrcs[i]);
                 }
@@ -297,14 +297,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
         }
 
-        private static CountAggregator GetVecAggregator(Row row, ColumnType colType, int colSrc)
+        private static CountAggregator GetVecAggregator(Row row, VectorType colType, int colSrc)
         {
-            Func<Row, ColumnType, int, CountAggregator> del = GetVecAggregator<int>;
+            Func<Row, VectorType, int, CountAggregator> del = GetVecAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetVecAggregator<T>(Row row, ColumnType colType, int colSrc)
+        private static CountAggregator GetVecAggregator<T>(Row row, VectorType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
         }
@@ -340,10 +340,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     _isMissing = (in T value) => false;
             }
 
-            public CountAggregator(ColumnType type, ValueGetter<VBuffer<T>> getter)
+            public CountAggregator(VectorType type, ValueGetter<VBuffer<T>> getter)
             {
-                Contracts.Assert(type.IsKnownSizeVector);
-                var size = type.ValueCount;
+                Contracts.Assert(type.IsKnownSize);
+                var size = type.Size;
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
                 _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);

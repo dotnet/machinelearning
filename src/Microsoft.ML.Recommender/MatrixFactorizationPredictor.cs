@@ -70,8 +70,8 @@ namespace Microsoft.ML.Trainers.Recommender
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.Assert(matrixColumnIndexType.RawKind == DataKind.U4);
-            _host.Assert(matrixRowIndexType.RawKind == DataKind.U4);
+            _host.Assert(matrixColumnIndexType.RawType == typeof(uint));
+            _host.Assert(matrixRowIndexType.RawType == typeof(uint));
             _host.CheckValue(buffer, nameof(buffer));
             _host.CheckValue(matrixColumnIndexType, nameof(matrixColumnIndexType));
             _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Trainers.Recommender
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
-            return new RowMapper(env, this, schema, Schema.Create(new ScoreMapperSchema(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression)));
+            return new RowMapper(env, this, schema, ScoreSchemaFactory.Create(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression));
         }
 
         private sealed class RowMapper : ISchemaBoundRowMapper

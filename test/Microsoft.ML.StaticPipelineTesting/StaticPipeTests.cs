@@ -84,7 +84,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(TextType.Instance, schema[textIdx].Type);
             Assert.Equal(new VectorType(NumberType.R4, 3), schema[numericFeaturesIdx].Type);
             // Next actually inspect the data.
-            using (var cursor = textData.GetRowCursor(c => true))
+            using (var cursor = textData.GetRowCursorForAllColumns())
             {
                 var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
                 var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
@@ -720,7 +720,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));

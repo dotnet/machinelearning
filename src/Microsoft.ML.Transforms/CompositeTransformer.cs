@@ -31,7 +31,8 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(CompositeTransformer).Assembly.FullName);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());

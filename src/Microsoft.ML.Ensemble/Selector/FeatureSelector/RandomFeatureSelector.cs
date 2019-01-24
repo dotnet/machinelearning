@@ -51,7 +51,7 @@ namespace Microsoft.ML.Ensemble.Selector.FeatureSelector
             data.CheckFeatureFloatVector();
 
             var type = data.Schema.Feature.Value.Type;
-            int len = type.VectorSize;
+            int len = type.GetVectorSize();
             var features = new BitArray(len);
             for (int j = 0; j < len; j++)
                 features[j] = rand.NextDouble() < _args.FeaturesSelectionProportion;

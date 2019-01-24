@@ -18,6 +18,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public class TreeEnsemble
     {
+        /// <summary>
+        /// String appended to the text representation of <see cref="TreeEnsemble"/>. This is mainly used in <see cref="ToTreeEnsembleIni"/>.
+        /// </summary>
         private readonly string _firstInputInitializationContent;
         private readonly List<RegressionTree> _trees;
 
@@ -413,13 +416,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Contracts.AssertValue(schema);
             Contracts.Assert(schema.Feature.HasValue);
             var feat = schema.Feature.Value;
-            Contracts.Assert(feat.Type.ValueCount > 0);
+            int featValueCount = feat.Type.GetValueCount();
+            Contracts.Assert(featValueCount > 0);
 
             var sch = schema.Schema;
-            if (sch[feat.Index].HasSlotNames(feat.Type.ValueCount))
+            if (sch[feat.Index].HasSlotNames(featValueCount))
                 sch[feat.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _names);
             else
-                _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
+                _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
 #if !CORECLR
             var type = sch.GetMetadataTypeOrNull(BingBinLoader.IniContentMetadataKind, feat.Index);
             if (type != null && type.IsVector && type.VectorSize == feat.Type.ValueCount && type.ItemType.IsText)
@@ -427,7 +431,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             else
                 _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
 #else
-            _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
+            _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
 #endif
             Contracts.Assert(_names.Length == _content.Length);
         }

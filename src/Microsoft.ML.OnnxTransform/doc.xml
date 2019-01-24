@@ -2,7 +2,7 @@
 <doc>
   <members>
 
-    <member name="OnnxTransform">
+    <member name="OnnxTransformer">
       <summary>
         Scores ONNX v1.2 models ML.NET.
       </summary>
