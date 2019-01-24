@@ -21,7 +21,6 @@
     <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -reporttypes:Cobertura" />
 
     <ItemGroup>
-      <_CoverageReports Include="$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage" />
       <_CodecovArgs Include="-f;$(BaseOutputPath)$(PlatformConfig)\coverage\Cobertura.xml" />
       <_CodecovArgs Include="-r;$(BUILD_REPOSITORY_NAME)" Condition="'$(BUILD_REPOSITORY_NAME)' != ''" />
       <_CodecovArgs Include="--pr;$(SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)" Condition="'$(SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)' != ''" />
