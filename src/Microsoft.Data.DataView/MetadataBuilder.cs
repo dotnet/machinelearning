@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
@@ -29,16 +29,16 @@ namespace Microsoft.ML.Data
         /// <param name="selector">The predicate describing which metadata columns to keep.</param>
         public void Add(Schema.Metadata metadata, Func<string, bool> selector)
         {
-            Contracts.CheckValueOrNull(metadata);
-            Contracts.CheckValue(selector, nameof(selector));
-
             if (metadata == null)
                 return;
+
+            if (selector == null)
+                throw new ArgumentNullException(nameof(selector));
 
             foreach (var column in metadata.Schema)
             {
                 if (selector(column.Name))
-                    _items.Add((column.Name, column.Type, metadata.Getters[column.Index], column.Metadata));
+                    _items.Add((column.Name, column.Type, metadata.GetGetterInternal(column.Index), column.Metadata));
             }
         }
 
@@ -53,11 +53,14 @@ namespace Microsoft.ML.Data
         /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
         public void Add<TValue>(string name, ColumnType type, ValueGetter<TValue> getter, Schema.Metadata metadata = null)
         {
-            Contracts.CheckNonEmpty(name, nameof(name));
-            Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckValue(getter, nameof(getter));
-            Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type));
-            Contracts.CheckValueOrNull(metadata);
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+            if (getter == null)
+                throw new ArgumentNullException(nameof(getter));
+            if (type.RawType != typeof(TValue))
+                throw new ArgumentException($"{nameof(type)}.{nameof(type.RawType)} must be of type '{typeof(TValue).FullName}'.", nameof(type));
 
             _items.Add((name, type, getter, metadata));
         }
@@ -73,9 +76,13 @@ namespace Microsoft.ML.Data
         /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
         public void Add(string name, ColumnType type, Delegate getter, Schema.Metadata metadata = null)
         {
-            Contracts.CheckNonEmpty(name, nameof(name));
-            Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckValueOrNull(metadata);
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+            if (getter == null)
+                throw new ArgumentNullException(nameof(getter));
+
             Utils.MarshalActionInvoke(AddDelegate<int>, type.RawType, name, type, getter, metadata);
         }
 
@@ -89,30 +96,15 @@ namespace Microsoft.ML.Data
         /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
         public void AddPrimitiveValue<TValue>(string name, PrimitiveType type, TValue value, Schema.Metadata metadata = null)
         {
-            Contracts.CheckNonEmpty(name, nameof(name));
-            Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type));
-            Contracts.CheckValueOrNull(metadata);
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+            if (type.RawType != typeof(TValue))
+                throw new ArgumentException($"{nameof(type)}.{nameof(type.RawType)} must be of type '{typeof(TValue).FullName}'.", nameof(type));
+
             Add(name, type, (ref TValue dst) => dst = value, metadata);
         }
-
-        /// <summary>
-        /// Add slot names metadata.
-        /// </summary>
-        /// <param name="size">The size of the slot names vector.</param>
-        /// <param name="getter">The getter delegate for the slot names.</param>
-        public void AddSlotNames(int size, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter)
-            => Add(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, size), getter);
-
-        /// <summary>
-        /// Add key values metadata.
-        /// </summary>
-        /// <typeparam name="TValue">The value type of key values.</typeparam>
-        /// <param name="size">The size of key values vector.</param>
-        /// <param name="valueType">The value type of key values. Its raw type must match <typeparamref name="TValue"/>.</param>
-        /// <param name="getter">The getter delegate for the key values.</param>
-        public void AddKeyValues<TValue>(int size, PrimitiveType valueType, ValueGetter<VBuffer<TValue>> getter)
-            => Add(MetadataUtils.Kinds.KeyValues, new VectorType(valueType, size), getter);
 
         /// <summary>
         /// Produce the metadata row that the builder has so far.
@@ -128,12 +120,13 @@ namespace Microsoft.ML.Data
 
         private void AddDelegate<TValue>(string name, ColumnType type, Delegate getter, Schema.Metadata metadata)
         {
-            Contracts.AssertNonEmpty(name);
-            Contracts.AssertValue(type);
-            Contracts.AssertValue(getter);
+            Debug.Assert(!string.IsNullOrEmpty(name));
+            Debug.Assert(type != null);
+            Debug.Assert(getter != null);
 
             var typedGetter = getter as ValueGetter<TValue>;
-            Contracts.CheckParam(typedGetter != null, nameof(getter));
+            if (typedGetter == null)
+                throw new ArgumentException($"{nameof(getter)} must be of type '{typeof(ValueGetter<TValue>).FullName}'", nameof(getter));
             _items.Add((name, type, typedGetter, metadata));
         }
     }

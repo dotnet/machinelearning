@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.ML.Data
@@ -90,7 +91,7 @@ namespace Microsoft.ML.Data
 
         public static bool operator <(RowId first, ulong second)
         {
-            return first.High  == 0 && first.Low < second;
+            return first.High == 0 && first.Low < second;
         }
 
         public static bool operator >(RowId first, ulong second)
@@ -137,14 +138,14 @@ namespace Microsoft.ML.Data
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void RotL(ref ulong x, int r)
         {
-            Contracts.Assert(0 < r && r < 64);
+            Debug.Assert(0 < r && r < 64);
             x = (x << r) | (x >> (64 - r));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong RotL(ulong x, int r)
         {
-            Contracts.Assert(0 < r && r < 64);
+            Debug.Assert(0 < r && r < 64);
             return (x << r) | (x >> (64 - r));
         }
 

@@ -5,9 +5,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
@@ -35,9 +34,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                Contracts.CheckValue(name, nameof(name));
+                if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
                 if (!_nameMap.TryGetValue(name, out int col))
-                    throw Contracts.ExceptParam(nameof(name), $"Column '{name}' not found");
+                    throw new ArgumentOutOfRangeException(nameof(name), $"Column '{name}' not found");
                 return _columns[col];
             }
         }
@@ -49,7 +48,8 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                Contracts.CheckParam(0 <= columnIndex && columnIndex < _columns.Length, nameof(columnIndex));
+                if (!(0 <= columnIndex && columnIndex < _columns.Length))
+                    throw new ArgumentOutOfRangeException(nameof(columnIndex));
                 return _columns[columnIndex];
             }
         }
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public Column? GetColumnOrNull(string name)
         {
-            Contracts.CheckNonEmpty(name, nameof(name));
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
             if (_nameMap.TryGetValue(name, out int col))
                 return _columns[col];
             return null;
@@ -103,15 +103,15 @@ namespace Microsoft.ML.Data
 
             internal Column(string name, int index, bool isHidden, ColumnType type, Metadata metadata)
             {
-                Contracts.AssertNonEmpty(name);
-                Contracts.Assert(index >= 0);
-                Contracts.AssertValue(type);
-                Contracts.AssertValueOrNull(metadata);
+                if (string.IsNullOrEmpty(name))
+                    throw new ArgumentNullException(nameof(name));
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index));
 
                 Name = name;
                 Index = index;
                 IsHidden = isHidden;
-                Type = type;
+                Type = type ?? throw new ArgumentNullException(nameof(type));
                 Metadata = metadata ?? Metadata.Empty;
             }
 
@@ -146,11 +146,11 @@ namespace Microsoft.ML.Data
             /// </summary>
             public DetachedColumn(string name, ColumnType type, Metadata metadata = null)
             {
-                Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckValue(type, nameof(type));
-                Contracts.CheckValueOrNull(metadata);
+                if (string.IsNullOrEmpty(name))
+                    throw new ArgumentNullException(nameof(name));
+
                 Name = name;
-                Type = type;
+                Type = type ?? throw new ArgumentNullException(nameof(type));
                 Metadata = metadata ?? Schema.Metadata.Empty;
             }
 
@@ -174,7 +174,8 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Metadata getter delegates. Useful to construct metadata out of other metadata.
             /// </summary>
-            internal ImmutableArray<Delegate> Getters { get; }
+            private readonly Delegate[] _getters;
+
             /// <summary>
             /// The schema of the metadata row. It is different from the schema that the column belongs to.
             /// </summary>
@@ -185,28 +186,32 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Create a metadata row by supplying the schema columns and the getter delegates for all the values.
             /// </summary>
+            /// <remarks>
+            /// Note: The <paramref name="getters"/> array will be owned by this Metadata instance.
+            /// </remarks>
             internal Metadata(Schema schema, Delegate[] getters)
             {
-                Contracts.AssertValue(schema);
-                Contracts.AssertValue(getters);
+                Debug.Assert(schema != null);
+                Debug.Assert(getters != null);
 
-                Contracts.Assert(schema.Count == getters.Length);
+                Debug.Assert(schema.Count == getters.Length);
                 // Check all getters.
                 for (int i = 0; i < schema.Count; i++)
                 {
                     var getter = getters[i];
-                    Contracts.CheckValue(getter, nameof(getter));
+                    if (getter == null)
+                        throw new ArgumentNullException(nameof(getter), $"Delegate at index '{i}' of {nameof(getters)} was null.");
                     Utils.MarshalActionInvoke(CheckGetter<int>, schema[i].Type.RawType, getter);
                 }
                 Schema = schema;
-                Getters = getters.ToImmutableArray();
+                _getters = getters;
             }
 
             private void CheckGetter<TValue>(Delegate getter)
             {
                 var typedGetter = getter as ValueGetter<TValue>;
                 if (typedGetter == null)
-                    throw Contracts.ExceptParam(nameof(getter), $"Getter of type '{typeof(TValue)}' expected, but {getter.GetType()} found");
+                    throw new ArgumentNullException(nameof(getter), $"Getter of type '{typeof(TValue)}' expected, but {getter.GetType()} found");
             }
 
             /// <summary>
@@ -214,12 +219,13 @@ namespace Microsoft.ML.Data
             /// </summary>
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Contracts.CheckParam(0 <= col && col < Schema.Count, nameof(col));
-                var typedGetter = Getters[col] as ValueGetter<TValue>;
+                if (!(0 <= col && col < Schema.Count))
+                    throw new ArgumentOutOfRangeException(nameof(col));
+                var typedGetter = _getters[col] as ValueGetter<TValue>;
                 if (typedGetter == null)
                 {
-                    Contracts.Assert(Getters[col] != null);
-                    throw MetadataUtils.ExceptGetMetadata();
+                    Debug.Assert(_getters[col] != null);
+                    throw new InvalidOperationException("Invalid call to GetMetadata");
                 }
                 return typedGetter;
             }
@@ -231,12 +237,17 @@ namespace Microsoft.ML.Data
             {
                 var column = Schema.GetColumnOrNull(kind);
                 if (column == null)
-                    throw MetadataUtils.ExceptGetMetadata();
+                    throw new InvalidOperationException("Invalid call to GetMetadata");
                 GetGetter<TValue>(column.Value.Index)(ref value);
             }
 
             public override string ToString() => string.Join(", ", Schema.Select(x => x.Name));
 
+            internal Delegate GetGetterInternal(int index)
+            {
+                Debug.Assert(0 <= index && index < Schema.Count);
+                return _getters[index];
+            }
         }
 
         /// <summary>
@@ -245,26 +256,16 @@ namespace Microsoft.ML.Data
         /// <param name="columns">The input columns. The constructed instance takes ownership of the array.</param>
         internal Schema(Column[] columns)
         {
-            Contracts.CheckValue(columns, nameof(columns));
+            if (columns == null)
+                throw new ArgumentNullException(nameof(columns));
 
             _columns = columns;
             _nameMap = new Dictionary<string, int>();
             for (int i = 0; i < _columns.Length; i++)
             {
-                Contracts.Assert(_columns[i].Index == i);
+                Debug.Assert(_columns[i].Index == i);
                 _nameMap[_columns[i].Name] = i;
             }
-        }
-
-        /// <summary>
-        /// Legacy method to get the column index.
-        /// DO NOT USE: use <see cref="GetColumnOrNull"/> instead.
-        /// </summary>
-        [BestFriend]
-        internal bool TryGetColumnIndex(string name, out int col)
-        {
-            col = GetColumnOrNull(name)?.Index ?? -1;
-            return col >= 0;
         }
     }
 }
