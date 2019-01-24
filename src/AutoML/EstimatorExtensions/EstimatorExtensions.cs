@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.ML.Core.Data;
+﻿using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 
