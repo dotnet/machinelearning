@@ -559,29 +559,6 @@ namespace Microsoft.ML.Data
         /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="env">The environment.</param>
-        /// <param name="data">The underlying data view.</param>
-        /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
-        /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
-        /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
-        [BestFriend]
-        internal static IEnumerable<TRow> CreateEnumerable<TRow>(this IHostEnvironment env, IDataView data, bool reuseRowObject,
-            bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
-            where TRow : class, new()
-        {
-            Contracts.AssertValue(env);
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
-
-            var engine = new PipeEngine<TRow>(env, data, ignoreMissingColumns, schemaDefinition);
-            return engine.RunPipe(reuseRowObject);
-        }
-
-        /// <summary>
-        /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
-        /// </summary>
-        /// <typeparam name="TRow">The user-defined row type.</typeparam>
         /// <param name="mlContext">ML context.</param>
         /// <param name="data">The underlying data view.</param>
         /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
