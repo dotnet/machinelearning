@@ -81,7 +81,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapInputIsVectorTest()
         {
             var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapInputIsVectorAndValueAsStringKeyTypeTest()
         {
             var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<ReadOnlyMemory<char>>() { "a".AsMemory(), "b".AsMemory(), "c".AsMemory(), "d".AsMemory() };
