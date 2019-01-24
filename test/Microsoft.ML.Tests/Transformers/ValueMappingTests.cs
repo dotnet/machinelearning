@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapVectorStringValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             IEnumerable<string> keys = new List<string>() { "foo", "bar", "test" };
             List<string[]> values = new List<string[]>() {
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursor(result.Schema);
             var getterD = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(3);
             var getterE = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(4);
             var getterF = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(5);

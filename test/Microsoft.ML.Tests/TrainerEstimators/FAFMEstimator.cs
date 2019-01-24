@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var mlContext = new MLContext(seed: 0);
             var data = DatasetUtils.GenerateFfmSamples(500);
-            var dataView = ComponentCreation.CreateDataView(mlContext, data.ToList());
+            var dataView = mlContext.Data.ReadFromEnumerable(data);
 
             var ffmArgs = new FieldAwareFactorizationMachineTrainer.Arguments();
 
