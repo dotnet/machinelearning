@@ -46,8 +46,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
             var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options {
-                FeatureColumn = "Feature1",
-                ExtraFeatureColumns = new[] { "Feature2", "Feature3",  "Feature4" },
+                FeatureColumn = "Feature1", // Features from the 1st field.
+                ExtraFeatureColumns = new[] { "Feature2", "Feature3",  "Feature4" }, // 2nd field's feature column, 3rd field's feature column, 4th field's feature column.
                 Shuffle = false,
                 Iters = 3,
                 LatentDim = 7,

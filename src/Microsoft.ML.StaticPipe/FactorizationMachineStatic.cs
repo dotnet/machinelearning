@@ -26,9 +26,9 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
-        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
-        /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
-        /// be informed about what was learnt.</param>
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this.
+        /// This delegate will receive the model that was trained. The type of the model is <see cref="FieldAwareFactorizationMachineModelParameters"/>.
+        /// Note that this action cannot change the result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float>[] features,
@@ -60,8 +60,9 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
-        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
-        /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this.
+        /// This delegate will receive the model that was trained. The type of the model is <see cref="FieldAwareFactorizationMachineModelParameters"/>.
+        /// Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
