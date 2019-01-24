@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
                 return false;
             if (!vectorType.ItemType.Equals(otherVectorType.ItemType))
                 return false;
-            return otherVectorType.Size == otherVectorType.Size;
+            return vectorType.Size == otherVectorType.Size;
         }
     }
 }
