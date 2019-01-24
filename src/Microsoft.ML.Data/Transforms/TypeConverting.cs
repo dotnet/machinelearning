@@ -377,10 +377,10 @@ namespace Microsoft.ML.Transforms.Conversions
                     return false;
             }
             else if (!(srcType.GetItemType() is KeyType key))
-                itemType = PrimitiveType.FromKind(kind);
+                itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
             else if (!KeyType.IsValidDataType(kind.ToType()))
             {
-                itemType = PrimitiveType.FromKind(kind);
+                itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                 return false;
             }
             else

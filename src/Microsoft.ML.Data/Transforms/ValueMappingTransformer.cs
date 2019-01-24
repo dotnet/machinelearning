@@ -98,7 +98,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
             var isKey = Transformer.ValueColumnType is KeyType;
-            var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
+            var columnType = (isKey) ? ColumnTypeExtensions.PrimitiveTypeFromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
             var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (Input, Output) in _columns)
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (!type.TryGetDataKind(out DataKind kind))
                 throw new InvalidOperationException($"Unsupported type {type} used in mapping.");
 
-            return PrimitiveType.FromKind(kind);
+            return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
         }
 
         /// <summary>
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (!type.TryGetDataKind(out DataKind kind))
                 throw Contracts.Except($"Unsupported type {type} used in mapping.");
 
-            return PrimitiveType.FromKind(kind);
+            return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -1023,7 +1023,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", _columns[i].Source);
                     var colType = _valueMap.ValueType;
                     if (_inputSchema[_columns[i].Source].Type is VectorType)
-                        colType = new VectorType(PrimitiveType.FromType(_valueMap.ValueType.GetItemType().RawType));
+                        colType = new VectorType(ColumnTypeExtensions.PrimitiveTypeFromType(_valueMap.ValueType.GetItemType().RawType));
                     result[i] = new Schema.DetachedColumn(_columns[i].Name, colType, _valueMetadata);
                 }
                 return result;

@@ -167,7 +167,7 @@ namespace Microsoft.ML.Core.Data
 
             isKey = itemType is KeyType;
             if (isKey)
-                itemType = PrimitiveType.FromType(itemType.RawType);
+                itemType = ColumnTypeExtensions.PrimitiveTypeFromType(itemType.RawType);
         }
 
         /// <summary>

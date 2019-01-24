@@ -717,7 +717,7 @@ namespace Microsoft.ML.Data
 
             // Create the output schema.
             var schemaColumns = indices.Select(idx => idx >= 0 ? new Schema.DetachedColumn(input[idx]) : addedColumns[~idx]);
-            Schema = SchemaBuilder.MakeSchema(schemaColumns);
+            Schema = SchemaExtensions.MakeSchema(schemaColumns);
 
             // Memorize column maps.
             _colMap = indices.ToArray();

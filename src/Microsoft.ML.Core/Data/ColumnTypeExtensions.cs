@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.ML.Data
 {
     /// <summary>
@@ -86,6 +88,78 @@ namespace Microsoft.ML.Data
             if (!vectorType.ItemType.Equals(otherVectorType.ItemType))
                 return false;
             return vectorType.Size == otherVectorType.Size;
+        }
+
+        public static PrimitiveType PrimitiveTypeFromType(Type type)
+        {
+            if (type == typeof(ReadOnlyMemory<char>) || type == typeof(string))
+                return TextType.Instance;
+            if (type == typeof(bool))
+                return BoolType.Instance;
+            if (type == typeof(TimeSpan))
+                return TimeSpanType.Instance;
+            if (type == typeof(DateTime))
+                return DateTimeType.Instance;
+            if (type == typeof(DateTimeOffset))
+                return DateTimeOffsetType.Instance;
+            return NumberTypeFromType(type);
+        }
+
+        public static PrimitiveType PrimitiveTypeFromKind(DataKind kind)
+        {
+            if (kind == DataKind.TX)
+                return TextType.Instance;
+            if (kind == DataKind.BL)
+                return BoolType.Instance;
+            if (kind == DataKind.TS)
+                return TimeSpanType.Instance;
+            if (kind == DataKind.DT)
+                return DateTimeType.Instance;
+            if (kind == DataKind.DZ)
+                return DateTimeOffsetType.Instance;
+            return NumberTypeFromKind(kind);
+        }
+
+        public static NumberType NumberTypeFromType(Type type)
+        {
+            DataKind kind;
+            if (type.TryGetDataKind(out kind))
+                return NumberTypeFromKind(kind);
+
+            Contracts.Assert(false);
+            throw new InvalidOperationException($"Bad type in {nameof(ColumnTypeExtensions)}.{nameof(NumberTypeFromType)}: {type}");
+        }
+
+        public static NumberType NumberTypeFromKind(DataKind kind)
+        {
+            switch (kind)
+            {
+                case DataKind.I1:
+                    return NumberType.I1;
+                case DataKind.U1:
+                    return NumberType.U1;
+                case DataKind.I2:
+                    return NumberType.I2;
+                case DataKind.U2:
+                    return NumberType.U2;
+                case DataKind.I4:
+                    return NumberType.I4;
+                case DataKind.U4:
+                    return NumberType.U4;
+                case DataKind.I8:
+                    return NumberType.I8;
+                case DataKind.U8:
+                    return NumberType.U8;
+                case DataKind.R4:
+                    return NumberType.R4;
+                case DataKind.R8:
+                    return NumberType.R8;
+                case DataKind.UG:
+                    return NumberType.UG;
+            }
+
+            Contracts.Assert(false);
+            throw new InvalidOperationException($"Bad data kind in {nameof(ColumnTypeExtensions)}.{nameof(NumberTypeFromKind)}: {kind}");
         }
     }
 }
