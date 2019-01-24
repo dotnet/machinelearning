@@ -42,7 +42,7 @@ Daily NuGet builds of the project are also available in our [MyGet](https://dotn
 
 To build ML.NET from source please visit our [developers guide](docs/project-docs/developer-guide.md).
 
-[![codecov](https://codecov.io/gh/dotnet/machinelearning/branch/master/graph/badge.svg)](https://codecov.io/gh/dotnet/machinelearning)
+[![codecov](https://codecov.io/gh/dotnet/machinelearning/branch/master/graph/badge.svg?flag=production)](https://codecov.io/gh/dotnet/machinelearning)
 
 |    | Debug | Release |
 |:---|----------------:|------------------:|
