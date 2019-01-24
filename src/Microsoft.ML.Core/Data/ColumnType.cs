@@ -456,7 +456,7 @@ namespace Microsoft.ML.Data
     /// class numbers, etc. For example, in multi-class classification, the label is typically
     /// a class number which is naturally a KeyType.
     ///
-    /// KeyTypes have a cardinality/Count that is strictly positive.
+    /// KeyTypes have a cardinality (i.e., Count) that is strictly positive.
     ///
     /// Note that the representation value does not necessarily match the logical value.
     /// For example, if a KeyType has range 0-5000, then it has a Count of 5001, but
