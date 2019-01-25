@@ -32,8 +32,8 @@ namespace Microsoft.ML.Auto
         {
             var context = new MLContext();
 
-            var availableTrainers = RecipeInference.AllowedTrainers(context, TaskKind.BinaryClassification, history.Count() + iterationsRemaining);
-            var transforms = TransformInferenceApi.InferTransforms(context, columns);
+            var availableTrainers = RecipeInference.AllowedTrainers(context, task, history.Count() + iterationsRemaining);
+            var transforms = CalculateTransforms(context, columns, task);
 
             // if we haven't run all pipelines once
             if (history.Count() < availableTrainers.Count())
@@ -169,6 +169,21 @@ namespace Microsoft.ML.Auto
             // associate proposed param set with trainer, so that smart hyperparam
             // sweepers (like KDO) can map them back.
             trainer.SetHyperparamValues(proposedParamSet);
+        }
+
+        private static IEnumerable<SuggestedTransform> CalculateTransforms(MLContext context,
+            (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
+            TaskKind task)
+        {
+            var transforms = TransformInferenceApi.InferTransforms(context, columns).ToList();
+            // this is a work-around for ML.NET bug tracked by https://github.com/dotnet/machinelearning/issues/1969
+            if (task == TaskKind.MulticlassClassification)
+            {
+                var labelCol = columns.First(c => c.Item3 == ColumnPurpose.Label).Item1;
+                var transform = ValueToKeyMappingExtension.CreateSuggestedTransform(context, labelCol, labelCol);
+                transforms.Add(transform);
+            }
+            return transforms;
         }
     }
 }

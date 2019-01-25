@@ -6,7 +6,7 @@ namespace Microsoft.ML.Auto.Test
     public class AutoFitTests
     {
         [TestMethod]
-        public void AutoFitTest()
+        public void AutoFitBinaryTest()
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
@@ -27,6 +27,30 @@ namespace Microsoft.ML.Auto.Test
 
             Assert.IsNotNull(best?.BestPipeline?.Model);
             Assert.IsTrue(best.BestPipeline.Metrics.Accuracy > 0.80);
+        }
+
+        [TestMethod]
+        public void AutoFitMultiTest()
+        {
+            var context = new MLContext();
+            var dataPath = DatasetUtil.DownloadTrivialDataset();
+            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.TrivialDatasetLabel, true);
+            var textLoader = context.Data.CreateTextReader(columnInference);
+            var trainData = textLoader.Read(dataPath);
+            var validationData = trainData.Take(20);
+            trainData = trainData.Skip(20);
+            var best = context.MulticlassClassification.AutoFit(trainData, DatasetUtil.TrivialDatasetLabel, validationData, settings:
+                new AutoFitSettings()
+                {
+                    StoppingCriteria = new ExperimentStoppingCriteria()
+                    {
+                        MaxIterations = 1,
+                        TimeOutInMinutes = 1000000000
+                    }
+                }, debugLogger: null);
+
+            Assert.IsNotNull(best?.BestPipeline?.Model);
+            Assert.IsTrue(best.BestPipeline.Metrics.AccuracyMicro > 0.80);
         }
     }
 }
