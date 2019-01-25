@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 
@@ -9,10 +10,6 @@ namespace Microsoft.ML.RunTests
 {
     public class TestGamPublicInterfaces
     {
-        public TestGamPublicInterfaces()
-        {
-        }
-
         [Fact]
         [TestCategory("FastTree")]
         public void TestGamDirectInstatiation()
@@ -44,12 +41,12 @@ namespace Microsoft.ML.RunTests
             // Check that the binUpperBounds were made correctly
             CheckArrayOfArrayEquality(binUpperBounds, gam.GetBinUpperBounds());
             for (int i = 0; i < gam.NumShapeFunctions; i++)
-                CheckArrayEquality(binUpperBounds[i], gam.GetBinUpperBounds(i));
+                Utils.AreEqual(binUpperBounds[i], gam.GetBinUpperBounds(i));
 
             // Check that the bin effects were made correctly
             CheckArrayOfArrayEquality(binEffects, gam.GetBinEffects());
             for (int i = 0; i < gam.NumShapeFunctions; i++)
-                CheckArrayEquality(binEffects[i], gam.GetBinEffects(i));
+                Utils.AreEqual(binEffects[i], gam.GetBinEffects(i));
 
             // Check that the constructor handles null inputs properly
             Assert.Throws<System.ArgumentNullException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, null, intercept));
@@ -89,14 +86,7 @@ namespace Microsoft.ML.RunTests
         {
             Assert.Equal(array1.Length, array2.Length);
             for (int i = 0; i < array1.Length; i++)
-                CheckArrayEquality(array1[i], array2[i]);
-        }
-
-        private void CheckArrayEquality(double[] array1, double[] array2)
-        {
-            Assert.Equal(array1.Length, array2.Length);
-            for (int i = 0; i < array1.Length; i++)
-                Assert.Equal(array1[i], array2[i], precision: 6);
+                Utils.AreEqual(array1[i], array2[i]);
         }
     }
 }

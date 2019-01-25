@@ -619,8 +619,9 @@ namespace Microsoft.ML.Internal.Utilities
         /// Checks that an input IList is monotonically increasing.
         /// </summary>
         /// <param name="values">An array of values</param>
-        /// <returns>True if the array is monotonically increasing; false otherwise.
-        /// ILists containing NaN values are considered to be not monotonically increasing.</returns>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise. ILists containing NaN values
+        /// are considered to be not monotonically increasing.</returns>
         public static bool IsMonotonicallyIncreasing(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
@@ -645,7 +646,8 @@ namespace Microsoft.ML.Internal.Utilities
         /// Checks that an input array is monotonically increasing.
         /// </summary>
         /// <param name="values">An array of values</param>
-        /// <returns>True if the array is monotonically increasing; false otherwise.</returns>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise.</returns>
         public static bool IsMonotonicallyIncreasing(int[] values)
         {
             if (Utils.Size(values) <= 1)
@@ -668,8 +670,9 @@ namespace Microsoft.ML.Internal.Utilities
         /// Checks that an input array is monotonically increasing.
         /// </summary>
         /// <param name="values">An array of values</param>
-        /// <returns>True if the array is monotonically increasing; false otherwise.
-        /// Arrays containing NaN values are considered to be not monotonically increasing.</returns>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise. Arrays containing NaN values
+        /// are considered to be not monotonically increasing.</returns>
         public static bool IsMonotonicallyIncreasing(double[] values)
         {
             if (Utils.Size(values) <= 1)
