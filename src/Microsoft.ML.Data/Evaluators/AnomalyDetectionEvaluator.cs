@@ -100,7 +100,7 @@ namespace Microsoft.ML.Data
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.Float && t.GetKeyCount() != 2)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a 2-value KeyType", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a KeyType with cardinality 2", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -666,7 +666,7 @@ namespace Microsoft.ML.Data
 
             IDataView overall;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out overall))
-                throw Host.ExceptSchemaMismatch(nameof(overall.Schema), "overall metrics", MetricKinds.OverallMetrics);
+                throw Host.Except("No overall metrics found");
 
             // Find the number of anomalies, and the thresholds.
             int numAnomIndex;
