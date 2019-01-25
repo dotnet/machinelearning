@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -89,6 +91,40 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         {
             _labelsDistribution = labelsDistribution;
             _instanceWeights = weights;
+        }
+
+        internal IReadOnlyList<IReadOnlyList<double>> ExtractLeafSamples()
+        {
+            var sampledLabelsBuffer = new List<List<double>>();
+            var sampleCountPerLeaf = _labelsDistribution.Length / NumLeaves;
+            for (int i = 0; i < NumLeaves; ++i)
+            {
+                var samplesPerLeaf = new List<double>();
+                var weightsPerLeaf = new List<double>();
+                for (int j = 0; j < sampleCountPerLeaf; ++j)
+                    samplesPerLeaf.Add(_labelsDistribution[i * sampleCountPerLeaf + j]);
+                sampledLabelsBuffer.Add(samplesPerLeaf);
+            }
+            return sampledLabelsBuffer;
+        }
+
+        internal IReadOnlyList<IReadOnlyList<double>> ExtractLeafSampleWeights()
+        {
+            var labelWeightsBuffer = new List<List<double>>();
+            var sampleCountPerLeaf = _labelsDistribution.Length / NumLeaves;
+            for (int i = 0; i < NumLeaves; ++i)
+            {
+                var weightsPerLeaf = new List<double>();
+                for (int j = 0; j < sampleCountPerLeaf; ++j)
+                {
+                    if (_instanceWeights != null)
+                        weightsPerLeaf.Add(_instanceWeights[i * sampleCountPerLeaf + j]);
+                    else
+                        weightsPerLeaf.Add(1.0);
+                }
+                labelWeightsBuffer.Add(weightsPerLeaf);
+            }
+            return labelWeightsBuffer;
         }
 
         public override int SizeInBytes()

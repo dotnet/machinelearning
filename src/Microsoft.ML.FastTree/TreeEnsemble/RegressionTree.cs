@@ -35,6 +35,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         public IReadOnlyList<IReadOnlyList<int>> CategoricalSplitFeatureRanges => _tree.CategoricalSplitFeatureRanges;
         public ReadOnlySpan<double> LeafValues => _tree.LeafValues;
 
+        public IReadOnlyList<IReadOnlyList<double>> LeafSamples { get; }
+        public IReadOnlyList<IReadOnlyList<double>> LeafSampleWeights { get; }
+
         /// <summary>
         /// Number of leaves in the tree. Note that <see cref="NumLeaves"/> does not take non-leaf nodes into account.
         /// </summary>
@@ -55,6 +58,13 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         internal RegressionTreeView(RegressionTree tree)
         {
             _tree = tree;
+            LeafSamples = null;
+            LeafSampleWeights = null;
+            if (tree is QuantileRegressionTree)
+            {
+                LeafSamples = ((QuantileRegressionTree)tree).ExtractLeafSamples();
+                LeafSampleWeights = ((QuantileRegressionTree)tree).ExtractLeafSampleWeights();
+            }
         }
     }
 
