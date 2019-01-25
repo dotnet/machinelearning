@@ -139,14 +139,14 @@ namespace Microsoft.ML.Transforms.Categorical
                 col.SetTerms(column.Terms ?? args.Terms);
                 columns.Add(col);
             }
-            IDataView termData = null;
+            IDataView keyData = null;
             if (!string.IsNullOrEmpty(args.DataFile))
             {
                 using (var ch = h.Start("Load term data"))
-                    termData = ValueToKeyMappingTransformer.GetTermDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
-                h.AssertValue(termData);
+                    keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
+                h.AssertValue(keyData);
             }
-            var transformed = new OneHotEncodingEstimator(env, columns.ToArray(), termData).Fit(input).Transform(input);
+            var transformed = new OneHotEncodingEstimator(env, columns.ToArray(), keyData).Fit(input).Transform(input);
             return (IDataTransform)transformed;
         }
 
@@ -228,11 +228,11 @@ namespace Microsoft.ML.Transforms.Categorical
         {
         }
 
-        public OneHotEncodingEstimator(IHostEnvironment env, ColumnInfo[] columns, IDataView termData = null)
+        public OneHotEncodingEstimator(IHostEnvironment env, ColumnInfo[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OneHotEncodingEstimator));
-            _term = new ValueToKeyMappingEstimator(_host, columns, termData);
+            _term = new ValueToKeyMappingEstimator(_host, columns, keyData);
             var binaryCols = new List<(string input, string output)>();
             var cols = new List<(string input, string output, bool bag)>();
             for (int i = 0; i < columns.Length; i++)

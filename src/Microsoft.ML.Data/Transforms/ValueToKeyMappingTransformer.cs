@@ -294,13 +294,13 @@ namespace Microsoft.ML.Transforms.Conversions
         { }
 
         internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
-            ColumnInfo[] columns, IDataView termData, bool autoConvert)
+            ColumnInfo[] columns, IDataView keyData, bool autoConvert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             using (var ch = Host.Start("Training"))
             {
                 var infos = CreateInfos(input.Schema);
-                _unboundMaps = Train(Host, ch, infos, termData, columns, input, autoConvert);
+                _unboundMaps = Train(Host, ch, infos, keyData, columns, input, autoConvert);
                 _textMetadata = new bool[_unboundMaps.Length];
                 for (int iinfo = 0; iinfo < columns.Length; ++iinfo)
                     _textMetadata[iinfo] = columns[iinfo].TextKeyValues;
@@ -344,8 +344,8 @@ namespace Microsoft.ML.Transforms.Conversions
                         item.TextKeyValues ?? args.TextKeyValues);
                     cols[i].Terms = item.Terms ?? args.Terms;
                 };
-                var termData = GetTermDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
-                return new ValueToKeyMappingTransformer(env, input, cols, termData, autoLoaded).MakeDataTransform(input);
+                var keyData = GetKeyDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
+                return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
             }
         }
 
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// the term map. This will not be true in the case that the loader was adequately specified automatically.</param>
         /// <returns>The single-column data containing the term data from the file.</returns>
         [BestFriend]
-        internal static IDataView GetTermDataViewOrNull(IHostEnvironment env, IChannel ch,
+        internal static IDataView GetKeyDataViewOrNull(IHostEnvironment env, IChannel ch,
             string file, string termsColumn, IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory,
             out bool autoConvert)
         {
@@ -448,9 +448,9 @@ namespace Microsoft.ML.Transforms.Conversions
             string src = termsColumn;
             IMultiStreamSource fileSource = new MultiFileSource(file);
 
-            IDataView termData;
+            IDataView keyData;
             if (loaderFactory != null)
-                termData = loaderFactory.CreateComponent(env, fileSource);
+                keyData = loaderFactory.CreateComponent(env, fileSource);
             else
             {
                 // Determine the default loader from the extension.
@@ -463,11 +463,11 @@ namespace Microsoft.ML.Transforms.Conversions
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(src), nameof(termsColumn),
                         "Must be specified");
                     if (isBinary)
-                        termData = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
+                        keyData = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
                     else
                     {
                         ch.Assert(isTranspose);
-                        termData = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
+                        keyData = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
                     }
                 }
                 else
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             "{0} should not be specified when default loader is " + nameof(TextLoader) + ". Ignoring {0}={1}",
                             nameof(Arguments.TermsColumn), src);
                     }
-                    termData = new TextLoader(env,
+                    keyData = new TextLoader(env,
                         columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
                         dataSample: fileSource)
                         .Read(fileSource);
@@ -488,40 +488,40 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
             ch.AssertNonEmpty(src);
-            if (termData.Schema.GetColumnOrNull(src) == null)
+            if (keyData.Schema.GetColumnOrNull(src) == null)
                 throw ch.ExceptUserArg(nameof(termsColumn), "Unknown column '{0}'", src);
             // Now, remove everything but that one column.
             var selectTransformer = new ColumnSelectingTransformer(env, new string[] { src }, null);
-            termData = selectTransformer.Transform(termData);
-            ch.Assert(termData.Schema.Count == 1);
-            return termData;
+            keyData = selectTransformer.Transform(keyData);
+            ch.Assert(keyData.Schema.Count == 1);
+            return keyData;
         }
 
         /// <summary>
         /// Utility method to create the file-based <see cref="TermMap"/>.
         /// </summary>
-        private static TermMap CreateFileTermMap(IHostEnvironment env, IChannel ch, IDataView termData, bool autoConvert, Builder bldr)
+        private static TermMap CreateTermMapFromData(IHostEnvironment env, IChannel ch, IDataView keyData, bool autoConvert, Builder bldr)
         {
             Contracts.AssertValue(ch);
             ch.AssertValue(env);
-            ch.AssertValue(termData);
+            ch.AssertValue(keyData);
             ch.AssertValue(bldr);
-            if (termData.Schema.Count != 1)
+            if (keyData.Schema.Count != 1)
             {
-                throw ch.ExceptParam(nameof(termData), $"Input data containing terms should contain exactly one column, but " +
-                    $"had {termData.Schema.Count} instead. Consider using {nameof(ColumnSelectingEstimator)} on that data first.");
+                throw ch.ExceptParam(nameof(keyData), $"Input data containing terms should contain exactly one column, but " +
+                    $"had {keyData.Schema.Count} instead. Consider using {nameof(ColumnSelectingEstimator)} on that data first.");
             }
 
-            var typeSrc = termData.Schema[0].Type;
+            var typeSrc = keyData.Schema[0].Type;
             if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
-                throw ch.ExceptUserArg(nameof(termData), "Input data's column must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
+                throw ch.ExceptUserArg(nameof(keyData), "Input data's column must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
 
-            using (var cursor = termData.GetRowCursor(termData.Schema[0]))
+            using (var cursor = keyData.GetRowCursor(keyData.Schema[0]))
             using (var pch = env.StartProgressChannel("Building dictionary from term data"))
             {
                 var header = new ProgressHeader(new[] { "Total Terms" }, new[] { "examples" });
                 var trainer = Trainer.Create(cursor, 0, autoConvert, int.MaxValue, bldr);
-                double rowCount = termData.GetRowCount() ?? double.NaN;
+                double rowCount = keyData.GetRowCount() ?? double.NaN;
                 long rowCur = 0;
                 pch.SetHeader(header,
                     e =>
@@ -544,12 +544,12 @@ namespace Microsoft.ML.Transforms.Conversions
         /// This builds the <see cref="TermMap"/> instances per column.
         /// </summary>
         private static TermMap[] Train(IHostEnvironment env, IChannel ch, ColInfo[] infos,
-            IDataView termData, ColumnInfo[] columns, IDataView trainingData, bool autoConvert)
+            IDataView keyData, ColumnInfo[] columns, IDataView trainingData, bool autoConvert)
         {
             Contracts.AssertValue(env);
             env.AssertValue(ch);
             ch.AssertValue(infos);
-            ch.AssertValueOrNull(termData);
+            ch.AssertValueOrNull(keyData);
             ch.AssertValue(columns);
             ch.AssertValue(trainingData);
 
@@ -577,13 +577,13 @@ namespace Microsoft.ML.Transforms.Conversions
                         bldr.ParseAddTermArg(termsArray, ch);
                     termMap[iinfo] = bldr.Finish();
                 }
-                else if (termData != null)
+                else if (keyData != null)
                 {
                     // First column using this file.
                     if (termsFromFile == null)
                     {
                         var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
-                        termsFromFile = CreateFileTermMap(env, ch, termData, autoConvert, bldr);
+                        termsFromFile = CreateTermMapFromData(env, ch, keyData, autoConvert, bldr);
                     }
                     if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.GetItemType()))
                     {
@@ -592,7 +592,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // a complicated feature would be, and also because it's difficult to see how we
                         // can logically reconcile "reinterpretation" for different types with the resulting
                         // data view having an actual type.
-                        throw ch.ExceptParam(nameof(termData), "Terms from input data type '{0}' but mismatches column '{1}' item type '{2}'",
+                        throw ch.ExceptParam(nameof(keyData), "Terms from input data type '{0}' but mismatches column '{1}' item type '{2}'",
                             termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.GetItemType());
                     }
                     termMap[iinfo] = termsFromFile;

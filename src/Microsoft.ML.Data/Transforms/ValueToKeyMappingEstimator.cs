@@ -19,7 +19,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private readonly IHost _host;
         private readonly ValueToKeyMappingTransformer.ColumnInfo[] _columns;
-        private readonly IDataView _termData;
+        private readonly IDataView _keyData;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ValueToKeyMappingEstimator"/>.
@@ -35,24 +35,24 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        public ValueToKeyMappingEstimator(IHostEnvironment env, ValueToKeyMappingTransformer.ColumnInfo[] columns, IDataView termData = null)
+        public ValueToKeyMappingEstimator(IHostEnvironment env, ValueToKeyMappingTransformer.ColumnInfo[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));
             _host.CheckNonEmpty(columns, nameof(columns));
-            _host.CheckValueOrNull(termData);
-            if (termData != null && termData.Schema.Count != 1)
+            _host.CheckValueOrNull(keyData);
+            if (keyData != null && keyData.Schema.Count != 1)
             {
-                throw _host.ExceptParam(nameof(termData), "If specified, this data view should contain only a single column " +
-                    $"containing the terms to map, but this had {termData.Schema.Count} columns.");
+                throw _host.ExceptParam(nameof(keyData), "If specified, this data view should contain only a single column " +
+                    $"containing the terms to map, but this had {keyData.Schema.Count} columns.");
 
             }
 
             _columns = columns;
-            _termData = termData;
+            _keyData = keyData;
         }
 
-        public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _termData, false);
+        public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _keyData, false);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
