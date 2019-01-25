@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
@@ -108,6 +109,70 @@ namespace Microsoft.ML.Tests.Transformers
             int fValue = 0;
             getterF(ref fValue);
             Assert.Equal(1, fValue);
+        }
+
+        class vec
+        {
+            [VectorType(600)]
+            public int[] Features;
+        }
+
+        IEnumerable<vec> PadSentence(IDataView dataview)
+        {
+            var cursor = dataview.GetRowCursorForAllColumns();
+            var getterVecD = cursor.GetGetter<VBuffer<int>>(dataview.Schema["VecD"].Index);
+            while(cursor.MoveNext())
+            {
+
+                var v = new vec()
+                {
+                    Features = new int[600]
+                };
+
+                VBuffer<int> dValue = default;
+                getterVecD(ref dValue);
+                var values = dValue.GetValues();
+                var indices = dValue.GetIndices();
+                if (indices.Length > 0)
+                {
+                    for (int i = 0; i < indices.Length; i++)
+                    {
+                        if (indices[i] > v.Features.Length) break;
+                        v.Features[indices[i]] = values[i];
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < values.Length; i++)
+                    {
+                        if (i > v.Features.Length) break;
+                        v.Features[i] = values[i];
+                    }
+                }
+
+                yield return v;
+            }
+        }
+
+        [Fact]
+        public void ValueMapPadInputTest()
+        {
+            var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
+            var dataView = ML.Data.ReadFromEnumerable(data);
+
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<int>() { 1, 2, 3, 4 };
+
+            var estimator = new WordTokenizingEstimator(Env, new[]{
+                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA")
+                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("TokenizeA", "VecD"), ("B", "E"), ("C", "F") }));
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            result = ML.Data.ReadFromEnumerable(PadSentence(result));
+
+            string modelLocation = @"E:\Tensorflow\sentiment_model";
+            IDataView trans = new TensorFlowTransformer(ML, modelLocation, "Features", "Prediction/Softmax").Transform(result);
         }
 
         [Fact]
