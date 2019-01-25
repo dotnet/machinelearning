@@ -78,13 +78,13 @@ namespace Microsoft.ML.Trainers.Online
             // For computing averaged weights and bias (if needed)
             protected VBuffer<float> TotalWeights;
             protected float TotalBias;
-            protected Double NumWeightUpdates;
+            protected double NumWeightUpdates;
 
             // The accumulated gradient of loss against gradient for all updates so far in the
             // totalled model, versus those pending in the weight vector that have not yet been
             // added to the total model.
-            protected Double TotalMultipliers;
-            protected Double PendingMultipliers;
+            protected double TotalMultipliers;
+            protected double PendingMultipliers;
 
             protected readonly bool Averaged;
             private readonly long _resetWeightsAfterXExamples;

@@ -19,7 +19,7 @@ namespace Microsoft.ML.EntryPoints
             public string[] ExtraColumns;
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ScoreColumnSelector", Desc = "Selects only the last score columns and the extra columns specified in the arguments.", UserName = "Choose Columns By Index")]
+        [TlcModule.EntryPoint(Name = "Transforms.ScoreColumnSelector", Desc = "Selects only the last score columns and the extra columns specified in the arguments.", UserName = "Choose Columns By Indices")]
         public static CommonOutputs.TransformOutput SelectColumns(IHostEnvironment env, ScoreColumnSelectorInput input)
         {
             Contracts.CheckValue(env, nameof(env));

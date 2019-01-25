@@ -474,13 +474,9 @@ namespace Microsoft.ML.CommandLine
                     Contracts.Check(!field.IsStatic && !field.IsInitOnly && !field.IsLiteral);
                     bool isDefault = attr is DefaultArgumentAttribute;
                     if (isDefault && def != null)
-                        throw Contracts.Except("Duplicate default argument '{0}' vs '{1}'", def.LongName, field.Name);
+                        throw Contracts.Except($"Duplicate default argument '{def.LongName}' vs '{field.Name}'");
 
-                    string name = ArgCase(field.Name);
-
-                    string attrName = null;
-                    if (attr.Name != null && attr.Name.ToLowerInvariant() != name.ToLowerInvariant())
-                        attrName = attr.Name;
+                    string name = ArgCase(attr.Name ?? field.Name);
 
                     string[] nicks;
                     // Semantics of ShortName:
@@ -499,18 +495,13 @@ namespace Microsoft.ML.CommandLine
                     Contracts.Assert(!isDefault || nicks == null);
 
                     if (map.ContainsKey(name.ToLowerInvariant()))
-                        throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", name, type.Name);
-                    if (attrName != null)
-                    {
-                        if (map.ContainsKey(attrName.ToLowerInvariant()))
-                            throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", attrName, type.Name);
-                    }
+                        throw Contracts.Except($"Duplicate name '{name}' in argument type '{type.Name}'");
                     if (nicks != null)
                     {
                         foreach (var nick in nicks)
                         {
                             if (map.ContainsKey(nick.ToLowerInvariant()))
-                                throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", nick, type.Name);
+                                throw Contracts.Except($"Duplicate name '{nick}' in argument type '{type.Name}'");
                         }
                     }
 
@@ -518,8 +509,6 @@ namespace Microsoft.ML.CommandLine
 
                     // Note that we put the default arg in the map to ensure that no other args use the same name.
                     map.Add(name.ToLowerInvariant(), arg);
-                    if (attrName != null)
-                        map.Add(attrName.ToLowerInvariant(), arg);
                     if (nicks != null)
                     {
                         foreach (var nick in nicks)

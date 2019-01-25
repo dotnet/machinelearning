@@ -2454,7 +2454,7 @@ namespace Microsoft.ML.RunTests
 
             var expected =
                 @"{
-  ""Columns"": [
+  ""Column"": [
     {
       ""Name"": ""A"",
       ""Source"": ""A""

@@ -41,10 +41,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection",
-                Name = "Column",
-                ShortName = "col",
-                SortOrder = 1)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
             public string[] Columns;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab",

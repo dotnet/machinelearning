@@ -21922,7 +21922,7 @@
     {
       "Name": "Transforms.ScoreColumnSelector",
       "Desc": "Selects only the last score columns and the extra columns specified in the arguments.",
-      "FriendlyName": "Choose Columns By Index",
+      "FriendlyName": "Choose Columns By Indices",
       "ShortName": null,
       "Inputs": [
         {

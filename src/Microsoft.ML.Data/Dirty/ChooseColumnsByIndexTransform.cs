@@ -22,7 +22,7 @@ namespace Microsoft.ML.Data
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column index to select", Name = "Index", ShortName = "ind")]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column indices to select", Name = "Index", ShortName = "ind")]
             public int[] Indices;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, selected columns are dropped instead of kept, with the order of kept columns being the same as the original", ShortName = "d")]
@@ -83,10 +83,10 @@ namespace Microsoft.ML.Data
             {
                 // Compute the mapping, <see cref="_sources"/>, from output column index to input column index.
                 if (drop)
-                    // Drop columns indexed by args.Index
+                    // Drop columns indexed by args.Indices
                     sources = Enumerable.Range(0, sourceSchema.Count).Except(selectedColumnIndexes).ToArray();
                 else
-                    // Keep columns indexed by args.Index
+                    // Keep columns indexed by args.Indices
                     sources = selectedColumnIndexes;
 
                 // Make sure the output of this transform is meaningful.
