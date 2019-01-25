@@ -7,6 +7,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   
+  <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
+    <Compile Remove="SsePerformanceTests.cs" />
+    <Compile Remove="AvxPerformanceTests.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Remove="BenchmarkDotNet.Artifacts\**" />
     <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
