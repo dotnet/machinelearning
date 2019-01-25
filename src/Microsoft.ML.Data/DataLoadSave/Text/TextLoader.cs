@@ -613,7 +613,7 @@ namespace Microsoft.ML.Data
                         {
                             kind = col.Type ?? DataKind.Num;
                             ch.CheckUserArg(Enum.IsDefined(typeof(DataKind), kind), nameof(Column.Type), "Bad item type");
-                            itemType = PrimitiveType.FromKind(kind);
+                            itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
 
                         // This was checked above.
@@ -800,7 +800,7 @@ namespace Microsoft.ML.Data
                         itemType = new KeyType(kind.ToType(), count);
                     }
                     else
-                        itemType = PrimitiveType.FromKind(kind);
+                        itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
 
                     int cseg = ctx.Reader.ReadInt32();
                     Contracts.CheckDecode(cseg > 0);

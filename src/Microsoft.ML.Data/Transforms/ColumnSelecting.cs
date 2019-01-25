@@ -574,7 +574,7 @@ namespace Microsoft.ML.Transforms
                                                         Schema inputSchema)
             {
                 var outputColumns = map.Select(x => new Schema.DetachedColumn(inputSchema[x]));
-                return SchemaBuilder.MakeSchema(outputColumns);
+                return SchemaExtensions.MakeSchema(outputColumns);
             }
         }
 

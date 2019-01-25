@@ -158,7 +158,7 @@ namespace Microsoft.ML.Data.IO
             // Throws an exception if T is neither a TimeSpan nor a NumberType.
             private static ColumnType UnsafeColumnType(Type type)
             {
-                return type == typeof(TimeSpan) ? (ColumnType)TimeSpanType.Instance : NumberType.FromType(type);
+                return type == typeof(TimeSpan) ? (ColumnType)TimeSpanType.Instance : ColumnTypeExtensions.NumberTypeFromType(type);
             }
 
             public UnsafeTypeCodec(CodecFactory factory)
@@ -1263,23 +1263,6 @@ namespace Microsoft.ML.Data.IO
             return true;
         }
 
-        private bool GetKeyCodecOld(ColumnType type, out IValueCodec codec)
-        {
-            if (!(type is KeyType))
-                throw Contracts.ExceptParam(nameof(type), "type must be a key type");
-            // Create the internal codec the key codec will use to do the actual reading/writing.
-            IValueCodec innerCodec;
-            if (!TryGetCodec(NumberType.FromKind(type.GetRawKind()), out innerCodec))
-            {
-                codec = default;
-                return false;
-            }
-            // Next create the key codec.
-            Type codecType = typeof(KeyCodecOld<>).MakeGenericType(type.RawType);
-            codec = (IValueCodec)Activator.CreateInstance(codecType, this, type, innerCodec);
-            return true;
-        }
-
         private sealed class KeyCodec<T> : IValueCodec<T>
         {
             // *** Binary block format ***
@@ -1374,7 +1357,7 @@ namespace Microsoft.ML.Data.IO
                 throw Contracts.ExceptParam(nameof(type), "type must be a key type");
             // Create the internal codec the key codec will use to do the actual reading/writing.
             IValueCodec innerCodec;
-            if (!TryGetCodec(NumberType.FromType(type.RawType), out innerCodec))
+            if (!TryGetCodec(ColumnTypeExtensions.NumberTypeFromType(type.RawType), out innerCodec))
             {
                 codec = default;
                 return false;

@@ -83,7 +83,7 @@ namespace Microsoft.ML.Data
             public override long Position => _position;
 
             public InputRow(IHostEnvironment env, InternalSchemaDefinition schemaDef)
-                : base(env, SchemaBuilder.MakeSchema(GetSchemaColumns(schemaDef)), schemaDef, MakePeeks(schemaDef), c => true)
+                : base(env, SchemaExtensions.MakeSchema(GetSchemaColumns(schemaDef)), schemaDef, MakePeeks(schemaDef), c => true)
             {
                 _position = -1;
             }
@@ -379,7 +379,7 @@ namespace Microsoft.ML.Data
                 Host.AssertValue(schemaDefn);
 
                 _schemaDefn = schemaDefn;
-                _schema = SchemaBuilder.MakeSchema(GetSchemaColumns(schemaDefn));
+                _schema = SchemaExtensions.MakeSchema(GetSchemaColumns(schemaDefn));
                 int n = schemaDefn.Columns.Length;
                 _peeks = new Delegate[n];
                 for (var i = 0; i < n; i++)
@@ -773,7 +773,7 @@ namespace Microsoft.ML.Data
             if (metadataType == null)
             {
                 // Infer a type as best we can.
-                var primitiveItemType = PrimitiveType.FromType(itemType);
+                var primitiveItemType = ColumnTypeExtensions.PrimitiveTypeFromType(itemType);
                 metadataType = isVector ? new VectorType(primitiveItemType) : (ColumnType)primitiveItemType;
             }
             else

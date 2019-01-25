@@ -380,7 +380,7 @@ namespace Microsoft.ML.Data
                     itemType = new KeyType(dataType, keyAttr.Count);
                 }
                 else
-                    itemType = PrimitiveType.FromType(dataType);
+                    itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
 
                 // Get the column type.
                 ColumnType columnType;

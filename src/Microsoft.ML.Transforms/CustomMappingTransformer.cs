@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             var addedCols = DataViewConstructionUtils.GetSchemaColumns(Transformer.AddedSchema);
-            var addedSchemaShape = SchemaShape.Create(SchemaBuilder.MakeSchema(addedCols));
+            var addedSchemaShape = SchemaShape.Create(SchemaExtensions.MakeSchema(addedCols));
 
             var result = inputSchema.ToDictionary(x => x.Name);
             var inputDef = InternalSchemaDefinition.Create(typeof(TSrc), Transformer.InputSchemaDefinition);
