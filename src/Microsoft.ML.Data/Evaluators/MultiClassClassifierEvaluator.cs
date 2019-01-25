@@ -815,10 +815,10 @@ namespace Microsoft.ML.Data
 
             var scoreType = schema[ScoreIndex].Type as VectorType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberType.Float)
-                throw Host.Except(nameof(schema), "score", "vector of two or more items of type float", ScoreCol, scoreType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "vector of two or more items of type float", scoreType.ToString());
             var labelType = schema[LabelIndex].Type;
             if (labelType != NumberType.Float && labelType.GetKeyCount() <= 0)
-                throw Host.Except(nameof(schema), "label", LabelCol, "float or key", labelType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float or key", labelType.ToString());
         }
     }
 

@@ -129,11 +129,11 @@ namespace Microsoft.ML.Data
             var host = Host.SchemaSensitive();
             var t = score.Type;
             if (t != NumberType.Float)
-                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4", t.ToString());
+                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
             host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
-                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4, R8, BL or a 2-value key", t.ToString());
+                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float, double, bool, or a 2-value key", t.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Data
                 host.CheckParam(prob.Count == 1, nameof(schema), "Cannot have multiple probability columns");
                 var probType = prob[0].Type;
                 if (probType != NumberType.Float)
-                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "R4", probType.ToString());
+                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "float", probType.ToString());
             }
             else if (!_useRaw)
             {

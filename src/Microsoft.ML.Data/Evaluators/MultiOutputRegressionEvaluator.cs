@@ -548,7 +548,7 @@ namespace Microsoft.ML.Data
 
             var t = schema[LabelIndex].Type as VectorType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
-                throw Host.Except(nameof(schema), "label", LabelCol, "known-size vector of float or double", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of float or double", t.ToString());
             labelType = new VectorType((PrimitiveType)t.ItemType, t.Size);
             var slotNamesType = new VectorType(TextType.Instance, t.Size);
             var builder = new MetadataBuilder();
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Data
 
             t = schema[ScoreIndex].Type as VectorType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberType.Float)
-                throw Host.Except(nameof(schema), "score", ScoreCol, "known-size vector of float", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", t.ToString());
             scoreType = new VectorType((PrimitiveType)t.ItemType, t.Size);
             builder = new MetadataBuilder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.Size, "Predicted"));
