@@ -100,6 +100,11 @@ namespace Microsoft.ML
         private readonly Action _disposer;
         private bool _disposed;
 
+        /// <summary>
+        /// Provides output schema.
+        /// </summary>
+        public Schema OutputSchema;
+
         [BestFriend]
         private protected ITransformer Transformer { get; }
 
@@ -127,6 +132,7 @@ namespace Microsoft.ML
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
             PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out _disposer, out _outputRow);
+            OutputSchema = Transformer.GetOutputSchema(_inputRow.Schema);
         }
 
         [BestFriend]

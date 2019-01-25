@@ -123,7 +123,7 @@ namespace Microsoft.ML.EntryPoints
             if (type == null || !type.IsKnownSize || !(type.ItemType is TextType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
-            col.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
+            col.Value.GetKeyValues(ref metadata);
             if (!metadata.IsDense)
                 return null;
             var sb = new StringBuilder();
