@@ -9,6 +9,7 @@ namespace Microsoft.ML.Auto.Test
     {
         public const string UciAdultLabel = DefaultColumnNames.Label;
         public const string TrivialDatasetLabel = DefaultColumnNames.Label;
+        public const string MlNetGeneratedRegressionLabel = "target";
 
         private static IDataView _uciAdultDataView;
 
@@ -28,6 +29,9 @@ namespace Microsoft.ML.Auto.Test
 
         public static string DownloadTrivialDataset() =>
             DownloadIfNotExists("https://raw.githubusercontent.com/dotnet/machinelearning/eae76959e6714af44caa212e102a5f06f0110e72/test/data/trivial-train.tsv", "trivial.dataset");
+
+        public static string DownloadMlNetGeneratedRegressionDataset() =>
+            DownloadIfNotExists("https://raw.githubusercontent.com/dotnet/machinelearning/e78971ea6fd736038b4c355b840e5cbabae8cb55/test/data/generated_regression_dataset.csv", "mlnet_generated_regression.dataset");
 
         private static string DownloadIfNotExists(string baseGitPath, string dataFile)
         {
