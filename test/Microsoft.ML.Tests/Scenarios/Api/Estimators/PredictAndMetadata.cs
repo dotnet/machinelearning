@@ -33,19 +33,23 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), hasHeader: true, separatorChar: ',');
             var testData = ml.CreateEnumerable<IrisData>(testLoader, false);
-            VBuffer<ReadOnlyMemory<char>> keys = default;
+            // Slot names on top of Score column represent original labels for i-th value in Score array.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             engine.OutputSchema[nameof(IrisPrediction.Score)].GetSlotNames(ref slotNames);
+            // Key names represent original values for PredictedLabel column.
+            VBuffer<ReadOnlyMemory<char>> keys = default;
             engine.OutputSchema[nameof(IrisPrediction.PredictedLabel)].GetKeyValues(ref keys);
 
-            Assert.True(keys.GetItemOrDefault(0).ToString() == "iris-setosa");
-            Assert.True(keys.GetItemOrDefault(1).ToString() == "iris-versicolor");
-            Assert.True(keys.GetItemOrDefault(2).ToString() == "iris-virginica");
+            Assert.True(slotNames.GetItemOrDefault(0).ToString() == "Iris-setosa");
+            Assert.True(slotNames.GetItemOrDefault(1).ToString() == "Iris-versicolor");
+            Assert.True(slotNames.GetItemOrDefault(2).ToString() == "Iris-virginica");
 
-            foreach (var input in testData.Take(20))
+            foreach (var input in testData.Take(120))
             {
                 var prediction = engine.Predict(input);
-                var deciphieredLabel = keys.GetItemOrDefault((int)prediction.PredictedLabel).ToString();
+                // Predicted label is key type which internal representation starts from 1.
+                // (0 reserved for NaN value) so in order to cast key to index in key metadata we need to distract 1 from it.
+                var deciphieredLabel = keys.GetItemOrDefault((int)prediction.PredictedLabel - 1).ToString();
                 Assert.True(deciphieredLabel == input.Label);
             }
         }
