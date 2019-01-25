@@ -1653,9 +1653,9 @@ namespace Microsoft.ML.Internal.Calibration
             _host.AssertNonEmpty(mins);
             _host.AssertNonEmpty(maxes);
             _host.AssertNonEmpty(values);
-            _host.Assert(Utils.IsSorted(mins));
-            _host.Assert(Utils.IsSorted(maxes));
-            _host.Assert(Utils.IsSorted(values));
+            _host.Assert(Utils.IsMonotonicallyIncreasing(mins));
+            _host.Assert(Utils.IsMonotonicallyIncreasing(maxes));
+            _host.Assert(Utils.IsMonotonicallyIncreasing(values));
             _host.Assert(values.Length == 0 || (0 <= values[0] && values[values.Length - 1] <= 1));
             _host.Assert(mins.Zip(maxes, (min, max) => min <= max).All(x => x));
 

@@ -1170,7 +1170,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Contracts.AssertValue(binUpperBounds);
             Contracts.Assert(Utils.Size(hotFeatureStarts) == binUpperBounds.Length + 1); // One more than number of features.
             Contracts.Assert(hotFeatureStarts[0] == 1);
-            Contracts.Assert(Utils.IsSorted(hotFeatureStarts));
+            Contracts.Assert(Utils.IsMonotonicallyIncreasing(hotFeatureStarts));
             Contracts.Assert(bins.Max() < hotFeatureStarts[hotFeatureStarts.Length - 1]);
 
             Bins = bins;
