@@ -255,6 +255,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.Data.DataView", "
 		pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.nupkgproj = pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.nupkgproj
 		pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.symbols.nupkgproj = pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.symbols.nupkgproj
 	EndProjectSection
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteExecutorConsoleApp", "test\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj", "{5E920CAC-5A28-42FB-936E-49C472130953}"
 EndProject
 Global
