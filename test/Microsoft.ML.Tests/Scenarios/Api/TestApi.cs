@@ -289,5 +289,52 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .ToList();
             return data;
         }
+
+        [Fact]
+        public void TestTrainTestSplit()
+        {
+            var mlContext = new MLContext(0);
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            // Create the reader: define the data columns and where to find them in the text file.
+            var input = mlContext.Data.ReadFromTextFile(dataPath, new[] {
+                            new TextLoader.Column("Label", DataKind.BL, 0),
+                            new TextLoader.Column("Workclass", DataKind.TX, 1),
+                            new TextLoader.Column("Education", DataKind.TX,2),
+                            new TextLoader.Column("Age", DataKind.R4,9)
+            }, hasHeader: true);
+
+            var (simpleTrain, simpleTest) = mlContext.BinaryClassification.TrainTestSplit(input);
+            Func<IDataView, List<string>> getWorkclass = (IDataView view) =>
+            {
+                return view.GetColumn<ReadOnlyMemory<char>>(mlContext, "Workclass").Select(x => x.ToString()).ToList();
+            };
+            var simpleTrainWorkclass = getWorkclass(simpleTrain);
+            var simpleTestWorkClass = getWorkclass(simpleTest);
+            var (simpleTrainWithSeed, simpleTestWithSeed) = mlContext.BinaryClassification.TrainTestSplit(input, seed: 10);
+            var simpleWithSeedTrainWorkClass = getWorkclass(simpleTrainWithSeed);
+            var simpleWithSeedTestWorkClass = getWorkclass(simpleTestWithSeed);
+            // Validate we get differnt test sets (they are smaller than TrainSet)
+            Assert.NotEqual(simpleTestWorkClass, simpleWithSeedTestWorkClass);
+
+            var (stratTrain, stratTest) = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn: "Workclass");
+            var stratTrainWorkclass = getWorkclass(stratTrain);
+            var stratTestWorkClass = getWorkclass(stratTest);
+            var uniqueTrain = stratTrainWorkclass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
+            var uniqueTest = stratTestWorkClass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
+            // Validate we don't have intersection between workclass values since we use that column as stratification column
+            Assert.True(Enumerable.Intersect(uniqueTrain, uniqueTest).Count() == 0);
+            var (stratWithSeedTrain, stratWithSeedTest) = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn:"Workclass", seed: 1000000);
+            var stratTrainWithSeedWorkclass = getWorkclass(stratWithSeedTrain);
+            var stratTestWithSeedWorkClass = getWorkclass(stratWithSeedTest);
+            var uniqueSeedTrain = stratTrainWithSeedWorkclass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
+            var uniqueSeedTest = stratTestWithSeedWorkClass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
+
+            // Validate we don't have intersection between workclass values since we use that column as stratification column
+            Assert.True(Enumerable.Intersect(uniqueSeedTrain, uniqueSeedTest).Count() == 0);
+            // Validate we got different test results on same stratification column with different seeds
+            Assert.NotEqual(uniqueTest, uniqueSeedTest);
+
+        }
+
     }
 }
