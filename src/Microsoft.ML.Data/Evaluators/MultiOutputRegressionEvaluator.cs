@@ -60,11 +60,11 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type as VectorType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberType.Float)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known size vector of R4", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type as VectorType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known size vector of R4 or R8", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of float or double", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)

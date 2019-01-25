@@ -1135,7 +1135,7 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
                 var expectedType = TensorFlowUtils.Tf2MlNetType(_tfInputTypes[i]);
                 if (col.ItemType != expectedType)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());

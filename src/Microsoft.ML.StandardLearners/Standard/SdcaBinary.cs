@@ -1538,7 +1538,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(labelCol.IsValid);
 
             Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "BL, R8, R4 or a Key", labelCol.GetTypeString());
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float, double, bool or KeyType", labelCol.GetTypeString());
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();

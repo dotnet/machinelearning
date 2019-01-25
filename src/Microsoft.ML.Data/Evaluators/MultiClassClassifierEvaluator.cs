@@ -77,11 +77,11 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var scoreType = score.Type as VectorType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberType.Float)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type R4", scoreType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type float", scoreType.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             var labelType = schema.Label.Value.Type;
             if (labelType != NumberType.Float && labelType.GetKeyCount() <= 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a known-cardinality key", labelType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or KeyType", labelType.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -818,7 +818,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "vector of two or more items of type float", scoreType.ToString());
             var labelType = schema[LabelIndex].Type;
             if (labelType != NumberType.Float && labelType.GetKeyCount() <= 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float or key", labelType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float or KeyType", labelType.ToString());
         }
     }
 

@@ -559,7 +559,7 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
                 var idx = Transformer.Model.InputNames.IndexOf(input);

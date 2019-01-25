@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms
 
             _type = schema[_index].Type;
             if (_type != NumberType.R4 && _type != NumberType.R8 && _type.GetKeyCount() == 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "flaot, double or key", _type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "flaot, double or KeyType", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
             _max = ctx.Reader.ReadDouble();

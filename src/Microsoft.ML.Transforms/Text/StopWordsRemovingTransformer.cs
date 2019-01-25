@@ -406,7 +406,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (!string.IsNullOrEmpty(_parent._columns[i].LanguageColumn))
                     {
                         if (!inputSchema.TryGetColumnIndex(_parent._columns[i].LanguageColumn, out int langCol))
-                            throw Host.ExceptSchemaMismatch(nameof(inputSchema), "language column", _parent._columns[i].LanguageColumn);
+                            throw Host.ExceptSchemaMismatch(nameof(inputSchema), "language", _parent._columns[i].LanguageColumn);
                         _languageColumns[i] = langCol;
                     }
                     else

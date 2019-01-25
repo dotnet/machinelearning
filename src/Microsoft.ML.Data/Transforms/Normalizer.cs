@@ -255,10 +255,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "fixed-size vector or scalar", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector or scalar", col.GetTypeString());
 
                 if (!col.ItemType.Equals(NumberType.R4) && !col.ItemType.Equals(NumberType.R8))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of R4 or R8", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of float or double", col.GetTypeString());
 
                 var isNormalizedMeta = new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
                     BoolType.Instance, false);

@@ -152,7 +152,7 @@ namespace Microsoft.ML.Transforms
 
                 var type = schema[index].Type;
                 if (!TestType(type))
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "source", src, "scalar or vector of float, double or key", type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "source", src, "scalar or vector of float, double or KeyType", type.ToString());
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);

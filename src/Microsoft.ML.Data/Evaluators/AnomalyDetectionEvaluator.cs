@@ -100,7 +100,7 @@ namespace Microsoft.ML.Data
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.Float && t.GetKeyCount() != 2)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a 2-value key", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a 2-value KeyType", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)

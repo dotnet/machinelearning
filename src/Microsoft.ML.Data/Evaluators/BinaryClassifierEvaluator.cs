@@ -133,7 +133,7 @@ namespace Microsoft.ML.Data
             host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
-                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float, double, bool, or a 2-value key", t.ToString());
+                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float, double, bool, or a 2-value KeyType", t.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -1098,7 +1098,7 @@ namespace Microsoft.ML.Data
 
             var t = schema[(int)LabelIndex].Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float, double, bool or a 2-value key", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float, double, bool or a 2-value KeyType", t.ToString());
 
             t = schema[ScoreIndex].Type;
             if (t != NumberType.Float)
