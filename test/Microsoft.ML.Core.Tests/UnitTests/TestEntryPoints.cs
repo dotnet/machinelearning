@@ -3617,7 +3617,7 @@ namespace Microsoft.ML.RunTests
             {
                 Arguments =
                 {
-                    SeparatorChars = new []{' '},
+                    Separators = new []{' '},
                     Columns = new[]
                     {
                         new TextLoader.Column("Text", DataKind.Text,

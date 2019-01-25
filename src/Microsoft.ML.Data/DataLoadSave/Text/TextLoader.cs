@@ -983,7 +983,7 @@ namespace Microsoft.ML.Data
         private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
         {
             Contracts.AssertValue(separatorChars);
-            var result = new Arguments { Columns = columns, HasHeader = hasHeader, SeparatorChars = separatorChars};
+            var result = new Arguments { Columns = columns, HasHeader = hasHeader, Separators = separatorChars};
             return result;
         }
 
