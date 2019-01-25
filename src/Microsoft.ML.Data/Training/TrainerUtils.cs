@@ -225,15 +225,17 @@ namespace Microsoft.ML.Training
             Contracts.AssertValue(data);
             Contracts.AssertValueOrNull(extraCols);
 
-            var columns = data.Data.Schema.Where(c => extraCols.Contains(c.Index));
+            var columns = extraCols == null ?
+                Enumerable.Empty<Schema.Column>() :
+                data.Data.Schema.Where(c => extraCols.Contains(c.Index));
 
-            if ((opt & CursOpt.Label) != 0)
+            if ((opt & CursOpt.Label) != 0 && data.Schema.Label.HasValue)
                 columns = columns.Append(data.Schema.Label.Value);
-            if ((opt & CursOpt.Features) != 0)
+            if ((opt & CursOpt.Features) != 0 && data.Schema.Feature.HasValue)
                 columns = columns.Append(data.Schema.Feature.Value);
-            if ((opt & CursOpt.Weight) != 0)
+            if ((opt & CursOpt.Weight) != 0 && data.Schema.Weight.HasValue)
                 columns = columns.Append(data.Schema.Weight.Value);
-            if ((opt & CursOpt.Group) != 0)
+            if ((opt & CursOpt.Group) != 0 && data.Schema.Group.HasValue)
                 columns = columns.Append(data.Schema.Group.Value);
             return columns;
         }
@@ -252,13 +254,6 @@ namespace Microsoft.ML.Training
         public static RowCursor[] CreateRowCursorSet(this RoleMappedData data,
             CursOpt opt, int n, Random rand, IEnumerable<int> extraCols = null)
             => data.Data.GetRowCursorSet(CreatePredicate(data, opt, extraCols), n, rand);
-
-        private static void AddOpt(HashSet<int> cols, Schema.Column? info)
-        {
-            Contracts.AssertValue(cols);
-            if (info.HasValue)
-                cols.Add(info.Value.Index);
-        }
 
         /// <summary>
         /// Get the getter for the feature column, assuming it is a vector of float.

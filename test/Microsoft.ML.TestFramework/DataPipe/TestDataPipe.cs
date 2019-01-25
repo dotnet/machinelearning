@@ -1151,7 +1151,158 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-      
+        [Fact]
+        public void ArrayDataViewBuilder()
+        {
+            ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
+            const int rows = 100;
+            Random rgen = new Random(0);
+            Float[] values = new Float[rows];
+            for (int i = 0; i < values.Length; ++i)
+                values[i] = (Float)(2 * rgen.NextDouble() - 1);
+            builder.AddColumn("Foo", NumberType.Float, values);
+
+            int[][] barValues = new int[rows][];
+            const int barSlots = 4;
+            for (int i = 0; i < rows; ++i)
+            {
+                barValues[i] = new int[barSlots];
+                for (int j = 0; j < barSlots; ++j)
+                    barValues[i][j] = rgen.Next(-100, 100);
+            }
+            builder.AddColumn("Bar", NumberType.I4, barValues);
+            bool[] bizValues = new bool[rows];
+            for (int i = 0; i < rows; ++i)
+                bizValues[i] = (rgen.Next(2) == 1);
+            builder.AddColumn("Biz", BoolType.Instance, bizValues);
+
+            IDataView view = builder.GetDataView();
+
+            Assert.Equal(3, view.Schema.Count);
+            // REVIEW: Generalize schema test.
+            Assert.Equal("Foo", view.Schema[0].Name);
+            Assert.Equal("Bar", view.Schema[1].Name);
+            Assert.Equal("Biz", view.Schema[2].Name);
+            int temp;
+            Assert.True(view.Schema.TryGetColumnIndex("Foo", out temp));
+            Assert.Equal(0, temp);
+            Assert.True(view.Schema.TryGetColumnIndex("Bar", out temp));
+            Assert.Equal(1, temp);
+            Assert.True(view.Schema.TryGetColumnIndex("Biz", out temp));
+            Assert.Equal(2, temp);
+
+            // Check the number of rows.
+            Assert.True(view.GetRowCount().HasValue);
+            Assert.Equal((long)rows, view.GetRowCount().Value);
+
+            using (RowCursor cursor = view.GetRowCursorForAllColumns())
+            {
+                var del = cursor.GetGetter<Float>(0);
+                var del2 = cursor.GetGetter<VBuffer<int>>(1);
+                var del3 = cursor.GetGetter<bool>(2);
+                Float value = 0;
+                VBuffer<int> value2 = default(VBuffer<int>);
+                bool value3 = default(bool);
+                int row = 0;
+                while (cursor.MoveNext())
+                {
+                    // First "Foo" column.
+                    del(ref value);
+                    Assert.Equal(values[row], value);
+
+                    // Second "Bar" column.
+                    del2(ref value2);
+                    Assert.Equal(barSlots, value2.Length);
+                    Assert.True(value2.IsDense);
+                    for (int s = 0; s < barSlots; ++s)
+                        Assert.Equal(barValues[row][s], value2.GetValues()[s]);
+
+                    // Third "Biz" column.
+                    del3(ref value3);
+                    Assert.Equal(bizValues[row], value3);
+
+                    // Non-column cursor data.
+                    Assert.Equal((long)row, cursor.Position);
+                    Assert.True(row < rows, "row cursor cursor returned more rows than expected");
+
+                    ++row;
+                }
+                Assert.Equal(rows, row);
+            }
+
+            SaveLoadText(view, Env);
+            SaveLoad(view, Env);
+
+            SaveLoadText(view, Env, suffix: "NoSchema", roundTrip: false, outputSchema: false, outputHeader: true);
+            SaveLoadText(view, Env, suffix: "NoHeader", roundTrip: false, outputSchema: true, outputHeader: false);
+            SaveLoadText(view, Env, suffix: "NoSchemaNoHeader", roundTrip: false, outputSchema: false, outputHeader: false);
+
+            SaveLoadTransposed(view, Env);
+            SaveLoadTransposed(view, Env, suffix: "2ndSave");
+
+            Done();
+        }
+
+        [Fact]
+        public void ArrayDataViewBuilderNoRows()
+        {
+            ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
+            builder.AddColumn("Foo", NumberType.I4, new int[0]);
+            builder.AddColumn("Bar", NumberType.U2, new ushort[0]);
+
+            IDataView view = builder.GetDataView();
+
+            SaveLoadText(view, Env);
+            SaveLoad(view, Env);
+
+            Done();
+        }
+
+        [Fact]
+        public void ArrayDataViewBuilderNoRowsNoCols()
+        {
+            ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
+            IDataView view = builder.GetDataView(0);
+
+            // Text saving by design does not work with no columns.
+            bool caught;
+            try
+            {
+                SaveLoadText(view, Env);
+                caught = false;
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                caught = exception.IsMarked();
+            }
+            Check(caught, "text save/load should have thrown on no columns, but did not");
+            SaveLoad(view, Env);
+
+            Done();
+        }
+
+        [Fact]
+        public void ArrayDataViewBuilderNoCols()
+        {
+            ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
+            IDataView view = builder.GetDataView(100);
+
+            // Text saving by design does not work with no columns.
+            bool caught;
+            try
+            {
+                SaveLoadText(view, Env);
+                caught = false;
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                caught = exception.IsMarked();
+            }
+            Check(caught, "text save/load should have thrown on no columns, but did not");
+            SaveLoad(view, Env);
+
+            Done();
+        }
     }
     /// <summary>
     /// A class for non-baseline data pipe tests.

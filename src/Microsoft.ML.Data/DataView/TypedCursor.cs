@@ -539,27 +539,27 @@ namespace Microsoft.ML.Data
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="catalog">Context for performing this operation.</param>
+        /// <param name="env">The environment.</param>
         /// <param name="data">The underlying data view.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
         [BestFriend]
-        internal static ICursorable<TRow> AsCursorable<TRow>(this DataOperationsCatalog catalog, IDataView data, bool ignoreMissingColumns = false,
+        internal static ICursorable<TRow> AsCursorable<TRow>(this IHostEnvironment env, IDataView data, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            catalog.Environment.CheckValue(data, nameof(data));
-            catalog.Environment.CheckValueOrNull(schemaDefinition);
+            env.CheckValue(data, nameof(data));
+            env.CheckValueOrNull(schemaDefinition);
 
-            return TypedCursorable<TRow>.Create(catalog.Environment, data, ignoreMissingColumns, schemaDefinition);
+            return TypedCursorable<TRow>.Create(env, data, ignoreMissingColumns, schemaDefinition);
         }
 
         /// <summary>
         /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="mlContext">Context where </param>
+        /// <param name="mlContext">ML context.</param>
         /// <param name="data">The underlying data view.</param>
         /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
