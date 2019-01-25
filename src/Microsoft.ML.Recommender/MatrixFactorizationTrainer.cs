@@ -228,10 +228,11 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info { get; }
 
         /// <summary>
-        /// Constructor initializing a new instance of <see cref="MatrixFactorizationTrainer"/> through the <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/> through the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">An instance of <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
+        [BestFriend]
         internal MatrixFactorizationTrainer(IHostEnvironment env, Options options) : base(env, LoadNameValue)
         {
             const string posError = "Parameter must be positive";
@@ -262,12 +263,13 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializing a new instance of <see cref="MatrixFactorizationTrainer"/>.
+        /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
         /// <param name="labelColumn">The name of the label column.</param>
+        [BestFriend]
         internal MatrixFactorizationTrainer(IHostEnvironment env,
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,

@@ -70,6 +70,12 @@ namespace Microsoft.ML
             /// </para>
             /// </remarks>
             /// <param name="options">Advanced arguments to the algorithm.</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs)]
+            /// ]]></format>
+            /// </example>
             public MatrixFactorizationTrainer MatrixFactorization(
                 MatrixFactorizationTrainer.Options options)
                     => new MatrixFactorizationTrainer(Owner.Environment, options);
