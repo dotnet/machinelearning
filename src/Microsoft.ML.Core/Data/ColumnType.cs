@@ -456,79 +456,29 @@ namespace Microsoft.ML.Data
     /// class numbers, etc. For example, in multi-class classification, the label is typically
     /// a class number which is naturally a KeyType.
     ///
-    /// KeyTypes can be contiguous (the class number example), in which case they can have
-    /// a cardinality/Count. For non-contiguous KeyTypes the Count property returns zero.
-    /// Any KeyType (contiguous or not) can have a Min value. The Min value is always >= 0.
+    /// KeyTypes have a cardinality (i.e., Count) that is strictly positive.
     ///
-    /// Note that the representation value does not necessarily match the logical value.
-    /// For example, if a KeyType has range 1000-5000, then it has a Min of 1000, Count
-    /// of 4001, but the representational values are 1-4001. The representation value zero
-    /// is reserved to mean none/invalid.
+    /// Note that the underlying representation value does not necessarily match the logical value.
+    /// For example, if a KeyType has range 0-5000, then it has a Count of 5001, but
+    /// the representational values are 1-5001. The representation value zero is reserved
+    /// to mean a missing value (similar to NaN).
     /// </summary>
     public sealed class KeyType : PrimitiveType
     {
-        private KeyType(Type type, DataKind kind, ulong min, int count, bool contiguous)
+        public KeyType(Type type, ulong count)
             : base(type)
         {
             Contracts.AssertValue(type);
-            Contracts.Assert(kind.ToType() == type);
-
-            Contracts.CheckParam(min >= 0, nameof(min));
-            Contracts.CheckParam(count >= 0, nameof(count), "Must be non-negative.");
-            Contracts.CheckParam((ulong)count <= ulong.MaxValue - min, nameof(count));
-            Contracts.CheckParam((ulong)count <= kind.ToMaxInt(), nameof(count));
-            Contracts.CheckParam(contiguous || count == 0, nameof(count), "Must be 0 for non-contiguous");
-
-            Contiguous = contiguous;
-            Min = min;
+            if (count == 0 || type.ToMaxInt() < count)
+                throw Contracts.ExceptParam(nameof(count), "The cardinality of a {0} must not exceed {1}.MaxValue" +
+                    " and must be strictly positive but got {2}.", nameof(KeyType), type.Name, count);
             Count = count;
         }
 
-        public KeyType(Type type, ulong min, int count, bool contiguous = true)
-            : this(type, CheckRefRawType(type), min, count, contiguous)
+        public KeyType(Type type, int count)
+            : this(type, (ulong)count)
         {
-        }
-
-        [BestFriend]
-        internal KeyType(DataKind kind, ulong min, int count, bool contiguous = true)
-            : this(ToRawType(kind), kind, min, count, contiguous)
-        {
-        }
-
-        private static DataKind CheckRefRawType(Type type)
-        {
-            Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(IsValidDataType(type), nameof(type));
-            var result = type.TryGetDataKind(out var kind);
-            Contracts.Assert(result);
-            return kind;
-
-        }
-
-        private static Type ToRawType(DataKind kind)
-        {
-            Contracts.CheckParam(IsValidDataKind(kind), nameof(kind));
-            return kind.ToType();
-        }
-
-        /// <summary>
-        /// Returns true iff the given DataKind is valid for a <see cref="KeyType"/>. The valid ones are
-        /// <see cref="DataKind.U1"/>, <see cref="DataKind.U2"/>, <see cref="DataKind.U4"/>, and <see cref="DataKind.U8"/>,
-        /// that is, the unsigned integer kinds.
-        /// </summary>
-        [BestFriend]
-        internal static bool IsValidDataKind(DataKind kind)
-        {
-            switch (kind)
-            {
-                case DataKind.U1:
-                case DataKind.U2:
-                case DataKind.U4:
-                case DataKind.U8:
-                    return true;
-                default:
-                    return false;
-            }
+            Contracts.CheckParam(0 < count, nameof(count), "The cardinality of a " + nameof(KeyType) + " must be strictly positive.");
         }
 
         /// <summary>
@@ -542,23 +492,13 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// This is the Min of the key type for display purposes and conversion to/from text. The values
-        /// actually stored always start at 1 (for the smallest legal value), with zero being reserved
-        /// for "not there"/"none". Typical Min values are 0 or 1, but can be any value >= 0.
-        /// </summary>
-        public ulong Min { get; }
-
-        /// <summary>
-        /// If this key type has contiguous values and a known cardinality, Count is that cardinality.
-        /// Otherwise, this returns zero. Note that such a key type can be converted to a bit vector
-        /// representation by mapping to a vector of length Count, with "id" mapped to a vector with
-        /// 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
+        /// <see cref="Count"/> is the cardinality of the <see cref="KeyType"/>. Note that such a key type can be converted to a
+        /// bit vector representation by mapping to a vector of length Count, with "id" mapped to a
+        /// vector with 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
         /// representation. Note that an id of 0 is used to represent the notion "none", which is
-        /// typically mapped to a vector of all zeros (of length Count).
+        /// typically mapped, by for example, one-hot encoding, to a vector of all zeros (of length Count).
         /// </summary>
-        public int Count { get; }
-
-        public bool Contiguous { get; }
+        public ulong Count { get; }
 
         public override bool Equals(ColumnType other)
         {
@@ -568,10 +508,6 @@ namespace Microsoft.ML.Data
             if (!(other is KeyType tmp))
                 return false;
             if (RawType != tmp.RawType)
-                return false;
-            if (Contiguous != tmp.Contiguous)
-                return false;
-            if (Min != tmp.Min)
                 return false;
             if (Count != tmp.Count)
                 return false;
@@ -585,18 +521,13 @@ namespace Microsoft.ML.Data
 
         public override int GetHashCode()
         {
-            return Hashing.CombinedHash(RawType.GetHashCode(), Contiguous, Min, Count);
+            return Hashing.CombinedHash(RawType.GetHashCode(), Count);
         }
 
         public override string ToString()
         {
             DataKind rawKind = this.GetRawKind();
-            if (Count > 0)
-                return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), Min, Min + (ulong)Count - 1);
-            if (Contiguous)
-                return string.Format("Key<{0}, {1}-*>", rawKind.GetString(), Min);
-            // This is the non-contiguous case - simply show the Min.
-            return string.Format("Key<{0}, Min:{1}>", rawKind.GetString(), Min);
+            return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), 0, Count - 1);
         }
     }
 

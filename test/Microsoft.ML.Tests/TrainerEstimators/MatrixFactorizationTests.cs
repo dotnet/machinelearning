@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
@@ -128,16 +130,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Column = new[]
                 {
                     new TextLoader.Column(labelColumnName, DataKind.R4, new [] { new TextLoader.Range(0) }),
-                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyRange(0, 19)),
-                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyRange(0, 39)),
+                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
+                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
                 }
             };
         }
 
         // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
-        // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses
-        // 0-based indices for rows, _synthesizedMatrixFirstRowIndex can be set to 0. Similarly, for 1-based indices, _synthesizedMatrixFirstRowIndex
-        // could be 1.
+        // Because in ML.NET key type's minimal value is zero, the first row index is always zero in C# data structure (e.g., MatrixColumnIndex=0
+        // and MatrixRowIndex=0 in MatrixElement below specifies the value at the upper-left corner in the training matrix). If user's row index 
+        // starts with 1, their row index 1 would be mapped to the 2nd row in matrix factorization module and their first row may contain no values.
+        // This behavior is also true to column index.
         const int _synthesizedMatrixFirstColumnIndex = 1;
         const int _synthesizedMatrixFirstRowIndex = 1;
         const int _synthesizedMatrixColumnCount = 60;
@@ -145,13 +148,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElement
         {
-            // Matrix column index starts from 1 and is at most _synthesizedMatrixColumnCount.
-            // Contieuous=true means that all values from 1 to _synthesizedMatrixColumnCount are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            // Matrix row index starts from 1 and is at most _synthesizedMatrixRowCount.
-            // Contieuous=true means that all values from 1 to _synthesizedMatrixRowCount are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount + _synthesizedMatrixRowCount.
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -159,9 +160,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementForScore
         {
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -201,11 +202,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(model.MatrixColumnIndexColumnType is KeyType);
             Assert.True(model.MatrixRowIndexColumnType is KeyType);
             var matColKeyType = (KeyType)model.MatrixColumnIndexColumnType;
-            Assert.True(matColKeyType.Min == _synthesizedMatrixFirstColumnIndex);
-            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
+            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex);
             var matRowKeyType = (KeyType)model.MatrixRowIndexColumnType;
-            Assert.True(matRowKeyType.Min == _synthesizedMatrixFirstRowIndex);
-            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
+            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount + _synthesizedMatrixRowCount);
 
             // Apply the trained model to the training set
             var prediction = model.Transform(dataView);
@@ -232,13 +231,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementZeroBased
         {
-            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = 0)]
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = 0)]
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -246,13 +243,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementZeroBasedForScore
         {
-            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = 0)]
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
+            [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = 0)]
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
+            [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -295,9 +292,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.NotNull(matColKeyType);
             var matRowKeyType = model.MatrixRowIndexColumnType as KeyType;
             Assert.NotNull(matRowKeyType);
-            Assert.True(matColKeyType.Min == 0);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
-            Assert.True(matRowKeyType.Min == 0);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
 
             // Apply the trained model to the training set
@@ -354,18 +349,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private class OneClassMatrixElementZeroBased
         {
-            [KeyType(Contiguous = true, Count = _oneClassMatrixColumnCount, Min = 0)]
+            [KeyType(Count = _oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _oneClassMatrixRowCount, Min = 0)]
+            [KeyType(Count = _oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
         }
 
         private class OneClassMatrixElementZeroBasedForScore
         {
-            [KeyType(Contiguous = true, Count = _oneClassMatrixColumnCount, Min = 0)]
+            [KeyType(Count = _oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _oneClassMatrixRowCount, Min = 0)]
+            [KeyType(Count = _oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
             public float Score;
@@ -422,6 +417,70 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.L2, 0, 0.0016);
+
+            // Create data for testing. Note that the 2nd element is not specified in the training data so it should
+            // be close to the constant specified by s.C = 0.15. Comparing with the data structure used in training phase,
+            // one extra float is added into OneClassMatrixElementZeroBasedForScore for storing the prediction result. Note
+            // that the prediction engine may ignore Value and assign the predicted value to Score.
+            var testDataMatrix = new List<OneClassMatrixElementZeroBasedForScore>();
+            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 0, Score = 0 });
+            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+
+            // Apply the trained model to the test data.
+            var testPrediction = model.Transform(testDataView);
+
+            var testResults = mlContext.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
+            // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
+            CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
+            // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
+            CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        public void MatrixFactorizationBackCompat()
+        {
+            // This test is meant to check backwards compatibility after the change that removed Min and Contiguous from KeyType.
+            // The model that we are loading in this test was generated using ML.Model.Save() on:
+
+            //var dataMatrix = new List<OneClassMatrixElementZeroBased>();
+            //dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 1 });
+            //dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 1, MatrixRowIndex = 1, Value = 1 });
+            //dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 2, Value = 1 });
+            //// Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            //var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+            //var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
+            //    nameof(OneClassMatrixElementZeroBased.MatrixColumnIndex),
+            //    nameof(OneClassMatrixElementZeroBased.MatrixRowIndex),
+            //    nameof(OneClassMatrixElementZeroBased.Value),
+            //    advancedSettings: s =>
+            //    {
+            //        s.LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass;
+            //        s.NumIterations = 100;
+            //        s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
+            //        // Let's test non-default regularization coefficient.
+            //        s.Lambda = 0.025;
+            //        s.K = 16;
+            //        // Importance coefficient of loss function over matrix elements not specified in the input matrix.
+            //        s.Alpha = 0.01;
+            //        // Desired value for matrix elements not specified in the input matrix.
+            //        s.C = 0.15;
+            //    });
+            // Train a matrix factorization model.
+            //var model = pipeline.Fit(dataView);
+
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            // Test that we can load model after KeyType change (removed Min and Contiguous).            
+            var modelPath = GetDataPath("backcompat", "matrix-factorization-model.zip");
+            ITransformer model;
+            using (var ch = Env.Start("load"))
+            {
+                using (var fs = File.OpenRead(modelPath))
+                    model = ML.Model.Load(fs);
+            }
 
             // Create data for testing. Note that the 2nd element is not specified in the training data so it should
             // be close to the constant specified by s.C = 0.15. Comparing with the data structure used in training phase,

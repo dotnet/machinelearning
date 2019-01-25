@@ -30,7 +30,7 @@ namespace Microsoft.ML.RunTests
         public void SequencePredictorSchemaTest()
         {
             int keyCount = 10;
-            var expectedScoreColumnType = new KeyType(DataKind.U4, 0, keyCount);
+            var expectedScoreColumnType = new KeyType(typeof(uint), keyCount);
             VBuffer<ReadOnlyMemory<char>> keyNames = GenerateKeyNames(keyCount);
 
             var sequenceSchema = ScoreSchemaFactory.CreateSequencePredictionSchema(expectedScoreColumnType,
@@ -46,10 +46,8 @@ namespace Microsoft.ML.RunTests
             // Check score column type.
             var actualScoreColumnType = scoreColumn.Type as KeyType;
             Assert.NotNull(actualScoreColumnType);
-            Assert.Equal(expectedScoreColumnType.Min, actualScoreColumnType.Min);
             Assert.Equal(expectedScoreColumnType.Count, actualScoreColumnType.Count);
             Assert.Equal(expectedScoreColumnType.RawType, actualScoreColumnType.RawType);
-            Assert.Equal(expectedScoreColumnType.Contiguous, actualScoreColumnType.Contiguous);
 
             // Check metadata. Because keyNames is not empty, there should be three metadata fields.
             var scoreMetadata = scoreColumn.Metadata;
@@ -89,7 +87,7 @@ namespace Microsoft.ML.RunTests
         public void SequencePredictorSchemaWithoutKeyNamesMetadataTest()
         {
             int keyCount = 10;
-            var expectedScoreColumnType = new KeyType(DataKind.U4, 0, keyCount);
+            var expectedScoreColumnType = new KeyType(typeof(uint), keyCount);
             VBuffer<ReadOnlyMemory<char>> keyNames = GenerateKeyNames(0);
 
             var sequenceSchema = ScoreSchemaFactory.CreateSequencePredictionSchema(expectedScoreColumnType,
@@ -105,10 +103,8 @@ namespace Microsoft.ML.RunTests
             // Check score column type.
             var actualScoreColumnType = scoreColumn.Type as KeyType;
             Assert.NotNull(actualScoreColumnType);
-            Assert.Equal(expectedScoreColumnType.Min, actualScoreColumnType.Min);
             Assert.Equal(expectedScoreColumnType.Count, actualScoreColumnType.Count);
             Assert.Equal(expectedScoreColumnType.RawType, actualScoreColumnType.RawType);
-            Assert.Equal(expectedScoreColumnType.Contiguous, actualScoreColumnType.Contiguous);
 
             // Check metadata. Because keyNames is not empty, there should be three metadata fields.
             var scoreMetadata = scoreColumn.Metadata;

@@ -669,7 +669,7 @@ namespace Microsoft.ML.Data
         {
             // Any key is convertible to ulong, so rather than add special case handling for all possible
             // key-types we just upfront convert it to the most general type (ulong) and work from there.
-            KeyType dstType = new KeyType(DataKind.U8, type.Min, type.Count, type.Contiguous);
+            KeyType dstType = new KeyType(typeof(ulong), type.Count);
             bool identity;
             var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
             var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);
@@ -693,7 +693,7 @@ namespace Microsoft.ML.Data
             else
             {
                 ch.Check(type.Count > 0, "Label must be of known cardinality.");
-                int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.Count);
+                int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.GetCountAsInt32(env));
                 mapper =
                     (in TInput src, ref Single dst) =>
                     {

@@ -37,12 +37,14 @@ namespace Microsoft.ML.Trainers.Recommender
         {
             return new VersionInfo(
                 modelSignature: "FAFAMAPD",
-                verWrittenCur: 0x00010001,
+                // verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Removed Min in KeyType
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(MatrixFactorizationPredictor).Assembly.FullName);
         }
+        private const uint VersionNoMinCount = 0x00010002;
 
         private readonly IHost _host;
         // The number of rows.
@@ -77,8 +79,8 @@ namespace Microsoft.ML.Trainers.Recommender
             _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));
 
             buffer.Get(out _numberOfRows, out _numberofColumns, out _approximationRank, out _leftFactorMatrix, out _rightFactorMatrix);
-            _host.Assert(_numberofColumns == matrixColumnIndexType.Count);
-            _host.Assert(_numberOfRows == matrixRowIndexType.Count);
+            _host.Assert(_numberofColumns == matrixColumnIndexType.GetCountAsInt32(_host));
+            _host.Assert(_numberOfRows == matrixRowIndexType.GetCountAsInt32(_host));
             _host.Assert(_leftFactorMatrix.Length == _numberOfRows * _approximationRank);
             _host.Assert(_rightFactorMatrix.Length == _numberofColumns * _approximationRank);
 
@@ -92,29 +94,37 @@ namespace Microsoft.ML.Trainers.Recommender
             _host = env.Register(RegistrationName);
             // *** Binary format ***
             // int: number of rows (m), the limit on row
-            // ulong: Minimum value of the row key-type
             // int: number of columns (n), the limit on column
-            // ulong: Minimum value of the column key-type
             // int: rank of factor matrices (k)
             // float[m * k]: the left factor matrix
             // float[k * n]: the right factor matrix
 
             _numberOfRows = ctx.Reader.ReadInt32();
             _host.CheckDecode(_numberOfRows > 0);
-            ulong mMin = ctx.Reader.ReadUInt64();
-            _host.CheckDecode((ulong)_numberOfRows <= ulong.MaxValue - mMin);
+            if (ctx.Header.ModelVerWritten < VersionNoMinCount)
+            {
+                ulong mMin = ctx.Reader.ReadUInt64();
+                // We no longer support non zero Min for KeyType.
+                _host.CheckDecode(mMin == 0);
+                _host.CheckDecode((ulong)_numberOfRows <= ulong.MaxValue - mMin);
+            }
             _numberofColumns = ctx.Reader.ReadInt32();
             _host.CheckDecode(_numberofColumns > 0);
-            ulong nMin = ctx.Reader.ReadUInt64();
-            _host.CheckDecode((ulong)_numberofColumns <= ulong.MaxValue - nMin);
+            if (ctx.Header.ModelVerWritten < VersionNoMinCount)
+            {
+                ulong nMin = ctx.Reader.ReadUInt64();
+                // We no longer support non zero Min for KeyType.
+                _host.CheckDecode(nMin == 0);
+                _host.CheckDecode((ulong)_numberofColumns <= ulong.MaxValue - nMin);
+            }
             _approximationRank = ctx.Reader.ReadInt32();
             _host.CheckDecode(_approximationRank > 0);
 
             _leftFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(_numberOfRows * _approximationRank));
             _rightFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(_numberofColumns * _approximationRank));
 
-            MatrixColumnIndexType = new KeyType(DataKind.U4, nMin, _numberofColumns);
-            MatrixRowIndexType = new KeyType(DataKind.U4, mMin, _numberOfRows);
+            MatrixColumnIndexType = new KeyType(typeof(uint), _numberofColumns);
+            MatrixRowIndexType = new KeyType(typeof(uint), _numberOfRows);
         }
 
         /// <summary>
@@ -138,9 +148,7 @@ namespace Microsoft.ML.Trainers.Recommender
 
             // *** Binary format ***
             // int: number of rows (m), the limit on row
-            // ulong: Minimum value of the row key-type
             // int: number of columns (n), the limit on column
-            // ulong: Minimum value of the column key-type
             // int: rank of factor matrices (k)
             // float[m * k]: the left factor matrix
             // float[k * n]: the right factor matrix
@@ -149,9 +157,7 @@ namespace Microsoft.ML.Trainers.Recommender
             _host.Check(_numberofColumns > 0, "Number of columns must be positive");
             _host.Check(_approximationRank > 0, "Number of latent factors must be positive");
             ctx.Writer.Write(_numberOfRows);
-            ctx.Writer.Write((MatrixRowIndexType as KeyType).Min);
             ctx.Writer.Write(_numberofColumns);
-            ctx.Writer.Write((MatrixColumnIndexType as KeyType).Min);
             ctx.Writer.Write(_approximationRank);
             _host.Check(Utils.Size(_leftFactorMatrix) == _numberOfRows * _approximationRank, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
             _host.Check(Utils.Size(_rightFactorMatrix) == _numberofColumns * _approximationRank, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");

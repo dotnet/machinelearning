@@ -19,9 +19,20 @@ namespace Microsoft.ML.Data
             (columnType is TimeSpanType) || (columnType is DateTimeType) || (columnType is DateTimeOffsetType);
 
         /// <summary>
-        /// Zero return means either it's not a key type or the cardinality is unknown.
+        /// Zero return means it's not a key type.
         /// </summary>
-        public static int GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
+        public static ulong GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
+
+        /// <summary>
+        /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
+        /// Zero return means it's not a key type.
+        /// </summary>
+        public static int GetKeyCountAsInt32(this ColumnType columnType, IExceptionContext ectx = null)
+        {
+            ulong count = columnType.GetKeyCount();
+            ectx.Check(count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
+            return (int)count;
+        }
 
         /// <summary>
         /// For non-vector types, this returns the column type itself (i.e., return <paramref name="columnType"/>).

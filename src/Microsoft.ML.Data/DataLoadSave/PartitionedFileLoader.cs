@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
                 }
 
                 DataKind? kind = null;
-                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out KeyRange range))
+                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out var keyCount))
                 {
                     kind = parsedKind;
                 }

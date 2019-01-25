@@ -200,7 +200,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -592,7 +592,7 @@ namespace Microsoft.ML.Data
             _numClusters = numClusters;
 
             _types = new ColumnType[3];
-            var key = new KeyType(DataKind.U4, 0, _numClusters);
+            var key = new KeyType(typeof(uint), _numClusters);
             _types[ClusterIdCol] = key;
             _types[SortedClusterCol] = new VectorType(key, _numClusters);
             _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Data
             Host.CheckDecode(_numClusters > 0);
 
             _types = new ColumnType[3];
-            var key = new KeyType(DataKind.U4, 0, _numClusters);
+            var key = new KeyType(typeof(uint), _numClusters);
             _types[ClusterIdCol] = key;
             _types[SortedClusterCol] = new VectorType(key, _numClusters);
             _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);

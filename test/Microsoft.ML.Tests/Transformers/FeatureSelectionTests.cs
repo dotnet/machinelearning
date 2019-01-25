@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("breast-cancer.txt");
             var reader = TextLoaderStatic.CreateReader(ML, ctx => (
-                Label: ctx.LoadKey(0, 0, 2),
+                Label: ctx.LoadKey(0, 3),
                 VectorFloat: ctx.LoadFloat(1, 4)
             ));
 
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("breast-cancer.txt");
             var reader = TextLoaderStatic.CreateReader(ML, ctx => (
-                Label: ctx.LoadKey(0, 0, 2),
+                Label: ctx.LoadKey(0, 3),
                 ScalarFloat: ctx.LoadFloat(6),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDouble: ctx.LoadDouble(4, 8)
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("breast-cancer.txt");
             var reader = TextLoaderStatic.CreateReader(ML, ctx => (
-                Label: ctx.LoadKey(0, 0, 2),
+                Label: ctx.LoadKey(0, 3),
                 VectorFloat: ctx.LoadFloat(1, 4)
             ));
 

@@ -77,16 +77,15 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="name">The name of the column.</param>
         /// <param name="getKeyValues">The delegate that does a reverse lookup based upon the given key. This is for metadata creation</param>
-        /// <param name="keyMin">The <see cref="KeyType"/> minimum to use.</param>
         /// <param name="keyCount">The count of unique keys specified in values</param>
         /// <param name="values">The values to add to the column. Note that since this is creating a <see cref="KeyType"/> column, the values will be offset by 1.</param>
-        public void AddColumn<T1>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyMin, int keyCount, params T1[] values)
+        public void AddColumn<T1>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyCount, params T1[] values)
         {
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
             _host.CheckParam(keyCount > 0, nameof(keyCount));
             CheckLength(name, values);
             values.GetType().GetElementType().TryGetDataKind(out DataKind kind);
-            _columns.Add(new AssignmentColumn<T1>(new KeyType(kind, keyMin, keyCount), values));
+            _columns.Add(new AssignmentColumn<T1>(new KeyType(kind.ToType(), keyCount), values));
             _getKeyValues.Add(name, getKeyValues);
             _names.Add(name);
         }
@@ -224,7 +223,7 @@ namespace Microsoft.ML.Data
                         meta.AddSlotNames(_columns[i].Type.GetVectorSize(), slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
-                        meta.AddKeyValues(_columns[i].Type.GetKeyCount(), TextType.Instance, keyValueGetter);
+                        meta.AddKeyValues(_columns[i].Type.GetKeyCountAsInt32(_host), TextType.Instance, keyValueGetter);
                     schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.GetMetadata());
                 }
 

@@ -143,7 +143,9 @@ namespace Microsoft.ML.Training
             Contracts.Assert(!col.IsHidden);
             if (col.Type is KeyType keyType && keyType.Count > 0)
             {
-                count = keyType.Count;
+                if (keyType.Count >= Utils.ArrayMaxSize)
+                    throw Contracts.ExceptParam(nameof(data), "Maximum label is too large for multi-class: {0}.", keyType.Count);
+                count = (int)keyType.Count;
                 return;
             }
 

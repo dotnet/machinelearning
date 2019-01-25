@@ -1166,7 +1166,7 @@ namespace Microsoft.ML.Data.IO
             return true;
         }
 
-        private sealed class KeyCodec<T> : IValueCodec<T>
+        private sealed class KeyCodecOld<T> : IValueCodec<T>
         {
             // *** Binary block format ***
             // Identical to UnsafeTypeCodec, packed bytes of little-endian values.
@@ -1177,6 +1177,120 @@ namespace Microsoft.ML.Data.IO
             private readonly IValueCodec<T> _innerCodec;
 
             public string LoadName { get { return "Key"; } }
+
+            public ColumnType Type { get { return _type; } }
+
+            public KeyCodecOld(CodecFactory factory, KeyType type, IValueCodec<T> innerCodec)
+            {
+                Contracts.AssertValue(factory);
+                Contracts.AssertValue(type);
+                Contracts.AssertValue(innerCodec);
+                Contracts.Assert(type.RawType == typeof(T));
+                Contracts.Assert(innerCodec.Type.RawType == type.RawType);
+                _factory = factory;
+                _type = type;
+                _innerCodec = innerCodec;
+            }
+
+            public int WriteParameterization(Stream stream)
+            {
+                int total = _factory.WriteCodec(stream, _innerCodec);
+                using (BinaryWriter writer = _factory.OpenBinaryWriter(stream))
+                {
+                    writer.Write(_type.Count);
+                    total += sizeof(ulong);
+                }
+                return total;
+            }
+
+            // REVIEW: There is something a little bit troubling here. If someone, say,
+            // produces a column on KeyType(I4, 4) and then returns 10 as a value in
+            // that column, that's obviously a violation of the type, and lots of things
+            // downstream may complain, but it is a "valid" cursor in that it produces values
+            // and does not throw. So from that perspective of the codecs and their users being
+            // common and indifferent carriers, it's not clear tha these codecs should take on the
+            // responsibility for validating the input. On the *other* hand, if we know that we
+            // wrote valid data, when reading it back from a stream should we not take advantage
+            // of this, to validate the correctness of the decoding? On the other other hand, is
+            // validating the correctness for the decoding of things like streams any less urgent?
+
+            public IValueWriter<T> OpenWriter(Stream stream)
+            {
+                return _innerCodec.OpenWriter(stream);
+            }
+
+            public IValueReader<T> OpenReader(Stream stream, int items)
+            {
+                return _innerCodec.OpenReader(stream, items);
+            }
+        }
+
+        private bool GetKeyCodecOld(Stream definitionStream, out IValueCodec codec)
+        {
+            // The first value in the definition stream will be the internal codec.
+            IValueCodec innerCodec;
+            if (!TryReadCodec(definitionStream, out innerCodec))
+            {
+                codec = default;
+                return false;
+            }
+            // Construct the key type.
+            var itemType = innerCodec.Type as PrimitiveType;
+            Contracts.CheckDecode(itemType != null);
+            Contracts.CheckDecode(KeyType.IsValidDataType(itemType.RawType));
+            KeyType type;
+            using (BinaryReader reader = OpenBinaryReader(definitionStream))
+            {
+                bool contiguous = reader.ReadBoolByte();
+                ulong min = reader.ReadUInt64();
+                int count = reader.ReadInt32();
+
+                // Since we no longer support the notion of min != 0 or non contiguous values we throw in that case.
+                Contracts.CheckDecode(min == 0);
+                Contracts.CheckDecode(0 <= count);
+                Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
+                Contracts.CheckDecode(contiguous);
+
+                // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
+                if (count == 0)
+                    type = new KeyType(itemType.RawType, itemType.RawType.ToMaxInt());
+                else
+                    type = new KeyType(itemType.RawType, count);
+            }
+            // Next create the key codec.
+            Type codecType = typeof(KeyCodecOld<>).MakeGenericType(itemType.RawType);
+            codec = (IValueCodec)Activator.CreateInstance(codecType, this, type, innerCodec);
+            return true;
+        }
+
+        private bool GetKeyCodecOld(ColumnType type, out IValueCodec codec)
+        {
+            if (!(type is KeyType))
+                throw Contracts.ExceptParam(nameof(type), "type must be a key type");
+            // Create the internal codec the key codec will use to do the actual reading/writing.
+            IValueCodec innerCodec;
+            if (!TryGetCodec(NumberType.FromKind(type.GetRawKind()), out innerCodec))
+            {
+                codec = default;
+                return false;
+            }
+            // Next create the key codec.
+            Type codecType = typeof(KeyCodecOld<>).MakeGenericType(type.RawType);
+            codec = (IValueCodec)Activator.CreateInstance(codecType, this, type, innerCodec);
+            return true;
+        }
+
+        private sealed class KeyCodec<T> : IValueCodec<T>
+        {
+            // *** Binary block format ***
+            // Identical to UnsafeTypeCodec, packed bytes of little-endian values.
+
+            private readonly CodecFactory _factory;
+            private readonly KeyType _type;
+            // We rely on a more basic value codec to do the actual saving and loading.
+            private readonly IValueCodec<T> _innerCodec;
+
+            public string LoadName { get { return "Key2"; } }
 
             public ColumnType Type { get { return _type; } }
 
@@ -1197,18 +1311,14 @@ namespace Microsoft.ML.Data.IO
                 int total = _factory.WriteCodec(stream, _innerCodec);
                 using (BinaryWriter writer = _factory.OpenBinaryWriter(stream))
                 {
-                    writer.WriteBoolByte(_type.Contiguous);
-                    total++;
-                    writer.Write(_type.Min);
-                    total += sizeof(ulong);
                     writer.Write(_type.Count);
-                    total += sizeof(int);
+                    total += sizeof(ulong);
                 }
                 return total;
             }
 
             // REVIEW: There is something a little bit troubling here. If someone, say,
-            // produces a column on KeyType(I4, 0, 4, true) and then returns 10 as a value in
+            // produces a column on KeyType(I4, 4) and then returns 10 as a value in
             // that column, that's obviously a violation of the type, and lots of things
             // downstream may complain, but it is a "valid" cursor in that it produces values
             // and does not throw. So from that perspective of the codecs and their users being
@@ -1235,7 +1345,7 @@ namespace Microsoft.ML.Data.IO
             IValueCodec innerCodec;
             if (!TryReadCodec(definitionStream, out innerCodec))
             {
-                codec = default(IValueCodec);
+                codec = default;
                 return false;
             }
             // Construct the key type.
@@ -1245,17 +1355,12 @@ namespace Microsoft.ML.Data.IO
             KeyType type;
             using (BinaryReader reader = OpenBinaryReader(definitionStream))
             {
-                bool contiguous = reader.ReadBoolByte();
-                ulong min = reader.ReadUInt64();
-                int count = reader.ReadInt32();
+                ulong count = reader.ReadUInt64();
 
-                Contracts.CheckDecode(min >= 0);
-                Contracts.CheckDecode(0 <= count);
-                Contracts.CheckDecode((ulong)count <= ulong.MaxValue - min);
-                Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
-                Contracts.CheckDecode(contiguous || count == 0);
+                Contracts.CheckDecode(0 < count);
+                Contracts.CheckDecode(count <= itemType.RawType.ToMaxInt());
 
-                type = new KeyType(itemType.RawType, min, count, contiguous);
+                type = new KeyType(itemType.RawType, count);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodec<>).MakeGenericType(itemType.RawType);
@@ -1271,7 +1376,7 @@ namespace Microsoft.ML.Data.IO
             IValueCodec innerCodec;
             if (!TryGetCodec(NumberType.FromType(type.RawType), out innerCodec))
             {
-                codec = default(IValueCodec);
+                codec = default;
                 return false;
             }
             // Next create the key codec.

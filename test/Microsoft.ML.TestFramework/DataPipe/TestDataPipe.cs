@@ -434,7 +434,7 @@ namespace Microsoft.ML.RunTests
 
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{col=Text:TX:0-2 col=CatU1:U1[0-2]:0-2 col=CatU2:U2[2-4]:0-2 col=CatU8:U8[0-*]:0-2 col=OneU1:U1[0-*]:0 col=OneU2:U2[0-*]:1 col=OneU4:U4[0-*]:1 col=OneU8:U8[0-*]:2 col=Single:TX:0 col=VarU1:U1[0-*]:3-** col=VarU2:U2[0-*]:3-** col=VarU4:U4[0-*]:3-** col=VarU8:U8[0-*]:3-** col=Variable:TX:3-**}",
+                    "loader=Text{col=Text:TX:0-2 col=CatU1:U1[0-2]:0-2 col=CatU2:U2[0-4]:0-2 col=CatU8:U8[]:0-2 col=OneU1:U1[]:0 col=OneU2:U2[]:1 col=OneU4:U4[]:1 col=OneU8:U8[]:2 col=Single:TX:0 col=VarU1:U1[]:3-** col=VarU2:U2[]:3-** col=VarU4:U4[]:3-** col=VarU8:U8[]:3-** col=Variable:TX:3-**}",
                     "xf=Cat{col=Cat:Key:Text col=VarCat:Key:Variable}",
                     "xf=Hash{bits=6 ordered+ col={name=Hash0 src=Text bits=4} col={name=Hash1 src=Text ord- bits=4} col={name=Hash2 src=Cat} col=Hash3:CatU8}",
                     "xf=Hash{col={name=Hash4 bits=5 src=CatU1} col={name=Hash5 src=CatU2 bits=6 ord+} col={name=Hash6 src=CatU2 bits=6} col={name=Hash7 src=CatU8 bits=6} col={name=Hash8 src=Cat bits=6}}",
@@ -454,7 +454,7 @@ namespace Microsoft.ML.RunTests
         {
             TestCore(null, false,
                 new[] {
-                    "loader=Text{col=One:TX:1 col=Num:R4:2-* col=Key:U1[1-10]:1}",
+                    "loader=Text{col=One:TX:1 col=Num:R4:2-* col=Key:U1[0-10]:1}",
                     // Create a lot of unused slots.
                     "xf=CatHash{col=OneInd:One bits=10}",
                     // One is for the non-vector case and OneInd is reduced to a small size.
@@ -529,7 +529,7 @@ namespace Microsoft.ML.RunTests
 
             TestCore(null, true,
                 new[] {
-                    "loader=Text{col=CatU8:U8[0-100]:1-9 col=CatU2:U2[0-*]:3-5}",
+                    "loader=Text{col=CatU8:U8[0-100]:1-9 col=CatU2:U2[]:3-5}",
                     "xf=NgramHash{bits=5 col=NgramHash:CatU8 col=NgramHash2:CatU2}",
                     "xf=SelectColumns{keepcol=NgramHash keepcol=NgramHash2 hidden=-}"
                 },
@@ -660,7 +660,7 @@ namespace Microsoft.ML.RunTests
                     "an angry ant\t3\t3\t\tbob bowled badly",
                     "\t10\t\t\t\"\""
                 });
-            const string loader = "loader=Text{col=A:TX:0 col=K:U4[3-10]:1-2 col=KS:U4[3-10]:2 col=B:TX:4 col=E:TX:3}";
+            const string loader = "loader=Text{col=A:TX:0 col=K:U4[11]:1-2 col=KS:U4[11]:2 col=B:TX:4 col=E:TX:3}";
             TestCore(pathData, true,
                 new[] {
                     loader,
@@ -705,7 +705,7 @@ namespace Microsoft.ML.RunTests
                 new[] {
                     loader,
                     "xf=WordToken{col=AT:A}",
-                    "xf=Hash{col=AH:AT}",
+                    "xf=Hash{col=AH:AT bits=30}",
                     "xf=NgramHash{col=AH ngram=3 hashbits=4 all- ih=3}",
                     "xf=SelectColumns{keepCol=AH}"
                 }, suffix: "6");
@@ -806,12 +806,12 @@ namespace Microsoft.ML.RunTests
                     "loader=Text{header=+",
                     "  col=Label:U1[0-1]:0",
                     "  col=Features:U2:1-*",
-                    "  col=A:U1[1-5]:1",
-                    "  col=B:U1[3-8]:2",
-                    "  col=C:U4[0-5]:3",
-                    "  col=D:U1[1-*]:4",
-                    "  col=E:[3-*]:5",
-                    "  col=F:U1[0-*]:6",
+                    "  col=A:U1[0-5]:1",
+                    "  col=B:U1[0-8]:2",
+                    "  col=C:U8[6]:3",
+                    "  col=D:U1[]:4",
+                    "  col=E:U8[]:5",
+                    "  col=F:U1[]:6",
                     "}",
                     "xf=Convert{col=Label2:U2[0-1]:Label col=Features2:Features type=Num}",
                 },
@@ -837,13 +837,12 @@ namespace Microsoft.ML.RunTests
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label:U1[0-1]:Label" +
                         " col=Features:U2:Features" +
-                        " col=A:U1[1-5]:A" +
-                        " col=B:U1[3-8]:B" +
-                        " col=C:[0-5]:C" +
-                        " col=D:U1[1-*]:D" +
-                        " col=E" +
-                        " col=F:U1[0-*]:F" +
-                        " key={min=3}",
+                        " col=A:U1[0-5]:A" +
+                        " col=B:U1[0-8]:B" +
+                        " col=C:U8[6]:C" +
+                        " col=D:U1[]:D" +
+                        " col=E:U8[]:E" +
+                        " col=F:U1[]:F",
                         argsConv);
                     Check(tmp, "Parsing argsConv failed!");
                     view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);

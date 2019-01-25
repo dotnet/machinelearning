@@ -3,9 +3,9 @@
 #@   sep=tab
 #@   col=ScalarString:TX:0
 #@   col=VectorString:TX:1-4
-#@   col=BareKey:U4[0-5]:5
-#@   col=A:U4[0-34]:6
-#@   col=B:U4[0-73]:7-10
+#@   col=BareKey:U4[6]:5
+#@   col=A:U4[35]:6
+#@   col=B:U4[74]:7-10
 #@   col=A_back:TX:11
 #@   col=B_back:TX:12-15
 #@ }

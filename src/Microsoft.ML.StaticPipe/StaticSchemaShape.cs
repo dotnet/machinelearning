@@ -280,7 +280,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
                     {
                         var kvcol = meta.Schema[kvcolIndex];
                         var kvType = kvcol.Type;
-                        if (kvType is VectorType kvVecType && kvVecType.Size == kt.Count)
+                        Contracts.Assert(kt.Count <= int.MaxValue);
+                        if (kvType is VectorType kvVecType && kvVecType.Size == (int)kt.Count)
                         {
                             Contracts.Assert(kt.Count > 0);
                             var subtype = GetTypeOrNull(kvcol);
