@@ -233,13 +233,14 @@ phases:
       packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg;!$(Build.SourcesDirectory)/bin/packages/**/*.symbols.nupkg 
       nuGetFeedType: internal 
       feedPublish: MachineLearning
-    
-  - task: MSBuild@1
-    displayName: Publish Packages to MyGet Feed
-    inputs:
-      solution: build/publish.proj
-      msbuildArguments: /t:PublishPackages /p:NuGetFeedUrl=$(_NuGetFeedUrl) /p:NuGetApiKey=$(dotnet-myget-org-api-key)
-      msbuildVersion: 15.0
+
+# Temporarily disable myget publishing - https://github.com/dotnet/machinelearning/issues/2244
+#  - task: MSBuild@1
+#    displayName: Publish Packages to MyGet Feed
+#    inputs:
+#      solution: build/publish.proj
+#      msbuildArguments: /t:PublishPackages /p:NuGetFeedUrl=$(_NuGetFeedUrl) /p:NuGetApiKey=$(dotnet-myget-org-api-key)
+#      msbuildVersion: 15.0
 
   - task: MSBuild@1
     displayName: Publish Symbols to SymWeb Symbol Server
