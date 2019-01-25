@@ -20,6 +20,12 @@ namespace Microsoft.ML
         /// <param name="featureColumns">The features, or independent variables.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
         /// <param name="weights">The optional example weights.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FieldAwareFactorizationMachine](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FieldAwareFactorizationMachine.cs)]
+        /// ]]></format>
+        /// </example>
         public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,

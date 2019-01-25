@@ -121,7 +121,7 @@ namespace Microsoft.ML.FactorizationMachine
         private float _radius;
 
         /// <summary>
-        /// Constructor initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">An instance of the legacy <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
@@ -147,7 +147,7 @@ namespace Microsoft.ML.FactorizationMachine
         }
 
         /// <summary>
-        /// Initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
+        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="featureColumns">The name of column hosting the features. The i-th element stores feature column of the i-th field.</param>
