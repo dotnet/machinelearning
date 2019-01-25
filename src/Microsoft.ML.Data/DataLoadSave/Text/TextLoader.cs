@@ -353,10 +353,11 @@ namespace Microsoft.ML.Data
             public int? InputSize;
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
-            public string Separator = DefaultArguments.Separator.ToString();
+            // this is internal as it only serves the command line interface
+            internal string Separator = DefaultArguments.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
-            public char[] SeparatorChars = new[] { DefaultArguments.Separator };
+            public char[] Separators = new[] { DefaultArguments.Separator };
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
                 ShortName = "col", SortOrder = 1)]
@@ -982,7 +983,7 @@ namespace Microsoft.ML.Data
         private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
         {
             Contracts.AssertValue(separatorChars);
-            var result = new Arguments { Column = columns, HasHeader = hasHeader, SeparatorChars = separatorChars};
+            var result = new Arguments { Column = columns, HasHeader = hasHeader, Separators = separatorChars};
             return result;
         }
 
@@ -1048,13 +1049,13 @@ namespace Microsoft.ML.Data
 
             _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
 
-            //Default arg.Separator is tab and default args.SeparatorChars is also a '\t'.
+            //Default arg.Separator is tab and default args.Separators is also a '\t'.
             //At a time only one default can be different and whichever is different that will
             //be used.
-            if (args.SeparatorChars.Length > 1 || args.SeparatorChars[0] != '\t')
+            if (args.Separators.Length > 1 || args.Separators[0] != '\t')
             {
                 var separators = new HashSet<char>();
-                foreach (char c in args.SeparatorChars)
+                foreach (char c in args.Separators)
                     separators.Add(NormalizeSeparator(c.ToString()));
 
                 _separators = separators.ToArray();
@@ -1373,7 +1374,7 @@ namespace Microsoft.ML.Data
             Arguments args = new Arguments
             {
                 HasHeader = hasHeader,
-                SeparatorChars = new[] { separator },
+                Separators = new[] { separator },
                 AllowQuoting = allowQuotedStrings,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,
