@@ -64,8 +64,52 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 Here's an example of code to automatically train a model to predict sentiment from text samples.
 
+(Caution: The example that follows is very much a work in progress. Our API is in flux at the moment.)
+
 ```C#
-// Example to come 
+
+using System;
+using Microsoft.ML;
+using Microsoft.ML.Auto;
+
+namespace Samples
+{
+    public static class Benchmarking
+    {
+        const string DatasetName = "DatasetName";
+        const string Label = "Label";
+        const string DatasetPathPrefix = @"C:\Datasets\";
+
+        static readonly string TrainDataPath = $"{DatasetPathPrefix}{DatasetName}_train.csv";
+        static readonly string ValidationDataPath = $"{DatasetPathPrefix}{DatasetName}_valid.csv";
+        static readonly string TestDataPath = $"{DatasetPathPrefix}{DatasetName}_test.csv";
+
+        public static void Run()
+        {
+            var context = new MLContext();
+            var columnInference = context.Data.InferColumns(TrainDataPath, Label, true);
+            var textLoader = context.Data.CreateTextReader(columnInference);
+            var trainData = textLoader.Read(TrainDataPath);
+            var validationData = textLoader.Read(ValidationDataPath);
+            var testData = textLoader.Read(TestDataPath);
+            var autoFitResult = context.BinaryClassification.AutoFit(trainData, Label, validationData, settings:
+                new AutoFitSettings()
+                {
+                    StoppingCriteria = new ExperimentStoppingCriteria()
+                    {
+                        MaxIterations = 100,
+                        TimeOutInMinutes = 24 * 60
+                    }
+                });
+            var model = autoFitResult.BestPipeline.Model;
+            var scoredTestData = model.Transform(testData);
+            var testDataMetrics = context.BinaryClassification.EvaluateNonCalibrated(scoredTestData);
+
+            Console.WriteLine(testDataMetrics.Accuracy);
+            Console.ReadLine();
+        }
+    }
+}
 
 ```
 
