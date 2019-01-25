@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                var srcType = input.Schema[_parent.ColumnPairs[iinfo].sourceColumnNames].Type;
+                var srcType = input.Schema[_parent.ColumnPairs[iinfo].sourceColumnName].Type;
                 Host.Assert(srcType.GetItemType() is TextType);
 
                 if (srcType is VectorType vectorType)

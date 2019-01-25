@@ -139,6 +139,39 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             _columns = columns;
         }
+<<<<<<< HEAD:src/Microsoft.ML.Data/Transforms/ValueMapping.cs
+=======
+
+        /// <summary>
+        /// Retrieves the output schema given the input schema
+        /// </summary>
+        /// <param name="inputSchema">Input schema</param>
+        /// <returns>Returns the generated output schema</returns>
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
+            var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
+            var isKey = Transformer.ValueColumnType is KeyType;
+            var columnType = (isKey) ? ColumnTypeExtensions.PrimitiveTypeFromKind(DataKind.U4) :
+                                    Transformer.ValueColumnType;
+            var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
+            foreach (var (outputColumnName, sourceColumnName) in _columns)
+            {
+                if (!inputSchema.TryFindColumn(sourceColumnName, out var originalColumn))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", sourceColumnName);
+
+                if ((originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
+                    originalColumn.Kind == SchemaShape.Column.VectorKind.Vector) && Transformer.ValueColumnType is VectorType)
+                    throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", sourceColumnName);
+                // Create the Value column
+                var col = new SchemaShape.Column(outputColumnName, vectorKind, columnType, isKey, metadataShape);
+                resultDic[outputColumnName] = col;
+            }
+            return new SchemaShape(resultDic.Values);
+        }
+>>>>>>> post rebase fixes:src/Microsoft.ML.Data/Transforms/ValueMappingTransformer.cs
     }
 
     /// <summary>

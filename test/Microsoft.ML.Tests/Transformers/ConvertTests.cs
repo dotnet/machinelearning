@@ -78,8 +78,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", "ConvA", DataKind.R4),
-                new TypeConvertingTransformer.ColumnInfo("B", "ConvB", DataKind.R4)});
+            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", DataKind.R4, "ConvA"),
+                new TypeConvertingTransformer.ColumnInfo("B", DataKind.R4, "ConvB")});
 
             TestEstimatorCore(pipe, dataView);
             var allTypesData = new[]
@@ -192,8 +192,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", "ConvA", DataKind.R8),
-                new TypeConvertingTransformer.ColumnInfo("B", "ConvB", DataKind.R8)});
+            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", DataKind.R8, "ConvA"),
+                new TypeConvertingTransformer.ColumnInfo("B", DataKind.R8, "ConvB")});
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

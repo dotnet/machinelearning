@@ -235,7 +235,7 @@ namespace Microsoft.ML.Transforms.Projections
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
             public readonly int NewDim;
             public readonly bool UseSin;
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Transforms.Projections
             public ColumnInfo(string name, int newDim, bool useSin, string sourceColumnName = null, IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
             {
                 Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
-                Source = sourceColumnName ?? name;
+                SourceColumnName = sourceColumnName ?? name;
                 Name = name;
                 Generator = generator ?? new GaussianFourierSampler.Arguments();
                 NewDim = newDim;
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Transforms.Projections
         private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms.Projections
             _transformInfos = new TransformInfo[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
-                input.Schema.TryGetColumnIndex(columns[i].Source, out int srcCol);
+                input.Schema.TryGetColumnIndex(columns[i].SourceColumnName, out int srcCol);
                 var typeSrc = input.Schema[srcCol].Type;
                 _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), columns[i],
                     typeSrc.GetValueCount(), avgDistances[i]);
@@ -681,10 +681,10 @@ namespace Microsoft.ML.Transforms.Projections
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
                 if (col.ItemType.RawType != typeof(float) || col.Kind != SchemaShape.Column.VectorKind.Vector)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
             }

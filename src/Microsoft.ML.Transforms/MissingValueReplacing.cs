@@ -974,7 +974,7 @@ namespace Microsoft.ML.Transforms
                 var type = !(col.ItemType is VectorType vectorType) ?
                     col.ItemType :
                     new VectorType(vectorType.ItemType, vectorType);
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Name, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
         }

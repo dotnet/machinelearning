@@ -202,7 +202,7 @@ namespace Microsoft.ML.Transforms.Text
                 _type = new VectorType(keyType);
                 _isSourceVector = new bool[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
-                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].sourceColumnNames].Type is VectorType;
+                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].sourceColumnName].Type is VectorType;
             }
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                if (!(input.Schema[_parent.ColumnPairs[iinfo].sourceColumnNames].Type is VectorType))
+                if (!(input.Schema[_parent.ColumnPairs[iinfo].sourceColumnName].Type is VectorType))
                     return MakeGetterOne(input, iinfo);
                 return MakeGetterVec(input, iinfo);
             }
