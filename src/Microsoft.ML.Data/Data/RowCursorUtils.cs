@@ -539,7 +539,7 @@ namespace Microsoft.ML.Data
                 private readonly bool[] _active;
 
                 public override Schema Schema => _parent.Schema;
-                public override long Batch { get { return 0; } }
+                public override long Batch => 0;
 
                 public Cursor(IHost host, OneRowDataView parent, bool[] active)
                     : base(host)
@@ -551,10 +551,7 @@ namespace Microsoft.ML.Data
                     _active = active;
                 }
 
-                protected override bool MoveNextCore()
-                {
-                    return State == CursorState.NotStarted;
-                }
+                protected override bool MoveNextCore() => Position < 0;
 
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
@@ -583,11 +580,19 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
             }
         }
+
+        /// <summary>
+        /// This is an error message meant to be used in the situation where a user calls a delegate as returned from
+        /// <see cref="Row.GetIdGetter"/> or <see cref="Row.GetGetter{TValue}(int)"/>.
+        /// </summary>
+        [BestFriend]
+        internal const string FetchValueStateError = "Values cannot be fetched at this time. This method was called either before the first call to "
+            + nameof(RowCursor.MoveNext) + ", or at any point after that method returned false.";
     }
 }

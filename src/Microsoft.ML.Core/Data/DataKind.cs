@@ -105,6 +105,32 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// For integer Types, this returns the maximum legal value. For un-supported Types,
+        /// it returns zero.
+        /// </summary>
+        public static ulong ToMaxInt(this Type type)
+        {
+            if (type == typeof(sbyte))
+                return (ulong)sbyte.MaxValue;
+            else if (type == typeof(byte))
+                return byte.MaxValue;
+            else if (type == typeof(short))
+                return (ulong)short.MaxValue;
+            else if (type == typeof(ushort))
+                return ushort.MaxValue;
+            else if (type == typeof(int))
+                return int.MaxValue;
+            else if (type == typeof(uint))
+                return uint.MaxValue;
+            else if (type == typeof(long))
+                return long.MaxValue;
+            else if (type == typeof(ulong))
+                return ulong.MaxValue;
+
+            return 0;
+        }
+
+        /// <summary>
         /// For integer DataKinds, this returns the minimum legal value. For un-supported kinds,
         /// it returns one.
         /// </summary>

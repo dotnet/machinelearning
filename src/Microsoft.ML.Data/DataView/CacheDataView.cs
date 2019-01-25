@@ -24,7 +24,8 @@ namespace Microsoft.ML.Data
     /// dataview will block when moved to a row until such time as all requested columns
     /// have that row in cache.
     /// </summary>
-    public sealed class CacheDataView : IDataView, IRowSeekable
+    [BestFriend]
+    internal sealed class CacheDataView : IDataView, IRowSeekable
     {
         private readonly IHost _host;
         private readonly IDataView _subsetInput;
@@ -448,64 +449,27 @@ namespace Microsoft.ML.Data
         private sealed class RowCursor<TIndex> : RowCursorSeekerBase
             where TIndex : struct, IIndex
         {
-            private CursorState _state;
             private readonly TIndex _index;
-
-            public override CursorState State => _state;
+            private bool _disposed;
 
             public override long Batch => _index.Batch;
 
             public RowCursor(CacheDataView parent, Func<int, bool> predicate, TIndex index)
                 : base(parent, predicate)
             {
-                _state = CursorState.NotStarted;
                 _index = index;
             }
 
             public override ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
 
-            public override RowCursor GetRootCursor() => this;
-
             public override bool MoveNext()
             {
-                if (_state == CursorState.Done)
-                {
-                    Ch.Assert(Position == -1);
+                if (_disposed)
                     return false;
-                }
 
-                Ch.Assert(_state == CursorState.NotStarted || _state == CursorState.Good);
                 if (_index.MoveNext())
                 {
                     PositionCore++;
-                    Ch.Assert(Position >= 0);
-                    _state = CursorState.Good;
-                    return true;
-                }
-
-                Dispose();
-                Ch.Assert(Position == -1);
-                return false;
-            }
-
-            public override bool MoveMany(long count)
-            {
-                // Note: If we decide to allow count == 0, then we need to special case
-                // that MoveNext() has never been called. It's not entirely clear what the return
-                // result would be in that case.
-                Ch.CheckParam(count > 0, nameof(count));
-
-                if (_state == CursorState.Done)
-                {
-                    Ch.Assert(Position == -1);
-                    return false;
-                }
-
-                Ch.Assert(_state == CursorState.NotStarted || _state == CursorState.Good);
-                if (_index.MoveMany(count))
-                {
-                    PositionCore += count;
-                    _state = CursorState.Good;
                     Ch.Assert(Position >= 0);
                     return true;
                 }
@@ -517,7 +481,7 @@ namespace Microsoft.ML.Data
 
             protected override void DisposeCore()
             {
-                _state = CursorState.Done;
+                _disposed = true;
             }
 
             protected override ValueGetter<TValue> CreateGetterDelegateCore<TValue>(ColumnCache<TValue> cache)
@@ -525,14 +489,14 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue value) =>
                     {
-                        Ch.Check(_state == CursorState.Good, "Cannot use getter with cursor in this state");
+                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         cache.Fetch((int)_index.GetIndex(), ref value);
                     };
             }
         }
 
         private sealed class RowSeeker<TWaiter> : RowSeeker
-    where TWaiter : struct, IWaiter
+            where TWaiter : struct, IWaiter
         {
             private readonly RowSeekerCore<TWaiter> _internal;
 
@@ -559,14 +523,12 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            public override CursorState State => throw new NotImplementedException();
-
             public override ValueGetter<RowId> GetIdGetter()
             {
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(Position >= 0, "Cannot call ID getter in current state");
+                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)Position, 0);
                     };
             }
@@ -601,8 +563,6 @@ namespace Microsoft.ML.Data
             }
 
             public override bool MoveNext() => throw Ch.ExceptNotSupp();
-            public override bool MoveMany(long count) => throw Ch.ExceptNotSupp();
-            public override RowCursor GetRootCursor() => throw Ch.ExceptNotSupp();
         }
 
         private interface IWaiter
@@ -758,20 +718,12 @@ namespace Microsoft.ML.Data
             ValueGetter<RowId> GetIdGetter();
 
             /// <summary>
-            /// Moves to the next index. Once this or <see cref="MoveMany"/> has returned
-            /// false, it should never be called again. (This in constrast to public
-            /// <see cref="RowCursor"/> objects, whose move methods are robust to that usage.)
+            /// Moves to the next index. Once this has returned false, it should never be called again.
+            /// (This in constrast to public <see cref="RowCursor"/> objects, whose move methods are
+            /// robust to that usage.)
             /// </summary>
             /// <returns>Whether the next index is available.</returns>
             bool MoveNext();
-
-            /// <summary>
-            /// Moves to the index this many forward. Once this or <see cref="MoveNext"/>
-            /// has returned false, it should never be called again.
-            /// </summary>
-            /// <param name="count">The count.</param>
-            /// <returns>Whether the index that many forward is available.</returns>
-            bool MoveMany(long count);
         }
 
         /// <summary>
@@ -820,15 +772,6 @@ namespace Microsoft.ML.Data
                 return false;
             }
 
-            public bool MoveMany(long count)
-            {
-                Contracts.Assert(_curr >= -1); // Should not be called when _curr = -2.
-                if (_waiter.Wait(_curr += count))
-                    return true;
-                _curr = -2;
-                return false;
-            }
-
             public static Wrapper Create(TWaiter waiter)
             {
                 return new Wrapper(new SequenceIndex<TWaiter>(waiter));
@@ -848,7 +791,6 @@ namespace Microsoft.ML.Data
                 public long GetIndex() => _index.GetIndex();
                 public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
-                public bool MoveMany(long count) => _index.MoveMany(count);
             }
         }
 
@@ -901,25 +843,6 @@ namespace Microsoft.ML.Data
                 return false;
             }
 
-            public bool MoveMany(long count)
-            {
-                Contracts.Assert(_curr >= -1); // Should not be called when _curr = -2.
-                // Want _curr + count < _perm.Length, but this can overflow, so we have this
-                // strange looking count < _perm.Length - _curr.
-                if (count < _perm.Length - _curr)
-                {
-                    _curr += (int)count;
-                    Contracts.Assert(_perm[_curr] >= 0);
-                    bool result = _waiter.Wait(_perm[_curr]);
-                    // The perm array should have been constructed in a way
-                    // that all indices are valid. Assert this.
-                    Contracts.Assert(result);
-                    return true;
-                }
-                _curr = -2;
-                return false;
-            }
-
             public static Wrapper Create(TWaiter waiter, int[] perm)
             {
                 return new Wrapper(new RandomIndex<TWaiter>(waiter, perm));
@@ -939,7 +862,6 @@ namespace Microsoft.ML.Data
                 public long GetIndex() => _index.GetIndex();
                 public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
-                public bool MoveMany(long count) => _index.MoveMany(count);
             }
         }
 
@@ -1078,18 +1000,6 @@ namespace Microsoft.ML.Data
                 return false;
             }
 
-            public bool MoveMany(long count)
-            {
-                // I don't know that moving many on parallel cursors is really a thing,
-                // given that the order in which they serve up results among themselves
-                // is non-deterministic. For now content ourselves with this trivial
-                // implementation.
-                Contracts.Assert(count > 0);
-                while (--count >= 0 && MoveNext())
-                    ;
-                return _curr >= 0;
-            }
-
             public static Wrapper Create(TWaiter waiter, JobScheduler scheduler)
             {
                 return new Wrapper(new BlockSequenceIndex<TWaiter>(waiter, scheduler));
@@ -1105,11 +1015,10 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch { get { return _index.Batch; } }
-                public long GetIndex() { return _index.GetIndex(); }
-                public ValueGetter<RowId> GetIdGetter() { return _index.GetIdGetter(); }
-                public bool MoveNext() { return _index.MoveNext(); }
-                public bool MoveMany(long count) { return _index.MoveMany(count); }
+                public long Batch => _index.Batch;
+                public long GetIndex() => _index.GetIndex();
+                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
+                public bool MoveNext() => _index.MoveNext();
             }
         }
 
@@ -1186,18 +1095,6 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool MoveMany(long count)
-            {
-                // I don't know that moving many on parallel cursors is really a thing,
-                // given that the order in which they serve up results among themselves
-                // is non-deterministic. For now content ourselves with this trivial
-                // implementation.
-                Contracts.Assert(count > 0);
-                while (--count >= 0 && MoveNext())
-                    ;
-                return _curr >= 0;
-            }
-
             public static Wrapper Create(TWaiter waiter, JobScheduler scheduler, int[] perm)
             {
                 return new Wrapper(new BlockRandomIndex<TWaiter>(waiter, scheduler, perm));
@@ -1213,11 +1110,10 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch { get { return _index.Batch; } }
-                public long GetIndex() { return _index.GetIndex(); }
-                public ValueGetter<RowId> GetIdGetter() { return _index.GetIdGetter(); }
-                public bool MoveNext() { return _index.MoveNext(); }
-                public bool MoveMany(long count) { return _index.MoveMany(count); }
+                public long Batch => _index.Batch;
+                public long GetIndex() => _index.GetIndex();
+                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
+                public bool MoveNext() => _index.MoveNext();
             }
         }
 

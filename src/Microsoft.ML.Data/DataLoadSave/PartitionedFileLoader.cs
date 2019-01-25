@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
                 }
 
                 DataKind? kind = null;
-                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out KeyRange range))
+                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out var keyCount))
                 {
                     kind = parsedKind;
                 }
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
 
                         val = new RowId(0, (ulong)Position);
                     };

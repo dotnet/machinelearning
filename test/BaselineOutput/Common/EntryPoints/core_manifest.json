@@ -280,36 +280,18 @@
                         "Default": null
                       },
                       {
-                        "Name": "KeyRange",
+                        "Name": "KeyCount",
                         "Type": {
                           "Kind": "Struct",
                           "Fields": [
                             {
-                              "Name": "Min",
+                              "Name": "Count",
                               "Type": "UInt",
-                              "Desc": "First index in the range",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": false,
-                              "Default": 0
-                            },
-                            {
-                              "Name": "Max",
-                              "Type": "UInt",
-                              "Desc": "Last index in the range",
+                              "Desc": "Count of valid key values",
                               "Required": false,
                               "SortOrder": 150.0,
                               "IsNullable": true,
                               "Default": null
-                            },
-                            {
-                              "Name": "Contiguous",
-                              "Type": "Bool",
-                              "Desc": "Whether the key is contiguous",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": false,
-                              "Default": true
                             }
                           ]
                         },
@@ -10223,6 +10205,18 @@
           }
         },
         {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
           "Name": "LambdaLatent",
           "Type": "Float",
           "Desc": "Regularization coefficient of latent weights",
@@ -10293,6 +10287,21 @@
           "Default": "Auto"
         },
         {
+          "Name": "ExtraFeatureColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field. Note that the first field is specified by \"feat\" instead of \"exfeat\".",
+          "Aliases": [
+            "exfeat"
+          ],
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
           "Name": "Shuffle",
           "Type": "Bool",
           "Desc": "Whether to shuffle for each training iteration",
@@ -10342,6 +10351,7 @@
         }
       ],
       "InputKind": [
+        "ITrainerInputWithWeight",
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],

@@ -145,19 +145,30 @@ namespace Microsoft.ML
         /// <param name="numIterations">The number of iterations to use in learning the features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
         /// <param name="maxBins">The maximum number of bins to use to approximate features.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static BinaryClassificationGamTrainer GeneralizedAdditiveModels(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             int numIterations = GamDefaults.NumIterations,
             double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins,
-            Action<BinaryClassificationGamTrainer.Arguments> advancedSettings = null)
+            int maxBins = GamDefaults.MaxBins)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new BinaryClassificationGamTrainer(env, labelColumn, featureColumn, weights, numIterations, learningRate, maxBins, advancedSettings);
+            return new BinaryClassificationGamTrainer(env, labelColumn, featureColumn, weights, numIterations, learningRate, maxBins);
+        }
+
+        /// <summary>
+        /// Predict a target using generalized additive models trained with the <see cref="BinaryClassificationGamTrainer"/>.
+        /// </summary>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
+        public static BinaryClassificationGamTrainer GeneralizedAdditiveModels(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            BinaryClassificationGamTrainer.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new BinaryClassificationGamTrainer(env, options);
         }
 
         /// <summary>
@@ -170,19 +181,30 @@ namespace Microsoft.ML
         /// <param name="numIterations">The number of iterations to use in learning the features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
         /// <param name="maxBins">The maximum number of bins to use to approximate features.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static RegressionGamTrainer GeneralizedAdditiveModels(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             int numIterations = GamDefaults.NumIterations,
             double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins,
-            Action<RegressionGamTrainer.Arguments> advancedSettings = null)
+            int maxBins = GamDefaults.MaxBins)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RegressionGamTrainer(env, labelColumn, featureColumn, weights, numIterations, learningRate, maxBins, advancedSettings);
+            return new RegressionGamTrainer(env, labelColumn, featureColumn, weights, numIterations, learningRate, maxBins);
+        }
+
+        /// <summary>
+        /// Predict a target using generalized additive models trained with the <see cref="RegressionGamTrainer"/>.
+        /// </summary>
+        /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
+        public static RegressionGamTrainer GeneralizedAdditiveModels(this RegressionCatalog.RegressionTrainers catalog,
+            RegressionGamTrainer.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new RegressionGamTrainer(env, options);
         }
 
         /// <summary>

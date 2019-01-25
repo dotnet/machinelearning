@@ -793,7 +793,7 @@ namespace Microsoft.ML.Data.IO
                 Ch.Assert(0 <= col && col < Schema.Count);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
                 var type = Schema[col].Type;
-                Ch.Assert(((VectorType)type).GetValueCount() == _parent._header.RowCount);
+                Ch.Assert(((ITransposeDataView)_parent).GetSlotType(col).Size == _parent._header.RowCount);
                 Action<int> func = InitOne<int>;
                 ColumnType itemType = type;
                 if (type is VectorType vectorType)
@@ -843,14 +843,13 @@ namespace Microsoft.ML.Data.IO
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)Position, 0);
                     };
             }
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State != CursorState.Done);
                 bool more = Position < _parent._header.RowCount - 1;
                 for (int i = 0; i < _transCursors.Length; ++i)
                 {

@@ -352,7 +352,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref Single value) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         value = _value;
                     };
             }
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref Double value) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         value = _value;
                     };
             }
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<T> _getter;
             private T _value;
             private readonly ValueMapper<T, ulong> _conv;
-            private readonly int _count;
+            private readonly ulong _count;
 
             public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref T dst) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         dst = _value;
                     };
                 bool identity;
@@ -440,9 +440,9 @@ namespace Microsoft.ML.Transforms
                 _srcGetter(ref _value);
                 ulong value = 0;
                 _conv(in _value, ref value);
-                if (value == 0 || value > (ulong)_count)
+                if (value == 0 || value > _count)
                     return false;
-                if (!CheckBounds(((Double)(uint)value - 0.5) / _count))
+                if (!CheckBounds(((uint)value - 0.5) / _count))
                     return false;
                 return true;
             }

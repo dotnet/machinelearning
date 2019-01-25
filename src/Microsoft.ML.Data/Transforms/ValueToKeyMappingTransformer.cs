@@ -261,12 +261,12 @@ namespace Microsoft.ML.Transforms.Conversions
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        internal string TestIsKnownDataKind(ColumnType type)
+        private string TestIsKnownDataKind(ColumnType type)
         {
             VectorType vectorType = type as VectorType;
             ColumnType itemType = vectorType?.ItemType ?? type;
 
-            if (itemType.RawKind != default && (vectorType != null || type is PrimitiveType))
+            if (itemType is KeyType || itemType.IsStandardScalar())
                 return null;
             return "standard type or a vector of standard type";
         }

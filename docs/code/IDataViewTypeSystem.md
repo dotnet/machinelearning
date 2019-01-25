@@ -383,82 +383,53 @@ Key types are instances of the sealed class `KeyType`, which derives from
 
 In addition to its underlying type, a key type specifies:
 
-* A count value, between `0` and `int.MaxValue`, inclusive
+* A count value, from `1` to `ulong.MaxValue`, inclusive
 
-* A "minimum" value, between `0` and `ulong.MaxValue`, inclusive
-
-* A Boolean value indicating whether the values of the key type are contiguous
-
-Regardless of the minimum and count values, the representational value zero
+Regardless of the count value, the representational value zero
 always means `NA` and the representational value one is always the first valid
 value of the key type.
 
 Notes:
 
-* The `Count` property returns the count of the key type. This is of type
-  `int`, but is required to be non-negative. When `Count` is zero, the key
-  type has no known or useful maximum value. Otherwise, the legal
-  representation values are from one up to and including `Count`. The `Count`
-  is required to be representable in the underlying type, so, for example, the
-  `Count` value of a key type based on `System.Byte` must not exceed `255`. As
-  an example of the usefulness of the `Count` property, consider the
-  `KeyToVector` transform implemented as part of ML.NET. It maps from a key
-  type value to an indicator vector. The length of the vector is the `Count`
-  of the key type, which is required to be positive. For a key value of `k`,
-  with `1 ≤ k ≤ Count`, the resulting vector has a value of one in the
-  (`k-1`)th slot, and zero in all other slots. An `NA` value (with
-  representation zero) is mapped to the all- zero vector of length `Count`.
+* The `Count` property returns the count, or cardinality of the key type. This 
+  is of type `ulong`. The legal representation values are from one up to 
+  and including `Count`. The `Count` is required to be representable in the 
+  underlying type, so, for example, the `Count` value of a key type based
+  on `System.Byte` must not exceed `255`. As an example of the usefulness 
+  of the `Count` property, consider the `KeyToVector` transform implemented
+  as part of ML.NET. It maps from a key type value to an indicator vector.
+  The length of the vector is the `Count` of the key type, which is required
+  to be positive. For a key value of `k`, with `1 ≤ k ≤ Count`, the resulting
+  vector has a value of one in the (`k-1`)th slot, and zero in all other slots.
+  An `NA` value (with representation zero) is mapped to the all- zero vector 
+  of length `Count`.
 
 * For a key type with positive `Count`, a representation value should be
   between `0` and `Count`, inclusive, with `0` meaning `NA`. When processing
   values from an untrusted source, it is best to guard against values bigger
   than `Count` and treat such values as equivalent to `NA`.
 
-* The `Min` property returns the minimum semantic value of the key type. This
-  is used exclusively for transforming from a representation value, where the
-  valid values start at one, to user facing values, which might start at any
-  non-negative value. The most common values for `Min` are zero and one.
-
-* The boolean `Contiguous` property indicates whether values of the key type
-  are generally contiguous in the sense that a complete sampling of
-  representation values of the key type would cover most, if not all, values
-  from one up to their max. A `true` value indicates that using an array to
-  implement a map from the key type values is a reasonable choice. When
-  `false`, it is likely more prudent to use a hash table.
-
-* A key type can be non-`Contiguous` only if `Count` is zero. The converse
-  however is not true. A key type that is contiguous but has `Count` equal to
-  zero is one where there is a reasonably small maximum, but that maximum is
-  unknown. In this case, an array might be a good choice for a map from the
-  key type.
-
 * The shorthand for a key type with representation type `U1`, and semantic
-  values from `1000` to `1099`, inclusive, is `U1[1000-1099]`. Note that the
-  `Min` value of this key type is outside the range of the underlying type,
-  `System.Byte`, but the `Count` value is only `100`, which is representable
-  in a `System.Byte`. Recall that the representation values always start at 1
-  and extend up to `Count`, in this case `100`.
-
-* For a key type with representation type `System.UInt32` and semantic values
-  starting at `1000`, with no known maximum, the shorthand is `U4[1000-*]`.
+  values from `0` to `99`, inclusive, is `U1[0-99]`. Note that the `Count` 
+  value is `100`, which is representable in a `System.Byte`. Recall that
+  the representation values always start at 1 and extend up to `Count`,
+  in this case `100`.
 
 There are standard conversions from text to each key type. This conversion
-parses the text as a standard non-negative integer value and honors the `Min`
-and `Count` values of the key type. If a parsed numeric value falls outside
-the range indicated by `Min` and `Count`, or if the text is not parsable as a
-non-negative integer, the result is `NA`.
+parses the text as a standard non-negative integer value and honors the `Count`
+value of the key type. If a parsed numeric value falls outside the range 
+indicated by `Count`, or if the text is not parsable as a non-negative integer,
+the result is `NA`.
 
 There are standard conversions from one key type to another, provided:
 
-* The source and destination key types have the same `Min` and `Count` values.
+* The source and destination key types have the same `Count` value.
 
 * Either the number of bytes in the destination's underlying type is greater
   than the number of bytes in the source's underlying type, or the `Count`
   value is positive. In the latter case, the `Count` is necessarily less than
   2k, where k is the number of bits in the destination type's underlying type.
-  For example, `U1[1-*]` can be converted to `U2[1-*]`, but `U2[1-*]` cannot
-  be converted to `U1[1-*]`. Also, `U1[1-100]` and `U2[1-100]` can be
-  converted in both directions.
+  For example, `U1[0-100]` and `U2[0-100]` can be converted in both directions.
 
 ## Vector Types
 

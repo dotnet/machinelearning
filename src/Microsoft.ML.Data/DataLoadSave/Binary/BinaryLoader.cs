@@ -1204,8 +1204,8 @@ namespace Microsoft.ML.Data.IO
             // so this should be a key with *genuinely* a count of 0. However, a count of a key of 0 means
             // that the key length is unknown. Unsure of how to reconcile this. Is the least harmful thing
             // to do, if RowCount=0, to set count to some value like 1?
-            int count = _header.RowCount <= int.MaxValue ? (int)_header.RowCount : 0;
-            KeyType type = new KeyType(DataKind.U8, 0, count);
+            ulong count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
+            KeyType type = new KeyType(typeof(ulong), count);
             // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
             ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
             var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);
@@ -1239,8 +1239,6 @@ namespace Microsoft.ML.Data.IO
 
         private sealed class Cursor : RootCursorBase
         {
-            private const string _badCursorState = "cursor is either not started or is ended, and cannot get values";
-
             private readonly BinaryLoader _parent;
             private readonly int[] _colToActivesIndex;
             private readonly TableOfContentsEntry[] _actives;
@@ -1686,7 +1684,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Ectx.Check(_curr != null, _badCursorState);
+                    Ectx.Check(_curr != null, RowCursorUtils.FetchValueStateError);
                     long src = _curr.RowIndexLim - _remaining - 1;
                     _mapper(in src, ref value);
                 }
@@ -1975,7 +1973,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Contracts.Check(_curr != null, _badCursorState);
+                    Contracts.Check(_curr != null, RowCursorUtils.FetchValueStateError);
                     _curr.Reader.Get(ref value);
                 }
 
@@ -2068,11 +2066,7 @@ namespace Microsoft.ML.Data.IO
 
             private Delegate NoRowGetter<T>()
             {
-                ValueGetter<T> del =
-                    (ref T value) =>
-                    {
-                        throw Ch.Except(_badCursorState);
-                    };
+                ValueGetter<T> del = (ref T value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
                 return del;
             }
 
@@ -2083,7 +2077,7 @@ namespace Microsoft.ML.Data.IO
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
@@ -2102,7 +2096,7 @@ namespace Microsoft.ML.Data.IO
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         long pos = Position;
                         if (pos >= firstPositionToCorrect)
                             pos += correction;

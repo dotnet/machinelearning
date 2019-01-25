@@ -372,7 +372,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref VBuffer<T> dst) =>
                     {
-                        Ch.Check(IsGood, "Cannot get values in the cursor's current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         if (!valid)
                         {
                             using (var cursor = _view.GetRowCursor(_view.Schema[_col]))
@@ -503,7 +503,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private void EnsureValid()
             {
-                Ch.Check(IsGood, "Cursor is not in good state, cannot get values");
+                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                 Ch.Assert(_slotCurr >= 0);
                 if (_colStored == _colCurr)
                     return;
@@ -687,7 +687,7 @@ namespace Microsoft.ML.Data
 
             private void Getter(ref VBuffer<T> dst)
             {
-                Ch.Check(IsGood, "Cannot get values in the cursor's current state");
+                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                 EnsureValid();
                 Ch.Assert(0 <= _slotCurr && _slotCurr < Utils.Size(_cbuff) && _cbuff[_slotCurr].Buffer.Length == _len);
                 _cbuff[_slotCurr].Buffer.CopyTo(ref dst);
@@ -1451,7 +1451,7 @@ namespace Microsoft.ML.Data
 
                 private void GetId(ref RowId id)
                 {
-                    Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
+                    Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
                     id = new RowId((ulong)_slotCursor.SlotIndex, 0);
                 }
 
@@ -1496,7 +1496,7 @@ namespace Microsoft.ML.Data
 
             private void GetId(ref RowId id)
             {
-                Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
+                Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
                 id = new RowId((ulong)_slotCursor.SlotIndex, 0);
             }
 

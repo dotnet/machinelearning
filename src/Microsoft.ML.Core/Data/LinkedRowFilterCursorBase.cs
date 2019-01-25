@@ -24,8 +24,6 @@ namespace Microsoft.ML.Data
 
         protected override bool MoveNextCore()
         {
-            Ch.Assert(State != CursorState.Done);
-
             while (Root.MoveNext())
             {
                 if (Accept())

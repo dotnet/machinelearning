@@ -34,7 +34,7 @@ namespace Microsoft.ML.RunTests
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
-#if NET462
+#if NET461
             NotFullFramework = false;
             LessThanNetCore30AndNotFullFramework = false;
 #endif
