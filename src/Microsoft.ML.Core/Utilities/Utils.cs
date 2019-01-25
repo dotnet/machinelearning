@@ -648,13 +648,14 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="values">An array of values</param>
         /// <returns>True if the array is monotonically increasing (if each element is greater
         /// than or equal to previous elements); false otherwise.</returns>
-        public static bool IsMonotonicallyIncreasing(int[] values)
+        public static bool IsMonotonicallyIncreasing(IList<int> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
             var previousValue = values[0];
-            for (int i = 1; i < values.Length; i++)
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
                 var currentValue = values[i];
                 if (currentValue < previousValue)
@@ -673,13 +674,14 @@ namespace Microsoft.ML.Internal.Utilities
         /// <returns>True if the array is monotonically increasing (if each element is greater
         /// than or equal to previous elements); false otherwise. Arrays containing NaN values
         /// are considered to be not monotonically increasing.</returns>
-        public static bool IsMonotonicallyIncreasing(double[] values)
+        public static bool IsMonotonicallyIncreasing(IList<double> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
             var previousValue = values[0];
-            for (int i = 1; i < values.Length; i++)
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
                 var currentValue = values[i];
                 // Inverted check for NaNs
