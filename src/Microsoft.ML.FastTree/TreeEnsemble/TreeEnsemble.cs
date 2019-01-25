@@ -16,6 +16,35 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
+    public class TreeEnsembleView
+    {
+        [BestFriend]
+        internal readonly TreeEnsemble TreeEnsemble; // It's a best friend for being accessed from LightGBM.
+
+        /// <summary>
+        /// When doing prediction, this is a value added to the weighted sum of all <see cref="Trees"/>' outputs.
+        /// </summary>
+        public double Bias { get; }
+
+        /// <summary>
+        /// <see cref="TreeWeights"/>[i] is the i-th <see cref="RegressionTreeView"/>'s weight in this <see cref="TreeEnsembleView"/>.
+        /// </summary>
+        public IReadOnlyList<double> TreeWeights { get; }
+
+        /// <summary>
+        /// <see cref="Trees"/>[i] is the i-th <see cref="RegressionTreeView"/> in this <see cref="TreeEnsembleView"/>.
+        /// </summary>
+        public IReadOnlyList<RegressionTreeView> Trees { get; }
+
+        internal TreeEnsembleView(TreeEnsemble treeEnsemble)
+        {
+            TreeEnsemble = treeEnsemble;
+            Bias = treeEnsemble.Bias;
+            TreeWeights = treeEnsemble.Trees.Select(tree => tree.Weight).ToList();
+            Trees = treeEnsemble.Trees.Select(tree => new RegressionTreeView(tree)).ToList();
+        }
+    }
+
     public class TreeEnsemble
     {
         /// <summary>
@@ -356,6 +385,22 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 tree.AppendFeatureContributions(in features, builder);
 
             builder.GetResult(ref contribs);
+        }
+
+        public int GetMaxFeatureIndex()
+        {
+            int ifeatMax = 0;
+            for (int i = 0; i < NumTrees; i++)
+            {
+                var tree = _trees[i];
+                for (int n = 0; n < tree.NumNodes; n++)
+                {
+                    int ifeat = tree.SplitFeature(n);
+                    if (ifeat > ifeatMax)
+                        ifeatMax = ifeat;
+                }
+            }
+            return ifeatMax;
         }
     }
 

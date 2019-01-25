@@ -17,7 +17,6 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -2810,9 +2809,10 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
+        public TreeEnsembleView TrainedTreeEnsembleView { get; }
         //The below two properties are necessary for tree Visualizer
         [BestFriend]
-        internal TreeEnsemble TrainedEnsemble { get; }
+        internal TreeEnsemble TrainedEnsemble => TrainedTreeEnsembleView.TreeEnsemble;
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
@@ -2864,11 +2864,11 @@ namespace Microsoft.ML.Trainers.FastTree
             // REVIEW: When we make the predictor wrapper, we may want to further "optimize"
             // the trained ensemble to, for instance, resize arrays so that they are of the length
             // the actual number of leaves/nodes, or remove unnecessary arrays, and so forth.
-            TrainedEnsemble = trainedEnsemble;
+            TrainedTreeEnsembleView = new TreeEnsembleView(trainedEnsemble);
             InnerArgs = innerArgs;
             NumFeatures = numFeatures;
 
-            MaxSplitFeatIdx = FindMaxFeatureIndex(trainedEnsemble);
+            MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
@@ -2892,8 +2892,8 @@ namespace Microsoft.ML.Trainers.FastTree
             if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
                 categoricalSplits = true;
 
-            TrainedEnsemble = new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits);
-            MaxSplitFeatIdx = FindMaxFeatureIndex(TrainedEnsemble);
+            TrainedTreeEnsembleView = new TreeEnsembleView(new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits));
+            MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
             InnerArgs = ctx.LoadStringOrNull();
             if (ctx.Header.ModelVerWritten >= VerNumFeaturesSerialized)
@@ -3257,23 +3257,6 @@ namespace Microsoft.ML.Trainers.FastTree
             foreach (var pair in gainMap)
                 bldr.AddFeature(pair.Key, (Float)(Math.Sqrt(pair.Value) * normFactor));
             bldr.GetResult(ref weights);
-        }
-
-        private static int FindMaxFeatureIndex(TreeEnsemble ensemble)
-        {
-            int ifeatMax = 0;
-            for (int i = 0; i < ensemble.NumTrees; i++)
-            {
-                var tree = ensemble.GetTreeAt(i);
-                for (int n = 0; n < tree.NumNodes; n++)
-                {
-                    int ifeat = tree.SplitFeature(n);
-                    if (ifeat > ifeatMax)
-                        ifeatMax = ifeat;
-                }
-            }
-
-            return ifeatMax;
         }
 
         ITree[] ITreeEnsemble.GetTrees()
