@@ -9,11 +9,9 @@ coverage:
       default: false
   fixes:
     - "build/::/"
-  ignore:
-    - "test"
 
 comment:
-  layout: "diff"
+  layout: "diff,flags"
 
 flags:
   production:

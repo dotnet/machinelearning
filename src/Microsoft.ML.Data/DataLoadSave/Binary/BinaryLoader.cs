@@ -1204,8 +1204,8 @@ namespace Microsoft.ML.Data.IO
             // so this should be a key with *genuinely* a count of 0. However, a count of a key of 0 means
             // that the key length is unknown. Unsure of how to reconcile this. Is the least harmful thing
             // to do, if RowCount=0, to set count to some value like 1?
-            int count = _header.RowCount <= int.MaxValue ? (int)_header.RowCount : 0;
-            KeyType type = new KeyType(DataKind.U8, 0, count);
+            ulong count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
+            KeyType type = new KeyType(typeof(ulong), count);
             // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
             ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
             var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);

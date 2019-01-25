@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms
         {
             if (!_typeToKindMap.ContainsKey(type))
                throw Contracts.ExceptNotSupp("Onnx type not supported", type);
-            return PrimitiveType.FromKind(_typeToKindMap[type]);
+            return ColumnTypeExtensions.PrimitiveTypeFromKind(_typeToKindMap[type]);
         }
     }
 }

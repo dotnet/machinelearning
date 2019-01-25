@@ -1,23 +1,23 @@
 ---- BoundLoader ----
 5 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
 ---- RowToRowMapperTransform ----
 6 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AT: Vec<Text>
 ---- RowToRowMapperTransform ----
 8 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AT: Vec<Text>
@@ -26,12 +26,12 @@
       [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
   KH: Vec<Key<U4, 0-3>, 2>
     Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
-      [2] '{5,10}', [3] '{4,3}'
+      [0] '{5,3,10}', [3] '4'
 ---- RowToRowMapperTransform ----
 9 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AT: Vec<Text>
@@ -40,15 +40,15 @@
       [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
   KH: Vec<Key<U4, 0-3>, 2>
     Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
-      [2] '{5,10}', [3] '{4,3}'
+      [0] '{5,3,10}', [3] '4'
   N3: Vec<R4, 8>
     Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
-      [0] '', [1] '', [2] '{AH:{an,angry}|{annie,ant},KH:}', [3] '{AH:ate|{an,angry},KH:{5,10}|{4,3}}', [4] '{KH:{4,3},AH:{an,angry}|{an,angry}}', [5] '{AH:{annie,ant},KH:{4,3}|{4,3}}', [6] 'AH:ate', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,10},KH:{5,10}|}'
+      [0] '', [1] 'KH:{5,3,10}', [2] '{AH:{an,angry}|{annie,ant},KH:{5,3,10}|,KH:}', [3] 'AH:ate|{an,angry}', [4] '{KH:4,AH:{an,angry}|{an,angry}}', [5] 'AH:{annie,ant}', [6] '{AH:ate,KH:{5,3,10}|{5,3,10}}', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,3,10}|4}'
 ---- RowToRowMapperTransform ----
 10 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AT: Vec<Text>
@@ -57,25 +57,25 @@
       [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
   KH: Vec<Key<U4, 0-3>, 2>
     Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
-      [2] '{5,10}', [3] '{4,3}'
+      [0] '{5,3,10}', [3] '4'
   N3: Vec<R4, 8>
     Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
-      [0] '', [1] '', [2] '{AH:{an,angry}|{annie,ant},KH:}', [3] '{AH:ate|{an,angry},KH:{5,10}|{4,3}}', [4] '{KH:{4,3},AH:{an,angry}|{an,angry}}', [5] '{AH:{annie,ant},KH:{4,3}|{4,3}}', [6] 'AH:ate', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,10},KH:{5,10}|}'
+      [0] '', [1] 'KH:{5,3,10}', [2] '{AH:{an,angry}|{annie,ant},KH:{5,3,10}|,KH:}', [3] 'AH:ate|{an,angry}', [4] '{KH:4,AH:{an,angry}|{an,angry}}', [5] 'AH:{annie,ant}', [6] '{AH:ate,KH:{5,3,10}|{5,3,10}}', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,3,10}|4}'
   N10: Vec<R4, 1024>
     Metadata 'SlotNames': Vec<Text, 1024>: Length=1024, Count=1024
-      [116] 'KH:{4,3}', [138] 'KH:', [183] 'AH:{an,angry}', [210] 'AH:{an,angry}|{annie,ant}', [284] 'AH:{an,angry}|{an,angry}', [359] 'KH:{5,10}', [575] 'AH:{annie,ant}|ate', [645] 'AH:{annie,ant}', [723] 'KH:{5,10}|{4,3}', [774] 'AH:ate'
-      [791] 'KH:{5,10}|', [819] 'AH:ate|{an,angry}', [837] 'KH:{4,3}|{4,3}'
+      [116] 'KH:4', [134] 'KH:{5,3,10}|{5,3,10}', [138] 'KH:', [183] 'AH:{an,angry}', [210] 'AH:{an,angry}|{annie,ant}', [284] 'AH:{an,angry}|{an,angry}', [569] 'KH:{5,3,10}', [575] 'AH:{annie,ant}|ate', [645] 'AH:{annie,ant}', [727] 'KH:{5,3,10}|4'
+      [774] 'AH:ate', [819] 'AH:ate|{an,angry}', [858] 'KH:{5,3,10}|'
 ---- SelectColumnsDataTransform ----
 5 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
+  K: Vec<Key<U4, 0-10>, 2>
   KH: Vec<Key<U4, 0-3>, 2>
     Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
-      [2] '{5,10}', [3] '{4,3}'
+      [0] '{5,3,10}', [3] '4'
   N3: Vec<R4, 8>
     Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
-      [0] '', [1] '', [2] '{AH:{an,angry}|{annie,ant},KH:}', [3] '{AH:ate|{an,angry},KH:{5,10}|{4,3}}', [4] '{KH:{4,3},AH:{an,angry}|{an,angry}}', [5] '{AH:{annie,ant},KH:{4,3}|{4,3}}', [6] 'AH:ate', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,10},KH:{5,10}|}'
+      [0] '', [1] 'KH:{5,3,10}', [2] '{AH:{an,angry}|{annie,ant},KH:{5,3,10}|,KH:}', [3] 'AH:ate|{an,angry}', [4] '{KH:4,AH:{an,angry}|{an,angry}}', [5] 'AH:{annie,ant}', [6] '{AH:ate,KH:{5,3,10}|{5,3,10}}', [7] '{AH:{annie,ant}|ate,AH:{an,angry},KH:{5,3,10}|4}'
   N10: Vec<R4, 1024>
     Metadata 'SlotNames': Vec<Text, 1024>: Length=1024, Count=1024
-      [116] 'KH:{4,3}', [138] 'KH:', [183] 'AH:{an,angry}', [210] 'AH:{an,angry}|{annie,ant}', [284] 'AH:{an,angry}|{an,angry}', [359] 'KH:{5,10}', [575] 'AH:{annie,ant}|ate', [645] 'AH:{annie,ant}', [723] 'KH:{5,10}|{4,3}', [774] 'AH:ate'
-      [791] 'KH:{5,10}|', [819] 'AH:ate|{an,angry}', [837] 'KH:{4,3}|{4,3}'
+      [116] 'KH:4', [134] 'KH:{5,3,10}|{5,3,10}', [138] 'KH:', [183] 'AH:{an,angry}', [210] 'AH:{an,angry}|{annie,ant}', [284] 'AH:{an,angry}|{an,angry}', [569] 'KH:{5,3,10}', [575] 'AH:{annie,ant}|ate', [645] 'AH:{annie,ant}', [727] 'KH:{5,3,10}|4'
+      [774] 'AH:ate', [819] 'AH:ate|{an,angry}', [858] 'KH:{5,3,10}|'

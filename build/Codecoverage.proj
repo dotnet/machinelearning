@@ -28,12 +28,22 @@
       <_CodecovArgs Include="--branch;$(_BranchName)" Condition="'$(_BranchName)' != ''" />
       <_CodecovArgs Include="-c;$(BUILD_SOURCEVERSION)" Condition="'$(BUILD_SOURCEVERSION)' != ''" />
       <_CodecovArgs Include="-n;$(BUILD_DEFINITIONNAME)" Condition="'$(BUILD_DEFINITIONNAME)' != ''" />
-      <_CodecovArgs Include="--flag;$(Configuration)" Condition="'$(Configuration)' != ''" />
       <_CodecovArgs Include="-t;$(CodeCovToken)" Condition="'$(CodeCovToken)' != ''" />
+
+      <_CodecovFlags Include="$(Configuration)" Condition="'$(Configuration)' != ''" />
+      <_CodecovProductionFlags Include="@(_CodecovFlags)" />
+      <_CodecovProductionFlags Include="production" />
+      <_CodecovTestFlags Include="@(_CodecovFlags)" />
+      <_CodecovTestFlags Include="test" />
     </ItemGroup>
 
-    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
-    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
+    <!-- Upload the coverage file with a 'production' flag, which will be filtered by codecov.io to production code -->
+    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovProductionFlags, ',')" />
+    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovProductionFlags, ',')" />
+
+    <!-- Upload the coverage file with a 'test' flag, which will be filtered by codecov.io to test code -->
+    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovTestFlags, ',')" />
+    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ') --flag @(_CodecovTestFlags, ',')" />
   </Target>
 
 </Project>

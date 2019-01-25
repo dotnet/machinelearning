@@ -325,8 +325,8 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            int colCount = matrixColumnIndexColInfo.Type.GetKeyCount();
-            int rowCount = matrixRowIndexColInfo.Type.GetKeyCount();
+            int colCount = matrixColumnIndexColInfo.Type.GetKeyCountAsInt32(Host);
+            int rowCount = matrixRowIndexColInfo.Type.GetKeyCountAsInt32(Host);
             ch.Assert(rowCount > 0);
             ch.Assert(colCount > 0);
 

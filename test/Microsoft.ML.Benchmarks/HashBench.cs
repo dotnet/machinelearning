@@ -154,7 +154,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarKey))]
         public void SetupHashScalarKey()
         {
-            InitMap(6u, new KeyType(typeof(uint), 0, 100));
+            InitMap(6u, new KeyType(typeof(uint), 100));
         }
 
         [Benchmark]
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashVectorKey))]
         public void SetupHashVectorKey()
         {
-            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 0, 100));
+            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 100));
         }
 
         [Benchmark]

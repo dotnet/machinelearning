@@ -333,7 +333,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Data
                     var confDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
+                        confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Data
                         var dvBldr = new ArrayDataViewBuilder(Host);
                         if (hasStrats)
                         {
-                            dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, prStratCol.ToArray());
+                            dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, prStratCol.ToArray());
                             dvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, prStratVal.ToArray());
                         }
                         dvBldr.AddColumn(Threshold, NumberType.R4, scores.ToArray());

@@ -139,7 +139,10 @@ namespace Microsoft.ML.Tests
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
-            int size = (itemType1 as KeyType)?.Count ?? -1;
+            var key = itemType1 as KeyType;
+            Assert.NotNull(key);
+            Assert.InRange<ulong>(key.Count, 0, int.MaxValue);
+            int size = (int)key.Count;
             var type2 = result.Schema[copyIndex].Type;
             result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
             result.Schema[copyIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names2);

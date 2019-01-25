@@ -144,12 +144,11 @@ namespace Microsoft.ML.LightGBM
 
                 if (data.Schema.Label.Value.Type is KeyType keyType)
                 {
-                    ch.Check(keyType.Contiguous, "labelColumn value should be contiguous");
                     if (hasNaNLabel)
-                        _numClass = keyType.Count + 1;
+                        _numClass = keyType.GetCountAsInt32(Host) + 1;
                     else
-                        _numClass = keyType.Count;
-                    _tlcNumClass = keyType.Count;
+                        _numClass = keyType.GetCountAsInt32(Host);
+                    _tlcNumClass = keyType.GetCountAsInt32(Host);
                 }
                 else
                 {

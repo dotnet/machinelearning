@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.ML.Data
@@ -29,9 +30,11 @@ namespace Microsoft.ML.Data
         /// <param name="metadata">The column metadata.</param>
         public void AddColumn(string name, ColumnType type, Schema.Metadata metadata = null)
         {
-            Contracts.CheckNonEmpty(name, nameof(name));
-            Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckValueOrNull(metadata);
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
             _items.Add((name, type, metadata));
         }
 
@@ -69,14 +72,6 @@ namespace Microsoft.ML.Data
                 columns[i] = new Schema.Column(_items[i].Name, i, nameMap[_items[i].Name] != i, _items[i].Type, _items[i].Metadata);
 
             return new Schema(columns);
-        }
-
-        [BestFriend]
-        internal static Schema MakeSchema(IEnumerable<Schema.DetachedColumn> columns)
-        {
-            var builder = new SchemaBuilder();
-            builder.AddColumns(columns);
-            return builder.GetSchema();
         }
     }
 }

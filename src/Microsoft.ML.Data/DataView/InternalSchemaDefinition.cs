@@ -254,7 +254,7 @@ namespace Microsoft.ML.Data
                 if (col.ColumnType == null)
                 {
                     // Infer a type as best we can.
-                    PrimitiveType itemType = PrimitiveType.FromType(dataItemType);
+                    PrimitiveType itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataItemType);
                     colType = isVector ? new VectorType(itemType) : (ColumnType)itemType;
                 }
                 else
