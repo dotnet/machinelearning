@@ -66,9 +66,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var transformedData = dataPipeline.Fit(data).Transform(data);
 
             // 'transformedData' is a 'promise' of data. Let's actually read it.
-            var someRows = transformedData.AsDynamic
+            var someRows = mlContext
                 // Convert to an enumerable of user-defined type. 
-                .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
+                .CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
                 // Take a couple values as an array.
                 .Take(4).ToArray();
 
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Turn the data into the ML.NET data view.
             // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
             // or merely an IEnumerable.
-            var trainData = mlContext.CreateStreamingDataView(churnData);
+            var trainData = mlContext.Data.ReadFromEnumerable(churnData);
 
             // Now note that 'trainData' is just an IDataView, so we face a choice here: either declare the static type
             // and proceed in the statically typed fashion, or keep dynamic types and build a dynamic pipeline.

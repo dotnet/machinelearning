@@ -155,11 +155,10 @@ namespace Microsoft.ML.Transforms
 
         public override Schema OutputSchema => _groupBinding.OutputSchema;
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             return new Cursor(this, predicate);
         }
 
@@ -172,11 +171,10 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return false; } }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(predicate) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
         }
 
         /// <summary>
@@ -526,7 +524,8 @@ namespace Microsoft.ML.Transforms
                 bool[] srcActiveLeading = new bool[_parent.Source.Schema.Count];
                 foreach (var col in binding.GroupColumnIndexes)
                     srcActiveLeading[col] = true;
-                _leadingCursor = parent.Source.GetRowCursor(x => srcActiveLeading[x]);
+                var activeCols = _parent.Source.Schema.Where(x => x.Index < srcActiveLeading.Length && srcActiveLeading[x.Index]);
+                _leadingCursor = parent.Source.GetRowCursor(activeCols);
 
                 bool[] srcActiveTrailing = new bool[_parent.Source.Schema.Count];
                 for (int i = 0; i < _groupCount; i++)
@@ -539,7 +538,9 @@ namespace Microsoft.ML.Transforms
                     if (_active[i + _groupCount])
                         srcActiveTrailing[binding.KeepColumnIndexes[i]] = true;
                 }
-                _trailingCursor = parent.Source.GetRowCursor(x => srcActiveTrailing[x]);
+
+                activeCols = _parent.Source.Schema.Where(x => x.Index < srcActiveTrailing.Length && srcActiveTrailing[x.Index]);
+                _trailingCursor = parent.Source.GetRowCursor(activeCols);
 
                 _groupCheckers = new GroupKeyColumnChecker[_groupCount];
                 for (int i = 0; i < _groupCount; i++)
@@ -567,23 +568,21 @@ namespace Microsoft.ML.Transforms
             protected override bool MoveNextCore()
             {
                 // If leading cursor is not started, start it.
-                if (_leadingCursor.State == CursorState.NotStarted)
-                {
-                    _leadingCursor.MoveNext();
-                }
+                // But, if in moving it we find we've reached the end, we have the degenerate case where
+                // there are no rows, in which case we ourselves should return false immedaitely.
 
-                if (_leadingCursor.State == CursorState.Done)
-                {
-                    // Leading cursor reached the end of the input on the previous MoveNext.
+                if (_leadingCursor.Position < 0 && !_leadingCursor.MoveNext())
                     return false;
-                }
+                Ch.Assert(_leadingCursor.Position >= 0);
 
-                // Then, advance the leading cursor until it hits the end of the group (or the end of the data).
+                // We are now in a "valid" place. Advance the leading cursor until it hits
+                // the end of the group (or the end of the data).
                 int groupSize = 0;
-                while (_leadingCursor.State == CursorState.Good && IsSameGroup())
+                while (_leadingCursor.Position >= 0 && IsSameGroup())
                 {
                     groupSize++;
-                    _leadingCursor.MoveNext();
+                    if (!_leadingCursor.MoveNext())
+                        break;
                 }
 
                 // The group can only be empty if the leading cursor immediately reaches the end of the data.

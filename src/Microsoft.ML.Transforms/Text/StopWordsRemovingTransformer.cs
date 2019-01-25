@@ -769,17 +769,17 @@ namespace Microsoft.ML.Transforms.Text
             {
                 string srcCol = stopwordsColumn;
                 var loader = GetLoaderForStopwords(ch, dataFile, loaderFactory, ref srcCol);
-                int colSrc;
-                if (!loader.Schema.TryGetColumnIndex(srcCol, out colSrc))
+
+                if (!loader.Schema.TryGetColumnIndex(srcCol, out int colSrcIndex))
                     throw ch.ExceptUserArg(nameof(Arguments.StopwordsColumn), "Unknown column '{0}'", srcCol);
-                var typeSrc = loader.Schema[colSrc].Type;
+                var typeSrc = loader.Schema[colSrcIndex].Type;
                 ch.CheckUserArg(typeSrc is TextType, nameof(Arguments.StopwordsColumn), "Must be a scalar text column");
 
                 // Accumulate the stopwords.
-                using (var cursor = loader.GetRowCursor(col => col == colSrc))
+                using (var cursor = loader.GetRowCursor(loader.Schema[srcCol]))
                 {
                     bool warnEmpty = true;
-                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colSrc);
+                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colSrcIndex);
                     while (cursor.MoveNext())
                     {
                         getter(ref src);

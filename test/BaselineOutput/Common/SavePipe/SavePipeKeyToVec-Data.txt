@@ -1,8 +1,8 @@
 #@ TextLoader{
 #@   header+
 #@   sep=tab
-#@   col=MarKey:U4[0-6]:0
-#@   col=CombKey:U4[0-3]:1-4
+#@   col=MarKey:U4[7]:0
+#@   col=CombKey:U4[4]:1-4
 #@   col=MarVec:R4:5-11
 #@   col=MarVecU8:R4:12-18
 #@   col=CombBagVec:R4:19-22

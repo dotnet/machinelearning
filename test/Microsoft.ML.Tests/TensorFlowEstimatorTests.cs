@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
@@ -59,7 +60,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -78,9 +79,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
             var pipe = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
-            var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable( stringData);
+            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable( sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -99,7 +100,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -164,7 +165,7 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = result.GetRowCursor(col => col == output))
+            using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -211,7 +212,7 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = result.GetRowCursor(col => col == output))
+            using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -231,7 +232,7 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("a", out int ColA);
             result.Schema.TryGetColumnIndex("b", out int ColB);
             result.Schema.TryGetColumnIndex("c", out int ColC);
-            using (var cursor = result.GetRowCursor(x => true))
+            using (var cursor = result.GetRowCursorForAllColumns())
             {
                 VBuffer<float> avalue = default;
                 VBuffer<float> bvalue = default;

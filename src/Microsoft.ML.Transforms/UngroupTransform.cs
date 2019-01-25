@@ -177,18 +177,24 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
-            var inputCursor = Source.GetRowCursor(col => activeInput[col], null);
+
+            var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
+            var inputCursor = Source.GetRowCursor(inputCols, null);
             return new Cursor(Host, inputCursor, _ungroupBinding, predicate);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate,
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded,
             int n, Random rand = null)
         {
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
-            var inputCursors = Source.GetRowCursorSet(col => activeInput[col], n, null);
+
+            var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
+            var inputCursors = Source.GetRowCursorSet(inputCols, n, null);
             return Utils.BuildArray<RowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _ungroupBinding, predicate));
         }
@@ -507,10 +513,7 @@ namespace Microsoft.ML.Transforms
 
             }
 
-            public override long Batch
-            {
-                get { return Input.Batch; }
-            }
+            public override long Batch => Input.Batch;
 
             public override ValueGetter<RowId> GetIdGetter()
             {
@@ -524,8 +527,7 @@ namespace Microsoft.ML.Transforms
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State == CursorState.NotStarted ||
-                           (0 <= _pivotColPosition && _pivotColPosition < _pivotColSize));
+                Ch.Assert(Position < 0 || (0 <= _pivotColPosition && _pivotColPosition < _pivotColSize));
                 // In the very first call to MoveNext, both _pivotColPosition and _pivotColSize are equal to zero.
                 // So, the below code will work seamlessly, advancing the input cursor.
 
@@ -633,7 +635,7 @@ namespace Microsoft.ML.Transforms
                     (ref T value) =>
                     {
                         // This delegate can be called from within MoveNext, so our own IsGood is not yet set.
-                        Ch.Check(Input.State == CursorState.Good, "Cursor is not active");
+                        Ch.Check(Input.Position >= 0, RowCursorUtils.FetchValueStateError);
 
                         Ch.Assert(cachedPosition <= Input.Position);
                         if (cachedPosition < Input.Position)

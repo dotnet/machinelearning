@@ -58,7 +58,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             var fields = new List<FieldInfo>();
             var attrs = new List<Attributes>();
 
-            foreach (var fieldInfo in _type.GetFields())
+            foreach (var fieldInfo in _type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var attr = (ArgumentAttribute)fieldInfo.GetCustomAttributes(typeof(ArgumentAttribute), false).FirstOrDefault();
                 if (attr == null || attr.Visibility == ArgumentAttribute.VisibilityType.CmdLineOnly)

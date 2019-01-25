@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.Transformers
                         Name="BareKey",
                         Source = new[] { new TextLoader.Range(0) },
                         Type = DataKind.U4,
-                        KeyRange = new KeyRange(0, 5),
+                        KeyCount = new KeyCount(6),
                     }
                 }
             });

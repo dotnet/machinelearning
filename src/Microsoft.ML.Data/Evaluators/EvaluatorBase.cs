@@ -127,7 +127,7 @@ namespace Microsoft.ML.Data
         // the metric. If there are stratified metrics, an additional column is added to the data view containing the
         // stratification value as text in the format "column x = y".
         private Dictionary<string, IDataView> ProcessData(IDataView data, RoleMappedSchema schema,
-            Func<int, bool> activeCols, TAgg aggregator, AggregatorDictionaryBase[] dictionaries)
+            Func<int, bool> activeColsIndices, TAgg aggregator, AggregatorDictionaryBase[] dictionaries)
         {
             Func<bool> finishPass =
                 () =>
@@ -140,6 +140,7 @@ namespace Microsoft.ML.Data
 
             bool needMorePasses = aggregator.Start();
 
+            var activeCols = data.Schema.Where(x => activeColsIndices(x.Index));
             // REVIEW: Add progress reporting.
             while (needMorePasses)
             {

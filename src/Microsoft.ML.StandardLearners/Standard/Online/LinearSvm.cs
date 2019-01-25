@@ -16,7 +16,7 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(LinearSvmTrainer.Summary, typeof(LinearSvmTrainer), typeof(LinearSvmTrainer.Arguments),
+[assembly: LoadableClass(LinearSvmTrainer.Summary, typeof(LinearSvmTrainer), typeof(LinearSvmTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     LinearSvmTrainer.UserNameValue,
     LinearSvmTrainer.LoadNameValue,
@@ -39,9 +39,9 @@ namespace Microsoft.ML.Trainers.Online
             + "and all the negative examples are on the other. After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the "
             + "margin, i.e., the minimal distance between it and the instances.";
 
-        internal new readonly Arguments Args;
+        internal readonly Options Opts;
 
-        public sealed class Arguments : OnlineLinearArguments
+        public sealed class Options : OnlineLinearArguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
@@ -89,10 +89,10 @@ namespace Microsoft.ML.Trainers.Online
             public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, LinearSvmTrainer parent)
                 : base(ch, numFeatures, predictor, parent)
             {
-                _batchSize = parent.Args.BatchSize;
-                _noBias = parent.Args.NoBias;
-                _performProjection = parent.Args.PerformProjection;
-                _lambda = parent.Args.Lambda;
+                _batchSize = parent.Opts.BatchSize;
+                _noBias = parent.Opts.NoBias;
+                _performProjection = parent.Opts.PerformProjection;
+                _lambda = parent.Opts.Lambda;
 
                 if (_noBias)
                     Bias = 0;
@@ -228,30 +228,29 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightsColumn">The optional name of the weights column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
-        public LinearSvmTrainer(IHostEnvironment env,
+        [BestFriend]
+        internal LinearSvmTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightsColumn = null,
-            int numIterations = Arguments.OnlineDefaultArgs.NumIterations,
-            Action<Arguments> advancedSettings = null)
-            : this(env, InvokeAdvanced(advancedSettings, new Arguments
+            int numIterations = Options.OnlineDefaultArgs.NumIterations)
+            : this(env, new Options
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
                 InitialWeights = weightsColumn,
                 NumIterations = numIterations,
-            }))
+            })
         {
         }
 
-        internal LinearSvmTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        internal LinearSvmTrainer(IHostEnvironment env, Options options)
+            : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
-            Contracts.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), UserErrorPositive);
-            Contracts.CheckUserArg(args.BatchSize > 0, nameof(args.BatchSize), UserErrorPositive);
+            Contracts.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), UserErrorPositive);
+            Contracts.CheckUserArg(options.BatchSize > 0, nameof(options.BatchSize), UserErrorPositive);
 
-            Args = args;
+            Opts = options;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -275,14 +274,14 @@ namespace Microsoft.ML.Trainers.Online
             => new TrainState(ch, numFeatures, predictor, this);
 
         [TlcModule.EntryPoint(Name = "Trainers.LinearSvmBinaryClassifier", Desc = "Train a linear SVM.", UserName = UserNameValue, ShortName = ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainLinearSvm(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainLinearSvm(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLinearSVM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LinearSvmTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);

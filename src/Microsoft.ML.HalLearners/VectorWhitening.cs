@@ -352,7 +352,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             int maxRows = columns.Max(i => i.MaxRow);
             long r = 0;
-            using (var cursor = inputData.GetRowCursor(col => false))
+            using (var cursor = inputData.GetRowCursor())
             {
                 while (r < maxRows && cursor.MoveNext())
                     r++;
@@ -434,8 +434,7 @@ namespace Microsoft.ML.Transforms.Projections
             }
             var idxDst = new int[columns.Length];
 
-            var colsSet = new HashSet<int>(cols);
-            using (var cursor = inputData.GetRowCursor(colsSet.Contains))
+            using (var cursor = inputData.GetRowCursor(inputData.Schema.Where(c => cols.Any(col => c.Index == col))))
             {
                 var getters = new ValueGetter<VBuffer<float>>[columns.Length];
                 for (int i = 0; i < columns.Length; i++)

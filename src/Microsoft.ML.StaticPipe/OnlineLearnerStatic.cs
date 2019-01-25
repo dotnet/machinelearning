@@ -17,7 +17,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
         /// </summary>
-        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="lossFunction">The custom loss.</param>
@@ -26,7 +26,6 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more avdanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -42,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
         /// ]]></format>
         /// </example>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) AveragedPerceptron(
-                this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 Scalar<bool> label,
                 Vector<float> features,
                 Scalar<float> weights = null,
@@ -51,11 +50,10 @@ namespace Microsoft.ML.StaticPipe
                 bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
                 float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
                 int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
-                Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null,
                 Action<LinearBinaryModelParameters> onFit = null
             )
         {
-            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
+            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
 
             bool hasProbs = lossFunction is LogLoss;
 
@@ -64,7 +62,67 @@ namespace Microsoft.ML.StaticPipe
                 {
 
                     var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, weightsName, lossFunction,
-                        learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
+                        learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
+
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                    else
+                        return trainer;
+
+                }, label, features, weights, hasProbs);
+
+            return rec.Output;
+        }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
+        /// </summary>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="lossFunction">The custom loss.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained, as well as the calibrator on top of that model. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted binary classification score (which will range
+        /// from negative to positive infinity), and the predicted label.</returns>
+        /// <seealso cref="AveragedPerceptronTrainer"/>.
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/AveragedPerceptronBinaryClassification.cs)]
+        /// ]]></format>
+        /// </example>
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) AveragedPerceptron(
+                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+                Scalar<bool> label,
+                Vector<float> features,
+                Scalar<float> weights,
+                IClassificationLoss lossFunction,
+                AveragedPerceptronTrainer.Options options,
+                Action<LinearBinaryModelParameters> onFit = null
+            )
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckValueOrNull(options);
+            Contracts.CheckValueOrNull(onFit);
+
+            bool hasProbs = lossFunction is LogLoss;
+
+            var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    options.LabelColumn = labelName;
+                    options.FeatureColumn = featuresName;
+                    options.InitialWeights = weightsName;
+
+                    var trainer = new AveragedPerceptronTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -85,7 +143,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -94,7 +152,6 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -104,26 +161,73 @@ namespace Microsoft.ML.StaticPipe
         /// from negative to positive infinity), and the predicted label.</returns>
         /// <seealso cref="OnlineGradientDescentTrainer"/>.
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
             IRegressionLoss lossFunction = null,
-            float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
-            bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.L2RegularizerWeight,
+            float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
+            float l2RegularizerWeight = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
-            Action<AveragedLinearArguments> advancedSettings = null,
             Action<LinearRegressionModelParameters> onFit = null)
         {
-            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
+            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
             Contracts.CheckValueOrNull(lossFunction);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new OnlineGradientDescentTrainer(env, labelName, featuresName, learningRate,
-                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction, advancedSettings);
+                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction);
+
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+
+                    return trainer;
+                }, label, features, weights);
+
+            return rec.Score;
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
+        /// </summary>
+        /// <param name="catalog">The regression catalog trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained, as well as the calibrator on top of that model. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted binary classification score (which will range
+        /// from negative to positive infinity), and the predicted label.</returns>
+        /// <seealso cref="OnlineGradientDescentTrainer"/>.
+        /// <returns>The predicted output.</returns>
+        public static Scalar<float> OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
+            Scalar<float> label,
+            Vector<float> features,
+            Scalar<float> weights,
+            OnlineGradientDescentTrainer.Options options,
+            Action<LinearRegressionModelParameters> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckValue(options, nameof(options));
+            Contracts.CheckValueOrNull(onFit);
+
+            var rec = new TrainerEstimatorReconciler.Regression(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    options.LabelColumn = labelName;
+                    options.FeatureColumn = featuresName;
+                    options.InitialWeights = weightsName;
+
+                    var trainer = new OnlineGradientDescentTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -143,8 +247,7 @@ namespace Microsoft.ML.StaticPipe
             float learningRate,
             float l2RegularizerWeight,
             int numIterations,
-            Delegate onFit,
-            Delegate advancedArguments)
+            Delegate onFit)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -153,7 +256,6 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(0 <= l2RegularizerWeight && l2RegularizerWeight < 0.5, nameof(l2RegularizerWeight), "must be in range [0, 0.5)");
             Contracts.CheckParam(numIterations > 0, nameof(numIterations), "Must be positive, if specified.");
             Contracts.CheckValueOrNull(onFit);
-            Contracts.CheckValueOrNull(advancedArguments);
         }
     }
 }

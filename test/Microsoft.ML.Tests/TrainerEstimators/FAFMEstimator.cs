@@ -2,15 +2,43 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.SamplesUtils;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
+        [Fact]
+        public void FfmBinaryClassificationWithAdvancedArguments()
+        {
+            var mlContext = new MLContext(seed: 0);
+            var data = DatasetUtils.GenerateFfmSamples(500);
+            var dataView = mlContext.Data.ReadFromEnumerable(data);
+
+            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Arguments();
+
+            // Customized the field names.
+            ffmArgs.FeatureColumn = nameof(DatasetUtils.FfmExample.Field0); // First field.
+            ffmArgs.ExtraFeatureColumns = new[]{ nameof(DatasetUtils.FfmExample.Field1), nameof(DatasetUtils.FfmExample.Field2) };
+
+            var pipeline = new FieldAwareFactorizationMachineTrainer(mlContext, ffmArgs);
+
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+
+            var metrics = mlContext.BinaryClassification.Evaluate(prediction);
+
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.9, 1);
+            Assert.InRange(metrics.Auc, 0.9, 1);
+            Assert.InRange(metrics.Auprc, 0.9, 1);
+        }
+
         [Fact]
         public void FieldAwareFactorizationMachine_Estimator()
         {

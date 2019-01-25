@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var regressionTrainData = regressionPipe.Fit(regressionData).Transform(regressionData).AsDynamic;
 
-            var ogdTrainer = new OnlineGradientDescentTrainer(ML, "Label", "Features");
+            var ogdTrainer = ML.Regression.Trainers.OnlineGradientDescent();
             TestEstimatorCore(ogdTrainer, regressionTrainData);
             var ogdModel = ogdTrainer.Fit(regressionTrainData);
             ogdTrainer.Train(regressionTrainData, ogdModel.Model);
@@ -36,16 +36,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 .Append(r => (r.Label, Features: r.Features.Normalize()));
 
             var binaryTrainData = binaryPipe.Fit(binaryData).Transform(binaryData).AsDynamic;
-            var apTrainer = new AveragedPerceptronTrainer(ML, "Label", "Features", lossFunction: new HingeLoss(), advancedSettings: s =>
-            {
-                s.LearningRate = 0.5f;
-            });
+            var apTrainer = ML.BinaryClassification.Trainers.AveragedPerceptron(
+                new AveragedPerceptronTrainer.Options{ LearningRate = 0.5f });
             TestEstimatorCore(apTrainer, binaryTrainData);
 
             var apModel = apTrainer.Fit(binaryTrainData);
             apTrainer.Train(binaryTrainData, apModel.Model);
 
-            var svmTrainer = new LinearSvmTrainer(ML, "Label", "Features");
+            var svmTrainer = ML.BinaryClassification.Trainers.LinearSupportVectorMachines();
             TestEstimatorCore(svmTrainer, binaryTrainData);
 
             var svmModel = svmTrainer.Fit(binaryTrainData);

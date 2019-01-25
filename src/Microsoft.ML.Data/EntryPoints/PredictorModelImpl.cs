@@ -125,7 +125,7 @@ namespace Microsoft.ML.EntryPoints
             if (trainRms.Label != null)
             {
                 labelType = trainRms.Label.Value.Type;
-                if (labelType is KeyType keyType && trainRms.Label.Value.HasKeyValues(keyType.Count))
+                if (trainRms.Label.Value.HasKeyValues(labelType))
                 {
                     VBuffer<ReadOnlyMemory<char>> keyValues = default;
                     trainRms.Label.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);

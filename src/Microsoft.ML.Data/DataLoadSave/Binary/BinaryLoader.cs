@@ -1204,45 +1204,41 @@ namespace Microsoft.ML.Data.IO
             // so this should be a key with *genuinely* a count of 0. However, a count of a key of 0 means
             // that the key length is unknown. Unsure of how to reconcile this. Is the least harmful thing
             // to do, if RowCount=0, to set count to some value like 1?
-            int count = _header.RowCount <= int.MaxValue ? (int)_header.RowCount : 0;
-            KeyType type = new KeyType(DataKind.U8, 0, count);
+            ulong count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
+            KeyType type = new KeyType(typeof(ulong), count);
             // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
             ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
             var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);
             return entry;
         }
 
-        private RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        private RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
             {
                 // Don't bother with block shuffling, if the shuffle cursor is just going to hold
                 // the entire dataset in memory anyway.
                 var ourRand = _randomShufflePoolRows == _header.RowCount ? null : rand;
-                var cursor = new Cursor(this, predicate, ourRand);
+                var cursor = new Cursor(this, columnsNeeded, ourRand);
                 return RowShufflingTransformer.GetShuffledCursor(_host, _randomShufflePoolRows, cursor, rand);
             }
-            return new Cursor(this, predicate, rand);
+            return new Cursor(this, columnsNeeded, rand);
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return GetRowCursorCore(predicate, rand);
+            return GetRowCursorCore(columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
         }
 
         private sealed class Cursor : RootCursorBase
         {
-            private const string _badCursorState = "cursor is either not started or is ended, and cannot get values";
-
             private readonly BinaryLoader _parent;
             private readonly int[] _colToActivesIndex;
             private readonly TableOfContentsEntry[] _actives;
@@ -1255,7 +1251,7 @@ namespace Microsoft.ML.Data.IO
             // This may be null, in the event that we are not shuffling.
             private readonly int[] _blockShuffleOrder;
 
-            private readonly Thread _readerThread;
+            private readonly Task _readerThread;
             private readonly Task _pipeTask;
             private readonly ExceptionMarshaller _exMarshaller;
 
@@ -1270,18 +1266,17 @@ namespace Microsoft.ML.Data.IO
                 get { return 0; }
             }
 
-            public Cursor(BinaryLoader parent, Func<int, bool> predicate, Random rand)
+            public Cursor(BinaryLoader parent, IEnumerable<Schema.Column> columnsNeeded, Random rand)
                 : base(parent._host)
             {
                 _parent = parent;
-                Ch.AssertValue(predicate);
                 Ch.AssertValueOrNull(rand);
 
                 _exMarshaller = new ExceptionMarshaller();
 
                 TableOfContentsEntry[] toc = _parent._aliveColumns;
                 int[] activeIndices;
-                Utils.BuildSubsetMaps(toc.Length, predicate, out activeIndices, out _colToActivesIndex);
+                Utils.BuildSubsetMaps(toc.Length, columnsNeeded, out activeIndices, out _colToActivesIndex);
                 _actives = new TableOfContentsEntry[activeIndices.Length];
                 for (int i = 0; i < activeIndices.Length; ++i)
                     _actives[i] = toc[activeIndices[i]];
@@ -1334,8 +1329,7 @@ namespace Microsoft.ML.Data.IO
                     _pipeGetters[c] = _pipes[c].GetGetter();
                 }
                 // The data structures are initialized. Now set up the workers.
-                _readerThread = Utils.CreateBackgroundThread(ReaderWorker);
-                _readerThread.Start();
+                _readerThread = Utils.RunOnBackgroundThread(ReaderWorker);
 
                 _pipeTask = SetupDecompressTask();
             }
@@ -1399,7 +1393,7 @@ namespace Microsoft.ML.Data.IO
                         finally
                         {
                             _pipeTask.Wait();
-                            _readerThread.Join();
+                            _readerThread.Wait();
                         }
                     }
                 }
@@ -1409,12 +1403,12 @@ namespace Microsoft.ML.Data.IO
 
             private Task SetupDecompressTask()
             {
-                Thread[] pipeWorkers = new Thread[_parent._threads];
+                Task[] pipeWorkers = new Task[_parent._threads];
                 long decompressSequence = -1;
                 long decompressSequenceLim = (long)_numBlocks * _actives.Length;
                 for (int w = 0; w < pipeWorkers.Length; ++w)
                 {
-                    Thread worker = pipeWorkers[w] = Utils.CreateBackgroundThread(() =>
+                    pipeWorkers[w] = Utils.RunOnBackgroundThread(() =>
                     {
                         try
                         {
@@ -1436,15 +1430,8 @@ namespace Microsoft.ML.Data.IO
                             _exMarshaller.Set("decompressing", ex);
                         }
                     });
-                    worker.Start();
                 }
-                Task pipeTask = new Task(() =>
-                {
-                    foreach (Thread worker in pipeWorkers)
-                        worker.Join();
-                });
-                pipeTask.Start();
-                return pipeTask;
+                return Task.WhenAll(pipeWorkers);
             }
 
             private void ReaderWorker()
@@ -1697,7 +1684,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Ectx.Check(_curr != null, _badCursorState);
+                    Ectx.Check(_curr != null, RowCursorUtils.FetchValueStateError);
                     long src = _curr.RowIndexLim - _remaining - 1;
                     _mapper(in src, ref value);
                 }
@@ -1986,7 +1973,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Contracts.Check(_curr != null, _badCursorState);
+                    Contracts.Check(_curr != null, RowCursorUtils.FetchValueStateError);
                     _curr.Reader.Get(ref value);
                 }
 
@@ -2030,7 +2017,7 @@ namespace Microsoft.ML.Data.IO
                         // wait forever to do it.
                         const int timeOut = 100;
                         _pipeTask.Wait(timeOut);
-                        _readerThread.Join(timeOut);
+                        _readerThread.Wait(timeOut);
                         // Throw. Considering we are here, this must throw.
                         _exMarshaller.ThrowIfSet(Ch);
                         // This can't be, cause the cancellation token we were waiting
@@ -2053,7 +2040,7 @@ namespace Microsoft.ML.Data.IO
                     // completed their work, but for the sake of hygiene join
                     // against them anyway.
                     _pipeTask.Wait();
-                    _readerThread.Join();
+                    _readerThread.Wait();
                 }
                 return more;
             }
@@ -2079,11 +2066,7 @@ namespace Microsoft.ML.Data.IO
 
             private Delegate NoRowGetter<T>()
             {
-                ValueGetter<T> del =
-                    (ref T value) =>
-                    {
-                        throw Ch.Except(_badCursorState);
-                    };
+                ValueGetter<T> del = (ref T value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
                 return del;
             }
 
@@ -2094,7 +2077,7 @@ namespace Microsoft.ML.Data.IO
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
@@ -2113,7 +2096,7 @@ namespace Microsoft.ML.Data.IO
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         long pos = Position;
                         if (pos >= firstPositionToCorrect)
                             pos += correction;

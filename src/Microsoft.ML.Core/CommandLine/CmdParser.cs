@@ -466,7 +466,7 @@ namespace Microsoft.ML.CommandLine
             var map = new Dictionary<string, Argument>();
             Argument def = null;
 
-            foreach (FieldInfo field in type.GetFields())
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 ArgumentAttribute attr = GetAttribute(field);
                 if (attr != null)

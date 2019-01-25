@@ -934,7 +934,7 @@ namespace Microsoft.ML.Transforms.Text
             ch.AssertValue(states);
             ch.Assert(states.Length == columns.Length);
 
-            bool[] activeColumns = new bool[inputData.Schema.Count];
+            var activeColumns = new List<Schema.Column>();
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
 
@@ -951,7 +951,7 @@ namespace Microsoft.ML.Transforms.Text
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
 
                 srcCols[i] = srcCol;
-                activeColumns[srcCol] = true;
+                activeColumns.Add(inputData.Schema[srcCol]);
                 numVocabs[i] = 0;
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;
@@ -968,7 +968,7 @@ namespace Microsoft.ML.Transforms.Text
             long[] corpusSize = new long[columns.Length];
             int[] numDocArray = new int[columns.Length];
 
-            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = inputData.GetRowCursor(activeColumns))
             {
                 var getters = new ValueGetter<VBuffer<Double>>[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
@@ -977,7 +977,7 @@ namespace Microsoft.ML.Transforms.Text
                     numDocArray[i] = 0;
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
                 }
-                VBuffer<Double> src = default(VBuffer<Double>);
+                VBuffer<Double> src = default;
                 long rowCount = 0;
                 while (cursor.MoveNext())
                 {
@@ -1045,7 +1045,7 @@ namespace Microsoft.ML.Transforms.Text
                 states[i] = state;
             }
 
-            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = inputData.GetRowCursor(activeColumns))
             {
                 int[] docSizeCheck = new int[columns.Length];
                 // This could be optimized so that if multiple trainers consume the same column, it is
@@ -1057,7 +1057,7 @@ namespace Microsoft.ML.Transforms.Text
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
                 }
 
-                VBuffer<Double> src = default(VBuffer<Double>);
+                VBuffer<double> src = default;
 
                 while (cursor.MoveNext())
                 {

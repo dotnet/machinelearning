@@ -1842,18 +1842,24 @@ namespace Microsoft.ML.Trainers.FastTree
                         e => e.SetProgress(0, pos, rowCountDbl));
                     // REVIEW: Should we ignore rows with bad label, weight, or group? The previous code seemed to let
                     // them through (but filtered out bad features).
-                    CursOpt curOptions = CursOpt.Label | CursOpt.Features | CursOpt.Weight;
+                    CursOpt curOptions = CursOpt.Label | CursOpt.Features;
                     bool hasGroup = false;
                     if (PredictionKind == PredictionKind.Ranking)
                     {
-                        curOptions |= CursOpt.Group;
                         hasGroup = _data.Schema.Group != null;
+
+                        if(hasGroup)
+                            curOptions |= CursOpt.Group;
                     }
                     else
                     {
                         if (_data.Schema.Group != null)
                             ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", _data.Schema.Group.Value.Name);
                     }
+
+                    if (_data.Schema.Weight.HasValue)
+                        curOptions |= CursOpt.Weight;
+
                     using (var cursor = new FloatLabelCursor(_data, curOptions))
                     {
                         ulong groupPrev = 0;

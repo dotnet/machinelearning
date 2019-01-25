@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
         ///     col=ColumnName:I4:1,3-10
         ///
         /// Key range column of KeyType with underlying storage type U4 that contains values from columns 1, 3 to 10, that can go from 1 to 100 (0 reserved for out of range)
-        ///     col=ColumnName:U4[1-100]:1,3-10
+        ///     col=ColumnName:U4[100]:1,3-10
         /// </example>
         public sealed class Column
         {
@@ -50,16 +50,15 @@ namespace Microsoft.ML.Data
             {
             }
 
-            public Column(string name, DataKind? type, Range[] source, KeyRange keyRange = null)
+            public Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
-                Contracts.CheckValueOrNull(keyRange);
 
                 Name = name;
                 Type = type;
                 Source = source;
-                KeyRange = keyRange;
+                KeyCount = keyCount;
             }
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
@@ -72,7 +71,7 @@ namespace Microsoft.ML.Data
             public Range[] Source;
 
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key")]
-            public KeyRange KeyRange;
+            public KeyCount KeyCount;
 
             public static Column Parse(string str)
             {
@@ -99,9 +98,9 @@ namespace Microsoft.ML.Data
                 if (rgstr.Length == 3)
                 {
                     DataKind kind;
-                    if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyRange))
+                    if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyCount))
                         return false;
-                    Type = kind == default(DataKind) ? default(DataKind?) : kind;
+                    Type = kind == default ? default(DataKind?) : kind;
                 }
 
                 return TryParseSource(rgstr[istr++]);
@@ -139,14 +138,14 @@ namespace Microsoft.ML.Data
                 int ich = sb.Length;
                 sb.Append(Name);
                 sb.Append(':');
-                if (Type != null || KeyRange != null)
+                if (Type != null || KeyCount != null)
                 {
                     if (Type != null)
                         sb.Append(Type.Value.GetString());
-                    if (KeyRange != null)
+                    if (KeyCount != null)
                     {
                         sb.Append('[');
-                        if (!KeyRange.TryUnparse(sb))
+                        if (!KeyCount.TryUnparse(sb))
                         {
                             sb.Length = ich;
                             return false;
@@ -354,10 +353,11 @@ namespace Microsoft.ML.Data
             public int? InputSize;
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
-            public string Separator = DefaultArguments.Separator.ToString();
+            // this is internal as it only serves the command line interface
+            internal string Separator = DefaultArguments.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
-            public char[] SeparatorChars = new[] { DefaultArguments.Separator };
+            public char[] Separators = new[] { DefaultArguments.Separator };
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
                 Name = "Column", ShortName = "col", SortOrder = 1)]
@@ -461,7 +461,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(isegVar >= -1);
 
                 Name = name;
-                Kind = colType.GetItemType().RawKind;
+                Kind = colType.GetItemType().GetRawKind();
                 Contracts.Assert(Kind != 0);
                 ColType = colType;
                 Segments = segs;
@@ -605,9 +605,9 @@ namespace Microsoft.ML.Data
 
                         PrimitiveType itemType;
                         DataKind kind;
-                        if (col.KeyRange != null)
+                        if (col.KeyCount != null)
                         {
-                            itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyRange);
+                            itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyCount);
                         }
                         else
                         {
@@ -751,9 +751,7 @@ namespace Microsoft.ML.Data
                 //   byte: DataKind
                 //   byte: bool of whether this is a key type
                 //   for a key type:
-                //     byte: contiguous key range
-                //     ulong: min for key range
-                //     int: count for key range
+                //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
                 //     int: min
@@ -776,20 +774,30 @@ namespace Microsoft.ML.Data
                     bool isKey = ctx.Reader.ReadBoolByte();
                     if (isKey)
                     {
-                        Contracts.CheckDecode(KeyType.IsValidDataKind(kind));
+                        ulong count;
+                        Contracts.CheckDecode(KeyType.IsValidDataType(kind.ToType()));
 
-                        bool isContig = ctx.Reader.ReadBoolByte();
-                        ulong min = ctx.Reader.ReadUInt64();
-                        Contracts.CheckDecode(min >= 0);
-                        int count = ctx.Reader.ReadInt32();
-                        if (count == 0)
-                            itemType = new KeyType(kind, min, 0, isContig);
+                        // Special treatment for versions that had Min and Contiguous fields in KeyType.
+                        if (ctx.Header.ModelVerWritten < VersionNoMinCount)
+                        {
+                            bool isContig = ctx.Reader.ReadBoolByte();
+                            // We no longer support non contiguous values and non zero Min for KeyType.
+                            Contracts.CheckDecode(isContig);
+                            ulong min = ctx.Reader.ReadUInt64();
+                            Contracts.CheckDecode(min == 0);
+                            int cnt = ctx.Reader.ReadInt32();
+                            Contracts.CheckDecode(cnt >= 0);
+                            count = (ulong)cnt;
+                            // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
+                            if (count == 0)
+                                count = kind.ToMaxInt();
+                        }
                         else
                         {
-                            Contracts.CheckDecode(isContig);
-                            Contracts.CheckDecode(2 <= count && (ulong)count <= kind.ToMaxInt());
-                            itemType = new KeyType(kind, min, count);
+                            count = ctx.Reader.ReadUInt64();
+                            Contracts.CheckDecode(0 < count);
                         }
+                        itemType = new KeyType(kind.ToType(), count);
                     }
                     else
                         itemType = PrimitiveType.FromKind(kind);
@@ -836,9 +844,7 @@ namespace Microsoft.ML.Data
                 //   byte: DataKind
                 //   byte: bool of whether this is a key type
                 //   for a key type:
-                //     byte: contiguous key range
-                //     ulong: min for key range
-                //     int: count for key range
+                //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
                 //     int: min
@@ -850,15 +856,12 @@ namespace Microsoft.ML.Data
                     var info = Infos[iinfo];
                     ctx.SaveNonEmptyString(info.Name);
                     var type = info.ColType.GetItemType();
-                    Contracts.Assert((DataKind)(byte)type.RawKind == type.RawKind);
-                    ctx.Writer.Write((byte)type.RawKind);
+                    DataKind rawKind = type.GetRawKind();
+                    Contracts.Assert((DataKind)(byte)rawKind == rawKind);
+                    ctx.Writer.Write((byte)rawKind);
                     ctx.Writer.WriteBoolByte(type is KeyType);
                     if (type is KeyType key)
-                    {
-                        ctx.Writer.WriteBoolByte(key.Contiguous);
-                        ctx.Writer.Write(key.Min);
                         ctx.Writer.Write(key.Count);
-                    }
                     ctx.Writer.Write(info.Segments.Length);
                     foreach (var seg in info.Segments)
                     {
@@ -904,6 +907,7 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
+        private const uint VersionNoMinCount = 0x00010004;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -919,7 +923,8 @@ namespace Microsoft.ML.Data
                 //verWrittenCur: 0x00010008, // Added maxRows
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
-                verWrittenCur: 0x0001000B, // Header now retained if used and present
+                //verWrittenCur: 0x0001000B, // Header now retained if used and present
+                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1044,13 +1049,13 @@ namespace Microsoft.ML.Data
 
             _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
 
-            //Default arg.Separator is tab and default args.SeparatorChars is also a '\t'.
+            //Default arg.Separator is tab and default args.Separators is also a '\t'.
             //At a time only one default can be different and whichever is different that will
             //be used.
-            if (args.SeparatorChars.Length > 1 || args.SeparatorChars[0] != '\t')
+            if (args.Separators.Length > 1 || args.Separators[0] != '\t')
             {
                 var separators = new HashSet<char>();
-                foreach (char c in args.SeparatorChars)
+                foreach (char c in args.Separators)
                     separators.Add(NormalizeSeparator(c.ToString()));
 
                 _separators = separators.ToArray();
@@ -1369,7 +1374,7 @@ namespace Microsoft.ML.Data
             Arguments args = new Arguments
             {
                 HasHeader = hasHeader,
-                SeparatorChars = new[] { separator },
+                Separators = new[] { separator },
                 AllowQuoting = allowQuotedStrings,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,
@@ -1404,19 +1409,17 @@ namespace Microsoft.ML.Data
 
             public Schema Schema => _reader._bindings.OutputSchema;
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, predicate);
+                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.Create(_reader, _files, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, predicate);
+                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.CreateSet(_reader, _files, active, n);
             }
 

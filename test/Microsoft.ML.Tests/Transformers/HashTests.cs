@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new HashingEstimator(Env, new[]{
                     new HashingTransformer.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
                     new HashingTransformer.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A=new float[2] { 3.5f, 2.5f}, B=1, C= new double[2] { 5.1f, 6.1f}, D= 7}};
 
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new HashingEstimator(Env, new[] {
                 new HashingTransformer.ColumnInfo("A", "HashA", invertHash:1, hashBits:10),
                 new HashingTransformer.ColumnInfo("A", "HashAUnlim", invertHash:-1, hashBits:10),
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new HashingEstimator(Env, new[]{
                     new HashingTransformer.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
                     new HashingTransformer.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
@@ -231,20 +231,20 @@ namespace Microsoft.ML.Tests.Transformers
             if (value <= byte.MaxValue)
             {
                 HashTestCore((byte)value, NumberType.U1, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((byte)value, new KeyType(typeof(byte), 0, byte.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((byte)value, new KeyType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberType.U2, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((ushort)value, new KeyType(typeof(ushort), 0, ushort.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((ushort)value, new KeyType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= uint.MaxValue)
             {
                 HashTestCore((uint)value, NumberType.U4, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((uint)value, new KeyType(typeof(uint), 0, int.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((uint)value, new KeyType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
             }
             HashTestCore(value, NumberType.U8, expected, expectedOrdered, expectedOrdered3);
-            HashTestCore((ulong)value, new KeyType(typeof(ulong), 0, 0), eKey, eoKey, e3Key);
+            HashTestCore((ulong)value, new KeyType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
 
             HashTestCore(new RowId(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
 

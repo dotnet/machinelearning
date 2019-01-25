@@ -8,31 +8,26 @@ namespace Microsoft.ML.Data
     // ownership of the channel so the derived classes don't have to.
 
     /// <summary>
-    /// Base class for creating a cursor with default tracking of <see cref="Position"/> and <see cref="State"/>
-    /// with a default implementation of <see cref="MoveManyCore(long)"/> (call <see cref="MoveNextCore"/> repeatedly).
-    /// This cursor base class returns "this" from <see cref="GetRootCursor"/>. That is, all
-    /// <see cref="MoveNext"/>/<see cref="MoveMany(long)"/> calls will be seen by this cursor. For a cursor
-    /// that has an input cursor and does NOT need notification on <see cref="MoveNext"/>/<see cref="MoveMany(long)"/>,
-    /// use <see cref="SynchronizedCursorBase"/> .
+    /// Base class for creating a cursor with default tracking of <see cref="Position"/>. All calls to <see cref="MoveNext"/>
+    /// will be seen by subclasses of this cursor. For a cursor that has an input cursor and does not need notification on
+    /// <see cref="MoveNext"/>, use <see cref="SynchronizedCursorBase"/> instead.
     /// </summary>
     [BestFriend]
     internal abstract class RootCursorBase : RowCursor
     {
         protected readonly IChannel Ch;
-        private CursorState _state;
         private long _position;
+        private bool _disposed;
 
         /// <summary>
         /// Zero-based position of the cursor.
         /// </summary>
         public sealed override long Position => _position;
 
-        public sealed override CursorState State => _state;
-
         /// <summary>
-        /// Convenience property for checking whether the current state of the cursor is <see cref="CursorState.Good"/>.
+        /// Convenience property for checking whether the current state of the cursor is one where data can be fetched.
         /// </summary>
-        protected bool IsGood => State == CursorState.Good;
+        protected bool IsGood => _position >= 0;
 
         /// <summary>
         /// Creates an instance of the <see cref="RootCursorBase"/> class
@@ -44,55 +39,30 @@ namespace Microsoft.ML.Data
             Ch = provider.Start("Cursor");
 
             _position = -1;
-            _state = CursorState.NotStarted;
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (State == CursorState.Done)
+            if (_disposed)
                 return;
             if (disposing)
+            {
                 Ch.Dispose();
-            _position = -1;
-            _state = CursorState.Done;
+                _position = -1;
+            }
+            _disposed = true;
+            base.Dispose(disposing);
+
         }
 
         public sealed override bool MoveNext()
         {
-            if (State == CursorState.Done)
+            if (_disposed)
                 return false;
 
-            Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
             if (MoveNextCore())
             {
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
                 _position++;
-                _state = CursorState.Good;
-                return true;
-            }
-
-            Dispose();
-            return false;
-        }
-
-        public sealed override bool MoveMany(long count)
-        {
-            // Note: If we decide to allow count == 0, then we need to special case
-            // that MoveNext() has never been called. It's not entirely clear what the return
-            // result would be in that case.
-            Ch.CheckParam(count > 0, nameof(count));
-
-            if (State == CursorState.Done)
-                return false;
-
-            Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-            if (MoveManyCore(count))
-            {
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
-                _position += count;
-                _state = CursorState.Good;
                 return true;
             }
 
@@ -101,38 +71,9 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Default implementation is to simply call MoveNextCore repeatedly. Derived classes should
-        /// override if they can do better.
-        /// </summary>
-        /// <param name="count">The number of rows to move forward.</param>
-        /// <returns>Whether the move forward is on a valid row</returns>
-        protected virtual bool MoveManyCore(long count)
-        {
-            Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-            Ch.Assert(count > 0);
-
-            while (MoveNextCore())
-            {
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                if (--count <= 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Core implementation of <see cref="MoveNext"/>, called if the cursor state is not
-        /// <see cref="CursorState.Done"/>.
+        /// Core implementation of <see cref="MoveNext"/>, called if no prior call to this method
+        /// has returned <see langword="false"/>.
         /// </summary>
         protected abstract bool MoveNextCore();
-
-        /// <summary>
-        /// Returns a cursor that can be used for invoking <see cref="Position"/>, <see cref="State"/>,
-        /// <see cref="MoveNext"/>, and <see cref="MoveMany(long)"/>, with results identical to calling
-        /// those on this cursor. Generally, if the root cursor is not the same as this cursor, using
-        /// the root cursor will be faster.
-        /// </summary>
-        public override RowCursor GetRootCursor() => this;
     }
 }

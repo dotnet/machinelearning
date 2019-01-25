@@ -70,9 +70,9 @@ namespace Microsoft.ML.Data
             return min;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             _host.CheckValueOrNull(rand);
 
             var srcPredicates = _zipBinding.GetInputPredicates(predicate);
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Data
             // One reason this is not done currently is because the API has 'somewhat mutable' data views, so potentially this
             // optimization might backfire.
             var srcCursors = _sources
-                .Select((dv, i) => srcPredicates[i] == null ? GetMinimumCursor(dv) : dv.GetRowCursor(srcPredicates[i], null)).ToArray();
+                .Select((dv, i) => srcPredicates[i] == null ? GetMinimumCursor(dv) : dv.GetRowCursor(dv.Schema.Where(x => srcPredicates[i](x.Index)), null)).ToArray();
             return new Cursor(this, srcCursors, predicate);
         }
 
@@ -95,12 +95,12 @@ namespace Microsoft.ML.Data
         private RowCursor GetMinimumCursor(IDataView dv)
         {
             _host.AssertValue(dv);
-            return dv.GetRowCursor(x => false);
+            return dv.GetRowCursor();
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            return new RowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         private sealed class Cursor : RootCursorBase
@@ -141,31 +141,16 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)Position, 0);
                     };
             }
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State != CursorState.Done);
                 foreach (var cursor in _cursors)
                 {
-                    Ch.Assert(cursor.State != CursorState.Done);
                     if (!cursor.MoveNext())
-                        return false;
-                }
-
-                return true;
-            }
-
-            protected override bool MoveManyCore(long count)
-            {
-                Ch.Assert(State != CursorState.Done);
-                foreach (var cursor in _cursors)
-                {
-                    Ch.Assert(cursor.State != CursorState.Done);
-                    if (!cursor.MoveMany(count))
                         return false;
                 }
 

@@ -12,7 +12,7 @@ namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Defines static extension methods that allow operations like train-test split, cross-validate,
-    /// sampling etc. with the <see cref="TrainContextBase"/>.
+    /// sampling etc. with the <see cref="TrainCatalogBase"/>.
     /// </summary>
     public static class TrainingStaticExtensions
     {
@@ -21,7 +21,7 @@ namespace Microsoft.ML.StaticPipe
         /// Respects the <paramref name="stratificationColumn"/> if provided.
         /// </summary>
         /// <typeparam name="T">The tuple describing the data schema.</typeparam>
-        /// <param name="context">The training context.</param>
+        /// <param name="catalog">The training catalog.</param>
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
         /// <param name="stratificationColumn">Optional selector for the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
@@ -31,7 +31,7 @@ namespace Microsoft.ML.StaticPipe
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>A pair of datasets, for the train and test set.</returns>
-        public static (DataView<T> trainSet, DataView<T> testSet) TrainTestSplit<T>(this TrainContextBase context,
+        public static (DataView<T> trainSet, DataView<T> testSet) TrainTestSplit<T>(this TrainCatalogBase catalog,
             DataView<T> data, double testFraction = 0.1, Func<T, PipelineColumn> stratificationColumn = null, uint? seed = null)
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -49,7 +49,7 @@ namespace Microsoft.ML.StaticPipe
                 stratName = indexer.Get(column);
             }
 
-            var (trainData, testData) = context.TrainTestSplit(data.AsDynamic, testFraction, stratName, seed);
+            var (trainData, testData) = catalog.TrainTestSplit(data.AsDynamic, testFraction, stratName, seed);
             return (new DataView<T>(env, trainData, data.Shape), new DataView<T>(env, testData, data.Shape));
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.ML.StaticPipe
         /// <typeparam name="TInShape">The input schema shape.</typeparam>
         /// <typeparam name="TOutShape">The output schema shape.</typeparam>
         /// <typeparam name="TTransformer">The type of the trained model.</typeparam>
-        /// <param name="context">The training context.</param>
+        /// <param name="catalog">The training catalog.</param>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
@@ -74,7 +74,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (RegressionMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
-            this RegressionContext context,
+            this RegressionCatalog catalog,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<float>> label,
@@ -102,7 +102,7 @@ namespace Microsoft.ML.StaticPipe
                 stratName = indexer.Get(column);
             }
 
-            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
+            var results = catalog.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
                     x.metrics,
@@ -119,7 +119,7 @@ namespace Microsoft.ML.StaticPipe
         /// <typeparam name="TInShape">The input schema shape.</typeparam>
         /// <typeparam name="TOutShape">The output schema shape.</typeparam>
         /// <typeparam name="TTransformer">The type of the trained model.</typeparam>
-        /// <param name="context">The training context.</param>
+        /// <param name="catalog">The training catalog.</param>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
@@ -132,7 +132,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (MultiClassClassifierMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
-            this MulticlassClassificationContext context,
+            this MulticlassClassificationCatalog catalog,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Key<uint>> label,
@@ -160,7 +160,7 @@ namespace Microsoft.ML.StaticPipe
                 stratName = indexer.Get(column);
             }
 
-            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
+            var results = catalog.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
                     x.metrics,
@@ -177,7 +177,7 @@ namespace Microsoft.ML.StaticPipe
         /// <typeparam name="TInShape">The input schema shape.</typeparam>
         /// <typeparam name="TOutShape">The output schema shape.</typeparam>
         /// <typeparam name="TTransformer">The type of the trained model.</typeparam>
-        /// <param name="context">The training context.</param>
+        /// <param name="catalog">The training catalog.</param>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
@@ -190,7 +190,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (BinaryClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidateNonCalibrated<TInShape, TOutShape, TTransformer>(
-            this BinaryClassificationContext context,
+            this BinaryClassificationCatalog catalog,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
@@ -218,7 +218,7 @@ namespace Microsoft.ML.StaticPipe
                 stratName = indexer.Get(column);
             }
 
-            var results = context.CrossValidateNonCalibrated(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
+            var results = catalog.CrossValidateNonCalibrated(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
                     x.metrics,
@@ -235,7 +235,7 @@ namespace Microsoft.ML.StaticPipe
         /// <typeparam name="TInShape">The input schema shape.</typeparam>
         /// <typeparam name="TOutShape">The output schema shape.</typeparam>
         /// <typeparam name="TTransformer">The type of the trained model.</typeparam>
-        /// <param name="context">The training context.</param>
+        /// <param name="catalog">The training catalog.</param>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
@@ -248,7 +248,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (CalibratedBinaryClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
-            this BinaryClassificationContext context,
+            this BinaryClassificationCatalog catalog,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
@@ -276,7 +276,7 @@ namespace Microsoft.ML.StaticPipe
                 stratName = indexer.Get(column);
             }
 
-            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
+            var results = catalog.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
                     x.metrics,

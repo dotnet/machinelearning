@@ -34,14 +34,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create ML pipeline to score the data using OnnxScoringEstimator
             var mlContext = new MLContext();
             var data = GetTensorData();
-            var idv = mlContext.CreateStreamingDataView(data);
+            var idv = mlContext.Data.ReadFromEnumerable(data);
             var pipeline = new OnnxScoringEstimator(mlContext, modelPath, new[] { inputInfo.Key }, new[] { outputInfo.Key });
 
             // Run the pipeline and get the transformed values
             var transformedValues = pipeline.Fit(idv).Transform(idv);
 
             // Retrieve model scores into Prediction class
-            var predictions = transformedValues.AsEnumerable<Prediction>(mlContext, reuseRowObject: false);
+            var predictions = mlContext.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
 
             // Iterate rows
             foreach (var prediction in predictions)

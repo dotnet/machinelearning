@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests
 
             var samplevector = GetSampleArrayData();
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -110,9 +110,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = new OnnxScoringEstimator(Env, modelFile, new[] { "data_0" }, new[] { "softmaxout_1" });
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
-            var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Tests
 
             var samplevector = GetSampleArrayData();
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -159,7 +159,8 @@ namespace Microsoft.ML.Tests
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
 
                 loadedView.Schema.TryGetColumnIndex(outputNames[0], out int softMaxOut1);
-                using (var cursor = loadedView.GetRowCursor(col => col == softMaxOut1))
+
+                using (var cursor = loadedView.GetRowCursor(loadedView.Schema[softMaxOut1]))
                 {
                     VBuffer<float> softMaxValue = default;
                     var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);
@@ -216,7 +217,8 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
-            using (var cursor = result.GetRowCursor(col => col == output))
+
+            using (var cursor = result.GetRowCursor(result.Schema["softmaxout_1"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -253,20 +255,21 @@ namespace Microsoft.ML.Tests
             {
                 var samplevector = GetSampleArrayData();
 
-                var dataView = ComponentCreation.CreateDataView(Env,
+                var dataView = ML.Data.ReadFromEnumerable(
                     new TestData[] {
-                    new TestData()
-                    {
-                        data_0 = samplevector
-                    }
+                        new TestData()
+                        {
+                            data_0 = samplevector
+                        }
                     });
 
                 var onnx = new OnnxTransformer(env, modelFile, "data_0", "softmaxout_1").Transform(dataView);
 
-                onnx.Schema.TryGetColumnIndex("softmaxout_1", out int scores);
-                using (var curs = onnx.GetRowCursor(col => col == scores))
+                onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
+
+                using (var curs = onnx.GetRowCursor(onnx.Schema["softmaxout_1"]))
                 {
-                    var getScores = curs.GetGetter<VBuffer<float>>(scores);
+                    var getScores = curs.GetGetter<VBuffer<float>>(score);
                     var buffer = default(VBuffer<float>);
                     while (curs.MoveNext())
                     {
@@ -288,19 +291,19 @@ namespace Microsoft.ML.Tests
             {
                 var samplevector = GetSampleArrayData();
 
-                var dataView = ComponentCreation.CreateDataView(Env,
+                var dataView = ML.Data.ReadFromEnumerable(
                     new TestDataMulti[] {
-                    new TestDataMulti()
-                    {
-                        ina = new float[] {1,2,3,4,5},
-                        inb = new float[] {1,2,3,4,5}
-                    }
+                        new TestDataMulti()
+                        {
+                            ina = new float[] {1,2,3,4,5},
+                            inb = new float[] {1,2,3,4,5}
+                        }
                     });
                 var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
-                using (var curs = onnx.GetRowCursor(col => col == scoresa || col == scoresb))
+                using (var curs = onnx.GetRowCursor(onnx.Schema["outa"], onnx.Schema["outb"]))
                 {
                     var getScoresa = curs.GetGetter<VBuffer<float>>(scoresa);
                     var getScoresb = curs.GetGetter<VBuffer<float>>(scoresb);
@@ -336,10 +339,10 @@ namespace Microsoft.ML.Tests
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, -1.2f }},
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, 1.2f }},
                 };
-            var idv = mlContext.CreateStreamingDataView(data);
+            var idv = mlContext.Data.ReadFromEnumerable(data);
             var pipeline = new OnnxScoringEstimator(mlContext, modelFile);
             var transformedValues = pipeline.Fit(idv).Transform(idv);
-            var predictions = transformedValues.AsEnumerable<PredictionUnknownDimensions>(mlContext, reuseRowObject: false).ToArray();
+            var predictions = mlContext.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();
 
             Assert.Equal(1, predictions[0].argmax[0]);
             Assert.Equal(0, predictions[1].argmax[0]);

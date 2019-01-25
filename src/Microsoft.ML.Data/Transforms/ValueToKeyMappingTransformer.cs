@@ -261,12 +261,12 @@ namespace Microsoft.ML.Transforms.Conversions
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        internal string TestIsKnownDataKind(ColumnType type)
+        private string TestIsKnownDataKind(ColumnType type)
         {
             VectorType vectorType = type as VectorType;
             ColumnType itemType = vectorType?.ItemType ?? type;
 
-            if (itemType.RawKind != default && (vectorType != null || type is PrimitiveType))
+            if (itemType is KeyType || itemType.IsStandardScalar())
                 return null;
             return "standard type or a vector of standard type";
         }
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
                 throw ch.ExceptUserArg(nameof(termsColumn), "Must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
 
-            using (var cursor = termData.GetRowCursor(col => col == colSrc))
+            using (var cursor = termData.GetRowCursor(termData.Schema[colSrc]))
             using (var pch = env.StartProgressChannel("Building term dictionary from file"))
             {
                 var header = new ProgressHeader(new[] { "Total Terms" }, new[] { "examples" });
@@ -583,7 +583,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 int[] trainerInfo = new int[trainsNeeded];
                 // Open the cursor, then instantiate the trainers.
                 int itrainer;
-                using (var cursor = trainingData.GetRowCursor(toTrain.Contains))
+                using (var cursor = trainingData.GetRowCursor(trainingData.Schema.Where(c => toTrain.Contains(c.Index))))
                 using (var pch = env.StartProgressChannel("Building term dictionary"))
                 {
                     long rowCur = 0;

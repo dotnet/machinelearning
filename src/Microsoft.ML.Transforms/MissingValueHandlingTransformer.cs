@@ -177,7 +177,13 @@ namespace Microsoft.ML.Transforms
 
                 // Add a ConvertTransform column if necessary.
                 if (!identity)
-                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceItemType.RawKind));
+                {
+                    if (!replaceItemType.RawType.TryGetDataKind(out DataKind replaceItemTypeKind))
+                    {
+                        throw h.Except("Cannot get a DataKind for type '{0}'", replaceItemType.RawType);
+                    }
+                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceItemTypeKind));
+                }
 
                 // Add the NAReplaceTransform column.
                 replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Source, tmpReplacementColName, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));

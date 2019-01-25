@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests
             var env = new MLContext(conc: 1);
             const int Size = 10;
             var data = new List<Data>(Size);
-            var dataView = env.CreateStreamingDataView(data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
 
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests
             var output = detector.Transform(staticData);
 
             // Get predictions
-            var enumerator = output.AsDynamic.AsEnumerable<ChangePointPrediction>(env, true).GetEnumerator();
+            var enumerator = env.CreateEnumerable<ChangePointPrediction>(output.AsDynamic, true).GetEnumerator();
             ChangePointPrediction row = null;
             List<double> expectedValues = new List<double>() { 0, 5, 0.5, 5.1200000000000114E-08, 0, 5, 0.4999999995, 5.1200000046080209E-08, 0, 5, 0.4999999995, 5.1200000092160303E-08,
                 0, 5, 0.4999999995, 5.12000001382404E-08};
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests
             const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             var data = new List<Data>();
-            var dataView = env.CreateStreamingDataView(data);
+            var dataView = env.Data.ReadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests
             var output = detector.Transform(staticData);
 
             // Get predictions
-            var enumerator = output.AsDynamic.AsEnumerable<ChangePointPrediction>(env, true).GetEnumerator();
+            var enumerator = env.CreateEnumerable<ChangePointPrediction>(output.AsDynamic, true).GetEnumerator();
             ChangePointPrediction row = null;
             List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
                     0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests
 
             // Generate sample series data with a spike
             List<Data> data = new List<Data>(Size);
-            var dataView = env.CreateStreamingDataView(data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
             data.Add(new Data(10)); // This is the spike
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Tests
             var output = detector.Transform(staticData);
 
             // Get predictions
-            var enumerator = output.AsDynamic.AsEnumerable<SpikePrediction>(env, true).GetEnumerator();
+            var enumerator = env.CreateEnumerable<SpikePrediction>(output.AsDynamic, true).GetEnumerator();
             var expectedValues = new List<double[]>() {
                 //            Alert   Score   P-Value
                 new double[] {0,      5,      0.5},
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Tests
 
             // Generate sample series data with a spike
             List<Data> data = new List<Data>(Size);
-            var dataView = env.CreateStreamingDataView(data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
             data.Add(new Data(10)); // This is the spike
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests
             var output = detector.Transform(staticData);
 
             // Get predictions
-            var enumerator = output.AsDynamic.AsEnumerable<SpikePrediction>(env, true).GetEnumerator();
+            var enumerator = env.CreateEnumerable<SpikePrediction>(output.AsDynamic, true).GetEnumerator();
             var expectedValues = new List<double[]>() {
                 //            Alert   Score   P-Value
                 new double[] {0,      0.0,    0.5},

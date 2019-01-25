@@ -503,8 +503,8 @@ namespace Microsoft.ML.Data
             ValueGetter<VBuffer<Float>> mapperScoreGetter = output.GetGetter<VBuffer<Float>>(Bindings.ScoreColumnIndex);
 
             long cachedPosition = -1;
-            VBuffer<Float> score = default(VBuffer<Float>);
-            int scoreLength = Bindings.PredColType.GetKeyCount();
+            VBuffer<Float> score = default;
+            int scoreLength = Bindings.PredColType.GetKeyCountAsInt32(Host);
 
             ValueGetter<uint> predFn =
                 (ref uint dst) =>
@@ -535,7 +535,7 @@ namespace Microsoft.ML.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(DataKind.U4, 0, scoreType.GetVectorSize());
+        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(typeof(uint), scoreType.GetVectorSize());
 
         private static bool OutputTypeMatches(ColumnType scoreType) =>
             scoreType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberType.Float;
