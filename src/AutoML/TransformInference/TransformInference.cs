@@ -144,6 +144,9 @@ namespace Microsoft.ML.Auto
             // The expert work independently of each other, the sequence is irrelevant
             // (it only determines the sequence of resulting transforms).
 
+            // If there's more than one feature column, concat all into Features. If it isn't called 'Features', rename it.
+            yield return new Experts.FeaturesColumnConcatRenameNumericOnly();
+
             // For text labels, convert to categories.
             yield return new Experts.AutoLabel();
 
@@ -166,9 +169,6 @@ namespace Microsoft.ML.Auto
 
             // If numeric column has missing values, use Missing transform.
             yield return new Experts.NumericMissing();
-
-            // If there's more than one feature column, concat all into Features. If it isn't called 'Features', rename it.
-            yield return new Experts.FeaturesColumnConcatRenameNumericOnly();
         }
 
         internal static class Experts
@@ -224,11 +224,10 @@ namespace Microsoft.ML.Auto
                     bool foundCatHash = false;
                     var catColumnsNew = new List<string>();
                     var catHashColumnsNew = new List<string>();
-                    var featureCols = new List<string>();
 
                     foreach (var column in columns)
                     {
-                        if (!column.Type.ItemType().IsText() || column.Purpose != ColumnPurpose.CategoricalFeature)
+                        if (column.Purpose != ColumnPurpose.CategoricalFeature)
                         {
                             continue;
                         }
@@ -257,9 +256,13 @@ namespace Microsoft.ML.Auto
                         yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, catHashColumnsNewArr, catHashColumnsNewArr);
                     }
 
-                    if (!ExcludeFeaturesConcatTransforms && featureCols.Count > 0)
+                    var transformedColumns = new List<string>();
+                    transformedColumns.AddRange(catColumnsNew);
+                    transformedColumns.AddRange(catHashColumnsNew);
+
+                    if (!ExcludeFeaturesConcatTransforms && transformedColumns.Count > 0)
                     {
-                        yield return InferenceHelpers.GetRemainingFeatures(featureCols, columns, IncludeFeaturesOverride);
+                        yield return InferenceHelpers.GetRemainingFeatures(transformedColumns, columns, IncludeFeaturesOverride);
                         IncludeFeaturesOverride = true;
                     }
                 }
