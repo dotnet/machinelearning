@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -59,16 +60,18 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
             // names' in MatrixElement class.
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization( 
-                nameof(MatrixElement.MatrixColumnIndex),
-                nameof(MatrixElement.MatrixRowIndex),
-                nameof(MatrixElement.Value),
-                advancedSettings: s =>
-                {
-                    s.NumIterations = 10;
-                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
-                    s.K = 32;
-                });
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                NumIterations = 10,
+                NumThreads = 1,
+                K = 32,
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);

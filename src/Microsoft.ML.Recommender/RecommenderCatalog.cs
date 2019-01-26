@@ -46,7 +46,7 @@ namespace Microsoft.ML
             /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
             /// </summary>
             /// <remarks>
-            /// <para>The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix.</para>
+            /// <para>The basic idea of matrix factorization is finding two low-rank factor matrices to apporimate the training matrix.</para>
             /// <para>In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
             /// and the value at the location specified by the two indexes.
             /// </para>
@@ -54,13 +54,31 @@ namespace Microsoft.ML
             /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
             /// <param name="labelColumn">The name of the label column.</param>
-            /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
             public MatrixFactorizationTrainer MatrixFactorization(
                 string matrixColumnIndexColumnName,
                 string matrixRowIndexColumnName,
-                string labelColumn = DefaultColumnNames.Label,
-                Action<MatrixFactorizationTrainer.Arguments> advancedSettings = null)
-                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn, advancedSettings);
+                string labelColumn = DefaultColumnNames.Label)
+                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn);
+
+            /// <summary>
+            /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
+            /// </summary>
+            /// <remarks>
+            /// <para>The basic idea of matrix factorization is finding two low-rank factor matrices to apporimate the training matrix.</para>
+            /// <para>In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
+            /// and the value at the location specified by the two indexes. The training configuration is encoded in <see cref="MatrixFactorizationTrainer.Options"/>.
+            /// </para>
+            /// </remarks>
+            /// <param name="options">Advanced arguments to the algorithm.</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs)]
+            /// ]]></format>
+            /// </example>
+            public MatrixFactorizationTrainer MatrixFactorization(
+                MatrixFactorizationTrainer.Options options)
+                    => new MatrixFactorizationTrainer(Owner.Environment, options);
         }
 
         /// <summary>

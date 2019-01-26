@@ -722,9 +722,9 @@ namespace Microsoft.ML.StaticPipelineTesting
                                 r.features,
                                 preds: env.Clustering.Trainers.KMeans
                                 (
-                                    r.features, 
+                                    r.features,
                                     null,
-                                    options : new KMeansPlusPlusTrainer.Options
+                                    options: new KMeansPlusPlusTrainer.Options
                                     {
                                         ClustersCount = 3,
                                         NumThreads = 1
@@ -996,8 +996,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Create a statically-typed matrix factorization estimator. The MatrixFactorization's input and output defined in MatrixFactorizationStatic
             // tell what (aks a Scalar<float>) is expected. Notice that only one thread is used for deterministic outcome.
             var matrixFactorizationEstimator = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: mlContext.Regression.Trainers.MatrixFactorization(r.label, r.matrixRowIndex, r.matrixColumnIndex, onFit: p => pred = p,
-                advancedSettings: args => { args.NumThreads = 1; })));
+                .Append(r => (r.label, score: mlContext.Regression.Trainers.MatrixFactorization(
+                                            r.label, r.matrixRowIndex, r.matrixColumnIndex,
+                                            new MatrixFactorizationTrainer.Options { NumThreads = 1 },
+                                            onFit: p => pred = p)));
 
             // Create a pipeline from the reader (the 1st step) and the matrix factorization estimator (the 2nd step).
             var pipe = reader.Append(matrixFactorizationEstimator);
