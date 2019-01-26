@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Internal.Utilities
 {

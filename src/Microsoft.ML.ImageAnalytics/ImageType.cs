@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Drawing;
-using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.ImageAnalytics

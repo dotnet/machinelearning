@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 using Xunit;
