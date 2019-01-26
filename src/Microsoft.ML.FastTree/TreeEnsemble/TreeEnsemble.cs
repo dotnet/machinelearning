@@ -16,7 +16,12 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public class TreeEnsembleView
+    /// <summary>
+    /// A list of <see cref="TreeRegressor"/>. To compute the output value of a <see cref="TreeRegressorCollection"/>, we need to compute
+    /// the output values of all trees in <see cref="Trees"/>, scale those values via <see cref="TreeWeights"/>, and finally sum the scaled
+    /// values and <see cref="Bias"/> up.
+    /// </summary>
+    public class TreeRegressorCollection
     {
         [BestFriend]
         internal readonly TreeEnsemble TreeEnsemble; // It's a best friend for being accessed from LightGBM.
@@ -27,25 +32,26 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         public double Bias { get; }
 
         /// <summary>
-        /// <see cref="TreeWeights"/>[i] is the i-th <see cref="RegressionTreeView"/>'s weight in this <see cref="TreeEnsembleView"/>.
+        /// <see cref="TreeWeights"/>[i] is the i-th <see cref="TreeRegressor"/>'s weight in this <see cref="TreeRegressorCollection"/>.
         /// </summary>
         public IReadOnlyList<double> TreeWeights { get; }
 
         /// <summary>
-        /// <see cref="Trees"/>[i] is the i-th <see cref="RegressionTreeView"/> in this <see cref="TreeEnsembleView"/>.
+        /// <see cref="Trees"/>[i] is the i-th <see cref="TreeRegressor"/> in this <see cref="TreeRegressorCollection"/>.
         /// </summary>
-        public IReadOnlyList<RegressionTreeView> Trees { get; }
+        public IReadOnlyList<TreeRegressor> Trees { get; }
 
-        internal TreeEnsembleView(TreeEnsemble treeEnsemble)
+        internal TreeRegressorCollection(TreeEnsemble treeEnsemble)
         {
             TreeEnsemble = treeEnsemble;
             Bias = treeEnsemble.Bias;
             TreeWeights = treeEnsemble.Trees.Select(tree => tree.Weight).ToList();
-            Trees = treeEnsemble.Trees.Select(tree => new RegressionTreeView(tree)).ToList();
+            Trees = treeEnsemble.Trees.Select(tree => new TreeRegressor(tree)).ToList();
         }
     }
 
-    public class TreeEnsemble
+    [BestFriend]
+    internal class TreeEnsemble
     {
         /// <summary>
         /// String appended to the text representation of <see cref="TreeEnsemble"/>. This is mainly used in <see cref="ToTreeEnsembleIni"/>.
@@ -404,7 +410,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
     }
 
-    public class FeatureToGainMap : Dictionary<int, double>
+    internal class FeatureToGainMap : Dictionary<int, double>
     {
         public FeatureToGainMap() { }
         // Override default Dictionary to return 0.0 for non-eisting keys

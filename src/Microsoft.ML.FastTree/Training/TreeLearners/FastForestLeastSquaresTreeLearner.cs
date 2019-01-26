@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public class RandomForestLeastSquaresTreeLearner : LeastSquaresRegressionTreeLearner
+    internal class RandomForestLeastSquaresTreeLearner : LeastSquaresRegressionTreeLearner
     {
         private int _quantileSampleCount;
         private bool _quantileEnabled;

@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         protected readonly TArgs Args;
         protected readonly bool AllowGC;
-        protected TreeEnsemble TrainedEnsemble;
+        internal TreeEnsemble TrainedEnsemble;
         protected int FeatureCount;
         private protected RoleMappedData ValidData;
         /// <summary>
@@ -63,8 +63,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/> in <see cref="InitializeTests"/>.
         /// </summary>
         private protected RoleMappedData TestData;
-        protected IParallelTraining ParallelTraining;
-        protected OptimizationAlgorithm OptimizationAlgorithm;
+        internal IParallelTraining ParallelTraining;
+        internal OptimizationAlgorithm OptimizationAlgorithm;
         protected Dataset TrainSet;
         protected Dataset ValidSet;
         /// <summary>
@@ -88,7 +88,8 @@ namespace Microsoft.ML.Trainers.FastTree
         protected double[] InitValidScores;
         protected double[][] InitTestScores;
         //protected int Iteration;
-        protected TreeEnsemble Ensemble;
+        [BestFriend]
+        internal TreeEnsemble Ensemble;
 
         protected bool HasValidSet => ValidSet != null;
 
@@ -174,8 +175,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract Test ConstructTestForTrainingData();
 
-        protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
-        protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
+        internal abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
+        internal abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
         protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
 
@@ -792,7 +793,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         // This method is called at the end of each training iteration, with the tree that was learnt on that iteration.
         // Note that this tree can be null if no tree was learnt this iteration.
-        protected virtual void CustomizedTrainingIteration(RegressionTree tree)
+        internal virtual void CustomizedTrainingIteration(RegressionTree tree)
         {
         }
 
@@ -2809,10 +2810,14 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
-        public TreeEnsembleView TrainedTreeEnsembleView { get; }
-        //The below two properties are necessary for tree Visualizer
+        /// <summary>
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/> <see cref="TreeEnsemble"/> in <see cref="TreeRegressorCollection"/>.
+        /// </summary>
+        public TreeRegressorCollection TrainedTreeCollection { get; }
+
+        // The below two properties are necessary for tree Visualizer
         [BestFriend]
-        internal TreeEnsemble TrainedEnsemble => TrainedTreeEnsembleView.TreeEnsemble;
+        internal TreeEnsemble TrainedEnsemble => TrainedTreeCollection.TreeEnsemble;
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
@@ -2854,7 +2859,9 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
-        public TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+        /// The following function is used in both FastTree and LightGBM so <see cref="BestFriendAttribute"/> is required.
+        [BestFriend]
+        internal TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));
@@ -2864,7 +2871,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // REVIEW: When we make the predictor wrapper, we may want to further "optimize"
             // the trained ensemble to, for instance, resize arrays so that they are of the length
             // the actual number of leaves/nodes, or remove unnecessary arrays, and so forth.
-            TrainedTreeEnsembleView = new TreeEnsembleView(trainedEnsemble);
+            TrainedTreeCollection = new TreeRegressorCollection(trainedEnsemble);
             InnerArgs = innerArgs;
             NumFeatures = numFeatures;
 
@@ -2892,7 +2899,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
                 categoricalSplits = true;
 
-            TrainedTreeEnsembleView = new TreeEnsembleView(new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits));
+            TrainedTreeCollection = new TreeRegressorCollection(new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits));
             MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
             InnerArgs = ctx.LoadStringOrNull();

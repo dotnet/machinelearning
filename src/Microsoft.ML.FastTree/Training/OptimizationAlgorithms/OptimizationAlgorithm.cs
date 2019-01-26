@@ -13,7 +13,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         ScoreTracker GetUpdatedTrainingScores();
     }
 
-    public abstract class OptimizationAlgorithm
+    internal abstract class OptimizationAlgorithm
     {
         //TODO: We should move Partitioning to OptimizationAlgorithm
         public TreeLearner TreeLearner;
@@ -52,10 +52,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             TrackedScores[0] = TrainingScores;
         }
 
-        public abstract RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures);
-        //Regularize a regression tree with smoothing paramter alpha
+        internal abstract RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures);
 
-        public virtual void UpdateAllScores(IChannel ch, RegressionTree tree)
+        internal virtual void UpdateAllScores(IChannel ch, RegressionTree tree)
         {
             if (PreScoreUpdateEvent != null)
                 PreScoreUpdateEvent(ch);
@@ -66,7 +65,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public virtual void UpdateScores(ScoreTracker t, RegressionTree tree)
+        internal virtual void UpdateScores(ScoreTracker t, RegressionTree tree)
         {
             if (t == TrainingScores)
             {
@@ -95,6 +94,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         protected abstract ScoreTracker ConstructScoreTracker(string name, Dataset set, double[] initScores);
 
+        // Regularize a regression tree with smoothing paramter alpha
         protected virtual void SmoothTree(RegressionTree tree, double smoothing)
         {
             if (smoothing == 0.0)

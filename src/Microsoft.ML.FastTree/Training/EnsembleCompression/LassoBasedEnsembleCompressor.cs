@@ -15,7 +15,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// https://www-stat.stanford.edu/~hastie/Papers/glmnet.pdf
     /// </summary>
     /// <remarks>Author was Yasser Ganjisaffar during his internship.</remarks>
-    public class LassoBasedEnsembleCompressor : IEnsembleCompressor<short>
+    internal class LassoBasedEnsembleCompressor : IEnsembleCompressor<short>
     {
         // This module shouldn't consume more than 4GB of memory
         private const long MaxAvailableMemory = 4L * 1024 * 1024 * 1024;
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public bool Compress(IChannel ch, TreeEnsemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression)
+        bool IEnsembleCompressor<short>.Compress(IChannel ch, TreeEnsemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression)
         {
             LoadTargets(trainScores, bestIteration);
 
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return true;
         }
 
-        public TreeEnsemble GetCompressedEnsemble()
+        TreeEnsemble IEnsembleCompressor<short>.GetCompressedEnsemble()
         {
             return _compressedEnsemble;
         }

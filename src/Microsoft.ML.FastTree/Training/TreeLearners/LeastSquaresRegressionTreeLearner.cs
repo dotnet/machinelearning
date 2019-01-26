@@ -20,7 +20,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// <summary>
     /// Trains regression trees.
     /// </summary>
-    public class LeastSquaresRegressionTreeLearner : TreeLearner, ILeafSplitStatisticsCalculator
+    internal class LeastSquaresRegressionTreeLearner : TreeLearner, ILeafSplitStatisticsCalculator
     {
         // parameters
         protected readonly int MinDocsInLeaf;
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// Learns a new tree for the current outputs
         /// </summary>
         /// <returns>A regression tree</returns>
-        public sealed override RegressionTree FitTargets(IChannel ch, bool[] activeFeatures, double[] targets)
+        internal sealed override RegressionTree FitTargets(IChannel ch, bool[] activeFeatures, double[] targets)
         {
             int maxLeaves = base.NumLeaves;
             using (Timer.Time(TimerEvent.TreeLearnerGetTree))
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// Contains the memory data structures required for finding the best threshold for a given
         /// feature at a given leaf.
         /// </summary>
-        public sealed class LeafSplitCandidates
+        internal sealed class LeafSplitCandidates
         {
             private int _leafIndex;
             private int _numDocsInLeaf;

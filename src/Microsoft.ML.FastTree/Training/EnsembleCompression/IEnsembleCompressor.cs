@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public interface IEnsembleCompressor<TLabel>
+    internal interface IEnsembleCompressor<TLabel>
     {
         void Initialize(int numTrees, Dataset trainSet, TLabel[] labels, int randomSeed);
 

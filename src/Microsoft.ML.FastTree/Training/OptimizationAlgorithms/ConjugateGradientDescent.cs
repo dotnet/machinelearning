@@ -5,7 +5,7 @@
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     // Conjugate gradient descent
-    public class ConjugateGradientDescent : GradientDescent
+    internal class ConjugateGradientDescent : GradientDescent
     {
         private double[] _previousGradient;
         private double[] _currentGradient;
@@ -17,7 +17,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _currentDk = new double[trainData.NumDocs];
         }
 
-        protected override double[] GetGradient(IChannel ch)
+        internal override double[] GetGradient(IChannel ch)
         {
             Contracts.AssertValue(ch);
             _previousGradient = _currentGradient;

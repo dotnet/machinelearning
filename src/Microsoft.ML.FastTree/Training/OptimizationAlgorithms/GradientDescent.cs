@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public class GradientDescent : OptimizationAlgorithm
+    internal class GradientDescent : OptimizationAlgorithm
     {
         private IGradientAdjuster _gradientWrapper;
 
@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         private double[] _droppedScores;
         private double[] _scores;
 
-        public GradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        internal GradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores)
         {
             _gradientWrapper = gradientWrapper;
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return new ScoreTracker(name, set, initScores);
         }
 
-        protected virtual double[] GetGradient(IChannel ch)
+        internal virtual double[] GetGradient(IChannel ch)
         {
             Contracts.AssertValue(ch);
             if (DropoutRate > 0)
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public override RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures)
+        internal override RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures)
         {
             Contracts.CheckValue(ch, nameof(ch));
             // Fit a regression tree to the gradient using least squares.

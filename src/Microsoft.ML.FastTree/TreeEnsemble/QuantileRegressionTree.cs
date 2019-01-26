@@ -11,12 +11,16 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public class QuantileRegressionTree : RegressionTree
+    internal class QuantileRegressionTree : RegressionTree
     {
-        // Holds the labels of samped instances for this tree
+        /// <summary>
+        /// Holds the labels of samped instances for this tree. This value can be null when training, for example, random forest (FastForest).
+        /// </summary>
         private double[] _labelsDistribution;
 
-        // Holds the weights of sampled instances for this tree
+        /// <summary>
+        /// Holds the weights of sampled instances for this tree. This value can be null when training, for example, random forest (FastForest).
+        /// </summary>
         private double[] _instanceWeights;
 
         public bool IsWeightedTargets { get { return _instanceWeights != null; } }
@@ -93,38 +97,37 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _instanceWeights = weights;
         }
 
-        internal IReadOnlyList<IReadOnlyList<double>> ExtractLeafSamples()
+        /// <summary>
+        /// Copy training examples' labels and their weights to external variables.
+        /// </summary>
+        /// <param name="leafSamples">List of label collections. The type of a collction is a double array. The i-th label collection contains training examples' labels falling into the i-th leaf.</param>
+        /// <param name="leafSampleWeights">List of labels' weight collections. The type of a collction is a double array. The i-th collection contains weights of labels falling into the i-th leaf.
+        /// Specifically, leafSampleWeights[i][j] is the weight of leafSamples[i][j].</param>
+        internal void ExtractLeafSamplesAndTheirWeights(out List<double[]> leafSamples, out List<double[]> leafSampleWeights)
         {
-            var sampledLabelsBuffer = new List<List<double>>();
-            var sampleCountPerLeaf = _labelsDistribution.Length / NumLeaves;
+            leafSamples = new List<double[]>();
+            leafSampleWeights = new List<double[]>();
+            // If there is no training labels stored, we view the i-th leaf value as the only label stored at the i-th leaf.
+            var sampleCountPerLeaf = _labelsDistribution != null ? _labelsDistribution.Length / NumLeaves : 1;
             for (int i = 0; i < NumLeaves; ++i)
             {
                 var samplesPerLeaf = new List<double>();
-                var weightsPerLeaf = new List<double>();
-                for (int j = 0; j < sampleCountPerLeaf; ++j)
-                    samplesPerLeaf.Add(_labelsDistribution[i * sampleCountPerLeaf + j]);
-                sampledLabelsBuffer.Add(samplesPerLeaf);
-            }
-            return sampledLabelsBuffer;
-        }
-
-        internal IReadOnlyList<IReadOnlyList<double>> ExtractLeafSampleWeights()
-        {
-            var labelWeightsBuffer = new List<List<double>>();
-            var sampleCountPerLeaf = _labelsDistribution.Length / NumLeaves;
-            for (int i = 0; i < NumLeaves; ++i)
-            {
-                var weightsPerLeaf = new List<double>();
+                var sampleWeightsPerLeaf = new List<double>();
                 for (int j = 0; j < sampleCountPerLeaf; ++j)
                 {
-                    if (_instanceWeights != null)
-                        weightsPerLeaf.Add(_instanceWeights[i * sampleCountPerLeaf + j]);
+                    if( _labelsDistribution != null)
+                        samplesPerLeaf.Add(_labelsDistribution[i * sampleCountPerLeaf + j]);
                     else
-                        weightsPerLeaf.Add(1.0);
+                        // No training label is available, so the i-th leaf's value is used directly. Note that sampleCountPerLeaf must be 1 in this case.
+                        samplesPerLeaf.Add(LeafValues[i]);
+                    if (_instanceWeights != null)
+                        sampleWeightsPerLeaf.Add(_instanceWeights[i * sampleCountPerLeaf + j]);
+                    else
+                        sampleWeightsPerLeaf.Add(1.0);
                 }
-                labelWeightsBuffer.Add(weightsPerLeaf);
+                leafSamples.Add(samplesPerLeaf.ToArray());
+                leafSampleWeights.Add(sampleWeightsPerLeaf.ToArray());
             }
-            return labelWeightsBuffer;
         }
 
         public override int SizeInBytes()
