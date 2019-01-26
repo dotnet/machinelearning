@@ -56,90 +56,9 @@ namespace Microsoft.ML.Auto
         {
         }
 
-        public override bool Equals(object obj)
-        {
-            var other = obj as PipelineNode;
-            if(other == null)
-            {
-                return false;
-            }
-            if(this.Name != other.Name)
-            {
-                return false;
-            }
-            if(this.NodeType != other.NodeType)
-            {
-                return false;
-            }
-            if(!ColumnSetsAreEqual(this.InColumns, other.InColumns) ||
-                !ColumnSetsAreEqual(this.OutColumns, other.OutColumns))
-            {
-                return false;
-            }
-            return PropertiesAreEqual(this.Properties, other.Properties);
-        }
-
-        public override int GetHashCode()
-        {
-            return JsonConvert.SerializeObject(this).GetHashCode();
-        }
-
         // (used by Newtonsoft)
         internal PipelineNode()
         {
-        }
-
-        private static bool ColumnSetsAreEqual(string[] set1, string[] set2)
-        {
-            if(set1 == null)
-            {
-                return set2 == null;
-            }
-            if(set2 == null)
-            {
-                return false;
-            }
-            if(set1.Length != set2.Length)
-            {
-                return false;
-            }
-            for(var i = 0; i < set1.Length; i++)
-            {
-                if(!set1[i].Equals(set2[i]))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private static bool PropertiesAreEqual(IDictionary<string, object> props1, IDictionary<string, object> props2)
-        {
-            if(props1 == null)
-            {
-                return props2 == null;
-            }
-            if(props2 == null)
-            {
-                return false;
-            }
-            if(props1.Keys.Count != props2.Keys.Count)
-            {
-                return false;
-            }
-            foreach(var key in props1.Keys)
-            {
-                var value1 = props1[key];
-                if(!props2.TryGetValue(key, out var value2))
-                {
-                    return false;
-                }
-                if(!value1.Equals(value2))
-                {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 
@@ -151,8 +70,18 @@ namespace Microsoft.ML.Auto
 
     public class CustomProperty
     {
-        public readonly string Name;
-        public readonly IDictionary<string, object> Properties;
+        public string Name { get; set; }
+        public IDictionary<string, object> Properties { get; set; }
+
+        public CustomProperty(string name, IDictionary<string, object> properties)
+        {
+            Name = name;
+            Properties = properties;
+        }
+
+        internal CustomProperty()
+        {
+        }
     }
 
     public class PipelineRunResult

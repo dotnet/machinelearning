@@ -79,16 +79,7 @@ namespace Microsoft.ML.Auto.Test
     ""Properties"": {}
   }
 ]";
-            var expectedNodes = JsonConvert.DeserializeObject<PipelineNode[]>(expectedNodesJson);
-
-            Assert.AreEqual(expectedNodes.Count(), actualNodes.Count());
-            
-            for(var i = 0; i < expectedNodes.Count(); i++)
-            {
-                var expectedNode = expectedNodes.ElementAt(i);
-                var actualNode = actualNodes.ElementAt(i);
-                Assert.AreEqual(expectedNode, actualNode);
-            }
+            Util.AssertObjectMatchesJson(expectedNodesJson, actualNodes);
         }
     }
 }

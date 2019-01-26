@@ -57,11 +57,7 @@ namespace Microsoft.ML.Auto
         public PipelineNode ToPipelineNode()
         {
             var hyperParams = SweepParams.Where(p => p != null && p.RawValue != null);
-            var elementProperties = new Dictionary<string, object>();
-            foreach (var hyperParam in hyperParams)
-            {
-                elementProperties[hyperParam.Name] = hyperParam.ProcessedValue();
-            }
+            var elementProperties = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName, hyperParams);
             return new PipelineNode(TrainerName.ToString(), PipelineNodeType.Trainer, 
                 new[] { "Features" }, new[] { "Score" }, elementProperties);
         }

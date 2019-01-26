@@ -76,8 +76,7 @@ namespace Microsoft.ML.Auto
                 {
                     var trainerName = (TrainerName)Enum.Parse(typeof(TrainerName), pipelineNode.Name);
                     var trainerExtension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
-                    var stringParamVals = pipelineNode.Properties.Select(prop => new StringParameterValue(prop.Key, prop.Value.ToString()));
-                    var hyperParamSet = new ParameterSet(stringParamVals);
+                    var hyperParamSet = TrainerExtensionUtil.BuildParameterSet(trainerName, pipelineNode.Properties);
                     trainer = new SuggestedTrainer(context, trainerExtension, hyperParamSet);
                 }
                 else if (pipelineNode.NodeType == PipelineNodeType.Transform)

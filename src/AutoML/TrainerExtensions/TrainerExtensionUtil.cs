@@ -56,7 +56,8 @@ namespace Microsoft.ML.Auto
             return argsFunc;
         }
 
-        private static string[] _treeBoosterParamNames = new[] { "RegLambda", "RegAlpha" };
+        private static string[] _lightGbmTreeBoosterParamNames = new[] { "RegLambda", "RegAlpha" };
+        private const string LightGbmTreeBoosterPropName = "TreeBooster";
 
         public static Action<LightGbmArguments> CreateLightGbmArgsFunc(IEnumerable<SweepableParam> sweepParams)
         {
@@ -65,13 +66,59 @@ namespace Microsoft.ML.Auto
             {
                 argsFunc = (args) =>
                 {
-                    var treeBoosterParams = sweepParams.Where(p => _treeBoosterParamNames.Contains(p.Name));
+                    var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
                     var parentArgParams = sweepParams.Except(treeBoosterParams);
                     UpdateFields(args, parentArgParams);
                     UpdateFields(args.Booster, treeBoosterParams);
                 };
             }
             return argsFunc;
+        }
+
+        public static IDictionary<string, object> BuildPipelineNodeProps(TrainerName trainerName, IEnumerable<SweepableParam> sweepParams)
+        {
+            if(trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
+                trainerName == TrainerName.LightGbmRegression)
+            {
+                return BuildLightGbmPipelineNodeProps(sweepParams);
+            }
+
+            return sweepParams.ToDictionary(p => p.Name, p => (object)p.RawValue);
+        }
+
+        private static IDictionary<string, object> BuildLightGbmPipelineNodeProps(IEnumerable<SweepableParam> sweepParams)
+        {
+            var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
+            var parentArgParams = sweepParams.Except(treeBoosterParams);
+
+            var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.RawValue);
+            var treeBoosterCustomProp = new CustomProperty("Microsoft.ML.LightGBM.TreeBooster", treeBoosterProps);
+
+            var props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.RawValue);
+            props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;
+            
+            return props;
+        }
+
+        public static ParameterSet BuildParameterSet(TrainerName trainerName, IDictionary<string, object> props)
+        {
+            if (trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
+                trainerName == TrainerName.LightGbmRegression)
+            {
+                return BuildLightGbmParameterSet(props);
+            }
+
+            var paramVals = props.Select(p => new StringParameterValue(p.Key, p.Value.ToString()));
+            return new ParameterSet(paramVals);
+        }
+
+        private static ParameterSet BuildLightGbmParameterSet(IDictionary<string, object> props)
+        {
+            var parentProps = props.Where(p => p.Key != LightGbmTreeBoosterPropName);
+            var treeProps = ((CustomProperty)props[LightGbmTreeBoosterPropName]).Properties;
+            var allProps = parentProps.Union(treeProps);
+            var paramVals = allProps.Select(p => new StringParameterValue(p.Key, p.Value.ToString()));
+            return new ParameterSet(paramVals);
         }
 
         private static void SetValue(FieldInfo fi, IComparable value, object obj, Type propertyType)
