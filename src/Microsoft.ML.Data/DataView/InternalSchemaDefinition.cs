@@ -133,7 +133,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Given a field or property info on a type, returns whether this appears to be a vector type,
-        /// and also the associated data kind for this type. If a data kind could not
+        /// and also the associated data kind for this type. If a valid data type could not
         /// be determined, this will throw.
         /// </summary>
         /// <param name="memberInfo">The field or property info to inspect.</param>

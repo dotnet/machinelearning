@@ -19,26 +19,9 @@ namespace Microsoft.ML.Data
         // REVIEW: Property based, but should I just have a constructor?
 
         /// <summary>
-        /// The minimum key value.
+        /// The key count.
         /// </summary>
-        public ulong Min { get; set; }
-
-        /// <summary>
-        /// The key count, if it is a known cardinality key.
-        /// </summary>
-        public int Count { get; set; }
-
-        /// <summary>
-        /// Whether keys should be considered to be contiguous.
-        /// </summary>
-        public bool Contiguous { get; set; }
-        /// <summary>
-        /// Public KeyTypeAttribute constuctor.
-        /// </summary>
-        public KeyTypeAttribute()
-        {
-            Contiguous = true;
-        }
+        public ulong Count { get; set; }
     }
 
     /// <summary>
@@ -394,7 +377,7 @@ namespace Microsoft.ML.Data
                 {
                     if (!KeyType.IsValidDataType(dataType))
                         throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
-                    itemType = new KeyType(dataType, keyAttr.Min, keyAttr.Count, keyAttr.Contiguous);
+                    itemType = new KeyType(dataType, keyAttr.Count);
                 }
                 else
                     itemType = PrimitiveType.FromType(dataType);

@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -72,7 +73,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", "ConvA", DataKind.R4),
                 new TypeConvertingTransformer.ColumnInfo("B", "ConvB", DataKind.R4)});
 
@@ -111,7 +112,7 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             };
 
-            var allTypesDataView = ComponentCreation.CreateDataView(Env, allTypesData);
+            var allTypesDataView = ML.Data.ReadFromEnumerable(allTypesData);
             var allTypesPipe = new TypeConvertingEstimator(Env, columns: new[] {
                 new TypeConvertingTransformer.ColumnInfo("AA", "ConvA", DataKind.R4),
                 new TypeConvertingTransformer.ColumnInfo("AB", "ConvB", DataKind.R4),
@@ -152,7 +153,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", "ConvA", DataKind.R8),
                 new TypeConvertingTransformer.ColumnInfo("B", "ConvB", DataKind.R8)});
 
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TypeConvertingTransformer.ColumnInfo("CatA", "ConvA", DataKind.R8),
                 new TypeConvertingTransformer.ColumnInfo("CatB", "ConvB", DataKind.U2)
             }));
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             dataView = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(dataView);
         }
@@ -196,6 +197,49 @@ namespace Microsoft.ML.Tests.Transformers
             result.Schema["ConvB"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
+        }
+
+
+        public class SimpleSchemaUIntColumn
+        {
+            [LoadColumn(0)]
+            [KeyType(Count = 4)]
+            public uint key;
+        }
+
+        [Fact]
+        public void TypeConvertKeyBackCompatTest()
+        {
+            // Model generated using the following command before the change removing Min and Count from KeyType.
+            // ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingTransformer.ColumnInfo("key", "convertedKey",
+            //      DataKind.U8, new KeyCount(4)) }).Fit(dataView);
+            var dataArray = new[]
+            {
+                new SimpleSchemaUIntColumn() { key = 0 },
+                new SimpleSchemaUIntColumn() { key = 1 },
+                new SimpleSchemaUIntColumn() { key = 2 },
+                new SimpleSchemaUIntColumn() { key = 3 }
+
+            };
+
+            var dataView = ML.Data.ReadFromEnumerable(dataArray);
+
+            // Check old model can be loaded.
+            var modelPath = GetDataPath("backcompat", "type-convert-key-model.zip");
+            ITransformer modelOld;
+            using (var ch = Env.Start("load"))
+            {
+                using (var fs = File.OpenRead(modelPath))
+                     modelOld = ML.Model.Load(fs);
+            }
+            var outDataOld = modelOld.Transform(dataView); 
+
+            var modelNew = ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingTransformer.ColumnInfo("key", "convertedKey",
+                DataKind.U8, new KeyCount(4)) }).Fit(dataView);
+            var outDataNew = modelNew.Transform(dataView);
+
+            // Check that old and new model produce the same result.
+            Assert.True(outDataNew.Schema[1].Type.Equals(outDataNew.Schema[1].Type));
         }
     }
 }

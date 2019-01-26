@@ -251,7 +251,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             [VectorType(_columnNumber)]
             public float[] Features;
-            [KeyType(Contiguous = true, Count =_classNumber, Min = 0)]
+            [KeyType(Count =_classNumber)]
             public uint Label;
             [VectorType(_classNumber)]
             public float[] Score;
@@ -282,7 +282,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
 
             var mlContext = new MLContext(seed: 0, conc: 1);
-            var dataView = ComponentCreation.CreateDataView(mlContext, dataList);
+            var dataView = mlContext.Data.ReadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, labelColumn: "Label", featureColumn: "Features", numBoostRound: numberOfTrainingIterations,
                 advancedSettings: s => { s.MinDataPerGroup = 1; s.MinDataPerLeaf = 1; s.UseSoftmax = useSoftmax; });

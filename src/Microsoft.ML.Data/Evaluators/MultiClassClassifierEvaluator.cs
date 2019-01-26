@@ -200,7 +200,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Data
                     var confDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
+                        confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Data
             else
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
-            var key = new KeyType(DataKind.U4, 0, _numClasses);
+            var key = new KeyType(typeof(uint), _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberType.R8;
             _types[SortedScoresCol] = new VectorType(NumberType.R4, _numClasses);
@@ -613,7 +613,7 @@ namespace Microsoft.ML.Data
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             _types = new ColumnType[4];
-            var key = new KeyType(DataKind.U4, 0, _numClasses);
+            var key = new KeyType(typeof(uint), _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberType.R8;
             _types[SortedScoresCol] = new VectorType(NumberType.R4, _numClasses);
@@ -1001,11 +1001,11 @@ namespace Microsoft.ML.Data
             if (!perInst.Schema.TryGetColumnIndex(labelName, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", labelName);
             var labelType = perInst.Schema[labelCol].Type;
-            if (labelType is KeyType keyType && (!(bool)perInst.Schema[labelCol].HasKeyValues(keyType.Count) || labelType.RawType != typeof(uint)))
+            if (labelType is KeyType keyType && (!perInst.Schema[labelCol].HasKeyValues(keyType) || labelType.RawType != typeof(uint)))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, labelName,
                     labelName, perInst.Schema[labelCol].Type, NumberType.R8,
-                    (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)keyType.Min);
+                    (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1);
             }
 
             var perInstSchema = perInst.Schema;

@@ -131,15 +131,15 @@ namespace Microsoft.ML.FactorizationMachine
         {
             Initialize(env, options);
             Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
-
+            var extraColumnLength = (options.ExtraFeatureColumns != null ? options.ExtraFeatureColumns.Length : 0);
             // There can be multiple feature columns in FFM, jointly specified by args.FeatureColumn and args.ExtraFeatureColumns.
-            FeatureColumns = new SchemaShape.Column[1 + options.ExtraFeatureColumns.Length];
+            FeatureColumns = new SchemaShape.Column[1 + extraColumnLength];
 
             // Treat the default feature column as the 1st field.
             FeatureColumns[0] = new SchemaShape.Column(options.FeatureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             // Add 2nd, 3rd, and other fields from a FFM-specific argument, args.ExtraFeatureColumns.
-            for (int i = 0; options.ExtraFeatureColumns != null && i < options.ExtraFeatureColumns.Length; i++)
+            for (int i = 0; i < extraColumnLength; i++)
                 FeatureColumns[i + 1] = new SchemaShape.Column(options.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             LabelColumn = new SchemaShape.Column(options.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);

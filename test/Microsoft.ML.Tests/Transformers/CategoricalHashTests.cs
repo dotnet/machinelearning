@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new OneHotHashEncodingEstimator(Env, new[]{
                     new OneHotHashEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag),
                     new OneHotHashEncodingEstimator.ColumnInfo("A", "CatB", OneHotEncodingTransformer.OutputKind.Bin),
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(dataPath);
             var wrongCollection = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
-            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
+            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
                       row.ScalarString,
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 3.0f,4.0f}, D = -1.0f, E= new string[2]{"E","A"}, F="E"},
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 5.0f,6.0f}, D = 1.0f , E= new string[2]{"D","E"}, F="D"} };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var bagPipe = new OneHotHashEncodingEstimator(Env,
                 new OneHotHashEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
                 new OneHotHashEncodingEstimator.ColumnInfo("B", "CatB", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new OneHotHashEncodingEstimator(Env, new[]{
                     new OneHotHashEncodingEstimator.ColumnInfo("A", "CatHashA"),
                     new OneHotHashEncodingEstimator.ColumnInfo("B", "CatHashB"),

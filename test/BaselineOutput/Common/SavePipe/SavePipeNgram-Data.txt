@@ -3,12 +3,12 @@
 #@   sep=tab
 #@   col=Label:R4:0
 #@   col=Text:TX:1-9
-#@   col=Key:U4[0-4]:10-18
+#@   col=Key:U4[5]:10-18
 #@   col=Ngrams1:R4:19-44
 #@   col=Ngrams2:R4:45-130
 #@   col=Ngrams3:R4:131-166
 #@   col=Ngrams4:R4:167-186
-#@   col=KeyU4:U4[0-4]:187-195
+#@   col=KeyU4:U4[5]:187-195
 #@   col=Ngrams5:R4:196-217
 #@   col=Ngrams6:R4:218-259
 #@   col=Ngrams7:R4:260-264

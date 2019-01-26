@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.ML.Internal.Utilities;
@@ -62,57 +63,43 @@ namespace Microsoft.ML.Data.Conversion
             }
         }
 
-        private const DataKind _kindStringBuilder = (DataKind)100;
-        private readonly Dictionary<Type, DataKind> _kinds;
+        // Maps from {src,dst} pair of DataKind to ValueMapper. The {src,dst} pair is
+        // the two byte values packed into the low two bytes of an int, with src the lsb.
+        private readonly Dictionary<(Type src, Type dst), Delegate> _delegatesStd;
 
         // Maps from {src,dst} pair of DataKind to ValueMapper. The {src,dst} pair is
         // the two byte values packed into the low two bytes of an int, with src the lsb.
-        private readonly Dictionary<int, Delegate> _delegatesStd;
-
-        // Maps from {src,dst} pair of DataKind to ValueMapper. The {src,dst} pair is
-        // the two byte values packed into the low two bytes of an int, with src the lsb.
-        private readonly Dictionary<int, Delegate> _delegatesAll;
+        private readonly Dictionary<(Type src, Type dst), Delegate> _delegatesAll;
 
         // This has RefPredicate<T> delegates for determining whether a value is NA.
-        private readonly Dictionary<DataKind, Delegate> _isNADelegates;
+        private readonly Dictionary<Type, Delegate> _isNADelegates;
 
         // This has RefPredicate<VBuffer<T>> delegates for determining whether a buffer contains any NA values.
-        private readonly Dictionary<DataKind, Delegate> _hasNADelegates;
+        private readonly Dictionary<Type, Delegate> _hasNADelegates;
 
         // This has RefPredicate<T> delegates for determining whether a value is default.
-        private readonly Dictionary<DataKind, Delegate> _isDefaultDelegates;
+        private readonly Dictionary<Type, Delegate> _isDefaultDelegates;
 
         // This has RefPredicate<VBuffer<T>> delegates for determining whether a buffer contains any zero values.
         // The supported types are unsigned signed integer values (for determining whether a key type is NA).
-        private readonly Dictionary<DataKind, Delegate> _hasZeroDelegates;
+        private readonly Dictionary<Type, Delegate> _hasZeroDelegates;
 
         // This has ValueGetter<T> delegates for producing an NA value of the given type.
-        private readonly Dictionary<DataKind, Delegate> _getNADelegates;
+        private readonly Dictionary<Type, Delegate> _getNADelegates;
 
         // This has TryParseMapper<T> delegates for parsing values from text.
-        private readonly Dictionary<DataKind, Delegate> _tryParseDelegates;
+        private readonly Dictionary<Type, Delegate> _tryParseDelegates;
 
         private Conversions()
         {
-            // We fabricate a DataKind value for StringBuilder.
-            Contracts.Assert(!Enum.IsDefined(typeof(DataKind), _kindStringBuilder));
-
-            _kinds = new Dictionary<Type, DataKind>();
-            for (DataKind kind = DataKindExtensions.KindMin; kind < DataKindExtensions.KindLim; kind++)
-                _kinds.Add(kind.ToType(), kind);
-
-            // We don't put StringBuilder in _kinds, but there are conversions to StringBuilder.
-            Contracts.Assert(!_kinds.ContainsKey(typeof(StringBuilder)));
-            Contracts.Assert(_kinds.Count == 16);
-
-            _delegatesStd = new Dictionary<int, Delegate>();
-            _delegatesAll = new Dictionary<int, Delegate>();
-            _isNADelegates = new Dictionary<DataKind, Delegate>();
-            _hasNADelegates = new Dictionary<DataKind, Delegate>();
-            _isDefaultDelegates = new Dictionary<DataKind, Delegate>();
-            _hasZeroDelegates = new Dictionary<DataKind, Delegate>();
-            _getNADelegates = new Dictionary<DataKind, Delegate>();
-            _tryParseDelegates = new Dictionary<DataKind, Delegate>();
+            _delegatesStd = new Dictionary<(Type src, Type dst), Delegate>();
+            _delegatesAll = new Dictionary<(Type src, Type dst), Delegate>();
+            _isNADelegates = new Dictionary<Type, Delegate>();
+            _hasNADelegates = new Dictionary<Type, Delegate>();
+            _isDefaultDelegates = new Dictionary<Type, Delegate>();
+            _hasZeroDelegates = new Dictionary<Type, Delegate>();
+            _getNADelegates = new Dictionary<Type, Delegate>();
+            _tryParseDelegates = new Dictionary<Type, Delegate>();
 
             // !!! WARNING !!!: Do NOT add any standard conversions without clearing from the IDV Type System
             // design committee. Any changes also require updating the IDV Type System Specification.
@@ -291,20 +278,10 @@ namespace Microsoft.ML.Data.Conversion
             AddTryParse<DZ>(TryParse);
         }
 
-        private static int GetKey(DataKind kindSrc, DataKind kindDst)
-        {
-            Contracts.Assert(Enum.IsDefined(typeof(DataKind), kindSrc));
-            Contracts.Assert(Enum.IsDefined(typeof(DataKind), kindDst) || kindDst == _kindStringBuilder);
-            Contracts.Assert(0 <= _kindStringBuilder && (int)_kindStringBuilder < (1 << 8));
-            return ((int)kindSrc << 8) | (int)kindDst;
-        }
-
         // Add a standard conversion to the lookup tables.
         private void AddStd<TSrc, TDst>(ValueMapper<TSrc, TDst> fn)
         {
-            var kindSrc = _kinds[typeof(TSrc)];
-            var kindDst = _kinds[typeof(TDst)];
-            var key = GetKey(kindSrc, kindDst);
+            var key = (typeof(TSrc), typeof(TDst));
             _delegatesStd.Add(key, fn);
             _delegatesAll.Add(key, fn);
         }
@@ -312,45 +289,38 @@ namespace Microsoft.ML.Data.Conversion
         // Add a non-standard conversion to the lookup table.
         private void AddAux<TSrc, TDst>(ValueMapper<TSrc, TDst> fn)
         {
-            var kindSrc = _kinds[typeof(TSrc)];
-            var kindDst = typeof(TDst) == typeof(SB) ? _kindStringBuilder : _kinds[typeof(TDst)];
-            _delegatesAll.Add(GetKey(kindSrc, kindDst), fn);
+            var key = (typeof(TSrc), typeof(TDst));
+            _delegatesAll.Add(key, fn);
         }
 
         private void AddIsNA<T>(InPredicate<T> fn)
         {
-            var kind = _kinds[typeof(T)];
-            _isNADelegates.Add(kind, fn);
+            _isNADelegates.Add(typeof(T), fn);
         }
 
         private void AddGetNA<T>(ValueGetter<T> fn)
         {
-            var kind = _kinds[typeof(T)];
-            _getNADelegates.Add(kind, fn);
+            _getNADelegates.Add(typeof(T), fn);
         }
 
         private void AddHasNA<T>(InPredicate<VBuffer<T>> fn)
         {
-            var kind = _kinds[typeof(T)];
-            _hasNADelegates.Add(kind, fn);
+            _hasNADelegates.Add(typeof(T), fn);
         }
 
         private void AddIsDef<T>(InPredicate<T> fn)
         {
-            var kind = _kinds[typeof(T)];
-            _isDefaultDelegates.Add(kind, fn);
+            _isDefaultDelegates.Add(typeof(T), fn);
         }
 
         private void AddHasZero<T>(InPredicate<VBuffer<T>> fn)
         {
-            var kind = _kinds[typeof(T)];
-            _hasZeroDelegates.Add(kind, fn);
+            _hasZeroDelegates.Add(typeof(T), fn);
         }
 
         private void AddTryParse<T>(TryParseMapper<T> fn)
         {
-            var kind = _kinds[typeof(T)];
-            _tryParseDelegates.Add(kind, fn);
+            _tryParseDelegates.Add(typeof(T), fn);
         }
 
         /// <summary>
@@ -420,15 +390,9 @@ namespace Microsoft.ML.Data.Conversion
                 // types that are large enough.
                 if (typeDst is KeyType keyDst)
                 {
-                    // We allow the Min value to shift. We currently don't allow the counts to vary.
                     // REVIEW: Should we allow the counts to vary? Allowing the dst to be bigger is trivial.
                     // Smaller dst means mapping values to NA.
                     if (keySrc.Count != keyDst.Count)
-                        return false;
-                    if (keySrc.Count == 0 && keySrc.RawKind > keyDst.RawKind)
-                        return false;
-                    // REVIEW: Should we allow contiguous to be changed when Count is zero?
-                    if (keySrc.Contiguous != keyDst.Contiguous)
                         return false;
                 }
                 else
@@ -438,11 +402,9 @@ namespace Microsoft.ML.Data.Conversion
                     // does not allow this.
                     if (!KeyType.IsValidDataType(typeDst.RawType))
                         return false;
-                    if (keySrc.RawKind > typeDst.RawKind)
+                    if (Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(typeDst.RawType))
                     {
-                        if (keySrc.Count == 0)
-                            return false;
-                        if ((ulong)keySrc.Count > typeDst.RawKind.ToMaxInt())
+                        if (keySrc.Count > typeDst.RawType.ToMaxInt())
                             return false;
                     }
                 }
@@ -460,11 +422,11 @@ namespace Microsoft.ML.Data.Conversion
             else if (!typeDst.IsStandardScalar())
                 return false;
 
-            Contracts.Assert(typeSrc.RawKind != 0);
-            Contracts.Assert(typeDst.RawKind != 0);
+            Contracts.Assert(typeSrc is KeyType || typeSrc.IsStandardScalar());
+            Contracts.Assert(typeDst is KeyType || typeDst.IsStandardScalar());
 
-            int key = GetKey(typeSrc.RawKind, typeDst.RawKind);
-            identity = typeSrc.RawKind == typeDst.RawKind;
+            identity = typeSrc.RawType == typeDst.RawType;
+            var key = (typeSrc.RawType, typeDst.RawType);
             return _delegatesStd.TryGetValue(key, out conv);
         }
 
@@ -500,13 +462,7 @@ namespace Microsoft.ML.Data.Conversion
 
         private bool TryGetStringConversion<TSrc>(out ValueMapper<TSrc, SB> conv)
         {
-            DataKind kindSrc;
-            if (!_kinds.TryGetValue(typeof(TSrc), out kindSrc))
-            {
-                conv = null;
-                return false;
-            }
-            int key = GetKey(kindSrc, _kindStringBuilder);
+            var key = (typeof(TSrc), typeof(SB));
             Delegate del;
             if (_delegatesAll.TryGetValue(key, out del))
             {
@@ -523,45 +479,23 @@ namespace Microsoft.ML.Data.Conversion
 
             // For key types, first convert to ulong, then do the range check,
             // then convert to StringBuilder.
-            U8 min = key.Min;
-            int count = key.Count;
-            Contracts.Assert(count >= 0 && (U8)count <= U8.MaxValue - min);
-
+            ulong count = key.Count;
             bool identity;
             var convSrc = GetStandardConversion<TSrc, U8>(key, NumberType.U8, out identity);
             var convU8 = GetStringConversion<U8>(NumberType.U8);
-            if (count > 0)
-            {
-                return
-                    (in TSrc src, ref SB dst) =>
+            return
+                (in TSrc src, ref SB dst) =>
+                {
+                    ulong tmp = 0;
+                    convSrc(in src, ref tmp);
+                    if (tmp == 0 || tmp > count)
+                        ClearDst(ref dst);
+                    else
                     {
-                        ulong tmp = 0;
-                        convSrc(in src, ref tmp);
-                        if (tmp == 0 || tmp > (ulong)count)
-                            ClearDst(ref dst);
-                        else
-                        {
-                            tmp = tmp + min - 1;
-                            convU8(in tmp, ref dst);
-                        }
-                    };
-            }
-            else
-            {
-                return
-                    (in TSrc src, ref SB dst) =>
-                    {
-                        U8 tmp = 0;
-                        convSrc(in src, ref tmp);
-                        if (tmp == 0 || min > 1 && tmp > U8.MaxValue - min + 1)
-                            ClearDst(ref dst);
-                        else
-                        {
-                            tmp = tmp + min - 1;
-                            convU8(in tmp, ref dst);
-                        }
-                    };
-            }
+                        tmp = tmp - 1;
+                        convU8(in tmp, ref dst);
+                    }
+                };
         }
 
         public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
@@ -574,8 +508,8 @@ namespace Microsoft.ML.Data.Conversion
             if (typeDst is KeyType keyType)
                 return GetKeyTryParse<TDst>(keyType);
 
-            Contracts.Assert(_tryParseDelegates.ContainsKey(typeDst.RawKind));
-            return (TryParseMapper<TDst>)_tryParseDelegates[typeDst.RawKind];
+            Contracts.Assert(_tryParseDelegates.ContainsKey(typeDst.RawType));
+            return (TryParseMapper<TDst>)_tryParseDelegates[typeDst.RawType];
         }
 
         private TryParseMapper<TDst> GetKeyTryParse<TDst>(KeyType key)
@@ -583,29 +517,15 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.Assert(key.RawType == typeof(TDst));
 
             // First parse as ulong, then convert to T.
-            ulong min = key.Min;
-            ulong max;
+            ulong max = key.Count - 1;
 
-            ulong count = DataKindExtensions.ToMaxInt(key.RawKind);
-            if (key.Count > 0)
-                max = min - 1 + (ulong)key.Count;
-            else if (min == 0)
-                max = count - 1;
-            else if (key.RawKind == DataKind.U8)
-                max = ulong.MaxValue;
-            else if (min - 1 > ulong.MaxValue - count)
-                max = ulong.MaxValue;
-            else
-                max = min - 1 + count;
-
-            bool identity;
-            var fnConv = GetStandardConversion<U8, TDst>(NumberType.U8, NumberType.FromKind(key.RawKind), out identity);
+            var fnConv = GetKeyStandardConversion<TDst>();
             return
                 (in TX src, out TDst dst) =>
                 {
                     ulong uu;
                     dst = default(TDst);
-                    if (!TryParseKey(in src, min, max, out uu))
+                    if (!TryParseKey(in src, max, out uu))
                         return false;
                     // REVIEW: This call to fnConv should never need range checks, so could be made faster.
                     // Also, it would be nice to be able to assert that it doesn't overflow....
@@ -626,29 +546,15 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.Assert(key.RawType == typeof(TDst));
 
             // First parse as ulong, then convert to T.
-            ulong min = key.Min;
-            ulong max;
+            ulong max = key.Count - 1;
 
-            ulong count = DataKindExtensions.ToMaxInt(key.RawKind);
-            if (key.Count > 0)
-                max = min - 1 + (ulong)key.Count;
-            else if (min == 0)
-                max = count - 1;
-            else if (key.RawKind == DataKind.U8)
-                max = ulong.MaxValue;
-            else if (min - 1 > ulong.MaxValue - count)
-                max = ulong.MaxValue;
-            else
-                max = min - 1 + count;
-
-            bool identity;
-            var fnConv = GetStandardConversion<U8, TDst>(NumberType.U8, NumberType.FromKind(key.RawKind), out identity);
+            var fnConv = GetKeyStandardConversion<TDst>();
             return
                 (in TX src, ref TDst dst) =>
                 {
                     ulong uu;
                     dst = default(TDst);
-                    if (!TryParseKey(in src, min, max, out uu))
+                    if (!TryParseKey(in src, max, out uu))
                     {
                         dst = default(TDst);
                         return;
@@ -657,6 +563,14 @@ namespace Microsoft.ML.Data.Conversion
                     // Also, it would be nice to be able to assert that it doesn't overflow....
                     fnConv(in uu, ref dst);
                 };
+        }
+
+        private ValueMapper<U8, TDst> GetKeyStandardConversion<TDst>()
+        {
+            var delegatesKey = (typeof(U8), typeof(TDst));
+            if (!_delegatesStd.TryGetValue(delegatesKey, out Delegate del))
+                throw Contracts.Except("No standard conversion from '{0}' to '{1}'", typeof(U8), typeof(TDst));
+            return (ValueMapper<U8, TDst>)del;
         }
 
         private static StringBuilder ClearDst(ref StringBuilder dst)
@@ -676,7 +590,7 @@ namespace Microsoft.ML.Data.Conversion
 
             var t = type;
             Delegate del;
-            if (!t.IsStandardScalar() && !(t is KeyType) || !_isDefaultDelegates.TryGetValue(t.RawKind, out del))
+            if (!t.IsStandardScalar() && !(t is KeyType) || !_isDefaultDelegates.TryGetValue(t.RawType, out del))
                 throw Contracts.Except("No IsDefault predicate for '{0}'", type);
 
             return (InPredicate<T>)del;
@@ -716,10 +630,10 @@ namespace Microsoft.ML.Data.Conversion
             if (t is KeyType)
             {
                 // REVIEW: Should we test for out of range when KeyCount > 0?
-                Contracts.Assert(_isDefaultDelegates.ContainsKey(t.RawKind));
-                del = _isDefaultDelegates[t.RawKind];
+                Contracts.Assert(_isDefaultDelegates.ContainsKey(t.RawType));
+                del = _isDefaultDelegates[t.RawType];
             }
-            else if (!t.IsStandardScalar() || !_isNADelegates.TryGetValue(t.RawKind, out del))
+            else if (!t.IsStandardScalar() || !_isNADelegates.TryGetValue(t.RawType, out del))
             {
                 del = null;
                 return false;
@@ -739,10 +653,10 @@ namespace Microsoft.ML.Data.Conversion
             if (t is KeyType)
             {
                 // REVIEW: Should we test for out of range when KeyCount > 0?
-                Contracts.Assert(_hasZeroDelegates.ContainsKey(t.RawKind));
-                del = _hasZeroDelegates[t.RawKind];
+                Contracts.Assert(_hasZeroDelegates.ContainsKey(t.RawType));
+                del = _hasZeroDelegates[t.RawType];
             }
-            else if (!t.IsStandardScalar() || !_hasNADelegates.TryGetValue(t.RawKind, out del))
+            else if (!t.IsStandardScalar() || !_hasNADelegates.TryGetValue(t.RawType, out del))
                 throw Contracts.Except("No HasMissing predicate for '{0}'", type);
 
             return (InPredicate<VBuffer<T>>)del;
@@ -759,7 +673,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
 
             Delegate del;
-            if (!_getNADelegates.TryGetValue(type.RawKind, out del))
+            if (!_getNADelegates.TryGetValue(type.RawType, out del))
                 return default(T);
             T res = default(T);
             ((ValueGetter<T>)del)(ref res);
@@ -777,7 +691,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
 
             Delegate del;
-            if (!_getNADelegates.TryGetValue(type.RawKind, out del))
+            if (!_getNADelegates.TryGetValue(type.RawType, out del))
             {
                 isDefault = true;
                 return default(T);
@@ -789,7 +703,7 @@ namespace Microsoft.ML.Data.Conversion
 
 #if DEBUG
             Delegate isDefPred;
-            if (_isDefaultDelegates.TryGetValue(type.RawKind, out isDefPred))
+            if (_isDefaultDelegates.TryGetValue(type.RawType, out isDefPred))
                 Contracts.Assert(!((InPredicate<T>)isDefPred)(in res));
 #endif
 
@@ -807,7 +721,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
 
             Delegate del;
-            if (!_getNADelegates.TryGetValue(type.RawKind, out del))
+            if (!_getNADelegates.TryGetValue(type.RawType, out del))
                 return (ref T res) => res = default(T);
             return (ValueGetter<T>)del;
         }
@@ -1160,12 +1074,12 @@ namespace Microsoft.ML.Data.Conversion
         }
 
         /// <summary>
-        /// Utility to assist in parsing key-type values. The min and max values define
-        /// the legal input value bounds. The output dst value is "normalized" so min is
-        /// mapped to 1, max is mapped to 1 + (max - min).
+        /// Utility to assist in parsing key-type values. The max value defines
+        /// the legal input value bound. The output dst value is "normalized" by adding 1
+        /// so max is mapped to 1 + max.
         /// Unparsable or out of range values are mapped to zero with a false return.
         /// </summary>
-        public bool TryParseKey(in TX src, U8 min, U8 max, out U8 dst)
+        public bool TryParseKey(in TX src, U8 max, out U8 dst)
         {
             var span = src.Span;
             // Both empty and missing map to zero (NA for key values) and that mapping is valid,
@@ -1176,12 +1090,10 @@ namespace Microsoft.ML.Data.Conversion
                 return true;
             }
 
-            Contracts.Assert(min <= max);
-
-            // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
-            // we map min to 1, which would cause max to overflow to zero. Specifically, it protects
-            // against overflow in the expression uu - min + 1 below.
-            Contracts.Assert((max - min) < U8.MaxValue);
+            // This simply ensures we don't have max == U8.MaxValue. This is illegal since
+            // it would cause max to overflow to zero. Specifically, it protects
+            // against overflow in the expression uu + 1 below.
+            Contracts.Assert(max < U8.MaxValue);
 
             // Parse a ulong.
             ulong uu;
@@ -1192,13 +1104,13 @@ namespace Microsoft.ML.Data.Conversion
                 return false;
             }
 
-            if (min > uu || uu > max)
+            if (uu > max)
             {
                 dst = 0;
                 return false;
             }
 
-            dst = uu - min + 1;
+            dst = uu + 1;
             return true;
         }
 

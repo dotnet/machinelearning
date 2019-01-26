@@ -25,24 +25,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(rawType, nameof(rawType));
             RawType = rawType;
-            RawType.TryGetDataKind(out var rawKind);
-            RawKind = rawKind;
-        }
-
-        /// <summary>
-        /// Internal sub types can pass both the <paramref name="rawType"/> and <paramref name="rawKind"/> values.
-        /// This asserts that they are consistent.
-        /// </summary>
-        private protected ColumnType(Type rawType, DataKind rawKind)
-        {
-            Contracts.AssertValue(rawType);
-#if DEBUG
-            DataKind tmp;
-            rawType.TryGetDataKind(out tmp);
-            Contracts.Assert(tmp == rawKind);
-#endif
-            RawType = rawType;
-            RawKind = rawKind;
         }
 
         /// <summary>
@@ -54,20 +36,11 @@ namespace Microsoft.ML.Data
         /// </summary>
         public Type RawType { get; }
 
-        /// <summary>
-        /// The <see cref="DataKind"/> corresponding to <see cref="RawType"/>, if there is one (<c>default</c> otherwise).
-        /// It is equivalent to the result produced by <see cref="DataKindExtensions.TryGetDataKind(Type, out DataKind)"/>.
-        /// For external code it would be preferable to operate over <see cref="RawType"/>.
-        /// </summary>
-        [BestFriend]
-        internal DataKind RawKind { get; }
-
         // IEquatable<T> interface recommends also to override base class implementations of
         // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
         // is effectively a referencial comparison, there is no need to override base class implementations
         // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
         public abstract bool Equals(ColumnType other);
-
     }
 
     /// <summary>
@@ -77,11 +50,6 @@ namespace Microsoft.ML.Data
     {
         protected StructuredType(Type rawType)
             : base(rawType)
-        {
-        }
-
-        private protected StructuredType(Type rawType, DataKind rawKind)
-            : base(rawType, rawKind)
         {
         }
     }
@@ -97,12 +65,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckParam(!typeof(IDisposable).IsAssignableFrom(RawType), nameof(rawType),
                 "A " + nameof(PrimitiveType) + " cannot have a disposable " + nameof(RawType));
-        }
-
-        private protected PrimitiveType(Type rawType, DataKind rawKind)
-            : base(rawType, rawKind)
-        {
-            Contracts.Assert(!typeof(IDisposable).IsAssignableFrom(RawType));
         }
 
         [BestFriend]
@@ -155,7 +117,7 @@ namespace Microsoft.ML.Data
         }
 
         private TextType()
-            : base(typeof(ReadOnlyMemory<char>), DataKind.TX)
+            : base(typeof(ReadOnlyMemory<char>))
         {
         }
 
@@ -177,8 +139,8 @@ namespace Microsoft.ML.Data
     {
         private readonly string _name;
 
-        private NumberType(DataKind kind, string name)
-            : base(kind.ToType(), kind)
+        private NumberType(Type rawType, string name)
+            : base(rawType)
         {
             Contracts.AssertNonEmpty(name);
             _name = name;
@@ -190,7 +152,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instI1 == null)
-                    Interlocked.CompareExchange(ref _instI1, new NumberType(DataKind.I1, "I1"), null);
+                    Interlocked.CompareExchange(ref _instI1, new NumberType(typeof(sbyte), "I1"), null);
                 return _instI1;
             }
         }
@@ -201,7 +163,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instU1 == null)
-                    Interlocked.CompareExchange(ref _instU1, new NumberType(DataKind.U1, "U1"), null);
+                    Interlocked.CompareExchange(ref _instU1, new NumberType(typeof(byte), "U1"), null);
                 return _instU1;
             }
         }
@@ -212,7 +174,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instI2 == null)
-                    Interlocked.CompareExchange(ref _instI2, new NumberType(DataKind.I2, "I2"), null);
+                    Interlocked.CompareExchange(ref _instI2, new NumberType(typeof(short), "I2"), null);
                 return _instI2;
             }
         }
@@ -223,7 +185,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instU2 == null)
-                    Interlocked.CompareExchange(ref _instU2, new NumberType(DataKind.U2, "U2"), null);
+                    Interlocked.CompareExchange(ref _instU2, new NumberType(typeof(ushort), "U2"), null);
                 return _instU2;
             }
         }
@@ -234,7 +196,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instI4 == null)
-                    Interlocked.CompareExchange(ref _instI4, new NumberType(DataKind.I4, "I4"), null);
+                    Interlocked.CompareExchange(ref _instI4, new NumberType(typeof(int), "I4"), null);
                 return _instI4;
             }
         }
@@ -245,7 +207,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instU4 == null)
-                    Interlocked.CompareExchange(ref _instU4, new NumberType(DataKind.U4, "U4"), null);
+                    Interlocked.CompareExchange(ref _instU4, new NumberType(typeof(uint), "U4"), null);
                 return _instU4;
             }
         }
@@ -256,7 +218,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instI8 == null)
-                    Interlocked.CompareExchange(ref _instI8, new NumberType(DataKind.I8, "I8"), null);
+                    Interlocked.CompareExchange(ref _instI8, new NumberType(typeof(long), "I8"), null);
                 return _instI8;
             }
         }
@@ -267,7 +229,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instU8 == null)
-                    Interlocked.CompareExchange(ref _instU8, new NumberType(DataKind.U8, "U8"), null);
+                    Interlocked.CompareExchange(ref _instU8, new NumberType(typeof(ulong), "U8"), null);
                 return _instU8;
             }
         }
@@ -278,7 +240,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instUG == null)
-                    Interlocked.CompareExchange(ref _instUG, new NumberType(DataKind.UG, "UG"), null);
+                    Interlocked.CompareExchange(ref _instUG, new NumberType(typeof(RowId), "UG"), null);
                 return _instUG;
             }
         }
@@ -289,7 +251,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instR4 == null)
-                    Interlocked.CompareExchange(ref _instR4, new NumberType(DataKind.R4, "R4"), null);
+                    Interlocked.CompareExchange(ref _instR4, new NumberType(typeof(float), "R4"), null);
                 return _instR4;
             }
         }
@@ -300,7 +262,7 @@ namespace Microsoft.ML.Data
             get
             {
                 if (_instR8 == null)
-                    Interlocked.CompareExchange(ref _instR8, new NumberType(DataKind.R8, "R8"), null);
+                    Interlocked.CompareExchange(ref _instR8, new NumberType(typeof(double), "R8"), null);
                 return _instR8;
             }
         }
@@ -379,7 +341,7 @@ namespace Microsoft.ML.Data
         }
 
         private BoolType()
-            : base(typeof(bool), DataKind.BL)
+            : base(typeof(bool))
         {
         }
 
@@ -411,7 +373,7 @@ namespace Microsoft.ML.Data
         }
 
         private DateTimeType()
-            : base(typeof(DateTime), DataKind.DT)
+            : base(typeof(DateTime))
         {
         }
 
@@ -440,7 +402,7 @@ namespace Microsoft.ML.Data
         }
 
         private DateTimeOffsetType()
-            : base(typeof(DateTimeOffset), DataKind.DZ)
+            : base(typeof(DateTimeOffset))
         {
         }
 
@@ -472,7 +434,7 @@ namespace Microsoft.ML.Data
         }
 
         private TimeSpanType()
-            : base(typeof(TimeSpan), DataKind.TS)
+            : base(typeof(TimeSpan))
         {
         }
 
@@ -494,79 +456,29 @@ namespace Microsoft.ML.Data
     /// class numbers, etc. For example, in multi-class classification, the label is typically
     /// a class number which is naturally a KeyType.
     ///
-    /// KeyTypes can be contiguous (the class number example), in which case they can have
-    /// a cardinality/Count. For non-contiguous KeyTypes the Count property returns zero.
-    /// Any KeyType (contiguous or not) can have a Min value. The Min value is always >= 0.
+    /// KeyTypes have a cardinality (i.e., Count) that is strictly positive.
     ///
-    /// Note that the representation value does not necessarily match the logical value.
-    /// For example, if a KeyType has range 1000-5000, then it has a Min of 1000, Count
-    /// of 4001, but the representational values are 1-4001. The representation value zero
-    /// is reserved to mean none/invalid.
+    /// Note that the underlying representation value does not necessarily match the logical value.
+    /// For example, if a KeyType has range 0-5000, then it has a Count of 5001, but
+    /// the representational values are 1-5001. The representation value zero is reserved
+    /// to mean a missing value (similar to NaN).
     /// </summary>
     public sealed class KeyType : PrimitiveType
     {
-        private KeyType(Type type, DataKind kind, ulong min, int count, bool contiguous)
-            : base(type, kind)
+        public KeyType(Type type, ulong count)
+            : base(type)
         {
             Contracts.AssertValue(type);
-            Contracts.Assert(kind.ToType() == type);
-
-            Contracts.CheckParam(min >= 0, nameof(min));
-            Contracts.CheckParam(count >= 0, nameof(count), "Must be non-negative.");
-            Contracts.CheckParam((ulong)count <= ulong.MaxValue - min, nameof(count));
-            Contracts.CheckParam((ulong)count <= kind.ToMaxInt(), nameof(count));
-            Contracts.CheckParam(contiguous || count == 0, nameof(count), "Must be 0 for non-contiguous");
-
-            Contiguous = contiguous;
-            Min = min;
+            if (count == 0 || type.ToMaxInt() < count)
+                throw Contracts.ExceptParam(nameof(count), "The cardinality of a {0} must not exceed {1}.MaxValue" +
+                    " and must be strictly positive but got {2}.", nameof(KeyType), type.Name, count);
             Count = count;
         }
 
-        public KeyType(Type type, ulong min, int count, bool contiguous = true)
-            : this(type, CheckRefRawType(type), min, count, contiguous)
+        public KeyType(Type type, int count)
+            : this(type, (ulong)count)
         {
-        }
-
-        [BestFriend]
-        internal KeyType(DataKind kind, ulong min, int count, bool contiguous = true)
-            : this(ToRawType(kind), kind, min, count, contiguous)
-        {
-        }
-
-        private static DataKind CheckRefRawType(Type type)
-        {
-            Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(IsValidDataType(type), nameof(type));
-            var result = type.TryGetDataKind(out var kind);
-            Contracts.Assert(result);
-            return kind;
-
-        }
-
-        private static Type ToRawType(DataKind kind)
-        {
-            Contracts.CheckParam(IsValidDataKind(kind), nameof(kind));
-            return kind.ToType();
-        }
-
-        /// <summary>
-        /// Returns true iff the given DataKind is valid for a <see cref="KeyType"/>. The valid ones are
-        /// <see cref="DataKind.U1"/>, <see cref="DataKind.U2"/>, <see cref="DataKind.U4"/>, and <see cref="DataKind.U8"/>,
-        /// that is, the unsigned integer kinds.
-        /// </summary>
-        [BestFriend]
-        internal static bool IsValidDataKind(DataKind kind)
-        {
-            switch (kind)
-            {
-                case DataKind.U1:
-                case DataKind.U2:
-                case DataKind.U4:
-                case DataKind.U8:
-                    return true;
-                default:
-                    return false;
-            }
+            Contracts.CheckParam(0 < count, nameof(count), "The cardinality of a " + nameof(KeyType) + " must be strictly positive.");
         }
 
         /// <summary>
@@ -580,23 +492,13 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// This is the Min of the key type for display purposes and conversion to/from text. The values
-        /// actually stored always start at 1 (for the smallest legal value), with zero being reserved
-        /// for "not there"/"none". Typical Min values are 0 or 1, but can be any value >= 0.
-        /// </summary>
-        public ulong Min { get; }
-
-        /// <summary>
-        /// If this key type has contiguous values and a known cardinality, Count is that cardinality.
-        /// Otherwise, this returns zero. Note that such a key type can be converted to a bit vector
-        /// representation by mapping to a vector of length Count, with "id" mapped to a vector with
-        /// 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
+        /// <see cref="Count"/> is the cardinality of the <see cref="KeyType"/>. Note that such a key type can be converted to a
+        /// bit vector representation by mapping to a vector of length Count, with "id" mapped to a
+        /// vector with 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
         /// representation. Note that an id of 0 is used to represent the notion "none", which is
-        /// typically mapped to a vector of all zeros (of length Count).
+        /// typically mapped, by for example, one-hot encoding, to a vector of all zeros (of length Count).
         /// </summary>
-        public int Count { get; }
-
-        public bool Contiguous { get; }
+        public ulong Count { get; }
 
         public override bool Equals(ColumnType other)
         {
@@ -606,10 +508,6 @@ namespace Microsoft.ML.Data
             if (!(other is KeyType tmp))
                 return false;
             if (RawType != tmp.RawType)
-                return false;
-            if (Contiguous != tmp.Contiguous)
-                return false;
-            if (Min != tmp.Min)
                 return false;
             if (Count != tmp.Count)
                 return false;
@@ -623,17 +521,13 @@ namespace Microsoft.ML.Data
 
         public override int GetHashCode()
         {
-            return Hashing.CombinedHash(RawKind.GetHashCode(), Contiguous, Min, Count);
+            return Hashing.CombinedHash(RawType.GetHashCode(), Count);
         }
 
         public override string ToString()
         {
-            if (Count > 0)
-                return string.Format("Key<{0}, {1}-{2}>", RawKind.GetString(), Min, Min + (ulong)Count - 1);
-            if (Contiguous)
-                return string.Format("Key<{0}, {1}-*>", RawKind.GetString(), Min);
-            // This is the non-contiguous case - simply show the Min.
-            return string.Format("Key<{0}, Min:{1}>", RawKind.GetString(), Min);
+            DataKind rawKind = this.GetRawKind();
+            return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), 0, Count - 1);
         }
     }
 
@@ -642,7 +536,7 @@ namespace Microsoft.ML.Data
     /// </summary>
     public sealed class VectorType : StructuredType
     {
-        /// <summary>b
+        /// <summary>
         /// The dimensions. This will always have at least one item. All values will be non-negative.
         /// As with <see cref="Size"/>, a zero value indicates that the vector type is considered to have
         /// unknown length along that dimension.
@@ -655,7 +549,7 @@ namespace Microsoft.ML.Data
         /// <param name="itemType">The type of the items contained in the vector.</param>
         /// <param name="size">The size of the single dimension.</param>
         public VectorType(PrimitiveType itemType, int size = 0)
-            : base(GetRawType(itemType), 0)
+            : base(GetRawType(itemType))
         {
             Contracts.CheckParam(size >= 0, nameof(size));
 
@@ -672,7 +566,7 @@ namespace Microsoft.ML.Data
         /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
         /// multiplying all these values together must not overflow <see cref="int"/>.</param>
         public VectorType(PrimitiveType itemType, params int[] dimensions)
-            : base(GetRawType(itemType), default)
+            : base(GetRawType(itemType))
         {
             Contracts.CheckParam(Utils.Size(dimensions) > 0, nameof(dimensions));
             Contracts.CheckParam(dimensions.All(d => d >= 0), nameof(dimensions));
@@ -687,7 +581,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         [BestFriend]
         internal VectorType(PrimitiveType itemType, VectorType template)
-            : base(GetRawType(itemType), default)
+            : base(GetRawType(itemType))
         {
             Contracts.CheckValue(template, nameof(template));
 
@@ -702,7 +596,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         [BestFriend]
         internal VectorType(PrimitiveType itemType, VectorType template, params int[] dims)
-            : base(GetRawType(itemType), default)
+            : base(GetRawType(itemType))
         {
             Contracts.CheckValue(template, nameof(template));
             Contracts.CheckParam(Utils.Size(dims) > 0, nameof(dims));

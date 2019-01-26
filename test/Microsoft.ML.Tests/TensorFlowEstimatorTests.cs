@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -79,9 +79,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
             var pipe = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
-            var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable( stringData);
+            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable( sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {

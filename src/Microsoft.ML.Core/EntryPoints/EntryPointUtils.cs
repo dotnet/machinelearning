@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -42,7 +43,7 @@ namespace Microsoft.ML.EntryPoints
         }
 
         /// <summary>
-        /// Performs checks on an EntryPoint input class equivilent to the checks that are done
+        /// Performs checks on an EntryPoint input class equivalent to the checks that are done
         /// when parsing a JSON EntryPoint graph.
         ///
         /// Call this method from EntryPoint methods to ensure that range and required checks are performed
@@ -50,7 +51,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public static void CheckInputArgs(IExceptionContext ectx, object args)
         {
-            foreach (var fieldInfo in args.GetType().GetFields())
+            foreach (var fieldInfo in args.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var attr = fieldInfo.GetCustomAttributes(typeof(ArgumentAttribute), false).FirstOrDefault()
                     as ArgumentAttribute;

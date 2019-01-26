@@ -175,7 +175,7 @@ namespace Microsoft.ML.Data
             {
                 if (_scoreColumnSetIdType == null)
                 {
-                    var type = new KeyType(DataKind.U4, 0, 0);
+                    var type = new KeyType(typeof(uint), int.MaxValue);
                     Interlocked.CompareExchange(ref _scoreColumnSetIdType, type, null);
                 }
                 return _scoreColumnSetIdType;
@@ -340,8 +340,10 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static bool HasKeyValues(this Schema.Column column, int keyCount)
+        internal static bool HasKeyValues(this Schema.Column column, ColumnType type)
         {
+            // False if type is not KeyType because GetKeyCount() returns 0.
+            ulong keyCount = type.GetKeyCount();
             if (keyCount == 0)
                 return false;
 
@@ -349,7 +351,7 @@ namespace Microsoft.ML.Data
             return
                 metaColumn != null
                 && metaColumn.Value.Type is VectorType vectorType
-                && vectorType.Size == keyCount
+                && keyCount == (ulong)vectorType.Size
                 && vectorType.ItemType is TextType;
         }
 

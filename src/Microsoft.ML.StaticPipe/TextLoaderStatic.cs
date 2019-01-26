@@ -50,7 +50,7 @@ namespace Microsoft.ML.StaticPipe
             args.AllowQuoting = allowQuoting;
             args.AllowSparse = allowSparse;
             args.HasHeader = hasHeader;
-            args.SeparatorChars = new[] { separator };
+            args.Separators = new[] { separator };
             args.TrimWhitespace = trimWhitspace;
 
             var rec = new TextReconciler(args, files);
@@ -148,10 +148,10 @@ namespace Microsoft.ML.StaticPipe
             /// Create a representation for a key loaded from TextLoader as an unsigned integer (32 bits).
             /// </summary>
             /// <param name="ordinal">The zero-based index of the field to read from.</param>
-            /// <param name="minKeyValue">smallest value of the loaded key values</param>
-            /// <param name="maxKeyValue">If specified, it's the largest allowed value of the loaded key values. Use null if key is unbounded.</param>
+            /// <param name="keyCount">If specified, it's the count or cardinality of valid key values.
+            /// Using null initalizes <paramref name="keyCount"/> to uint.MaxValue</param>
             /// <returns>The column representation.</returns>
-            public Key<uint> LoadKey(int ordinal, ulong minKeyValue, ulong? maxKeyValue) => Load<uint>(DataKind.U4, ordinal, minKeyValue, maxKeyValue);
+            public Key<uint> LoadKey(int ordinal, ulong? keyCount) => Load<uint>(DataKind.U4, ordinal, keyCount);
 
             /// <summary>
             /// Reads a scalar single-precision floating point column from a single field in the text file.
@@ -218,12 +218,10 @@ namespace Microsoft.ML.StaticPipe
                 return new MyVector<T>(_rec, kind, minOrdinal, maxOrdinal);
             }
 
-            private Key<T> Load<T>(DataKind kind, int ordinal, ulong minKeyValue, ulong? maxKeyValue)
+            private Key<T> Load<T>(DataKind kind, int ordinal, ulong? keyCount)
             {
                 Contracts.CheckParam(ordinal >= 0, nameof(ordinal), "Should be non-negative");
-                Contracts.CheckParam(minKeyValue >= 0, nameof(minKeyValue), "Should be non-negative");
-                Contracts.CheckParam(maxKeyValue == null || maxKeyValue >= minKeyValue, nameof(maxKeyValue), "Should be greater than or eqaul to minimum key value or null");
-                return new MyKey<T>(_rec, kind, ordinal, minKeyValue, maxKeyValue);
+                return new MyKey<T>(_rec, kind, ordinal, keyCount);
             }
 
             /// <summary>
@@ -236,19 +234,16 @@ namespace Microsoft.ML.StaticPipe
                 private readonly DataKind _kind;
                 // The position where the key value gets read from.
                 private readonly int _oridinal;
-                // The lower bound of the key value.
-                private readonly ulong _minKeyValue;
-                // The upper bound of the key value. Its value is null if unbounded.
-                private readonly ulong? _maxKeyValue;
+                // The count or cardinality of valid key values. Its value is null if unbounded.
+                private readonly ulong? _keyCount;
 
                 // Contstuct a representation for a key-typed column loaded from a text file. Key values are assumed to be contiguous.
-                public MyKey(Reconciler rec, DataKind kind, int oridinal, ulong minKeyValue, ulong? maxKeyValue=null)
+                public MyKey(Reconciler rec, DataKind kind, int oridinal, ulong? keyCount=null)
                     : base(rec, null)
                 {
                     _kind = kind;
                     _oridinal = oridinal;
-                    _minKeyValue = minKeyValue;
-                    _maxKeyValue = maxKeyValue;
+                    _keyCount = keyCount;
                 }
 
                 // Translate the internal variable representation to columns of TextLoader.
@@ -258,7 +253,7 @@ namespace Microsoft.ML.StaticPipe
                     {
                         Type = _kind,
                         Source = new[] { new TextLoader.Range(_oridinal) },
-                        KeyRange = new KeyRange(_minKeyValue, _maxKeyValue)
+                        KeyCount = _keyCount.HasValue ? new KeyCount(_keyCount.GetValueOrDefault()) : new KeyCount()
                     };
                 }
             }

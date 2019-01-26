@@ -574,25 +574,25 @@ namespace Microsoft.ML.RunTests
                 }
 
                 // This checks that an unknown metadata kind does the right thing.
-                if (!CheckMetadataNames("PurpleDragonScales", -1, sch1, sch2, col, exactTypes, true))
+                if (!CheckMetadataNames("PurpleDragonScales", 0, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
-                int size = type1 is VectorType vectorType ? vectorType.Size : -1;
-                if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, size, sch1, sch2, col, exactTypes, true))
+                ulong vsize = type1 is VectorType vectorType ? (ulong)vectorType.Size : 0;
+                if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
                 if (!keyNames)
                     continue;
 
-                size = type1.GetItemType() is KeyType keyType ? keyType.Count : -1;
-                if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, size, sch1, sch2, col, exactTypes, false))
+                ulong ksize = type1.GetItemType() is KeyType keyType ? keyType.Count : 0;
+                if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, ksize, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
 
             return true;
         }
 
-        protected bool CheckMetadataNames(string kind, int size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
+        protected bool CheckMetadataNames(string kind, ulong size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
         {
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
@@ -612,6 +612,8 @@ namespace Microsoft.ML.RunTests
                     return Failed();
                 return true;
             }
+            if (size > int.MaxValue)
+                Fail(nameof(KeyType) + "." + nameof(KeyType.Count) + "is larger than int.MaxValue");
             if (!EqualTypes(t1, t2, exactTypes))
             {
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
@@ -628,7 +630,7 @@ namespace Microsoft.ML.RunTests
                 return Failed();
             }
 
-            if (size != t1.GetVectorSize())
+            if ((int)size != t1.GetVectorSize())
             {
                 Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.GetVectorSize(), size);
                 return Failed();
@@ -636,7 +638,7 @@ namespace Microsoft.ML.RunTests
 
             sch1[col].Metadata.GetValue(kind, ref names1);
             sch2[col].Metadata.GetValue(kind, ref names2);
-            if (!CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
+            if (!CompareVec(in names1, in names2, (int)size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
                 return Failed();

@@ -779,7 +779,7 @@ IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
 // Turn the data into the ML.NET data view.
 // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
 // or merely an IEnumerable.
-var trainData = mlContext.CreateStreamingDataView(churnData);
+var trainData = mlContext.Data.ReadFromEnumerable(churnData);
 
 // Now note that 'trainData' is just an IDataView, so we face a choice here: either declare the static type
 // and proceed in the statically typed fashion, or keep dynamic types and build a dynamic pipeline.

@@ -213,7 +213,6 @@ namespace Microsoft.ML.Data
                     else
                     {
                         var keyRawType = colType.RawType;
-                        Host.Assert(keyType.Contiguous);
                         Func<Delegate, ColumnType, Delegate> delForKey = CreateKeyGetterDelegate<uint>;
                         return Utils.MarshalInvoke(delForKey, keyRawType, peek, colType);
                     }
@@ -301,8 +300,6 @@ namespace Microsoft.ML.Data
                 // Make sure the function is dealing with key.
                 KeyType keyType = colType as KeyType;
                 Host.Check(keyType != null);
-                // Following equations work only with contiguous key type.
-                Host.Check(keyType.Contiguous);
                 // Following equations work only with unsigned integers.
                 Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||
                     typeof(TDst) == typeof(byte) || typeof(TDst) == typeof(bool));
@@ -313,15 +310,14 @@ namespace Microsoft.ML.Data
 
                 TDst rawKeyValue = default;
                 ulong key = 0; // the raw key value as ulong
-                ulong min = keyType.Min;
-                ulong max = min + (ulong)keyType.Count - 1;
+                ulong max = keyType.Count - 1;
                 ulong result = 0; // the result as ulong
                 ValueGetter<TDst> getter = (ref TDst dst) =>
                 {
                     peek(GetCurrentRowObject(), Position, ref rawKeyValue);
                     key = (ulong)Convert.ChangeType(rawKeyValue, typeof(ulong));
-                    if (min <= key && key <= max)
-                        result = key - min + 1;
+                    if (key <= max)
+                        result = key + 1;
                     else
                         result = 0;
                     dst = (TDst)Convert.ChangeType(result, typeof(TDst));
