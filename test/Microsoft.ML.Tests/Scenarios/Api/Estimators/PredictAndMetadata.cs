@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.True(slotNames.GetItemOrDefault(1).ToString() == "Iris-versicolor");
             Assert.True(slotNames.GetItemOrDefault(2).ToString() == "Iris-virginica");
 
-            foreach (var input in testData.Take(120))
+            foreach (var input in testData.Take(20))
             {
                 var prediction = engine.Predict(input);
                 // Predicted label is key type which internal representation starts from 1.
