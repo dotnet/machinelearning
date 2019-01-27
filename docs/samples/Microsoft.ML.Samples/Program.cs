@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            LogisticRegression_example.LogisticRegression();
+            FeatureContributionCalculationTransform_RegressionExample.FeatureContributionCalculationTransform_Regression();
         }
     }
 }
