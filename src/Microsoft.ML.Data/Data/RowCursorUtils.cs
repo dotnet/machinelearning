@@ -471,6 +471,32 @@ namespace Microsoft.ML.Data
             return new OneRowDataView(env, row);
         }
 
+        /// <summary>
+        /// Given a collection of <see cref="Schema.Column"/>, that is a subset of the Schema of the data, create a predicate,
+        /// that when passed a column index, will return <langword>true</langword> or <langword>false</langword>, based on whether
+        /// the column with the given <see cref="Schema.Column.Index"/> is part of the <paramref name="columnsNeeded"/>.
+        /// </summary>
+        /// <param name="columnsNeeded">The subset of columns from the <see cref="Schema"/> that are needed from this <see cref="RowCursor"/>.</param>
+        /// <param name="sourceSchema">The <see cref="Schema"/> from where the columnsNeeded originate.</param>
+        [BestFriend]
+        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<Schema.Column> columnsNeeded, Schema sourceSchema)
+        {
+            Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
+            Contracts.CheckValue(sourceSchema, nameof(sourceSchema));
+
+            bool[] indicesRequested = new bool[sourceSchema.Count];
+
+            foreach (var col in columnsNeeded)
+            {
+                if (col.Index >= indicesRequested.Length)
+                    throw Contracts.Except($"The requested column: {col} is not part of the {nameof(sourceSchema)}");
+
+                indicesRequested[col.Index] = true;
+            }
+
+            return c => indicesRequested[c];
+        }
+
         private sealed class OneRowDataView : IDataView
         {
             private readonly Row _row;
@@ -489,19 +515,17 @@ namespace Microsoft.ML.Data
                 _row = row;
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnNeeded, Random rand = null)
             {
-                _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
-                bool[] active = Utils.BuildArray(Schema.Count, needCol);
+                bool[] active = Utils.BuildArray(Schema.Count, columnNeeded);
                 return new Cursor(_host, this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
-                return new RowCursor[] { GetRowCursor(needCol, rand) };
+                return new RowCursor[] { GetRowCursor(columnNeeded, rand) };
             }
 
             public long? GetRowCount()
@@ -515,7 +539,7 @@ namespace Microsoft.ML.Data
                 private readonly bool[] _active;
 
                 public override Schema Schema => _parent.Schema;
-                public override long Batch { get { return 0; } }
+                public override long Batch => 0;
 
                 public Cursor(IHost host, OneRowDataView parent, bool[] active)
                     : base(host)
@@ -527,10 +551,7 @@ namespace Microsoft.ML.Data
                     _active = active;
                 }
 
-                protected override bool MoveNextCore()
-                {
-                    return State == CursorState.NotStarted;
-                }
+                protected override bool MoveNextCore() => Position < 0;
 
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
@@ -559,11 +580,19 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
             }
         }
+
+        /// <summary>
+        /// This is an error message meant to be used in the situation where a user calls a delegate as returned from
+        /// <see cref="Row.GetIdGetter"/> or <see cref="Row.GetGetter{TValue}(int)"/>.
+        /// </summary>
+        [BestFriend]
+        internal const string FetchValueStateError = "Values cannot be fetched at this time. This method was called either before the first call to "
+            + nameof(RowCursor.MoveNext) + ", or at any point after that method returned false.";
     }
 }

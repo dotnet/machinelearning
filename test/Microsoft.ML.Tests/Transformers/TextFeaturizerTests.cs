@@ -145,10 +145,11 @@ namespace Microsoft.ML.Tests.Transformers
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
+            var est = ML.Transforms.Text.NormalizeText("text")
+                .Append(ML.Transforms.Text.TokenizeWords("text", "words"))
+                .Append(ML.Transforms.Text.RemoveDefaultStopWords("words", "NoDefaultStopwords"))
+                .Append(ML.Transforms.Text.RemoveStopWords("words", "NoStopWords", "xbox", "this", "is", "a", "the","THAT","bY"));
 
-            var est = new TextNormalizingEstimator(Env, "text")
-                .Append(new WordTokenizingEstimator(Env, "text", "words"))
-                .Append(new StopWordsRemovingEstimator(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "words_without_stopwords.tsv");
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "text", "words_without_stopwords" });
+                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "text", "NoDefaultStopwords", "NoStopWords" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -189,7 +190,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new StopWordsRemovingTransformer.Column() { Name = "Text", Source = "Text" }
                 });
 
-            using (var cursor = xf.GetRowCursor(col => true))
+            using (var cursor = xf.GetRowCursorForAllColumns())
             {
                 VBuffer<ReadOnlyMemory<char>> text = default;
                 var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"].Index);

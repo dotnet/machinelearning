@@ -574,7 +574,7 @@ namespace Microsoft.ML.Transforms
                                                         Schema inputSchema)
             {
                 var outputColumns = map.Select(x => new Schema.DetachedColumn(inputSchema[x]));
-                return SchemaBuilder.MakeSchema(outputColumns);
+                return SchemaExtensions.MakeSchema(outputColumns);
             }
         }
 
@@ -624,31 +624,34 @@ namespace Microsoft.ML.Transforms
 
             public long? GetRowCount() => Source.GetRowCount();
 
-            public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.AssertValue(needCol, nameof(needCol));
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.AssertValueOrNull(rand);
 
                 // Build out the active state for the input
-                var inputPred = GetDependencies(needCol);
-                var inputRowCursor = Source.GetRowCursor(inputPred, rand);
+                var inputPred = GetDependencies(predicate);
+                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+
+                var inputRowCursor = Source.GetRowCursor(inputCols, rand);
 
                 // Build the active state for the output
-                var active = Utils.BuildArray(_mapper.OutputSchema.Count, needCol);
+                var active = Utils.BuildArray(_mapper.OutputSchema.Count, columnsNeeded);
                 return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(needCol, nameof(needCol));
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.CheckValueOrNull(rand);
 
                 // Build out the active state for the input
-                var inputPred = GetDependencies(needCol);
-                var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+                var inputPred = GetDependencies(predicate);
+                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+                var inputs = Source.GetRowCursorSet(inputCols, n, rand);
 
                 // Build out the acitve state for the output
-                var active = Utils.BuildArray(_mapper.OutputSchema.Count, needCol);
+                var active = Utils.BuildArray(_mapper.OutputSchema.Count, columnsNeeded);
                 _host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.

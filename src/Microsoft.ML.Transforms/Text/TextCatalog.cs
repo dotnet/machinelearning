@@ -237,7 +237,13 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The column containing text to remove stop words on.</param>
         /// <param name="outputColumn">The column containing output text. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="language">Langauge of the input text column <paramref name="inputColumn"/>.</param>
-        public static StopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
+        /// ]]></format>
+        /// </example>
+        public static StopWordsRemovingEstimator RemoveDefaultStopWords(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
             StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English)
@@ -250,10 +256,54 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to remove stop words on.</param>
         /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
-        public static StopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
+        /// ]]></format>
+        /// </example>
+        public static StopWordsRemovingEstimator RemoveDefaultStopWords(this TransformsCatalog.TextTransforms catalog,
             (string input, string output)[] columns,
              StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English)
             => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, language);
+
+        /// <summary>
+        /// Removes stop words from incoming token streams in <paramref name="inputColumn"/>
+        /// and outputs the token streams without stopwords as <paramref name="outputColumn"/>.
+        /// </summary>
+        /// <param name="catalog">The text-related transform's catalog.</param>
+        /// <param name="inputColumn">The column containing text to remove stop words on.</param>
+        /// <param name="outputColumn">The column containing output text. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="stopwords">Array of words to remove.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
+        /// ]]></format>
+        /// </example>
+        public static CustomStopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
+            string inputColumn,
+            string outputColumn = null,
+            params string[] stopwords)
+            => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, stopwords);
+
+        /// <summary>
+        /// Removes stop words from incoming token streams in input columns
+        /// and outputs the token streams without stop words as output columns.
+        /// </summary>
+        /// <param name="catalog">The text-related transform's catalog.</param>
+        /// <param name="columns">Pairs of columns to remove stop words on.</param>
+        /// <param name="stopwords">Array of words to remove.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
+        /// ]]></format>
+        /// </example>
+        public static CustomStopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
+            (string input, string output)[] columns,
+             params string[] stopwords)
+            => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, stopwords);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
@@ -504,7 +554,7 @@ namespace Microsoft.ML
             bool ordered = NgramHashingEstimator.Defaults.Ordered,
             int invertHash = NgramHashingEstimator.Defaults.InvertHash)
              => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                 columns, hashBits, ngramLength, skipLength,allLengths, seed, ordered, invertHash);
+                 columns, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
 
         /// <summary>
         /// Uses <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> to transform a document (represented as a vector of floats)

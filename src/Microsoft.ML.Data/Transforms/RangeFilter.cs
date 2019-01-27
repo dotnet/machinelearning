@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -204,25 +206,28 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var input = Source.GetRowCursor(inputPred, rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+
+            var input = Source.GetRowCursor(inputCols, rand);
             return CreateCursorCore(input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
+
             Host.CheckValueOrNull(rand);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
@@ -347,7 +352,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref Single value) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         value = _value;
                     };
             }
@@ -380,7 +385,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref Double value) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         value = _value;
                     };
             }
@@ -405,7 +410,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<T> _getter;
             private T _value;
             private readonly ValueMapper<T, ulong> _conv;
-            private readonly int _count;
+            private readonly ulong _count;
 
             public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
@@ -416,7 +421,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref T dst) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         dst = _value;
                     };
                 bool identity;
@@ -435,9 +440,9 @@ namespace Microsoft.ML.Transforms
                 _srcGetter(ref _value);
                 ulong value = 0;
                 _conv(in _value, ref value);
-                if (value == 0 || value > (ulong)_count)
+                if (value == 0 || value > _count)
                     return false;
-                if (!CheckBounds(((Double)(uint)value - 0.5) / _count))
+                if (!CheckBounds(((uint)value - 0.5) / _count))
                     return false;
                 return true;
             }

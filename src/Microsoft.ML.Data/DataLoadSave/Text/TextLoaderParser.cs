@@ -56,7 +56,7 @@ namespace Microsoft.ML.Data
                 _creatorsVec = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
                 for (var kind = DataKindExtensions.KindMin; kind < DataKindExtensions.KindLim; kind++)
                 {
-                    var type = PrimitiveType.FromKind(kind);
+                    var type = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                     _creatorsOne[kind.ToIndex()] = GetCreatorOneCore(type);
                     _creatorsVec[kind.ToIndex()] = GetCreatorVecCore(type);
                 }
@@ -675,8 +675,7 @@ namespace Microsoft.ML.Data
                     }
 
                     ColumnType itemType = vectorType?.ItemType ?? info.ColType;
-                    DataKind kind = itemType.RawKind;
-                    Contracts.Assert(kind != 0);
+                    Contracts.Assert(itemType is KeyType || itemType.IsStandardScalar());
                     var map = vectorType != null ? mapVec : mapOne;
                     if (!map.TryGetValue(info.Kind, out _creator[i]))
                     {

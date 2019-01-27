@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
@@ -271,8 +272,8 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             bool all = true;
             bool tmp;
 
-            using (var curs1 = view1.GetRowCursor(col => true))
-            using (var curs2 = view2.GetRowCursor(col => true))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
+            using (var curs2 = view2.GetRowCursorForAllColumns())
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 Check(curs2.Schema == view2.Schema, "Schema of view 2 and its cursor differed");
@@ -281,8 +282,9 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Check(tmp, "All same failed");
             all &= tmp;
 
-            using (var curs1 = view1.GetRowCursor(col => true))
-            using (var curs2 = view2.GetRowCursor(col => (col & 1) == 0, null))
+            var view2EvenCols = view2.Schema.Where(col => (col.Index & 1) == 0);
+            using (var curs1 = view1.GetRowCursorForAllColumns())
+            using (var curs2 = view2.GetRowCursor(view2EvenCols))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 Check(curs2.Schema == view2.Schema, "Schema of view 2 and its cursor differed");
@@ -291,8 +293,9 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Check(tmp, "Even same failed");
             all &= tmp;
 
-            using (var curs1 = view1.GetRowCursor(col => true))
-            using (var curs2 = view2.GetRowCursor(col => (col & 1) != 0, null))
+            var view2OddCols = view2.Schema.Where(col => (col.Index & 1) == 0);
+            using (var curs1 = view1.GetRowCursorForAllColumns())
+            using (var curs2 = view2.GetRowCursor(view2OddCols))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 Check(curs2.Schema == view2.Schema, "Schema of view 2 and its cursor differed");
@@ -300,7 +303,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
             Check(tmp, "Odd same failed");
 
-            using (var curs1 = view1.GetRowCursor(col => true))
+            using (var curs1 = view1.GetRowCursor(view1.Schema))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 tmp = CheckSameValues(curs1, view2, exactTypes, exactDoubles, checkId);
@@ -404,7 +407,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 {
                     // curs1 should have all columns active (for simplicity of the code here).
                     Contracts.Assert(curs1.IsColumnActive(col));
-                    cursors[col] = view2.GetRowCursor(c => c == col);
+                    cursors[col] = view2.GetRowCursor(view2.Schema[col]);
                 }
 
                 // Get the comparison delegates for each column.

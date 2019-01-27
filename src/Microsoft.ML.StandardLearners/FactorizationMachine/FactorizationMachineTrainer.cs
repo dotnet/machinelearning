@@ -16,7 +16,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
-    typeof(FieldAwareFactorizationMachineTrainer.Arguments), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
+    typeof(FieldAwareFactorizationMachineTrainer.Options), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
     , FieldAwareFactorizationMachineTrainer.UserName, FieldAwareFactorizationMachineTrainer.LoadName,
     FieldAwareFactorizationMachineTrainer.ShortName, DocName = "trainer/FactorizationMachine.md")]
 
@@ -40,7 +40,7 @@ namespace Microsoft.ML.FactorizationMachine
         internal const string LoadName = "FieldAwareFactorizationMachine";
         internal const string ShortName = "ffm";
 
-        public sealed class Arguments : LearnerInputBaseWithLabel
+        public sealed class Options : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate", ShortName = "lr", SortOrder = 1)]
             [TlcModule.SweepableFloatParam(0.001f, 1.0f, isLogScale: true)]
@@ -65,6 +65,15 @@ namespace Microsoft.ML.FactorizationMachine
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length", ShortName = "norm", SortOrder = 6)]
             public bool Norm = true;
 
+            /// <summary>
+            /// Extra feature column names. The column named <see cref="LearnerInputBase.FeatureColumn"/> stores features from the first field.
+            /// The i-th string in <see cref="ExtraFeatureColumns"/> stores the name of the (i+1)-th field's feature column.
+            /// </summary>
+            [Argument(ArgumentType.Multiple, HelpText = "Extra columns to use for feature vectors. The i-th specified string denotes the column containing features form the (i+1)-th field." +
+                " Note that the first field is specified by \"feat\" instead of \"exfeat\".",
+                ShortName = "exfeat", SortOrder = 7)]
+            public string[] ExtraFeatureColumns;
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf", SortOrder = 90)]
             public bool Shuffle = true;
 
@@ -81,19 +90,19 @@ namespace Microsoft.ML.FactorizationMachine
         /// <summary>
         /// The feature column that the trainer expects.
         /// </summary>
-        public readonly SchemaShape.Column[] FeatureColumns;
+        internal readonly SchemaShape.Column[] FeatureColumns;
 
         /// <summary>
         /// The label column that the trainer expects. Can be <c>null</c>, which indicates that label
         /// is not used for training.
         /// </summary>
-        public readonly SchemaShape.Column LabelColumn;
+        internal readonly SchemaShape.Column LabelColumn;
 
         /// <summary>
         /// The weight column that the trainer expects. Can be <c>null</c>, which indicates that weight is
         /// not used for training.
         /// </summary>
-        public readonly SchemaShape.Column WeightColumn;
+        internal readonly SchemaShape.Column WeightColumn;
 
         /// <summary>
         /// The <see cref="TrainerInfo"/> containing at least the training data for this trainer.
@@ -112,35 +121,46 @@ namespace Microsoft.ML.FactorizationMachine
         private float _radius;
 
         /// <summary>
-        /// Legacy constructor initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the legacy
-        /// <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
-        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Arguments args)
+        /// <param name="options">An instance of the legacy <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
+        [BestFriend]
+        internal FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Options options)
             : base(env, LoadName)
         {
-            Initialize(env, args);
+            Initialize(env, options);
             Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
+            var extraColumnLength = (options.ExtraFeatureColumns != null ? options.ExtraFeatureColumns.Length : 0);
+            // There can be multiple feature columns in FFM, jointly specified by args.FeatureColumn and args.ExtraFeatureColumns.
+            FeatureColumns = new SchemaShape.Column[1 + extraColumnLength];
+
+            // Treat the default feature column as the 1st field.
+            FeatureColumns[0] = new SchemaShape.Column(options.FeatureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+
+            // Add 2nd, 3rd, and other fields from a FFM-specific argument, args.ExtraFeatureColumns.
+            for (int i = 0; i < extraColumnLength; i++)
+                FeatureColumns[i + 1] = new SchemaShape.Column(options.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+
+            LabelColumn = new SchemaShape.Column(options.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+            WeightColumn = options.WeightColumn.IsExplicit ? new SchemaShape.Column(options.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : default;
         }
 
         /// <summary>
-        /// Initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
+        /// Initializes a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="featureColumns">The name of  column hosting the features.</param>
+        /// <param name="featureColumns">The name of column hosting the features. The i-th element stores feature column of the i-th field.</param>
         /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="weights">The name of the optional weights' column.</param>
-        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
+        [BestFriend]
+        internal FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
-            string weights = null,
-            Action<Arguments> advancedSettings = null)
+            string weights = null)
             : base(env, LoadName)
         {
-            var args = new Arguments();
-            advancedSettings?.Invoke(args);
+            var args = new Options();
 
             Initialize(env, args);
             Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
@@ -159,24 +179,24 @@ namespace Microsoft.ML.FactorizationMachine
         /// REVIEW: Once the legacy constructor goes away, this can move to the only constructor and most of the fields can be back to readonly.
         /// </summary>
         /// <param name="env"></param>
-        /// <param name="args"></param>
-        private void Initialize(IHostEnvironment env, Arguments args)
+        /// <param name="options"></param>
+        private void Initialize(IHostEnvironment env, Options options)
         {
-            Host.CheckUserArg(args.LatentDim > 0, nameof(args.LatentDim), "Must be positive");
-            Host.CheckUserArg(args.LambdaLinear >= 0, nameof(args.LambdaLinear), "Must be non-negative");
-            Host.CheckUserArg(args.LambdaLatent >= 0, nameof(args.LambdaLatent), "Must be non-negative");
-            Host.CheckUserArg(args.LearningRate > 0, nameof(args.LearningRate), "Must be positive");
-            Host.CheckUserArg(args.Iters >= 0, nameof(args.Iters), "Must be non-negative");
-            _latentDim = args.LatentDim;
+            Host.CheckUserArg(options.LatentDim > 0, nameof(options.LatentDim), "Must be positive");
+            Host.CheckUserArg(options.LambdaLinear >= 0, nameof(options.LambdaLinear), "Must be non-negative");
+            Host.CheckUserArg(options.LambdaLatent >= 0, nameof(options.LambdaLatent), "Must be non-negative");
+            Host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), "Must be positive");
+            Host.CheckUserArg(options.Iters >= 0, nameof(options.Iters), "Must be non-negative");
+            _latentDim = options.LatentDim;
             _latentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(_latentDim);
-            _lambdaLinear = args.LambdaLinear;
-            _lambdaLatent = args.LambdaLatent;
-            _learningRate = args.LearningRate;
-            _numIterations = args.Iters;
-            _norm = args.Norm;
-            _shuffle = args.Shuffle;
-            _verbose = args.Verbose;
-            _radius = args.Radius;
+            _lambdaLinear = options.LambdaLinear;
+            _lambdaLatent = options.LambdaLatent;
+            _learningRate = options.LearningRate;
+            _numIterations = options.Iters;
+            _norm = options.Norm;
+            _shuffle = options.Shuffle;
+            _verbose = options.Verbose;
+            _radius = options.Radius;
         }
 
         private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachineModelParameters predictor, out float[] linearWeights,
@@ -245,7 +265,6 @@ namespace Microsoft.ML.FactorizationMachine
             int latentDimAligned, AlignedArray latentSum, int[] featureFieldBuffer, int[] featureIndexBuffer, float[] featureValueBuffer, VBuffer<float> buffer, ref long badExampleCount)
         {
             var featureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
-            Func<int, bool> pred = c => featureColumns.Select(ci => ci.Index).Contains(c) || c == data.Schema.Label.Value.Index || c == data.Schema.Weight?.Index;
             var getters = new ValueGetter<VBuffer<float>>[featureColumns.Count];
             float label = 0;
             float weight = 1;
@@ -254,7 +273,12 @@ namespace Microsoft.ML.FactorizationMachine
             long exampleCount = 0;
             badExampleCount = 0;
             int count = 0;
-            using (var cursor = data.Data.GetRowCursor(pred))
+
+            var columns = featureColumns.Append(data.Schema.Label.Value);
+            if (data.Schema.Weight != null)
+                columns.Append(data.Schema.Weight.Value);
+
+            using (var cursor = data.Data.GetRowCursor(columns))
             {
                 var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
                 var weightGetter = data.Schema.Weight?.Index is int weightIdx ? cursor.GetGetter<float>(weightIdx) : null;
@@ -354,14 +378,19 @@ namespace Microsoft.ML.FactorizationMachine
                 entry.SetProgress(0, iter, _numIterations);
                 entry.SetProgress(1, exampleCount);
             });
-            Func<int, bool> pred = c => fieldColumnIndexes.Contains(c) || c == data.Schema.Label.Value.Index || c == data.Schema.Weight?.Index;
+
+            var columns = data.Schema.Schema.Where(x => fieldColumnIndexes.Contains(x.Index)).ToList();
+            columns.Add(data.Schema.Label.Value);
+            if (data.Schema.Weight != null)
+                columns.Add(data.Schema.Weight.Value);
+
             InitializeTrainingState(fieldCount, totalFeatureCount, predictor, out float[] linearWeights,
                 out AlignedArray latentWeightsAligned, out float[] linearAccSqGrads, out AlignedArray latentAccSqGradsAligned);
 
             // refer to Algorithm 3 in https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
             while (iter++ < _numIterations)
             {
-                using (var cursor = data.Data.GetRowCursor(pred, rng))
+                using (var cursor = data.Data.GetRowCursor(columns, rng))
                 {
                     var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
                     var weightGetter = data.Schema.Weight?.Index is int weightIdx ? RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, weightIdx) : null;
@@ -445,13 +474,13 @@ namespace Microsoft.ML.FactorizationMachine
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/member[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/example[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("Train a field-aware factorization machine");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineTrainer(host, input),
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 

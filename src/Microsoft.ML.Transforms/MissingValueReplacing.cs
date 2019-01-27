@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms
             List<int> columnsToImpute = null;
             // REVIEW: Would like to get rid of the sourceColumns list but seems to be the best way to provide
             // the cursor with what columns to cursor through.
-            HashSet<int> sourceColumns = null;
+           var sourceColumns = new List<Schema.Column>();
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 input.Schema.TryGetColumnIndex(columns[iinfo].Input, out int colSrc);
@@ -346,7 +346,7 @@ namespace Microsoft.ML.Transforms
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.GetItemType());
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);
-                        Utils.Add(ref sourceColumns, colSrc);
+                        sourceColumns.Add(input.Schema[colSrc]);
                         break;
                     default:
                         Host.Assert(false);
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Transforms
 
             // Impute values.
             using (var ch = Host.Start("Computing Statistics"))
-            using (var cursor = input.GetRowCursor(sourceColumns.Contains))
+            using (var cursor = input.GetRowCursor(sourceColumns))
             {
                 StatAggregator[] statAggregators = new StatAggregator[columnsToImpute.Count];
                 for (int ii = 0; ii < columnsToImpute.Count; ii++)

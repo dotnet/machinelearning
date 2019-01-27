@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
@@ -151,16 +153,16 @@ namespace Microsoft.ML.Data
             return Source.GetRowCount();
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+
             Host.CheckValueOrNull(rand);
             // If we aren't selecting any of the output columns, don't construct our cursor.
             // Note that because we cannot support random due to the inherently
@@ -170,7 +172,8 @@ namespace Microsoft.ML.Data
             if (!bindings.AnyNewColumnsActive(predicate))
             {
                 var activeInput = bindings.GetActiveInput(predicate);
-                var inputCursor = Source.GetRowCursor(c => activeInput[c], null);
+                var activeCols = Source.Schema.Where(x => activeInput.Length > x.Index && activeInput[x.Index]);
+                var inputCursor = Source.GetRowCursor(activeCols, null);
                 return new BindingsWrappedRowCursor(Host, inputCursor, bindings);
             }
             return GetRowCursorCore(predicate);
@@ -183,7 +186,10 @@ namespace Microsoft.ML.Data
             Contracts.Assert(active.Length == bindings.ColumnCount);
 
             var predInput = bindings.GetDependencies(predicate);
-            return new Cursor(this, Source.GetRowCursor(predInput, null), Source.GetRowCursor(predInput, null), active);
+
+            var cols = Source.Schema.Where(x => predInput(x.Index));
+
+            return new Cursor(this, Source.GetRowCursor(cols, null), Source.GetRowCursor(cols, null), active);
         }
 
         /// <summary>
@@ -297,7 +303,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)Position, 0);
                     };
             }
@@ -311,16 +317,17 @@ namespace Microsoft.ML.Data
 
                 // If this is the first step, we need to move next on _groupCursor. Otherwise, the position of _groupCursor is
                 // at the start of the next group.
-                if (_groupCursor.State == CursorState.NotStarted)
+                if (_groupCursor.Position < 0)
                 {
                     // The two cursors should have the same number of elements, so if _input.MoveNext() returned true,
                     // then it must return true here too.
                     var good = _groupCursor.MoveNext() && _newGroupInGroupCursorDel();
                     Ch.Assert(good);
                 }
+                Ch.Assert(_groupCursor.Position >= 0);
 
                 // Read the whole group from the auxiliary cursor.
-                while (_groupCursor.State != CursorState.Done && !_newGroupInGroupCursorDel())
+                while (_groupCursor.Position >= 0 && !_newGroupInGroupCursorDel())
                 {
                     TLabel label = default;
                     TScore score = default;

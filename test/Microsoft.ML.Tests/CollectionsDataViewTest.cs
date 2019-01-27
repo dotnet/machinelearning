@@ -158,7 +158,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var enumeratorSimple = env.CreateEnumerable<ConversionSimpleClass>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
@@ -189,7 +189,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 {
                     field.SetValue(data[0], fi.GetValue(null));
                 }
-                var dataView = ComponentCreation.CreateDataView(env, data);
+                var dataView = env.Data.ReadFromEnumerable(data);
                 var enumerator = env.CreateEnumerable<ConversionNotSupportedMinValueClass>(dataView, false).GetEnumerator();
                 try
                 {
@@ -232,7 +232,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var enumeratorSimple = env.CreateEnumerable<ClassWithConstField>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
@@ -258,7 +258,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var enumeratorSimple = env.CreateEnumerable<ClassWithMixOfFieldsAndProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
@@ -312,7 +312,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var enumeratorSimple = env.CreateEnumerable<ClassWithPrivateFieldsAndProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
@@ -342,7 +342,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var enumeratorSimple = env.CreateEnumerable<ClassWithInheritedProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
@@ -393,7 +393,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
 
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var enumeratorSimple = env.CreateEnumerable<ClassWithArrays>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
@@ -444,7 +444,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var enumeratorSimple = env.CreateEnumerable<ClassWithArrayProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
@@ -481,7 +481,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var enumeratorSimple = env.CreateEnumerable<ClassWithSetter>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())

@@ -2,7 +2,7 @@
 #@   header+
 #@   sep=tab
 #@   col=text:TX:0-**
-#@   col={name=terms type=U4 src={ min=-1 var=+} key=0-3940}
+#@   col={name=terms type=U4 src={ min=-1 var=+} key=3941}
 #@   col={name=ngrams type=R4 src={ min=-1 max=13111 vector=+}}
 #@   col={name=ngramshash type=R4 src={ min=-1 max=65534 vector=+}}
 #@ }

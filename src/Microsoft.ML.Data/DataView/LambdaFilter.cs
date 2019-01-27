@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Model;
@@ -106,25 +108,29 @@ namespace Microsoft.ML.Data
                 return null;
             }
 
-            protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+            protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                Host.AssertValue(predicate, "predicate");
                 Host.AssertValueOrNull(rand);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
                 bool[] active;
                 Func<int, bool> inputPred = GetActive(predicate, out active);
-                var input = Source.GetRowCursor(inputPred, rand);
+
+                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+                var input = Source.GetRowCursor(inputCols, rand);
                 return new Cursor(this, input, active);
             }
 
-            public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                Host.CheckValue(predicate, nameof(predicate));
+
                 Host.CheckValueOrNull(rand);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
                 bool[] active;
                 Func<int, bool> inputPred = GetActive(predicate, out active);
-                var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+                var inputs = Source.GetRowCursorSet(inputCols, n, rand);
                 Host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.

@@ -81,7 +81,7 @@ namespace Microsoft.ML.Data.Commands
                 var srcToDstMap = new Dictionary<DataKind, HashSet<DataKind>>();
 
                 var kinds = Enum.GetValues(typeof(DataKind)).Cast<DataKind>().Distinct().OrderBy(k => k).ToArray();
-                var types = kinds.Select(kind => PrimitiveType.FromKind(kind)).ToArray();
+                var types = kinds.Select(kind => ColumnTypeExtensions.PrimitiveTypeFromKind(kind)).ToArray();
 
                 HashSet<DataKind> nonIdentity = null;
                 // For each kind and its associated type.
@@ -96,18 +96,18 @@ namespace Microsoft.ML.Data.Commands
                     for (int j = 0; j < types.Length; ++j)
                     {
                         if (conv.TryGetStandardConversion(types[i], types[j], out del, out isIdentity))
-                            dstKinds.Add(types[j].RawKind);
+                            dstKinds.Add(types[j].GetRawKind());
                     }
                     if (!conv.TryGetStandardConversion(types[i], types[i], out del, out isIdentity))
-                        Utils.Add(ref nonIdentity, types[i].RawKind);
+                        Utils.Add(ref nonIdentity, types[i].GetRawKind());
                     else
                         ch.Assert(isIdentity);
 
-                    srcToDstMap[types[i].RawKind] = dstKinds;
+                    srcToDstMap[types[i].GetRawKind()] = dstKinds;
                     HashSet<DataKind> srcKinds;
                     if (!dstToSrcMap.TryGetValue(dstKinds, out srcKinds))
                         dstToSrcMap[dstKinds] = srcKinds = new HashSet<DataKind>();
-                    srcKinds.Add(types[i].RawKind);
+                    srcKinds.Add(types[i].GetRawKind());
                 }
 
                 // Now perform the final outputs.

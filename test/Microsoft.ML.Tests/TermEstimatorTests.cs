@@ -99,14 +99,14 @@ namespace Microsoft.ML.Tests
 
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
             var stringData = new[] { new TestClassDifferentTypes { A = "1", B = "c", C = "b" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingTransformer.ColumnInfo("A", "TermA"),
                     new ValueToKeyMappingTransformer.ColumnInfo("B", "TermB"),
                     new ValueToKeyMappingTransformer.ColumnInfo("C", "TermC")
                 });
-            var invalidData = ComponentCreation.CreateDataView(Env, xydata);
-            var validFitNotValidTransformData = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidData = ML.Data.ReadFromEnumerable(xydata);
+            var validFitNotValidTransformData = ML.Data.ReadFromEnumerable(stringData);
             TestEstimatorCore(pipe, dataView, null, invalidData, validFitNotValidTransformData);
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests
         void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingTransformer.ColumnInfo("A", "TermA"),
                     new ValueToKeyMappingTransformer.ColumnInfo("B", "TermB"),
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests
         void TestMetadataCopy()
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
                     new ValueToKeyMappingTransformer.ColumnInfo("Term" ,"T") });
 
@@ -146,7 +146,6 @@ namespace Microsoft.ML.Tests
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
-            int size = itemType1 is KeyType keyType ? keyType.Count : -1;
             result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
             Assert.True(names1.GetValues().Length > 0);
         }
@@ -163,7 +162,7 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("TermA", out int ColA);
             result.Schema.TryGetColumnIndex("TermB", out int ColB);
             result.Schema.TryGetColumnIndex("TermC", out int ColC);
-            using (var cursor = result.GetRowCursor(x => true))
+            using (var cursor = result.GetRowCursorForAllColumns())
             {
                 uint avalue = 0;
                 uint bvalue = 0;

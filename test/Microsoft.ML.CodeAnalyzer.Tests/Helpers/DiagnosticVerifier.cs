@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 using Xunit;
 
@@ -263,6 +264,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         private static readonly MetadataReference CSharpSymbolsReference = RefFromType<CSharpCompilation>();
         private static readonly MetadataReference CodeAnalysisReference = RefFromType<Compilation>();
 
+        private static readonly MetadataReference MSDataDataViewReference = RefFromType<IDataView>();
         private static readonly MetadataReference MLNetCoreReference = RefFromType<IHostEnvironment>();
         private static readonly MetadataReference MLNetDataReference = RefFromType<Model.ModelLoadContext>();
         private static readonly MetadataReference MLNetStaticPipeReference = RefFromType<CategoricalHashStaticExtensions.OneHotHashVectorOutputKind>();
@@ -391,6 +393,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
                 .AddMetadataReference(projectId, SystemCoreReference)
                 .AddMetadataReference(projectId, CSharpSymbolsReference)
                 .AddMetadataReference(projectId, CodeAnalysisReference)
+                .AddMetadataReference(projectId, MSDataDataViewReference)
                 .AddMetadataReference(projectId, MLNetCoreReference)
                 .AddMetadataReference(projectId, MLNetDataReference)
                 .AddMetadataReference(projectId, MLNetStaticPipeReference);

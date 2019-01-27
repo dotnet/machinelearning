@@ -372,7 +372,7 @@ namespace Microsoft.ML.Transforms.Text
             // Let's validate input schema and check which columns requried invertHash.
             int[] invertHashMaxCounts = new int[_columns.Length];
             HashSet<int> columnWithInvertHash = new HashSet<int>();
-            HashSet<int> sourceColumnsForInvertHash = new HashSet<int>();
+            var sourceColumnsForInvertHash = new List<Schema.Column>();
             for (int i = 0; i < _columns.Length; i++)
             {
                 int invertHashMaxCount;
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Transforms.Text
                         var columnType = input.Schema[srcCol].Type;
                         if (!NgramHashingEstimator.IsColumnTypeValid(input.Schema[srcCol].Type))
                             throw Host.ExceptSchemaMismatch(nameof(input), "input", _columns[i].Inputs[j], NgramHashingEstimator.ExpectedColumnType, columnType.ToString());
-                        sourceColumnsForInvertHash.Add(srcCol);
+                        sourceColumnsForInvertHash.Add(input.Schema[srcCol]);
                     }
                 }
             }
@@ -401,11 +401,11 @@ namespace Microsoft.ML.Transforms.Text
                 var active = new bool[1];
                 string[][] friendlyNames = _columns.Select(c => c.FriendlyNames).ToArray();
                 // We will create invert hash helper class, which would store in itself all original ngrams and their mapping into hash values.
-                var helper = new InvertHashHelper(this, input.Schema, friendlyNames, sourceColumnsForInvertHash.Contains, invertHashMaxCounts);
+                var helper = new InvertHashHelper(this, input.Schema, friendlyNames, sourceColumnsForInvertHash, invertHashMaxCounts);
                 // in order to get all original ngrams we have to go data in same way as we would process it, so let's create mapper with decorate function.
                 var mapper = new Mapper(this, input.Schema, helper.Decorate);
                 // Let's create cursor to iterate over input data.
-                using (var rowCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
+                using (var rowCursor = input.GetRowCursor(sourceColumnsForInvertHash))
                 {
                     Action disp;
                     // We create mapper getters on top of input cursor
@@ -817,12 +817,12 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int[] _invertHashMaxCounts;
             private readonly int[][] _srcIndices;
 
-            public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, Func<int, bool> inputPred, int[] invertHashMaxCounts)
+            public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, IEnumerable<Schema.Column> columnsNeeded, int[] invertHashMaxCounts)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(friendlyNames);
                 Contracts.Assert(friendlyNames.Length == parent._columns.Length);
-                Contracts.AssertValue(inputPred);
+                Contracts.AssertValue(columnsNeeded);
                 Contracts.AssertValue(invertHashMaxCounts);
                 Contracts.Assert(invertHashMaxCounts.Length == parent._columns.Length);
                 _parent = parent;
@@ -831,11 +831,13 @@ namespace Microsoft.ML.Transforms.Text
                 // One per source column (some may be null).
                 _srcTextGetters = new ValueMapper<uint, StringBuilder>[inputSchema.Count];
                 _invertHashMaxCounts = invertHashMaxCounts;
-                for (int i = 0; i < _srcTextGetters.Length; ++i)
+
+                foreach(var col in columnsNeeded)
                 {
-                    if (inputPred(i))
-                        _srcTextGetters[i] = InvertHashUtils.GetSimpleMapper<uint>(inputSchema, i);
+                    Contracts.Assert(col.Index < _srcTextGetters.Length);
+                    _srcTextGetters[col.Index] = InvertHashUtils.GetSimpleMapper<uint>(inputSchema, col.Index);
                 }
+
                 _srcIndices = new int[_parent._columns.Length][];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {

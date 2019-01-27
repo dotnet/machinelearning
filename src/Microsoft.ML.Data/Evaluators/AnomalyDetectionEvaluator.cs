@@ -177,7 +177,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     overallDvBldr.AddColumn(BinaryClassifierEvaluator.Auc, NumberType.R8, auc.ToArray());
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Data
                     var topKdvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        topKdvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, topKStratCol.ToArray());
+                        topKdvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, topKStratCol.ToArray());
                         topKdvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, topKStratVal.ToArray());
                     }
                     topKdvBldr.AddColumn(TopKResultsColumns.Instance, TextType.Instance, names.ToArray());
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(AnomalyDetectionEvaluator.TopKResults, out top))
                 throw Host.Except("Did not find the top-k results data view");
             var sb = new StringBuilder();
-            using (var cursor = top.GetRowCursor(col => true))
+            using (var cursor = top.GetRowCursorForAllColumns())
             {
                 int index;
                 if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Instance, out index))
@@ -678,8 +678,8 @@ namespace Microsoft.ML.Data
             bool hasStratVals = overall.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             Contracts.Assert(hasStrat == hasStratVals);
             long numAnomalies = 0;
-            using (var cursor = overall.GetRowCursor(col => col == numAnomIndex ||
-                (hasStrat && col == stratCol)))
+            using (var cursor = overall.GetRowCursor(overall.Schema.Where(col => col.Name.Equals(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies)||
+                (hasStrat && col.Name.Equals(MetricKinds.ColumnNames.StratCol)))))
             {
                 var numAnomGetter = cursor.GetGetter<long>(numAnomIndex);
                 ValueGetter<uint> stratGetter = null;

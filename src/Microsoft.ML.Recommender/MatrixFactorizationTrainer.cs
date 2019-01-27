@@ -17,7 +17,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Arguments),
+[assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Options),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },
     "Matrix Factorization", MatrixFactorizationTrainer.LoadNameValue, "libmf", "mf")]
 
@@ -91,8 +91,23 @@ namespace Microsoft.ML.Trainers
     {
         public enum LossFunctionType { SquareLossRegression = 0, SquareLossOneClass = 12 };
 
-        public sealed class Arguments
+        public sealed class Options
         {
+            /// <summary>
+            /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used be as matrix's column index.
+            /// </summary>
+            public string MatrixColumnIndexColumnName;
+
+            /// <summary>
+            /// The name of variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's row index.
+            /// </summary>
+            public string MatrixRowIndexColumnName;
+
+            /// <summary>
+            /// The name variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's element value.
+            /// </summary>
+            public string LabelColumnName;
+
             /// <summary>
             /// Loss function minimized for finding factor matrices.  Two values are allowed, 0 or 12. The values 0 means traditional collaborative filtering
             /// problem with squared loss. The value 12 triggers one-class matrix factorization for implicit-feedback recommendation problem.
@@ -195,17 +210,17 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used be as matrix's column index.
         /// </summary>
-        public readonly string MatrixColumnIndexName;
+        internal readonly string MatrixColumnIndexName;
 
         /// <summary>
         /// The name of variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's row index.
         /// </summary>
-        public readonly string MatrixRowIndexName;
+        internal readonly string MatrixRowIndexName;
 
         /// <summary>
         /// The name variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's element value.
         /// </summary>
-        public readonly string LabelName;
+        internal readonly string LabelName;
 
         /// <summary>
         /// The <see cref="TrainerInfo"/> contains general parameters for this trainer.
@@ -213,53 +228,55 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info { get; }
 
         /// <summary>
-        /// Legacy constructor initializing a new instance of <see cref="MatrixFactorizationTrainer"/> through the legacy
-        /// <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/> through the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
-        private MatrixFactorizationTrainer(IHostEnvironment env, Arguments args) : base(env, LoadNameValue)
+        /// <param name="options">An instance of <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
+        [BestFriend]
+        internal MatrixFactorizationTrainer(IHostEnvironment env, Options options) : base(env, LoadNameValue)
         {
             const string posError = "Parameter must be positive";
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(args.K > 0, nameof(args.K), posError);
-            Host.CheckUserArg(!args.NumThreads.HasValue || args.NumThreads > 0, nameof(args.NumThreads), posError);
-            Host.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), posError);
-            Host.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), posError);
-            Host.CheckUserArg(args.Eta > 0, nameof(args.Eta), posError);
-            Host.CheckUserArg(args.Alpha > 0, nameof(args.Alpha), posError);
+            Host.CheckValue(options, nameof(options));
+            Host.CheckUserArg(options.K > 0, nameof(options.K), posError);
+            Host.CheckUserArg(!options.NumThreads.HasValue || options.NumThreads > 0, nameof(options.NumThreads), posError);
+            Host.CheckUserArg(options.NumIterations > 0, nameof(options.NumIterations), posError);
+            Host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), posError);
+            Host.CheckUserArg(options.Eta > 0, nameof(options.Eta), posError);
+            Host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), posError);
 
-            _fun = (int)args.LossFunction;
-            _lambda = args.Lambda;
-            _k = args.K;
-            _iter = args.NumIterations;
-            _eta = args.Eta;
-            _alpha = args.Alpha;
-            _c = args.C;
-            _threads = args.NumThreads ?? Environment.ProcessorCount;
-            _quiet = args.Quiet;
-            _doNmf = args.NonNegative;
+            _fun = (int)options.LossFunction;
+            _lambda = options.Lambda;
+            _k = options.K;
+            _iter = options.NumIterations;
+            _eta = options.Eta;
+            _alpha = options.Alpha;
+            _c = options.C;
+            _threads = options.NumThreads ?? Environment.ProcessorCount;
+            _quiet = options.Quiet;
+            _doNmf = options.NonNegative;
 
             Info = new TrainerInfo(normalization: false, caching: false);
+
+            LabelName = options.LabelColumnName;
+            MatrixColumnIndexName = options.MatrixColumnIndexColumnName;
+            MatrixRowIndexName = options.MatrixRowIndexColumnName;
         }
 
         /// <summary>
-        /// Initializing a new instance of <see cref="MatrixFactorizationTrainer"/>.
+        /// Initializes a new instance of <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
         /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public MatrixFactorizationTrainer(IHostEnvironment env,
+        [BestFriend]
+        internal MatrixFactorizationTrainer(IHostEnvironment env,
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,
-            string labelColumn = DefaultColumnNames.Label,
-            Action<Arguments> advancedSettings = null)
+            string labelColumn = DefaultColumnNames.Label)
             : base(env, LoadNameValue)
         {
-            var args = new Arguments();
-            advancedSettings?.Invoke(args);
+            var args = new Options();
 
             _fun = (int)args.LossFunction;
             _lambda = args.Lambda;
@@ -325,13 +342,13 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            int colCount = matrixColumnIndexColInfo.Type.GetKeyCount();
-            int rowCount = matrixRowIndexColInfo.Type.GetKeyCount();
+            int colCount = matrixColumnIndexColInfo.Type.GetKeyCountAsInt32(Host);
+            int rowCount = matrixRowIndexColInfo.Type.GetKeyCountAsInt32(Host);
             ch.Assert(rowCount > 0);
             ch.Assert(colCount > 0);
 
             // Checks for equality on the validation set ensure it is correct here.
-            using (var cursor = data.Data.GetRowCursor(c => c == matrixColumnIndexColInfo.Index || c == matrixRowIndexColInfo.Index || c == data.Schema.Label.Value.Index))
+            using (var cursor = data.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.Value))
             {
                 // LibMF works only over single precision floats, but we want to be able to consume either.
                 var labGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, data.Schema.Label.Value.Index);
@@ -350,8 +367,7 @@ namespace Microsoft.ML.Trainers
                 else
                 {
                     RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
-                    using (var validCursor = validData.Data.GetRowCursor(
-                        c => c == validMatrixColumnIndexColInfo.Index || c == validMatrixRowIndexColInfo.Index || c == validData.Schema.Label.Value.Index))
+                    using (var validCursor = validData.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.Value))
                     {
                         ValueGetter<float> validLabelGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, validCursor, validData.Schema.Label.Value.Index);
                         var validMatrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, validCursor, validMatrixColumnIndexColInfo.Index);

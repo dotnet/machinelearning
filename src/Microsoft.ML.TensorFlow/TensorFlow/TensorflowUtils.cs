@@ -40,7 +40,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
                 // If the type is not supported in ML.NET then we cannot represent it as a column in an Schema.
                 // We also cannot output it with a TensorFlowTransform, so we skip it.
-                if (mlType == null)
+                // Furthermore, operators which have NumOutputs <= 0 needs to be filtered.
+                // The 'GetTensorShape' method crashes TensorFlow runtime
+                // (https://github.com/dotnet/machinelearning/issues/2156) when the operator has no outputs.
+                if (mlType == null || op.NumOutputs <= 0)
                     continue;
 
                 // Construct the final ML.NET type of a Tensorflow variable.

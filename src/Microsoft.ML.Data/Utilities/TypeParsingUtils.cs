@@ -5,6 +5,7 @@
 using System;
 using System.Text;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Data
 {
@@ -14,99 +15,92 @@ namespace Microsoft.ML.Data
     public static class TypeParsingUtils
     {
         /// <summary>
-        /// Attempt to parse the string into a data kind and (optionally) a key range. This method does not check whether
-        /// the returned <see cref="DataKind"/> can really be made into a key with the specified <paramref name="keyRange"/>.
+        /// Attempt to parse the string into a data kind and (optionally) a keyCount. This method does not check whether
+        /// the returned <see cref="DataKind"/> can really be made into a key with the specified <paramref name="keyCount"/>.
         /// </summary>
         /// <param name="str">The string to parse.</param>
         /// <param name="dataKind">The parsed data kind.</param>
-        /// <param name="keyRange">The parsed key range, or null if there's no key specification.</param>
+        /// <param name="keyCount">The parsed key count, or null if there's no key specification.</param>
         /// <returns>Whether the parsing succeeded or not.</returns>
-        public static bool TryParseDataKind(string str, out DataKind dataKind, out KeyRange keyRange)
+        public static bool TryParseDataKind(string str, out DataKind dataKind, out KeyCount keyCount)
         {
             Contracts.CheckValue(str, nameof(str));
-            keyRange = null;
-            dataKind = default(DataKind);
+            keyCount = null;
+            dataKind = default;
 
             int ich = str.IndexOf('[');
-            if (ich >= 0)
+            if (0 <= ich)
             {
                 if (str[str.Length - 1] != ']')
                     return false;
-                keyRange = KeyRange.Parse(str.Substring(ich + 1, str.Length - ich - 2));
-                if (keyRange == null)
+                keyCount = KeyCount.Parse(str.Substring(ich + 1, str.Length - ich - 2));
+                if (keyCount == null)
                     return false;
                 if (ich == 0)
                     return true;
                 str = str.Substring(0, ich);
             }
 
-            DataKind kind;
-            if (!Enum.TryParse<DataKind>(str, true, out kind))
+            if (!Enum.TryParse(str, true, out dataKind))
                 return false;
-            dataKind = kind;
 
             return true;
         }
 
         /// <summary>
-        /// Construct a <see cref="KeyType"/> out of the data kind and the key range.
+        /// Construct a <see cref="KeyType"/> out of the data kind and the keyCount.
         /// </summary>
-        public static KeyType ConstructKeyType(DataKind? type, KeyRange range)
+        public static KeyType ConstructKeyType(DataKind? type, KeyCount keyCount)
         {
-            Contracts.CheckValue(range, nameof(range));
+            Contracts.CheckValue(keyCount, nameof(keyCount));
 
-            DataKind kind;
             KeyType keyType;
-            kind = type ?? DataKind.U4;
-            Contracts.CheckUserArg(KeyType.IsValidDataKind(kind), nameof(TextLoader.Column.Type), "Bad item type for Key");
-            Contracts.CheckUserArg(range.Min >= 0, nameof(range.Min), "min must be non-negative");
+            Type rawType = type.HasValue ? type.Value.ToType() : DataKind.U8.ToType();
+            Contracts.CheckUserArg(KeyType.IsValidDataType(rawType), nameof(TextLoader.Column.Type), "Bad item type for Key");
 
-            if (range.Max == null)
-                keyType = new KeyType(kind, range.Min, 0, range.Contiguous);
+            if (keyCount.Count == null)
+                keyType = new KeyType(rawType, rawType.ToMaxInt());
             else
-            {
-                Contracts.CheckUserArg(range.Contiguous, nameof(range.Max), "max must be null when contiguous is false");
-                ulong max = range.Max.GetValueOrDefault();
-                Contracts.CheckUserArg(max >= range.Min, nameof(range.Max), "max must be >= min");
-                Contracts.CheckUserArg(max - range.Min < int.MaxValue, nameof(range.Max), "range is too large");
-                int count = (int)(max - range.Min + 1);
-                Contracts.Assert(count >= 1);
-                if ((ulong)count > kind.ToMaxInt())
-                    throw Contracts.ExceptUserArg(nameof(range.Max), "range is too large for type {0}", kind);
-                keyType = new KeyType(kind, range.Min, count);
-            }
+                keyType = new KeyType(rawType, keyCount.Count.GetValueOrDefault());
+
             return keyType;
         }
     }
 
     /// <summary>
-    /// The key range specification. It is used by <see cref="TextLoader"/> and C# transform.
+    /// Defines the cardinality, or count, of valid values of a <see cref="KeyType"/> column. This needs to be strictly positive.
+    /// It is used by <see cref="TextLoader"/> and <see cref="TypeConvertingEstimator"/>.
     /// </summary>
-    public sealed class KeyRange
+    public sealed class KeyCount
     {
-        public KeyRange() { }
+        /// <summary>
+        /// Initializes the cardinality, or count, of valid values of a <see cref="KeyType"/> column to the
+        /// largest integer that can be expresed by the underlying datatype of the <see cref="KeyType"/>.
+        /// </summary>
+        public KeyCount() { }
 
-        public KeyRange(ulong min, ulong? max = null, bool contiguous = true)
+        /// <summary>
+        /// Initializes the cardinality, or count, of valid values of a <see cref="KeyType"/> column to <paramref name="count"/>
+        /// </summary>
+        public KeyCount(ulong count)
         {
-            Min = min;
-            Max = max;
-            Contiguous = contiguous;
+            if (count == 0)
+                throw Contracts.ExceptParam(nameof(count), "The cardinality of valid values of a "
+                    + nameof(KeyType) + " column has to be strictly positive.");
+            Count = count;
         }
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "First index in the range")]
-        public ulong Min;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Count of valid key values")]
+        public ulong? Count;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
-        public ulong? Max;
-
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the key is contiguous")]
-        public bool Contiguous = true;
-
-        public static KeyRange Parse(string str)
+        /// <summary>
+        /// Parses the string format for a KeyCount, also supports the old KeyRange format for backwards compatibility.
+        /// </summary>
+        public static KeyCount Parse(string str)
         {
             Contracts.AssertValue(str);
 
-            var res = new KeyRange();
+            var res = new KeyCount();
             if (res.TryParse(str))
                 return res;
             return null;
@@ -116,44 +110,47 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(str);
 
-            int ich = str.IndexOf('-');
-            if (ich < 0)
-            {
-                if (!ulong.TryParse(str, out Min))
-                    return false;
-                Contiguous = false;
+            // This corresponds to the new format `[]`, with no specified Max.
+            if (str.Length == 0)
                 return true;
+
+            // For backward compatibility we check for the old format that included a Min and looked like: `[Min-Max]`.
+            int ich = str.IndexOf('-');
+            if (0 <= ich)
+            {
+                ulong min;
+                // Parse Min and the dash, throw if Min is not zero.
+                if (!ulong.TryParse(str.Substring(0, ich), out min))
+                    return false;
+                if (min != 0)
+                    throw Contracts.ExceptDecode("The minimum logical value of a " + nameof(KeyType) + " is required to be zero.");
+
+                // The Max could be non defined or it could be an `*`.
+                str = str.Substring(ich + 1);
+                if (string.IsNullOrEmpty(str) || str == "*")
+                    return true;
             }
 
-            if (!ulong.TryParse(str.Substring(0, ich), out Min))
-                return false;
-
-            Contracts.Assert(Contiguous);
-            string rest = str.Substring(ich + 1);
-            if (string.IsNullOrEmpty(rest) || rest == "*")
-                return true;
-
+            // This is the new format `[Max]`.
             ulong tmp;
-            if (!ulong.TryParse(rest, out tmp))
+            if (!ulong.TryParse(str, out tmp))
                 return false;
-            Max = tmp;
+
+            // The new string format for a key reflects KeyType.Count and expresses the cardinality/count of valid values.
+            // The old format was a range with the max of the range equal to keyCount - 1.
+            Count = ich == -1 ? tmp : tmp + 1;
+
+            Contracts.CheckDecode(Count == null || Count > 0);
             return true;
         }
 
         public bool TryUnparse(StringBuilder sb)
         {
             Contracts.AssertValue(sb);
+            Contracts.Assert(Count == null || Count > 0);
 
-            if (!Contiguous && Max != null)
-                return false;
-
-            sb.Append(Min);
-            if (!Contiguous)
-                return true;
-            if (Max != null)
-                sb.Append('-').Append(Max);
-            else if (Contiguous)
-                sb.Append("-*");
+            if (Count != null)
+                sb.Append(Count);
             return true;
         }
     }

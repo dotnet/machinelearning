@@ -203,7 +203,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Data
                     var groupDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, groupStratCol.ToArray());
+                        groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, groupStratCol.ToArray());
                         groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, groupStratVal.ToArray());
                     }
                     if (groupSummary)
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Data
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             RankerMetrics result;
-            using (var cursor = overall.GetRowCursor(i => true))
+            using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
@@ -608,15 +608,11 @@ namespace Microsoft.ML.Data
             return _transform.GetRowCount();
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
-        {
-            return _transform.GetRowCursor(needCol, rand);
-        }
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            => _transform.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
-        {
-            return _transform.GetRowCursorSet(needCol, n, rand);
-        }
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => _transform.GetRowCursorSet(columnsNeeded, n, rand);
 
         private sealed class Transform : PerGroupTransformBase<short, Single, Transform.RowCursorState>
         {

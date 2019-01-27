@@ -59,8 +59,8 @@ namespace Microsoft.ML.Scenarios
             // Turn the data into the ML.NET data view.
             // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
             // or merely an IEnumerable.
-            var trainData = mlContext.CreateStreamingDataView(data);
-            var testData = mlContext.CreateStreamingDataView(clusters);
+            var trainData = mlContext.Data.ReadFromEnumerable(data);
+            var testData = mlContext.Data.ReadFromEnumerable(clusters);
 
             // Create Estimator
             var pipe = mlContext.Clustering.Trainers.KMeans("Features", clustersCount: k);

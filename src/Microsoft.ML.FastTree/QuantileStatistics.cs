@@ -60,7 +60,7 @@ namespace Microsoft.ML
             if (!isSorted)
                 Array.Sort(_data);
             else
-                Contracts.Assert(Utils.IsSorted(_data));
+                Contracts.Assert(Utils.IsMonotonicallyIncreasing(_data));
         }
 
         /// <summary>

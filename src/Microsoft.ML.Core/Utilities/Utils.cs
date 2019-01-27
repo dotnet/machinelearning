@@ -6,10 +6,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -532,7 +534,7 @@ namespace Microsoft.ML.Internal.Utilities
             return res;
         }
 
-        public static bool AreEqual(Single[] arr1, Single[] arr2)
+        public static bool AreEqual(float[] arr1, float[] arr2)
         {
             if (arr1 == arr2)
                 return true;
@@ -549,7 +551,7 @@ namespace Microsoft.ML.Internal.Utilities
             return true;
         }
 
-        public static bool AreEqual(Double[] arr1, Double[] arr2)
+        public static bool AreEqual(double[] arr1, double[] arr2)
         {
             if (arr1 == arr2)
                 return true;
@@ -613,37 +615,80 @@ namespace Microsoft.ML.Internal.Utilities
             return Regex.Replace(value, "[^A-Za-z0-9]", "");
         }
 
-        public static bool IsSorted(IList<float> values)
+        /// <summary>
+        /// Checks that an input IList is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise. ILists containing NaN values
+        /// are considered to be not monotonically increasing.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
-            for (int i = 1; i < values.Count; i++)
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
-                if (!(values[i] >= prev))
+                var currentValue = values[i];
+                // Inverted check for NaNs
+                if (!(currentValue >= previousValue))
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
             }
 
             return true;
         }
 
-        public static bool IsSorted(int[] values)
+        /// <summary>
+        /// Checks that an input array is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<int> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
-            for (int i = 1; i < values.Length; i++)
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
-                if (values[i] < prev)
+                var currentValue = values[i];
+                if (currentValue < previousValue)
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks that an input array is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise. Arrays containing NaN values
+        /// are considered to be not monotonically increasing.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<double> values)
+        {
+            if (Utils.Size(values) <= 1)
+                return true;
+
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
+            {
+                var currentValue = values[i];
+                // Inverted check for NaNs
+                if (!(currentValue >= previousValue))
+                    return false;
+
+                previousValue = currentValue;
             }
 
             return true;
@@ -706,6 +751,20 @@ namespace Microsoft.ML.Internal.Utilities
             return result;
         }
 
+        public static bool[] BuildArray(int length, IEnumerable<Schema.Column> columnsNeeded)
+        {
+            Contracts.CheckParam(length >= 0, nameof(length));
+
+            var result = new bool[length];
+            foreach (var col in columnsNeeded)
+            {
+                if(col.Index < result.Length)
+                    result[col.Index] = true;
+            }
+
+            return result;
+        }
+
         public static T[] BuildArray<T>(int length, Func<int, T> func)
         {
             Contracts.CheckParam(length >= 0, nameof(length));
@@ -748,6 +807,40 @@ namespace Microsoft.ML.Internal.Utilities
                 invMap[c] = mapList.Count;
                 mapList.Add(c);
             }
+            map = mapList.ToArray();
+        }
+
+        /// <summary>
+        /// Given the columns needed, over a range of values defined by a limit calculate
+        /// first the values for which the column is present was true, and second an inverse
+        /// map.
+        /// </summary>
+        /// <param name="lim">Indicates the exclusive upper bound on the tested values</param>
+        /// <param name="columnsNeeded">The set of columns the calling component operates on.</param>
+        /// <param name="map">An ascending array of values from 0 inclusive
+        /// to <paramref name="lim"/> exclusive, holding all values for which
+        /// <paramref name="columnsNeeded"/> are present.
+        /// (The respective index appears in the <paramref name="columnsNeeded"/> collection).</param>
+        /// <param name="invMap">Forms an inverse mapping of <paramref name="map"/>,
+        /// so that <c><paramref name="invMap"/>[<paramref name="map"/>[i]] == i</c>,
+        /// and for other entries not appearing in <paramref name="map"/>,
+        /// <c><paramref name="invMap"/>[i] == -1</c></param>
+        public static void BuildSubsetMaps(int lim, IEnumerable<Schema.Column> columnsNeeded, out int[] map, out int[] invMap)
+        {
+            Contracts.CheckParam(lim >= 0, nameof(lim));
+            Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
+
+            // REVIEW: Better names?
+            List<int> mapList = new List<int>();
+            invMap = invMap = Enumerable.Repeat(-1, lim).ToArray<int>();
+
+            foreach (var col in columnsNeeded)
+            {
+                Contracts.Check(col.Index < lim);
+                invMap[col.Index] = mapList.Count;
+                mapList.Add(col.Index);
+            }
+
             map = mapList.ToArray();
         }
 

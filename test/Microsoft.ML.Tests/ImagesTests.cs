@@ -110,7 +110,7 @@ namespace Microsoft.ML.Tests
 
             cropped.Schema.TryGetColumnIndex("ImagePath", out int pathColumn);
             cropped.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = cropped.GetRowCursor((x) => true))
+            using (var cursor = cropped.GetRowCursorForAllColumns())
             {
                 var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(pathColumn);
                 ReadOnlyMemory<char> path = default;
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tests
             DeleteOutputPath(fname);
 
             grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
-            using (var cursor = grey.GetRowCursor((x) => true))
+            using (var cursor = grey.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(greyColumn);
                 Bitmap bitmap = default;
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -488,7 +488,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -620,7 +620,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -685,7 +685,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;

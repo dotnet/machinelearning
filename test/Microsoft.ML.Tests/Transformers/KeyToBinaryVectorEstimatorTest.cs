@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             dataView = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingTransformer.ColumnInfo("A", "TermA"),
                     new ValueToKeyMappingTransformer.ColumnInfo("B", "TermB"),
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6} };
 
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
                 new ValueToKeyMappingTransformer.ColumnInfo("A", "TA", textKeyValues: true),
                 new ValueToKeyMappingTransformer.ColumnInfo("B", "TB", textKeyValues: true),
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingTransformer.ColumnInfo("A", "TermA"),
                     new ValueToKeyMappingTransformer.ColumnInfo("B", "TermB", textKeyValues:true),

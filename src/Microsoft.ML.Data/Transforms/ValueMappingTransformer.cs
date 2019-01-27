@@ -34,8 +34,8 @@ namespace Microsoft.ML.Transforms.Conversions
 {
     /// <summary>
     /// The ValueMappingEstimator is a 1-1 mapping from a key to value. The key type and value type are specified
-    /// through TKey and TValue. Arrays are supported for vector types which can be used as either a key or a value
-    /// or both. The mapping is specified, not trained by providiing a list of keys and a list of values.
+    /// through TKey and TValue. TKey is always a scalar. TValue can be either a scalar or an array (array is only possible when input is scalar).
+    /// The mapping is specified, not trained by providing a list of keys and a list of values.
     /// </summary>
     /// <typeparam name="TKey">Specifies the key type.</typeparam>
     /// <typeparam name="TValue">Specifies the value type.</typeparam>
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
             var isKey = Transformer.ValueColumnType is KeyType;
-            var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
+            var columnType = (isKey) ? ColumnTypeExtensions.PrimitiveTypeFromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
             var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (Input, Output) in _columns)
@@ -106,6 +106,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!inputSchema.TryFindColumn(Input, out var originalColumn))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Input);
 
+                if ((originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
+                    originalColumn.Kind == SchemaShape.Column.VectorKind.Vector) && Transformer.ValueColumnType is VectorType)
+                    throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", Input);
                 // Create the Value column
                 var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, metadataShape);
                 resultDic[Output] = col;
@@ -135,7 +138,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (!type.TryGetDataKind(out DataKind kind))
                 throw new InvalidOperationException($"Unsupported type {type} used in mapping.");
 
-            return PrimitiveType.FromKind(kind);
+            return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
         }
 
         /// <summary>
@@ -155,6 +158,37 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         /// <summary>
+        /// Helper function to add a column to an ArrayDataViewBuilder. This handles the case if the type is a string.
+        /// </summary>
+        internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveType primitiveType, T[] values)
+        {
+            if (typeof(T) == typeof(string))
+                builder.AddColumn(columnName, values.Select(x=>x.ToString()).ToArray());
+            else
+                builder.AddColumn(columnName, primitiveType, values);
+        }
+
+        /// <summary>
+        /// Helper function to add a column to an ArrayDataViewBuilder. This handles the case if the type is an array of strings.
+        /// </summary>
+        internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveType primitiveType, T[][] values)
+        {
+            if (typeof(T) == typeof(string))
+            {
+                var convertedValues = new List<ReadOnlyMemory<char>[]>();
+                foreach(var value in values)
+                {
+                    var converted = value.Select(x => x.ToString().AsMemory());
+                    convertedValues.Add(converted.ToArray());
+                }
+
+                builder.AddColumn(columnName, primitiveType, convertedValues.ToArray());
+            }
+            else
+                builder.AddColumn(columnName, primitiveType, values);
+        }
+
+        /// <summary>
         /// Helper function to create an IDataView given a list of key and vector-based values
         /// </summary>
         internal static IDataView CreateDataView<TKey, TValue>(IHostEnvironment env,
@@ -166,8 +200,8 @@ namespace Microsoft.ML.Transforms.Conversions
             var keyType = GetPrimitiveType(typeof(TKey), out bool isKeyVectorType);
             var valueType = GetPrimitiveType(typeof(TValue), out bool isValueVectorType);
             var dataViewBuilder = new ArrayDataViewBuilder(env);
-            dataViewBuilder.AddColumn(keyColumnName, keyType, keys.ToArray());
-            dataViewBuilder.AddColumn(valueColumnName, valueType, values.ToArray());
+            AddColumnWrapper(dataViewBuilder, keyColumnName, keyType, keys.ToArray());
+            AddColumnWrapper(dataViewBuilder, valueColumnName, valueType, values.ToArray());
             return dataViewBuilder.GetDataView();
         }
 
@@ -185,7 +219,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var valueType = GetPrimitiveType(typeof(TValue), out bool isValueVectorType);
 
             var dataViewBuilder = new ArrayDataViewBuilder(env);
-            dataViewBuilder.AddColumn(keyColumnName, keyType, keys.ToArray());
+            AddColumnWrapper(dataViewBuilder, keyColumnName, keyType, keys.ToArray());
             if (treatValuesAsKeyTypes)
             {
                 // When treating the values as KeyTypes, generate the unique
@@ -204,15 +238,15 @@ namespace Microsoft.ML.Transforms.Conversions
                 // Key Values are treated in one of two ways:
                 // If the values are of type uint or ulong, these values are used directly as the keys types and no new keys are created.
                 // If the values are not of uint or ulong, then key values are generated as uints starting from 1, since 0 is missing key.
-                if (valueType.RawKind == DataKind.U4)
+                if (valueType.RawType == typeof(uint))
                 {
                     uint[] indices = values.Select((x) => Convert.ToUInt32(x)).ToArray();
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Length, indices);
                 }
-                else if (valueType.RawKind == DataKind.U8)
+                else if (valueType.RawType == typeof(ulong))
                 {
                     ulong[] indices = values.Select((x) => Convert.ToUInt64(x)).ToArray();
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Length, indices);
                 }
                 else
                 {
@@ -236,11 +270,11 @@ namespace Microsoft.ML.Transforms.Conversions
                         indices[i] = keyValue;
                     }
 
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Count(), indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Count(), indices);
                 }
             }
             else
-                dataViewBuilder.AddColumn(valueColumnName, valueType, values.ToArray());
+                AddColumnWrapper(dataViewBuilder, valueColumnName, valueType, values.ToArray());
 
             return dataViewBuilder.GetDataView();
         }
@@ -399,7 +433,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var keyType = dataView.Schema[keyIdx].Type;
             var valueType = dataView.Schema[valueIdx].Type;
             var valueMap = ValueMap.Create(keyType, valueType, _valueMetadata);
-            using (var cursor = dataView.GetRowCursor(c => c == keyIdx || c == valueIdx))
+            using (var cursor = dataView.GetRowCursor(dataView.Schema[keyIdx], dataView.Schema[valueIdx]))
                 valueMap.Train(Host, cursor);
             return valueMap;
         }
@@ -416,7 +450,7 @@ namespace Microsoft.ML.Transforms.Conversions
             ulong keyMax = ulong.MinValue;
 
             // scan the input to create convert the values as key types
-            using (var cursor = loader.GetRowCursor(c => true))
+            using (var cursor = loader.GetRowCursorForAllColumns())
             {
                 using (var ch = env.Start($"Processing key values from file {fileName}"))
                 {
@@ -435,7 +469,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                         // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                         // computing max and min.
-                        if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryParseKey(in value, 1, ulong.MaxValue, out res))
+                        if (Data.Conversion.Conversions.Instance.TryParseKey(in value, ulong.MaxValue - 1, out res))
                         {
                             if (res < keyMin && res != 0)
                                 keyMin = res;
@@ -471,18 +505,14 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, 1);
-            if (keyMax - keyMin < (ulong)int.MaxValue)
-            {
-                valueColumn.KeyRange = new KeyRange(keyMin, keyMax);
-            }
-            else if (keyMax - keyMin < (ulong)uint.MaxValue)
-            {
-                valueColumn.KeyRange = new KeyRange(keyMin);
-            }
+            if (keyMax < int.MaxValue)
+                valueColumn.KeyCount = new KeyCount(keyMax + 1);
+            else if (keyMax < uint.MaxValue)
+                valueColumn.KeyCount = new KeyCount();
             else
             {
                 valueColumn.Type = DataKind.U8;
-                valueColumn.KeyRange = new KeyRange(keyMin);
+                valueColumn.KeyCount = new KeyCount();
             }
 
             return valueColumn;
@@ -502,7 +532,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             idv.Schema.TryGetColumnIndex(keyColumnName, out int keyIdx);
             idv.Schema.TryGetColumnIndex(valueColumnName, out int valueIdx);
-            using (var cursor = idv.GetRowCursor(c => true))
+            using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 using (var ch = env.Start("Processing key values"))
                 {
@@ -719,7 +749,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (!type.TryGetDataKind(out DataKind kind))
                 throw Contracts.Except($"Unsupported type {type} used in mapping.");
 
-            return PrimitiveType.FromKind(kind);
+            return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -832,25 +862,53 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
+            private TValue MapValue(TKey key)
+            {
+                if (_mapping.ContainsKey(key))
+                {
+                    if (ValueType is VectorType vectorType)
+                        return Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[key]);
+                    else
+                        return Utils.MarshalInvoke(GetValue<int>, ValueType.RawType, _mapping[key]);
+                }
+                else
+                    return _missingValue;
+            }
+
             public override Delegate GetGetter(Row input, int index)
             {
-                var src = default(TKey);
-                ValueGetter<TKey> getSrc = input.GetGetter<TKey>(index);
-                ValueGetter<TValue> retVal =
-                (ref TValue dst) =>
+                if (input.Schema[index].Type is VectorType)
                 {
-                    getSrc(ref src);
-                    if (_mapping.ContainsKey(src))
-                    {
-                        if (ValueType is VectorType vectorType)
-                            dst = Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[src]);
-                        else
-                            dst = Utils.MarshalInvoke(GetValue<int>, ValueType.RawType, _mapping[src]);
-                    }
-                    else
-                        dst = _missingValue;
-                };
-                return retVal;
+                    var src = default(VBuffer<TKey>);
+                    var getSrc = input.GetGetter<VBuffer<TKey>>(index);
+
+                    ValueGetter<VBuffer<TValue>> retVal =
+                        (ref VBuffer<TValue> dst) =>
+                        {
+                            getSrc(ref src);
+                            var editor = VBufferEditor.Create(ref dst, src.Length);
+                            var values = src.GetValues();
+                            src.GetIndices().CopyTo(editor.Indices);
+                            for (int ich = 0; ich < values.Length; ich++)
+                            {
+                                editor.Values[ich] = MapValue(values[ich]);
+                            }
+                            dst = editor.Commit();
+                        };
+                    return retVal;
+                }
+                else
+                {
+                    var src = default(TKey);
+                    var getSrc = input.GetGetter<TKey>(index);
+                    ValueGetter<TValue> retVal =
+                        (ref TValue dst) =>
+                        {
+                            getSrc(ref src);
+                            dst = MapValue(src);
+                        };
+                    return retVal;
+                }
             }
 
             public override IDataView GetDataView(IHostEnvironment env)
@@ -961,8 +1019,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new Schema.DetachedColumn[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
-                    var srcCol = _inputSchema[_columns[i].Source];
-                    result[i] = new Schema.DetachedColumn(_columns[i].Name, _valueMap.ValueType, _valueMetadata);
+                    if (_inputSchema[_columns[i].Source].Type is VectorType && _valueMap.ValueType is VectorType)
+                        throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", _columns[i].Source);
+                    var colType = _valueMap.ValueType;
+                    if (_inputSchema[_columns[i].Source].Type is VectorType)
+                        colType = new VectorType(ColumnTypeExtensions.PrimitiveTypeFromType(_valueMap.ValueType.GetItemType().RawType));
+                    result[i] = new Schema.DetachedColumn(_columns[i].Name, colType, _valueMetadata);
                 }
                 return result;
             }

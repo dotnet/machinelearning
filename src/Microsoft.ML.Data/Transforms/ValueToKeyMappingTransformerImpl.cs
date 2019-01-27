@@ -501,7 +501,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(count >= 0);
                 ItemType = type;
                 Count = count;
-                OutputType = new KeyType(DataKind.U4, 0, Count == 0 ? 1 : Count);
+                OutputType = new KeyType(typeof(uint), Count == 0 ? 1 : Count);
             }
 
             internal abstract void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory);
@@ -1054,7 +1054,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 TypedMap.GetTerms(ref dstT);
                                 GetTextTerms(in dstT, stringMapper, ref dst);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.Count, TextType.Instance, getter);
+                        builder.AddKeyValues(TypedMap.OutputType.GetCountAsInt32(_host), TextType.Instance, getter);
                     }
                     else
                     {
@@ -1063,7 +1063,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             {
                                 TypedMap.GetTerms(ref dst);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.Count, TypedMap.ItemType, getter);
+                        builder.AddKeyValues(TypedMap.OutputType.GetCountAsInt32(_host), TypedMap.ItemType, getter);
                     }
                 }
             }
@@ -1087,8 +1087,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
-                    if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCount() ||
-                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
+                    if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
+                        TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.AddMetadata(builder);
@@ -1102,7 +1102,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.AssertValue(builder);
                     var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
-                    var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
+                    var dstType = new KeyType(typeof(uint), srcType.Count);
                     var convInst = Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;
@@ -1116,11 +1116,11 @@ namespace Microsoft.ML.Transforms.Conversions
                         {
                             VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
                             _schema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref srcMeta);
-                            _host.Assert(srcMeta.Length == srcType.Count);
+                            _host.Assert(srcMeta.Length == srcType.GetCountAsInt32(_host));
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
                             TypedMap.GetTerms(ref keyVals);
-                            var editor = VBufferEditor.Create(ref dst, TypedMap.OutputType.Count);
+                            var editor = VBufferEditor.Create(ref dst, TypedMap.OutputType.GetCountAsInt32(_host));
                             uint convKeyVal = 0;
                             foreach (var pair in keyVals.Items(all: true))
                             {
@@ -1133,6 +1133,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             dst = editor.Commit();
                         };
 
+                    int keyCount = TypedMap.OutputType.GetCountAsInt32(_host);
                     if (IsTextMetadata && !(srcMetaType is TextType))
                     {
                         var stringMapper = convInst.GetStringConversion<TMeta>(srcMetaType);
@@ -1143,9 +1144,9 @@ namespace Microsoft.ML.Transforms.Conversions
                                 getter(ref tempMeta);
                                 Contracts.Assert(tempMeta.IsDense);
                                 GetTextTerms(in tempMeta, stringMapper, ref dst);
-                                _host.Assert(dst.Length == TypedMap.OutputType.Count);
+                                _host.Assert(dst.Length == keyCount);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.Count, TextType.Instance, mgetter);
+                        builder.AddKeyValues(keyCount, TextType.Instance, mgetter);
                     }
                     else
                     {
@@ -1153,9 +1154,9 @@ namespace Microsoft.ML.Transforms.Conversions
                             (ref VBuffer<TMeta> dst) =>
                             {
                                 getter(ref dst);
-                                _host.Assert(dst.Length == TypedMap.OutputType.Count);
+                                _host.Assert(dst.Length == keyCount);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.Count, (PrimitiveType)srcMetaType.GetItemType(), mgetter);
+                        builder.AddKeyValues(keyCount, (PrimitiveType)srcMetaType.GetItemType(), mgetter);
                     }
                     return true;
                 }
@@ -1167,8 +1168,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
-                    if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCount() ||
-                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
+                    if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
+                        TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);
@@ -1181,7 +1182,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
                     var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
-                    var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
+                    var dstType = new KeyType(typeof(uint), srcType.Count);
                     var convInst = Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;
@@ -1192,7 +1193,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
                     _schema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref srcMeta);
-                    if (srcMeta.Length != srcType.Count)
+                    if (srcMeta.Length != srcType.GetCountAsInt32(_host))
                         return false;
 
                     VBuffer<T> keyVals = default(VBuffer<T>);
