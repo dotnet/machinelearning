@@ -17,43 +17,43 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataFilePath = SamplesUtils.DatasetUtils.DownloadAdultDataset();
 
             // Data Preview
-            // 1. Column [Label]: IsOver50K (boolean)
+            // 1. Column: age (numeric)
             // 2. Column: workclass (text/categorical)
-            // 3. Column: education (text/categorical)
-            // 4. Column: marital-status (text/categorical)
-            // 5. Column: occupation (text/categorical)
-            // 6. Column: relationship (text/categorical)
-            // 7. Column: ethnicity (text/categorical)
-            // 8. Column: sex (text/categorical)
-            // 9. Column: native-country-region (text/categorical)
-            // 10. Column: age (numeric)
-            // 11. Column: fnlwgt (numeric)
-            // 12. Column: education-num (numeric)
-            // 13. Column: capital-gain (numeric)
-            // 14. Column: capital-loss (numeric)
-            // 15. Column: hours-per-week (numeric)
+            // 3. Column: fnlwgt (numeric)
+            // 4. Column: education (text/categorical)
+            // 5. Column: education-num (numeric)
+            // 6. Column: marital-status (text/categorical)
+            // 7. Column: occupation (text/categorical)
+            // 8. Column: relationship (text/categorical)
+            // 9. Column: ethnicity (text/categorical)
+            // 10. Column: sex (text/categorical)
+            // 11. Column: capital-gain (numeric)
+            // 12. Column: capital-loss (numeric)
+            // 13. Column: hours-per-week (numeric)
+            // 14. Column: native-country (text/categorical)
+            // 15. Column: Column [Label]: IsOver50K (boolean)
 
             var reader = ml.Data.CreateTextLoader(new TextLoader.Arguments
             {
-                Separator = ",",
+                Separators = new[] { ',' },
                 HasHeader = true,
                 Column = new[]
                 {
-                    new TextLoader.Column("Label", DataKind.Bool, 0),
+                    new TextLoader.Column("age", DataKind.R4, 0),
                     new TextLoader.Column("workclass", DataKind.Text, 1),
-                    new TextLoader.Column("education", DataKind.Text, 2),
-                    new TextLoader.Column("marital-status", DataKind.Text, 3),
-                    new TextLoader.Column("occupation", DataKind.Text, 4),
-                    new TextLoader.Column("relationship", DataKind.Text, 5),
-                    new TextLoader.Column("ethnicity", DataKind.Text, 6),
-                    new TextLoader.Column("sex", DataKind.Text, 7),
-                    new TextLoader.Column("native-country-region", DataKind.Text, 8),
-                    new TextLoader.Column("age", DataKind.R4, 9),
-                    new TextLoader.Column("fnlwgt", DataKind.R4, 10),
-                    new TextLoader.Column("education-num", DataKind.R4, 11),
-                    new TextLoader.Column("capital-gain", DataKind.R4, 12),
-                    new TextLoader.Column("capital-loss", DataKind.R4, 13),
-                    new TextLoader.Column("hours-per-week", DataKind.R4, 14)
+                    new TextLoader.Column("fnlwgt", DataKind.R4, 2),
+                    new TextLoader.Column("education", DataKind.Text, 3),
+                    new TextLoader.Column("education-num", DataKind.R4, 4),
+                    new TextLoader.Column("marital-status", DataKind.Text, 5),
+                    new TextLoader.Column("occupation", DataKind.Text, 6),
+                    new TextLoader.Column("relationship", DataKind.Text, 7),
+                    new TextLoader.Column("ethnicity", DataKind.Text, 8),
+                    new TextLoader.Column("sex", DataKind.Text, 9),
+                    new TextLoader.Column("capital-gain", DataKind.R4, 10),
+                    new TextLoader.Column("capital-loss", DataKind.R4, 11),
+                    new TextLoader.Column("hours-per-week", DataKind.R4, 12),
+                    new TextLoader.Column("native-country", DataKind.Text, 13),
+                    new TextLoader.Column("Label", DataKind.Bool, 14)
                 }
             });
 
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var (trainData, testData) = ml.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
 
             var pipeline = ml.Transforms.Concatenate("Text", "workclass", "education", "marital-status",
-                    "relationship", "ethnicity", "sex", "native-country-region")
+                    "relationship", "ethnicity", "sex", "native-country")
                 .Append(ml.Transforms.Text.FeaturizeText("Text", "TextFeatures"))
                 .Append(ml.Transforms.Concatenate("Features", "TextFeatures", "age", "fnlwgt",
                     "education-num", "capital-gain", "capital-loss", "hours-per-week"))
@@ -74,14 +74,14 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var metrics = ml.BinaryClassification.Evaluate(dataWithPredictions);
 
-            Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.84
-            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.89
-            Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.64
+            Console.WriteLine($"Accuracy: {metrics.Accuracy}");
+            Console.WriteLine($"AUC: {metrics.Auc}");
+            Console.WriteLine($"F1 Score: {metrics.F1Score}");
 
-            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.88
-            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}"); // 0.91
-            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}"); // 0.68
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}"); // 0.60       
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}");
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}");
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}");
         }
     }
 }
