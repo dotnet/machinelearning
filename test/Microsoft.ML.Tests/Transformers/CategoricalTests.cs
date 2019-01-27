@@ -24,14 +24,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        private class TestClass
+        private sealed class TestClass
         {
             public int A;
             public int B;
             public int C;
         }
 
-        private class TestMeta
+        private sealed class TestMeta
         {
             [VectorType(2)]
             public string[] A;
@@ -45,6 +45,11 @@ namespace Microsoft.ML.Tests.Transformers
             [VectorType(2)]
             public string[] G;
             public string H;
+        }
+
+        private sealed class TestStringClass
+        {
+            public string A;
         }
 
         [Fact]
@@ -95,6 +100,39 @@ namespace Microsoft.ML.Tests.Transformers
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("A", "CatD", OneHotEncodingTransformer.OutputKind.Bin));
 
             TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        /// <summary>
+        /// In which we take a categorical value and map it to a vector, but we get the mapping from a side data view
+        /// rather than the data we are fitting.
+        /// </summary>
+        [Fact]
+        public void CategoricalOneHotEncodingFromSideData()
+        {
+            // In this case, whatever the value of the input, the term mapping should come from the optional side data if specified.
+            var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
+
+            var mlContext = new MLContext();
+            var dataView = mlContext.Data.ReadFromEnumerable(data);
+
+            var sideDataBuilder = new ArrayDataViewBuilder(mlContext);
+            sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
+            var sideData = sideDataBuilder.GetDataView();
+
+            var ci = new OneHotEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag);
+            var pipe = new OneHotEncodingEstimator(mlContext, new[] { ci }, sideData);
+
+            var output = pipe.Fit(dataView).Transform(dataView);
+
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
+            output.Schema["CatA"].GetSlotNames(ref slotNames);
+
+            Assert.Equal(3, slotNames.Length);
+            Assert.Equal("hello", slotNames.GetItemOrDefault(0).ToString());
+            Assert.Equal("my", slotNames.GetItemOrDefault(1).ToString());
+            Assert.Equal("friend", slotNames.GetItemOrDefault(2).ToString());
+
             Done();
         }
 

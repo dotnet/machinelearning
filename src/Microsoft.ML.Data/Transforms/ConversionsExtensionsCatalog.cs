@@ -112,19 +112,16 @@ namespace Microsoft.ML
            => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, maxNumTerms, sort);
 
         /// <summary>
-        /// Converts value types into <see cref="KeyType"/> loading the keys to use from <paramref name="file"/>.
+        /// Converts value types into <see cref="KeyType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="columns">The data columns to map to keys.</param>
-        /// <param name="file">The path of the file containing the terms.</param>
-        /// <param name="termsColumn"></param>
-        /// <param name="loaderFactory"></param>
+        /// <param name="keyData">The data view containing the terms. If specified, this should be a single column data
+        /// view, and the key-values will be taken from taht column. If unspecified, the key-values will be determined
+        /// from the input data upon fitting.</param>
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
-            ValueToKeyMappingTransformer.ColumnInfo[] columns,
-            string file = null,
-            string termsColumn = null,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
-            => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, file, termsColumn, loaderFactory);
+            ValueToKeyMappingTransformer.ColumnInfo[] columns, IDataView keyData = null)
+            => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
         /// <summary>
         /// Maps specified keys to specified values

@@ -9,7 +9,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Transforms.Conversions
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
-    public sealed class ValueToKeyMappingEstimator: IEstimator<ValueToKeyMappingTransformer>
+    public sealed class ValueToKeyMappingEstimator : IEstimator<ValueToKeyMappingTransformer>
     {
         public static class Defaults
         {
@@ -19,9 +19,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private readonly IHost _host;
         private readonly ValueToKeyMappingTransformer.ColumnInfo[] _columns;
-        private readonly string _file;
-        private readonly string _termsColumn;
-        private readonly IComponentFactory<IMultiStreamSource, IDataLoader> _loaderFactory;
+        private readonly IDataView _keyData;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ValueToKeyMappingEstimator"/>.
@@ -33,23 +31,28 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
-           this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
+           this(env, new[] { new ValueToKeyMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
         {
         }
 
-        public ValueToKeyMappingEstimator(IHostEnvironment env, ValueToKeyMappingTransformer.ColumnInfo[] columns,
-            string file = null, string termsColumn = null,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
+        public ValueToKeyMappingEstimator(IHostEnvironment env, ValueToKeyMappingTransformer.ColumnInfo[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));
+            _host.CheckNonEmpty(columns, nameof(columns));
+            _host.CheckValueOrNull(keyData);
+            if (keyData != null && keyData.Schema.Count != 1)
+            {
+                throw _host.ExceptParam(nameof(keyData), "If specified, this data view should contain only a single column " +
+                    $"containing the terms to map, but this had {keyData.Schema.Count} columns.");
+
+            }
+
             _columns = columns;
-            _file = file;
-            _termsColumn = termsColumn;
-            _loaderFactory = loaderFactory;
+            _keyData = keyData;
         }
 
-        public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _file, _termsColumn, _loaderFactory);
+        public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _keyData, false);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

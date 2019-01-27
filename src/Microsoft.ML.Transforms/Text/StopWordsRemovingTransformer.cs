@@ -33,20 +33,20 @@ using Microsoft.ML.Transforms.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(StopWordsRemovingTransformer), null, typeof(SignatureLoadRowMapper),
     "Stopwords Remover Transform", StopWordsRemovingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(CustomStopWordsRemovingTransform.Summary, typeof(IDataTransform), typeof(CustomStopWordsRemovingTransform), typeof(CustomStopWordsRemovingTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(CustomStopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(CustomStopWordsRemovingTransformer), typeof(CustomStopWordsRemovingTransformer.Arguments), typeof(SignatureDataTransform),
     "Custom Stopwords Remover Transform", "CustomStopWordsRemoverTransform", "CustomStopWords")]
 
-[assembly: LoadableClass(CustomStopWordsRemovingTransform.Summary, typeof(IDataTransform), typeof(CustomStopWordsRemovingTransform), null, typeof(SignatureLoadDataTransform),
-    "Custom Stopwords Remover Transform", CustomStopWordsRemovingTransform.LoaderSignature)]
+[assembly: LoadableClass(CustomStopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(CustomStopWordsRemovingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Custom Stopwords Remover Transform", CustomStopWordsRemovingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(CustomStopWordsRemovingTransform.Summary, typeof(CustomStopWordsRemovingTransform), null, typeof(SignatureLoadModel),
-     "Custom Stopwords Remover Transform", CustomStopWordsRemovingTransform.LoaderSignature)]
+[assembly: LoadableClass(CustomStopWordsRemovingTransformer.Summary, typeof(CustomStopWordsRemovingTransformer), null, typeof(SignatureLoadModel),
+     "Custom Stopwords Remover Transform", CustomStopWordsRemovingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(CustomStopWordsRemovingTransform), null, typeof(SignatureLoadRowMapper),
-     "Custom Stopwords Remover Transform", CustomStopWordsRemovingTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(CustomStopWordsRemovingTransformer), null, typeof(SignatureLoadRowMapper),
+     "Custom Stopwords Remover Transform", CustomStopWordsRemovingTransformer.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(PredefinedStopWordsRemoverFactory))]
-[assembly: EntryPointModule(typeof(CustomStopWordsRemovingTransform.LoaderArguments))]
+[assembly: EntryPointModule(typeof(CustomStopWordsRemovingTransformer.LoaderArguments))]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -596,7 +596,7 @@ namespace Microsoft.ML.Transforms.Text
     /// This is usually applied after tokenizing text, so it compares individual tokens
     /// (case-insensitive comparison) to the stopwords.
     /// </summary>
-    public sealed class CustomStopWordsRemovingTransform : OneToOneTransformerBase
+    public sealed class CustomStopWordsRemovingTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -646,9 +646,9 @@ namespace Microsoft.ML.Transforms.Text
             public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {
                 if (Utils.Size(Stopword) > 0)
-                    return new CustomStopWordsRemovingTransform(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
+                    return new CustomStopWordsRemovingTransformer(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
                 else
-                    return new CustomStopWordsRemovingTransform(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
+                    return new CustomStopWordsRemovingTransformer(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
             }
         }
 
@@ -665,7 +665,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(CustomStopWordsRemovingTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(CustomStopWordsRemovingTransformer).Assembly.FullName);
         }
 
         private const string StopwordsManagerLoaderSignature = "CustomStopWordsManager";
@@ -678,7 +678,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: StopwordsManagerLoaderSignature,
-                loaderAssemblyName: typeof(CustomStopWordsRemovingTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(CustomStopWordsRemovingTransformer).Assembly.FullName);
         }
 
         private static readonly ColumnType _outputType = new VectorType(TextType.Instance);
@@ -808,7 +808,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="stopwords">Array of words to remove.</param>
         /// <param name="columns">Pairs of columns to remove stop words from.</param>
-        public CustomStopWordsRemovingTransform(IHostEnvironment env, string[] stopwords, params (string input, string output)[] columns) :
+        public CustomStopWordsRemovingTransformer(IHostEnvironment env, string[] stopwords, params (string input, string output)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
             _stopWordsMap = new NormStr.Pool();
@@ -826,7 +826,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        internal CustomStopWordsRemovingTransform(IHostEnvironment env, string stopwords,
+        internal CustomStopWordsRemovingTransformer(IHostEnvironment env, string stopwords,
             string dataFile, string stopwordsColumn, IComponentFactory<IMultiStreamSource, IDataLoader> loader, params (string input, string output)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
@@ -874,7 +874,7 @@ namespace Microsoft.ML.Transforms.Text
                 });
         }
 
-        private CustomStopWordsRemovingTransform(IHost host, ModelLoadContext ctx) :
+        private CustomStopWordsRemovingTransformer(IHost host, ModelLoadContext ctx) :
             base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -919,13 +919,13 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureLoadModel.
-        private static CustomStopWordsRemovingTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static CustomStopWordsRemovingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new CustomStopWordsRemovingTransform(host, ctx);
+            return new CustomStopWordsRemovingTransformer(host, ctx);
         }
 
         // Factory method for SignatureDataTransform.
@@ -942,11 +942,11 @@ namespace Microsoft.ML.Transforms.Text
                 var item = args.Column[i];
                 cols[i] = (item.Source ?? item.Name, item.Name);
             }
-            CustomStopWordsRemovingTransform transfrom = null;
+            CustomStopWordsRemovingTransformer transfrom = null;
             if (Utils.Size(args.Stopword) > 0)
-                transfrom = new CustomStopWordsRemovingTransform(env, args.Stopword, cols);
+                transfrom = new CustomStopWordsRemovingTransformer(env, args.Stopword, cols);
             else
-                transfrom = new CustomStopWordsRemovingTransform(env, args.Stopwords, args.DataFile, args.StopwordsColumn, args.Loader, cols);
+                transfrom = new CustomStopWordsRemovingTransformer(env, args.Stopwords, args.DataFile, args.StopwordsColumn, args.Loader, cols);
             return transfrom.MakeDataTransform(input);
         }
 
@@ -963,9 +963,9 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ColumnType[] _types;
-            private readonly CustomStopWordsRemovingTransform _parent;
+            private readonly CustomStopWordsRemovingTransformer _parent;
 
-            public Mapper(CustomStopWordsRemovingTransform parent, Schema inputSchema)
+            public Mapper(CustomStopWordsRemovingTransformer parent, Schema inputSchema)
              : base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -1036,7 +1036,7 @@ namespace Microsoft.ML.Transforms.Text
     /// This is usually applied after tokenizing text, so it compares individual tokens
     /// (case-insensitive comparison) to the stopwords.
     /// </summary>
-    public sealed class CustomStopWordsRemovingEstimator : TrivialEstimator<CustomStopWordsRemovingTransform>
+    public sealed class CustomStopWordsRemovingEstimator : TrivialEstimator<CustomStopWordsRemovingTransformer>
     {
         internal const string ExpectedColumnType = "vector of Text type";
 
@@ -1061,7 +1061,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="columns">Pairs of columns to remove stop words on.</param>
         /// <param name="stopwords">Array of words to remove.</param>
         public CustomStopWordsRemovingEstimator(IHostEnvironment env, (string input, string output)[] columns, string[] stopwords) :
-           base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CustomStopWordsRemovingEstimator)), new CustomStopWordsRemovingTransform(env, stopwords, columns))
+           base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CustomStopWordsRemovingEstimator)), new CustomStopWordsRemovingTransformer(env, stopwords, columns))
         {
         }
 
