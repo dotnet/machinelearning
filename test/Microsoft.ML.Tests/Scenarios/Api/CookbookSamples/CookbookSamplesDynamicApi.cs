@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.Categorical;
@@ -165,13 +166,37 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Cache data in memory for steps after the cache check point stage.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
-                // Apply the inverse conversion from 'PredictedLabel' column back to string value.
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("Data", "PredictedLabel")));
+                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             // Train the model.
-            var model = dynamicPipeline.Fit(trainData);
-            return model;
+            var trainedModel = dynamicPipeline.Fit(trainData);
+
+            // Inspect the model parameters. 
+            var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+
+            // Get the weights and the numbers of classes
+            VBuffer<float>[] weights = default;
+            modelParameters.GetWeights(ref weights, out int numClasses);
+
+            // numClasses
+            // 3
+            // weights
+            // {float[4]}       { float[4]}         { float[4]}
+            // 2.45233274       0.181766108         -3.05772042
+            // 4.61404276       0.0578986146        -4.85828352
+            // - 6.934741       -0.0424297452       6.63682
+            // - 3.64960361     -4.072106           7.55050659
+
+            // Get the biases
+            var biases = modelParameters.GetBiases();
+            // 		[0]	1.151999	float
+            //      [1]	8.337694	float
+            // 		[2]	-9.709775	float
+
+            // Apply the inverse conversion from 'PredictedLabel' column back to string value.
+            var finalPipeline = dynamicPipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(("Data", "PredictedLabel")));
+
+            return finalPipeline.Fit(trainData);
         }
 
         private void PredictOnIris(ITransformer model)
