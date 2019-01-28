@@ -48,7 +48,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
         /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>
         /// <param name="valueColumn">Name of the value column in <paramref name="lookupMap"/>.</param>
-        /// <param name="columns">The list of columns to apply.</param>
+        /// <param name="columns">The list of names of the input columns to apply the transformation, and the name of the resulting column.</param>
         public ValueMappingEstimator(IHostEnvironment env, IDataView lookupMap, string keyColumn, string valueColumn, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ValueMappingEstimator)),
                     new ValueMappingTransformer(env, lookupMap, keyColumn, valueColumn, columns))
@@ -56,6 +56,11 @@ namespace Microsoft.ML.Transforms.Conversions
             _columns = columns;
         }
 
+        /// <summary>
+        /// Retrieves the output schema given the input schema
+        /// </summary>
+        /// <param name="inputSchema">Input schema</param>
+        /// <returns>Returns the generated output schema</returns>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
