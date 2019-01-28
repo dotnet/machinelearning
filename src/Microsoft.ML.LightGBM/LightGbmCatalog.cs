@@ -31,7 +31,7 @@ namespace Microsoft.ML
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound)
+            int numBoostRound = Options.Defaults.NumBoostRound)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -42,13 +42,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="advancedSettings">Advanced options to the algorithm.</param>
+        /// <param name="options">Advanced options to the algorithm.</param>
         public static LightGbmRegressorTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
-            LightGbmArguments advancedSettings)
+            Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmRegressorTrainer(env, advancedSettings);
+            return new LightGbmRegressorTrainer(env, options);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Microsoft.ML
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound)
+            int numBoostRound = Options.Defaults.NumBoostRound)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -80,13 +80,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="advancedSettings">Advanced options to the algorithm.</param>
+        /// <param name="options">Advanced options to the algorithm.</param>
         public static LightGbmBinaryTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            LightGbmArguments advancedSettings)
+            Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmBinaryTrainer(env, advancedSettings);
+            return new LightGbmBinaryTrainer(env, options);
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Microsoft.ML
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound)
+            int numBoostRound = Options.Defaults.NumBoostRound)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -120,13 +120,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
-        /// <param name="advancedSettings">Advanced options to the algorithm.</param>
+        /// <param name="options">Advanced options to the algorithm.</param>
         public static LightGbmRankingTrainer LightGbm(this RankingCatalog.RankingTrainers catalog,
-            LightGbmArguments advancedSettings)
+            Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmRankingTrainer(env, advancedSettings);
+            return new LightGbmRankingTrainer(env, options);
         }
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace Microsoft.ML
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound)
+            int numBoostRound = Options.Defaults.NumBoostRound)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -158,13 +158,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
-        /// <param name="advancedSettings">Advanced options to the algorithm.</param>
+        /// <param name="options">Advanced options to the algorithm.</param>
         public static LightGbmMulticlassTrainer LightGbm(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            LightGbmArguments advancedSettings)
+            Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmMulticlassTrainer(env, advancedSettings);
+            return new LightGbmMulticlassTrainer(env, options);
         }
     }
 }

@@ -781,7 +781,7 @@ namespace Microsoft.ML.RunTests
 
             var predictors = new PredictorModel[]
             {
-                LightGbm.TrainMultiClass(Env, new LightGbmArguments
+                LightGbm.TrainMultiClass(Env, new Options
                 {
                     FeatureColumn = "Features",
                     NumBoostRound = 5,

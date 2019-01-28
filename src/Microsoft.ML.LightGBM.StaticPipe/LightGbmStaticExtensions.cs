@@ -45,7 +45,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            int numBoostRound = Options.Defaults.NumBoostRound,
             Action<LightGbmRegressionModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
@@ -70,7 +70,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -79,19 +79,19 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <returns>The Score output column indicating the predicted value.</returns>
         public static Scalar<float> LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights,
-            LightGbmArguments advancedSettings,
+            Options options,
             Action<LightGbmRegressionModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, advancedSettings, onFit);
+            CheckUserValues(label, features, weights, options, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
-                   advancedSettings.LabelColumn = labelName;
-                   advancedSettings.FeatureColumn = featuresName;
-                   advancedSettings.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.LabelColumn = labelName;
+                   options.FeatureColumn = featuresName;
+                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-                   var trainer = new LightGbmRegressorTrainer(env, advancedSettings);
+                   var trainer = new LightGbmRegressorTrainer(env, options);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -129,7 +129,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            int numBoostRound = Options.Defaults.NumBoostRound,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
@@ -156,7 +156,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -166,19 +166,19 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            LightGbmArguments advancedSettings,
+            Options options,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
-            CheckUserValues(label, features, weights, advancedSettings, onFit);
+            CheckUserValues(label, features, weights, options, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   advancedSettings.LabelColumn = labelName;
-                   advancedSettings.FeatureColumn = featuresName;
-                   advancedSettings.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.LabelColumn = labelName;
+                   options.FeatureColumn = featuresName;
+                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-                   var trainer = new LightGbmBinaryTrainer(env, advancedSettings);
+                   var trainer = new LightGbmBinaryTrainer(env, options);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -213,7 +213,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            int numBoostRound = Options.Defaults.NumBoostRound,
             Action<LightGbmRankingModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
@@ -241,7 +241,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -251,21 +251,21 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
         public static Scalar<float> LightGbm<TVal>(this RankingCatalog.RankingTrainers catalog,
            Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights,
-            LightGbmArguments advancedSettings,
+            Options options,
             Action<LightGbmRankingModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, advancedSettings, onFit);
+            CheckUserValues(label, features, weights, options, onFit);
             Contracts.CheckValue(groupId, nameof(groupId));
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   advancedSettings.LabelColumn = labelName;
-                   advancedSettings.FeatureColumn = featuresName;
-                   advancedSettings.GroupIdColumn = groupIdName;
-                   advancedSettings.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.LabelColumn = labelName;
+                   options.FeatureColumn = featuresName;
+                   options.GroupIdColumn = groupIdName;
+                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-                   var trainer = new LightGbmRankingTrainer(env, advancedSettings);
+                   var trainer = new LightGbmRankingTrainer(env, options);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -307,7 +307,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            int numBoostRound = Options.Defaults.NumBoostRound,
             Action<OvaModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
@@ -333,7 +333,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="advancedSettings">Advanced options to the algorithm.</param>
+        /// <param name="options">Advanced options to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -345,19 +345,19 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            LightGbmArguments advancedSettings,
+            Options options,
             Action<OvaModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, advancedSettings, onFit);
+            CheckUserValues(label, features, weights, options, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    advancedSettings.LabelColumn = labelName;
-                    advancedSettings.FeatureColumn = featuresName;
-                    advancedSettings.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                    options.LabelColumn = labelName;
+                    options.FeatureColumn = featuresName;
+                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
-                    var trainer = new LightGbmMulticlassTrainer(env, advancedSettings);
+                    var trainer = new LightGbmMulticlassTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -385,13 +385,13 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         }
 
         private static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
-            LightGbmArguments advancedSettings,
+            Options options,
             Delegate onFit)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
             Contracts.CheckValueOrNull(onFit);
         }
     }

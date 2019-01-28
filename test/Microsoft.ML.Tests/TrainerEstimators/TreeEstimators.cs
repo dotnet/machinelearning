@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new LightGbmBinaryTrainer(Env, new LightGbmArguments
+            var trainer = new LightGbmBinaryTrainer(Env, new Options
             {
                 NumLeaves = 10,
                 NThread = 1,
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGBMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new LightGbmRegressorTrainer(Env, new LightGbmArguments
+            var trainer = new LightGbmRegressorTrainer(Env, new Options
             {
                 NThread = 1,
                 NormalizeFeatures = NormalizeOption.Warn,
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext(seed: 0, conc: 1);
             var dataView = mlContext.Data.ReadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new LightGbmArguments
+            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
             {
                 NumBoostRound = numberOfTrainingIterations,
                 MinDataPerGroup = 1,

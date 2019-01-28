@@ -14,7 +14,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(LightGbmArguments),
+[assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     "LightGBM Multi-class Classifier", LightGbmMulticlassTrainer.LoadNameValue, LightGbmMulticlassTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -34,8 +34,8 @@ namespace Microsoft.ML.LightGBM
         private int _tlcNumClass;
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        internal LightGbmMulticlassTrainer(IHostEnvironment env, LightGbmArguments args)
-             : base(env, LoadNameValue, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        internal LightGbmMulticlassTrainer(IHostEnvironment env, Options options)
+             : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _numClass = -1;
         }
@@ -58,7 +58,7 @@ namespace Microsoft.ML.LightGBM
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound)
+            int numBoostRound = LightGBM.Options.Defaults.NumBoostRound)
             : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumn), featureColumn, weights, null, numLeaves, minDataPerLeaf, learningRate, numBoostRound)
         {
             _numClass = -1;
@@ -238,14 +238,14 @@ namespace Microsoft.ML.LightGBM
             ShortName = LightGbmMulticlassTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
                                  @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmClassifier""]/*' />"})]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, LightGbmArguments input)
+        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<LightGbmArguments, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new LightGbmMulticlassTrainer(host, input),
                 getLabel: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
