@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;

@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.Data.DataView
 {
     /// <summary>
     /// A structure serving as a sixteen-byte unsigned integer. It is used as the row id of <see cref="IDataView"/>.
