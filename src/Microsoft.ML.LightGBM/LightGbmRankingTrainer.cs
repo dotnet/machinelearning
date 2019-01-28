@@ -13,7 +13,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(LightGbmArguments),
+[assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(Options),
     new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     "LightGBM Ranking", LightGbmRankingTrainer.LoadNameValue, LightGbmRankingTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -81,8 +81,8 @@ namespace Microsoft.ML.LightGBM
 
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
-        internal LightGbmRankingTrainer(IHostEnvironment env, LightGbmArguments args)
-             : base(env, LoadNameValue, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
+        internal LightGbmRankingTrainer(IHostEnvironment env, Options options)
+             : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
         {
         }
 
@@ -98,11 +98,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.
-        /// The settings here will override the ones provided in the direct signature,
-        /// if both are present and have different values.
-        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
-        public LightGbmRankingTrainer(IHostEnvironment env,
+        internal LightGbmRankingTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string groupId = DefaultColumnNames.GroupId,
@@ -110,9 +106,8 @@ namespace Microsoft.ML.LightGBM
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
-            Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weights, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
+            int numBoostRound = LightGBM.Options.Defaults.NumBoostRound)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weights, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound)
         {
             Host.CheckNonEmpty(groupId, nameof(groupId));
         }
@@ -198,14 +193,14 @@ namespace Microsoft.ML.LightGBM
             ShortName = LightGbmRankingTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
                                  @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmRanker""]/*' />"})]
-        public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmArguments input)
+        public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<LightGbmArguments, CommonOutputs.RankingOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.RankingOutput>(host, input,
                 () => new LightGbmRankingTrainer(host, input),
                 getLabel: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
