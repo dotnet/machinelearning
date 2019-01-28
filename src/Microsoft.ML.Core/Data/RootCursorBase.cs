@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
+
 namespace Microsoft.ML.Data
 {
     // REVIEW: Since each cursor will create a channel, it would be great that the RootCursorBase takes

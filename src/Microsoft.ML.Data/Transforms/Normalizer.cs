@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -334,7 +335,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 DataKind itemKind = (DataKind)ctx.Reader.ReadByte();
                 Contracts.CheckDecode(itemKind == DataKind.R4 || itemKind == DataKind.R8);
 
-                var itemType = PrimitiveType.FromKind(itemKind);
+                var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
                 return isVector ? (ColumnType)(new VectorType(itemType, vectorSize)) : itemType;
             }
 

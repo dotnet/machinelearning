@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
@@ -532,5 +534,10 @@ namespace Microsoft.ML.Data
 
         [BestFriend]
         private protected abstract Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer);
+
+        public ITransformer GetTransformer()
+        {
+            throw Host.ExceptNotSupp();
+        }
     }
 }

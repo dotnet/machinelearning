@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Xunit;
@@ -47,9 +48,9 @@ namespace Microsoft.ML.RunTests
                     continue;
                 for (ulong min = 0; min < 5; min++)
                 {
-                    for (var count = 0; count < 5; count++)
+                    for (var count = 1; count < 5; count++)
                     {
-                        tmp = new KeyType(rawType, min, count);
+                        tmp = new KeyType(rawType, count);
                         if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
                             Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                         dict[tmp] = tmp.ToString();
@@ -68,7 +69,8 @@ namespace Microsoft.ML.RunTests
                             }
                         }
                     }
-                    tmp = new KeyType(rawType, min, 0, false);
+                    Assert.True(rawType.TryGetDataKind(out var kind));
+                    tmp = new KeyType(rawType, kind.ToMaxInt());
                     if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
                         Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                     dict[tmp] = tmp.ToString();

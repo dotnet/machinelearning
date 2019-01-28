@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -273,7 +274,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            if (ctx.Header.ModelVerReadable >= VersionTransformer)
+            if (ctx.Header.ModelVerWritten >= VersionTransformer)
             {
                 // *** Binary format ***
                 // int: number of columns
@@ -414,7 +415,7 @@ namespace Microsoft.ML.Data
             public bool CanSavePfa => true;
 
             public Mapper(ColumnConcatenatingTransformer parent, Schema inputSchema) :
-                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
 

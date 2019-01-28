@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Core.Data
@@ -167,7 +168,7 @@ namespace Microsoft.ML.Core.Data
 
             isKey = itemType is KeyType;
             if (isKey)
-                itemType = PrimitiveType.FromType(itemType.RawType);
+                itemType = ColumnTypeExtensions.PrimitiveTypeFromType(itemType.RawType);
         }
 
         /// <summary>

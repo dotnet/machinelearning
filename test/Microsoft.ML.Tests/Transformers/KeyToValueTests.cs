@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
                         Name="BareKey",
                         Source = new[] { new TextLoader.Range(0) },
                         Type = DataKind.U4,
-                        KeyRange = new KeyRange(0, 5),
+                        KeyCount = new KeyCount(6),
                     }
                 }
             });

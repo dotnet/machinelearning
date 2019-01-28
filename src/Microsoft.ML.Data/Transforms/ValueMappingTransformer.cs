@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -98,7 +99,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
             var isKey = Transformer.ValueColumnType is KeyType;
-            var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
+            var columnType = (isKey) ? ColumnTypeExtensions.PrimitiveTypeFromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
             var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (Input, Output) in _columns)
@@ -138,7 +139,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (!type.TryGetDataKind(out DataKind kind))
                 throw new InvalidOperationException($"Unsupported type {type} used in mapping.");
 
-            return PrimitiveType.FromKind(kind);
+            return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
         }
 
         /// <summary>
@@ -241,12 +242,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (valueType.RawType == typeof(uint))
                 {
                     uint[] indices = values.Select((x) => Convert.ToUInt32(x)).ToArray();
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Length, indices);
                 }
                 else if (valueType.RawType == typeof(ulong))
                 {
                     ulong[] indices = values.Select((x) => Convert.ToUInt64(x)).ToArray();
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Length, indices);
                 }
                 else
                 {
@@ -270,7 +271,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         indices[i] = keyValue;
                     }
 
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Count(), indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Count(), indices);
                 }
             }
             else
@@ -469,7 +470,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                         // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                         // computing max and min.
-                        if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryParseKey(in value, 1, ulong.MaxValue, out res))
+                        if (Data.Conversion.Conversions.Instance.TryParseKey(in value, ulong.MaxValue - 1, out res))
                         {
                             if (res < keyMin && res != 0)
                                 keyMin = res;
@@ -505,18 +506,14 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, 1);
-            if (keyMax - keyMin < (ulong)int.MaxValue)
-            {
-                valueColumn.KeyRange = new KeyRange(keyMin, keyMax);
-            }
-            else if (keyMax - keyMin < (ulong)uint.MaxValue)
-            {
-                valueColumn.KeyRange = new KeyRange(keyMin);
-            }
+            if (keyMax < int.MaxValue)
+                valueColumn.KeyCount = new KeyCount(keyMax + 1);
+            else if (keyMax < uint.MaxValue)
+                valueColumn.KeyCount = new KeyCount();
             else
             {
                 valueColumn.Type = DataKind.U8;
-                valueColumn.KeyRange = new KeyRange(keyMin);
+                valueColumn.KeyCount = new KeyCount();
             }
 
             return valueColumn;
@@ -753,7 +750,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (!type.TryGetDataKind(out DataKind kind))
                 throw Contracts.Except($"Unsupported type {type} used in mapping.");
 
-            return PrimitiveType.FromKind(kind);
+            return ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -1027,7 +1024,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", _columns[i].Source);
                     var colType = _valueMap.ValueType;
                     if (_inputSchema[_columns[i].Source].Type is VectorType)
-                        colType = new VectorType(PrimitiveType.FromType(_valueMap.ValueType.GetItemType().RawType));
+                        colType = new VectorType(ColumnTypeExtensions.PrimitiveTypeFromType(_valueMap.ValueType.GetItemType().RawType));
                     result[i] = new Schema.DetachedColumn(_columns[i].Name, colType, _valueMetadata);
                 }
                 return result;

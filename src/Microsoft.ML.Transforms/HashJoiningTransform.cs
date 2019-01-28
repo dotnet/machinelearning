@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -143,8 +144,8 @@ namespace Microsoft.ML.Transforms.Conversions
             /// </summary>
             private static KeyType GetItemType(int hashBits)
             {
-                var keyCount = hashBits < 31 ? 1 << hashBits : 0;
-                return new KeyType(DataKind.U4, 0, keyCount, keyCount > 0);
+                var keyCount = (ulong)1 << hashBits;
+                return new KeyType(typeof(uint), keyCount);
             }
         }
 

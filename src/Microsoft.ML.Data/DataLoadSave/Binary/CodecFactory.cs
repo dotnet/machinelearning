@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data.IO
@@ -68,7 +69,8 @@ namespace Microsoft.ML.Data.IO
             RegisterOtherCodec("DvTimeSpan", new UnsafeTypeCodec<TimeSpan>(this).GetCodec);
 
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
-            RegisterOtherCodec("Key", GetKeyCodec);
+            RegisterOtherCodec("Key2", GetKeyCodec);
+            RegisterOtherCodec("Key", GetKeyCodecOld);
         }
 
         private BinaryWriter OpenBinaryWriter(Stream stream)
