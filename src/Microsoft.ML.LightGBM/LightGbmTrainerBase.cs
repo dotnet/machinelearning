@@ -67,8 +67,7 @@ namespace Microsoft.ML.LightGBM
             int? numLeaves,
             int? minDataPerLeaf,
             double? learningRate,
-            int numBoostRound,
-            Action<LightGbmArguments> advancedSettings)
+            int numBoostRound)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new LightGbmArguments();
@@ -77,9 +76,6 @@ namespace Microsoft.ML.LightGBM
             Args.MinDataPerLeaf = minDataPerLeaf;
             Args.LearningRate = learningRate;
             Args.NumBoostRound = numBoostRound;
-
-            //apply the advanced args, if the user supplied any
-            advancedSettings?.Invoke(Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
