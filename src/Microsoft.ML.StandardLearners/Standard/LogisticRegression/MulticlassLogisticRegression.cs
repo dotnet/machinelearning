@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -512,7 +513,7 @@ namespace Microsoft.ML.Learners
                 Host.CheckDecode(numStarts == _numClasses + 1);
                 int[] starts = ctx.Reader.ReadIntArray(numStarts);
                 Host.CheckDecode(starts[0] == 0);
-                Host.CheckDecode(Utils.IsSorted(starts));
+                Host.CheckDecode(Utils.IsMonotonicallyIncreasing(starts));
 
                 int numIndices = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numIndices == starts[starts.Length - 1]);

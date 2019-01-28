@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 
@@ -117,7 +118,7 @@ namespace Microsoft.ML.Transforms.Text
                 Weighting = _weighting
             };
 
-            return new TransformWrapper(Host, WordBagBuildingTransformer.Create(Host, args, input));
+            return new TransformWrapper(Host, WordBagBuildingTransformer.Create(Host, args, input), true);
         }
     }
 
@@ -256,7 +257,7 @@ namespace Microsoft.ML.Transforms.Text
                 InvertHash = _invertHash
             };
 
-            return new TransformWrapper(Host, WordHashBagProducingTransformer.Create(Host, args, input));
+            return new TransformWrapper(Host, WordHashBagProducingTransformer.Create(Host, args, input), true);
         }
     }
 }

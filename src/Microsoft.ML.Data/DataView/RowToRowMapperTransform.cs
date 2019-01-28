@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -45,6 +47,14 @@ namespace Microsoft.ML.Data
         /// Returns information about the output columns, including their name, type and any metadata information.
         /// </summary>
         Schema.DetachedColumn[] GetOutputColumns();
+
+        /// <summary>
+        /// DO NOT USE IT!
+        /// Purpose of this method is to enable legacy loading and unwrapping of RowToRowTransform.
+        /// It should be removed as soon as we get rid of <see cref="TrainedWrapperEstimatorBase"/>
+        /// Returns parent transfomer which uses this mapper.
+        /// </summary>
+        ITransformer GetTransformer();
     }
 
     public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, Schema schema);
@@ -390,6 +400,11 @@ namespace Microsoft.ML.Data
                 _disposed = true;
                 base.Dispose(disposing);
             }
+        }
+
+        internal ITransformer GetTransformer()
+        {
+            return _mapper.GetTransformer();
         }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -139,7 +140,15 @@ namespace Microsoft.ML.Transforms.Categorical
                 col.SetTerms(column.Terms ?? args.Terms);
                 columns.Add(col);
             }
-            return new OneHotEncodingEstimator(env, columns.ToArray(), args.DataFile, args.TermsColumn, args.Loader).Fit(input).Transform(input) as IDataTransform;
+            IDataView keyData = null;
+            if (!string.IsNullOrEmpty(args.DataFile))
+            {
+                using (var ch = h.Start("Load term data"))
+                    keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
+                h.AssertValue(keyData);
+            }
+            var transformed = new OneHotEncodingEstimator(env, columns.ToArray(), keyData).Fit(input).Transform(input);
+            return (IDataTransform)transformed;
         }
 
         private readonly TransformerChain<ITransformer> _transformer;
@@ -220,13 +229,11 @@ namespace Microsoft.ML.Transforms.Categorical
         {
         }
 
-        public OneHotEncodingEstimator(IHostEnvironment env, ColumnInfo[] columns,
-            string file = null, string termsColumn = null,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
+        public OneHotEncodingEstimator(IHostEnvironment env, ColumnInfo[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OneHotEncodingEstimator));
-            _term = new ValueToKeyMappingEstimator(_host, columns, file, termsColumn, loaderFactory);
+            _term = new ValueToKeyMappingEstimator(_host, columns, keyData);
             var binaryCols = new List<(string input, string output)>();
             var cols = new List<(string input, string output, bool bag)>();
             for (int i = 0; i < columns.Length; i++)

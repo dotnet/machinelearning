@@ -24,46 +24,61 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="catalog">The binary classifier catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
-        /// <param name="learningRate">Initial learning rate.</param>
-        /// <param name="numIterations">Number of training iterations.</param>
-        /// <param name="numLatentDimensions">Latent space dimensions.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.
-        /// The settings here will override the ones provided in the direct method signature,
-        /// if both are present and have different values.
-        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>/// <param name="onFit">A delegate that is called every time the
+        /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
-        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
-        /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
-        /// be informed about what was learnt.</param>
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this.
+        /// This delegate will receive the model that was trained. The type of the model is <see cref="FieldAwareFactorizationMachineModelParameters"/>.
+        /// Note that this action cannot change the result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float>[] features,
-            float learningRate = 0.1f,
-            int numIterations = 5,
-            int numLatentDimensions = 20,
-            Action<FieldAwareFactorizationMachineTrainer.Arguments> advancedSettings = null,
             Action<FieldAwareFactorizationMachineModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckNonEmpty(features, nameof(features));
 
-            Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive");
-            Contracts.CheckParam(numIterations > 0, nameof(numIterations), "Must be positive");
-            Contracts.CheckParam(numLatentDimensions > 0, nameof(numLatentDimensions), "Must be positive");
-            Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
 
             var rec = new CustomReconciler((env, labelCol, featureCols) =>
             {
-                var trainer = new FieldAwareFactorizationMachineTrainer(env, featureCols, labelCol, advancedSettings:
-                    args =>
-                    {
-                        args.LearningRate = learningRate;
-                        args.Iters = numIterations;
-                        args.LatentDim = numLatentDimensions;
+                var trainer = new FieldAwareFactorizationMachineTrainer(env, featureCols, labelCol);
 
-                        advancedSettings?.Invoke(args);
-                    });
+                if (onFit != null)
+                    return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                else
+                    return trainer;
+            }, label, features);
+            return rec.Output;
+        }
+
+        /// <summary>
+        /// Predict a target using a field-aware factorization machine.
+        /// </summary>
+        /// <param name="catalog">The binary classifier catalog trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this.
+        /// This delegate will receive the model that was trained. The type of the model is <see cref="FieldAwareFactorizationMachineModelParameters"/>.
+        /// Note that this action cannot change the result in any way; it is only a way for the caller to
+        /// be informed about what was learnt.</param>
+        /// <returns>The predicted output.</returns>
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            Scalar<bool> label, Vector<float>[] features,
+            FieldAwareFactorizationMachineTrainer.Options options,
+            Action<FieldAwareFactorizationMachineModelParameters> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckNonEmpty(features, nameof(features));
+
+            Contracts.CheckValueOrNull(options);
+            Contracts.CheckValueOrNull(onFit);
+
+            var rec = new CustomReconciler((env, labelCol, featureCols) =>
+            {
+                var trainer = new FieldAwareFactorizationMachineTrainer(env, options);
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                 else

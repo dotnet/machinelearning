@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -175,6 +176,11 @@ namespace Microsoft.ML.Transforms
 
             public void Save(ModelSaveContext ctx)
                 => _parent.Save(ctx);
+
+            public ITransformer GetTransformer()
+            {
+                return _parent;
+            }
         }
     }
 

@@ -11,16 +11,16 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 
-[assembly: LoadableClass(typeof(LightGbmArguments.TreeBooster), typeof(LightGbmArguments.TreeBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.TreeBooster.FriendlyName, LightGbmArguments.TreeBooster.Name)]
-[assembly: LoadableClass(typeof(LightGbmArguments.DartBooster), typeof(LightGbmArguments.DartBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.DartBooster.FriendlyName, LightGbmArguments.DartBooster.Name)]
-[assembly: LoadableClass(typeof(LightGbmArguments.GossBooster), typeof(LightGbmArguments.GossBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.GossBooster.FriendlyName, LightGbmArguments.GossBooster.Name)]
+[assembly: LoadableClass(typeof(Options.TreeBooster), typeof(Options.TreeBooster.Arguments),
+    typeof(SignatureLightGBMBooster), Options.TreeBooster.FriendlyName, Options.TreeBooster.Name)]
+[assembly: LoadableClass(typeof(Options.DartBooster), typeof(Options.DartBooster.Arguments),
+    typeof(SignatureLightGBMBooster), Options.DartBooster.FriendlyName, Options.DartBooster.Name)]
+[assembly: LoadableClass(typeof(Options.GossBooster), typeof(Options.GossBooster.Arguments),
+    typeof(SignatureLightGBMBooster), Options.GossBooster.FriendlyName, Options.GossBooster.Name)]
 
-[assembly: EntryPointModule(typeof(LightGbmArguments.TreeBooster.Arguments))]
-[assembly: EntryPointModule(typeof(LightGbmArguments.DartBooster.Arguments))]
-[assembly: EntryPointModule(typeof(LightGbmArguments.GossBooster.Arguments))]
+[assembly: EntryPointModule(typeof(Options.TreeBooster.Arguments))]
+[assembly: EntryPointModule(typeof(Options.DartBooster.Arguments))]
+[assembly: EntryPointModule(typeof(Options.GossBooster.Arguments))]
 
 namespace Microsoft.ML.LightGBM
 {
@@ -39,7 +39,7 @@ namespace Microsoft.ML.LightGBM
     /// Parameters names comes from LightGBM library.
     /// See https://github.com/Microsoft/LightGBM/blob/master/docs/Parameters.rst.
     /// </summary>
-    public sealed class LightGbmArguments : LearnerInputBaseWithGroupId
+    public sealed class Options : LearnerInputBaseWithGroupId
     {
         public abstract class BoosterParameter<TArgs> : IBoosterParameter
             where TArgs : class, new()
