@@ -5,8 +5,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.EntryPoints

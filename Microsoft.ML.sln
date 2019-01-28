@@ -256,6 +256,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.Data.DataView", "
 		pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.symbols.nupkgproj = pkg\Microsoft.Data.DataView\Microsoft.Data.DataView.symbols.nupkgproj
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteExecutorConsoleApp", "test\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj", "{5E920CAC-5A28-42FB-936E-49C472130953}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -914,6 +916,18 @@ Global
 		{85D0CAFD-2FE8-496A-88C7-585D35B94243}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
 		{85D0CAFD-2FE8-496A-88C7-585D35B94243}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
 		{85D0CAFD-2FE8-496A-88C7-585D35B94243}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Debug-Intrinsics|Any CPU.Build.0 = Debug-Intrinsics|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -996,6 +1010,7 @@ Global
 		{A84717CB-F11A-41C5-A74D-C0F1D47B7431} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{85D0CAFD-2FE8-496A-88C7-585D35B94243} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{31D38B21-102B-41C0-9E0A-2FE0BF68D123} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{5E920CAC-5A28-42FB-936E-49C472130953} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Command;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;

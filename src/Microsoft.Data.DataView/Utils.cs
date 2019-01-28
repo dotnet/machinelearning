@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.Data.DataView
 {
     internal static class Utils
     {

@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
