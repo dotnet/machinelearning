@@ -56,13 +56,15 @@ namespace Microsoft.ML.Data
             protected readonly IHost Host;
             protected readonly Schema InputSchema;
             private readonly Lazy<Schema.DetachedColumn[]> _outputColumns;
+            private readonly RowToRowTransformerBase _parent;
 
-            protected MapperBase(IHost host, Schema inputSchema)
+            protected MapperBase(IHost host, Schema inputSchema, RowToRowTransformerBase parent)
             {
                 Contracts.CheckValue(host, nameof(host));
                 Contracts.CheckValue(inputSchema, nameof(inputSchema));
                 Host = host;
                 InputSchema = inputSchema;
+                _parent = parent;
                 _outputColumns = new Lazy<Schema.DetachedColumn[]>(GetOutputColumnsCore);
             }
 
@@ -108,6 +110,8 @@ namespace Microsoft.ML.Data
             private protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput);
 
             public abstract void Save(ModelSaveContext ctx);
+
+            public ITransformer GetTransformer() => _parent;
         }
     }
 }

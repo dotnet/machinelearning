@@ -175,11 +175,11 @@ namespace Microsoft.ML.Transforms
             }
 
             var modelInfo = Model.ModelInfo;
-            Inputs = (args.InputColumns.Count() == 0 ) ? Model.InputNames.ToArray() : args.InputColumns;
-            Outputs = (args.OutputColumns.Count() == 0 ) ? Model.OutputNames.ToArray() : args.OutputColumns;
+            Inputs = (args.InputColumns.Count() == 0) ? Model.InputNames.ToArray() : args.InputColumns;
+            Outputs = (args.OutputColumns.Count() == 0) ? Model.OutputNames.ToArray() : args.OutputColumns;
             OutputTypes = new ColumnType[Outputs.Length];
             var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
-            for (int i=0; i < Outputs.Length; i++)
+            for (int i = 0; i < Outputs.Length; i++)
             {
                 var idx = Model.OutputNames.IndexOf(Outputs[i]);
                 if (idx < 0)
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms
             private readonly System.Type[] _inputOnnxTypes;
 
             public Mapper(OnnxTransformer parent, Schema inputSchema) :
-                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
 
                 _parent = parent;
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Transforms
                 _inputOnnxTypes = new System.Type[_parent.Inputs.Length];
 
                 var model = _parent.Model;
-                for (int i = 0; i <  _parent.Inputs.Length; i++)
+                for (int i = 0; i < _parent.Inputs.Length; i++)
                 {
                     var idx = model.InputNames.IndexOf(_parent.Inputs[i]);
                     if (idx < 0)
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Transforms
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
                     // Compute the total size of the known dimensions of the shape.
-                    int valCount = inputShape.Select(x => (int)x).Where(x => x > 0).Aggregate((x, y) => x * y);
+                    int valCount = inputShape.Where(x => x > 0).Aggregate((x, y) => x * y);
                     // The column length should be divisible by this, so that the other dimensions can be integral.
                     int typeValueCount = type.GetValueCount();
                     if (typeValueCount % valCount != 0)
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Transforms
                     var denseTensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
                     if (denseTensor == null)
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
-                    var editor = VBufferEditor.Create(ref dst, (int) denseTensor.Length);
+                    var editor = VBufferEditor.Create(ref dst, (int)denseTensor.Length);
                     denseTensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };

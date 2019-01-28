@@ -176,6 +176,11 @@ namespace Microsoft.ML.Transforms
 
             public void Save(ModelSaveContext ctx)
                 => _parent.Save(ctx);
+
+            public ITransformer GetTransformer()
+            {
+                return _parent;
+            }
         }
     }
 

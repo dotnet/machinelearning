@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly Dictionary<int, int> _colMapNewToOld;
 
             public Mapper(StopWordsRemovingTransformer parent, Schema inputSchema)
-             : base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+             : base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
                 _types = new ColumnType[_parent.ColumnPairs.Length];

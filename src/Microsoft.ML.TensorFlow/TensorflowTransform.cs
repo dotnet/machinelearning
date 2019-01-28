@@ -808,7 +808,7 @@ namespace Microsoft.ML.Transforms
             private readonly TFShape[] _fullySpecifiedShapes;
 
             public Mapper(TensorFlowTransformer parent, Schema inputSchema) :
-                   base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+                   base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 Host.CheckValue(parent, nameof(parent));
                 _parent = parent;

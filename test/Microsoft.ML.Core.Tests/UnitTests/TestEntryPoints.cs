@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -5640,5 +5641,20 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(10, (schema[2].Type as VectorType)?.Size);
         }
 
+        [Fact]
+        public void LoadEntryPointModel()
+        {
+            var ml = new MLContext();
+            for (int i = 0; i < 5; i++)
+            {
+                var modelPath = GetDataPath($"backcompat/ep_model{i}.zip");
+                ITransformer loadedModel;
+                using (var stream = File.OpenRead(modelPath))
+                {
+                    loadedModel = ml.Model.Load(stream);
+                }
+
+            }
+        }
     }
 }

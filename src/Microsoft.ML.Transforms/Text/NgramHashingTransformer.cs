@@ -555,7 +555,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly FinderDecorator _decorator;
 
             public Mapper(NgramHashingTransformer parent, Schema inputSchema, FinderDecorator decorator = null) :
-                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
                 _decorator = decorator;
