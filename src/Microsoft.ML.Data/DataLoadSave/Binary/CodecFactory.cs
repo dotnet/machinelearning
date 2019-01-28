@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data.IO

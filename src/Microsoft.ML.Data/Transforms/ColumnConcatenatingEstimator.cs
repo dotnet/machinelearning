@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class ColumnConcatenatingEstimator  : IEstimator<ITransformer>
+    public sealed class ColumnConcatenatingEstimator : IEstimator<ITransformer>
     {
         private readonly IHost _host;
         private readonly string _name;

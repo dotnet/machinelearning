@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.Data.DataView
 {
     /// <summary>
     /// A builder for <see cref="Schema"/>.

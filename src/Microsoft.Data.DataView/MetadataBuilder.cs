@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.Data.DataView
 {
     /// <summary>
     /// The class that incrementally builds a <see cref="Schema.Metadata"/>.

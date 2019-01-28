@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;

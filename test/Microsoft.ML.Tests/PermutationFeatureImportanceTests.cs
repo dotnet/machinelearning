@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Learners;
