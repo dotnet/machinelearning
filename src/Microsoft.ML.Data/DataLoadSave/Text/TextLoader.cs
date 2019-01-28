@@ -908,7 +908,7 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
-        private const uint VersionNoMinCount = 0x00010004;
+        private const uint VersionNoMinCount = 0x0001000C;
 
         private static VersionInfo GetVersionInfo()
         {
