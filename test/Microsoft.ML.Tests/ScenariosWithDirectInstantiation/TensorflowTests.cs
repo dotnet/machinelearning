@@ -10,8 +10,10 @@ using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.TensorFlow;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -844,6 +846,53 @@ namespace Microsoft.ML.Scenarios
                 thrown = true;
             }
             Assert.True(thrown);
+        }
+
+        /// <summary>
+        /// Class to hold features and predictions.
+        /// </summary>
+        public class TensorFlowSentiment
+        {
+            public string Sentiment_Text;
+            [VectorType(600)]
+            public int[] Features;
+            [VectorType(2)]
+            public float[] Prediction;
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        public void TensorFlowSentimentClassificationTest()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var data = new[] { new TensorFlowSentiment() { Sentiment_Text = "this film was just brilliant casting location scenery story direction everyone's really suited the part they played and you could just imagine being there robert  is an amazing actor and now the same being director  father came from the same scottish island as myself so i loved the fact there was a real connection with this film the witty remarks throughout the film were great it was just brilliant so much that i bought the film as soon as it was released for  and would recommend it to everyone to watch and the fly fishing was amazing really cried at the end it was so sad and you know what they say if you cry at a film it must have been good and this definitely was also  to the two little boy's that played the  of norman and paul they were just brilliant children are often left out of the  list i think because the stars that play them all grown up are such a big profile for the whole film but these children are amazing and should be praised for what they have done don't you think the whole story was so lovely because it was true and was someone's life after all that was shared with us all" } };
+            var dataView = mlContext.Data.ReadFromEnumerable(data);
+
+            var lookupMap = mlContext.Data.ReadFromTextFile(@"E:\Tensorflow\sentiment_model\imdb_word_index.csv",
+                   columns: new[]
+                   {
+                        new TextLoader.Column("Words", DataKind.TX, 0),
+                        new TextLoader.Column("Ids", DataKind.I4, 1),
+                   },
+                   separatorChar: ','
+               );
+
+            var estimator = new WordTokenizingEstimator(mlContext, new[]{
+                    new WordTokenizingTransformer.ColumnInfo("Sentiment_Text", "TokenizedWords")
+                }).Append(new ValueMappingEstimator(mlContext, lookupMap, "Words", "Ids", new[] { ("TokenizedWords", "Features") }));
+            var dataPipe = estimator.Fit(dataView)
+                .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
+
+            string modelLocation = @"E:\Tensorflow\sentiment_model";
+            var tfEnginePipe = new TensorFlowEstimator(mlContext, modelLocation, new[] { "Features" }, new[] { "Prediction/Softmax" })
+                .Append(new ColumnCopyingEstimator(mlContext, ("Prediction/Softmax", "Prediction")))
+                .Fit(dataView)
+                .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
+
+            var processedData = dataPipe.Predict(data[0]);
+            Array.Resize(ref processedData.Features, 600);
+            var prediction = tfEnginePipe.Predict(processedData);
+
+            Assert.Equal(2, prediction.Prediction.Length);
         }
     }
 }
