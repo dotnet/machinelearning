@@ -41,25 +41,33 @@ namespace Microsoft.ML.Auto
                 return GetNextFirstStagePipeline(history, availableTrainers, transforms);
             }
 
-            // get next trainer
+            // get top trainers from stage 1 runs
             var topTrainers = GetTopTrainers(history, availableTrainers, isMaximizingMetric);
-            var nextTrainerIndex = (history.Count() - availableTrainers.Count()) % topTrainers.Count();
-            var trainer = topTrainers.ElementAt(nextTrainerIndex).Clone();
 
-            // make sure we have not seen pipeline before.
-            // repeat until passes or runs out of chances.
-            var visitedPipelines = new HashSet<InferredPipeline>(history.Select(h => h.Pipeline));
-            const int maxNumberAttempts = 10;
-            var count = 0;
-            do
+            // sort top trainers by # of times they've been run, from lowest to highest
+            var orderedTopTrainers = OrderTrainersByNumTrials(history, topTrainers);
+
+            // iterate over top trainers (from least run to most run),
+            // to find next pipeline
+            foreach(var trainer in orderedTopTrainers)
             {
-                SampleHyperparameters(trainer, history, isMaximizingMetric);
-                var pipeline = new InferredPipeline(transforms, trainer);
-                if(!visitedPipelines.Contains(pipeline))
+                var newTrainer = trainer.Clone();
+
+                // make sure we have not seen pipeline before.
+                // repeat until passes or runs out of chances
+                var visitedPipelines = new HashSet<InferredPipeline>(history.Select(h => h.Pipeline));
+                const int maxNumberAttempts = 10;
+                var count = 0;
+                do
                 {
-                    return pipeline;
-                }
-            } while (++count <= maxNumberAttempts);
+                    SampleHyperparameters(newTrainer, history, isMaximizingMetric);
+                    var pipeline = new InferredPipeline(transforms, newTrainer);
+                    if (!visitedPipelines.Contains(pipeline))
+                    {
+                        return pipeline;
+                    }
+                } while (++count <= maxNumberAttempts);
+            }
 
             return null;
         }
@@ -82,6 +90,16 @@ namespace Microsoft.ML.Auto
             }
             var topTrainers = sortedHistory.Take(TopKTrainers).Select(r => r.Pipeline.Trainer);
             return topTrainers;
+        }
+
+        private static IEnumerable<SuggestedTrainer> OrderTrainersByNumTrials(IEnumerable<InferredPipelineRunResult> history,
+            IEnumerable<SuggestedTrainer> selectedTrainers)
+        {
+            var selectedTrainerNames = new HashSet<TrainerName>(selectedTrainers.Select(t => t.TrainerName));
+            return history.Where(h => selectedTrainerNames.Contains(h.Pipeline.Trainer.TrainerName))
+                .GroupBy(h => h.Pipeline.Trainer.TrainerName)
+                .OrderBy(x => x.Count())
+                .Select(x => x.First().Pipeline.Trainer);
         }
 
         private static InferredPipeline GetNextFirstStagePipeline(IEnumerable<InferredPipelineRunResult> history,
