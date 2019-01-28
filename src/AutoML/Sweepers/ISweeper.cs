@@ -11,21 +11,6 @@ using Float = System.Single;
 namespace Microsoft.ML.Auto
 {
     /// <summary>
-    /// Signature for the loaders of sweepers.
-    /// </summary>
-    public delegate void SignatureSweeper();
-
-    /// <summary>
-    /// Signature for the loaders of sweep result evaluators.
-    /// </summary>
-    public delegate void SignatureSweepResultEvaluator();
-
-    /// <summary>
-    /// Signature for SuggestedSweeps parser.
-    /// </summary>
-    public delegate void SignatureSuggestedSweepsParser();
-
-    /// <summary>
     /// The main interface of the sweeper
     /// </summary>
     internal interface ISweeper

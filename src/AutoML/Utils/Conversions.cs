@@ -3,16 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Microsoft.ML.Auto
 {
     using BL = Boolean;
     using R4 = Single;
     using TX = ReadOnlyMemory<char>;
-    using U1 = Byte;
-    using U8 = UInt64;
 
     internal static class Conversions
     {

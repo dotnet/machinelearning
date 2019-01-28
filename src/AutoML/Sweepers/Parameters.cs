@@ -8,9 +8,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Auto
 {
-    public delegate void SignatureSweeperParameter();
-
-    public abstract class BaseParamArguments
+    internal abstract class BaseParamArguments
     {
         //[Argument(ArgumentType.Required, HelpText = "Parameter name", ShortName = "n")]
         public string Name;
