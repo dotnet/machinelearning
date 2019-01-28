@@ -88,6 +88,11 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
             if (tree is QuantileRegressionTree)
                 ((QuantileRegressionTree)tree).ExtractLeafSamplesAndTheirWeights(out _leafSamples, out _leafSampleWeights);
+            else
+            {
+                _leafSamples = tree.LeafValues.Select(value => new double[] { value }).ToList();
+                _leafSampleWeights = tree.LeafValues.Select(value => new double[] { 1.0 }).ToList();
+            }
         }
     }
 
