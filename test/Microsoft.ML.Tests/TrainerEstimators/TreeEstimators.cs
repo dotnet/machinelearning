@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new LightGbmBinaryTrainer(Env, new Options
+            var trainer = ML.BinaryClassification.Trainers.LightGbm(new Options
             {
                 NumLeaves = 10,
                 NThread = 1,
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = new LightGbmRankingTrainer(Env, labelColumn: "Label0", featureColumn: "NumericFeatures", groupId: "Group", learningRate: 0.4);
+            var trainer = ML.Ranking.Trainers.LightGbm(labelColumn: "Label0", featureColumn: "NumericFeatures", groupIdColumn: "Group", learningRate: 0.4);
 
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGBMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new LightGbmRegressorTrainer(Env, new Options
+            var trainer = ML.Regression.Trainers.LightGbm(new Options
             {
                 NThread = 1,
                 NormalizeFeatures = NormalizeOption.Warn,
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGbmMultiClassEstimator()
         {
             var (pipeline, dataView) = GetMultiClassPipeline();
-            var trainer = new LightGbmMulticlassTrainer(Env, learningRate: 0.4);
+            var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
             var pipe = pipeline.Append(trainer)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
             TestEstimatorCore(pipe, dataView);
