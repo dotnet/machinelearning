@@ -1,6 +1,6 @@
 #@ TextLoader{
 #@   sep=tab
-#@   col=Label:U4[0-2]:0
+#@   col=Label:U4[3]:0
 #@   col=ScalarFloat:R4:1
 #@   col=VectorFloat:R4:2-5
 #@   col=VectorDouble:R8:6-10

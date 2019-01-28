@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
@@ -2115,7 +2116,7 @@ namespace Microsoft.ML.RunTests
                       {
                         'Name': 'Key1',
                         'Source': 'Key',
-                        'Range': '1-10'
+                        'Range': '0-9'
                       }
                       ]",
                     @"'Column': [
@@ -3330,7 +3331,7 @@ namespace Microsoft.ML.RunTests
             {
                 Arguments =
                 {
-                    SeparatorChars = new []{'\t' },
+                    Separators = new []{'\t' },
                     HasHeader = true,
                     Column = new[]
                     {
@@ -3404,7 +3405,7 @@ namespace Microsoft.ML.RunTests
                 {
                     Arguments =
                 {
-                    SeparatorChars = new []{'\t' },
+                    Separators = new []{'\t' },
                     HasHeader = false,
                     Column = new[]
                     {
@@ -3618,7 +3619,7 @@ namespace Microsoft.ML.RunTests
             {
                 Arguments =
                 {
-                    SeparatorChars = new []{' '},
+                    Separators = new []{' '},
                     Column = new[]
                     {
                         new TextLoader.Column("Text", DataKind.Text,
@@ -4102,7 +4103,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Features',
                                         'Type': 'R4',
@@ -4115,7 +4116,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,
@@ -4699,7 +4700,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Strat',
                                         'Type': null,
@@ -4712,7 +4713,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Features',
                                         'Type': null,
@@ -4725,7 +4726,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,
@@ -4903,7 +4904,7 @@ namespace Microsoft.ML.RunTests
                                             'ForceVector': false
                                         }
                                     ],
-                                    'KeyRange': null
+                                    'KeyCount': null
                                 }, {
                                     'Name': 'Workclass',
                                     'Type': 'TX',
@@ -4916,7 +4917,7 @@ namespace Microsoft.ML.RunTests
                                             'ForceVector': false
                                         }
                                     ],
-                                    'KeyRange': null
+                                    'KeyCount': null
                                 }, {
                                     'Name': 'Features',
                                     'Type': null,
@@ -4929,7 +4930,7 @@ namespace Microsoft.ML.RunTests
                                             'ForceVector': false
                                         }
                                     ],
-                                    'KeyRange': null
+                                    'KeyCount': null
                                 }
                             ],
                             'TrimWhitespace': false,
@@ -5234,7 +5235,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Features',
                                         'Type': null,
@@ -5247,7 +5248,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,
@@ -5398,7 +5399,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Features',
                                         'Type': null,
@@ -5411,7 +5412,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,
@@ -5571,7 +5572,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Placeholder',
                                         'Type': null,
@@ -5584,7 +5585,7 @@ namespace Microsoft.ML.RunTests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,

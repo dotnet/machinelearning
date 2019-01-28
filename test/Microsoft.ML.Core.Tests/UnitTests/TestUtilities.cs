@@ -22,63 +22,97 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
         [Fact]
         [TestCategory("Utilities")]
-        public void CheckIsSortedInt()
+        public void CheckIsMonotonicallyIncreasingInt()
         {
             // A sorted (increasing) array
             int[] x = Enumerable.Range(0, 10).ToArray();
-            Assert.True(Utils.IsSorted(x));
+            Assert.True(Utils.IsMonotonicallyIncreasing(x));
 
             // A monotonically increasing array
             var x1Temp = x[1];
             var x7Temp = x[7];
             x[1] = x[0];
             x[7] = x[6];
-            Assert.True(Utils.IsSorted(x));
+            Assert.True(Utils.IsMonotonicallyIncreasing(x));
             x[1] = x1Temp;
             x[7] = x7Temp;
 
             // Not sorted
             x[1] = x[6];
-            Assert.False(Utils.IsSorted(x));
+            Assert.False(Utils.IsMonotonicallyIncreasing(x));
             x[1] = x1Temp;
 
             // Null lists are considered to be sorted
             int[] nullX = null;
-            Assert.True(Utils.IsSorted(nullX));
+            Assert.True(Utils.IsMonotonicallyIncreasing(nullX));
         }
-
+        
         [Fact]
         [TestCategory("Utilities")]
-        public void CheckIsSortedFloat()
+        public void CheckIsMonotonicallyIncreasingFloat()
         {
             // A sorted (increasing) array
             List<float> x = Enumerable.Range(0, 1000000).Select(i => (float)i).ToList();
-            Assert.True(Utils.IsSorted(x));
+            Assert.True(Utils.IsMonotonicallyIncreasing(x));
 
             // A monotonically increasing array
             var x1Temp = x[1];
             var x7Temp = x[7];
             x[1] = x[0];
             x[7] = x[6];
-            Assert.True(Utils.IsSorted(x));
+            Assert.True(Utils.IsMonotonicallyIncreasing(x));
             x[1] = x1Temp;
             x[7] = x7Temp;
 
             // Not sorted
             x[1] = x[6];
-            Assert.False(Utils.IsSorted(x));
+            Assert.False(Utils.IsMonotonicallyIncreasing(x));
             x[1] = x1Temp;
             
             // NaN: `Array.Sort()` will put NaNs into the first position,
             // but we want to guarantee that NaNs aren't allowed in these arrays.
             var x0Temp = x[0];
             x[0] = float.NaN;
-            Assert.False(Utils.IsSorted(x));
+            Assert.False(Utils.IsMonotonicallyIncreasing(x));
             x[0] = x0Temp;
 
             // Null lists are considered to be sorted
             List<float> nullX = null;
-            Assert.True(Utils.IsSorted(nullX));
+            Assert.True(Utils.IsMonotonicallyIncreasing(nullX));
+        }
+
+        [Fact]
+        [TestCategory("Utilities")]
+        public void CheckIsMonotonicallyIncreasingDouble()
+        {
+            // A sorted (increasing) array
+            double[] x = Enumerable.Range(0, 1000000).Select(i => (double)i).ToArray();
+            Assert.True(Utils.IsMonotonicallyIncreasing(x));
+
+            // A monotonically increasing array
+            var x1Temp = x[1];
+            var x7Temp = x[7];
+            x[1] = x[0];
+            x[7] = x[6];
+            Assert.True(Utils.IsMonotonicallyIncreasing(x));
+            x[1] = x1Temp;
+            x[7] = x7Temp;
+
+            // Not sorted
+            x[1] = x[6];
+            Assert.False(Utils.IsMonotonicallyIncreasing(x));
+            x[1] = x1Temp;
+
+            // NaN: `Array.Sort()` will put NaNs into the first position,
+            // but we want to guarantee that NaNs aren't allowed in these arrays.
+            var x0Temp = x[0];
+            x[0] = float.NaN;
+            Assert.False(Utils.IsMonotonicallyIncreasing(x));
+            x[0] = x0Temp;
+
+            // Null lists are considered to be sorted
+            List<float> nullX = null;
+            Assert.True(Utils.IsMonotonicallyIncreasing(nullX));
         }
 
         [Fact]

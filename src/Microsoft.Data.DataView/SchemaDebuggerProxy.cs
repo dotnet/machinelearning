@@ -3,17 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.Data.DataView
 {
     /// <summary>
     /// The debugger proxy for <see cref="Schema"/>.
     /// </summary>
     internal sealed class SchemaDebuggerProxy
     {
-        [System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.RootHidden)]
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
         public Schema.Column[] Columns { get; }
 
         public SchemaDebuggerProxy(Schema schema)
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Data
     /// </summary>
     internal sealed class MetadataDebuggerProxy
     {
-        [System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.RootHidden)]
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
         public IReadOnlyList<KeyValuePair<string, object>> Values { get; }
 
         public MetadataDebuggerProxy(Schema.Metadata metadata)

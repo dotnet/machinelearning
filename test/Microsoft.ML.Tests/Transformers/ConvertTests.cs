@@ -5,6 +5,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -24,7 +26,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        private class TestPrimitiveClass
+        private sealed class TestPrimitiveClass
         {
             [VectorType(2)]
             public string[] AA;
@@ -52,20 +54,23 @@ namespace Microsoft.ML.Tests.Transformers
             public double[] AN;
         }
 
-        private class TestClass
+        private sealed class TestClass
         {
             public int A;
             [VectorType(2)]
             public int[] B;
         }
 
-        public class MetaClass
+        private sealed class MetaClass
         {
             public float A;
             public string B;
-
         }
 
+        private sealed class TestStringClass
+        {
+            public string A;
+        }
 
         [Fact]
         public void TestConvertWorkout()
@@ -141,6 +146,40 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
+        /// <summary>
+        /// Apply <see cref="KeyToValueMappingEstimator"/> with side data.
+        /// </summary>
+        [Fact]
+        public void ValueToKeyFromSideData()
+        {
+            // In this case, whatever the value of the input, the term mapping should come from the optional side data if specified.
+            var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
+
+            var mlContext = new MLContext();
+            var dataView = mlContext.Data.ReadFromEnumerable(data);
+
+            var sideDataBuilder = new ArrayDataViewBuilder(mlContext);
+            sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
+            var sideData = sideDataBuilder.GetDataView();
+
+            // For some reason the column info is on the *transformer*, not the estimator. Already tracked as issue #1760.
+            var ci = new ValueToKeyMappingTransformer.ColumnInfo("A", "CatA");
+            var pipe = mlContext.Transforms.Conversion.MapValueToKey(new[] { ci }, sideData);
+            var output = pipe.Fit(dataView).Transform(dataView);
+
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
+            output.Schema["CatA"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slotNames);
+
+            Assert.Equal(3, slotNames.Length);
+            Assert.Equal("hello", slotNames.GetItemOrDefault(0).ToString());
+            Assert.Equal("my", slotNames.GetItemOrDefault(1).ToString());
+            Assert.Equal("friend", slotNames.GetItemOrDefault(2).ToString());
+
+            Done();
+        }
+
+
+
         [Fact]
         public void TestCommandLine()
         {
@@ -196,6 +235,49 @@ namespace Microsoft.ML.Tests.Transformers
             result.Schema["ConvB"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
+        }
+
+
+        public class SimpleSchemaUIntColumn
+        {
+            [LoadColumn(0)]
+            [KeyType(Count = 4)]
+            public uint key;
+        }
+
+        [Fact]
+        public void TypeConvertKeyBackCompatTest()
+        {
+            // Model generated using the following command before the change removing Min and Count from KeyType.
+            // ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingTransformer.ColumnInfo("key", "convertedKey",
+            //      DataKind.U8, new KeyCount(4)) }).Fit(dataView);
+            var dataArray = new[]
+            {
+                new SimpleSchemaUIntColumn() { key = 0 },
+                new SimpleSchemaUIntColumn() { key = 1 },
+                new SimpleSchemaUIntColumn() { key = 2 },
+                new SimpleSchemaUIntColumn() { key = 3 }
+
+            };
+
+            var dataView = ML.Data.ReadFromEnumerable(dataArray);
+
+            // Check old model can be loaded.
+            var modelPath = GetDataPath("backcompat", "type-convert-key-model.zip");
+            ITransformer modelOld;
+            using (var ch = Env.Start("load"))
+            {
+                using (var fs = File.OpenRead(modelPath))
+                     modelOld = ML.Model.Load(fs);
+            }
+            var outDataOld = modelOld.Transform(dataView); 
+
+            var modelNew = ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingTransformer.ColumnInfo("key", "convertedKey",
+                DataKind.U8, new KeyCount(4)) }).Fit(dataView);
+            var outDataNew = modelNew.Transform(dataView);
+
+            // Check that old and new model produce the same result.
+            Assert.True(outDataNew.Schema[1].Type.Equals(outDataNew.Schema[1].Type));
         }
     }
 }

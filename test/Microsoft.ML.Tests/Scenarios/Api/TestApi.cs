@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
@@ -258,8 +259,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             idv.Schema[1].Metadata.GetValue(kindVBuffer, ref retrievedVBuffer);
             Assert.True(retrievedVBuffer.Items().SequenceEqual(valueVBuffer.Items()));
 
-            var ex = Assert.Throws<InvalidOperationException>(() => idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer));
-            Assert.True(ex.IsMarked());
+            Assert.Throws<InvalidOperationException>(() => idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer));
         }
 
         private List<BreastCancerExample> ReadBreastCancerExamples()

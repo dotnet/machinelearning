@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -754,10 +755,10 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 if (type is KeyType keyType)
                 {
-                    Host.Assert(keyType.Count > 0);
-                    labelCardinality = keyType.Count;
+                    Host.Assert(type.GetKeyCountAsInt32(Host) > 0);
+                    labelCardinality = type.GetKeyCountAsInt32(Host);
 
-                    int size = keyType.Count;
+                    int size = type.GetKeyCountAsInt32(Host);
                     ulong src = 0;
                     var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col);
                     return

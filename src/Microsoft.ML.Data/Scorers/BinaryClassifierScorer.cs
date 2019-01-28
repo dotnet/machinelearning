@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -289,7 +290,7 @@ namespace Microsoft.ML.Data
             var labelNameBindableMapper = mapper.Bindable as MultiClassClassifierScorer.LabelNameBindableMapper;
             if (labelNameBindableMapper == null)
                 return BoolType.Instance;
-            return new KeyType(DataKind.U4, 0, labelNameBindableMapper.Type.Size);
+            return new KeyType(typeof(uint), labelNameBindableMapper.Type.Size);
         }
 
         private static bool OutputTypeMatches(ColumnType scoreType)
