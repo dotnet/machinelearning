@@ -13,7 +13,7 @@ using Microsoft.ML.EntryPoints;
 [assembly: LoadableClass(typeof(void), typeof(Cache), null, typeof(SignatureEntryPointModule), "Cache")]
 namespace Microsoft.ML.EntryPoints
 {
-    public static class Cache
+    internal static class Cache
     {
         public enum CachingType
         {
