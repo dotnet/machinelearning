@@ -29,7 +29,8 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
-    public class OptionalColumnTransform : RowToRowMapperTransformBase
+    [BestFriend]
+    internal sealed class OptionalColumnTransform : RowToRowMapperTransformBase
     {
         public sealed class Arguments : TransformInputBase
         {

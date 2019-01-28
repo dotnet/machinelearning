@@ -9,7 +9,7 @@ using Microsoft.ML.ImageAnalytics.EntryPoints;
 [assembly: LoadableClass(typeof(void), typeof(ImageAnalytics), null, typeof(SignatureEntryPointModule), "ImageAnalytics")]
 namespace Microsoft.ML.ImageAnalytics.EntryPoints
 {
-    public static class ImageAnalytics
+    internal static class ImageAnalytics
     {
         [TlcModule.EntryPoint(Name = "Transforms.ImageLoader", Desc = ImageLoaderTransformer.Summary,
             UserName = ImageLoaderTransformer.UserName, ShortName = ImageLoaderTransformer.LoaderSignature)]

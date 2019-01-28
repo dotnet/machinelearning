@@ -24,7 +24,8 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Remaps multiclass labels to binary T,F labels, primarily for use with OVA.
     /// </summary>
-    public sealed class LabelIndicatorTransform : OneToOneTransformBase
+    [BestFriend]
+    internal sealed class LabelIndicatorTransform : OneToOneTransformBase
     {
         internal const string Summary = "Remaps labels from multiclass to binary, for OVA.";
         internal const string UserName = "Label Indicator Transform";

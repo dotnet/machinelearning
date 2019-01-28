@@ -292,7 +292,7 @@ namespace Microsoft.ML.Transforms.Categorical
         }
     }
 
-    public static class Categorical
+    internal static class Categorical
     {
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer",
             Desc = OneHotEncodingTransformer.Summary,

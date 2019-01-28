@@ -11,7 +11,7 @@ using Microsoft.ML.Transforms.FeatureSelection;
 
 namespace Microsoft.ML.Transforms
 {
-    public static class SelectFeatures
+    internal static class SelectFeatures
     {
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount",
             Desc = CountFeatureSelectingEstimator.Summary,

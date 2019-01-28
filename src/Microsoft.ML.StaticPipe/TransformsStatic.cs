@@ -1638,11 +1638,11 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly PcaTransform.ColumnInfo _colInfo;
+            private readonly PcaTransformer.ColumnInfo _colInfo;
 
             public Reconciler(string weightColumn, int rank, int overSampling, bool center, int? seed = null)
             {
-                _colInfo = new PcaTransform.ColumnInfo(
+                _colInfo = new PcaTransformer.ColumnInfo(
                     null, null, weightColumn, rank, overSampling, center, seed);
             }
 

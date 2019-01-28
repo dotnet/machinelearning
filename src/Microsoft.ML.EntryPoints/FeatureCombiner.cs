@@ -18,7 +18,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class FeatureCombiner
+    internal static class FeatureCombiner
     {
         public sealed class FeatureCombinerInput : TransformInputBase
         {

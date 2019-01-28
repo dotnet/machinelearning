@@ -23,6 +23,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Learners;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;

@@ -349,7 +349,7 @@ namespace Microsoft.ML.Trainers.PCA
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
                                  @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaAnomalyDetector""]/*' />" })]
-        public static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainPCAAnomaly");

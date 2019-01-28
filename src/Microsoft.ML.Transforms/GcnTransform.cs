@@ -709,7 +709,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
     }
 
-    public static class LpNormalization
+    internal static class LpNormalization
     {
         [TlcModule.EntryPoint(Name = "Transforms.LpNormalizer",
             Desc = LpNormalizingTransformer.Summary,
