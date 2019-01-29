@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformer = pipeline.Fit(trainData);
 
             var modelParams = transformer.Columns
-                                         .First(x => x.Output == "Induced")
+                                         .First(x => x.Name == "Induced")
                                          .ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
 
             Console.WriteLine($"The normalization parameters are: Scale = {modelParams.Scale} and Offset = {modelParams.Offset}");
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Composing a different pipeline if we wanted to normalize more than one column at a time. 
             // Using log scale as the normalization mode. 
-            var multiColPipeline = ml.Transforms.Normalize(NormalizingEstimator.NormalizerMode.LogMeanVariance, new[] { ("Induced", "LogInduced"), ("Spontaneous", "LogSpontaneous") });
+            var multiColPipeline = ml.Transforms.Normalize(NormalizingEstimator.NormalizerMode.LogMeanVariance, new[] { ("LogInduced", "Induced"), ("LogSpontaneous", "Spontaneous") });
             // The transformed data.
             var multiColtransformer = multiColPipeline.Fit(trainData);
             var multiColtransformedData = multiColtransformer.Transform(trainData);
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Samples.Dynamic
             
             // Inspect the weights of normalizing the columns
             var multiColModelParams = multiColtransformer.Columns
-                .First(x=> x.Output == "LogInduced")
+                .First(x=> x.Name == "LogInduced")
                 .ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<float>;
 
             Console.WriteLine($"The normalization parameters are: Mean = {multiColModelParams.Mean} and Stddev = {multiColModelParams.Stddev}");

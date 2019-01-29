@@ -131,7 +131,7 @@ namespace Microsoft.ML.Learners
                 return;
             }
             VBuffer<ReadOnlyMemory<char>> labelNames = default;
-            labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+            labelCol.GetKeyValues(ref labelNames);
 
             // If label names is not dense or contain NA or default value, then it follows that
             // at least one class does not have a valid name for its label. If the label names we
@@ -1005,7 +1005,7 @@ namespace Microsoft.ML.Learners
             ShortName = MulticlassLogisticRegression.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Options input)
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRMultiClass");

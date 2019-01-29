@@ -675,7 +675,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public static class Gam
+    internal static class Gam
     {
         [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelRegressor", Desc = RegressionGamTrainer.Summary, UserName = RegressionGamTrainer.UserNameValue, ShortName = RegressionGamTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, RegressionGamTrainer.Options input)

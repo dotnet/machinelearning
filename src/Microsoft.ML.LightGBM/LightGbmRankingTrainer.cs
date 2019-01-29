@@ -186,7 +186,7 @@ namespace Microsoft.ML.LightGBM
     /// <summary>
     /// The entry point for the LightGbmRankingTrainer.
     /// </summary>
-    public static partial class LightGbm
+    internal static partial class LightGbm
     {
         [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker",
             Desc = "Train a LightGBM ranking model.",

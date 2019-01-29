@@ -1070,7 +1070,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new NaiveCalibrator(env, ctx);
         }
 
-        public void SaveAsBinary(BinaryWriter writer)
+        void ICanSaveInBinaryFormat.SaveAsBinary(BinaryWriter writer)
         {
             ModelSaveContext.Save(writer, SaveCore);
         }
@@ -1717,7 +1717,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new PavCalibrator(env, ctx);
         }
 
-        public void SaveAsBinary(BinaryWriter writer)
+        void ICanSaveInBinaryFormat.SaveAsBinary(BinaryWriter writer)
         {
             ModelSaveContext.Save(writer, SaveCore);
         }

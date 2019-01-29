@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class TrainTestMacro
+    internal static class TrainTestMacro
     {
         public sealed class SubGraphInput
         {

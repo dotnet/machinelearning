@@ -43,6 +43,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public string PredictedLabel;
             public float[] Score;
         }
+        public class IrisPredictionNotCasted
+        {
+            public uint PredictedLabel;
+            public float[] Score;
+        }
 
         public class SentimentData
         {

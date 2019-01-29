@@ -499,7 +499,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             UserName = UserNameValue,
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options options)
+        internal static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainOLS");

@@ -708,11 +708,11 @@ namespace Microsoft.ML.Data
             var pFormatName = string.Format(FoldDrAtPFormat, _p);
             var numAnomName = string.Format(FoldDrAtNumAnomaliesFormat, numAnomalies);
 
-            (string Source, string Name)[] cols =
+            (string name, string source)[] cols =
             {
-                (AnomalyDetectionEvaluator.OverallMetrics.DrAtK, kFormatName),
-                (AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr, pFormatName),
-                (AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos, numAnomName)
+                (kFormatName, AnomalyDetectionEvaluator.OverallMetrics.DrAtK),
+                (pFormatName, AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr),
+                (numAnomName, AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos)
             };
 
             // List of columns to keep, note that the order specified determines the order of the output
@@ -764,7 +764,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static partial class Evaluate
+    internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.AnomalyDetectionEvaluator", Desc = "Evaluates an anomaly detection scored dataset.")]
         public static CommonOutputs.CommonEvaluateOutput AnomalyDetection(IHostEnvironment env, AnomalyDetectionMamlEvaluator.Arguments input)

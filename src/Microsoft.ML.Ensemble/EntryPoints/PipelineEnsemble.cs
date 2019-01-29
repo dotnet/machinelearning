@@ -12,7 +12,7 @@ using Microsoft.ML.Internal.Calibration;
 
 namespace Microsoft.ML.Ensemble.EntryPoints
 {
-    public static class PipelineEnsemble
+    internal static class PipelineEnsemble
     {
         public sealed class SummaryOutput
         {

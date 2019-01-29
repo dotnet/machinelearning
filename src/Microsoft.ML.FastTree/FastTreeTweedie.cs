@@ -510,7 +510,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 
-    public static partial class FastTree
+    internal static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeTweedieRegressor",
             Desc = FastTreeTweedieTrainer.Summary,

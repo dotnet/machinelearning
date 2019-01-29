@@ -395,7 +395,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// The Entry Point for the FastTree Binary Classifier.
     /// </summary>
-    public static partial class FastTree
+    internal static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeBinaryClassifier",
             Desc = FastTreeBinaryClassificationTrainer.Summary,

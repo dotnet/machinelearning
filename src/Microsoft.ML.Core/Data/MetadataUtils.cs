@@ -327,6 +327,9 @@ namespace Microsoft.ML.Data
         public static void GetSlotNames(this Schema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
             => column.Metadata.GetValue(Kinds.SlotNames, ref slotNames);
 
+        public static void GetKeyValues<TValue>(this Schema.Column column, ref VBuffer<TValue> keyValues)
+            => column.Metadata.GetValue(Kinds.KeyValues, ref keyValues);
+
         [BestFriend]
         internal static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<ReadOnlyMemory<char>> slotNames)
         {

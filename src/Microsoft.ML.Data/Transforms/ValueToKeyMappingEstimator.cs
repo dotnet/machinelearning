@@ -26,13 +26,13 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Initializes a new instance of <see cref="ValueToKeyMappingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the column to be transformed.</param>
-        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
-           this(env, new[] { new ValueToKeyMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
+        public ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
+           this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, maxNumTerms, sort) })
         {
         }
 
@@ -61,11 +61,11 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
                 if (!col.ItemType.IsStandardScalar())
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 SchemaShape metadata;
 
                 // In the event that we are transforming something that is of type key, we will get their type of key value
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     metadata = new SchemaShape(new[] { slotMeta, kv });
                 else
                     metadata = new SchemaShape(new[] { kv });
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, NumberType.U4, true, metadata);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, NumberType.U4, true, metadata);
             }
 
             return new SchemaShape(result.Values);

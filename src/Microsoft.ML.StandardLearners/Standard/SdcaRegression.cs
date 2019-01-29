@@ -166,7 +166,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     ///The Entry Point for the SDCA regressor.
     /// </summary>
-    public static partial class Sdca
+    internal static partial class Sdca
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentRegressor",
             Desc = SdcaRegressionTrainer.Summary,

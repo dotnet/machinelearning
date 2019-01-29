@@ -79,7 +79,7 @@ module SmokeTest1 =
         let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
         let data = ml.Data.ReadFromTextFile<SentimentData>(testDataPath, hasHeader = true)
 
-        let pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features") 
+        let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
                         .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))      
 
         let model = pipeline.Fit(data)
@@ -119,7 +119,7 @@ module SmokeTest2 =
         let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
         let data = ml.Data.ReadFromTextFile<SentimentData>(testDataPath, hasHeader = true)
 
-        let pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features") 
+        let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
                         .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))
         
         let model = pipeline.Fit(data)
@@ -156,7 +156,7 @@ module SmokeTest3 =
         let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
         let data = ml.Data.ReadFromTextFile<SentimentData>(testDataPath, hasHeader = true)
 
-        let pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features") 
+        let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
                         .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))
         
         let model = pipeline.Fit(data)

@@ -670,7 +670,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static partial class GroupingOperations
+    internal static partial class GroupingOperations
     {
         [TlcModule.EntryPoint(Name = "Transforms.Segregator",
             Desc = UngroupTransform.Summary,

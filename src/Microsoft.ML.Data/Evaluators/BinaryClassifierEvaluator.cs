@@ -178,7 +178,7 @@ namespace Microsoft.ML.Data
                 labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
                 vecType.Size > 0 && vecType.ItemType == TextType.Instance)
             {
-                labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+                labelCol.GetKeyValues(ref labelNames);
             }
             else
                 labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
@@ -1096,7 +1096,7 @@ namespace Microsoft.ML.Data
             Host.AssertValueOrNull(_probCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema[(int) LabelIndex].Type;
+            var t = schema[(int)LabelIndex].Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", LabelCol, t);
 
@@ -1198,11 +1198,11 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out conf))
                 throw ch.Except("No overall metrics found");
 
-            (string Source, string Name)[] cols =
+            (string name, string source)[] cols =
             {
-                (BinaryClassifierEvaluator.Accuracy, FoldAccuracy),
-                (BinaryClassifierEvaluator.LogLoss, FoldLogLoss),
-                (BinaryClassifierEvaluator.LogLossReduction, FoldLogLosRed)
+                (FoldAccuracy, BinaryClassifierEvaluator.Accuracy),
+                (FoldLogLoss, BinaryClassifierEvaluator.LogLoss),
+                (FoldLogLosRed, BinaryClassifierEvaluator.LogLossReduction)
             };
 
             var colsToKeep = new List<string>();
@@ -1506,7 +1506,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static partial class Evaluate
+    internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.BinaryClassificationEvaluator", Desc = "Evaluates a binary classification scored dataset.")]
         public static CommonOutputs.ClassificationEvaluateOutput Binary(IHostEnvironment env, BinaryClassifierMamlEvaluator.Arguments input)

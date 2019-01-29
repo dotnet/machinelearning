@@ -190,7 +190,7 @@ namespace Microsoft.ML.Trainers.Online
              ShortName = ShortName,
              XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""AP""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""AP""]/*' />"})]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
+        internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainAP");
