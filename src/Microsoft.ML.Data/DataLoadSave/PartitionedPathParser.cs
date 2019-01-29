@@ -33,7 +33,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Delegate signature for a partitioned path parser.
     /// </summary>
-    public delegate void PartitionedPathParser();
+    [BestFriend]
+    internal delegate void PartitionedPathParser();
 
     /// <summary>
     /// Supports extracting column names and values from a path string.
@@ -200,7 +201,8 @@ namespace Microsoft.ML.Data
         public IPartitionedPathParser CreateComponent(IHostEnvironment env) => new ParquetPartitionedPathParser();
     }
 
-    public sealed class ParquetPartitionedPathParser : IPartitionedPathParser, ICanSaveModel
+    [BestFriend]
+    internal sealed class ParquetPartitionedPathParser : IPartitionedPathParser, ICanSaveModel
     {
         internal const string Summary = "Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet";
         internal const string UserName = "Parquet Partitioned Path Parser";
