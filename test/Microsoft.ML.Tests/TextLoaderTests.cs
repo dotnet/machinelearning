@@ -773,9 +773,9 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Fact]
-        void TestTextLoaderKeyTypeBackCompat()
+        public void TestTextLoaderKeyTypeBackCompat()
         {
-            // Model generated on a version of the code previous to the KeyType change with:
+            // Model generated with the following command on a version of the code previous to the KeyType change that removed Min and Contiguous:
             // Train data=...\breast-cancer.txt loader =TextLoader{col=Label:R4:0 col=Features:R4:1-9 col=key:U4[0-*]:3} tr=LogisticRegression {} out=model.zip
             var mlContext = new MLContext();
             string textLoaderModelPath = GetDataPath("backcompat/textloader-with-key-model.zip");
