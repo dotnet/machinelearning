@@ -143,7 +143,9 @@ namespace Microsoft.ML
             => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
 
         /// <summary>
-        /// Maps specified keys to specified values
+        /// Maps the <paramref name="columns.input"/> using the keys in the dictionary to the values of dictionary.
+        /// In this case, the <paramref name="lookupMap"/> is used as a dictionary where <paramref name="keyColumn"/>
+        /// and <paramref name="valueColumn"/> specify the keys and values of dictionary respectively.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog</param>
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
