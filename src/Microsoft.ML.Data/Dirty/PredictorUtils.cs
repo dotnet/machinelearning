@@ -64,7 +64,7 @@ namespace Microsoft.ML.Internal.Internallearn
         }
 
         /// <summary>
-        /// Save the model in binary format (if it can save itself)
+        /// Save the model in binary format (if it can save itself).
         /// </summary>
         public static void SaveBinary(IChannel ch, IPredictor predictor, BinaryWriter writer)
         {

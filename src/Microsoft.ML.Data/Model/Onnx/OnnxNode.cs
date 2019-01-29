@@ -13,7 +13,8 @@ namespace Microsoft.ML.Model.Onnx
     /// That method creates a with inputs and outputs, but this object can modify the node further
     /// by adding attributes (in ONNX parlance, attributes are more or less constant parameterizations).
     /// </summary>
-    public abstract class OnnxNode
+    [BestFriend]
+    internal abstract class OnnxNode
     {
         public abstract void AddAttribute(string argName, double value);
         public abstract void AddAttribute(string argName, long value);

@@ -43,6 +43,8 @@
            but they need to be migrated. Excluding these classes should have very minimal effect on code coverage.
       -->
       <Exclude>[*]Microsoft.ML.*Contracts*,[*]Microsoft.ML.Internal.Utilities*,[*]Microsoft.ML.Data.VBuffer*</Exclude>
+      <ExcludeByAttribute>Obsolete,ExcludeFromCodeCoverage</ExcludeByAttribute>
+      <ExcludeByFile>$(BaseOutputPath)..\src\Microsoft.ML.Onnx\OnnxMl.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Buffer.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Tensor.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Tensorflow.cs</ExcludeByFile>
   </PropertyGroup>
 
 </Project>

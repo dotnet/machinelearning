@@ -58,7 +58,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         private readonly Single _decay;
 
         public ExponentialAverageTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(1, 1, args.Source, args.Name, LoaderSignature, env, input)
+            : base(1, 1, args.Name, args.Source, LoaderSignature, env, input)
         {
             Host.CheckUserArg(0 <= args.Decay && args.Decay <= 1, nameof(args.Decay), "Should be in [0, 1].");
             _decay = args.Decay;

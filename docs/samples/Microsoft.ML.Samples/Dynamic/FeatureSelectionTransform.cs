@@ -48,14 +48,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // In this example we define a CountFeatureSelectingEstimator, that selects slots in a feature vector that have more non-default 
             // values than the specified count. This transformation can be used to remove slots with too many missing values.
             var countSelectEst = ml.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
-                inputColumn: "Features", outputColumn: "FeaturesCountSelect", count: 695);
+                outputColumnName: "FeaturesCountSelect", inputColumnName: "Features", count: 695);
 
             // We also define a MutualInformationFeatureSelectingEstimator that selects the top k slots in a feature 
             // vector based on highest mutual information between that slot and a specified label. Notice that it is possible to 
             // specify the parameter `numBins', which controls the number of bins used in the approximation of the mutual information
             // between features and label.
             var mutualInfoEst = ml.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(
-                inputColumn: "FeaturesCountSelect", outputColumn: "FeaturesMISelect", labelColumn: "Label", slotsInOutput: 5);
+                outputColumnName: "FeaturesMISelect", inputColumnName: "FeaturesCountSelect", labelColumn: "Label", slotsInOutput: 5);
 
             // Now, we can put the previous two transformations together in a pipeline.
             var pipeline = countSelectEst.Append(mutualInfoEst);

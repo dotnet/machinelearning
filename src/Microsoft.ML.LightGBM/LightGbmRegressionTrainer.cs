@@ -160,7 +160,7 @@ namespace Microsoft.ML.LightGBM
     /// <summary>
     /// A component to train a LightGBM model.
     /// </summary>
-    public static partial class LightGbm
+    internal static partial class LightGbm
     {
         [TlcModule.EntryPoint(Name = "Trainers.LightGbmRegressor",
             Desc = LightGbmRegressorTrainer.Summary,

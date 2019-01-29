@@ -1155,7 +1155,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
     }
 
-    public static partial class FastTree
+    internal static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker",
             Desc = FastTreeRankingTrainer.Summary,

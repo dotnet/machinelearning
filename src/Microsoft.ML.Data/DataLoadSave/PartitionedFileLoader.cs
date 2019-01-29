@@ -91,7 +91,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Required, HelpText = "Index of the directory representing this column.")]
             public int Source;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Data
                 return null;
             }
 
-            public static bool TryParse(string str, out Column column)
+            private static bool TryParse(string str, out Column column)
             {
                 column = null;
 
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
 

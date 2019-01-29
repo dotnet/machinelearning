@@ -245,7 +245,7 @@ namespace Microsoft.ML.Trainers.KMeans
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/member[@name=""KMeans++""]/*' />",
                                  @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/example[@name=""KMeans++""]/*' />"})]
-        public static CommonOutputs.ClusteringOutput TrainKMeans(IHostEnvironment env, Options input)
+        internal static CommonOutputs.ClusteringOutput TrainKMeans(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainKMeans");

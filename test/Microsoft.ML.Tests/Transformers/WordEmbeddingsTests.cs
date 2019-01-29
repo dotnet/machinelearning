@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Transformers
                     label: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath);
-            var dynamicData = new TextFeaturizingEstimator(Env, "SentimentText", "SentimentText_Features", args =>
+            var dynamicData = new TextFeaturizingEstimator(Env, "SentimentText_Features", "SentimentText",  args =>
             {
                 args.OutputTokens = true;
                 args.KeepPunctuations = false;
