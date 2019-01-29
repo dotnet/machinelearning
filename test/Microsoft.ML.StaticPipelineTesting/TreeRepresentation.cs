@@ -1,4 +1,5 @@
-﻿using Microsoft.ML.Data;
+﻿using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers.FastTree;
@@ -48,42 +49,33 @@ namespace Microsoft.ML.StaticPipelineTesting
             var trees = treeCollection.Trees;
             Assert.Equal(4, trees[0].NumNodes);
 
-            // GtChild is [3, 2, -4, -5].
+            var expectedGtChild = new int[] { 3, 2, -4, -5 };
             Assert.Equal(4, trees[0].GtChild.Length);
-            Assert.Equal(3, trees[0].GtChild[0]);
-            Assert.Equal(-5, trees[0].GtChild[3]);
+            Assert.Equal(expectedGtChild, trees[0].GtChild.ToArray());
 
-            // LteChild is [1, -1, -3, -2].
+            var expectedLteChild = new int[] { 1, -1, -3, -2 };
             Assert.Equal(4, trees[0].LteChild.Length);
-            Assert.Equal(1, trees[0].LteChild[0]);
-            Assert.Equal(-2, trees[0].LteChild[3]);
+            Assert.Equal(expectedLteChild, trees[0].LteChild.ToArray());
 
-            // CategoricalSplitFlags is [false, false, false, false].
+            var expectedCategoricalSplitFlags = new bool[] { false, false, false, false };
             Assert.Equal(4, trees[0].CategoricalSplitFlags.Length);
-            Assert.False(trees[0].CategoricalSplitFlags[0]);
-            Assert.False(trees[0].CategoricalSplitFlags[3]);
+            Assert.Equal(expectedCategoricalSplitFlags, trees[0].CategoricalSplitFlags.ToArray());
 
-            // NumericalSplitFeatureIndexes is [0, 10, 2, 10]
+            var expectedNumericalSplitFeatureIndexes = new int[] { 0, 10, 2, 10 };
             Assert.Equal(4, trees[0].NumericalSplitFeatureIndexes.Length);
-            Assert.Equal(0, trees[0].NumericalSplitFeatureIndexes[0]);
-            Assert.Equal(10, trees[0].NumericalSplitFeatureIndexes[3]);
+            Assert.Equal(expectedNumericalSplitFeatureIndexes, trees[0].NumericalSplitFeatureIndexes.ToArray());
 
-            // NumericalSplitThresholds is [0.14, -0.645, -0.095, 0.31].
+            var expectedNumericalSplitThresholds = new float[] { 0.14f, -0.645f, -0.095f, 0.31f };
             Assert.Equal(4, trees[0].NumericalSplitThresholds.Length);
-            Assert.Equal(0.14, trees[0].NumericalSplitThresholds[0], 6);
-            Assert.Equal(0.31, trees[0].NumericalSplitThresholds[3], 6);
+            for (int i = 0; i < trees[0].NumericalSplitThresholds.Length; ++i)
+                Assert.Equal(expectedNumericalSplitThresholds[i], trees[0].NumericalSplitThresholds[i], 6);
 
             Assert.Equal(5, trees[0].NumLeaves);
 
-            // Values in LeafValues:
-            // [0]	40.159015006449692	double
-            // [1]	80.434805844435061	double
-            // [2]	57.072130551545513	double
-            // [3]	82.898710076162757	double
-            // [4]	104.17547955322266	double
+            var expectedLeafValues = new double[] { 40.159015006449692, 80.434805844435061, 57.072130551545513, 82.898710076162757, 104.17547955322266 };
             Assert.Equal(5, trees[0].LeafValues.Length);
-            Assert.Equal(40.159015006449692, trees[0].LeafValues[0], 6);
-            Assert.Equal(104.17547955322266, trees[0].LeafValues[4], 6);
+            for (int i = 0; i < trees[0].LeafValues.Length; ++i)
+                Assert.Equal(expectedLeafValues[i], trees[0].LeafValues[i], 6);
 
             var sampledLabels = trees[0].GetLeafSamplesAt(0);
             Assert.Equal(1, sampledLabels.Length);
