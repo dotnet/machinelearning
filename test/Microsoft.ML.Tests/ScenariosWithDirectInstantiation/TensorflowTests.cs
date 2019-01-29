@@ -877,11 +877,11 @@ namespace Microsoft.ML.Scenarios
                    separatorChar: ','
                );
 
-            // We cannot resize variable length vector to fixed length vector in ML.Net
+            // We cannot resize variable length vector to fixed length vector in ML.NET
             // The trick here is to create two pipelines.
-            // The first pipeline tokenzies the strings into words and maps the words to an integer which is an index in the dictionary.
+            // The first pipeline 'dataPipe' tokenzies the string into words and maps each word to an integer which is an index in the dictionary.
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
-            // The second pipeline takes the resized integer vector and passed to TensoFlow and get the classification scores.
+            // The second pipeline 'tfEnginePipe' takes the resized integer vector and passed to TensoFlow and get the classification scores.
             var estimator = mlContext.Transforms.Text.TokenizeWords("Sentiment_Text", "TokenizedWords")
                 .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("TokenizedWords", "Features") }));
             var dataPipe = estimator.Fit(dataView)
