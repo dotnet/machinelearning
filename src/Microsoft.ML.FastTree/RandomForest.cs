@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _quantileEnabled = quantileEnabled;
         }
 
-        internal override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             Host.CheckValue(ch, nameof(ch));
             IGradientAdjuster gradientWrapper = MakeGradientWrapper(ch);

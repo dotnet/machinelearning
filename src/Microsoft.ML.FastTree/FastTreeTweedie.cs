@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ObjectiveImpl(TrainSet, Args);
         }
 
-        internal override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
             if (Args.UseLineSearch)

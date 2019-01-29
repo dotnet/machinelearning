@@ -175,7 +175,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract Test ConstructTestForTrainingData();
 
-        internal abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
+        private protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
         internal abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
         protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
