@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return new ScoreTracker(name, set, initScores);
         }
 
-        internal virtual double[] GetGradient(IChannel ch)
+        private protected virtual double[] GetGradient(IChannel ch)
         {
             Contracts.AssertValue(ch);
             if (DropoutRate > 0)

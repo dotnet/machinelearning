@@ -55,16 +55,16 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         protected readonly TArgs Args;
         protected readonly bool AllowGC;
-        internal TreeEnsemble TrainedEnsemble;
         protected int FeatureCount;
+        private protected TreeEnsemble TrainedEnsemble;
         private protected RoleMappedData ValidData;
         /// <summary>
         /// If not null, it's a test data set passed in from training context. It will be converted to one element in
         /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/> in <see cref="InitializeTests"/>.
         /// </summary>
         private protected RoleMappedData TestData;
-        internal IParallelTraining ParallelTraining;
-        internal OptimizationAlgorithm OptimizationAlgorithm;
+        private protected IParallelTraining ParallelTraining;
+        private protected OptimizationAlgorithm OptimizationAlgorithm;
         protected Dataset TrainSet;
         protected Dataset ValidSet;
         /// <summary>
@@ -88,8 +88,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected double[] InitValidScores;
         protected double[][] InitTestScores;
         //protected int Iteration;
-        [BestFriend]
-        internal TreeEnsemble Ensemble;
+        private protected TreeEnsemble Ensemble;
 
         protected bool HasValidSet => ValidSet != null;
 
@@ -176,7 +175,8 @@ namespace Microsoft.ML.Trainers.FastTree
         protected abstract Test ConstructTestForTrainingData();
 
         private protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
-        internal abstract TreeLearner ConstructTreeLearner(IChannel ch);
+
+        private protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
         protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
 
@@ -793,7 +793,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         // This method is called at the end of each training iteration, with the tree that was learnt on that iteration.
         // Note that this tree can be null if no tree was learnt this iteration.
-        internal virtual void CustomizedTrainingIteration(RegressionTree tree)
+        private protected virtual void CustomizedTrainingIteration(RegressionTree tree)
         {
         }
 

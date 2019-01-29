@@ -374,7 +374,7 @@ namespace Microsoft.ML.Trainers.FastTree
             PrintTestGraph(ch);
         }
 
-        internal override void CustomizedTrainingIteration(RegressionTree tree)
+        private protected override void CustomizedTrainingIteration(RegressionTree tree)
         {
             Contracts.AssertValueOrNull(tree);
             if (tree != null && Args.CompressEnsemble)

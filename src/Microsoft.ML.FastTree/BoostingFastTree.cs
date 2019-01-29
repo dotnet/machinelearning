@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
             base.CheckArgs(ch);
         }
 
-        internal override TreeLearner ConstructTreeLearner(IChannel ch)
+        private protected override TreeLearner ConstructTreeLearner(IChannel ch)
         {
             return new LeastSquaresRegressionTreeLearner(
                 TrainSet, Args.NumLeaves, Args.MinDocumentsInLeafs, Args.EntropyCoefficient,

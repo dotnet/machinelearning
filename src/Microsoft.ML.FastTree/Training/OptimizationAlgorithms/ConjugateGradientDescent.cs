@@ -17,7 +17,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _currentDk = new double[trainData.NumDocs];
         }
 
-        internal override double[] GetGradient(IChannel ch)
+        private protected override double[] GetGradient(IChannel ch)
         {
             Contracts.AssertValue(ch);
             _previousGradient = _currentGradient;
