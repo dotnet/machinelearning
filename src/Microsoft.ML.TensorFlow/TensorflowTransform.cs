@@ -1089,22 +1089,22 @@ namespace Microsoft.ML.Transforms
         private readonly ColumnType[] _outputTypes;
         private TensorFlowTransformer _transformer;
 
-        public TensorFlowEstimator(IHostEnvironment env, string modelLocation, string[] inputs, string[] outputs)
+        internal TensorFlowEstimator(IHostEnvironment env, string modelLocation, string[] inputs, string[] outputs)
             : this(env, TensorFlowUtils.LoadTensorFlowModel(env, modelLocation), inputs, outputs)
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
+        internal TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
             : this(env, CreateArguments(tensorFlowModel, inputs, outputs), tensorFlowModel)
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Arguments args)
+        internal TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Arguments args)
             : this(env, args, TensorFlowUtils.LoadTensorFlowModel(env, args.ModelLocation))
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Arguments args, TensorFlowModelInfo tensorFlowModel)
+        internal TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Arguments args, TensorFlowModelInfo tensorFlowModel)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowEstimator));
             _args = args;
