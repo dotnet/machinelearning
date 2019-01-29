@@ -543,8 +543,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            var lookupMap = DataViewHelper.CreateDataView(env, keys, values, ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, treatValuesAsKeyTypes);
-            return new ValueMappingTransformer(env, lookupMap, ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, columns);
+            var lookupMap = DataViewHelper.CreateDataView(env, keys, values, keyColumnName, valueColumnName, treatValuesAsKeyTypes);
+            return new ValueMappingTransformer(env, lookupMap, keyColumnName, valueColumnName, columns);
         }
 
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
