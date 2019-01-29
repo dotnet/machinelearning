@@ -67,8 +67,6 @@ namespace Microsoft.ML.Auto
     /// </summary>
     internal static class TransformInference
     {
-        private const bool ExcludeFeaturesConcatTransforms = false;
-
         internal class IntermediateColumn
         {
             public readonly string ColumnName;
@@ -120,15 +118,11 @@ namespace Microsoft.ML.Auto
 
         internal interface ITransformInferenceExpert
         {
-            bool IncludeFeaturesOverride { get; set; }
-
             IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns);
         }
 
         public abstract class TransformInferenceExpertBase : ITransformInferenceExpert
         {
-            public bool IncludeFeaturesOverride { get; set; }
-
             public abstract IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns);
 
             protected readonly MLContext Context;
@@ -259,12 +253,6 @@ namespace Microsoft.ML.Auto
                     var transformedColumns = new List<string>();
                     transformedColumns.AddRange(catColumnsNew);
                     transformedColumns.AddRange(catHashColumnsNew);
-
-                    if (!ExcludeFeaturesConcatTransforms && transformedColumns.Count > 0)
-                    {
-                        yield return InferenceHelpers.GetRemainingFeatures(transformedColumns, columns, IncludeFeaturesOverride);
-                        IncludeFeaturesOverride = true;
-                    }
                 }
             }
 
@@ -288,29 +276,7 @@ namespace Microsoft.ML.Auto
                     {
                         var newColumnsArr = newColumns.ToArray();
                         yield return TypeConvertingExtension.CreateSuggestedTransform(Context, newColumnsArr, newColumnsArr);
-
-                        // Concat featurized columns into existing feature column, if transformed at least one column.
-                        if (!ExcludeFeaturesConcatTransforms)
-                        {
-                            yield return InferenceHelpers.GetRemainingFeatures(newColumns, columns, IncludeFeaturesOverride);
-                            IncludeFeaturesOverride = true;
-                        }
                     }
-                }
-            }
-
-            internal static class InferenceHelpers
-            {
-                public static SuggestedTransform GetRemainingFeatures(List<string> newCols, IntermediateColumn[] existingColumns,
-                    bool includeFeaturesOverride)
-                {
-                    // Pick up existing features columns, if they exist
-                    var featuresColumnsCount = existingColumns.Count(col =>
-                     (col.Purpose == ColumnPurpose.NumericFeature) &&
-                     (col.ColumnName == DefaultColumnNames.Features));
-                    if (includeFeaturesOverride || featuresColumnsCount > 0)
-                        newCols.Insert(0, DefaultColumnNames.Features);
-                    return ColumnConcatenatingExtension.CreateSuggestedTransform(new MLContext(), newCols.ToArray(), DefaultColumnNames.Features);
                 }
             }
 
@@ -332,13 +298,6 @@ namespace Microsoft.ML.Auto
 
                         featureCols.Add(columnDestRenamed);
                         yield return TextFeaturizingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
-                    }
-
-                    // Concat text featurized columns into existing feature column, if transformed at least one column.
-                    if (!ExcludeFeaturesConcatTransforms && featureCols.Count > 0)
-                    {
-                        yield return InferenceHelpers.GetRemainingFeatures(featureCols, columns, IncludeFeaturesOverride);
-                        IncludeFeaturesOverride = true;
                     }
                 }
             }
@@ -471,27 +430,51 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Automatically infer transforms for the data view
         /// </summary>
-        public static SuggestedTransform[] InferTransforms(MLContext env, (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns)
+        public static SuggestedTransform[] InferTransforms(MLContext context, (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns)
         {
-            var intermediateCols = new IntermediateColumn[columns.Length];
-            for (var i = 0; i < columns.Length; i++)
-            {
-                var column = columns[i];
-                var intermediateCol = new IntermediateColumn(column.Item1, column.Item2, column.Item3, column.Item4);
-                intermediateCols[i] = intermediateCol;
-            }
+            var intermediateCols = columns.Where(c => c.Item3 != ColumnPurpose.Ignore)
+                .Select(c => new IntermediateColumn(c.Item1, c.Item2, c.Item3, c.Item4))
+                .ToArray();
 
-            var list = new List<SuggestedTransform>();
-            var includeFeaturesOverride = false;
+            var suggestedTransforms = new List<SuggestedTransform>();
             foreach (var expert in GetExperts())
             {
-                expert.IncludeFeaturesOverride = includeFeaturesOverride;
                 SuggestedTransform[] suggestions = expert.Apply(intermediateCols).ToArray();
-                includeFeaturesOverride |= expert.IncludeFeaturesOverride;
-
-                list.AddRange(suggestions);
+                suggestedTransforms.AddRange(suggestions);
             }
-            return list.ToArray();
+
+            var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms);
+            if(finalFeaturesConcatTransform != null)
+            {
+                suggestedTransforms.Add(finalFeaturesConcatTransform);
+            }
+
+            return suggestedTransforms.ToArray();
+        }
+        
+        /// <summary>
+        /// Build final features concat transform, using output of all suggested experts.
+        /// Take the output columns from all suggested experts (except for 'Label'), and concatenate them
+        /// into one final 'Features' column that a trainer will accept.
+        /// </summary>
+        private static SuggestedTransform BuildFinalFeaturesConcatTransform(MLContext context, IEnumerable<SuggestedTransform> suggestedTransforms)
+        {
+            // get the output column names from all suggested transforms
+            var outputColNames = new List<string>();
+            foreach (var suggestedTransform in suggestedTransforms)
+            {
+                outputColNames.AddRange(suggestedTransform.PipelineNode.OutColumns);
+            }
+
+            // remove 'Label' if it was ever a suggested purpose
+            outputColNames.Remove(DefaultColumnNames.Label);
+
+            if(!outputColNames.Any())
+            {
+                return null;
+            }
+
+            return ColumnConcatenatingExtension.CreateSuggestedTransform(context, outputColNames.ToArray(), DefaultColumnNames.Features);
         }
     }
 }

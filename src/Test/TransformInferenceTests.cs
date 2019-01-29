@@ -19,6 +19,7 @@ namespace Microsoft.ML.Auto.Test
                 {
                     ("Num1", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     ("Num2", NumberType.R4, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Ignore", NumberType.R4, ColumnPurpose.Ignore, new ColumnDimensions(null, null)),
                     ("Cat1", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
                     ("Cat2", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
                     ("LargeCat1", TextType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
@@ -71,6 +72,7 @@ namespace Microsoft.ML.Auto.Test
     ""Name"": ""ColumnConcatenating"",
     ""NodeType"": 0,
     ""InColumns"": [
+      ""Features"",
       ""Cat1"",
       ""Cat2"",
       ""LargeCat1"",
