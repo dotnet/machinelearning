@@ -154,9 +154,9 @@ namespace Microsoft.ML
                         stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
                     HashingTransformer.ColumnInfo columnInfo;
                     if (seed.HasValue)
-                        columnInfo = new HashingTransformer.ColumnInfo(origStratCol, stratificationColumn, 30, seed.Value);
+                        columnInfo = new HashingTransformer.ColumnInfo(stratificationColumn, origStratCol, 30, seed.Value);
                     else
-                        columnInfo = new HashingTransformer.ColumnInfo(origStratCol, stratificationColumn, 30);
+                        columnInfo = new HashingTransformer.ColumnInfo(stratificationColumn, origStratCol, 30);
                     data = new HashingEstimator(Host, columnInfo).Fit(data).Transform(data);
                 }
             }
