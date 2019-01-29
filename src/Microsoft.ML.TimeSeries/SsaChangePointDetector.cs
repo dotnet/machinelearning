@@ -67,7 +67,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public int SeasonalWindowSize = 10;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The function used to compute the error between the expected and the observed value.", ShortName = "err", SortOrder = 103)]
-            public ErrorFunctionUtils.ErrorFunction ErrorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference;
+            public ErrorFunction ErrorFunction = ErrorFunction.SignedDifference;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The martingale used for scoring.", ShortName = "mart", SortOrder = 104)]
             public MartingaleType Martingale = SequentialAnomalyDetectionTransformBase<float, State>.MartingaleType.Power;

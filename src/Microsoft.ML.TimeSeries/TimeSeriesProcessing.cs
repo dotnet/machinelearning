@@ -15,7 +15,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     internal static class TimeSeriesProcessingEntryPoints
     {
         [TlcModule.EntryPoint(Desc = ExponentialAverageTransform.Summary, UserName = ExponentialAverageTransform.UserName, ShortName = ExponentialAverageTransform.ShortName)]
-        public static CommonOutputs.TransformOutput ExponentialAverage(IHostEnvironment env, ExponentialAverageTransform.Arguments input)
+        internal static CommonOutputs.TransformOutput ExponentialAverage(IHostEnvironment env, ExponentialAverageTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ExponentialAverageTransform", input);
             var xf = new ExponentialAverageTransform(h, input, input.Data);
@@ -51,7 +51,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.PercentileThresholdTransform.Summary, UserName = TimeSeriesProcessing.PercentileThresholdTransform.UserName, ShortName = TimeSeriesProcessing.PercentileThresholdTransform.ShortName)]
-        public static CommonOutputs.TransformOutput PercentileThresholdTransform(IHostEnvironment env, PercentileThresholdTransform.Arguments input)
+        internal static CommonOutputs.TransformOutput PercentileThresholdTransform(IHostEnvironment env, PercentileThresholdTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "PercentileThresholdTransform", input);
             var view = new PercentileThresholdTransform(h, input, input.Data);
@@ -63,7 +63,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.PValueTransform.Summary, UserName = TimeSeriesProcessing.PValueTransform.UserName, ShortName = TimeSeriesProcessing.PValueTransform.ShortName)]
-        public static CommonOutputs.TransformOutput PValueTransform(IHostEnvironment env, PValueTransform.Arguments input)
+        internal static CommonOutputs.TransformOutput PValueTransform(IHostEnvironment env, PValueTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "PValueTransform", input);
             var view = new PValueTransform(h, input, input.Data);
@@ -75,7 +75,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.SlidingWindowTransform.Summary, UserName = TimeSeriesProcessing.SlidingWindowTransform.UserName, ShortName = TimeSeriesProcessing.SlidingWindowTransform.ShortName)]
-        public static CommonOutputs.TransformOutput SlidingWindowTransform(IHostEnvironment env, SlidingWindowTransform.Arguments input)
+        internal static CommonOutputs.TransformOutput SlidingWindowTransform(IHostEnvironment env, SlidingWindowTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SlidingWindowTransform", input);
             var view = new SlidingWindowTransform(h, input, input.Data);

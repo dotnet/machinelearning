@@ -13,22 +13,22 @@ using Microsoft.ML.TimeSeries;
 
 namespace Microsoft.ML.TimeSeriesProcessing
 {
+    public enum ErrorFunction : byte
+    {
+        SignedDifference,
+        AbsoluteDifference,
+        SignedProportion,
+        AbsoluteProportion,
+        SquaredDifference
+    }
+
     /// <summary>
     /// Provides the utility functions for different error functions for computing deviation.
     /// </summary>
-    public static class ErrorFunctionUtils
+    internal static class ErrorFunctionUtils
     {
         public const string ErrorFunctionHelpText = "The error function should be either (0) SignedDifference, (1) AbsoluteDifference, (2) SignedProportion" +
                                                      " (3) AbsoluteProportion or (4) SquaredDifference.";
-
-        public enum ErrorFunction : byte
-        {
-            SignedDifference,
-            AbsoluteDifference,
-            SignedProportion,
-            AbsoluteProportion,
-            SquaredDifference
-        }
 
         public static Double SignedDifference(Double actual, Double predicted)
         {
@@ -96,7 +96,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public Single DiscountFactor = 1;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The function used to compute the error between the expected and the observed value", ShortName = "err", SortOrder = 13)]
-            public ErrorFunctionUtils.ErrorFunction ErrorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference;
+            public ErrorFunction ErrorFunction = ErrorFunction.SignedDifference;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The flag determing whether the model is adaptive", ShortName = "adp", SortOrder = 14)]
             public bool IsAdaptive = false;
@@ -105,7 +105,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         protected readonly int SeasonalWindowSize;
         protected readonly Single DiscountFactor;
         protected readonly bool IsAdaptive;
-        protected readonly ErrorFunctionUtils.ErrorFunction ErrorFunction;
+        protected readonly ErrorFunction ErrorFunction;
         protected readonly Func<Double, Double, Double> ErrorFunc;
         protected SequenceModelerBase<Single, Single> Model;
 
@@ -114,7 +114,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
             Host.CheckUserArg(2 <= args.SeasonalWindowSize, nameof(args.SeasonalWindowSize), "Must be at least 2.");
             Host.CheckUserArg(0 <= args.DiscountFactor && args.DiscountFactor <= 1, nameof(args.DiscountFactor), "Must be in the range [0, 1].");
-            Host.CheckUserArg(Enum.IsDefined(typeof(ErrorFunctionUtils.ErrorFunction), args.ErrorFunction), nameof(args.ErrorFunction), ErrorFunctionUtils.ErrorFunctionHelpText);
+            Host.CheckUserArg(Enum.IsDefined(typeof(ErrorFunction), args.ErrorFunction), nameof(args.ErrorFunction), ErrorFunctionUtils.ErrorFunctionHelpText);
 
             SeasonalWindowSize = args.SeasonalWindowSize;
             DiscountFactor = args.DiscountFactor;
@@ -150,8 +150,8 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             byte temp;
             temp = ctx.Reader.ReadByte();
-            Host.CheckDecode(Enum.IsDefined(typeof(ErrorFunctionUtils.ErrorFunction), temp));
-            ErrorFunction = (ErrorFunctionUtils.ErrorFunction)temp;
+            Host.CheckDecode(Enum.IsDefined(typeof(ErrorFunction), temp));
+            ErrorFunction = (ErrorFunction)temp;
             ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
 
             IsAdaptive = ctx.Reader.ReadBoolean();
@@ -184,7 +184,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Host.Assert(InitialWindowSize == 0);
             Host.Assert(2 <= SeasonalWindowSize);
             Host.Assert(0 <= DiscountFactor && DiscountFactor <= 1);
-            Host.Assert(Enum.IsDefined(typeof(ErrorFunctionUtils.ErrorFunction), ErrorFunction));
+            Host.Assert(Enum.IsDefined(typeof(ErrorFunction), ErrorFunction));
             Host.Assert(Model != null);
 
             // *** Binary format ***

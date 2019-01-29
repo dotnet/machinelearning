@@ -22,7 +22,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// and l is the delay.
     /// </summary>
 
-    public abstract class SlidingWindowTransformBase<TInput> : SequentialTransformBase<TInput, VBuffer<TInput>, SlidingWindowTransformBase<TInput>.StateSlide>
+    internal abstract class SlidingWindowTransformBase<TInput> : SequentialTransformBase<TInput, VBuffer<TInput>, SlidingWindowTransformBase<TInput>.StateSlide>
     {
         /// <summary>
         /// Defines what should be done about the first rows.

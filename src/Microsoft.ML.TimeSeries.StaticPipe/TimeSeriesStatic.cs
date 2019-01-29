@@ -158,7 +158,7 @@ namespace Microsoft.ML.StaticPipe
                 int changeHistoryLength,
                 int trainingWindowSize,
                 int seasonalityWindowSize,
-                ErrorFunctionUtils.ErrorFunction errorFunction,
+                ErrorFunction errorFunction,
                 SsaBase.MartingaleType martingale,
                 double eps)
                 : base(new Reconciler(confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, errorFunction, martingale, eps), input)
@@ -173,7 +173,7 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _changeHistoryLength;
             private readonly int _trainingWindowSize;
             private readonly int _seasonalityWindowSize;
-            private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
+            private readonly ErrorFunction _errorFunction;
             private readonly SsaBase.MartingaleType _martingale;
             private readonly double _eps;
 
@@ -182,7 +182,7 @@ namespace Microsoft.ML.StaticPipe
                 int changeHistoryLength,
                 int trainingWindowSize,
                 int seasonalityWindowSize,
-                ErrorFunctionUtils.ErrorFunction errorFunction,
+                ErrorFunction errorFunction,
                 SsaBase.MartingaleType martingale,
                 double eps)
             {
@@ -225,7 +225,7 @@ namespace Microsoft.ML.StaticPipe
             int changeHistoryLength,
             int trainingWindowSize,
             int seasonalityWindowSize,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
+            ErrorFunction errorFunction = ErrorFunction.SignedDifference,
             SsaBase.MartingaleType martingale = SsaBase.MartingaleType.Power,
             double eps = 0.1) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, errorFunction, martingale, eps);
     }
@@ -245,7 +245,7 @@ namespace Microsoft.ML.StaticPipe
                 int trainingWindowSize,
                 int seasonalityWindowSize,
                 SsaBase.AnomalySide side,
-                ErrorFunctionUtils.ErrorFunction errorFunction)
+                ErrorFunction errorFunction)
                 : base(new Reconciler(confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction), input)
             {
                 Input = input;
@@ -259,7 +259,7 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _trainingWindowSize;
             private readonly int _seasonalityWindowSize;
             private readonly SsaBase.AnomalySide _side;
-            private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
+            private readonly ErrorFunction _errorFunction;
 
             public Reconciler(
                 int confidence,
@@ -267,7 +267,7 @@ namespace Microsoft.ML.StaticPipe
                 int trainingWindowSize,
                 int seasonalityWindowSize,
                 SsaBase.AnomalySide side,
-                ErrorFunctionUtils.ErrorFunction errorFunction)
+                ErrorFunction errorFunction)
             {
                 _confidence = confidence;
                 _pvalueHistoryLength = pvalueHistoryLength;
@@ -307,7 +307,7 @@ namespace Microsoft.ML.StaticPipe
             int trainingWindowSize,
             int seasonalityWindowSize,
             SsaBase.AnomalySide side = SsaBase.AnomalySide.TwoSided,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference
+            ErrorFunction errorFunction = ErrorFunction.SignedDifference
             ) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction);
 
     }
