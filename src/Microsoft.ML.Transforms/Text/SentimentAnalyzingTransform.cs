@@ -140,7 +140,7 @@ namespace Microsoft.ML.Transforms.Text
             if (Utils.Size(hiddenNames) == 0)
                 return input;
 
-            input = new ColumnCopyingTransformer(env, hiddenNames.Select(x => (Name: x.Key, Source: x.Value)).ToArray()).Transform(input);
+            input = new ColumnCopyingTransformer(env, hiddenNames.Select(x => (outputColumnName: x.Key, inputColumnName: x.Value)).ToArray()).Transform(input);
             return ColumnSelectingTransformer.CreateDrop(env, input, hiddenNames.Select(pair => pair.Value).ToArray());
         }
 

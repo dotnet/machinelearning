@@ -1060,15 +1060,15 @@ namespace Microsoft.ML.Transforms.Text
         private readonly NgramHashingTransformer.ColumnInfo[] _columns;
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="source"/>
-        /// and outputs ngram vector as <paramref name="name"/>
+        /// Produces a bag of counts of hashed ngrams in <paramref name="sourceColumnName"/>
+        /// and outputs ngram vector as <paramref name="outputColumnName"/>
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="name">Name of output column, will contain the ngram vector. Null means <paramref name="source"/> is replaced.</param>
-        /// <param name="source">Name of input column containing tokenized text.</param>
+        /// <param name="outputColumnName">Name of output column, will contain the ngram vector. Null means <paramref name="sourceColumnName"/> is replaced.</param>
+        /// <param name="sourceColumnName">Name of input column containing tokenized text.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -1080,8 +1080,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public NgramHashingEstimator(IHostEnvironment env,
-            string name,
-            string source = null,
+            string outputColumnName,
+            string sourceColumnName = null,
             int hashBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
@@ -1089,20 +1089,20 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-            : this(env, new[] { (name, new[] { source ?? name }) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
+            : this(env, new[] { (outputColumnName, new[] { sourceColumnName ?? outputColumnName }) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
         {
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="sources"/>
-        /// and outputs ngram vector as <paramref name="name"/>
+        /// Produces a bag of counts of hashed ngrams in <paramref name="sourceColumnNames"/>
+        /// and outputs ngram vector as <paramref name="outputColumnName"/>
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="name">Name of output column, will contain the ngram vector.</param>
-        /// <param name="sources">Name of input columns containing tokenized text.</param>
+        /// <param name="outputColumnName">Name of output column, will contain the ngram vector.</param>
+        /// <param name="sourceColumnNames">Name of input columns containing tokenized text.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -1114,8 +1114,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public NgramHashingEstimator(IHostEnvironment env,
-            string name,
-            string[] sources,
+            string outputColumnName,
+            string[] sourceColumnNames,
             int hashBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
@@ -1123,7 +1123,7 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-            : this(env, new[] { (name, sources) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
+            : this(env, new[] { (outputColumnName, sourceColumnNames) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
         {
         }
 
@@ -1147,7 +1147,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public NgramHashingEstimator(IHostEnvironment env,
-            (string name, string[] sources)[] columns,
+            (string outputColumnName, string[] sourceColumnName)[] columns,
             int hashBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
@@ -1155,7 +1155,7 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-             : this(env, columns.Select(x => new NgramHashingTransformer.ColumnInfo(x.name, x.sources, ngramLength, skipLength, allLengths, hashBits, seed, ordered, invertHash)).ToArray())
+             : this(env, columns.Select(x => new NgramHashingTransformer.ColumnInfo(x.outputColumnName, x.sourceColumnName, ngramLength, skipLength, allLengths, hashBits, seed, ordered, invertHash)).ToArray())
         {
 
         }

@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] = new WordTokenizingTransformer.ColumnInfo(column.Name, column.Source.Length > 0 ? column.Source[0]: column.Name);
+                tokenizeColumns[iinfo] = new WordTokenizingTransformer.ColumnInfo(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
 
                 extractorArgs.Column[iinfo] =
                     new NgramExtractorTransform.Column()

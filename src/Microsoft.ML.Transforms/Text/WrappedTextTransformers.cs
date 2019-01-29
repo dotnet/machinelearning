@@ -128,7 +128,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class WordHashBagEstimator : TrainedWrapperEstimatorBase
     {
-        private readonly (string name, string[] sources)[] _columns;
+        private readonly (string outputColumnName, string[] sourceColumnNames)[] _columns;
         private readonly int _hashBits;
         private readonly int _ngramLength;
         private readonly int _skipLength;
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms.Text
             // Create arguments.
             var args = new WordHashBagProducingTransformer.Arguments
             {
-                Column = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.name  ,Source = x.sources}).ToArray(),
+                Column = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName  ,Source = x.sourceColumnNames}).ToArray(),
                 HashBits = _hashBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
