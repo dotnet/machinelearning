@@ -86,7 +86,9 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         void TestSimpleCase()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
             var modelFile = "squeezenet/00000001/model.onnx";
@@ -131,6 +133,8 @@ namespace Microsoft.ML.Tests
         [InlineData(null, true)]
         void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
         {
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
@@ -189,7 +193,9 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         public void OnnxStatic()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
@@ -234,7 +240,9 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         void TestCommandLine()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
             var env = new MLContext();
@@ -245,7 +253,9 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         public void OnnxModelScenario()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
             var modelFile = "squeezenet/00000001/model.onnx";
@@ -280,7 +290,9 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         public void OnnxModelMultiInput()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
@@ -296,7 +308,7 @@ namespace Microsoft.ML.Tests
                         inb = new float[] {1,2,3,4,5}
                     }
                     });
-                var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }).Transform(dataView);
+                var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }, 0).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
@@ -323,7 +335,9 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         public void TestUnknownDimensions()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
             // model contains -1 in input and output shape dimensions

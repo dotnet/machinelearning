@@ -60,6 +60,8 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         void TestDnnImageFeaturizer()
         {
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
             
@@ -98,6 +100,8 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void OnnxStatic()
         {
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
@@ -141,6 +145,8 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestOldSavingAndLoading()
         {
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
             
