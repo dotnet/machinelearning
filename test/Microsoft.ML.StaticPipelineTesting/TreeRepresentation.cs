@@ -84,6 +84,14 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(5, trees[0].LeafValues.Length);
             Assert.Equal(40.159015006449692, trees[0].LeafValues[0], 6);
             Assert.Equal(104.17547955322266, trees[0].LeafValues[4], 6);
+
+            var sampledLabels = trees[0].GetLeafSamplesAt(0);
+            Assert.Equal(1, sampledLabels.Length);
+            Assert.Equal(40.159015006449692, sampledLabels[0], 6);
+
+            var sampledLabelWeights = trees[0].GetLeafSampleWeightsAt(0);
+            Assert.Equal(1, sampledLabelWeights.Length);
+            Assert.Equal(1, sampledLabelWeights[0], 6);
         }
     }
 }
