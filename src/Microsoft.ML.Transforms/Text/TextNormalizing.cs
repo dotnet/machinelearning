@@ -261,7 +261,8 @@ namespace Microsoft.ML.Transforms.Text
             {
                 get
                 {
-                    if (_combinedDiacriticsMap == null)
+                    Dictionary<char, char> result = _combinedDiacriticsMap;
+                    if (result == null)
                     {
                         var combinedDiacriticsMap = new Dictionary<char, char>();
                         for (int i = 0; i < _combinedDiacriticsPairs.Length; i++)
@@ -271,9 +272,10 @@ namespace Microsoft.ML.Transforms.Text
                         }
 
                         Interlocked.CompareExchange(ref _combinedDiacriticsMap, combinedDiacriticsMap, null);
+                        result = _combinedDiacriticsMap;
                     }
 
-                    return _combinedDiacriticsMap;
+                    return result;
                 }
             }
 

@@ -25,10 +25,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         {
             get
             {
-                if (_trivialBinUpperBounds == null)
-                    Interlocked.CompareExchange(ref _trivialBinUpperBounds, new double[] { double.PositiveInfinity }, null);
-                Contracts.AssertValue(_trivialBinUpperBounds);
-                return _trivialBinUpperBounds;
+                return _trivialBinUpperBounds ??
+                    Interlocked.CompareExchange(ref _trivialBinUpperBounds, new double[] { double.PositiveInfinity }, null) ??
+                    _trivialBinUpperBounds;
             }
         }
 

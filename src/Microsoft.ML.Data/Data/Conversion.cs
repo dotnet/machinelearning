@@ -55,9 +55,9 @@ namespace Microsoft.ML.Data.Conversion
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new Conversions(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new Conversions(), null) ??
+                    _instance;
             }
         }
 

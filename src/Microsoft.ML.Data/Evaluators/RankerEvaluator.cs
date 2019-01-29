@@ -949,7 +949,8 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_discountMap == null)
+                double[] result = _discountMap;
+                if (result == null)
                 {
                     var discountMap = new Double[100]; //Hard to believe anyone would set truncation Level higher than 100
                     for (int i = 0; i < discountMap.Length; i++)
@@ -957,8 +958,9 @@ namespace Microsoft.ML.Data
                         discountMap[i] = 1 / Math.Log(2 + i);
                     }
                     Interlocked.CompareExchange(ref _discountMap, discountMap, null);
+                    result = _discountMap;
                 }
-                return _discountMap;
+                return result;
             }
         }
 

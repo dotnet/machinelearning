@@ -33,7 +33,8 @@ namespace Microsoft.ML.Data
             {
                 get
                 {
-                    if (_knownEvaluatorFactories == null)
+                    Dictionary<string, Func<IHostEnvironment, IMamlEvaluator>> result = _knownEvaluatorFactories;
+                    if (result == null)
                     {
                         var tmp = new Dictionary<string, Func<IHostEnvironment, IMamlEvaluator>>
                         {
@@ -48,8 +49,9 @@ namespace Microsoft.ML.Data
                         };
                         //tmp.Add(MetadataUtils.Const.ScoreColumnKind.SequenceClassification, "SequenceClassifierEvaluator");
                         Interlocked.CompareExchange(ref _knownEvaluatorFactories, tmp, null);
+                        result = _knownEvaluatorFactories;
                     }
-                    return _knownEvaluatorFactories;
+                    return result;
                 }
             }
         }

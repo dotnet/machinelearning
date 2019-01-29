@@ -23,9 +23,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new TextCombiner(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new TextCombiner(), null) ??
+                    _instance;
             }
         }
 
@@ -48,9 +48,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new FloatAdder(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new FloatAdder(), null) ??
+                    _instance;
             }
         }
 
@@ -90,9 +90,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new R8Adder(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new R8Adder(), null) ??
+                    _instance;
             }
         }
 
@@ -112,9 +112,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new U4Adder(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new U4Adder(), null) ??
+                    _instance;
             }
         }
 

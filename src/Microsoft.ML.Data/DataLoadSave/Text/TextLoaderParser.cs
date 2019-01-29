@@ -28,9 +28,9 @@ namespace Microsoft.ML.Data
             {
                 get
                 {
-                    if (_instance == null)
-                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null);
-                    return _instance;
+                    return _instance ??
+                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null) ??
+                        _instance;
                 }
             }
 

@@ -143,7 +143,8 @@ namespace Microsoft.ML.Transforms.Text
         {
             get
             {
-                if (_stopWords == null)
+                NormStr.Pool[] result = _stopWords;
+                if (result == null)
                 {
                     var values = Enum.GetValues(typeof(StopWordsRemovingEstimator.Language)).Cast<int>();
                     var langValues = values as int[] ?? values.ToArray();
@@ -153,9 +154,10 @@ namespace Microsoft.ML.Transforms.Text
 
                     var stopWords = new NormStr.Pool[maxValue + 1];
                     Interlocked.CompareExchange(ref _stopWords, stopWords, null);
+                    result = _stopWords;
                 }
 
-                return _stopWords;
+                return result;
             }
         }
 
@@ -163,14 +165,16 @@ namespace Microsoft.ML.Transforms.Text
         {
             get
             {
-                if (_langsDictionary == null)
+                Dictionary<ReadOnlyMemory<char>, StopWordsRemovingEstimator.Language> result = _langsDictionary;
+                if (result == null)
                 {
                     var langsDictionary = Enum.GetValues(typeof(StopWordsRemovingEstimator.Language)).Cast<StopWordsRemovingEstimator.Language>()
                         .ToDictionary(lang => lang.ToString().AsMemory(), new ReadOnlyMemoryUtils.ReadonlyMemoryCharComparer());
                     Interlocked.CompareExchange(ref _langsDictionary, langsDictionary, null);
+                    result = _langsDictionary;
                 }
 
-                return _langsDictionary;
+                return result;
             }
         }
 

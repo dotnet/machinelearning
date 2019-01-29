@@ -171,12 +171,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_scoreColumnSetIdType == null)
-                {
-                    var type = new KeyType(typeof(uint), int.MaxValue);
-                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, type, null);
-                }
-                return _scoreColumnSetIdType;
+                return _scoreColumnSetIdType ??
+                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, new KeyType(typeof(uint), int.MaxValue), null) ??
+                    _scoreColumnSetIdType;
             }
         }
 
