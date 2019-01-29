@@ -93,8 +93,8 @@ namespace Microsoft.ML.Transforms.Text
         {
             foreach (var (outputColumnName, sourceColumnName) in columns)
             {
-                Host.CheckUserArg(Utils.Size(outputColumnName) > 0, nameof(columns));
-                Host.CheckValue(sourceColumnName, nameof(columns));
+                Host.CheckUserArg(Utils.Size(sourceColumnName) > 0, nameof(columns));
+                Host.CheckValue(outputColumnName, nameof(columns));
             }
 
             _columns = columns;
@@ -169,12 +169,12 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="sources"/>
-        /// and outputs bag of word vector as <paramref name="name"/>
+        /// Produces a bag of counts of hashed ngrams in <paramref name="sourceColumnNames"/>
+        /// and outputs bag of word vector as <paramref name="outputColumnName"/>
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="name">The column containing output tokens.</param>
-        /// <param name="sources">The columns containing text to compute bag of word vector.</param>
+        /// <param name="outputColumnName">The column containing output tokens.</param>
+        /// <param name="sourceColumnNames">The columns containing text to compute bag of word vector.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -186,8 +186,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public WordHashBagEstimator(IHostEnvironment env,
-            string name,
-            string[] sources,
+            string outputColumnName,
+            string[] sourceColumnNames,
             int hashBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-            : this(env, new[] { (name, sources) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
+            : this(env, new[] { (outputColumnName, sourceColumnNames) }, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash)
         {
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public WordHashBagEstimator(IHostEnvironment env,
-            (string name, string[] sources)[] columns,
+            (string outputColumnName, string[] sourceColumnNames)[] columns,
             int hashBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
