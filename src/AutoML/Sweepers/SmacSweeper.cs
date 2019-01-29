@@ -318,14 +318,26 @@ namespace Microsoft.ML.Auto
             foreach (ParameterSet config in configs)
             {
                 List<double> leafValues = new List<double>();
-                for(var treeId = 0; treeId < _args.NumOfTrees; treeId++)
+                for (var treeId = 0; treeId < _args.NumOfTrees; treeId++)
                 {
-                    Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_sweepParameters, config, true);
-                    VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);
-                    List<int> path = null;
-                    var leafId = forest.GetLeaf(treeId, features, ref path);
-                    var leafValue = forest.GetLeafValue(treeId, leafId);
-                    leafValues.Add(leafValue);
+                    // hack pending fix for ML.NET issue https://github.com/dotnet/machinelearning/issues/1960
+                    // we requested SMAC to train _args.NumOfTrees. however, it's possible it trained < this # of trees.
+                    // if we requested SMAC train 10 trees, but it only trained 8, then when we try to pull
+                    // the leaf node value from the 9th tree in the code in the try block, an exception will be thrown.
+                    // for now, swallow the exception, and just proceed using all the leaf values.
+                    try
+                    {
+                        Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_sweepParameters, config, true);
+                        VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);
+                        List<int> path = null;
+                        var leafId = forest.GetLeaf(treeId, features, ref path);
+                        var leafValue = forest.GetLeafValue(treeId, leafId);
+                        leafValues.Add(leafValue);
+                    }
+                    catch (Exception)
+                    {
+                        // swallow exception
+                    }
                 }
                 datasetLeafValues.Add(leafValues.ToArray());
             }
