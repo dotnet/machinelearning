@@ -94,7 +94,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         protected abstract ScoreTracker ConstructScoreTracker(string name, Dataset set, double[] initScores);
 
-        // Regularize a regression tree with smoothing paramter alpha
+        /// <summary>
+        /// Regularize a regression tree with smoothing paramter alpha.
+        /// </summary>
         protected virtual void SmoothTree(RegressionTree tree, double smoothing)
         {
             if (smoothing == 0.0)

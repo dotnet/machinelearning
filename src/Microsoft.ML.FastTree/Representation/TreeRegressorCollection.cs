@@ -11,8 +11,11 @@ namespace Microsoft.ML.FastTree.Representation
     /// </summary>
     public class TreeRegressorCollection
     {
+        /// <summary>
+        /// It's a best friend for being accessed from LightGBM.
+        /// </summary>
         [BestFriend]
-        internal readonly TreeEnsemble TreeEnsemble; // It's a best friend for being accessed from LightGBM.
+        internal readonly TreeEnsemble TreeEnsemble;
 
         /// <summary>
         /// When doing prediction, this is a value added to the weighted sum of all <see cref="Trees"/>' outputs.

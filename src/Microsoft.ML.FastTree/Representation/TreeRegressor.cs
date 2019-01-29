@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Trainers.FastTree.Internal;
 
@@ -12,7 +11,8 @@ namespace Microsoft.ML.FastTree.Representation
     public class TreeRegressor
     {
         /// <summary>
-        /// <see cref="TreeRegressor"/> is an immutable wrapper over <see cref="_tree"/> for exposing some tree's attribute to users.
+        /// <see cref="TreeRegressor"/> is an immutable wrapper over <see cref="_tree"/> for exposing some tree's
+        /// attribute to users.
         /// </summary>
         private readonly RegressionTree _tree;
 
@@ -32,7 +32,8 @@ namespace Microsoft.ML.FastTree.Representation
         /// (1) the numerical feature indexed by <see cref="NumericalSplitFeatureIndexes"/>[i] is less than the
         /// threshold <see cref="NumericalSplitThresholds"/>[i], or
         /// (2) the categorical features indexed by <see cref="GetCategoricalCategoricalSplitFeatureRangeAt(int)"/>'s
-        /// returned value with nodeIndex=i is NOT a sub-set of <see cref="GetCategoricalSplitFeaturesAt(int)"/> with nodeIndex=i.
+        /// returned value with nodeIndex=i is NOT a sub-set of <see cref="GetCategoricalSplitFeaturesAt(int)"/> with
+        /// nodeIndex=i.
         /// Note that the case (1) happens only when <see cref="CategoricalSplitFlags"/>[i] is true and otherwise (2)
         /// occurs. A non-negative returned value means a node (i.e., not a leaf); for example, 2 means the 3rd node in
         /// the underlying <see cref="_tree"/>. A negative returned value means a leaf; for example, -1 stands for the
@@ -68,7 +69,7 @@ namespace Microsoft.ML.FastTree.Representation
         /// <summary>
         /// Return categorical thresholds used at node indexed by nodeIndex. If the considered input feature does NOT
         /// matche any of values returned by <see cref="GetCategoricalSplitFeaturesAt(int)"/>, we call it a less-than-threshold
-        /// even and therefore <see cref="LteChild"/>[nodeIndex] is the child node that input should go next. The returned
+        /// event and therefore <see cref="LteChild"/>[nodeIndex] is the child node that input should go next. The returned
         /// value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
         public ReadOnlySpan<int> GetCategoricalSplitFeaturesAt(int nodeIndex) => new ReadOnlySpan<int>(_tree.CategoricalSplitFeatures[nodeIndex]);
