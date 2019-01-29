@@ -13,7 +13,7 @@
     <PropertyGroup>
       <_CodecovPath>$(RestorePackagesPath)codecov\$(CodecovVersion)\tools\Codecov.exe</_CodecovPath>
       <_ReportGeneratorPath>$(RestorePackagesPath)reportgenerator\$(ReportGeneratorVersion)\tools\net47\ReportGenerator.exe</_ReportGeneratorPath>
-      <_BranchName Condition="'$(_BranchName)' == ''">$(SYSTEM_PULLREQUEST_TARGETBRANCH)</_BranchName>
+      <_BranchName Condition="'$(_BranchName)' == ''">$(SYSTEM_PULLREQUEST_SOURCEBRANCH)</_BranchName>
       <_BranchName Condition="'$(_BranchName)' == ''">$(BUILD_SOURCEBRANCHNAME)</_BranchName>
     </PropertyGroup>
 
