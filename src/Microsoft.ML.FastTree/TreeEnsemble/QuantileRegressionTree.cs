@@ -103,10 +103,10 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <param name="leafSamples">List of label collections. The type of a collction is a double array. The i-th label collection contains training examples' labels falling into the i-th leaf.</param>
         /// <param name="leafSampleWeights">List of labels' weight collections. The type of a collction is a double array. The i-th collection contains weights of labels falling into the i-th leaf.
         /// Specifically, leafSampleWeights[i][j] is the weight of leafSamples[i][j].</param>
-        internal void ExtractLeafSamplesAndTheirWeights(out List<double[]> leafSamples, out List<double[]> leafSampleWeights)
+        internal void ExtractLeafSamplesAndTheirWeights(out double[][] leafSamples, out double[][] leafSampleWeights)
         {
-            leafSamples = new List<double[]>();
-            leafSampleWeights = new List<double[]>();
+            leafSamples = new double[NumLeaves][];
+            leafSampleWeights = new double[NumLeaves][];
             // If there is no training labels stored, we view the i-th leaf value as the only label stored at the i-th leaf.
             var sampleCountPerLeaf = _labelsDistribution != null ? _labelsDistribution.Length / NumLeaves : 1;
             for (int i = 0; i < NumLeaves; ++i)
@@ -125,8 +125,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                     else
                         sampleWeightsPerLeaf.Add(1.0);
                 }
-                leafSamples.Add(samplesPerLeaf.ToArray());
-                leafSampleWeights.Add(sampleWeightsPerLeaf.ToArray());
+                leafSamples[i] = samplesPerLeaf.ToArray();
+                leafSampleWeights[i] = sampleWeightsPerLeaf.ToArray();
             }
         }
 
