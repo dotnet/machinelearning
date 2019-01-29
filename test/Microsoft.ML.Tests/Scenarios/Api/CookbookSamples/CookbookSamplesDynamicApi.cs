@@ -197,15 +197,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // 		[2]	-9.709775	float
 
             // Apply the inverse conversion from 'PredictedLabel' column back to string value.
-<<<<<<< HEAD
-            var finalPipeline = dynamicPipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(("Data", "PredictedLabel")));
-=======
-            var finalPipeline = pipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
-
-
+            var finalPipeline = pipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(("Data", "PredictedLabel")));
             dataPreview = finalPipeline.Preview(trainData);
-
->>>>>>> addressing PR comments, fixing links.
 
             return finalPipeline.Fit(trainData);
         }

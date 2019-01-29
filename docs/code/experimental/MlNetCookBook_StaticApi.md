@@ -173,7 +173,6 @@ When the input file contains many columns of the same type, always intended to b
 
 Reading this file using `TextLoader`:
 ```csharp
-
 // Create the reader: define the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(ctx => (
         // We read the first 11 values as a single float vector.
@@ -326,10 +325,6 @@ feature_0;feature_1;feature_2;feature_3;feature_4;feature_5;feature_6;feature_7;
 In the file above, the last column (12th) is label that we predict, and all the preceding ones are features.
 
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(ctx => (
@@ -427,10 +422,6 @@ For this case, ML.NET offers a convenient `PredictionEngine` component, that ess
 Here is the full example. Let's imagine that we have built a model for the famous Iris prediction dataset:
 
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(ctx => (
@@ -543,10 +534,6 @@ private class CustomerChurnInfo
 
 Given this information, here's how we turn this data into the ML.NET data view and train on it:
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Step one: read the data as an IDataView.
 // Let's assume that 'GetChurnData()' fetches and returns the training data from somewhere.
 IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
@@ -686,10 +673,6 @@ It is a good practice to include the normalizer directly in the ML.NET learning 
 
 Here's a snippet of code that demonstrates normalization in learning pipelines. It assumes the Iris dataset:
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(ctx => (
         // The four features of the Iris dataset will be grouped together as one Features column.
@@ -828,10 +811,6 @@ Sentiment   SentimentText
 ```
 
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(ctx => (
         IsToxic: ctx.LoadBool(0),
@@ -895,10 +874,6 @@ ML.NET guards us against both these pitfalls: it will automatically apply the fe
 
 Here's an example of training on Iris dataset using randomized 90/10 train-test split, as well as a 5-fold cross-validation:
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(ctx => (
@@ -959,10 +934,6 @@ Transitioning from dynamic to static types is more costly: we have to formally d
 
 We can do this via `AssertStatic<T>` extensions, as demonstrated in the following example, where we mix and match static and dynamic pipelines.
 ```c#
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(ctx => (
