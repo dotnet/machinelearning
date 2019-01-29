@@ -7,6 +7,7 @@ namespace Microsoft.ML.FastTree.Representation
 {
     /// <summary>
     /// A container class for exposing <see cref="RegressionTree"/>'s attributes to users.
+    /// This class should not be mutable, so it contains a lot of read-only members.
     /// </summary>
     public class TreeRegressor
     {
@@ -25,15 +26,50 @@ namespace Microsoft.ML.FastTree.Representation
         /// </summary>
         private readonly List<double[]> _leafSampleWeights;
 
-        // Immutable accessors to the underlying tree structure. They help users to inspect tree learned using, for example,
-        // gradient-boosting decision tree and random forest.
+        /// <summary>
+        /// <see cref="LteChild"/>[i] is the i-th node's child index used when
+        /// (1) the numerical feature indexed by <see cref="NumericalSplitFeatureIndexes"/>[i] is less than the threshold <see cref="NumericalSplitThresholds"/>[i], or
+        /// (2) the categorical features indexed by <see cref="GetCategoricalCategoricalSplitFeatureRangeAt(int)"/> with nodeIndex=i is NOT a sub-set of <see cref="GetCategoricalSplitFeaturesAt(int)"/> with nodeIndex=i.
+        /// Note that the case (1) happens only when <see cref="CategoricalSplitFlags"/>[i] is true and otherwise (2) occurs.
+        /// A non-negative returned value means means a node (i.e., not a leaf); for example, 2 means the 3rd node in the underlying <see cref="_tree"/>. A negative returned value means a leaf; for example, -1 stands
+        /// for the first leaf in the underlying <see cref="_tree"/>.
+        /// </summary>
         public ReadOnlySpan<int> LteChild => new ReadOnlySpan<int>(_tree.LteChild, 0, _tree.NumNodes);
+        /// <summary>
+        /// <see cref="GtChild"/>[i] is the i-th node's child index used when the two conditions, (1) and (2), described in <see cref="LteChild"/>'s document are not true.
+        /// Its return value follows the format used in <see cref="LteChild"/>.
+        /// </summary>
         public ReadOnlySpan<int> GtChild => new ReadOnlySpan<int>(_tree.GtChild, 0, _tree.NumNodes);
+        /// <summary>
+        /// <see cref="NumericalSplitFeatureIndexes"/>[i] is the feature index used the splitting function of the i-th node.
+        /// This value is valid only if <see cref="CategoricalSplitFlags"/>[i] is false.
+        /// </summary>
         public ReadOnlySpan<int> NumericalSplitFeatureIndexes => new ReadOnlySpan<int>(_tree.SplitFeatures, 0, _tree.NumNodes);
+        /// <summary>
+        /// <see cref="NumericalSplitThresholds"/>[i] is the threshold on feature indexed by <see cref="NumericalSplitFeatureIndexes"/>[i],
+        /// where i is the i-th node's index (for example, i is 1 for the 2nd node in <see cref="_tree"/>).
+        /// </summary>
         public ReadOnlySpan<float> NumericalSplitThresholds => new ReadOnlySpan<float>(_tree.RawThresholds, 0, _tree.NumNodes);
+        /// <summary>
+        /// Determine the types of splitting function. If <see cref="CategoricalSplitFlags"/>[i] is true, the i-th node's uses categorical splitting function.
+        /// Otherwise, traditional numerical split is used.
+        /// </summary>
         public ReadOnlySpan<bool> CategoricalSplitFlags => new ReadOnlySpan<bool>(_tree.CategoricalSplit, 0, _tree.NumNodes);
+        /// <summary>
+        /// <see cref="LeafValues"/>[i] is the learned value at the i-th leaf.
+        /// </summary>
         public ReadOnlySpan<double> LeafValues => new ReadOnlySpan<double>(_tree.LeafValues, 0, _tree.NumLeaves);
+        /// <summary>
+        /// Return categorical thresholds used at node indexed by nodeIndex. If the considered input feature does NOT matche one of
+        /// the returned <see cref="GetCategoricalSplitFeaturesAt(int)"/>, we call it less-than-threshold and therefore <see cref="LteChild"/>[nodeIndex]
+        /// is the child node that input should go next.
+        /// The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
+        /// </summary>
         public ReadOnlySpan<int> GetCategoricalSplitFeaturesAt(int nodeIndex) => new ReadOnlySpan<int>(_tree.CategoricalSplitFeatures[nodeIndex]);
+        /// <summary>
+        /// Return categorical thresholds' range used at node indexed by nodeIndex. A categorical split at node indexed by nodeIndex can consider multiple consecutive input features at one time; their range
+        /// is specified by <see cref="GetCategoricalCategoricalSplitFeatureRangeAt(int)"/>.  The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
+        /// </summary>
         public ReadOnlySpan<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex) => new ReadOnlySpan<int>(_tree.CategoricalSplitFeatureRanges[nodeIndex]);
 
         /// <summary>
