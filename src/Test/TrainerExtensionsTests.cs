@@ -63,22 +63,22 @@ namespace Microsoft.ML.Auto.Test
 
             var expectedJson = @"
 {
-  ""NumBoostRound"": 1,
+  ""NumBoostRound"": 20,
   ""LearningRate"": 1,
   ""NumLeaves"": 1,
-  ""MinDataPerLeaf"": 1,
-  ""UseSoftmax"": 1,
-  ""UseCat"": 1,
-  ""UseMissing"": 1,
-  ""MinDataPerGroup"": 1,
-  ""MaxCatThreshold"": 1,
-  ""CatSmooth"": 1,
-  ""CatL2"": 1,
+  ""MinDataPerLeaf"": 10,
+  ""UseSoftmax"": false,
+  ""UseCat"": false,
+  ""UseMissing"": false,
+  ""MinDataPerGroup"": 50,
+  ""MaxCatThreshold"": 16,
+  ""CatSmooth"": 10,
+  ""CatL2"": 0.5,
   ""TreeBooster"": {
     ""Name"": ""Microsoft.ML.LightGBM.TreeBooster"",
     ""Properties"": {
-      ""RegLambda"": 1,
-      ""RegAlpha"": 1
+      ""RegLambda"": 0.5,
+      ""RegAlpha"": 0.5
     }
   }
 }";
@@ -99,12 +99,12 @@ namespace Microsoft.ML.Auto.Test
             var sdcaBinaryProps = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName.SdcaBinary, sweepParams);
             var expectedJson = @"
 {
-  ""L2Const"": 1,
-  ""L1Threshold"": 1,
-  ""ConvergenceTolerance"": 1,
-  ""MaxIterations"": 1,
-  ""Shuffle"": 1,
-  ""BiasLearningRate"": 1
+  ""L2Const"": 1E-07,
+  ""L1Threshold"": 0.0,
+  ""ConvergenceTolerance"": 0.01,
+  ""MaxIterations"": 10,
+  ""Shuffle"": true,
+  ""BiasLearningRate"": 0.01
 }";
             Util.AssertObjectMatchesJson(expectedJson, sdcaBinaryProps);
         }

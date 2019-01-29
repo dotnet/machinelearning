@@ -190,13 +190,17 @@ namespace Microsoft.ML.Auto
             for (int i = 0; i < randomConfigs.Length; i++)
                 configurations.Add(new Tuple<double, ParameterSet>(randomEIs[i], randomConfigs[i]));
 
-            HashSet<ParameterSet> retainedConfigs = new HashSet<ParameterSet>();
             IOrderedEnumerable<Tuple<double, ParameterSet>> bestConfigurations = configurations.OrderByDescending(x => x.Item1);
 
-            foreach (Tuple<double, ParameterSet> t in bestConfigurations.Take(numOfCandidates))
-                retainedConfigs.Add(t.Item2);
+            var retainedConfigs = new HashSet<ParameterSet>(bestConfigurations.Select(x => x.Item2));
 
-            return retainedConfigs.ToArray();
+            // remove configurations matching previous run
+            foreach(var previousRun in previousRuns)
+            {
+                retainedConfigs.Remove(previousRun.ParameterSet);
+            }
+
+            return retainedConfigs.Take(numOfCandidates).ToArray();
         }
 
         /// <summary>

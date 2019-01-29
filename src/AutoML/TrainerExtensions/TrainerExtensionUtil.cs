@@ -83,7 +83,7 @@ namespace Microsoft.ML.Auto
                 return BuildLightGbmPipelineNodeProps(sweepParams);
             }
 
-            return sweepParams.ToDictionary(p => p.Name, p => (object)p.RawValue);
+            return sweepParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
         }
 
         private static IDictionary<string, object> BuildLightGbmPipelineNodeProps(IEnumerable<SweepableParam> sweepParams)
@@ -91,10 +91,10 @@ namespace Microsoft.ML.Auto
             var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
             var parentArgParams = sweepParams.Except(treeBoosterParams);
 
-            var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.RawValue);
+            var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
             var treeBoosterCustomProp = new CustomProperty("Microsoft.ML.LightGBM.TreeBooster", treeBoosterProps);
 
-            var props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.RawValue);
+            var props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
             props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;
             
             return props;

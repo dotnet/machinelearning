@@ -21,7 +21,7 @@ namespace Microsoft.ML.Auto
         {
             var inferredHistory = history.Select(r => InferredPipelineRunResult.FromPipelineRunResult(r));
             var nextInferredPipeline = GetNextInferredPipeline(inferredHistory, columns, task, iterationsRemaining, isMaximizingMetric);
-            return nextInferredPipeline.ToPipeline();
+            return nextInferredPipeline?.ToPipeline();
         }
 
         public static InferredPipeline GetNextInferredPipeline(IEnumerable<InferredPipelineRunResult> history,
@@ -47,21 +47,31 @@ namespace Microsoft.ML.Auto
             // sort top trainers by # of times they've been run, from lowest to highest
             var orderedTopTrainers = OrderTrainersByNumTrials(history, topTrainers);
 
+            // keep as hashset of previously visited pipelines
+            var visitedPipelines = new HashSet<InferredPipeline>(history.Select(h => h.Pipeline));
+
             // iterate over top trainers (from least run to most run),
             // to find next pipeline
-            foreach(var trainer in orderedTopTrainers)
+            foreach (var trainer in orderedTopTrainers)
             {
                 var newTrainer = trainer.Clone();
 
-                // make sure we have not seen pipeline before.
                 // repeat until passes or runs out of chances
-                var visitedPipelines = new HashSet<InferredPipeline>(history.Select(h => h.Pipeline));
                 const int maxNumberAttempts = 10;
                 var count = 0;
                 do
                 {
-                    SampleHyperparameters(newTrainer, history, isMaximizingMetric);
+                    // sample new hyperparameters for the learner
+                    if (!SampleHyperparameters(newTrainer, history, isMaximizingMetric))
+                    {
+                        // if unable to sample new hyperparameters for the learner
+                        // (ie SMAC returned 0 suggestions), break
+                        break;
+                    }
+
                     var pipeline = new InferredPipeline(transforms, newTrainer);
+
+                    // make sure we have not seen pipeline before
                     if (!visitedPipelines.Contains(pipeline))
                     {
                         return pipeline;
@@ -169,7 +179,11 @@ namespace Microsoft.ML.Auto
             return results;
         }
 
-        private static void SampleHyperparameters(SuggestedTrainer trainer, IEnumerable<InferredPipelineRunResult> history, bool isMaximizingMetric)
+        /// <summary>
+        /// Samples new hyperparameters for the trainer, and sets them.
+        /// Returns true if success (new hyperparams were suggested and set). Else, returns false.
+        /// </summary>
+        private static bool SampleHyperparameters(SuggestedTrainer trainer, IEnumerable<InferredPipelineRunResult> history, bool isMaximizingMetric)
         {
             var sps = ConvertToValueGenerators(trainer.SweepParams);
             var sweeper = new SmacSweeper(
@@ -179,14 +193,20 @@ namespace Microsoft.ML.Auto
                 });
 
             IEnumerable<InferredPipelineRunResult> historyToUse = history
-                .Where(r => r.RunSucceded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null);
+                .Where(r => r.RunSucceded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null && r.Pipeline.Trainer.HyperParamSet.Any());
 
             // get new set of hyperparameter values
             var proposedParamSet = sweeper.ProposeSweeps(1, historyToUse.Select(h => h.ToRunResult(isMaximizingMetric))).First();
+            if(!proposedParamSet.Any())
+            {
+                return false;
+            }
 
             // associate proposed param set with trainer, so that smart hyperparam
             // sweepers (like KDO) can map them back.
             trainer.SetHyperparamValues(proposedParamSet);
+
+            return true;
         }
 
         private static IEnumerable<SuggestedTransform> CalculateTransforms(MLContext context,

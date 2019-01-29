@@ -44,7 +44,7 @@ namespace Microsoft.ML.Auto
 
         public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
-            var prevParamSets = previousRuns?.Select(r => r.ParameterSet).ToList() ?? new List<ParameterSet>();
+            var prevParamSets = new HashSet<ParameterSet>(previousRuns?.Select(r => r.ParameterSet).ToList() ?? new List<ParameterSet>());
             var result = new HashSet<ParameterSet>();
             for (int i = 0; i < maxSweeps; i++)
             {
@@ -66,9 +66,9 @@ namespace Microsoft.ML.Auto
 
         protected abstract ParameterSet CreateParamSet();
 
-        protected static bool AlreadyGenerated(ParameterSet paramSet, IEnumerable<ParameterSet> previousRuns)
+        protected static bool AlreadyGenerated(ParameterSet paramSet, ISet<ParameterSet> previousRuns)
         {
-            return previousRuns.Any(previousRun => previousRun.Equals(paramSet));
+            return previousRuns.Contains(paramSet);
         }
     }
 }

@@ -42,12 +42,6 @@ namespace Microsoft.ML.Auto
 
         public InferredPipelineRunResult[] Fit()
         {
-            IteratePipelinesAndFit();
-            return _history.ToArray();
-        }
-
-        private void IteratePipelinesAndFit()
-        {
             var stopwatch = Stopwatch.StartNew();
             var columns = AutoMlUtils.GetColumnInfoTuples(_context, _trainData, _label, _purposeOverrides);
 
@@ -68,6 +62,8 @@ namespace Microsoft.ML.Auto
 
             } while (_history.Count < _settings.StoppingCriteria.MaxIterations &&
                     stopwatch.Elapsed.TotalMinutes < _settings.StoppingCriteria.TimeOutInMinutes);
+
+            return _history.ToArray();
         }
 
         private void ProcessPipeline(InferredPipeline pipeline)

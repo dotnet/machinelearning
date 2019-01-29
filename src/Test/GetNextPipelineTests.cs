@@ -50,6 +50,10 @@ namespace Microsoft.ML.Auto.Test
             {
                 // get next pipeline
                 var pipeline = PipelineSuggester.GetNextPipeline(history, columns, TaskKind.BinaryClassification, maxIterations - i);
+                if(pipeline == null)
+                {
+                    break;
+                }
 
                 var result = new PipelineRunResult(pipeline, AutoMlUtils.Random.NextDouble(), true);
                 history.Add(result);
