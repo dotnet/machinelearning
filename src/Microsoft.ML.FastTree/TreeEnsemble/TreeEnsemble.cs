@@ -359,6 +359,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             builder.GetResult(ref contribs);
         }
 
+        /// <summary>
+        /// Retrieve the max feature index used across all node's split functions.
+        /// </summary>
         public int GetMaxFeatureIndex()
         {
             int ifeatMax = 0;
