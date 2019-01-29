@@ -34,8 +34,8 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(SerializableLambdaTransform).Assembly.FullName);
         }
 
-        public const string LoaderSignature = "UserLambdaMapTransform";
-        public const string Summary = "Allows the definition of convenient user defined transforms";
+        internal const string LoaderSignature = "UserLambdaMapTransform";
+        internal const string Summary = "Allows the definition of convenient user defined transforms";
 
         /// <summary>
         /// Creates an instance of the transform from a context.

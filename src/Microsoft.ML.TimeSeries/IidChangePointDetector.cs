@@ -212,20 +212,20 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// Create a new instance of <see cref="IidChangePointEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the output column. Column is a vector of type double and size 4.
-        /// The vector contains Alert, Raw Score, P-Value and Martingale score as first four values.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// Column is a vector of type double and size 4. The vector contains Alert, Raw Score, P-Value and Martingale score as first four values.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="changeHistoryLength">The length of the sliding window on p-values for computing the martingale score.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public IidChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
-            int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
+        public IidChangePointEstimator(IHostEnvironment env, string outputColumnName, int confidence,
+            int changeHistoryLength, string inputColumnName, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
                 new IidChangePointDetector(env, new IidChangePointDetector.Arguments
                 {
-                    Name = outputColumn,
-                    Source = inputColumn,
+                    Name = outputColumnName,
+                    Source = inputColumnName ?? outputColumnName,
                     Confidence = confidence,
                     ChangeHistoryLength = changeHistoryLength,
                     Martingale = martingale,

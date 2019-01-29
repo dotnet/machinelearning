@@ -26,9 +26,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // A pipeline to tokenize text as characters and then combine them together into ngrams
             // The pipeline uses the default settings to featurize.
 
-            var charsPipeline = ml.Transforms.Text.TokenizeCharacters("SentimentText", "Chars", useMarkerCharacters:false);
-            var ngramOnePipeline = ml.Transforms.Text.ProduceNgrams("Chars", "CharsUnigrams", ngramLength:1);
-            var ngramTwpPipeline = ml.Transforms.Text.ProduceNgrams("Chars", "CharsTwograms");
+            var charsPipeline = ml.Transforms.Text.TokenizeCharacters("Chars", "SentimentText", useMarkerCharacters:false);
+            var ngramOnePipeline = ml.Transforms.Text.ProduceNgrams("CharsUnigrams", "Chars", ngramLength:1);
+            var ngramTwpPipeline = ml.Transforms.Text.ProduceNgrams("CharsTwograms", "Chars");
             var oneCharsPipeline = charsPipeline.Append(ngramOnePipeline);
             var twoCharsPipeline = charsPipeline.Append(ngramTwpPipeline);
 

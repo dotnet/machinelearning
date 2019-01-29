@@ -117,8 +117,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class ColumnInfo
         {
-            public readonly string Input;
-            public readonly string Output;
+            public readonly string Name;
+            public readonly string InputColumnName;
             public readonly int HashBits;
             public readonly uint Seed;
             public readonly bool Ordered;
@@ -127,8 +127,8 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
@@ -136,8 +136,8 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
             /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-            public ColumnInfo(string input,
-                string output = null,
+            public ColumnInfo(string name,
+                string inputColumnName = null,
                 int hashBits = HashingEstimator.Defaults.HashBits,
                 uint seed = HashingEstimator.Defaults.Seed,
                 bool ordered = HashingEstimator.Defaults.Ordered,
@@ -147,19 +147,19 @@ namespace Microsoft.ML.Transforms.Conversions
                     throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
                 if (invertHash != 0 && hashBits >= 31)
                     throw Contracts.ExceptParam(nameof(hashBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", hashBits);
-                Contracts.CheckNonWhiteSpace(input, nameof(input));
-                Input = input;
-                Output = output ?? input;
+                Contracts.CheckNonWhiteSpace(name, nameof(name));
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
                 HashBits = hashBits;
                 Seed = seed;
                 Ordered = ordered;
                 InvertHash = invertHash;
             }
 
-            internal ColumnInfo(string input, string output, ModelLoadContext ctx)
+            internal ColumnInfo(string name, string inputColumnName, ModelLoadContext ctx)
             {
-                Input = input;
-                Output = output;
+                Name = name;
+                InputColumnName = inputColumnName;
                 // *** Binary format ***
                 // int: HashBits
                 // uint: HashSeed
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Transforms.Conversions
         internal const string Summary = "Converts column values into hashes. This transform accepts text and keys as inputs. It works on single- and vector-valued columns, "
             + "and hashes each slot in a vector separately.";
 
-        public const string LoaderSignature = "HashTransform";
+        internal const string LoaderSignature = "HashTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -214,16 +214,16 @@ namespace Microsoft.ML.Transforms.Conversions
                 throw Host.ExceptParam(nameof(inputSchema), HashingEstimator.ExpectedColumnType);
         }
 
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckNonEmpty(columns, nameof(columns));
-            return columns.Select(x => (x.Input, x.Output)).ToArray();
+            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
         private ColumnType GetOutputType(Schema inputSchema, ColumnInfo column)
         {
             var keyCount = (ulong)1 << column.HashBits;
-            inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
+            inputSchema.TryGetColumnIndex(column.InputColumnName, out int srcCol);
             var itemType = new KeyType(typeof(uint), keyCount);
             var srcType = inputSchema[srcCol].Type;
             if (srcType is VectorType vectorType)
@@ -258,9 +258,9 @@ namespace Microsoft.ML.Transforms.Conversions
             var sourceColumnsForInvertHash = new List<Schema.Column>();
             for (int i = 0; i < _columns.Length; i++)
             {
-                Schema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].input);
+                Schema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].inputColumnName);
                 if (srcCol == null)
-                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].inputColumnName);
                 CheckInputColumn(input.Schema, i, srcCol.Value.Index);
 
                 types[i] = GetOutputType(input.Schema, _columns[i]);
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < _columns.Length);
             disposer = null;
-            input.Schema.TryGetColumnIndex(_columns[iinfo].Input, out int srcCol);
+            input.Schema.TryGetColumnIndex(_columns[iinfo].InputColumnName, out int srcCol);
             var srcType = input.Schema[srcCol].Type;
             if (!(srcType is VectorType vectorType))
                 return ComposeGetterOne(input, iinfo, srcCol, srcType);
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var columnsLength = ColumnPairs.Length;
             _columns = new ColumnInfo[columnsLength];
             for (int i = 0; i < columnsLength; i++)
-                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, ctx);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
             TextModelHelper.LoadAll(Host, ctx, columnsLength, out _keyValues, out _kvTypes);
         }
 
@@ -388,8 +388,9 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 var item = args.Column[i];
                 var kind = item.InvertHash ?? args.InvertHash;
-                cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                cols[i] = new ColumnInfo(
                     item.Name,
+                    item.Source ?? item.Name,
                     item.HashBits ?? args.HashBits,
                     item.Seed ?? args.Seed,
                     item.Ordered ?? args.Ordered,
@@ -858,13 +859,13 @@ namespace Microsoft.ML.Transforms.Conversions
             private sealed class ColInfo
             {
                 public readonly string Name;
-                public readonly string Source;
+                public readonly string InputColumnName;
                 public readonly ColumnType TypeSrc;
 
-                public ColInfo(string name, string source, ColumnType type)
+                public ColInfo(string outputColumnName, string inputColumnName, ColumnType type)
                 {
-                    Name = name;
-                    Source = source;
+                    Name = outputColumnName;
+                    InputColumnName = inputColumnName;
                     TypeSrc = type;
                 }
             }
@@ -886,14 +887,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     var meta = new MetadataBuilder();
 
                     meta.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
 
                     if (_parent._kvTypes != null && _parent._kvTypes[i] != null)
                         AddMetaKeyValues(i, meta);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
@@ -921,7 +922,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 Contracts.AssertValue(row);
                 Row = row;
-                row.Schema.TryGetColumnIndex(ex.Input, out int srcCol);
+                row.Schema.TryGetColumnIndex(ex.InputColumnName, out int srcCol);
                 _srcCol = srcCol;
                 _srcType = row.Schema[srcCol].Type;
                 _ex = ex;
@@ -940,8 +941,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="dstGetter">A hash getter, built on top of <paramref name="row"/>.</param>
             public static InvertHashHelper Create(Row row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
             {
-                row.Schema.TryGetColumnIndex(ex.Input, out int srcCol);
-
+                row.Schema.TryGetColumnIndex(ex.InputColumnName, out int srcCol);
                 ColumnType typeSrc = row.Schema[srcCol].Type;
                 VectorType vectorTypeSrc = typeSrc as VectorType;
 
@@ -1206,16 +1206,17 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Initializes a new instance of <see cref="HashingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the column to be transformed.</param>
-        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform.
+        /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public HashingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public HashingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
-            : this(env, new HashingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, hashBits: hashBits, invertHash: invertHash))
+            : this(env, new HashingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, hashBits: hashBits, invertHash: invertHash))
         {
         }
 
@@ -1239,8 +1240,8 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (!IsColumnTypeValid(col.ItemType))
                     throw _host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
                 var metadata = new List<SchemaShape.Column>();
@@ -1248,7 +1249,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     metadata.Add(slotMeta);
                 if (colInfo.InvertHash != 0)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

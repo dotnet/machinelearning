@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
             var dataView = env.Data.ReadFromEnumerable(data);
-            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("E", "B"), ("F", "A") });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             ValidateCopyColumnTransformer(result);
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
             var dataView = env.Data.ReadFromEnumerable(data);
-            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("B", "E") });
+            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("E", "B") });
             try
             {
                 var transformer = est.Fit(dataView);
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests
             var env = new MLContext();
             var dataView = env.Data.ReadFromEnumerable(data);
             var xyDataView = env.Data.ReadFromEnumerable(xydata);
-            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("E", "B"), ("F", "A") });
             var transformer = est.Fit(dataView);
             try
             {
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
             var dataView = env.Data.ReadFromEnumerable(data);
-            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("E", "B"), ("F", "A") });
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
             var dataView = env.Data.ReadFromEnumerable(data);
-            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("E", "B"), ("F", "A") });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tests
             {
                 Column = new[] { new ValueToKeyMappingTransformer.Column() { Source = "Term", Name = "T" } }
             }, dataView);
-            var est = new ColumnCopyingEstimator(env, "T", "T1");
+            var est = new ColumnCopyingEstimator(env, "T1", "T");
             var transformer = est.Fit(term);
             var result = transformer.Transform(term);
             result.Schema.TryGetColumnIndex("T", out int termIndex);

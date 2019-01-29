@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal const string Summary = "Produces a new column with the row ID.";
-        public const string LoaderSignature = "ProduceIdTransform";
+        internal const string LoaderSignature = "ProduceIdTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(

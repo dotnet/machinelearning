@@ -64,10 +64,12 @@ namespace Microsoft.ML.Transforms.Conversions
             public Column[] Column;
         }
 
-        public const string LoaderSignature = "KeyToValueTransform";
-        public const string UserName = "Key To Value Transform";
+        internal const string LoaderSignature = "KeyToValueTransform";
 
-        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
+        [BestFriend]
+        internal const string UserName = "Key To Value Transform";
+
+        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
         {
@@ -91,7 +93,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        public KeyToValueMappingTransformer(IHostEnvironment env, params (string input, string output)[] columns)
+        public KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingTransformer)), columns)
         {
         }
@@ -107,7 +109,7 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(input, nameof(input));
             env.CheckNonEmpty(args.Column, nameof(args.Column));
 
-            var transformer = new KeyToValueMappingTransformer(env, args.Column.Select(c => (c.Source ?? c.Name, c.Name)).ToArray());
+            var transformer = new KeyToValueMappingTransformer(env, args.Column.Select(c => (c.Name, c.Source ?? c.Name)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 
@@ -176,7 +178,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     var meta = new MetadataBuilder();
                     meta.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
@@ -191,20 +193,20 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
                 {
                     var info = _parent.ColumnPairs[iinfo];
-                    var srcName = info.input;
+                    var srcName = info.inputColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {
-                        toHide.Add(info.output);
+                        toHide.Add(info.outputColumnName);
                         continue;
                     }
                     var result = _kvMaps[iinfo].SavePfa(ctx, srcToken);
                     if (result == null)
                     {
-                        toHide.Add(info.output);
+                        toHide.Add(info.outputColumnName);
                         continue;
                     }
-                    toDeclare.Add(new KeyValuePair<string, JToken>(info.output, result));
+                    toDeclare.Add(new KeyValuePair<string, JToken>(info.outputColumnName, result));
                 }
                 ctx.Hide(toHide.ToArray());
                 ctx.DeclareVar(toDeclare.ToArray());
@@ -508,7 +510,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        public KeyToValueMappingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+        public KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columns))
         {
         }
@@ -519,19 +521,19 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
+                if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
                 if (!col.IsKey)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, "key type", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, "key type", col.GetTypeString());
 
                 if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMetaCol))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.input}' doesn't contain key values metadata");
+                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.inputColumnName}' doesn't contain key values metadata");
 
                 SchemaShape metadata = null;
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotCol))
                     metadata = new SchemaShape(new[] { slotCol });
 
-                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind, keyMetaCol.ItemType, keyMetaCol.IsKey, metadata);
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, keyMetaCol.ItemType, keyMetaCol.IsKey, metadata);
             }
 
             return new SchemaShape(result.Values);

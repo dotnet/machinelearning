@@ -75,14 +75,14 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = "DropNAs";
 
-        public IReadOnlyList<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="MissingValueDroppingTransformer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public MissingValueDroppingTransformer(IHostEnvironment env, params (string input, string output)[] columns)
+        public MissingValueDroppingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingTransformer)), columns)
         {
         }
@@ -98,8 +98,8 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(ctx, nameof(ctx));
         }
 
-        private static (string input, string output)[] GetColumnPairs(Column[] columns)
-            => columns.Select(c => (c.Source ?? c.Name, c.Name)).ToArray();
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(Column[] columns)
+            => columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray();
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Transforms
                 _isNAs = new Delegate[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
                     _types[i] = new VectorType((PrimitiveType)srcCol.Type.GetItemType());
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var builder = new MetadataBuilder();
                     builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public MissingValueDroppingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+        public MissingValueDroppingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingEstimator)), new MissingValueDroppingTransformer(env, columns))
         {
             Contracts.CheckValue(env, nameof(env));
@@ -358,10 +358,10 @@ namespace Microsoft.ML.Transforms
         /// Drops missing values from columns.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="input">The name of the input column of the transformation.</param>
-        /// <param name="output">The name of the column produced by the transformation.</param>
-        public MissingValueDroppingEstimator(IHostEnvironment env, string input, string output = null)
-            : this(env, (input, output ?? input))
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public MissingValueDroppingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
+            : this(env, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
@@ -374,16 +374,16 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
+                if (!inputSchema.TryFindColumn(colPair.inputColumnName, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector || col.Kind == SchemaShape.Column.VectorKind.VariableVector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input, "Vector", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName, "Vector", col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
                     metadata.Add(keyMeta);
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
                     metadata.Add(normMeta);
-                result[colPair.output] = new SchemaShape.Column(colPair.output, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false, new SchemaShape(metadata.ToArray()));
+                result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
         }
