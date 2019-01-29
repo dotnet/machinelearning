@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Data
             protected readonly Dictionary<int, int> ColMapNewToOld;
             private readonly OneToOneTransformerBase _parent;
 
-            protected OneToOneMapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema) : base(host, inputSchema)
+            protected OneToOneMapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema) : base(host, inputSchema, parent)
             {
                 Contracts.AssertValue(parent);
                 _parent = parent;

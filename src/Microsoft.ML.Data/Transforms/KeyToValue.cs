@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -256,7 +257,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(valItemType.RawType == typeof(TValue));
 
                 var keyMetadata = default(VBuffer<TValue>);
-                InputSchema[ColMapNewToOld[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyMetadata);
+                InputSchema[ColMapNewToOld[iinfo]].GetKeyValues(ref keyMetadata);
                 Host.Check(keyMetadata.Length == keyItemType.GetKeyCountAsInt32(Host));
 
                 VBufferUtils.Densify(ref keyMetadata);

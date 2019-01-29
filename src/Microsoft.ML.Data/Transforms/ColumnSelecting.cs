@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -199,13 +200,13 @@ namespace Microsoft.ML.Transforms
             _host.CheckValueOrNull(keepColumns);
             _host.CheckValueOrNull(dropColumns);
 
-            bool keepValid = keepColumns != null && keepColumns.Count() > 0;
-            bool dropValid = dropColumns != null && dropColumns.Count() > 0;
+            bool keepValid = Utils.Size(keepColumns) > 0;
+            bool dropValid = Utils.Size(dropColumns) > 0;
 
             // Check that both are not valid
-            _host.Check(!(keepValid && dropValid), "Both keepColumns and dropColumns are set, only one can be specified.");
+            _host.Check(!(keepValid && dropValid), "Both " + nameof(keepColumns) + " and " + nameof(dropColumns) + " are set. Exactly one can be specified.");
             // Check that both are invalid
-            _host.Check(!(!keepValid && !dropValid), "Neither keepColumns or dropColumns is set, one must be specified.");
+            _host.Check(!(!keepValid && !dropValid), "Neither " + nameof(keepColumns) + " and " + nameof(dropColumns) + " is set. Exactly one must be specified.");
 
             _selectedColumns = (keepValid) ? keepColumns : dropColumns;
             KeepColumns = keepValid;
@@ -558,7 +559,7 @@ namespace Microsoft.ML.Transforms
                     // given an input of ABC and dropping column B will result in AC.
                     // In drop mode, we drop all columns with the specified names and keep all the rest,
                     // ignoring the keepHidden argument.
-                    for(int colIdx = 0; colIdx < inputSchema.Count; colIdx++)
+                    for (int colIdx = 0; colIdx < inputSchema.Count; colIdx++)
                     {
                         if (selectedColumns.Contains(inputSchema[colIdx].Name))
                             continue;

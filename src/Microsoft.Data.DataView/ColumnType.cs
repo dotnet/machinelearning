@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.Data.DataView
 {
     /// <summary>
     /// This is the abstract base class for all types in the <see cref="IDataView"/> type system.

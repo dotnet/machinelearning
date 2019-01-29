@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        private class TestPrimitiveClass
+        private sealed class TestPrimitiveClass
         {
             [VectorType(2)]
             public string[] AA;
@@ -53,20 +54,23 @@ namespace Microsoft.ML.Tests.Transformers
             public double[] AN;
         }
 
-        private class TestClass
+        private sealed class TestClass
         {
             public int A;
             [VectorType(2)]
             public int[] B;
         }
 
-        public class MetaClass
+        private sealed class MetaClass
         {
             public float A;
             public string B;
-
         }
 
+        private sealed class TestStringClass
+        {
+            public string A;
+        }
 
         [Fact]
         public void TestConvertWorkout()
@@ -142,6 +146,40 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
+        /// <summary>
+        /// Apply <see cref="KeyToValueMappingEstimator"/> with side data.
+        /// </summary>
+        [Fact]
+        public void ValueToKeyFromSideData()
+        {
+            // In this case, whatever the value of the input, the term mapping should come from the optional side data if specified.
+            var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
+
+            var mlContext = new MLContext();
+            var dataView = mlContext.Data.ReadFromEnumerable(data);
+
+            var sideDataBuilder = new ArrayDataViewBuilder(mlContext);
+            sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
+            var sideData = sideDataBuilder.GetDataView();
+
+            // For some reason the column info is on the *transformer*, not the estimator. Already tracked as issue #1760.
+            var ci = new ValueToKeyMappingTransformer.ColumnInfo("A", "CatA");
+            var pipe = mlContext.Transforms.Conversion.MapValueToKey(new[] { ci }, sideData);
+            var output = pipe.Fit(dataView).Transform(dataView);
+
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
+            output.Schema["CatA"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slotNames);
+
+            Assert.Equal(3, slotNames.Length);
+            Assert.Equal("hello", slotNames.GetItemOrDefault(0).ToString());
+            Assert.Equal("my", slotNames.GetItemOrDefault(1).ToString());
+            Assert.Equal("friend", slotNames.GetItemOrDefault(2).ToString());
+
+            Done();
+        }
+
+
+
         [Fact]
         public void TestCommandLine()
         {
@@ -194,7 +232,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(result.Schema["ConvA"].IsNormalized());
 
             Assert.Equal(result.Schema["ConvB"].Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema["ConvB"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slots);
+            result.Schema["ConvB"].GetKeyValues(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
         }

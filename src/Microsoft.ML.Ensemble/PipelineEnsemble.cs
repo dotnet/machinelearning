@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
@@ -648,7 +649,7 @@ namespace Microsoft.ML.Ensemble
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
             env.AssertNonEmpty(models);
             var labelNames = default(VBuffer<T>);
-            schema[labelIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+            schema[labelIndex].GetKeyValues(ref labelNames);
             var classCount = labelNames.Length;
 
             var curLabelNames = default(VBuffer<T>);
@@ -669,7 +670,7 @@ namespace Microsoft.ML.Ensemble
                 var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                 if (!mdType.Equals(keyValuesType))
                     throw env.Except("Label column of model {0} has different key value type than model 0", i);
-                labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref curLabelNames);
+                labelCol.GetKeyValues(ref curLabelNames);
                 if (!AreEqual(in labelNames, in curLabelNames))
                     throw env.Except("Label of model {0} has different values than model 0", i);
             }

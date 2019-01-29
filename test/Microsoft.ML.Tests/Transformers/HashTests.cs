@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -82,17 +83,17 @@ namespace Microsoft.ML.Tests.Transformers
             VBuffer<ReadOnlyMemory<char>> keys = default;
             var column = result.Schema["HashA"];
             Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
-            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
+            column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
             column = result.Schema["HashAUnlim"];
             Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
-            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
+            column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
             column = result.Schema["HashAUnlimOrdered"];
             Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
-            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
+            column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "0:3.5", "1:2.5" });
         }
 

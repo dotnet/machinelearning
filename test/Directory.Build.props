@@ -6,8 +6,6 @@
     <TargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net461</TargetFramework>
     <TargetFramework Condition="'$(UseIntrinsics)' == 'true'">netcoreapp3.0</TargetFramework>
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461'">win-x64</RuntimeIdentifier>
-    <!-- This is required in order to have following extension files in the output folder of the projects referencing other projects. -->
-    <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.runtimeconfig.json;.runtimeconfig.dev.json;.deps.json</AllowedReferenceRelatedFileExtensions>  
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
@@ -45,6 +43,8 @@
            but they need to be migrated. Excluding these classes should have very minimal effect on code coverage.
       -->
       <Exclude>[*]Microsoft.ML.*Contracts*,[*]Microsoft.ML.Internal.Utilities*,[*]Microsoft.ML.Data.VBuffer*</Exclude>
+      <ExcludeByAttribute>Obsolete,ExcludeFromCodeCoverage</ExcludeByAttribute>
+      <ExcludeByFile>$(BaseOutputPath)..\src\Microsoft.ML.Onnx\OnnxMl.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Buffer.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Tensor.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Tensorflow.cs</ExcludeByFile>
   </PropertyGroup>
 
 </Project>

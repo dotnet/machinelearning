@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Xunit;
 using Xunit.Abstractions;
