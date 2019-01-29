@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -74,14 +72,14 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var metrics = ml.BinaryClassification.Evaluate(dataWithPredictions);
 
-            Console.WriteLine($"Accuracy: {metrics.Accuracy}");
-            Console.WriteLine($"AUC: {metrics.Auc}");
-            Console.WriteLine($"F1 Score: {metrics.F1Score}");
+            Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.80
+            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.64
+            Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.39
 
-            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}");
-            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}");
-            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}");
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.81
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}"); // 0.96
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}"); // 0.68
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}"); // 0.27
 
             Console.ReadLine();
         }
