@@ -308,7 +308,7 @@ namespace Microsoft.ML.Tests
                         inb = new float[] {1,2,3,4,5}
                     }
                     });
-                var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }, 0).Transform(dataView);
+                var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
