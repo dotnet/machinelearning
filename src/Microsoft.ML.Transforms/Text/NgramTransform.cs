@@ -604,7 +604,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 // Get the key values of the unigrams.
                 var keyCount = itemType.GetKeyCountAsInt32(Host);
-                InputSchema[_srcCols[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref unigramNames);
+                InputSchema[_srcCols[iinfo]].GetKeyValues(ref unigramNames);
                 Host.Check(unigramNames.Length == keyCount);
 
                 var pool = _parent._ngramMaps[iinfo];

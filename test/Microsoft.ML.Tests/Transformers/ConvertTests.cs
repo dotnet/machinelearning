@@ -232,7 +232,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(result.Schema["ConvA"].IsNormalized());
 
             Assert.Equal(result.Schema["ConvB"].Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema["ConvB"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slots);
+            result.Schema["ConvB"].GetKeyValues(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
         }

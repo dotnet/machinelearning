@@ -131,7 +131,7 @@ namespace Microsoft.ML.Learners
                 return;
             }
             VBuffer<ReadOnlyMemory<char>> labelNames = default;
-            labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+            labelCol.GetKeyValues(ref labelNames);
 
             // If label names is not dense or contain NA or default value, then it follows that
             // at least one class does not have a valid name for its label. If the label names we

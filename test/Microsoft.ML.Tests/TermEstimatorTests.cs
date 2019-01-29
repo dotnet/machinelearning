@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
-            result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
+            result.Schema[termIndex].GetKeyValues(ref names1);
             Assert.True(names1.GetValues().Length > 0);
         }
 

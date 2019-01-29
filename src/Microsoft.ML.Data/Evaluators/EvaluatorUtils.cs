@@ -577,7 +577,7 @@ namespace Microsoft.ML.Data
                 if (!(typeItemType is KeyType itemKeyType) || typeItemType.RawType != typeof(uint))
                     throw Contracts.Except($"Column '{columnName}' must be a U4 key type, but is '{typeItemType}'");
 
-                schema[indices[i]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyNamesCur);
+                schema[indices[i]].GetKeyValues(ref keyNamesCur);
 
                 keyValueMappers[i] = new int[itemKeyType.Count];
                 foreach (var kvp in keyNamesCur.Items(true))
@@ -1236,7 +1236,7 @@ namespace Microsoft.ML.Data
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues =
                         (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
-                            schema[stratCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref dst);
+                            schema[stratCol].GetKeyValues(ref dst);
                             Contracts.Assert(dst.IsDense);
                         };
 
@@ -1254,7 +1254,7 @@ namespace Microsoft.ML.Data
                 else if (i == isWeightedCol)
                 {
                     env.AssertValue(weightedDvBldr);
-                    dvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { false, false} : new[] { false });
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { false, false } : new[] { false });
                     weightedDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, foldCol >= 0 ? new[] { true, true } : new[] { true });
                 }
                 else if (i == foldCol)

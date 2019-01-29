@@ -145,8 +145,8 @@ namespace Microsoft.ML.Tests
             Assert.InRange<ulong>(key.Count, 0, int.MaxValue);
             int size = (int)key.Count;
             var type2 = result.Schema[copyIndex].Type;
-            result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
-            result.Schema[copyIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names2);
+            result.Schema[termIndex].GetKeyValues(ref names1);
+            result.Schema[copyIndex].GetKeyValues(ref names2);
             Assert.True(CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
         }
 

@@ -258,13 +258,13 @@ namespace Microsoft.ML.Tests.Transformers
 
             column = result.Schema["CatG"];
             Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
-            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slots);
+            column.GetKeyValues(ref slots);
             Assert.True(slots.Length == 3);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[3] { "A", "D", "E" });
 
             column = result.Schema["CatH"];
             Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
-            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slots);
+            column.GetKeyValues(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "D", "E" });
 

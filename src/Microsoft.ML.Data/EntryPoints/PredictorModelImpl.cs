@@ -129,7 +129,7 @@ namespace Microsoft.ML.EntryPoints
                 if (trainRms.Label.Value.HasKeyValues(labelType))
                 {
                     VBuffer<ReadOnlyMemory<char>> keyValues = default;
-                    trainRms.Label.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
+                    trainRms.Label.Value.GetKeyValues(ref keyValues);
                     return keyValues.DenseValues().Select(v => v.ToString()).ToArray();
                 }
             }

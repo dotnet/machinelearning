@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
 
             // Wrap the fetching of the metadata as a simple getter.
             ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) =>
-                labelColumn.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref value);
+                labelColumn.GetKeyValues(ref value);
 
             return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, MetadataUtils.Kinds.TrainingLabelValues, CanWrap);
         }
