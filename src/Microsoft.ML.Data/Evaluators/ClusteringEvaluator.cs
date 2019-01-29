@@ -100,13 +100,13 @@ namespace Microsoft.ML.Data
             if (type != null && type != NumberType.Float && !(type is KeyType keyType && keyType.Count > 0))
             {
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name,
-                    "R4 or key of known cardinality", type.ToString());
+                    "float or KeyType", type.ToString());
             }
 
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             type = score.Type;
             if (!(type is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4 vector of known size", type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", type.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -754,7 +754,7 @@ namespace Microsoft.ML.Data
 
             var type = schema[(int) ScoreIndex].Type;
             if (!(type is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type {1}, but must be a float vector of known-size", ScoreCol, type);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", type.ToString());
         }
     }
 

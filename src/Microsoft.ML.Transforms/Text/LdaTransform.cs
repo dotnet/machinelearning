@@ -717,7 +717,7 @@ namespace Microsoft.ML.Transforms.Text
                     var srcCol = inputSchema[_srcCols[i]];
                     var srcType = srcCol.Type as VectorType;
                     if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberType))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName, "a fixed vector of floats", srcCol.Type.ToString());
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName, "known-size vector of float", srcCol.Type.ToString());
                 }
             }
 
@@ -950,7 +950,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 var srcColType = inputSchema[srcCol].Type as VectorType;
                 if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberType))
-                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName, "a fixed vector of floats", srcColType.ToString());
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName, "known-size vector of float", srcColType.ToString());
 
                 srcCols[i] = srcCol;
                 activeColumns.Add(inputData.Schema[srcCol]);
@@ -1161,7 +1161,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.ItemType.RawType != typeof(float) || col.Kind == SchemaShape.Column.VectorKind.Scalar)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "a vector of floats", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector of float", col.GetTypeString());
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
             }

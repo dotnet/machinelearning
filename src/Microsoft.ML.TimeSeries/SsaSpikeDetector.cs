@@ -262,7 +262,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             if (!inputSchema.TryFindColumn(_args.Source, out var col))
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source);
             if (col.ItemType != NumberType.R4)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source, NumberType.R4.ToString(), col.GetTypeString());
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)

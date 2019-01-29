@@ -524,7 +524,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
                 if (!col.IsKey)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, "key type", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, "KeyType", col.GetTypeString());
 
                 if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMetaCol))
                     throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.inputColumnName}' doesn't contain key values metadata");

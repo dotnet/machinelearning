@@ -551,7 +551,7 @@ namespace Microsoft.ML.Transforms.Projections
             string inputSchema; // just used for the excpections
 
             if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberType.R4)))
-                throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
+                throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "known-size vector of float of two or more items", type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase

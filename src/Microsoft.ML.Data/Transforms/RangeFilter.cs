@@ -152,11 +152,11 @@ namespace Microsoft.ML.Transforms
             var column = ctx.LoadNonEmptyString();
             var schema = Source.Schema;
             if (!schema.TryGetColumnIndex(column, out _index))
-                throw Host.Except("column", "Source column '{0}' not found", column);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column);
 
             _type = schema[_index].Type;
             if (_type != NumberType.R4 && _type != NumberType.R8 && _type.GetKeyCount() == 0)
-                throw Host.Except("column", "Column '{0}' does not have compatible type", column);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "float, double or KeyType", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
             _max = ctx.Reader.ReadDouble();

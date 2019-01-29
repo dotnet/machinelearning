@@ -325,7 +325,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             int colIndex;
             if (!_transform.Schema.TryGetColumnIndex(OutputColumnName, out colIndex))
-                throw Host.Except(String.Format("The column {0} does not exist in the schema.", OutputColumnName));
+                throw Host.ExceptSchemaMismatch(nameof(_transform.Schema), "output", OutputColumnName);
 
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, _transform.Schema[colIndex].Type, out byteWritten);
         }
