@@ -2,13 +2,9 @@
 
 This document is intended to provide essential samples for common usage patterns of ML.NET. 
 It is advisable to be at least minimally familiar with [high-level concepts of ML.NET](MlNetHighLevelConcepts.md), otherwise the terminology in this document may be foreign to you.
-The examples in this document make use of the dynamic API, currently the supported ML.Net api.
-In ML.Net there is also a static api, that operates on the schema of the data, strongly typing the data type. That version of the API is considered experimental.
-If you are loading an existing model from a stream, there's no need to use static types (and it's also pretty hard to do). 
-Also, if the data view's schema is only known at runtime, there is no way to use static types. 
-Using the static API gives you compiler support: it's more likely that, if your code compiles, it will also work as intended.
-A version of this cookbook containing the same samples in the static API samples can be found in the [MlNetCookBook_staticApi.md](experimental\MlNetCookBook_staticApi.md)
-We welcome feedback about it.  
+The examples in this document make use of the dynamic API, currently the supported ML.NET API.
+In ML.NET there is also a static API, that operates on the schema of the data, strongly typing the data type. 
+That version of the API is considered experimental., more about it in the [MlNetCookBook_staticApi.md](experimental\MlNetCookBook_staticApi.md).
 
 ## How to use this cookbook
 
@@ -298,10 +294,10 @@ var data = mlContext.Data.ReadFromTextFile<InspectedRow>(dataPath,
 
 // Start creating our processing pipeline. For now, let's just concatenate all the text columns
 // together into one.
-var dynamicPipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education", "MaritalStatus");
+var pipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education", "MaritalStatus");
 
 // Fit our data pipeline and transform data with it.
-var transformedData = dynamicPipeline.Fit(data).Transform(data);
+var transformedData = pipeline.Fit(data).Transform(data);
 
 // 'transformedData' is a 'promise' of data. Let's actually read it.
 var someRows = mlContext
@@ -350,13 +346,13 @@ var trainData = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
 // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
 // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
 // User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
-// a caching step, which provides the same caching function, will be inserted in the considered "dynamicPipeline."
+// a caching step, which provides the same caching function, will be inserted in the considered "pipeline."
 var cachedTrainData = mlContext.Data.Cache(trainData);
 
 // Step two: define the learning pipeline. 
 
 // We 'start' the pipeline with the output of the reader.
-var dynamicPipeline =
+var pipeline =
     // First 'normalize' the data (rescale to be
     // between -1 and 1 for all examples)
     mlContext.Transforms.Normalize("FeatureVector")
@@ -373,7 +369,7 @@ var dynamicPipeline =
     .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"));
 
 // Step three. Fit the pipeline to the training data.
-var model = dynamicPipeline.Fit(trainData);
+var model = pipeline.Fit(trainData);
 ```
 ## How do I verify the model quality?
 
@@ -442,7 +438,7 @@ var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
 );
 
 // Build the training pipeline.
-var dynamicPipeline =
+var pipeline =
     // Concatenate all the features together into one column 'Features'.
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
@@ -455,7 +451,7 @@ var dynamicPipeline =
     .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
 
 // Train the model.
-var model = dynamicPipeline.Fit(trainData);
+var model = pipeline.Fit(trainData);
 ```
 
 Now, in order to use [schema comprehension](SchemaComprehension.md) for prediction, we define a pair of classes like following:
@@ -571,7 +567,7 @@ var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
 );
 
 // Build the training pipeline.
-var dynamicPipeline =
+var pipeline =
     // Concatenate all the features together into one column 'Features'.
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
@@ -582,7 +578,7 @@ var dynamicPipeline =
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
 // Train the model.
-var trainedModel = dynamicPipeline.Fit(trainData);
+var trainedModel = pipeline.Fit(trainData);
 
 // Inspect the model parameters. 
 var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
@@ -727,7 +723,7 @@ var data = reader.Read(dataPath);
 var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take(10).ToArray();
 
 // Build several alternative featurization pipelines.
-var dynamicPipeline =
+var pipeline =
     // Convert each categorical feature into one-hot encoding independently.
     mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot")
     // Convert all categorical features into indices, and build a 'word bag' of these.
@@ -737,7 +733,7 @@ var dynamicPipeline =
     .Append(mlContext.Transforms.FeatureSelection.CountFeatureSelectingEstimator("WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
 
 // Let's train our pipeline, and then apply it to the same data.
-var transformedData = dynamicPipeline.Fit(data).Transform(data);
+var transformedData = pipeline.Fit(data).Transform(data);
 
 // Inspect some columns of the resulting dataset.
 var categoricalBags = transformedData.GetColumn<float[]>(mlContext, "CategoricalBag").Take(10).ToArray();
@@ -746,7 +742,7 @@ var workclasses = transformedData.GetColumn<float[]>(mlContext, "WorkclassOneHot
 // Of course, if we want to train the model, we will need to compose a single float vector of all the features.
 // Here's how we could do this:
 
-var fullLearningPipeline = dynamicPipeline
+var fullLearningPipeline = pipeline
     // Concatenate two of the 3 categorical pipelines, and the numeric features.
     .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
     // Cache data in memory so that the following trainer will be able to access training examples without
@@ -805,7 +801,7 @@ var data = reader.Read(dataPath);
 var messageTexts = data.GetColumn<string>(mlContext, "Message").Take(20).ToArray();
 
 // Apply various kinds of text operations supported by ML.NET.
-var dynamicPipeline =
+var pipeline =
     // One-stop shop to run the full text featurization.
     mlContext.Transforms.Text.FeaturizeText("Message", "TextFeatures")
 
@@ -831,7 +827,7 @@ var dynamicPipeline =
 
 // Let's train our pipeline, and then apply it to the same data.
 // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
-var transformedData = dynamicPipeline.Fit(data).Transform(data);
+var transformedData = pipeline.Fit(data).Transform(data);
 
 // Inspect some columns of the resulting dataset.
 var embeddings = transformedData.GetColumn<float[]>(mlContext, "Embeddings").Take(10).ToArray();
@@ -861,7 +857,7 @@ var data = mlContext.Data.ReadFromTextFile<IrisInput>(dataPath,
 );
 
 // Build the training pipeline.
-var dynamicPipeline =
+var pipeline =
     // Concatenate all the features together into one column 'Features'.
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
@@ -877,13 +873,13 @@ var dynamicPipeline =
 var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
 
 // Train the model.
-var model = dynamicPipeline.Fit(trainData);
+var model = pipeline.Fit(trainData);
 // Compute quality metrics on the test set.
 var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData));
 Console.WriteLine(metrics.AccuracyMicro);
 
 // Now run the 5-fold cross-validation experiment, using the same pipeline.
-var cvResults = mlContext.MulticlassClassification.CrossValidate(data, dynamicPipeline, numFolds: 5);
+var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
 
 // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
 // Let's compute the average micro-accuracy.

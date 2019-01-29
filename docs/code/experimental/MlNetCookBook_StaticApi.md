@@ -1,10 +1,13 @@
 # ML.NET Cookbook
 
 This document is intended to provide essential samples for common usage patterns of ML.NET, using examples from the experimental static API.
-The examples in this document make use of the static API, which at the time of writting is considered experimental.
-The supported way of composing pipelines in ML.NET is through the dynamic API. 
-You can find the same guide and examples on how to get started with ML.Net, dynamic API on the [cookbook reference for the dynamic API](..\MlNetCookBook.md)
-It is advisable to be at least minimally familiar with [high-level concepts of ML.NET](..\MlNetHighLevelConcepts.md), otherwise the terminology in this document may be foreign to you.
+The static api operates on the schema of the data, strongly typing the data type. 
+If you are loading an existing model from a stream, there's no need to use static types (and it's also pretty hard to do). 
+You should consider using the supported dynamic API. The same examples and content found through this cookbook is also available for the dynamic API in the  [MlNetCookBook.md](..\MlNetCookBook.md)
+Also, if the data view's schema is only known at runtime, there is no way to use static types. 
+Using the static API gives you compiler support: it's more likely that, if your code compiles, it will also work as intended.
+
+To get started, it is advisable to be at least minimally familiar with [high-level concepts of ML.NET](..\MlNetHighLevelConcepts.md), otherwise the terminology in this document may be foreign to you.
 We welcome feedback about the static API.  
 
 ## How to use this cookbook
@@ -564,14 +567,14 @@ var staticData = trainData.AssertStatic(mlContext, c => (
         LastVisits: c.R4.Vector));
 
 // Build the pipeline, same as the one above.
-var staticLearningPipeline = staticData.MakeNewEstimator()
+var staticPipeline = staticData.MakeNewEstimator()
     .Append(r => (
         r.HasChurned,
         Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
     .AppendCacheCheckpoint() // FastTree will benefit from caching data in memory.
     .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
 
-var staticModel = staticLearningPipeline.Fit(staticData);
+var staticModel = staticPipeline.Fit(staticData);
 
 // Note that dynamicModel should be the same as staticModel.AsDynamic (give or take random variance from
 // the training procedure).
