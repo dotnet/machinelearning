@@ -17,7 +17,8 @@ namespace Microsoft.ML.FastTree.Representation
         private readonly RegressionTree _tree;
 
         /// <summary>
-        /// Sample labels from training data. <see cref="_leafSamples"/>[i] stores the labels falling into the i-th leaf.
+        /// Sample labels from training data. <see cref="_leafSamples"/>[i] stores the labels falling into the
+        /// i-th leaf.
         /// </summary>
         private readonly double[][] _leafSamples;
         /// <summary>
@@ -68,9 +69,9 @@ namespace Microsoft.ML.FastTree.Representation
         public ReadOnlySpan<double> LeafValues => new ReadOnlySpan<double>(_tree.LeafValues, 0, _tree.NumLeaves);
         /// <summary>
         /// Return categorical thresholds used at node indexed by nodeIndex. If the considered input feature does NOT
-        /// matche any of values returned by <see cref="GetCategoricalSplitFeaturesAt(int)"/>, we call it a less-than-threshold
-        /// event and therefore <see cref="LteChild"/>[nodeIndex] is the child node that input should go next. The returned
-        /// value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
+        /// matche any of values returned by <see cref="GetCategoricalSplitFeaturesAt(int)"/>, we call it a
+        /// less-than-threshold event and therefore <see cref="LteChild"/>[nodeIndex] is the child node that input
+        /// should go next. The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
         public ReadOnlySpan<int> GetCategoricalSplitFeaturesAt(int nodeIndex) => new ReadOnlySpan<int>(_tree.CategoricalSplitFeatures[nodeIndex]);
         /// <summary>
