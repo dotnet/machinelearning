@@ -9,15 +9,16 @@ namespace Microsoft.ML.Auto
 {
     internal static class ColumnInferenceApi
     {
-        public static ColumnInferenceResult InferColumns(MLContext context, string path, string label, 
-            bool hasHeader, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace)
+        public static ColumnInferenceResult InferColumns(MLContext context, string path, string label,
+            bool hasHeader, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
             var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
             var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader);
+            var loaderColumns = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns);
             var typedLoaderArgs = new TextLoader.Arguments
             {
-                Column = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns),
+                Column = loaderColumns,
                 Separator = splitInference.Separator,
                 AllowSparse = splitInference.AllowSparse,
                 AllowQuoting = splitInference.AllowQuote,
@@ -29,12 +30,24 @@ namespace Microsoft.ML.Auto
 
             var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, label);
 
+            (TextLoader.Column, ColumnPurpose Purpose)[] inferredColumns = null;
             // infer column grouping and generate column names
-            var groupingResult = ColumnGroupingInference.InferGroupingAndNames(context, hasHeader,
-                typeInference.Columns, purposeInferenceResult);
+            if (groupColumns)
+            {
+                var groupingResult = ColumnGroupingInference.InferGroupingAndNames(context, hasHeader,
+                    typeInference.Columns, purposeInferenceResult);
 
-            // build result objects & return
-            var inferredColumns = groupingResult.Select(c => (c.GenerateTextLoaderColumn(), c.Purpose)).ToArray();
+                // build result objects & return
+                inferredColumns = groupingResult.Select(c => (c.GenerateTextLoaderColumn(), c.Purpose)).ToArray();
+            }
+            else
+            {
+                inferredColumns = new (TextLoader.Column, ColumnPurpose Purpose)[loaderColumns.Length];
+                for (int i = 0; i < loaderColumns.Length; i++)
+                {
+                    inferredColumns[i] = (loaderColumns[i], purposeInferenceResult[i].Purpose);
+                }
+            }
             return new ColumnInferenceResult(inferredColumns, splitInference.AllowQuote, splitInference.AllowSparse, splitInference.Separator, hasHeader, trimWhitespace);
         }
 
@@ -44,15 +57,15 @@ namespace Microsoft.ML.Auto
             var splitInference = TextFileContents.TrySplitColumns(sample, separatorCandidates);
 
             // respect passed-in overrides
-            if(allowQuotedStrings != null)
+            if (allowQuotedStrings != null)
             {
                 splitInference.AllowQuote = allowQuotedStrings.Value;
             }
-            if(supportSparse != null)
+            if (supportSparse != null)
             {
                 splitInference.AllowSparse = supportSparse.Value;
             }
-            
+
             if (!splitInference.IsSuccess)
             {
                 throw new InferenceException(InferenceType.ColumnSplit, "Unable to split the file provided into multiple, consistent columns.");

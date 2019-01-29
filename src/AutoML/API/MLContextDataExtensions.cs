@@ -13,19 +13,19 @@ namespace Microsoft.ML.Auto
     {
         // Delimiter, header, column datatype inference
         public static ColumnInferenceResult InferColumns(this DataOperations catalog, string path, string label,
-            bool hasHeader = false, char? separatorChar = null, bool? allowQuotedStrings = null, bool? supportSparse = null, bool trimWhitespace = false)
+            bool hasHeader = false, char? separatorChar = null, bool? allowQuotedStrings = null, bool? supportSparse = null, bool trimWhitespace = false, bool groupColumns = true)
         {
             UserInputValidationUtil.ValidateInferColumnsArgs(path, label);
             var mlContext = new MLContext();
-            return ColumnInferenceApi.InferColumns(mlContext, path, label, hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace);
+            return ColumnInferenceApi.InferColumns(mlContext, path, label, hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
         }
 
         public static IDataView AutoRead(this DataOperations catalog, string path, string label,
-            bool hasHeader = false, char? separatorChar = null, bool? allowQuotedStrings = null, bool? supportSparse = null, bool trimWhitespace = false)
+            bool hasHeader = false, char? separatorChar = null, bool? allowQuotedStrings = null, bool? supportSparse = null, bool trimWhitespace = false, bool groupColumns = true)
         {
             UserInputValidationUtil.ValidateAutoReadArgs(path, label);
             var mlContext = new MLContext();
-            var columnInferenceResult = ColumnInferenceApi.InferColumns(mlContext, path, label, hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace);
+            var columnInferenceResult = ColumnInferenceApi.InferColumns(mlContext, path, label, hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
             var textLoader = columnInferenceResult.BuildTextLoader();
             return textLoader.Read(path);
         }
