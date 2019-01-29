@@ -42,19 +42,19 @@ namespace Microsoft.ML.Tests
         {
             var trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
 
-            var pipe = ML.Transforms.CopyColumns("Features", "F1")
-                .Append(ML.Transforms.Normalize("F1", "Norm1"))
-                .Append(ML.Transforms.Normalize("F1", "Norm2", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
+            var pipe = ML.Transforms.CopyColumns("F1", "Features")
+                .Append(ML.Transforms.Normalize("Norm1", "F1"))
+                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
 
             pipe.Fit(ML.Data.ReadFromEnumerable(trainData));
 
             Assert.True(trainData.All(x => x.AccessCount == 2));
 
             trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
-            pipe = ML.Transforms.CopyColumns("Features", "F1")
+            pipe = ML.Transforms.CopyColumns("F1", "Features")
                 .AppendCacheCheckpoint(ML)
-                .Append(ML.Transforms.Normalize("F1", "Norm1"))
-                .Append(ML.Transforms.Normalize("F1", "Norm2", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
+                .Append(ML.Transforms.Normalize("Norm1", "F1"))
+                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
 
             pipe.Fit(ML.Data.ReadFromEnumerable(trainData));
 

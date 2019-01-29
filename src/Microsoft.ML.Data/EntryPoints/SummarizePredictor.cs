@@ -15,7 +15,8 @@ using Microsoft.ML.Internal.Internallearn;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class SummarizePredictor
+    [BestFriend]
+    internal static class SummarizePredictor
     {
         public abstract class InputBase
         {

@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
-            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features");
+            var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText");
 
             // Train the pipeline, prepare train set. Since it will be scanned multiple times in the subsequent trainer, we cache the 
             // transformed data in memory.

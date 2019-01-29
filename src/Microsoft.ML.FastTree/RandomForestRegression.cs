@@ -314,7 +314,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public static partial class FastForest
+    internal static partial class FastForest
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor",
             Desc = FastForestRegression.Summary,

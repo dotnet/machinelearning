@@ -20,7 +20,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// A transform that does nothing.
     /// </summary>
-    public sealed class NopTransform : IDataTransform, IRowToRowMapper
+    [BestFriend]
+    internal sealed class NopTransform : IDataTransform, IRowToRowMapper
     {
         private readonly IHost _host;
 
@@ -98,10 +99,7 @@ namespace Microsoft.ML.Data
             // Nothing :)
         }
 
-        public bool CanShuffle
-        {
-            get { return Source.CanShuffle; }
-        }
+        public bool CanShuffle => Source.CanShuffle;
 
         /// <summary>
         /// Explicit implementation prevents Schema from being accessed from derived classes.

@@ -101,7 +101,7 @@ namespace Microsoft.ML.Benchmarks
                 AllowSparse = false
             };
             var loader = _env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
-            var text = new TextFeaturizingEstimator(_env, "SentimentText", "WordEmbeddings", args =>
+            var text = new TextFeaturizingEstimator(_env, "WordEmbeddings", "SentimentText", args =>
             {
                 args.OutputTokens = true;
                 args.KeepPunctuations = false;
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Benchmarks
                 args.UseCharExtractor = false;
                 args.UseWordExtractor = false;
             }).Fit(loader).Transform(loader);
-            var trans = new WordEmbeddingsExtractingEstimator(_env, "WordEmbeddings_TransformedText", "Features",
+            var trans = new WordEmbeddingsExtractingEstimator(_env, "Features", "WordEmbeddings_TransformedText", 
                 WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Fit(text).Transform(text);
             // Train
             var trainer = _env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();

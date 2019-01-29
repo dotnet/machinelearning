@@ -167,7 +167,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
                 // Apply the inverse conversion from 'PredictedLabel' column back to string value.
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("Data", "PredictedLabel")));
 
             // Train the model.
             var model = dynamicPipeline.Fit(trainData);
@@ -216,9 +216,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline =
                 mlContext.Transforms.Normalize(
-                    new NormalizingEstimator.MinMaxColumn("Features", "MinMaxNormalized", fixZero: true),
-                    new NormalizingEstimator.MeanVarColumn("Features", "MeanVarNormalized", fixZero: true),
-                    new NormalizingEstimator.BinningColumn("Features", "BinNormalized", numBins: 256));
+                    new NormalizingEstimator.MinMaxColumn("MinMaxNormalized", "Features", fixZero: true),
+                    new NormalizingEstimator.MeanVarColumn("MeanVarNormalized", "Features", fixZero: true),
+                    new NormalizingEstimator.BinningColumn("BinNormalized", "Features", numBins: 256));
 
             // Let's train our pipeline of normalizers, and then apply it to the same data.
             var normalizedData = pipeline.Fit(trainData).Transform(trainData);
@@ -267,26 +267,26 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Apply various kinds of text operations supported by ML.NET.
             var dynamicPipeline =
                 // One-stop shop to run the full text featurization.
-                mlContext.Transforms.Text.FeaturizeText("Message", "TextFeatures")
+                mlContext.Transforms.Text.FeaturizeText("TextFeatures", "Message")
 
                 // Normalize the message for later transforms
-                .Append(mlContext.Transforms.Text.NormalizeText("Message", "NormalizedMessage"))
+                .Append(mlContext.Transforms.Text.NormalizeText("NormalizedMessage", "Message"))
 
                 // NLP pipeline 1: bag of words.
-                .Append(new WordBagEstimator(mlContext, "NormalizedMessage", "BagOfWords"))
+                .Append(new WordBagEstimator(mlContext, "BagOfWords", "NormalizedMessage"))
 
                 // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
-                .Append(new WordHashBagEstimator(mlContext, "NormalizedMessage", "BagOfBigrams",
+                .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
                             ngramLength: 2, allLengths: false))
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-                .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
-                .Append(new NgramExtractingEstimator(mlContext, "MessageChars", "BagOfTrichar",
+                .Append(mlContext.Transforms.Text.TokenizeCharacters("MessageChars", "Message"))
+                .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
                             ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
-                .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
-                .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("TokenizedMessage", "Embeddings",
+                .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
+                .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
                             WordEmbeddingsExtractingTransformer.PretrainedModelKind.GloVeTwitter25D));
 
             // Let's train our pipeline, and then apply it to the same data.
@@ -339,12 +339,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Build several alternative featurization pipelines.
             var dynamicPipeline =
                 // Convert each categorical feature into one-hot encoding independently.
-                mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot")
+                mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
                 // Convert all categorical features into indices, and build a 'word bag' of these.
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalBag", OneHotEncodingTransformer.OutputKind.Bag))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingTransformer.OutputKind.Bag))
                 // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("Workclass", "WorkclassOneHot"))
-                .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
+                .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
 
             // Let's train our pipeline, and then apply it to the same data.
             var transformedData = dynamicPipeline.Fit(data).Transform(data);

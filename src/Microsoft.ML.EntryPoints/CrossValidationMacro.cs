@@ -21,7 +21,7 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// This macro entry point implements cross validation.
     /// </summary>
-    public static class CrossValidationMacro
+    internal static class CrossValidationMacro
     {
         public sealed class SubGraphInput
         {

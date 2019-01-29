@@ -20,7 +20,7 @@ namespace Microsoft.ML.EntryPoints
     /// (those where the user-defined scorer settings are necessary to identify the scorer). We could resolve this by
     /// adding a sub-component for extra scorer args, or by creating specialized EPs for these scenarios.
     /// </summary>
-    public static partial class ScoreModel
+    internal static partial class ScoreModel
     {
         public sealed class Input
         {

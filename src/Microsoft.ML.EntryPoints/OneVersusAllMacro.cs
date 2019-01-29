@@ -20,7 +20,7 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// This macro entrypoint implements OVA.
     /// </summary>
-    public static class OneVersusAllMacro
+    internal static class OneVersusAllMacro
     {
         public sealed class SubGraphOutput
         {

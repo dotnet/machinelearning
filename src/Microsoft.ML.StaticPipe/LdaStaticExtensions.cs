@@ -107,7 +107,8 @@ namespace Microsoft.ML.StaticPipe
                 {
                     var tcol = (ILdaCol)toOutput[i];
 
-                    infos[i] = new LatentDirichletAllocationTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
+                    infos[i] = new LatentDirichletAllocationTransformer.ColumnInfo(outputNames[toOutput[i]],
+                        inputNames[tcol.Input],
                         tcol.Config.NumTopic,
                         tcol.Config.AlphaSum,
                         tcol.Config.Beta,

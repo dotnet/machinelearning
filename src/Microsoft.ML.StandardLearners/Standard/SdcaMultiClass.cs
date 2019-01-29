@@ -443,7 +443,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// The Entry Point for SDCA multiclass.
     /// </summary>
-    public static partial class Sdca
+    internal static partial class Sdca
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier",
             Desc = SdcaMultiClassTrainer.Summary,

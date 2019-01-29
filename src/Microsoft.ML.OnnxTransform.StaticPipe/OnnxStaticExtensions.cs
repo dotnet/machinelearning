@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new OnnxScoringEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                return new OnnxScoringEstimator(env,  new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] }, _modelFile);
             }
         }
 

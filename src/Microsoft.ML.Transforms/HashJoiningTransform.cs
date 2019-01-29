@@ -84,7 +84,7 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash", ShortName = "ord")]
             public bool? Ordered;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Join != null || !string.IsNullOrEmpty(CustomSlotMap) || HashBits != null ||
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal const string UserName = "Hash Join Transform";
 
-        public const string LoaderSignature = "HashJoinTransform";
+        internal const string LoaderSignature = "HashJoinTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -668,7 +668,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
-    public static class HashJoin
+    internal static class HashJoin
     {
         [TlcModule.EntryPoint(Name = "Transforms.HashConverter",
             Desc = HashJoiningTransform.Summary,

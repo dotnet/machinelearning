@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "A 1, b. c! йЁ 24 ", B = new string[2] { "~``ё 52ds й vc", "6ksj94 vd ё dakl Юds Ё q й" } },
                                new TestClass() { A = null, B =new string[2]  { null, string.Empty }  } };
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TextNormalizingEstimator(Env, columns: new[] { ("A", "NormA"), ("B", "NormB") });
+            var pipe = new TextNormalizingEstimator(Env, columns: new[] { ("NormA", "A"), ("NormB", "B") });
 
             var invalidData = new[] { new TestClassB() { A = 1, B = new float[2] { 1,4 } },
                                new TestClassB() { A = 2, B =new float[2]  { 3,4 }  } };
@@ -57,11 +57,11 @@ namespace Microsoft.ML.Tests.Transformers
             var dataSource = new MultiFileSource(dataPath);
             dataView = reader.Read(dataSource).AsDynamic;
 
-            var pipeVariations = new TextNormalizingEstimator(Env, columns: new[] { ("text", "NormText") }).Append(
-                                new TextNormalizingEstimator(Env, textCase: TextNormalizingEstimator.CaseNormalizationMode.Upper, columns: new[] { ("text", "UpperText") })).Append(
-                                new TextNormalizingEstimator(Env, keepDiacritics: true, columns: new[] { ("text", "WithDiacriticsText") })).Append(
-                                new TextNormalizingEstimator(Env, keepNumbers: false, columns: new[] { ("text", "NoNumberText") })).Append(
-                                new TextNormalizingEstimator(Env, keepPunctuations: false, columns: new[] { ("text", "NoPuncText") }));
+            var pipeVariations = new TextNormalizingEstimator(Env, columns: new[] { ("NormText", "text") }).Append(
+                                new TextNormalizingEstimator(Env, textCase: TextNormalizingEstimator.CaseNormalizationMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
+                                new TextNormalizingEstimator(Env, keepDiacritics: true, columns: new[] { ("WithDiacriticsText", "text") })).Append(
+                                new TextNormalizingEstimator(Env, keepNumbers: false, columns: new[] { ("NoNumberText", "text") })).Append(
+                                new TextNormalizingEstimator(Env, keepPunctuations: false, columns: new[] { ("NoPuncText", "text") }));
 
             var outputPath = GetOutputPath("Text", "Normalized.tsv");
             using (var ch = Env.Start("save"))
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "A 1, b. c! йЁ 24 ", B = new string[2] { "~``ё 52ds й vc", "6ksj94 vd ё dakl Юds Ё q й" } } };
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TextNormalizingEstimator(Env, columns: new[] { ("A", "NormA"), ("B", "NormB") });
+            var pipe = new TextNormalizingEstimator(Env, columns: new[] { ("NormA", "A"), ("NormB", "B") });
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

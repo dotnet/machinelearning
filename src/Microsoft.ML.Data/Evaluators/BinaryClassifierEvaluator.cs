@@ -1198,11 +1198,11 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out conf))
                 throw ch.Except("No overall metrics found");
 
-            (string Source, string Name)[] cols =
+            (string name, string source)[] cols =
             {
-                (BinaryClassifierEvaluator.Accuracy, FoldAccuracy),
-                (BinaryClassifierEvaluator.LogLoss, FoldLogLoss),
-                (BinaryClassifierEvaluator.LogLossReduction, FoldLogLosRed)
+                (FoldAccuracy, BinaryClassifierEvaluator.Accuracy),
+                (FoldLogLoss, BinaryClassifierEvaluator.LogLoss),
+                (FoldLogLosRed, BinaryClassifierEvaluator.LogLossReduction)
             };
 
             var colsToKeep = new List<string>();
@@ -1506,7 +1506,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static partial class Evaluate
+    internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.BinaryClassificationEvaluator", Desc = "Evaluates a binary classification scored dataset.")]
         public static CommonOutputs.ClassificationEvaluateOutput Binary(IHostEnvironment env, BinaryClassifierMamlEvaluator.Arguments input)

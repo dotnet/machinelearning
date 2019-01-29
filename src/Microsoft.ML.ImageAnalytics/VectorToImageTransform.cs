@@ -59,7 +59,7 @@ namespace Microsoft.ML.ImageAnalytics
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scale factor")]
             public Single? Scale;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -69,7 +69,7 @@ namespace Microsoft.ML.ImageAnalytics
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (ContainsAlpha != null || ContainsRed != null || ContainsGreen != null || ContainsBlue != null || ImageWidth != null ||
