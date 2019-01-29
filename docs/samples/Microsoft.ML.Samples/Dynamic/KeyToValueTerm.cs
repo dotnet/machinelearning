@@ -14,9 +14,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var ml = new MLContext();
 
-            // Get a small dataset as an IEnumerable.
+            // Get a small dataset as an IEnumerable and load it into ML.NET data set.
             IEnumerable<SamplesUtils.DatasetUtils.SampleTopicsData> data = SamplesUtils.DatasetUtils.GetTopicsData();
-            var trainData = ml.CreateStreamingDataView(data);
+            var trainData = ml.Data.ReadFromEnumerable(data);
 
             // Preview of one of the columns of the the topics data. 
             // The Review column contains the keys associated with a particular body of text.  
