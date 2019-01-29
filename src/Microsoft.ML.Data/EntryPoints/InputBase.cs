@@ -221,7 +221,8 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// Common input interfaces for TLC components.
     /// </summary>
-    public static class CommonInputs
+    [BestFriend]
+    internal static class CommonInputs
     {
         /// <summary>
         /// Interface that all API transform input classes will implement.
