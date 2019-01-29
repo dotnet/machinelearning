@@ -1,14 +1,14 @@
 # ML.NET Cookbook
 
-This document is intended to provide essential samples for common usage patterns of ML.NET, using examples from the experimental static API.
-The static api operates on the schema of the data, strongly typing the data type. 
+This document is intended to provide essential samples for common usage patterns of ML.NET, using examples from the experimental "Static API".
+The static api operates on the schema of the data, and strongly types the data columns.
 If you are loading an existing model from a stream, there's no need to use static types (and it's also pretty hard to do). 
-You should consider using the supported dynamic API. The same examples and content found through this cookbook is also available for the dynamic API in the  [MlNetCookBook.md](..\MlNetCookBook.md)
+You should consider using the supported dynamic API. The same examples and content found through this cookbook is also available for the dynamic API in the  [ML.NET CookBook.md](../MlNetCookBook.md)
 Also, if the data view's schema is only known at runtime, there is no way to use static types. 
-Using the static API gives you compiler support: it's more likely that, if your code compiles, it will also work as intended.
+Using the static API gives you compiler support: it's more likely that if your code compiles, it will also work as intended because the checks on the type compatibility between the data and the estimators are taken care at compile time. 
 
-To get started, it is advisable to be at least minimally familiar with [high-level concepts of ML.NET](..\MlNetHighLevelConcepts.md), otherwise the terminology in this document may be foreign to you.
-We welcome feedback about the static API.  
+To get started, it is helpful to be at least minimally familiar with [high-level concepts of ML.NET](../MlNetHighLevelConcepts.md), otherwise the terminology in this document may be foreign to you.
+As the static API is experimental and under development, we welcome feedback and examples where it gives an improved experience over the supported dynamic API.
 
 ## How to use this cookbook
 

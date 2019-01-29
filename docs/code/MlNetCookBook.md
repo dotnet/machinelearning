@@ -4,7 +4,10 @@ This document is intended to provide essential samples for common usage patterns
 It is advisable to be at least minimally familiar with [high-level concepts of ML.NET](MlNetHighLevelConcepts.md), otherwise the terminology in this document may be foreign to you.
 The examples in this document make use of the dynamic API, currently the supported ML.NET API.
 In ML.NET there is also a static API, that operates on the schema of the data, strongly typing the data type. 
-That version of the API is considered experimental., more about it in the [MlNetCookBook_staticApi.md](experimental\MlNetCookBook_staticApi.md).
+That version of the API is considered experimental., more about it in the [Static API Cookbook](experimental/MlNetCookBook_staticApi.md)
+
+The examples in this cookbook use the recommended and supported API for ML.NET known as the "Dynamic API."
+For examples of the "Static API", an experimental API that operates on the schema of the data using strongly typed data types, please refer to the [Static API Cookbook](experimental/MlNetCookBook_staticApi.md)
 
 ## How to use this cookbook
 
@@ -45,7 +48,7 @@ As this document is reviewed, we found that certain general clarifications are i
 
 - *My compiler fails to find some of the methods that are present in the samples!*
 This is because we rely on extension methods a lot, and they only become available after you say `using TheRightNamespace`.
-We are still re-organizing the namespaces, and trying to improve the story. In the meantime, the following namespaces prove useful for extension methods:
+We are still re-organizing namespaces and trying to improve the story. In the meantime, the following namespaces prove useful for extension methods:
 ```csharp
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
@@ -54,9 +57,9 @@ using Microsoft.ML.Transforms;
 
 - *What is the [MLContext](https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.mlcontext?view=ml-dotnet)?*
 The MLContext is a starting point for all ML.NET operations. 
-It is instantiated by user, and provides mechanisms for logging, exception tracking and logging, setting the source of randomness.
-It is the entry points for training, prediction, model operations and also serves as a catalog of available operations.
-You will need one MlContext object for your pipelines or inference code. 
+It is instantiated by the user, and provides mechanisms for logging, exception tracking and logging, and setting the source of randomness.
+It is also the starting point for training, prediction, model operations, and also serves as a catalog of available operations.
+You will need one MlContext object for all your pipelines or inference code. 
 
 ```csharp
 // as a catalog of available operations and as the source of randomness.
@@ -87,10 +90,6 @@ Label	Workclass	education	marital-status
 
 This is how you can read this data:
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Create the reader: define the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(new[] {
         // A boolean column depicting the 'label'.
@@ -133,10 +132,6 @@ private class InspectedRowWithAllFeatures : InspectedRow
 {
     public string[] AllFeatures { get; set; }
 }
-
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
 
 // Read the data into a data view.
 var data = mlContext.Data.ReadFromTextFile<InspectedRow>(dataPath,
@@ -222,22 +217,21 @@ private class AdultData
     public float Target { get; set;}
 }
 
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Read the data into a data view.
-var data = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
-    // First line of the file is a header, not a data row.
-    separatorChar: ','
+var trainData = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+                // First line of the file is a header, not a data row.
+                hasHeader: true,
+                // Default separator is tab, but we need a semicolon.
+                separatorChar: ';'
 );		
 
 ```
 
 ## How do I debug my experiment or preview my pipeline?
 
-Most ML.NET operations are 'lazy': they are not actually processing data, they just validate that the operation is possible, and then defer execution until the output data is actually requested. 
-This provides good efficiency, but makes it hard to step through and debug the experiment.
+Most ML.NET data operations are 'lazy': when declared, the operators do not immediately process data, but rather validate that the operation is possible. 
+Execution is deferred until the output data is actually requested. This means that a schema mismatch will throw at declaration time, but a data error will not throw until execution time. 
+Lazy computation is a trick from database systems that allows for performance optimization in evaluating pipelines, but does make it more difficult to step through and debug an experiment.
 
 In order to improve debug-ability, we have added a `Preview()` extension method to all data views, transformers, estimators and readers:
 
@@ -249,7 +243,6 @@ We tried to make `Preview` debugger-friendly: our expectation is that, if you en
 
 Here is the code sample:
 ```csharp
-var mlContext = new MLContext();
 var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
     .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
@@ -331,10 +324,6 @@ feature_0;feature_1;feature_2;feature_3;feature_4;feature_5;feature_6;feature_7;
 In the file above, the last column (12th) is label that we predict, and all the preceding ones are features.
 
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
 // Read the data into a data view. Remember though, readers are lazy, so the actual reading will happen when the data is accessed.
@@ -380,7 +369,6 @@ You can use the corresponding 'context' of the task to evaluate the model.
 
 Assuming the example above was used to train the model, here's how you calculate the metrics.
 
-Calculating the metrics with the dynamic API is as follows.
 ```csharp
 // Read the test dataset.
 var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
@@ -398,18 +386,12 @@ Assuming that the model metrics look good to you, it's time to 'operationalize' 
 Here's what you do to save the model to a file, and reload it (potentially in a different context).
 
 ```csharp
-
-You can use the dynamic API to achieve the same.
-```csharp
 using (var stream = File.Create(modelPath))
 {
-    // Saving and loading happens to 'dynamic' models.
     mlContext.Model.Save(model, stream);
 }
 
 // Potentially, the lines below can be in a different process altogether.
-
-// When you load the model, it's a 'dynamic' transformer. 
 ITransformer loadedModel;
 using (var stream = File.OpenRead(modelPath))
     loadedModel = mlContext.Model.Load(stream);
@@ -424,12 +406,7 @@ For this case, ML.NET offers a convenient `PredictionEngine` component, that ess
 
 Here is the full example. Let's imagine that we have built a model for the famous Iris prediction dataset:
 
-You can also use the dynamic API to create the equivalent of the previous pipeline. 
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Step one: read the data as an IDataView.
  //  Retrieve the training data.
 var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
@@ -519,22 +496,13 @@ private class CustomerChurnInfo
 
 Given this information, here's how we turn this data into the ML.NET data view and train on it:
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Step one: read the data as an IDataView.
 // Let's assume that 'GetChurnData()' fetches and returns the training data from somewhere.
 IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
 
-// Turn the data into the ML.NET data view.
-// We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
-// or merely an IEnumerable.
-var trainData = mlContext.CreateStreamingDataView(churnData);
-
-// Now note that 'trainData' is just an IDataView, so we face a choice here: either declare the static type
-// and proceed in the statically typed fashion, or keep dynamic types and build a dynamic pipeline.
-// We demonstrate both below.
+// Step one: read the data as an IDataView.
+// Let's assume that 'GetChurnData()' fetches and returns the training data from somewhere.
+var trainData = mlContext.Data.ReadFromEnumerable(churnData);
 
 // Build the learning pipeline. 
 // In our case, we will one-hot encode the demographic category, and concatenate that with the number of visits.
@@ -554,7 +522,7 @@ Oftentimes, once a model is trained, we are also interested on 'what it has lear
 
 For example, if the linear model assigned zero weight to a feature that we consider important, it could indicate some problem with modeling. The weights of the linear model can also be used as a poor man's estimation of 'feature importance'.
 
-In the static pipeline API, we provide a set of `onFit` delegates that allow introspection of the individual transformers as they are trained.
+We provide a set of `onFit` delegates that allow introspection of the individual transformers as they are trained.
 
 This is how we can extract the learned parameters out of the model that we trained:
 ```csharp
@@ -637,7 +605,6 @@ It is a good practice to include the normalizer directly in the ML.NET learning 
 
 Here's a snippet of code that demonstrates normalization in learning pipelines. It assumes the Iris dataset:
 
-You can achieve the same results using the dynamic API.
 ```csharp
 //data model for the Iris class
  private class IrisInputAllFeatures
@@ -648,10 +615,6 @@ You can achieve the same results using the dynamic API.
     [LoadColumn(0, 3)]
     public float Features { get; set; }
 }
-
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
 
 // Read the training data.
 var trainData = mlContext.Data.ReadFromTextFile<IrisInputAllFeatures>(dataPath,
@@ -698,10 +661,6 @@ Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	n
 ```
 
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(new[] 
     {
@@ -781,10 +740,6 @@ Sentiment   SentimentText
 ```
 
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(new[] 
     {
@@ -846,10 +801,6 @@ ML.NET guards us against both these pitfalls: it will automatically apply the fe
 
 Here's an example of training on Iris dataset using randomized 90/10 train-test split, as well as a 5-fold cross-validation:
 ```csharp
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
 // Step one: read the data as an IDataView.
 var data = mlContext.Data.ReadFromTextFile<IrisInput>(dataPath,
     // Default separator is tab, but the dataset has comma.
@@ -896,11 +847,7 @@ Namely, any statically typed component (`DataView<T>`, `Transformer<T>`, `Estima
 Transitioning from dynamic to static types is more costly: we have to formally declare what is the 'schema shape'. Or, in case of estimators and transformers, what is the input and output schema shape. 
 
 We can do this via `AssertStatic<T>` extensions, as demonstrated in the following example, where we mix and match static and dynamic pipelines.
-```c#
-// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-// as a catalog of available operations and as the source of randomness.
-var mlContext = new MLContext();
-
+```csharp
 // Read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
 var reader = mlContext.Data.CreateTextReader(ctx => (
@@ -927,7 +874,7 @@ var learningPipeline = reader.MakeNewEstimator()
         Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)));
 
 // Now, at the time of writing, there is no static pipeline for OVA (one-versus-all). So, let's
-// append the OVA learner to the dynamic pipeline.
+// append the OVA learner to the pipeline.
 IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 
 // Create a binary classification trainer.
@@ -1061,7 +1008,6 @@ using (var fs = File.Create(modelPath))
     mlContext.Model.Save(model, fs);
 
 // Now pretend we are in a different process.
-var newContext = new MLContext();
 
 // Create a custom composition container for all our custom mapping actions.
 newContext.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(CustomMappings)));
