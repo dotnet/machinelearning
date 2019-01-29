@@ -2811,9 +2811,9 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSaveOnnx
     {
         /// <summary>
-        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/> <see cref="TreeEnsemble"/> in <see cref="TreeRegressorCollection"/>.
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/> <see cref="TreeEnsemble"/> in <see cref="ML.FastTree.Representation.TreeRegressorCollection"/>.
         /// </summary>
-        public TreeRegressorCollection TrainedTreeCollection { get; }
+        public ML.FastTree.Representation.TreeRegressorCollection TrainedTreeCollection { get; }
 
         // The below two properties are necessary for tree Visualizer
         [BestFriend]
@@ -2871,7 +2871,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // REVIEW: When we make the predictor wrapper, we may want to further "optimize"
             // the trained ensemble to, for instance, resize arrays so that they are of the length
             // the actual number of leaves/nodes, or remove unnecessary arrays, and so forth.
-            TrainedTreeCollection = new TreeRegressorCollection(trainedEnsemble);
+            TrainedTreeCollection = new ML.FastTree.Representation.TreeRegressorCollection(trainedEnsemble);
             InnerArgs = innerArgs;
             NumFeatures = numFeatures;
 
@@ -2899,7 +2899,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
                 categoricalSplits = true;
 
-            TrainedTreeCollection = new TreeRegressorCollection(new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits));
+            TrainedTreeCollection = new ML.FastTree.Representation.TreeRegressorCollection(new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits));
             MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
             InnerArgs = ctx.LoadStringOrNull();
