@@ -289,5 +289,68 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .ToList();
             return data;
         }
+
+        [Fact]
+        public void TestTrainTestSplit()
+        {
+            var mlContext = new MLContext(0);
+            
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            // Create the reader: define the data columns and where to find them in the text file.
+            var input = mlContext.Data.ReadFromTextFile(dataPath, new[] {
+                            new TextLoader.Column("Label", DataKind.BL, 0),
+                            new TextLoader.Column("Workclass", DataKind.TX, 1),
+                            new TextLoader.Column("Education", DataKind.TX,2),
+                            new TextLoader.Column("Age", DataKind.R4,9)
+            }, hasHeader: true);
+            // this function will accept dataview and return content of "Workclass" column as List of strings.
+            Func<IDataView, List<string>> getWorkclass = (IDataView view) =>
+            {
+                return view.GetColumn<ReadOnlyMemory<char>>(mlContext, "Workclass").Select(x => x.ToString()).ToList();
+            };
+
+            // Let's test what train test properly works with seed.
+            // In order to do that, let's split same dataset, but in one case we will use default seed value,
+            // and in other case we set seed to be specific value.
+            var (simpleTrain, simpleTest) = mlContext.BinaryClassification.TrainTestSplit(input);
+            var (simpleTrainWithSeed, simpleTestWithSeed) = mlContext.BinaryClassification.TrainTestSplit(input, seed: 10);
+
+            // Since test fraction is 0.1, it's much faster to compare test subsets of split.
+            var simpleTestWorkClass = getWorkclass(simpleTest);
+
+            var simpleWithSeedTestWorkClass = getWorkclass(simpleTestWithSeed);
+            // Validate we get different test sets.
+            Assert.NotEqual(simpleTestWorkClass, simpleWithSeedTestWorkClass);
+
+            // Now let's do same thing but with presence of stratificationColumn.
+            // Rows with same values in this stratificationColumn should end up in same subset (train or test).
+            // So let's break dataset by "Workclass" column.
+            var (stratTrain, stratTest) = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn: "Workclass");
+            var stratTrainWorkclass = getWorkclass(stratTrain);
+            var stratTestWorkClass = getWorkclass(stratTest);
+            // Let's get unique values for "Workclass" column from train subset.
+            var uniqueTrain = stratTrainWorkclass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
+            // and from test subset.
+            var uniqueTest = stratTestWorkClass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
+            // Validate we don't have intersection between workclass values since we use that column as stratification column
+            Assert.True(Enumerable.Intersect(uniqueTrain, uniqueTest).Count() == 0);
+
+            // Let's do same thing, but this time we will choose different seed.
+            // Stratification column should still break dataset properly without same values in both subsets.
+            var (stratWithSeedTrain, stratWithSeedTest) = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn:"Workclass", seed: 1000000);
+            var stratTrainWithSeedWorkclass = getWorkclass(stratWithSeedTrain);
+            var stratTestWithSeedWorkClass = getWorkclass(stratWithSeedTest);
+            // Let's get unique values for "Workclass" column from train subset.
+            var uniqueSeedTrain = stratTrainWithSeedWorkclass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
+            // and from test subset.
+            var uniqueSeedTest = stratTestWithSeedWorkClass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
+
+            // Validate we don't have intersection between workclass values since we use that column as stratification column
+            Assert.True(Enumerable.Intersect(uniqueSeedTrain, uniqueSeedTest).Count() == 0);
+            // Validate we got different test results on same stratification column with different seeds
+            Assert.NotEqual(uniqueTest, uniqueSeedTest);
+
+        }
+
     }
 }
