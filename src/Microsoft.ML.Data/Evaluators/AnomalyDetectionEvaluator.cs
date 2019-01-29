@@ -764,7 +764,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static partial class Evaluate
+    internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.AnomalyDetectionEvaluator", Desc = "Evaluates an anomaly detection scored dataset.")]
         public static CommonOutputs.CommonEvaluateOutput AnomalyDetection(IHostEnvironment env, AnomalyDetectionMamlEvaluator.Arguments input)

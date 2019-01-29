@@ -23,7 +23,7 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// A component to combine given models into an ensemble model.
     /// </summary>
-    public static class EnsembleCreator
+    internal static class EnsembleCreator
     {
         /// <summary>
         /// These are the combiner options for binary and multi class classifiers.

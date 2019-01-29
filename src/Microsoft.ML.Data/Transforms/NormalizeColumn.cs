@@ -42,14 +42,23 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms.Normalizers
 {
-    public sealed partial class NormalizeTransform
+    /// <summary>
+    /// The normalize transform for support of normalization via the <see cref="IDataTransform"/> mechanism.
+    /// More contemporaneous API usage of normalization ought to use <see cref="NormalizingEstimator"/>
+    /// and <see cref="NormalizingTransformer"/> rather than this structure.
+    /// </summary>
+    internal sealed partial class NormalizeTransform
     {
         public abstract class ColumnBase : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer", ShortName = "maxtrain")]
             public long? MaxTrainingExamples;
 
-            protected override bool TryUnparseCore(StringBuilder sb)
+            private protected ColumnBase()
+            {
+            }
+
+            private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (MaxTrainingExamples != null)
@@ -65,7 +74,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to map zero to zero, preserving sparsity", ShortName = "zero")]
             public bool? FixZero;
 
-            protected override bool TryUnparseCore(StringBuilder sb)
+            private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (FixZero != null)
@@ -76,7 +85,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public sealed class AffineColumn : FixZeroColumnBase
         {
-            public static AffineColumn Parse(string str)
+            internal static AffineColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -86,7 +95,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -99,7 +108,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             [TGUI(Label = "Max number of bins")]
             public int? NumBins;
 
-            public static BinColumn Parse(string str)
+            internal static BinColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -109,7 +118,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NumBins != null)
@@ -120,7 +129,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public sealed class LogNormalColumn : ColumnBase
         {
-            public static LogNormalColumn Parse(string str)
+            internal static LogNormalColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -130,7 +139,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -1128,7 +1137,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public static partial class AffineNormSerializationUtils
+    internal static partial class AffineNormSerializationUtils
     {
         public const string LoaderSignature = "AffineNormExec";
 
@@ -1146,7 +1155,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public static partial class BinNormSerializationUtils
+    internal static partial class BinNormSerializationUtils
     {
         public const string LoaderSignature = "BinNormExec";
 

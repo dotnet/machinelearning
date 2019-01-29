@@ -168,7 +168,7 @@ namespace Microsoft.ML.Trainers.Online
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""OGD""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""OGD""]/*' />"})]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options input)
+        internal static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainOGD");

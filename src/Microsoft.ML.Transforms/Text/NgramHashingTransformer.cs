@@ -69,7 +69,7 @@ namespace Microsoft.ML.Transforms.Text
                 ShortName = "ih")]
             public int? InvertHash;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            protected override bool TryParse(string str)
+            private protected override bool TryParse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms.Text
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || AllLengths != null || SkipLength != null || Seed != null ||

@@ -48,7 +48,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             [Argument(ArgumentType.Multiple, HelpText = "Source slot index range(s) of the column to drop")]
             public Range[] Slots;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.CheckNonWhiteSpace(str, nameof(str));
 
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return null;
             }
 
-            protected override bool TryParse(string str)
+            private protected override bool TryParse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.CheckValue(sb, nameof(sb));
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int? Max;
 
-            public static Range Parse(string str)
+            internal static Range Parse(string str)
             {
                 Contracts.CheckNonWhiteSpace(str, nameof(str));
 
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.CheckValue(sb, nameof(sb));
                 sb.Append(Min);

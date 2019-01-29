@@ -45,7 +45,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 ShortName = "kind", SortOrder = 102)]
             public OneHotEncodingTransformer.OutputKind? OutputKind;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return null;
             }
 
-            protected override bool TryParse(string str)
+            private protected override bool TryParse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Seed != null || Ordered != null || InvertHash != null)

@@ -19,9 +19,10 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Signature for a repository based loader of a IColumnFunction
+    /// Signature for a repository based loader of an <see cref="IColumnFunction"/>.
     /// </summary>
-    public delegate void SignatureLoadColumnFunction(ModelLoadContext ctx, IHost host, ColumnType typeSrc);
+    [BestFriend]
+    internal delegate void SignatureLoadColumnFunction(ModelLoadContext ctx, IHost host, ColumnType typeSrc);
 
     internal interface IColumnFunctionBuilder
     {
@@ -73,7 +74,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This contains entry-point definitions related to <see cref="NormalizeTransform"/>.
     /// </summary>
-    public static class Normalize
+    [BestFriend]
+    internal static class Normalize
     {
         [TlcModule.EntryPoint(Name = "Transforms.MinMaxNormalizer", Desc = NormalizeTransform.MinMaxNormalizerSummary, UserName = NormalizeTransform.MinMaxNormalizerUserName, ShortName = NormalizeTransform.MinMaxNormalizerShortName)]
         public static CommonOutputs.TransformOutput MinMax(IHostEnvironment env, NormalizeTransform.MinMaxArguments input)

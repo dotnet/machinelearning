@@ -12,7 +12,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static partial class ScoreModel
+    internal static partial class ScoreModel
     {
         public sealed class ScoreColumnSelectorInput : TransformInputBase
         {

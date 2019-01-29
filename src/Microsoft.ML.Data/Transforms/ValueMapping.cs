@@ -347,7 +347,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Column : OneToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);

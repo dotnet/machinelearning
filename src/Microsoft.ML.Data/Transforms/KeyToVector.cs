@@ -40,7 +40,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 HelpText = "Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.")]
             public bool? Bag;
 
-            protected override bool TryUnparseCore(StringBuilder sb)
+            private protected ColumnBase()
+            {
+            }
+
+            private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Bag != null)
@@ -48,7 +52,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return base.TryUnparseCore(sb);
             }
 
-            protected override bool TryUnparseCore(StringBuilder sb, string extra)
+            private protected override bool TryUnparseCore(StringBuilder sb, string extra)
             {
                 Contracts.AssertValue(sb);
                 Contracts.AssertNonEmpty(extra);
@@ -60,7 +64,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Column : ColumnBase
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -70,7 +74,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);

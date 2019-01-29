@@ -87,7 +87,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not to concatenate an indicator vector column to the value column", ShortName = "ind")]
             public bool? ConcatIndicator;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);

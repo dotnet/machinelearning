@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         public sealed class Column : OneToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);

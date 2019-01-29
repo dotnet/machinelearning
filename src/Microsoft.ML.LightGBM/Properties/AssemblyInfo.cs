@@ -7,6 +7,7 @@ using Microsoft.ML;
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.LightGBM.StaticPipe" + PublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Predictor.Tests" + PublicKey.TestValue)]
 
 [assembly: InternalsVisibleTo(assemblyName: "RunTests" + InternalPublicKey.Value)]
 

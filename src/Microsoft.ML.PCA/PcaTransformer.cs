@@ -17,24 +17,24 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Transforms.Projections;
 
-[assembly: LoadableClass(PcaTransform.Summary, typeof(IDataTransform), typeof(PcaTransform), typeof(PcaTransform.Arguments), typeof(SignatureDataTransform),
-    PcaTransform.UserName, PcaTransform.LoaderSignature, PcaTransform.ShortName)]
+[assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), typeof(PcaTransformer.Arguments), typeof(SignatureDataTransform),
+    PcaTransformer.UserName, PcaTransformer.LoaderSignature, PcaTransformer.ShortName)]
 
-[assembly: LoadableClass(PcaTransform.Summary, typeof(IDataTransform), typeof(PcaTransform), null, typeof(SignatureLoadDataTransform),
-    PcaTransform.UserName, PcaTransform.LoaderSignature)]
+[assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), null, typeof(SignatureLoadDataTransform),
+    PcaTransformer.UserName, PcaTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(PcaTransform.Summary, typeof(PcaTransform), null, typeof(SignatureLoadModel),
-    PcaTransform.UserName, PcaTransform.LoaderSignature)]
+[assembly: LoadableClass(PcaTransformer.Summary, typeof(PcaTransformer), null, typeof(SignatureLoadModel),
+    PcaTransformer.UserName, PcaTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(PcaTransform), null, typeof(SignatureLoadRowMapper),
-    PcaTransform.UserName, PcaTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(PcaTransformer), null, typeof(SignatureLoadRowMapper),
+    PcaTransformer.UserName, PcaTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(PcaTransform), null, typeof(SignatureEntryPointModule), PcaTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(void), typeof(PcaTransformer), null, typeof(SignatureEntryPointModule), PcaTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Projections
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
-    public sealed class PcaTransform : OneToOneTransformerBase
+    public sealed class PcaTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms.Projections
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation", ShortName = "seed")]
             public int? Seed;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (!string.IsNullOrEmpty(WeightColumn) || Rank != null || Oversampling != null ||
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Transforms.Projections
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(PcaTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(PcaTransformer).Assembly.FullName);
         }
 
         private readonly int _numColumns;
@@ -242,8 +242,8 @@ namespace Microsoft.ML.Transforms.Projections
 
         private const string RegistrationName = "Pca";
 
-        internal PcaTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaTransform)), GetColumnPairs(columns))
+        internal PcaTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
             _numColumns = columns.Length;
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Transforms.Projections
             Train(columns, _transformInfos, input);
         }
 
-        private PcaTransform(IHost host, ModelLoadContext ctx)
+        private PcaTransformer(IHost host, ModelLoadContext ctx)
          : base(host, ctx)
         {
             Host.AssertValue(ctx);
@@ -300,14 +300,14 @@ namespace Microsoft.ML.Transforms.Projections
                         item.Oversampling ?? args.Oversampling,
                         item.Center ?? args.Center,
                         item.Seed ?? args.Seed)).ToArray();
-            return new PcaTransform(env, input, cols).MakeDataTransform(input);
+            return new PcaTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static PcaTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static PcaTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(PcaTransform));
+            var host = env.Register(nameof(PcaTransformer));
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Transforms.Projections
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return new PcaTransform(host, ctx);
+            return new PcaTransformer(host, ctx);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -578,10 +578,10 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            private readonly PcaTransform _parent;
+            private readonly PcaTransformer _parent;
             private readonly int _numColumns;
 
-            public Mapper(PcaTransform parent, Schema inputSchema)
+            public Mapper(PcaTransformer parent, Schema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -646,10 +646,10 @@ namespace Microsoft.ML.Transforms.Projections
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
                                  @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaCalculator""]/*' />"})]
-        public static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Pca", input);
-            var view = PcaTransform.Create(h, input, input.Data);
+            var view = PcaTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, view, input.Data),
@@ -659,7 +659,7 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
-    public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransform>
+    public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransformer>
     {
         [BestFriend]
         internal static class Defaults
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         private readonly IHost _host;
-        private readonly PcaTransform.ColumnInfo[] _columns;
+        private readonly PcaTransformer.ColumnInfo[] _columns;
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
@@ -687,21 +687,21 @@ namespace Microsoft.ML.Transforms.Projections
             string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
             int overSampling = Defaults.Oversampling, bool center = Defaults.Center,
             int? seed = null)
-            : this(env, new PcaTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, weightColumn, rank, overSampling, center, seed))
+            : this(env, new PcaTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, weightColumn, rank, overSampling, center, seed))
         {
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The dataset columns to use, and their specific settings.</param>
-        public PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransform.ColumnInfo[] columns)
+        public PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(PrincipalComponentAnalysisEstimator));
             _columns = columns;
         }
 
-        public PcaTransform Fit(IDataView input) => new PcaTransform(_host, input, _columns);
+        public PcaTransformer Fit(IDataView input) => new PcaTransformer(_host, input, _columns);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

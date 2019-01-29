@@ -83,7 +83,11 @@ namespace Microsoft.ML.Transforms.Projections
             [Argument(ArgumentType.AtMostOnce, HelpText = "Subtract mean from each value before normalizing")]
             public bool? SubMean;
 
-            protected override bool TryUnparseCore(StringBuilder sb)
+            private protected ColumnBase()
+            {
+            }
+
+            private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (SubMean != null)
@@ -97,7 +101,7 @@ namespace Microsoft.ML.Transforms.Projections
             [Argument(ArgumentType.AtMostOnce, HelpText = "The norm to use to normalize each sample", ShortName = "norm", SortOrder = 1)]
             public LpNormalizingEstimatorBase.NormalizerKind? NormKind;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -107,7 +111,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NormKind != null)
@@ -124,7 +128,7 @@ namespace Microsoft.ML.Transforms.Projections
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scale features by this value")]
             public float? Scale;
 
-            public static GcnColumn Parse(string str)
+            internal static GcnColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -134,7 +138,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (UseStdDev != null || Scale != null)
@@ -705,7 +709,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
     }
 
-    public static class LpNormalization
+    internal static class LpNormalization
     {
         [TlcModule.EntryPoint(Name = "Transforms.LpNormalizer",
             Desc = LpNormalizingTransformer.Summary,

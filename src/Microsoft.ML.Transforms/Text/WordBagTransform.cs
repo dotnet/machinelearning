@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "Statistical measure used to evaluate how important a word is to a document in a corpus")]
             public NgramExtractingEstimator.WeightingCriteria? Weighting;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || AllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
             public NgramExtractingEstimator.WeightingCriteria? Weighting;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || AllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
