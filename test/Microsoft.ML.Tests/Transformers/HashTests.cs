@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -82,17 +83,17 @@ namespace Microsoft.ML.Tests.Transformers
             VBuffer<ReadOnlyMemory<char>> keys = default;
             var column = result.Schema["HashA"];
             Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
-            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
+            column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
             column = result.Schema["HashAUnlim"];
             Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
-            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
+            column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
             column = result.Schema["HashAUnlimOrdered"];
             Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
-            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
+            column.GetKeyValues(ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "0:3.5", "1:2.5" });
         }
 
@@ -231,20 +232,20 @@ namespace Microsoft.ML.Tests.Transformers
             if (value <= byte.MaxValue)
             {
                 HashTestCore((byte)value, NumberType.U1, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((byte)value, new KeyType(typeof(byte), 0, byte.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((byte)value, new KeyType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberType.U2, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((ushort)value, new KeyType(typeof(ushort), 0, ushort.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((ushort)value, new KeyType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= uint.MaxValue)
             {
                 HashTestCore((uint)value, NumberType.U4, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((uint)value, new KeyType(typeof(uint), 0, int.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((uint)value, new KeyType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
             }
             HashTestCore(value, NumberType.U8, expected, expectedOrdered, expectedOrdered3);
-            HashTestCore((ulong)value, new KeyType(typeof(ulong), 0, 0), eKey, eoKey, e3Key);
+            HashTestCore((ulong)value, new KeyType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
 
             HashTestCore(new RowId(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
 

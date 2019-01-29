@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;

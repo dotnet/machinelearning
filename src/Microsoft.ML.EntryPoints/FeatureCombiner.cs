@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -123,7 +124,7 @@ namespace Microsoft.ML.EntryPoints
             if (type == null || !type.IsKnownSize || !(type.ItemType is TextType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
-            col.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
+            col.Value.GetKeyValues(ref metadata);
             if (!metadata.IsDense)
                 return null;
             var sb = new StringBuilder();

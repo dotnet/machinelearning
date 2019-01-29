@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.Tools;
@@ -139,10 +140,13 @@ namespace Microsoft.ML.Tests
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
-            int size = (itemType1 as KeyType)?.Count ?? -1;
+            var key = itemType1 as KeyType;
+            Assert.NotNull(key);
+            Assert.InRange<ulong>(key.Count, 0, int.MaxValue);
+            int size = (int)key.Count;
             var type2 = result.Schema[copyIndex].Type;
-            result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
-            result.Schema[copyIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names2);
+            result.Schema[termIndex].GetKeyValues(ref names1);
+            result.Schema[copyIndex].GetKeyValues(ref names2);
             Assert.True(CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
         }
 

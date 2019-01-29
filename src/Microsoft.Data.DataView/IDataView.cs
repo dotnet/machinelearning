@@ -6,7 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.Data.DataView
 {
     /// <summary>
     /// The input and output of Query Operators (Transforms). This is the fundamental data pipeline

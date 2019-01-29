@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -221,9 +222,9 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private ColumnType GetOutputType(Schema inputSchema, ColumnInfo column)
         {
-            var keyCount = column.HashBits < 31 ? 1 << column.HashBits : 0;
+            var keyCount = (ulong)1 << column.HashBits;
             inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
-            var itemType = new KeyType(DataKind.U4, 0, keyCount, keyCount > 0);
+            var itemType = new KeyType(typeof(uint), keyCount);
             var srcType = inputSchema[srcCol].Type;
             if (srcType is VectorType vectorType)
                 return new VectorType(itemType, vectorType.Size);
@@ -303,7 +304,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
-                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCount());
+                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCountAsInt32(Host));
                             _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }

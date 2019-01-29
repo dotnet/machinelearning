@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -177,7 +178,7 @@ namespace Microsoft.ML.Data
                 labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
                 vecType.Size > 0 && vecType.ItemType == TextType.Instance)
             {
-                labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+                labelCol.GetKeyValues(ref labelNames);
             }
             else
                 labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
@@ -333,7 +334,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -354,7 +355,7 @@ namespace Microsoft.ML.Data
                     var confDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
+                        confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
@@ -374,7 +375,7 @@ namespace Microsoft.ML.Data
                         var dvBldr = new ArrayDataViewBuilder(Host);
                         if (hasStrats)
                         {
-                            dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, prStratCol.ToArray());
+                            dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, prStratCol.ToArray());
                             dvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, prStratVal.ToArray());
                         }
                         dvBldr.AddColumn(Threshold, NumberType.R4, scores.ToArray());
@@ -1095,7 +1096,7 @@ namespace Microsoft.ML.Data
             Host.AssertValueOrNull(_probCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema[(int) LabelIndex].Type;
+            var t = schema[(int)LabelIndex].Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", LabelCol, t);
 

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.Data.Commands;
@@ -81,7 +82,7 @@ namespace Microsoft.ML.Data.Commands
                 var srcToDstMap = new Dictionary<DataKind, HashSet<DataKind>>();
 
                 var kinds = Enum.GetValues(typeof(DataKind)).Cast<DataKind>().Distinct().OrderBy(k => k).ToArray();
-                var types = kinds.Select(kind => PrimitiveType.FromKind(kind)).ToArray();
+                var types = kinds.Select(kind => ColumnTypeExtensions.PrimitiveTypeFromKind(kind)).ToArray();
 
                 HashSet<DataKind> nonIdentity = null;
                 // For each kind and its associated type.

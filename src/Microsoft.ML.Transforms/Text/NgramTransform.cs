@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -581,7 +582,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
-                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType().GetKeyCount()))
+                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType()))
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
@@ -595,15 +596,15 @@ namespace Microsoft.ML.Transforms.Text
 
             private void GetSlotNames(int iinfo, int size, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
+                var itemType = _srcTypes[iinfo].GetItemType();
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-
-                var keyCount = _srcTypes[iinfo].GetItemType().GetKeyCount();
-                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues(keyCount));
+                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues(itemType));
 
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
                 // Get the key values of the unigrams.
-                InputSchema[_srcCols[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref unigramNames);
+                var keyCount = itemType.GetKeyCountAsInt32(Host);
+                InputSchema[_srcCols[iinfo]].GetKeyValues(ref unigramNames);
                 Host.Check(unigramNames.Length == keyCount);
 
                 var pool = _parent._ngramMaps[iinfo];

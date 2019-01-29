@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -487,26 +488,15 @@ namespace Microsoft.ML.Data.IO
 
         private TextLoader.Column GetColumn(string name, ColumnType type, int? start)
         {
-            KeyRange keyRange = null;
+            KeyCount keyCount = null;
             VectorType vectorType = type as VectorType;
             ColumnType itemType = vectorType?.ItemType ?? type;
             if (itemType is KeyType key)
-            {
-                if (!key.Contiguous)
-                    keyRange = new KeyRange(key.Min, contiguous: false);
-                else if (key.Count == 0)
-                    keyRange = new KeyRange(key.Min);
-                else
-                {
-                    Contracts.Assert(key.Count >= 1);
-                    keyRange = new KeyRange(key.Min, key.Min + (ulong)(key.Count - 1));
-                }
-            }
+                keyCount = new KeyCount(key.Count);
 
             DataKind kind = itemType.GetRawKind();
 
             TextLoader.Range[] source = null;
-
             TextLoader.Range range = null;
             int minValue = start ?? -1;
             if (vectorType?.IsKnownSize == true)
@@ -516,7 +506,7 @@ namespace Microsoft.ML.Data.IO
             else
                 range = new TextLoader.Range { Min = minValue };
             source = new TextLoader.Range[1] { range };
-            return new TextLoader.Column() { Name = name, KeyRange = keyRange, Source = source, Type = kind };
+            return new TextLoader.Column() { Name = name, KeyCount = keyCount, Source = source, Type = kind };
         }
 
         private sealed class State

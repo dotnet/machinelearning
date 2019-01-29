@@ -38,7 +38,7 @@ namespace Microsoft.ML.Benchmarks
         /// </summary>
         private IToolchain CreateToolchain()
         {
-#if NET461
+#if NETFRAMEWORK
             var tfm = "net461";
             var csProj = CsProjClassicNetToolchain.Net461;
 #else

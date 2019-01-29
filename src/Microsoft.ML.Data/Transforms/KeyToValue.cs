@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -231,7 +232,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
                     ColumnType valsItemType = typeVals.GetItemType();
                     ColumnType srcItemType = typeSrc.GetItemType();
-                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCount(), "KeyValues metadata size does not match column type key count");
+                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCountAsInt32(Host), "KeyValues metadata size does not match column type key count");
                     if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = valsItemType;
                     else
@@ -256,8 +257,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(valItemType.RawType == typeof(TValue));
 
                 var keyMetadata = default(VBuffer<TValue>);
-                InputSchema[ColMapNewToOld[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyMetadata);
-                Host.Check(keyMetadata.Length == keyItemType.GetKeyCount());
+                InputSchema[ColMapNewToOld[iinfo]].GetKeyValues(ref keyMetadata);
+                Host.Check(keyMetadata.Length == keyItemType.GetKeyCountAsInt32(Host));
 
                 VBufferUtils.Densify(ref keyMetadata);
                 return new KeyToValueMap<TKey, TValue>(this, (KeyType)keyItemType, (PrimitiveType)valItemType, keyMetadata, iinfo);
