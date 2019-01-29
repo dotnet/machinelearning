@@ -12,7 +12,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// The base container class for the forecast result on a sequence of type <typeparamref name="T"/>.
     /// </summary>
     /// <typeparam name="T">The type of the elements in the sequence</typeparam>
-    public abstract class ForecastResultBase<T>
+    internal abstract class ForecastResultBase<T>
     {
         public VBuffer<T> PointForecast;
     }
