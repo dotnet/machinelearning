@@ -877,7 +877,7 @@ namespace Microsoft.ML.Scenarios
                    separatorChar: ','
                );
 
-            // We cannot resize variable length vector to fixed lenght vector in ML.Net
+            // We cannot resize variable length vector to fixed length vector in ML.Net
             // The trick here is to create two pipelines.
             // The first pipeline tokenzies the strings into words and maps the words to an integer which is an index in the dictionary.
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
