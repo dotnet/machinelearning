@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class LogisticRegression_example
+    public class LogisticRegressionExample
     {
         public static void LogisticRegression()
         {
@@ -82,6 +82,8 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}");
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}");
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}");
+
+            Console.ReadLine();
         }
     }
 }
