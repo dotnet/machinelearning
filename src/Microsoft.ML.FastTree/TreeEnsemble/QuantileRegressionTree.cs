@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 var sampleWeightsPerLeaf = new List<double>();
                 for (int j = 0; j < sampleCountPerLeaf; ++j)
                 {
-                    if( _labelsDistribution != null)
+                    if (_labelsDistribution != null)
                         samplesPerLeaf.Add(_labelsDistribution[i * sampleCountPerLeaf + j]);
                     else
                         // No training label is available, so the i-th leaf's value is used directly. Note that sampleCountPerLeaf must be 1 in this case.
