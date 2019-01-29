@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal sealed class CompositeDataLoader : IDataLoader, ITransposeDataView
     {
-        internal sealed class Arguments
+        public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SignatureType = typeof(SignatureDataLoader))]
             public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;

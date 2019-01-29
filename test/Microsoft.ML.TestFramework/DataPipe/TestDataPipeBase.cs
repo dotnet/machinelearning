@@ -301,7 +301,7 @@ namespace Microsoft.ML.RunTests
             return pipe1;
         }
 
-        protected private IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
+        private IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
         {
             VerifyArgParsing(env, argsPipe);
 
@@ -316,30 +316,6 @@ namespace Microsoft.ML.RunTests
                 Failed();
 
             return pipe;
-        }
-
-        /// <summary>
-        /// Apply pipe's transforms and optionally ChooseColumns transform to newView, 
-        /// and test if pipe and newPipe have the same schema and values.
-        /// </summary>
-        protected private void TestApplyTransformsToData(IHostEnvironment env, IDataLoader pipe, IDataView newView, string chooseArgs = null)
-        {
-            Contracts.AssertValue(pipe);
-            Contracts.AssertValue(newView);
-
-            IDataView view = pipe;
-            newView = ApplyTransformUtils.ApplyAllTransformsToData(env, view, newView);
-            if (!string.IsNullOrWhiteSpace(chooseArgs))
-            {
-                var component = new SubComponent<IDataTransform, SignatureDataTransform>("Choose", chooseArgs);
-                view = component.CreateInstance(env, view);
-                newView = component.CreateInstance(env, newView);
-            }
-
-            if (!CheckSameSchemas(view.Schema, newView.Schema))
-                Failed();
-            else if (!CheckSameValues(view, newView))
-                Failed();
         }
 
         protected void VerifyArgParsing(IHostEnvironment env, string[] strs)
@@ -471,7 +447,7 @@ namespace Microsoft.ML.RunTests
             return res;
         }
 
-        protected private IDataLoader LoadPipe(string pathModel, IHostEnvironment env, IMultiStreamSource files)
+        private IDataLoader LoadPipe(string pathModel, IHostEnvironment env, IMultiStreamSource files)
         {
             using (var file = Env.OpenInputFile(pathModel))
             using (var strm = file.OpenReadStream())

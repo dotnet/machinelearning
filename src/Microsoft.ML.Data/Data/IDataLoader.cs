@@ -40,12 +40,14 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Signature for creating an <see cref="IDataLoader"/>.
     /// </summary>
-    public delegate void SignatureDataLoader(IMultiStreamSource data);
+    [BestFriend]
+    internal delegate void SignatureDataLoader(IMultiStreamSource data);
 
     /// <summary>
     /// Signature for loading an <see cref="IDataLoader"/>.
     /// </summary>
-    public delegate void SignatureLoadDataLoader(ModelLoadContext ctx, IMultiStreamSource data);
+    [BestFriend]
+    internal delegate void SignatureLoadDataLoader(ModelLoadContext ctx, IMultiStreamSource data);
 
     /// <summary>
     /// Interface for a data loader. An <see cref="IDataLoader"/> can save its model information
