@@ -12,10 +12,10 @@ namespace Microsoft.ML.Samples.Dynamic
         // and MatrixRowIndex=0 in MatrixElement below specifies the value at the upper-left corner in the training matrix). If user's row index 
         // starts with 1, their row index 1 would be mapped to the 2nd row in matrix factorization module and their first row may contain no values.
         // This behavior is also true to column index.
-        const int _synthesizedMatrixFirstColumnIndex = 1;
-        const int _synthesizedMatrixFirstRowIndex = 1;
-        const int _synthesizedMatrixColumnCount = 60;
-        const int _synthesizedMatrixRowCount = 100;
+        private const int _synthesizedMatrixFirstColumnIndex = 1;
+        private const int _synthesizedMatrixFirstRowIndex = 1;
+        private const int _synthesizedMatrixColumnCount = 60;
+        private const int _synthesizedMatrixRowCount = 100;
 
         // A data structure used to encode a single value in matrix
         internal class MatrixElement

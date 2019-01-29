@@ -2,9 +2,9 @@
 using Microsoft.ML.Data;
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class FFM_BinaryClassificationExample
+    public class FFMBinaryClassificationExample
     {
-        public static void FFM_BinaryClassification()
+        public static void FFMBinaryClassification()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.

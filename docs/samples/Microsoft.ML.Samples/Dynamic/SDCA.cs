@@ -5,9 +5,9 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class SDCA_BinaryClassificationExample
+    public class SDCABinaryClassificationExample
     {
-        public static void SDCA_BinaryClassification()
+        public static void SDCABinaryClassification()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.
@@ -69,8 +69,8 @@ namespace Microsoft.ML.Samples.Dynamic
                                       }));
 
             // Run Cross-Validation on this second pipeline.
-            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment", numFolds: 3);
-            accuracies = cvResults_advancedPipeline.Select(r => r.metrics.Accuracy);
+            var cvResultsAdvancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment", numFolds: 3);
+            accuracies = cvResultsAdvancedPipeline.Select(r => r.metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
 
         }

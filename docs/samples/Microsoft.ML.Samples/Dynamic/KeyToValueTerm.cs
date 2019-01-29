@@ -6,9 +6,9 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KeyToValue_TermExample
+    public class KeyToValueTermExample
     {
-        public static void KeyToValue_Term()
+        public static void KeyToValueTerm()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // making use of default settings.
             string defaultColumnName = "DefaultKeys";
             // REVIEW create through the catalog extension
-            var default_pipeline = new WordTokenizingEstimator(ml, "Review")
+            var defaultPipeline = new WordTokenizingEstimator(ml, "Review")
                 .Append(new ValueToKeyMappingEstimator(ml, "Review", defaultColumnName));
 
             // Another pipeline, that customizes the advanced settings of the TermEstimator.
@@ -39,12 +39,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // and condition the order in which they get evaluated by changing sort from the default Occurence (order in which they get encountered) 
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
-            var customized_pipeline = new WordTokenizingEstimator(ml, "Review")
+            var customizedPipeline = new WordTokenizingEstimator(ml, "Review")
                 .Append(new ValueToKeyMappingEstimator(ml, "Review", customizedColumnName, maxNumTerms: 10, sort: ValueToKeyMappingTransformer.SortOrder.Value));
 
             // The transformed data.
-            var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);
-            var transformedData_customized = customized_pipeline.Fit(trainData).Transform(trainData);
+            var transformedDataDefault = defaultPipeline.Fit(trainData).Transform(trainData);
+            var transformedDataCustomized = customizedPipeline.Fit(trainData).Transform(trainData);
 
             // Small helper to print the text inside the columns, in the console. 
             Action<string, IEnumerable<VBuffer<uint>>> printHelper = (columnName, column) =>
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Preview of the DefaultKeys column obtained after processing the input.
-            var defaultColumn = transformedData_default.GetColumn<VBuffer<uint>>(ml, defaultColumnName);
+            var defaultColumn = transformedDataDefault.GetColumn<VBuffer<uint>>(ml, defaultColumnName);
             printHelper(defaultColumnName, defaultColumn);
 
             // DefaultKeys column obtained post-transformation.
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 9 10 11 12 13 6
 
             // Previewing the CustomizedKeys column obtained after processing the input.
-            var customizedColumn = transformedData_customized.GetColumn<VBuffer<uint>>(ml, customizedColumnName);
+            var customizedColumn = transformedDataCustomized.GetColumn<VBuffer<uint>>(ml, customizedColumnName);
             printHelper(customizedColumnName, customizedColumn);
 
             // CustomizedKeys column obtained post-transformation.
@@ -84,11 +84,11 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
             // to convert the keys back to the strings.
-            var pipeline = default_pipeline.Append(new KeyToValueMappingEstimator(ml, defaultColumnName));
-            transformedData_default = pipeline.Fit(trainData).Transform(trainData);
+            var pipeline = defaultPipeline.Append(new KeyToValueMappingEstimator(ml, defaultColumnName));
+            transformedDataDefault = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.
-            var originalColumnBack = transformedData_default.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, defaultColumnName);
+            var originalColumnBack = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, defaultColumnName);
 
             foreach (var row in originalColumnBack)
             {

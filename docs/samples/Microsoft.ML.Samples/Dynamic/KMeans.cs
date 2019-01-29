@@ -3,7 +3,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KMeans_example
+    public class KMeansExample
     {
         public static void KMeans()
         {
