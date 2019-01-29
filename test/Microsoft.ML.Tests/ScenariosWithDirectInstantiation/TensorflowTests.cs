@@ -881,17 +881,17 @@ namespace Microsoft.ML.Scenarios
             // The trick here is to create two pipelines.
             // The first pipeline 'dataPipe' tokenzies the string into words and maps each word to an integer which is an index in the dictionary.
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
-            // The second pipeline 'tfEnginePipe' takes the resized integer vector and passed to TensoFlow and get the classification scores.
-            var estimator = mlContext.Transforms.Text.TokenizeWords("Sentiment_Text", "TokenizedWords")
-                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("TokenizedWords", "Features") }));
+            // The second pipeline 'tfEnginePipe' takes the resized integer vector and passes it to TensoFlow and gets the classification scores.
+            var estimator = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
+                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("Features", "TokenizedWords") }));
             var dataPipe = estimator.Fit(dataView)
                 .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
 
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            var tfEnginePipe = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "Features" }, new[] { "Prediction/Softmax" })
-                .Append(mlContext.Transforms.CopyColumns(("Prediction/Softmax", "Prediction")))
+            var tfEnginePipe = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "Prediction/Softmax" }, new[] { "Features" })
+                .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
                 .Fit(dataView)
                 .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
 

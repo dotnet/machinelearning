@@ -155,7 +155,7 @@ namespace Microsoft.ML
         /// <returns></returns>
         public static ValueMappingEstimator ValueMap(
             this TransformsCatalog.ConversionTransforms catalog,
-            IDataView lookupMap, string keyColumn, string valueColumn, params (string input, string output)[] columns)
+            IDataView lookupMap, string keyColumn, string valueColumn, params (string outputColumnName, string inputColumnName)[] columns)
             => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn, columns);
     }
 }
