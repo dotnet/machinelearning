@@ -97,7 +97,7 @@ A cookbook that shows how to use these APIs for a variety of existing and new sc
 
 ## API Documentation
 
-See the API [here](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
+See the [ML.NET API Reference Documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
 
 ## Samples
 
