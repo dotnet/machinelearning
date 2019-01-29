@@ -196,7 +196,7 @@ namespace Microsoft.ML.Tests.Transformers
                             };
             var mapView = ML.Data.ReadFromEnumerable(map);
 
-            var estimator = new ValueMappingEstimator(Env, mapView, "Key", "Value", new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator(Env, mapView, "Key", "Value", new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
