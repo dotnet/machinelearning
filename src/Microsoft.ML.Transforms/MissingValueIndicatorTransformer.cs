@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms
                         outType = BoolType.Instance;
                     else
                         outType = new VectorType(BoolType.Instance, vectorType);
-                    infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].outputColumnName, inType, outType);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].sourceColumnName, inType, outType);
                 }
                 return infos;
             }
