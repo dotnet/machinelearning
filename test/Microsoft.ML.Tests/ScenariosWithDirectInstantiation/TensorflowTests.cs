@@ -877,15 +877,21 @@ namespace Microsoft.ML.Scenarios
                    separatorChar: ','
                );
 
-            var estimator = new WordTokenizingEstimator(mlContext, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("Sentiment_Text", "TokenizedWords")
-                }).Append(new ValueMappingEstimator(mlContext, lookupMap, "Words", "Ids", new[] { ("TokenizedWords", "Features") }));
+            // We cannot resize variable length vector to fixed lenght vector in ML.Net
+            // The trick here is to create two pipelines.
+            // The first pipeline tokenzies the strings into words and maps the words to an integer which is an index in the dictionary.
+            // Then this integer vector is retrieved from the pipeline and resized to fixed length.
+            // The second pipeline takes the resized integer vector and passed to TensoFlow and get the classification scores.
+            var estimator = mlContext.Transforms.Text.TokenizeWords("Sentiment_Text", "TokenizedWords")
+                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("TokenizedWords", "Features") }));
             var dataPipe = estimator.Fit(dataView)
                 .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
 
+            // For explanation on how was the `sentiment_model` created 
+            // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            var tfEnginePipe = new TensorFlowEstimator(mlContext, modelLocation, new[] { "Features" }, new[] { "Prediction/Softmax" })
-                .Append(new ColumnCopyingEstimator(mlContext, ("Prediction/Softmax", "Prediction")))
+            var tfEnginePipe = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "Features" }, new[] { "Prediction/Softmax" })
+                .Append(mlContext.Transforms.CopyColumns(("Prediction/Softmax", "Prediction")))
                 .Fit(dataView)
                 .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
 
@@ -894,6 +900,7 @@ namespace Microsoft.ML.Scenarios
             var prediction = tfEnginePipe.Predict(processedData);
 
             Assert.Equal(2, prediction.Prediction.Length);
+            Assert.InRange(prediction.Prediction[1], 0.650032759 - 0.01, 0.650032759 + 0.01);
         }
     }
 }

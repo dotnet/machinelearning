@@ -141,5 +141,19 @@ namespace Microsoft.ML
             IEnumerable<TOutputType> values,
             params (string source, string name)[] columns)
             => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
+
+        /// <summary>
+        /// Maps specified keys to specified values
+        /// </summary>
+        /// <param name="catalog">The categorical transform's catalog</param>
+        /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
+        /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>
+        /// <param name="valueColumn">Name of the value column in <paramref name="lookupMap"/>.</param>
+        /// <param name="columns">The columns to apply this transform on.</param>
+        /// <returns></returns>
+        public static ValueMappingEstimator ValueMap(
+            this TransformsCatalog.ConversionTransforms catalog,
+            IDataView lookupMap, string keyColumn, string valueColumn, params (string input, string output)[] columns)
+            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn, columns);
     }
 }
