@@ -51,7 +51,8 @@ namespace Microsoft.ML.Data
     /// Interface for a data loader. An <see cref="IDataLoader"/> can save its model information
     /// and is instantiatable from arguments and an <see cref="IMultiStreamSource"/> .
     /// </summary>
-    public interface IDataLoader : IDataView, ICanSaveModel
+    [BestFriend]
+    internal interface IDataLoader : IDataView, ICanSaveModel
     {
     }
 

@@ -397,12 +397,13 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static class LoaderUtils
+    [BestFriend]
+    internal static class LoaderUtils
     {
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="file"/>.
         /// </summary>
-        public static void SaveLoader(IDataLoader loader, IFileHandle file)
+        internal static void SaveLoader(IDataLoader loader, IFileHandle file)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(file, nameof(file));
@@ -417,7 +418,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="stream"/>.
         /// </summary>
-        public static void SaveLoader(IDataLoader loader, Stream stream)
+        internal static void SaveLoader(IDataLoader loader, Stream stream)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(stream, nameof(stream));

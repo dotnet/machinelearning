@@ -38,7 +38,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Supports extracting column names and values from a path string.
     /// </summary>
-    public interface IPartitionedPathParser
+    [BestFriend]
+    internal interface IPartitionedPathParser
     {
         /// <summary>
         /// Extract the column definitions from a file path.
@@ -58,12 +59,13 @@ namespace Microsoft.ML.Data
     }
 
     [TlcModule.ComponentKind("PartitionedPathParser")]
-    public interface IPartitionedPathParserFactory : IComponentFactory<IPartitionedPathParser>
+    [BestFriend]
+    internal interface IPartitionedPathParserFactory : IComponentFactory<IPartitionedPathParser>
     {
         new IPartitionedPathParser CreateComponent(IHostEnvironment env);
     }
 
-    public sealed class SimplePartitionedPathParser : IPartitionedPathParser, ICanSaveModel
+    internal sealed class SimplePartitionedPathParser : IPartitionedPathParser, ICanSaveModel
     {
         internal const string Summary = "A simple parser that extracts directory names as column values. Column names are defined as arguments.";
         internal const string UserName = "Simple Partitioned Path Parser";
@@ -193,7 +195,7 @@ namespace Microsoft.ML.Data
 
     [TlcModule.Component(Name = ParquetPartitionedPathParser.LoadName, FriendlyName = ParquetPartitionedPathParser.UserName,
         Desc = ParquetPartitionedPathParser.Summary, Alias = ParquetPartitionedPathParser.ShortName)]
-    public class ParquetPartitionedPathParserFactory : IPartitionedPathParserFactory
+    internal class ParquetPartitionedPathParserFactory : IPartitionedPathParserFactory
     {
         public IPartitionedPathParser CreateComponent(IHostEnvironment env) => new ParquetPartitionedPathParser();
     }
@@ -276,8 +278,7 @@ namespace Microsoft.ML.Data
                 ctx.SaveString(sb.ToString());
             };
         }
-
-        public IEnumerable<PartitionedFileLoader.Column> ParseColumns(string path)
+        IEnumerable<PartitionedFileLoader.Column> IPartitionedPathParser.ParseColumns(string path)
         {
             if (!TryParseNames(path, out List<string> names))
             {

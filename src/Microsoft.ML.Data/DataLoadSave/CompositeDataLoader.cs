@@ -29,9 +29,10 @@ namespace Microsoft.ML.Data
     /// The family of <c>Create</c> methods only instantiate <see cref="CompositeDataLoader"/>'s
     /// when there are transforms to keep, otherwise they just return underlying loaders.
     /// </summary>
-    public sealed class CompositeDataLoader : IDataLoader, ITransposeDataView
+    [BestFriend]
+    internal sealed class CompositeDataLoader : IDataLoader, ITransposeDataView
     {
-        public sealed class Arguments
+        internal sealed class Arguments
         {
             [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SignatureType = typeof(SignatureDataLoader))]
             public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;

@@ -47,7 +47,8 @@ namespace Microsoft.ML.Data
     ///             data1.parquet
     ///             data1.parquet
     /// </example>
-    public sealed class PartitionedFileLoader : IDataLoader
+    [BestFriend]
+    internal sealed class PartitionedFileLoader : IDataLoader
     {
         internal const string Summary = "Loads a horizontally partitioned file set.";
         internal const string UserName = "Partitioned Loader";
