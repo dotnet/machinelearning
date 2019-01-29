@@ -196,7 +196,7 @@ namespace Microsoft.ML.Transforms.Text
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
-            /// <param name="inputColumnNames">Name of the column to transform. </param>
+            /// <param name="inputColumnNames">Name of the columns to transform. </param>
             /// <param name="ngramLength">Maximum ngram length.</param>
             /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
             /// <param name="allLengths">"Whether to store all ngram lengths up to ngramLength, or only ngramLength.</param>

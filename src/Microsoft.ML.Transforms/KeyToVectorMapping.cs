@@ -182,9 +182,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 public readonly string InputColumnName;
                 public readonly ColumnType TypeSrc;
 
-                public ColInfo(string outputColumnName, string inputColumnName, ColumnType type)
+                public ColInfo(string name, string inputColumnName, ColumnType type)
                 {
-                    Name = outputColumnName;
+                    Name = name;
                     InputColumnName = inputColumnName;
                     TypeSrc = type;
                 }
