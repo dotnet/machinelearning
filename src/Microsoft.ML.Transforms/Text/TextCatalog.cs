@@ -234,9 +234,9 @@ namespace Microsoft.ML
         /// and outputs the token streams without stopwords as <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="inputColumn">The column containing text to remove stop words on.</param>
-        /// <param name="outputColumn">The column containing output text. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="language">Langauge of the input text column <paramref name="inputColumn"/>.</param>
+        /// <param name="outputColumnName">The column containing output text. Null means <paramref name="sourceColumnName"/> is replaced.</param>
+        /// <param name="sourceColumnName">The column containing text to remove stop words on.</param>
+        /// <param name="language">Langauge of the input text column <paramref name="sourceColumnName"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -268,12 +268,12 @@ namespace Microsoft.ML
             => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, language);
 
         /// <summary>
-        /// Removes stop words from incoming token streams in <paramref name="inputColumn"/>
-        /// and outputs the token streams without stopwords as <paramref name="outputColumn"/>.
+        /// Removes stop words from incoming token streams in <paramref name="sourceColumnName"/>
+        /// and outputs the token streams without stopwords as <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="inputColumn">The column containing text to remove stop words on.</param>
-        /// <param name="outputColumn">The column containing output text. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="outputColumnName">The column containing output text. Null means <paramref name="sourceColumnName"/> is replaced.</param>
+        /// <param name="sourceColumnName">The column containing text to remove stop words on.</param>
         /// <param name="stopwords">Array of words to remove.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -282,10 +282,10 @@ namespace Microsoft.ML
         /// ]]></format>
         /// </example>
         public static CustomStopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
-            string inputColumn,
-            string outputColumn = null,
+            string outputColumnName,
+            string sourceColumnName = null,
             params string[] stopwords)
-            => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, stopwords);
+            => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, sourceColumnName, stopwords);
 
         /// <summary>
         /// Removes stop words from incoming token streams in input columns
@@ -306,8 +306,8 @@ namespace Microsoft.ML
             => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, stopwords);
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
-        /// and outputs bag of word vector as <paramref name="outputColumn"/>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="sourceColumnName"/>
+        /// and outputs bag of word vector as <paramref name="outputColumnName"/>
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>

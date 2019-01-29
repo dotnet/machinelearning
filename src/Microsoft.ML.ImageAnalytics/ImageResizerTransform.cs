@@ -118,7 +118,7 @@ namespace Microsoft.ML.ImageAnalytics
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
 
             public readonly int Width;
             public readonly int Height;
@@ -145,7 +145,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(Anchor), anchor), nameof(Column.CropAnchor));
 
                 Name = name;
-                Source = sourceColumnName;
+                SourceColumnName = sourceColumnName;
                 Width = width;
                 Height = height;
                 Resizing = resizing;
@@ -208,7 +208,7 @@ namespace Microsoft.ML.ImageAnalytics
         private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         // Factory method for SignatureDataTransform.
@@ -317,7 +317,7 @@ namespace Microsoft.ML.ImageAnalytics
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].Source, "image", inputSchema[srcCol].Type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].SourceColumnName, "image", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase
@@ -500,10 +500,10 @@ namespace Microsoft.ML.ImageAnalytics
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source, new ImageType().ToString(), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, new ImageType().ToString(), col.GetTypeString());
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Scalar, colInfo.Type, false);
             }

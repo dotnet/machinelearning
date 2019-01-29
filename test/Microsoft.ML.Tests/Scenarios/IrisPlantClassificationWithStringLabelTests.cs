@@ -39,7 +39,7 @@ namespace Microsoft.ML.Scenarios
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
                     new SdcaMultiClassTrainer.Options { NumThreads = 1 }))
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Plant")));
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("Plant", "PredictedLabel")));
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);

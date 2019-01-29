@@ -16,10 +16,10 @@ namespace Microsoft.ML
         /// Copies the input column to another column named as specified in <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnNames"/>.</param>
-        /// <param name="sourceColumnNames">Name of the columns to transform.</param>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, string outputColumnName, string sourceColumnNames)
-            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, sourceColumnNames);
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="sourceColumnName">Name of the columns to transform.</param>
+        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, string outputColumnName, string sourceColumnName)
+            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, sourceColumnName);
 
         /// <summary>
         /// Copies the input column, name specified in the first item of the tuple,

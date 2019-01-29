@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public ColumnCopyingEstimator(IHostEnvironment env, params (string name, string sourceColumnName)[] columns)
+        public ColumnCopyingEstimator(IHostEnvironment env, params (string outputColumnName, string sourceColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnCopyingEstimator)), new ColumnCopyingTransformer(env, columns))
         {
         }
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Transforms
         internal const string UserName = "Copy Columns Transform";
         internal const string ShortName = "Copy";
 
-        public IReadOnlyCollection<(string name, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string outputColumnName, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
         {
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms
                 foreach (var column in _columns)
                 {
                     var srcVariableName = ctx.GetVariableName(column.sourceColumnName);
-                    _schema.TryGetColumnIndex(column.outputColumnName, out int colIndex);
+                    _schema.TryGetColumnIndex(column.sourceColumnName, out int colIndex);
                     var dstVariableName = ctx.AddIntermediateVariable(_schema[colIndex].Type, column.outputColumnName);
                     var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                     node.AddAttribute("type", LoaderSignature);

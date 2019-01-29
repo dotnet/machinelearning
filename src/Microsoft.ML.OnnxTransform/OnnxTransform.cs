@@ -219,12 +219,12 @@ namespace Microsoft.ML.Transforms
         /// the model specification. Only 1 output column is generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="modelFile">Model file path.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
+        /// <param name="modelFile">Model file path.</param>
         /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string modelFile, string outputColumnName, string sourceColumnName = null, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        public OnnxTransformer(IHostEnvironment env, string outputColumnName, string modelFile, string sourceColumnName = null, int? gpuDeviceId = null, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
                 ModelFile = modelFile,
@@ -241,12 +241,12 @@ namespace Microsoft.ML.Transforms
         /// all model input names. Only the output columns specified will be generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="modelFile">Model file path.</param>
         /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="sourceColumnNames">The name of the input data columns. Must match model's input names.</param>
+        /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string modelFile, string[] outputColumnNames, string[] sourceColumnNames, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        public OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] sourceColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
                 ModelFile = modelFile,
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         public OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new OnnxTransformer(env, modelFile, new string[] { }, new string[] { }, gpuDeviceId, fallbackToCpu))
+            : this(env, new OnnxTransformer(env, new string[] { }, new string[] { }, modelFile, gpuDeviceId, fallbackToCpu))
         {
         }
 
@@ -532,13 +532,13 @@ namespace Microsoft.ML.Transforms
         /// all model input names. Only the output columns specified will be generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
+        /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="sourceColumnNames">The name of the input data columns. Must match model's input names.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="sources">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="names">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] names, string[] sources, int? gpuDeviceId = null, bool fallbackToCpu = false)
-           : this(env, new OnnxTransformer(env, modelFile, names, sources, gpuDeviceId, fallbackToCpu))
+        public OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] sourceColumnNames, string modelFile,  int? gpuDeviceId = null, bool fallbackToCpu = false)
+           : this(env, new OnnxTransformer(env, outputColumnNames, sourceColumnNames, modelFile, gpuDeviceId, fallbackToCpu))
         {
         }
 

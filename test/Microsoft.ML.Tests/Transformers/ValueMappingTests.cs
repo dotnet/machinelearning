@@ -87,8 +87,8 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<int>() { 1, 2, 3, 4 };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA")
-                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("TokenizeA", "VecD"), ("B", "E"), ("C", "F") }));
+                    new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
+                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<ReadOnlyMemory<char>>() { "a".AsMemory(), "b".AsMemory(), "c".AsMemory(), "d".AsMemory() };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA")
-                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("TokenizeA", "VecD"), ("B", "E"), ("C", "F") }));
+                    new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
+                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new string[] {"forest", "city", "town" },
                 new string[] {"winter", "summer", "autumn", "spring" }};
 
-            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);

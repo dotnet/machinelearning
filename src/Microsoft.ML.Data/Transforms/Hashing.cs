@@ -859,13 +859,13 @@ namespace Microsoft.ML.Transforms.Conversions
             private sealed class ColInfo
             {
                 public readonly string Name;
-                public readonly string Source;
+                public readonly string SourceColumnName;
                 public readonly ColumnType TypeSrc;
 
                 public ColInfo(string outputColumnName, string sourceColumnName, ColumnType type)
                 {
                     Name = outputColumnName;
-                    Source = sourceColumnName;
+                    SourceColumnName = sourceColumnName;
                     TypeSrc = type;
                 }
             }

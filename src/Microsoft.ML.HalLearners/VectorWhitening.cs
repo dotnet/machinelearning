@@ -119,7 +119,7 @@ namespace Microsoft.ML.Transforms.Projections
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly WhiteningKind Kind;
             public readonly float Epsilon;
             public readonly int MaxRow;
@@ -140,8 +140,8 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 Name = name;
                 Contracts.CheckValue(Name, nameof(Name));
-                Source = sourceColumnName ?? name;
-                Contracts.CheckValue(Source, nameof(Source));
+                SourceColumnName = sourceColumnName ?? name;
+                Contracts.CheckValue(SourceColumnName, nameof(SourceColumnName));
                 Kind = kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(Kind));
                 Epsilon = eps;
@@ -157,8 +157,8 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 Name = item.Name;
                 Contracts.CheckValue(Name, nameof(Name));
-                Source = item.Source ?? item.Name;
-                Contracts.CheckValue(Source, nameof(Source));
+                SourceColumnName = item.Source ?? item.Name;
+                Contracts.CheckValue(SourceColumnName, nameof(SourceColumnName));
                 Kind = item.Kind ?? args.Kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(item.Kind));
                 Epsilon = item.Eps ?? args.Eps;
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
-            => columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray();
+            => columns.Select(c => (c.Name, c.SourceColumnName ?? c.Name)).ToArray();
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
@@ -386,9 +386,9 @@ namespace Microsoft.ML.Transforms.Projections
 
             for (int i = 0; i < columns.Length; i++)
             {
-                var col = inputSchema.GetColumnOrNull(columns[i].Source);
+                var col = inputSchema.GetColumnOrNull(columns[i].SourceColumnName);
                 if (!col.HasValue)
-                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Source);
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].SourceColumnName);
 
                 cols[i] = col.Value.Index;
                 srcTypes[i] = col.Value.Type;
@@ -817,8 +817,8 @@ namespace Microsoft.ML.Transforms.Projections
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in _infos)
             {
-                if (!inputSchema.TryFindColumn(colPair.Source, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Source);
+                if (!inputSchema.TryFindColumn(colPair.SourceColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.SourceColumnName);
                 var reason = VectorWhiteningTransformer.TestColumn(col.ItemType);
                 if (reason != null)
                     throw _host.ExceptUserArg(nameof(inputSchema), reason);

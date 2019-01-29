@@ -3660,9 +3660,9 @@ namespace Microsoft.ML.RunTests
                 new[] { "Transforms.TensorFlowScorer" },
                 new[]
                 {
-                    @"'Sources': [ 'Placeholder' ],
+                    @"'InputColumns': [ 'Placeholder' ],
                       'ModelLocation': 'mnist_model/frozen_saved_model.pb',
-                      'Names': [ 'Softmax' ]"
+                      'OutputColumns': [ 'Softmax' ]"
                 });
         }
 
@@ -5600,10 +5600,10 @@ namespace Microsoft.ML.RunTests
                         'Name': 'Transforms.TensorFlowScorer',
                         'Inputs': {
                             'ModelLocation': 'mnist_model/frozen_saved_model.pb',
-                            'Sources': [
+                            'InputColumns': [
                                 'Placeholder'
                             ],
-                            'Names': [
+                            'OutputColumns': [
                                 'Softmax'
                             ],
                             'LabelColumn': null,

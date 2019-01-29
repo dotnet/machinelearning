@@ -1021,7 +1021,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     if (vectorType.ItemType == NumberType.R8)
                         return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
-                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.Source, srcType.ToString());
+                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.SourceColumnName, srcType.ToString());
             }
         }
 
@@ -1060,7 +1060,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     if (vectorType.ItemType == NumberType.R8)
                         return Dbl.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
-                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.Source, srcType.ToString());
+                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.SourceColumnName, srcType.ToString());
             }
         }
 
@@ -1121,7 +1121,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
 
                 throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.",
-                    column.Source,
+                    column.SourceColumnName,
                     srcType.ToString());
             }
 

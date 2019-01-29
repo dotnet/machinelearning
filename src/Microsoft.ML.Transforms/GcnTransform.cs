@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms.Projections
         public abstract class ColumnInfoBase
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly bool SubtractMean;
             public readonly LpNormalizingEstimatorBase.NormalizerKind NormKind;
             public readonly float Scale;
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Transforms.Projections
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Contracts.CheckNonWhiteSpace(sourceColumnName, nameof(sourceColumnName));
                 Name = name;
-                Source = sourceColumnName;
+                SourceColumnName = sourceColumnName;
                 SubtractMean = substractMean;
                 Contracts.CheckUserArg(0 < scale && scale < float.PositiveInfinity, nameof(scale), "scale must be a positive finite value");
                 Scale = scale;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Projections
                 Contracts.CheckNonWhiteSpace(sourceColumnName, nameof(sourceColumnName));
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
-                Source = sourceColumnName;
+                SourceColumnName = sourceColumnName;
 
                 // *** Binary format ***
                 // byte: SubtractMean
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms.Projections
         private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfoBase[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.Source)).ToArray();
+            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
         }
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
@@ -803,10 +803,10 @@ namespace Microsoft.ML.Transforms.Projections
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.Source, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Source);
+                if (!inputSchema.TryFindColumn(colPair.SourceColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.SourceColumnName);
                 if (!IsSchemaColumnValid(col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Source, ExpectedColumnType, col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.SourceColumnName, ExpectedColumnType, col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);

@@ -145,16 +145,16 @@ namespace Microsoft.ML.Transforms
 
             private sealed class ColInfo
             {
-                public readonly string Output;
-                public readonly string Input;
+                public readonly string Name;
+                public readonly string SourceColumnName;
                 public readonly ColumnType OutputType;
                 public readonly ColumnType InputType;
                 public readonly Delegate InputIsNA;
 
-                public ColInfo(string input, string output, ColumnType inType, ColumnType outType)
+                public ColInfo(string name, string sourceColumnName, ColumnType inType, ColumnType outType)
                 {
-                    Input = input;
-                    Output = output;
+                    Name = name;
+                    SourceColumnName = sourceColumnName;
                     InputType = inType;
                     OutputType = outType;
                     InputIsNA = GetIsNADelegate(InputType);
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms
                         outType = BoolType.Instance;
                     else
                         outType = new VectorType(BoolType.Instance, vectorType);
-                    infos[i] = new ColInfo(_parent.ColumnPairs[i].sourceColumnName, _parent.ColumnPairs[i].outputColumnName, inType, outType);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].outputColumnName, inType, outType);
                 }
                 return infos;
             }
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _infos.Length; iinfo++)
                 {
-                    InputSchema.TryGetColumnIndex(_infos[iinfo].Input, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_infos[iinfo].SourceColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
                     builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Transforms
                         dst = true;
                     };
                     builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
-                    result[iinfo] = new Schema.DetachedColumn(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
+                    result[iinfo] = new Schema.DetachedColumn(_infos[iinfo].Name, _infos[iinfo].OutputType, builder.GetMetadata());
                 }
                 return result;
             }

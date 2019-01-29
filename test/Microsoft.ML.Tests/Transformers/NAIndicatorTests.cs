@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new OneHotEncodingEstimator(Env, "CatA", "A");
-            var newpipe = pipe.Append(new MissingValueIndicatorEstimator(Env, new (string name, string source)[] { ("CatA", "NAA") }));
+            var newpipe = pipe.Append(new MissingValueIndicatorEstimator(Env, new (string name, string source)[] { ("NAA", "CatA") }));
             var result = newpipe.Fit(dataView).Transform(dataView);
             Assert.True(result.Schema.TryGetColumnIndex("NAA", out var col));
             // Check that the column is normalized.

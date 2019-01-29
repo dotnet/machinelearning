@@ -188,8 +188,8 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
             /// <param name="outputKind">The expected kind of the converted column.</param>
             /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="outputKeyRange">New key range, if we work with key type.</param>
-            public ColumnInfo(string name, string sourceColumnName, DataKind outputKind, KeyCount outputKeyCount = null)
+            /// <param name="outputKeyCount">New key range, if we work with key type.</param>
+            public ColumnInfo(string name, DataKind outputKind, string sourceColumnName, KeyCount outputKeyCount = null)
             {
                 Name = name;
                 SourceColumnName = sourceColumnName ?? name;
@@ -213,9 +213,9 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="outputColumnName">Name of the output column.</param>
         /// <param name="sourceColumnName">Name of the column to be transformed. If this is null '<paramref name="outputColumnName"/>' will be used.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
-        /// <param name="outputKeyRange">New key range if we work with key type.</param>
-        public TypeConvertingTransformer(IHostEnvironment env, string name, string sourceColumnName, DataKind outputKind, KeyCount outputKeyCount = null)
-            : this(env, new ColumnInfo(name, sourceColumnName ?? name, outputKind, outputKeyCount))
+        /// <param name="outputKeyCount">New key count if we work with key type.</param>
+        public TypeConvertingTransformer(IHostEnvironment env, string outputColumnName, DataKind outputKind, string sourceColumnName = null, KeyCount outputKeyCount = null)
+            : this(env, new ColumnInfo(outputColumnName, outputKind, sourceColumnName ?? outputColumnName, outputKeyCount))
         {
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     keyCount = new KeyCount(count);
 
                 }
-                _columns[i] = new ColumnInfo(ColumnPairs[i].name, ColumnPairs[i].sourceColumnName, kind, keyCount);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, kind, ColumnPairs[i].sourceColumnName, keyCount);
             }
         }
 
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     kind = tempResultType.Value;
                 }
-                cols[i] = new ColumnInfo(item.Name, item.Source ?? item.Name, kind, keyCount);
+                cols[i] = new ColumnInfo(item.Name, kind, item.Source ?? item.Name, keyCount);
             };
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }

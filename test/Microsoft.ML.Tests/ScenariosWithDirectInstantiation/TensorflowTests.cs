@@ -142,7 +142,7 @@ namespace Microsoft.ML.Scenarios
 
             var inputs = new string[]{"f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8","b"};
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
-            var trans = new TensorFlowTransformer(mlContext, model_location, inputs, outputs).Transform(loader); ;
+            var trans = new TensorFlowTransformer(mlContext, model_location, outputs, inputs).Transform(loader); ;
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Scenarios
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipe = mlContext.Transforms.CopyColumns(("reshape_input","Placeholder"))
-                .Append(new TensorFlowEstimator(mlContext, "mnist_model/frozen_saved_model.pb", new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
+                .Append(new TensorFlowEstimator(mlContext, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }, "mnist_model/frozen_saved_model.pb"))
                 .Append(mlContext.Transforms.Concatenate("Features", "Softmax", "dense/Relu"))
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
@@ -434,8 +434,8 @@ namespace Microsoft.ML.Scenarios
                     .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransformer.Arguments()
                     {
                         ModelLocation = model_location,
-                        Sources = new[] { "Features" },
-                        Names = new[] { "Prediction", "b" },
+                        InputColumns = new[] { "Features" },
+                        OutputColumns = new[] { "Prediction", "b" },
                         LabelColumn = "OneHotLabel",
                         TensorFlowLabel = "Label",
                         OptimizationOperation = "SGDOptimizer",
@@ -548,8 +548,8 @@ namespace Microsoft.ML.Scenarios
                     .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransformer.Arguments()
                     {
                         ModelLocation = modelLocation,
-                        Sources = new[] { "Features" },
-                        Names = new[] { "Prediction" },
+                        InputColumns = new[] { "Features" },
+                        OutputColumns = new[] { "Prediction" },
                         LabelColumn = "TfLabel",
                         TensorFlowLabel = "Label",
                         OptimizationOperation = "MomentumOp",
@@ -610,7 +610,7 @@ namespace Microsoft.ML.Scenarios
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipe = mlContext.Transforms.CopyColumns(("reshape_input", "Placeholder"))
-                .Append(new TensorFlowEstimator(mlContext, "mnist_model", new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
+                .Append(new TensorFlowEstimator(mlContext, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }, "mnist_model"))
                 .Append(mlContext.Transforms.Concatenate("Features", new[] { "Softmax", "dense/Relu" }))
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 

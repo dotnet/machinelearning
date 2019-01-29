@@ -121,7 +121,7 @@ namespace Microsoft.ML.Tests.Transformers
             sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
             var sideData = sideDataBuilder.GetDataView();
 
-            var ci = new OneHotEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag);
+            var ci = new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag);
             var pipe = new OneHotEncodingEstimator(mlContext, new[] { ci }, sideData);
 
             var output = pipe.Fit(dataView).Transform(dataView);

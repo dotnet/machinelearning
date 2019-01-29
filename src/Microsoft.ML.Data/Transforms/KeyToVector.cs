@@ -246,13 +246,13 @@ namespace Microsoft.ML.Transforms.Conversions
             private sealed class ColInfo
             {
                 public readonly string Name;
-                public readonly string Source;
+                public readonly string SourceColumnName;
                 public readonly ColumnType TypeSrc;
 
                 public ColInfo(string outputColumnName, string sourceColumnName, ColumnType type)
                 {
                     Name = outputColumnName;
-                    Source = sourceColumnName;
+                    SourceColumnName = sourceColumnName;
                     TypeSrc = type;
                 }
             }
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
-                InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
+                InputSchema.TryGetColumnIndex(_infos[iinfo].SourceColumnName, out int srcCol);
                 var inputMetadata = InputSchema[srcCol].Metadata;
 
                 var srcType = _infos[iinfo].TypeSrc;
@@ -380,7 +380,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 // Get the source slot names, defaulting to empty text.
                 var namesSlotSrc = default(VBuffer<ReadOnlyMemory<char>>);
 
-                var inputMetadata = InputSchema[_infos[iinfo].Source].Metadata;
+                var inputMetadata = InputSchema[_infos[iinfo].SourceColumnName].Metadata;
                 Contracts.AssertValue(inputMetadata);
                 var typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
                 if (typeSlotSrc != null && typeSlotSrc.Size == typeSrc.Size && typeSlotSrc.ItemType is TextType)
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 int size = keyTypeSrc.GetCountAsInt32(Host);
                 Host.Assert(size == _types[iinfo].Size);
                 Host.Assert(size > 0);
-                input.Schema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
+                input.Schema.TryGetColumnIndex(_infos[iinfo].SourceColumnName, out int srcCol);
                 Host.Assert(srcCol >= 0);
                 var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, srcCol);
                 var src = default(uint);
@@ -519,7 +519,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 int cv = srcVectorType.Size;
                 Host.Assert(cv >= 0);
-                input.Schema.TryGetColumnIndex(info.Source, out int srcCol);
+                input.Schema.TryGetColumnIndex(info.SourceColumnName, out int srcCol);
                 Host.Assert(srcCol >= 0);
                 var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, srcCol);
                 var src = default(VBuffer<uint>);
@@ -566,7 +566,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 int cv = srcVectorType.Size;
                 Host.Assert(cv >= 0);
                 Host.Assert(_types[iinfo].Size == size * cv);
-                input.Schema.TryGetColumnIndex(info.Source, out int srcCol);
+                input.Schema.TryGetColumnIndex(info.SourceColumnName, out int srcCol);
                 var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, srcCol);
                 var src = default(VBuffer<uint>);
                 return
@@ -624,7 +624,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {
                     ColInfo info = _infos[iinfo];
-                    string sourceColumnName = info.Source;
+                    string sourceColumnName = info.SourceColumnName;
                     if (!ctx.ContainsColumn(sourceColumnName))
                     {
                         ctx.RemoveColumn(info.Name, false);
@@ -649,7 +649,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {
                     var info = _infos[iinfo];
-                    var srcName = info.Source;
+                    var srcName = info.SourceColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {

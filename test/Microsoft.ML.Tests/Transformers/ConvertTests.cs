@@ -78,8 +78,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", DataKind.R4, "ConvA"),
-                new TypeConvertingTransformer.ColumnInfo("B", DataKind.R4, "ConvB")});
+            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("ConvA", DataKind.R4, "A"),
+                new TypeConvertingTransformer.ColumnInfo("ConvB", DataKind.R4, "B")});
 
             TestEstimatorCore(pipe, dataView);
             var allTypesData = new[]
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tests.Transformers
             var sideData = sideDataBuilder.GetDataView();
 
             // For some reason the column info is on the *transformer*, not the estimator. Already tracked as issue #1760.
-            var ci = new ValueToKeyMappingTransformer.ColumnInfo("A", "CatA");
+            var ci = new ValueToKeyMappingTransformer.ColumnInfo("CatA", "A");
             var pipe = mlContext.Transforms.Conversion.MapValueToKey(new[] { ci }, sideData);
             var output = pipe.Fit(dataView).Transform(dataView);
 
@@ -192,8 +192,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", DataKind.R8, "ConvA"),
-                new TypeConvertingTransformer.ColumnInfo("B", DataKind.R8, "ConvB")});
+            var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("ConvA", DataKind.R8, "A"),
+                new TypeConvertingTransformer.ColumnInfo("ConvB", DataKind.R8, "B")});
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -272,8 +272,8 @@ namespace Microsoft.ML.Tests.Transformers
             }
             var outDataOld = modelOld.Transform(dataView); 
 
-            var modelNew = ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingTransformer.ColumnInfo("key", "convertedKey",
-                DataKind.U8, new KeyCount(4)) }).Fit(dataView);
+            var modelNew = ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingTransformer.ColumnInfo("convertedKey",
+                DataKind.U8, "key", new KeyCount(4)) }).Fit(dataView);
             var outDataNew = modelNew.Transform(dataView);
 
             // Check that old and new model produce the same result.

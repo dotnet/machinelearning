@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms
         public DnnImageModelSelector ModelSelector { get; }
         public string OutputColumn { get; }
 
-        public DnnImageFeaturizerInput(IHostEnvironment env, string outputColumnName, string sourceColumnName, DnnImageModelSelector modelSelector)
+        public DnnImageFeaturizerInput(string outputColumnName, string sourceColumnName, IHostEnvironment env, DnnImageModelSelector modelSelector)
         {
             Environment = env;
             InputColumn = sourceColumnName;
@@ -61,9 +61,9 @@ namespace Microsoft.ML.Transforms
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
         /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string outputColumnName, string sourceColumnName = null)
+        public DnnImageFeaturizerEstimator(IHostEnvironment env, string outputColumnName, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string sourceColumnName = null)
         {
-            _modelChain = modelFactory(new DnnImageFeaturizerInput(env, outputColumnName, sourceColumnName ?? outputColumnName , new DnnImageModelSelector()));
+            _modelChain = modelFactory(new DnnImageFeaturizerInput(outputColumnName, sourceColumnName ?? outputColumnName, env, new DnnImageModelSelector()));
         }
 
         /// <summary>

@@ -69,17 +69,17 @@ namespace Microsoft.ML.Transforms.Normalizers
         public abstract class ColumnBase
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string SourceColumnName;
             public readonly long MaxTrainingExamples;
 
-            private protected ColumnBase(string outputColumnName, string sourceColumnName, long maxTrainingExamples)
+            private protected ColumnBase(string name, string sourceColumnName, long maxTrainingExamples)
             {
-                Contracts.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
+                Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckNonEmpty(sourceColumnName, nameof(sourceColumnName));
                 Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
 
-                Name = outputColumnName;
-                Source = sourceColumnName;
+                Name = name;
+                SourceColumnName = sourceColumnName;
                 MaxTrainingExamples = maxTrainingExamples;
             }
 
@@ -252,13 +252,13 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
+                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
                 if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source, "fixed-size vector or scalar", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, "fixed-size vector or scalar", col.GetTypeString());
 
                 if (!col.ItemType.Equals(NumberType.R4) && !col.ItemType.Equals(NumberType.R8))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source, "vector or scalar of R4 or R8", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, "vector or scalar of R4 or R8", col.GetTypeString());
 
                 var isNormalizedMeta = new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
                     BoolType.Instance, false);
@@ -400,9 +400,9 @@ namespace Microsoft.ML.Transforms.Normalizers
             for (int i = 0; i < columns.Length; i++)
             {
                 var info = columns[i];
-                bool success = data.Schema.TryGetColumnIndex(info.Source, out srcCols[i]);
+                bool success = data.Schema.TryGetColumnIndex(info.SourceColumnName, out srcCols[i]);
                 if (!success)
-                    throw env.ExceptSchemaMismatch(nameof(data), "input", info.Source);
+                    throw env.ExceptSchemaMismatch(nameof(data), "input", info.SourceColumnName);
                 srcTypes[i] = data.Schema[srcCols[i]].Type;
                 activeCols.Add(data.Schema[srcCols[i]]);
 
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var func = functionBuilders[i].CreateColumnFunction();
-                    result[i] = new ColumnInfo(columns[i].Name, columns[i].Source, srcTypes[i], func);
+                    result[i] = new ColumnInfo(columns[i].Name, columns[i].SourceColumnName, srcTypes[i], func);
                 }
 
                 return new NormalizingTransformer(env, result);
