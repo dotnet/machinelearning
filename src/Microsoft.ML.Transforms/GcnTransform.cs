@@ -155,16 +155,16 @@ namespace Microsoft.ML.Transforms.Projections
             /// <summary>
             /// Describes how the transformer handles one Gcn column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
             /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
             /// <param name="scale">Scale features by this value.</param>
-            public GcnColumnInfo(string name, string sourceColumnName = null,
+            public GcnColumnInfo(string name, string inputColumnName = null,
                 bool substractMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean,
                 bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
                 float scale = LpNormalizingEstimatorBase.Defaults.Scale)
-                : base(name, sourceColumnName, substractMean, useStdDev ? LpNormalizingEstimatorBase.NormalizerKind.StdDev : LpNormalizingEstimatorBase.NormalizerKind.L2Norm, scale)
+                : base(name, inputColumnName, substractMean, useStdDev ? LpNormalizingEstimatorBase.NormalizerKind.StdDev : LpNormalizingEstimatorBase.NormalizerKind.L2Norm, scale)
             {
             }
         }
@@ -177,22 +177,22 @@ namespace Microsoft.ML.Transforms.Projections
             /// <summary>
             /// Describes how the transformer handles one LpNorm column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
             /// <param name="normalizerKind">The norm to use to normalize each sample.</param>
-            public LpNormColumnInfo(string name, string sourceColumnName = null,
+            public LpNormColumnInfo(string name, string inputColumnName = null,
                 bool substractMean = LpNormalizingEstimatorBase.Defaults.LpSubstractMean,
                 LpNormalizingEstimatorBase.NormalizerKind normalizerKind = LpNormalizingEstimatorBase.Defaults.NormKind)
-                : base(name, sourceColumnName ?? name, substractMean, normalizerKind, 1)
+                : base(name, inputColumnName ?? name, substractMean, normalizerKind, 1)
             {
             }
         }
 
         private sealed class ColumnInfoLoaded : ColumnInfoBase
         {
-            internal ColumnInfoLoaded(ModelLoadContext ctx, string name, string sourceColumnName, bool normKindSerialized)
-                : base(ctx, name, sourceColumnName, normKindSerialized)
+            internal ColumnInfoLoaded(ModelLoadContext ctx, string name, string inputColumnName, bool normKindSerialized)
+                : base(ctx, name, inputColumnName, normKindSerialized)
             {
 
             }
@@ -204,30 +204,30 @@ namespace Microsoft.ML.Transforms.Projections
         public abstract class ColumnInfoBase
         {
             public readonly string Name;
-            public readonly string SourceColumnName;
+            public readonly string InputColumnName;
             public readonly bool SubtractMean;
             public readonly LpNormalizingEstimatorBase.NormalizerKind NormKind;
             public readonly float Scale;
 
-            internal ColumnInfoBase(string name, string sourceColumnName, bool substractMean, LpNormalizingEstimatorBase.NormalizerKind normalizerKind, float scale)
+            internal ColumnInfoBase(string name, string inputColumnName, bool substractMean, LpNormalizingEstimatorBase.NormalizerKind normalizerKind, float scale)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
-                Contracts.CheckNonWhiteSpace(sourceColumnName, nameof(sourceColumnName));
+                Contracts.CheckNonWhiteSpace(inputColumnName, nameof(inputColumnName));
                 Name = name;
-                SourceColumnName = sourceColumnName;
+                InputColumnName = inputColumnName;
                 SubtractMean = substractMean;
                 Contracts.CheckUserArg(0 < scale && scale < float.PositiveInfinity, nameof(scale), "scale must be a positive finite value");
                 Scale = scale;
                 NormKind = normalizerKind;
             }
 
-            internal ColumnInfoBase(ModelLoadContext ctx, string name, string sourceColumnName, bool normKindSerialized)
+            internal ColumnInfoBase(ModelLoadContext ctx, string name, string inputColumnName, bool normKindSerialized)
             {
                 Contracts.AssertValue(ctx);
-                Contracts.CheckNonWhiteSpace(sourceColumnName, nameof(sourceColumnName));
+                Contracts.CheckNonWhiteSpace(inputColumnName, nameof(inputColumnName));
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
-                SourceColumnName = sourceColumnName;
+                InputColumnName = inputColumnName;
 
                 // *** Binary format ***
                 // byte: SubtractMean
@@ -299,10 +299,10 @@ namespace Microsoft.ML.Transforms.Projections
         public IReadOnlyCollection<ColumnInfoBase> Columns => _columns.AsReadOnly();
         private readonly ColumnInfoBase[] _columns;
 
-        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfoBase[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfoBase[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
+            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Transforms.Projections
             var columnsLength = ColumnPairs.Length;
             _columns = new ColumnInfoLoaded[columnsLength];
             for (int i = 0; i < columnsLength; i++)
-                _columns[i] = new ColumnInfoLoaded(ctx, ColumnPairs[i].outputColumnName, ColumnPairs[i].sourceColumnName, ctx.Header.ModelVerWritten >= VerVectorNormalizerSupported);
+                _columns[i] = new ColumnInfoLoaded(ctx, ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx.Header.ModelVerWritten >= VerVectorNormalizerSupported);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Transforms.Projections
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out _srcCols[i]);
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
                     _types[i] = srcCol.Type;
@@ -803,10 +803,10 @@ namespace Microsoft.ML.Transforms.Projections
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.SourceColumnName, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.SourceColumnName);
+                if (!inputSchema.TryFindColumn(colPair.InputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.InputColumnName);
                 if (!IsSchemaColumnValid(col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.SourceColumnName, ExpectedColumnType, col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.InputColumnName, ExpectedColumnType, col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -824,13 +824,13 @@ namespace Microsoft.ML.Transforms.Projections
     {
         /// <include file='doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
         /// <param name="env">The environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="normKind">Type of norm to use to normalize each sample.</param>
         /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
-        public LpNormalizingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null,
+        public LpNormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             NormalizerKind normKind = Defaults.NormKind, bool substractMean = Defaults.LpSubstractMean)
-            : this(env, new[] { (outputColumnName, sourceColumnName ?? outputColumnName) }, normKind, substractMean)
+            : this(env, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }, normKind, substractMean)
         {
         }
 
@@ -839,9 +839,9 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="columns">Pairs of columns to run the normalization on.</param>
         /// <param name="normKind">Type of norm to use to normalize each sample.</param>
         /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
-        public LpNormalizingEstimator(IHostEnvironment env, (string outputColumnName, string sourceColumnName)[] columns,
+        public LpNormalizingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns,
             NormalizerKind normKind = Defaults.NormKind, bool substractMean = Defaults.LpSubstractMean)
-             : this(env, columns.Select(x => new LpNormalizingTransformer.LpNormColumnInfo(x.outputColumnName, x.sourceColumnName, substractMean, normKind)).ToArray())
+             : this(env, columns.Select(x => new LpNormalizingTransformer.LpNormColumnInfo(x.outputColumnName, x.inputColumnName, substractMean, normKind)).ToArray())
         {
         }
 
@@ -861,14 +861,14 @@ namespace Microsoft.ML.Transforms.Projections
     {
         /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
         /// <param name="env">The environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public GlobalContrastNormalizingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null,
+        public GlobalContrastNormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             bool substractMean = Defaults.GcnSubstractMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
-            : this(env, new[] { (outputColumnName, sourceColumnName ?? outputColumnName) }, substractMean, useStdDev, scale)
+            : this(env, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }, substractMean, useStdDev, scale)
         {
         }
 
@@ -878,9 +878,9 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public GlobalContrastNormalizingEstimator(IHostEnvironment env, (string outputColumnName, string sourceColumnName)[] columns,
+        public GlobalContrastNormalizingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns,
             bool substractMean = Defaults.GcnSubstractMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
-            : this(env, columns.Select(x => new LpNormalizingTransformer.GcnColumnInfo(x.outputColumnName, x.sourceColumnName, substractMean, useStdDev, scale)).ToArray())
+            : this(env, columns.Select(x => new LpNormalizingTransformer.GcnColumnInfo(x.outputColumnName, x.inputColumnName, substractMean, useStdDev, scale)).ToArray())
         {
         }
 

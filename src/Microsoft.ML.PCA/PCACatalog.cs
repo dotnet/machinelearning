@@ -12,8 +12,8 @@ namespace Microsoft.ML
 
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of principal components.</param>
         /// <param name="overSampling">Oversampling parameter for randomized PrincipalComponentAnalysis training.</param>
@@ -21,14 +21,14 @@ namespace Microsoft.ML
         /// <param name="seed">The seed for random number generation.</param>
         public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog,
             string outputColumnName,
-            string sourceColumnName = null,
+            string inputColumnName = null,
             string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
             int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
             int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
             bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
             int? seed = null)
             => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog),
-                outputColumnName, sourceColumnName, weightColumn, rank, overSampling, center, seed);
+                outputColumnName, inputColumnName, weightColumn, rank, overSampling, center, seed);
 
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>

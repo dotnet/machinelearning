@@ -31,10 +31,10 @@ namespace Microsoft.ML.Transforms
         public DnnImageModelSelector ModelSelector { get; }
         public string OutputColumn { get; }
 
-        public DnnImageFeaturizerInput(string outputColumnName, string sourceColumnName, IHostEnvironment env, DnnImageModelSelector modelSelector)
+        public DnnImageFeaturizerInput(string outputColumnName, string inputColumnName, IHostEnvironment env, DnnImageModelSelector modelSelector)
         {
             Environment = env;
-            InputColumn = sourceColumnName;
+            InputColumn = inputColumnName;
             OutputColumn = outputColumnName;
             ModelSelector = modelSelector;
         }
@@ -59,11 +59,11 @@ namespace Microsoft.ML.Transforms
         /// included in a package together with that extension method. It also contains three <see cref="ColumnCopyingEstimator"/>s
         /// to allow arbitrary column naming, as the ONNXEstimators require very specific naming based on the models.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, string outputColumnName, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string sourceColumnName = null)
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public DnnImageFeaturizerEstimator(IHostEnvironment env, string outputColumnName, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string inputColumnName = null)
         {
-            _modelChain = modelFactory(new DnnImageFeaturizerInput(outputColumnName, sourceColumnName ?? outputColumnName, env, new DnnImageModelSelector()));
+            _modelChain = modelFactory(new DnnImageFeaturizerInput(outputColumnName, inputColumnName ?? outputColumnName, env, new DnnImageModelSelector()));
         }
 
         /// <summary>

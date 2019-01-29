@@ -188,25 +188,25 @@ namespace Microsoft.ML.Transforms
             }
 
             public readonly string Name;
-            public readonly string SourceColumnName;
+            public readonly string InputColumnName;
             public readonly bool ImputeBySlot;
             public readonly ReplacementMode Replacement;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="replacementMode">What to replace the missing value with.</param>
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
-            public ColumnInfo(string name, string sourceColumnName = null, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+            public ColumnInfo(string name, string inputColumnName = null, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
                 bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
-                SourceColumnName = sourceColumnName ?? name;
+                InputColumnName = inputColumnName ?? name;
                 ImputeBySlot = imputeBySlot;
                 Replacement = replacementMode;
             }
@@ -214,10 +214,10 @@ namespace Microsoft.ML.Transforms
             internal string ReplacementString { get; set; }
         }
 
-        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
+            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
         // The output column types, parallel to Infos.
@@ -249,8 +249,8 @@ namespace Microsoft.ML.Transforms
             // Check that all the input columns are present and correct.
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].sourceColumnName, out int srcCol))
-                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].sourceColumnName);
+                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].inputColumnName, out int srcCol))
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].inputColumnName);
                 CheckInputColumn(input.Schema, i, srcCol);
             }
             GetReplacementValues(input, columns, out _repValues, out _repIsDefault, out _replaceTypes);
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Transforms
            var sourceColumns = new List<Schema.Column>();
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
-                input.Schema.TryGetColumnIndex(columns[iinfo].SourceColumnName, out int colSrc);
+                input.Schema.TryGetColumnIndex(columns[iinfo].InputColumnName, out int colSrc);
                 sources[iinfo] = colSrc;
                 var type = input.Schema[colSrc].Type;
                 if (type is VectorType vectorType)
@@ -569,13 +569,13 @@ namespace Microsoft.ML.Transforms
             private sealed class ColInfo
             {
                 public readonly string Name;
-                public readonly string SourceColumnName;
+                public readonly string InputColumnName;
                 public readonly ColumnType TypeSrc;
 
-                public ColInfo(string outputColumnName, string sourceColumnName, ColumnType type)
+                public ColInfo(string outputColumnName, string inputColumnName, ColumnType type)
                 {
                     Name = outputColumnName;
-                    SourceColumnName = sourceColumnName;
+                    InputColumnName = inputColumnName;
                     TypeSrc = type;
                 }
             }
@@ -606,18 +606,18 @@ namespace Microsoft.ML.Transforms
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].GetItemType();
                     if (!type.GetItemType().Equals(repType.GetItemType()))
                         throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
-                            _infos[i].SourceColumnName, _parent._replaceTypes[i].GetItemType().ToString(), _infos[i].TypeSrc);
+                            _infos[i].InputColumnName, _parent._replaceTypes[i].GetItemType().ToString(), _infos[i].TypeSrc);
                     // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
                     if (repType is VectorType repVectorType)
                     {
                         if (vectorType == null)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' cannot be a vector when Columntype is a scalar of type '{2}'",
-                                _infos[i].SourceColumnName, repType, type);
+                                _infos[i].InputColumnName, repType, type);
                         if (!vectorType.IsKnownSize)
-                            throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' is unknown size vector '{1}' must be a scalar instead of type '{2}'", _infos[i].SourceColumnName, type, parent._replaceTypes[i]);
+                            throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' is unknown size vector '{1}' must be a scalar instead of type '{2}'", _infos[i].InputColumnName, type, parent._replaceTypes[i]);
                         if (vectorType.Size != repVectorType.Size)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' must be a scalar or a vector of the same size as Columntype '{2}'",
-                                 _infos[i].SourceColumnName, repType, type);
+                                 _infos[i].InputColumnName, repType, type);
                     }
                     _types[i] = type;
                     _isNAs[i] = _parent.GetIsNADelegate(type);
@@ -630,11 +630,11 @@ namespace Microsoft.ML.Transforms
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out int colSrc))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].sourceColumnName);
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
                     var type = inputSchema[colSrc].Type;
-                    infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].sourceColumnName, type);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].inputColumnName, type);
                 }
                 return infos;
             }
@@ -644,7 +644,7 @@ namespace Microsoft.ML.Transforms
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
                     builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
@@ -886,14 +886,14 @@ namespace Microsoft.ML.Transforms
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {
                     ColInfo info = _infos[iinfo];
-                    string sourceColumnName = info.SourceColumnName;
-                    if (!ctx.ContainsColumn(sourceColumnName))
+                    string inputColumnName = info.InputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
                     {
                         ctx.RemoveColumn(info.Name, false);
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
                         ctx.AddIntermediateVariable(_parent._replaceTypes[iinfo], info.Name)))
                     {
                         ctx.RemoveColumn(info.Name, true);
@@ -942,8 +942,8 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly MissingValueReplacingTransformer.ColumnInfo[] _columns;
 
-        public MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
-            : this(env, new MissingValueReplacingTransformer.ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName, replacementKind))
+        public MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
+            : this(env, new MissingValueReplacingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, replacementKind))
             {
 
             }
@@ -961,8 +961,8 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 string reason = MissingValueReplacingTransformer.TestType(col.ItemType);
                 if (reason != null)
                     throw _host.ExceptParam(nameof(inputSchema), reason);

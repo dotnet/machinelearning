@@ -44,7 +44,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var pairs = new List<(string outputColumnName, string sourceColumnName)>();
+                var pairs = new List<(string outputColumnName, string inputColumnName)>();
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input]));
 

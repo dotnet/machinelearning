@@ -69,7 +69,7 @@ namespace Microsoft.ML.Transforms.Conversions
         [BestFriend]
         internal const string UserName = "Key To Value Transform";
 
-        public IReadOnlyCollection<(string outputColumnName, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
         {
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        public KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string sourceColumnName)[] columns)
+        public KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingTransformer)), columns)
         {
         }
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
                 {
                     var info = _parent.ColumnPairs[iinfo];
-                    var srcName = info.sourceColumnName;
+                    var srcName = info.inputColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        public KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string sourceColumnName)[] columns)
+        public KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columns))
         {
         }
@@ -521,13 +521,13 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.sourceColumnName, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.sourceColumnName);
+                if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
                 if (!col.IsKey)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.sourceColumnName, "key type", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, "key type", col.GetTypeString());
 
                 if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMetaCol))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.sourceColumnName}' doesn't contain key values metadata");
+                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.inputColumnName}' doesn't contain key values metadata");
 
                 SchemaShape metadata = null;
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotCol))

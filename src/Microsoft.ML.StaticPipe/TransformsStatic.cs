@@ -55,7 +55,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var pairs = new List<(string outputColumnName, string sourceColumnName)>();
+                var pairs = new List<(string outputColumnName, string inputColumnName)>();
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input]));
 
@@ -118,7 +118,7 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var pairs = new List<(string outputColumnName, string sourceColumnName)>();
+                var pairs = new List<(string outputColumnName, string inputColumnName)>();
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn<T>)outCol).Input]));
 
@@ -1112,7 +1112,7 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var cols = new (string outputColumnName, string sourceColumnName)[toOutput.Length];
+                var cols = new (string outputColumnName, string inputColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (IColInput)toOutput[i];
@@ -1423,7 +1423,7 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var columnPairs = new (string outputColumnName, string sourceColumnName)[toOutput.Length];
+                var columnPairs = new (string outputColumnName, string inputColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];

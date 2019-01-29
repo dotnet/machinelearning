@@ -152,13 +152,13 @@ namespace Microsoft.ML.Transforms.Conversions
         internal sealed class ColInfo
         {
             public readonly string Name;
-            public readonly string SourceColumnName;
+            public readonly string InputColumnName;
             public readonly ColumnType TypeSrc;
 
-            public ColInfo(string name, string sourceColumnName, ColumnType type)
+            public ColInfo(string name, string inputColumnName, ColumnType type)
             {
                 Name = name;
-                SourceColumnName = sourceColumnName;
+                InputColumnName = inputColumnName;
                 TypeSrc = type;
             }
         }
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public class ColumnInfo
         {
             public readonly string Name;
-            public readonly string SourceColumnName;
+            public readonly string InputColumnName;
             public readonly SortOrder Sort;
             public readonly int MaxNumTerms;
             public readonly string[] Term;
@@ -180,14 +180,14 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-            /// <param name="sourceColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
             /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
             /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
             /// <param name="term">List of terms.</param>
             /// <param name="textKeyValues">Whether key value metadata should be text, regardless of the actual input type.</param>
-            public ColumnInfo(string name, string sourceColumnName = null,
+            public ColumnInfo(string name, string inputColumnName = null,
                 int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms,
                 SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null,
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
-                SourceColumnName = sourceColumnName ?? name;
+                InputColumnName = inputColumnName ?? name;
                 Sort = sort;
                 MaxNumTerms = maxNumTerms;
                 Term = term;
@@ -261,10 +261,10 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly bool[] _textMetadata;
         private const string RegistrationName = "Term";
 
-        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
+            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
         private string TestIsKnownDataKind(ColumnType type)
@@ -283,13 +283,13 @@ namespace Microsoft.ML.Transforms.Conversions
             var infos = new ColInfo[ColumnPairs.Length];
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].sourceColumnName, out int colSrc))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].sourceColumnName);
+                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].inputColumnName, out int colSrc))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].inputColumnName);
                 var type = inputSchema[colSrc].Type;
                 string reason = TestIsKnownDataKind(type);
                 if (reason != null)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].sourceColumnName, reason, type.ToString());
-                infos[i] = new ColInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].sourceColumnName, type);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].inputColumnName, reason, type.ToString());
+                infos[i] = new ColInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, type);
             }
             return infos;
         }
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     // Auto train this column. Leave the term map null for now, but set the lim appropriately.
                     lims[iinfo] = columns[iinfo].MaxNumTerms;
                     ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), "Must be positive");
-                    Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].SourceColumnName, out int colIndex));
+                    Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex));
                     Utils.Add(ref toTrain, colIndex);
                     ++trainsNeeded;
                 }
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             continue;
                         var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
                         trainerInfo[itrainer] = iinfo;
-                        trainingData.Schema.TryGetColumnIndex(infos[iinfo].SourceColumnName, out int colIndex);
+                        trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex);
                         trainer[itrainer++] = Trainer.Create(cursor, colIndex, false, lims[iinfo], bldr);
                     }
                     ch.Assert(itrainer == trainer.Length);
@@ -777,7 +777,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
                     _termMap[i].AddMetadata(builder);
@@ -825,14 +825,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {
                     ColInfo info = _infos[iinfo];
-                    string sourceColumnName = info.SourceColumnName;
-                    if (!ctx.ContainsColumn(sourceColumnName))
+                    string inputColumnName = info.InputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
                     {
                         ctx.RemoveColumn(info.Name, false);
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
                         ctx.AddIntermediateVariable(_types[iinfo], info.Name)))
                     {
                         ctx.RemoveColumn(info.Name, true);
@@ -850,7 +850,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {
                     var info = _infos[iinfo];
-                    var srcName = info.SourceColumnName;
+                    var srcName = info.InputColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {

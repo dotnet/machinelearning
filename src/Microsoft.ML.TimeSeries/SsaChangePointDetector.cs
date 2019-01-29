@@ -225,13 +225,13 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// Create a new instance of <see cref="SsaChangePointEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// Column is a vector of type double and size 4. The vector contains Alert, Raw Score, P-Value and Martingale score as first four values.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="trainingWindowSize">The number of points from the beginning of the sequence used for training.</param>
         /// <param name="changeHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.</param>
-        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
@@ -240,14 +240,14 @@ namespace Microsoft.ML.TimeSeriesProcessing
             int changeHistoryLength,
             int trainingWindowSize,
             int seasonalityWindowSize,
-            string sourceColumnName = null,
+            string inputColumnName = null,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power,
             double eps = 0.1)
             : this(env, new SsaChangePointDetector.Arguments
                 {
                     Name = outputColumnName,
-                    Source = sourceColumnName ?? outputColumnName,
+                    Source = inputColumnName ?? outputColumnName,
                     Confidence = confidence,
                     ChangeHistoryLength = changeHistoryLength,
                     TrainingWindowSize = trainingWindowSize,

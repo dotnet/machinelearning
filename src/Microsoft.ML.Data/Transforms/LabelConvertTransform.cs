@@ -72,9 +72,9 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="outputColumnName">Name of the output column.</param>
-        /// <param name="sourceColumnName">Name of the input column.  If this is null '<paramref name="outputColumnName"/>' will be used.</param>
-        public LabelConvertTransform(IHostEnvironment env, IDataView input, string outputColumnName, string sourceColumnName = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = sourceColumnName ?? outputColumnName, Name = outputColumnName } } }, input)
+        /// <param name="inputColumnName">Name of the input column.  If this is null '<paramref name="outputColumnName"/>' will be used.</param>
+        public LabelConvertTransform(IHostEnvironment env, IDataView input, string outputColumnName, string inputColumnName = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = inputColumnName ?? outputColumnName, Name = outputColumnName } } }, input)
         {
         }
 

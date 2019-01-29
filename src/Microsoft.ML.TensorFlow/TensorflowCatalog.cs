@@ -16,7 +16,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
-        /// <param name="sourceColumnNames"> The names of the model inputs.</param>
+        /// <param name="inputColumnNames"> The names of the model inputs.</param>
         /// <param name="outputColumnNames">The names of the requested model outputs.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -28,21 +28,21 @@ namespace Microsoft.ML
         public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             string modelLocation,
             string[] outputColumnNames,
-            string[] sourceColumnNames)
-            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, sourceColumnNames, modelLocation);
+            string[] inputColumnNames)
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, modelLocation);
 
         /// <summary>
         /// Scores a dataset using a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
-        /// <param name="sourceColumnNames"> The names of the model inputs.</param>
+        /// <param name="inputColumnNames"> The names of the model inputs.</param>
         /// <param name="outputColumnNames">The names of the requested model outputs.</param>
         public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             TensorFlowModelInfo tensorFlowModel,
             string[] outputColumnNames,
-            string[] sourceColumnNames)
-            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, sourceColumnNames, tensorFlowModel);
+            string[] inputColumnNames)
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, tensorFlowModel);
 
         /// <summary>
         /// Score or Retrain a tensorflow model (based on setting of the <see cref="TensorFlowTransformer.Arguments.ReTrain"/>) setting.

@@ -69,36 +69,36 @@ namespace Microsoft.ML.Transforms.Normalizers
         public abstract class ColumnBase
         {
             public readonly string Name;
-            public readonly string SourceColumnName;
+            public readonly string InputColumnName;
             public readonly long MaxTrainingExamples;
 
-            private protected ColumnBase(string name, string sourceColumnName, long maxTrainingExamples)
+            private protected ColumnBase(string name, string inputColumnName, long maxTrainingExamples)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckNonEmpty(sourceColumnName, nameof(sourceColumnName));
+                Contracts.CheckNonEmpty(inputColumnName, nameof(inputColumnName));
                 Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
 
                 Name = name;
-                SourceColumnName = sourceColumnName;
+                InputColumnName = inputColumnName;
                 MaxTrainingExamples = maxTrainingExamples;
             }
 
             internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor);
 
-            internal static ColumnBase Create(string outputColumnName, string sourceColumnName, NormalizerMode mode)
+            internal static ColumnBase Create(string outputColumnName, string inputColumnName, NormalizerMode mode)
             {
                 switch (mode)
                 {
                     case NormalizerMode.MinMax:
-                        return new MinMaxColumn(outputColumnName, sourceColumnName);
+                        return new MinMaxColumn(outputColumnName, inputColumnName);
                     case NormalizerMode.MeanVariance:
-                        return new MeanVarColumn(outputColumnName, sourceColumnName);
+                        return new MeanVarColumn(outputColumnName, inputColumnName);
                     case NormalizerMode.LogMeanVariance:
-                        return new LogMeanVarColumn(outputColumnName, sourceColumnName);
+                        return new LogMeanVarColumn(outputColumnName, inputColumnName);
                     case NormalizerMode.Binning:
-                        return new BinningColumn(outputColumnName, sourceColumnName);
+                        return new BinningColumn(outputColumnName, inputColumnName);
                     case NormalizerMode.SupervisedBinning:
-                        return new SupervisedBinningColumn(outputColumnName, sourceColumnName);
+                        return new SupervisedBinningColumn(outputColumnName, inputColumnName);
                     default:
                         throw Contracts.ExceptParam(nameof(mode), "Unknown normalizer mode");
                 }
@@ -109,8 +109,8 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             public readonly bool FixZero;
 
-            private protected FixZeroColumnBase(string outputColumnName, string sourceColumnName, long maxTrainingExamples, bool fixZero)
-                : base(outputColumnName, sourceColumnName, maxTrainingExamples)
+            private protected FixZeroColumnBase(string outputColumnName, string inputColumnName, long maxTrainingExamples, bool fixZero)
+                : base(outputColumnName, inputColumnName, maxTrainingExamples)
             {
                 FixZero = fixZero;
             }
@@ -118,8 +118,8 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public sealed class MinMaxColumn : FixZeroColumnBase
         {
-            public MinMaxColumn(string outputColumnName, string sourceColumnName = null, long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = Defaults.FixZero)
-                : base(outputColumnName, sourceColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+            public MinMaxColumn(string outputColumnName, string inputColumnName = null, long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = Defaults.FixZero)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
             {
             }
 
@@ -131,9 +131,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             public readonly bool UseCdf;
 
-            public MeanVarColumn(string outputColumnName, string sourceColumnName = null,
+            public MeanVarColumn(string outputColumnName, string inputColumnName = null,
                 long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = Defaults.FixZero, bool useCdf = Defaults.MeanVarCdf)
-                : base(outputColumnName, sourceColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
             {
                 UseCdf = useCdf;
             }
@@ -146,9 +146,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             public readonly bool UseCdf;
 
-            public LogMeanVarColumn(string outputColumnName, string sourceColumnName = null,
+            public LogMeanVarColumn(string outputColumnName, string inputColumnName = null,
                 long maxTrainingExamples = Defaults.MaxTrainingExamples, bool useCdf = Defaults.LogMeanVarCdf)
-                : base(outputColumnName, sourceColumnName ?? outputColumnName, maxTrainingExamples)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples)
             {
                 UseCdf = useCdf;
             }
@@ -161,9 +161,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             public readonly int NumBins;
 
-            public BinningColumn(string outputColumnName, string sourceColumnName = null,
+            public BinningColumn(string outputColumnName, string inputColumnName = null,
                 long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = true, int numBins = Defaults.NumBins)
-                : base(outputColumnName, sourceColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
             {
                 NumBins = numBins;
             }
@@ -178,13 +178,13 @@ namespace Microsoft.ML.Transforms.Normalizers
             public readonly string LabelColumn;
             public readonly int MinBinSize;
 
-            public SupervisedBinningColumn(string outputColumnName, string sourceColumnName = null,
+            public SupervisedBinningColumn(string outputColumnName, string inputColumnName = null,
                 string labelColumn = DefaultColumnNames.Label,
                 long maxTrainingExamples = Defaults.MaxTrainingExamples,
                 bool fixZero = true,
                 int numBins = Defaults.NumBins,
                 int minBinSize = Defaults.MinBinSize)
-                : base(outputColumnName, sourceColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
             {
                 NumBins = numBins;
                 LabelColumn = labelColumn;
@@ -202,12 +202,12 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of the column to transform.
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
-        public NormalizingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null, NormalizerMode mode = NormalizerMode.MinMax)
-            : this(env, mode, (outputColumnName, sourceColumnName ?? outputColumnName))
+        public NormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, NormalizerMode mode = NormalizerMode.MinMax)
+            : this(env, mode, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
@@ -216,13 +216,13 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
-        /// <param name="columns">An array of (outputColumnName, sourceColumnName) tuples.</param>
-        public NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string outputColumnName, string sourceColumnName)[] columns)
+        /// <param name="columns">An array of (outputColumnName, inputColumnName) tuples.</param>
+        public NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string outputColumnName, string inputColumnName)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(NormalizingEstimator));
             _host.CheckValue(columns, nameof(columns));
-            _columns = columns.Select(x => ColumnBase.Create(x.outputColumnName, x.sourceColumnName, mode)).ToArray();
+            _columns = columns.Select(x => ColumnBase.Create(x.outputColumnName, x.inputColumnName, mode)).ToArray();
         }
 
         /// <summary>
@@ -252,13 +252,13 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, "fixed-size vector or scalar", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "fixed-size vector or scalar", col.GetTypeString());
 
                 if (!col.ItemType.Equals(NumberType.R4) && !col.ItemType.Equals(NumberType.R8))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, "vector or scalar of R4 or R8", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of R4 or R8", col.GetTypeString());
 
                 var isNormalizedMeta = new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
                     BoolType.Instance, false);
@@ -307,15 +307,15 @@ namespace Microsoft.ML.Transforms.Normalizers
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string SourceColumnName;
+            public readonly string InputColumnName;
             public readonly NormalizerModelParametersBase ModelParameters;
             internal readonly ColumnType InputType;
             internal readonly IColumnFunction ColumnFunction;
 
-            internal ColumnInfo(string name, string sourceColumnName, ColumnType inputType, IColumnFunction columnFunction)
+            internal ColumnInfo(string name, string inputColumnName, ColumnType inputType, IColumnFunction columnFunction)
             {
                 Name = name;
-                SourceColumnName = sourceColumnName;
+                InputColumnName = inputColumnName;
                 InputType = inputType;
                 ColumnFunction = columnFunction;
                 ModelParameters = columnFunction.GetNormalizerModelParams();
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public readonly ImmutableArray<ColumnInfo> Columns;
         private NormalizingTransformer(IHostEnvironment env, ColumnInfo[] columns)
-            : base(env.Register(nameof(NormalizingTransformer)), columns.Select(x => (x.Name, x.SourceColumnName)).ToArray())
+            : base(env.Register(nameof(NormalizingTransformer)), columns.Select(x => (x.Name, x.InputColumnName)).ToArray())
         {
             Columns = ImmutableArray.Create(columns);
             ColumnFunctions = new ColumnFunctionAccessor(Columns);
@@ -400,9 +400,9 @@ namespace Microsoft.ML.Transforms.Normalizers
             for (int i = 0; i < columns.Length; i++)
             {
                 var info = columns[i];
-                bool success = data.Schema.TryGetColumnIndex(info.SourceColumnName, out srcCols[i]);
+                bool success = data.Schema.TryGetColumnIndex(info.InputColumnName, out srcCols[i]);
                 if (!success)
-                    throw env.ExceptSchemaMismatch(nameof(data), "input", info.SourceColumnName);
+                    throw env.ExceptSchemaMismatch(nameof(data), "input", info.InputColumnName);
                 srcTypes[i] = data.Schema[srcCols[i]].Type;
                 activeCols.Add(data.Schema[srcCols[i]]);
 
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var func = functionBuilders[i].CreateColumnFunction();
-                    result[i] = new ColumnInfo(columns[i].Name, columns[i].SourceColumnName, srcTypes[i], func);
+                    result[i] = new ColumnInfo(columns[i].Name, columns[i].InputColumnName, srcTypes[i], func);
                 }
 
                 return new NormalizingTransformer(env, result);
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
                 var typeSrc = ColumnInfo.LoadType(ctx);
                 ctx.LoadModel<IColumnFunction, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
-                cols[iinfo] = new ColumnInfo(ColumnPairs[iinfo].outputColumnName, ColumnPairs[iinfo].sourceColumnName, typeSrc, function);
+                cols[iinfo] = new ColumnInfo(ColumnPairs[iinfo].outputColumnName, ColumnPairs[iinfo].inputColumnName, typeSrc, function);
             }
 
             Columns = ImmutableArray.Create(cols);
@@ -502,9 +502,9 @@ namespace Microsoft.ML.Transforms.Normalizers
             for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
             {
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
-                var typeSrc = input.Schema[ColumnPairs[iinfo].sourceColumnName].Type;
+                var typeSrc = input.Schema[ColumnPairs[iinfo].inputColumnName].Type;
                 ctx.LoadModel<IColumnFunction, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
-                cols[iinfo] = new ColumnInfo(ColumnPairs[iinfo].outputColumnName, ColumnPairs[iinfo].sourceColumnName, typeSrc, function);
+                cols[iinfo] = new ColumnInfo(ColumnPairs[iinfo].outputColumnName, ColumnPairs[iinfo].inputColumnName, typeSrc, function);
             }
 
             Columns = ImmutableArray.Create(cols);
@@ -563,10 +563,10 @@ namespace Microsoft.ML.Transforms.Normalizers
             var colType = inputSchema[srcCol].Type;
             VectorType vectorType = colType as VectorType;
             if (vectorType != null && !vectorType.IsKnownSize)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].sourceColumnName, expectedType, "variable-size vector");
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, "variable-size vector");
             ColumnType itemType = vectorType?.ItemType ?? colType;
             if (!itemType.Equals(NumberType.R4) && !itemType.Equals(NumberType.R8))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].sourceColumnName, expectedType, colType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, colType.ToString());
         }
 
         // Temporary: enables SignatureDataTransform factory methods.
@@ -624,14 +624,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                 for (int iinfo = 0; iinfo < _parent.Columns.Length; ++iinfo)
                 {
                     var info = _parent.Columns[iinfo];
-                    string sourceColumnName = info.SourceColumnName;
-                    if (!ctx.ContainsColumn(sourceColumnName))
+                    string inputColumnName = info.InputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
                     {
                         ctx.RemoveColumn(info.Name, false);
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
                         ctx.AddIntermediateVariable(info.InputType, info.Name)))
                     {
                         ctx.RemoveColumn(info.Name, true);
@@ -649,7 +649,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 for (int iinfo = 0; iinfo < _parent.Columns.Length; ++iinfo)
                 {
                     var info = _parent.Columns[iinfo];
-                    var srcName = info.SourceColumnName;
+                    var srcName = info.InputColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {

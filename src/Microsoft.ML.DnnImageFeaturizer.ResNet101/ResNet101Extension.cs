@@ -20,9 +20,9 @@ namespace Microsoft.ML.Transforms
         /// This assumes both of the models are in the same location as the file containing this method, which they will be if used through the NuGet.
         /// This should be the default way to use ResNet101 if importing the model from a NuGet.
         /// </summary>
-        public static EstimatorChain<ColumnCopyingTransformer> ResNet101(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string sourceColumnName)
+        public static EstimatorChain<ColumnCopyingTransformer> ResNet101(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            return ResNet101(dnnModelContext, env, outputColumnName, sourceColumnName, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
+            return ResNet101(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
         }
 
         /// <summary>
@@ -31,11 +31,11 @@ namespace Microsoft.ML.Transforms
         /// must be in a directory all by themsleves for the OnnxTransform to work, this method appends a ResNet101Onnx/ResNetPrepOnnx subdirectory
         /// to the passed in directory to prevent having to make that directory manually each time.
         /// </summary>
-        public static EstimatorChain<ColumnCopyingTransformer> ResNet101(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string sourceColumnName, string modelDir)
+        public static EstimatorChain<ColumnCopyingTransformer> ResNet101(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName, string modelDir)
         {
             var modelChain = new EstimatorChain<ColumnCopyingTransformer>();
 
-            var inputRename = new ColumnCopyingEstimator(env, new[] { ("OriginalInput", sourceColumnName) });
+            var inputRename = new ColumnCopyingEstimator(env, new[] { ("OriginalInput", inputColumnName) });
             var midRename = new ColumnCopyingEstimator(env, new[] { ("Input1600", "PreprocessedInput") });
             var endRename = new ColumnCopyingEstimator(env, new[] { (outputColumnName, "Pooling2286_Output_0") });
 

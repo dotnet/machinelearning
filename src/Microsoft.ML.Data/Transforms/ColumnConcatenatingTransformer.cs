@@ -131,17 +131,17 @@ namespace Microsoft.ML.Data
             public IReadOnlyList<(string name, string alias)> Sources => _sources.AsReadOnly();
 
             /// <summary>
-            /// This denotes a concatenation of all <paramref name="sourceColumnNames"/> into column called <paramref name="name"/>.
+            /// This denotes a concatenation of all <paramref name="inputColumnNames"/> into column called <paramref name="name"/>.
             /// </summary>
-            public ColumnInfo(string name, params string[] sourceColumnNames)
-                : this(name, GetPairs(sourceColumnNames))
+            public ColumnInfo(string name, params string[] inputColumnNames)
+                : this(name, GetPairs(inputColumnNames))
             {
             }
 
-            private static IEnumerable<(string name, string alias)> GetPairs(string[] sourceColumnNames)
+            private static IEnumerable<(string name, string alias)> GetPairs(string[] inputColumnNames)
             {
-                Contracts.CheckValue(sourceColumnNames, nameof(sourceColumnNames));
-                return sourceColumnNames.Select(name => (name, (string)null));
+                Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
+                return inputColumnNames.Select(name => (name, (string)null));
             }
 
             /// <summary>
@@ -149,20 +149,20 @@ namespace Microsoft.ML.Data
             /// For each input column, an 'alias' can be specified, to be used in constructing the resulting slot names.
             /// If the alias is not specified, it defaults to be column name.
             /// </summary>
-            public ColumnInfo(string name, IEnumerable<(string name, string alias)> sourceColumnNames)
+            public ColumnInfo(string name, IEnumerable<(string name, string alias)> inputColumnNames)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckValue(sourceColumnNames, nameof(sourceColumnNames));
-                Contracts.CheckParam(sourceColumnNames.Any(), nameof(sourceColumnNames), "Can not be empty");
+                Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
+                Contracts.CheckParam(inputColumnNames.Any(), nameof(inputColumnNames), "Can not be empty");
 
-                foreach (var (output, alias) in sourceColumnNames)
+                foreach (var (output, alias) in inputColumnNames)
                 {
-                    Contracts.CheckNonEmpty(output, nameof(sourceColumnNames));
+                    Contracts.CheckNonEmpty(output, nameof(inputColumnNames));
                     Contracts.CheckValueOrNull(alias);
                 }
 
                 Name = name;
-                _sources = sourceColumnNames.ToArray();
+                _sources = inputColumnNames.ToArray();
             }
 
             public void Save(ModelSaveContext ctx)
@@ -213,12 +213,12 @@ namespace Microsoft.ML.Data
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
 
         /// <summary>
-        /// Concatename columns in <paramref name="sourceColumnNames"/> into one column <paramref name="outputColumnName"/>.
+        /// Concatename columns in <paramref name="inputColumnNames"/> into one column <paramref name="outputColumnName"/>.
         /// Original columns are also preserved.
         /// The column types must match, and the output column type is always a vector.
         /// </summary>
-        public ColumnConcatenatingTransformer(IHostEnvironment env, string outputColumnName, params string[] sourceColumnNames)
-            : this(env, new ColumnInfo(outputColumnName, sourceColumnNames))
+        public ColumnConcatenatingTransformer(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
+            : this(env, new ColumnInfo(outputColumnName, inputColumnNames))
         {
         }
 

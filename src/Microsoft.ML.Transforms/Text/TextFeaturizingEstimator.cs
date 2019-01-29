@@ -258,9 +258,9 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
-        public TextFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string sourceColumnName = null,
+        public TextFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             Action<Settings> advancedSettings = null)
-            : this(env, outputColumnName, new[] { sourceColumnName ?? outputColumnName }, advancedSettings)
+            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, advancedSettings)
         {
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.NeedsNormalizeTransform)
             {
-                var xfCols = new (string outputColumnName, string sourceColumnName)[textCols.Length];
+                var xfCols = new (string outputColumnName, string inputColumnName)[textCols.Length];
                 string[] dstCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var srcCols = tparams.UsePredefinedStopWordRemover ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
-                    var xfCols = new (string outputColumnName, string sourceColumnName)[srcCols.Length];
+                    var xfCols = new (string outputColumnName, string inputColumnName)[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
                     {
                         xfCols[i] = (GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"), srcCols[i]);

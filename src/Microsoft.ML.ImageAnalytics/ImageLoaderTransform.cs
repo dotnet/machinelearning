@@ -70,7 +70,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         public readonly string ImageFolder;
 
-        public IReadOnlyCollection<(string outputColumnName, string sourceColumnName)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Load images in memory.
@@ -78,7 +78,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The host environment.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
-        public ImageLoaderTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string sourceColumnName)[] columns)
+        public ImageLoaderTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderTransformer)), columns)
         {
             ImageFolder = imageFolder;
@@ -122,7 +122,7 @@ namespace Microsoft.ML.ImageAnalytics
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is TextType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].sourceColumnName, TextType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, TextType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -230,7 +230,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The host environment.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
-        public ImageLoadingEstimator(IHostEnvironment env, string imageFolder, params (string outputColumnName, string sourceColumnName)[] columns)
+        public ImageLoadingEstimator(IHostEnvironment env, string imageFolder, params (string outputColumnName, string inputColumnName)[] columns)
             : this(env, new ImageLoaderTransformer(env, imageFolder, columns))
         {
         }
@@ -245,12 +245,12 @@ namespace Microsoft.ML.ImageAnalytics
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.ToDictionary(x => x.Name);
-            foreach (var (outputColumnName, sourceColumnName) in Transformer.Columns)
+            foreach (var (outputColumnName, inputColumnName) in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(sourceColumnName, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", sourceColumnName);
+                if (!inputSchema.TryFindColumn(inputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName);
                 if (!(col.ItemType is TextType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", sourceColumnName, TextType.Instance.ToString(), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName, TextType.Instance.ToString(), col.GetTypeString());
 
                 result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, _imageType, false);
             }

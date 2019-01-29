@@ -16,7 +16,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform extensions' catalog.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
-            params (string outputColumnName, string sourceColumnName)[] columns)
+            params (string outputColumnName, string inputColumnName)[] columns)
             => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -26,13 +26,13 @@ namespace Microsoft.ML
         /// is true if the value in the input column is missing.
         /// </summary>
         /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// If left to <value>null</value> the <paramref name="sourceColumnName"/> will get replaced.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// If left to <value>null</value> the <paramref name="inputColumnName"/> will get replaced.</param>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
             string outputColumnName,
-            string sourceColumnName = null)
-            => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, sourceColumnName);
+            string inputColumnName = null)
+            => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
 
         /// <summary>
         /// Creates a new output column, or replaces the source with a new column
@@ -42,15 +42,15 @@ namespace Microsoft.ML
         /// <see cref="MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.DefaultValue"/>.
         /// </summary>
         /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// If not provided, the <paramref name="sourceColumnName"/> will be replaced with the results of the transforms.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// If not provided, the <paramref name="inputColumnName"/> will be replaced with the results of the transforms.</param>
         /// <param name="replacementKind">The type of replacement to use as specified in <see cref="MissingValueReplacingTransformer.ColumnInfo.ReplacementMode"/></param>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
             string outputColumnName,
-            string sourceColumnName = null,
+            string inputColumnName = null,
             MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = MissingValueReplacingEstimator.Defaults.ReplacementMode)
-        => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, sourceColumnName, replacementKind);
+        => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, replacementKind);
 
         /// <summary>
         /// Creates a new output column, identical to the input column for everything but the missing values.

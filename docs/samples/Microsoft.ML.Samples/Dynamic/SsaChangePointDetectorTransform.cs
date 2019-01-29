@@ -47,11 +47,11 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup SsaChangePointDetector arguments
-            var sourceColumnName = nameof(SsaChangePointData.Value);
+            var inputColumnName = nameof(SsaChangePointData.Value);
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
             var args = new SsaChangePointDetector.Arguments()
             {
-                Source = sourceColumnName,
+                Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                          // The confidence for spike detection in the range [0, 100]
                 ChangeHistoryLength = 8,                  // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes.
@@ -118,11 +118,11 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup SsaChangePointDetector arguments
-            var sourceColumnName = nameof(SsaChangePointData.Value);
+            var inputColumnName = nameof(SsaChangePointData.Value);
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
             var args = new SsaChangePointDetector.Arguments()
             {
-                Source = sourceColumnName,
+                Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                         // The confidence for spike detection in the range [0, 100]
                 ChangeHistoryLength = 8,                 // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes. 

@@ -218,8 +218,8 @@ namespace Microsoft.ML.Transforms.Categorical
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKind">Kind of output: bag, indicator vector etc.</param>
             /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
@@ -228,14 +228,14 @@ namespace Microsoft.ML.Transforms.Categorical
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
             /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-            public ColumnInfo(string name, string sourceColumnName = null,
+            public ColumnInfo(string name, string inputColumnName = null,
                 OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind,
                 int hashBits = Defaults.HashBits,
                 uint seed = Defaults.Seed,
                 bool ordered = Defaults.Ordered,
                 int invertHash = Defaults.InvertHash)
             {
-                HashInfo = new HashingTransformer.ColumnInfo(name, sourceColumnName ?? name, hashBits, seed, ordered, invertHash);
+                HashInfo = new HashingTransformer.ColumnInfo(name, inputColumnName ?? name, hashBits, seed, ordered, invertHash);
                 OutputKind = outputKind;
             }
         }
@@ -248,8 +248,8 @@ namespace Microsoft.ML.Transforms.Categorical
         /// A helper method to create <see cref="OneHotHashEncodingEstimator"/> for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of the column to transform.
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
@@ -259,11 +259,11 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="outputKind">The type of output expected.</param>
         public OneHotHashEncodingEstimator(IHostEnvironment env,
             string outputColumnName,
-            string sourceColumnName = null,
+            string inputColumnName = null,
             int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
             int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
             OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind)
-            : this(env, new ColumnInfo(outputColumnName, sourceColumnName ?? outputColumnName, outputKind, hashBits, invertHash: invertHash))
+            : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, outputKind, hashBits, invertHash: invertHash))
         {
         }
 
@@ -274,8 +274,8 @@ namespace Microsoft.ML.Transforms.Categorical
             _hash = new HashingEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
             using (var ch = _host.Start(nameof(OneHotHashEncodingEstimator)))
             {
-                var binaryCols = new List<(string outputColumnName, string sourceColumnName)>();
-                var cols = new List<(string outputColumnName, string sourceColumnName, bool bag)>();
+                var binaryCols = new List<(string outputColumnName, string inputColumnName)>();
+                var cols = new List<(string outputColumnName, string inputColumnName, bool bag)>();
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var column = columns[i];
@@ -302,9 +302,9 @@ namespace Microsoft.ML.Transforms.Categorical
                 IEstimator<ITransformer> toBinVector = null;
                 IEstimator<ITransformer> toVector = null;
                 if (binaryCols.Count > 0)
-                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.sourceColumnName)).ToArray());
+                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName)).ToArray());
                 if (cols.Count > 0)
-                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.sourceColumnName, x.bag)).ToArray());
+                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName, x.bag)).ToArray());
 
                 if (toBinVector != null && toVector != null)
                     _toSomething = toVector.Append(toBinVector);

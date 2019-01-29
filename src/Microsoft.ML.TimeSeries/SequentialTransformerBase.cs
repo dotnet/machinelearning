@@ -271,19 +271,19 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// <param name="windowSize">The size of buffer used for windowed buffering.</param>
         /// <param name="initialWindowSize">The number of datapoints picked from the beginning of the series for training the transform parameters if needed.</param>
         /// <param name="outputColumnName">The name of the dst column.</param>
-        /// <param name="sourceColumnName">The name of the input column.</param>
+        /// <param name="inputColumnName">The name of the input column.</param>
         /// <param name="outputColType"></param>
-        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string outputColumnName, string sourceColumnName, ColumnType outputColType)
+        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string outputColumnName, string inputColumnName, ColumnType outputColType)
         {
             Host = host;
             Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
             Host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
             // REVIEW: Very bad design. This base class is responsible for reporting errors on
             // the arguments, but the arguments themselves are not derived form any base class.
-            Host.CheckNonEmpty(sourceColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
+            Host.CheckNonEmpty(inputColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
             Host.CheckNonEmpty(outputColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
 
-            InputColumnName = sourceColumnName;
+            InputColumnName = inputColumnName;
             OutputColumnName = outputColumnName;
             OutputColumnType = outputColType;
             InitialWindowSize = initialWindowSize;
@@ -308,10 +308,10 @@ namespace Microsoft.ML.TimeSeriesProcessing
             var initialWindowSize = ctx.Reader.ReadInt32();
             Host.CheckDecode(initialWindowSize >= 0);
 
-            var sourceColumnName = ctx.LoadNonEmptyString();
+            var inputColumnName = ctx.LoadNonEmptyString();
             var outputColumnName = ctx.LoadNonEmptyString();
 
-            InputColumnName = sourceColumnName;
+            InputColumnName = inputColumnName;
             OutputColumnName = outputColumnName;
             InitialWindowSize = initialWindowSize;
             WindowSize = windowSize;
@@ -392,11 +392,11 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             public void CloneStateInMapper() => _mapper.CloneState();
 
-            private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string sourceColumnName,
+            private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName,
                 string outputColumnName, Action<TState> initFunction, bool hasBuffer, ColumnType outputColTypeOverride)
             {
                 var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
-                inputSchema[0].ColumnName = sourceColumnName;
+                inputSchema[0].ColumnName = inputColumnName;
 
                 var outputSchema = SchemaDefinition.Create(typeof(DataBox<TOutput>));
                 outputSchema[0].ColumnName = outputColumnName;

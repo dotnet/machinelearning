@@ -115,7 +115,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             // OK. Now handle the final renamings from the fixed names, to the desired names, in the case
             // where the output was desired, and a renaming is even necessary.
-            var toRename = new List<(string outputColumnName, string sourceColumnName)>();
+            var toRename = new List<(string outputColumnName, string inputColumnName)>();
             foreach ((PipelineColumn outCol, string fixedName) in Outputs.Zip(_outputNames, (c, n) => (c, n)))
             {
                 if (outputNames.TryGetValue(outCol, out string desiredName))

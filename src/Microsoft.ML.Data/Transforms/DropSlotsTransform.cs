@@ -193,22 +193,22 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string SourceColumnName;
+            public readonly string InputColumnName;
             public readonly (int min, int? max)[] Slots;
 
             /// <summary>
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-            /// <param name="sourceColumnName">Name of the column to transform.
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of the column to transform.
             /// If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="slots">Ranges of indices in the input column to be dropped. Setting max in <paramref name="slots"/> to null sets max to int.MaxValue.</param>
-            public ColumnInfo(string name, string sourceColumnName = null, params (int min, int? max)[] slots)
+            public ColumnInfo(string name, string inputColumnName = null, params (int min, int? max)[] slots)
             {
                 Name = name;
                 Contracts.CheckValue(Name, nameof(Name));
-                SourceColumnName = sourceColumnName ?? name;
-                Contracts.CheckValue(SourceColumnName, nameof(SourceColumnName));
+                InputColumnName = inputColumnName ?? name;
+                Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
 
                 // By default drop everything.
                 Slots = (slots.Length > 0) ? slots : new (int min, int? max)[1];
@@ -220,8 +220,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Name = column.Name;
                 Contracts.CheckValue(Name, nameof(Name));
-                SourceColumnName = column.Source ?? column.Name;
-                Contracts.CheckValue(SourceColumnName, nameof(SourceColumnName));
+                InputColumnName = column.Source ?? column.Name;
+                Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
                 Slots = column.Slots.Select(range => (range.Min, range.Max)).ToArray();
                 foreach (var (min, max) in Slots)
                     Contracts.Assert(min >= 0 && (max == null || min <= max));
@@ -253,12 +253,12 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// Initializes a new <see cref="SlotsDroppingTransformer"/> object.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
-        public SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string sourceColumnName = null, int min = default, int? max = null)
-            : this(env, new ColumnInfo(outputColumnName, sourceColumnName, (min, max)))
+        public SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int min = default, int? max = null)
+            : this(env, new ColumnInfo(outputColumnName, inputColumnName, (min, max)))
         {
         }
 
@@ -410,8 +410,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
-        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
-            => columns.Select(c => (c.Name, c.SourceColumnName ?? c.Name)).ToArray();
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+            => columns.Select(c => (c.Name, c.InputColumnName ?? c.Name)).ToArray();
 
         private static bool AreRangesValid(int[][] slotsMin, int[][] slotsMax)
         {
@@ -463,14 +463,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].sourceColumnName, out _cols[i]))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].sourceColumnName);
+                    if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _cols[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
                     VectorType srcVectorType = _srcTypes[i] as VectorType;
 
                     ColumnType itemType = srcVectorType?.ItemType ?? _srcTypes[i];
                     if (!IsValidColumnType(itemType))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].sourceColumnName);
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
 
                     int valueCount = srcVectorType?.Size ?? 1;
                     _slotDropper[i] = new SlotDropper(valueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
@@ -821,7 +821,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     // Avoid closure when adding metadata.
                     int iinfo = i;
 
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].sourceColumnName, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
 

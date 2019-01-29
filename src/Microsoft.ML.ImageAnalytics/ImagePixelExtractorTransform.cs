@@ -146,7 +146,7 @@ namespace Microsoft.ML.ImageAnalytics
         public sealed class ColumnInfo
         {
             public readonly string Name;
-            public readonly string SourceColumnName;
+            public readonly string InputColumnName;
 
             public readonly ColorBits Colors;
             public readonly byte Planes;
@@ -166,7 +166,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckValue(args, nameof(args));
 
                 Name = item.Name;
-                SourceColumnName = item.Source ?? item.Name;
+                InputColumnName = item.Source ?? item.Name;
 
                 if (item.UseAlpha ?? args.UseAlpha) { Colors |= ColorBits.Alpha; Planes++; }
                 if (item.UseRed ?? args.UseRed) { Colors |= ColorBits.Red; Planes++; }
@@ -194,15 +194,15 @@ namespace Microsoft.ML.ImageAnalytics
             /// <summary>
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-            /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="colors">What colors to extract.</param>
             /// <param name="interleave"></param>
             /// <param name="scale">Scale color pixel value by this amount.</param>
             /// <param name="offset">Offset color pixel value by this amount.</param>
             /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
 
-            public ColumnInfo(string name, string sourceColumnName = null,
+            public ColumnInfo(string name, string inputColumnName = null,
                 ColorBits colors = Defaults.Colors,
                 bool interleave = Defaults.Interleave,
                 float scale = Defaults.Scale,
@@ -212,7 +212,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
 
                 Name = name;
-                SourceColumnName = sourceColumnName ?? name;
+                InputColumnName = inputColumnName ?? name;
                 Colors = colors;
 
                 if ((Colors & ColorBits.Alpha) == ColorBits.Alpha) Planes++;
@@ -238,14 +238,14 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(scale));
             }
 
-            internal ColumnInfo(string name, string sourceColumnName, ModelLoadContext ctx)
+            internal ColumnInfo(string name, string inputColumnName, ModelLoadContext ctx)
             {
                 Contracts.AssertNonEmpty(name);
-                Contracts.AssertNonEmpty(sourceColumnName);
+                Contracts.AssertNonEmpty(inputColumnName);
                 Contracts.AssertValue(ctx);
 
                 Name = name;
-                SourceColumnName = sourceColumnName;
+                InputColumnName = inputColumnName;
 
                 // *** Binary format ***
                 // byte: colors
@@ -329,8 +329,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// Extract pixels values from image and produce array of values.
         ///</summary>
         /// <param name="env">The host environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>.</param>
-        /// <param name="sourceColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="colors">What colors to extract.</param>
         /// <param name="interleave"></param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
@@ -338,13 +338,13 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
         public ImagePixelExtractorTransformer(IHostEnvironment env,
             string outputColumnName,
-            string sourceColumnName = null,
+            string inputColumnName = null,
             ColorBits colors = ColorBits.Rgb,
             bool interleave = Defaults.Interleave,
             float scale = Defaults.Scale,
             float offset = Defaults.Offset,
             bool asFloat = Defaults.Convert)
-            : this(env, new ColumnInfo(outputColumnName, sourceColumnName, colors, interleave, scale, offset, asFloat))
+            : this(env, new ColumnInfo(outputColumnName, inputColumnName, colors, interleave, scale, offset, asFloat))
         {
         }
 
@@ -359,10 +359,10 @@ namespace Microsoft.ML.ImageAnalytics
             _columns = columns.ToArray();
         }
 
-        private static (string outputColumnName, string sourceColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.SourceColumnName)).ToArray();
+            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
         // Factory method for SignatureDataTransform.
@@ -407,7 +407,7 @@ namespace Microsoft.ML.ImageAnalytics
 
             _columns = new ColumnInfo[ColumnPairs.Length];
             for (int i = 0; i < _columns.Length; i++)
-                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].sourceColumnName, ctx);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -441,7 +441,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var inputColName = _columns[col].SourceColumnName;
+            var inputColName = _columns[col].InputColumnName;
             var imageType = inputSchema[srcCol].Type as ImageType;
             if (imageType == null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema[srcCol].Type.ToString());
@@ -665,8 +665,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// Extract pixels values from image and produce array of values.
         ///</summary>
         /// <param name="env">The host environment.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="sourceColumnName"/>. Null means <paramref name="sourceColumnName"/> is replaced.</param>
-        /// <param name="sourceColumnName">Name of the input column.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>. Null means <paramref name="inputColumnName"/> is replaced.</param>
+        /// <param name="inputColumnName">Name of the input column.</param>
         /// <param name="colors">What colors to extract.</param>
         /// <param name="interleave"></param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
@@ -674,11 +674,11 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
         public ImagePixelExtractingEstimator(IHostEnvironment env,
             string outputColumnName,
-            string sourceColumnName = null,
+            string inputColumnName = null,
             ImagePixelExtractorTransformer.ColorBits colors = ImagePixelExtractorTransformer.Defaults.Colors,
             bool interleave = ImagePixelExtractorTransformer.Defaults.Interleave, float scale = ImagePixelExtractorTransformer.Defaults.Scale,
             float offset = ImagePixelExtractorTransformer.Defaults.Offset, bool asFloat = ImagePixelExtractorTransformer.Defaults.Convert)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransformer(env, outputColumnName, sourceColumnName, colors, interleave))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransformer(env, outputColumnName, inputColumnName, colors, interleave))
         {
         }
 
@@ -698,10 +698,10 @@ namespace Microsoft.ML.ImageAnalytics
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.SourceColumnName, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName);
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.SourceColumnName, new ImageType().ToString(), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageType().ToString(), col.GetTypeString());
 
                 var itemType = colInfo.AsFloat ? NumberType.R4 : NumberType.U1;
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, itemType, false);

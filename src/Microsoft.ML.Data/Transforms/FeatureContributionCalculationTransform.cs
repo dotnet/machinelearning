@@ -221,11 +221,11 @@ namespace Microsoft.ML.Data
                 _parent = parent;
 
                 // Check that the featureColumn is present and has the expected type.
-                if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].sourceColumnName, out _featureColumnIndex))
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].sourceColumnName);
+                if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].inputColumnName, out _featureColumnIndex))
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
                 _featureColumnType = schema[_featureColumnIndex].Type as VectorType;
                 if (_featureColumnType == null || _featureColumnType.ItemType != NumberType.R4)
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature column", _parent.ColumnPairs[0].sourceColumnName, "Expected type is vector of float.", _featureColumnType.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature column", _parent.ColumnPairs[0].inputColumnName, "Expected type is vector of float.", _featureColumnType.ItemType.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
                     InputSchema[_featureColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);

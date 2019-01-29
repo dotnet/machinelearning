@@ -53,10 +53,10 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(ChangePointPrediction.Prediction);
-            string sourceColumnName = nameof(IidChangePointData.Value);
+            string inputColumnName = nameof(IidChangePointData.Value);
             var args = new IidChangePointDetector.Arguments()
             {
-                Source = sourceColumnName,
+                Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
                 ChangeHistoryLength = Size / 4, // The length of the sliding window on p-values for computing the martingale score. 
@@ -118,10 +118,10 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(ChangePointPrediction.Prediction);
-            string sourceColumnName = nameof(IidChangePointData.Value);
+            string inputColumnName = nameof(IidChangePointData.Value);
             var args = new IidChangePointDetector.Arguments()
             {
-                Source = sourceColumnName,
+                Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
                 ChangeHistoryLength = Size / 4, // The length of the sliding window on p-values for computing the martingale score. 
