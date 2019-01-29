@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Auto
 {
-    public enum OptimizingMetric
+    internal enum OptimizingMetric
     {
         Auc,
         Accuracy,

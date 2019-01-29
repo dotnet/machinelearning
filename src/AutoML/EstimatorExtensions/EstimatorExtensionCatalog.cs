@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Auto
 {
-    public enum EstimatorName
+    internal enum EstimatorName
     {
         ColumnConcatenating,
         ColumnCopying,

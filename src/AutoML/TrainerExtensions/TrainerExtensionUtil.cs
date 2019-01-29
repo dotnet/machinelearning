@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace Microsoft.ML.Auto
 {
-    public enum TrainerName
+    internal enum TrainerName
     {
         AveragedPerceptronBinary,
         AveragedPerceptronOva,

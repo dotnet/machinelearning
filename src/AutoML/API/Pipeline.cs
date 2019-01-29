@@ -7,7 +7,7 @@ using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Auto
 {
-    public class Pipeline
+    internal class Pipeline
     {
         public PipelineNode[] Nodes { get; set; }
 
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    public class PipelineNode
+    internal class PipelineNode
     {
         public string Name { get; set; }
         public PipelineNodeType NodeType { get; set; }
@@ -65,13 +65,13 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    public enum PipelineNodeType
+    internal enum PipelineNodeType
     {
         Transform,
         Trainer
     }
 
-    public class CustomProperty
+    internal class CustomProperty
     {
         public string Name { get; set; }
         public IDictionary<string, object> Properties { get; set; }
@@ -87,9 +87,8 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    public class PipelineRunResult
+    internal class PipelineRunResult
     {
-        public readonly Pipeline Pipeline;
         public readonly double Score;
 
         /// <summary>
@@ -98,7 +97,9 @@ namespace Microsoft.ML.Auto
         /// </summary>
         public readonly bool RunSucceded;
 
-        public PipelineRunResult(Pipeline pipeline, double score, bool runSucceeded)
+        internal readonly Pipeline Pipeline;
+
+        internal PipelineRunResult(Pipeline pipeline, double score, bool runSucceeded)
         {
             Pipeline = pipeline;
             Score = score;

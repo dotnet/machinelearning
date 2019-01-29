@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.Auto
 {
-    public enum TaskKind
+    internal enum TaskKind
     {
         BinaryClassification,
         MulticlassClassification,

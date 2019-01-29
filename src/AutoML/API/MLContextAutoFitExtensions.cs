@@ -184,9 +184,9 @@ namespace Microsoft.ML.Auto
         public readonly BinaryClassificationMetrics Metrics;
         public readonly ITransformer Model;
         public readonly IDataView ScoredValidationData;
-        public readonly Pipeline Pipeline;
+        internal readonly Pipeline Pipeline;
 
-        public BinaryClassificationItertionResult(ITransformer model, BinaryClassificationMetrics metrics, IDataView scoredValidationData, Pipeline pipeline)
+        internal BinaryClassificationItertionResult(ITransformer model, BinaryClassificationMetrics metrics, IDataView scoredValidationData, Pipeline pipeline)
         {
             Model = model;
             ScoredValidationData = scoredValidationData;
@@ -200,9 +200,9 @@ namespace Microsoft.ML.Auto
         public readonly MultiClassClassifierMetrics Metrics;
         public readonly ITransformer Model;
         public readonly IDataView ScoredValidationData;
-        public readonly Pipeline Pipeline;
+        internal readonly Pipeline Pipeline;
 
-        public MulticlassClassificationIterationResult(ITransformer model, MultiClassClassifierMetrics metrics, IDataView scoredValidationData, Pipeline pipeline)
+        internal MulticlassClassificationIterationResult(ITransformer model, MultiClassClassifierMetrics metrics, IDataView scoredValidationData, Pipeline pipeline)
         {
             Model = model;
             Metrics = metrics;
@@ -216,9 +216,9 @@ namespace Microsoft.ML.Auto
         public readonly RegressionMetrics Metrics;
         public readonly ITransformer Model;
         public readonly IDataView ScoredValidationData;
-        public readonly Pipeline Pipeline;
+        internal readonly Pipeline Pipeline;
 
-        public RegressionIterationResult(ITransformer model, RegressionMetrics metrics, IDataView scoredValidationData, Pipeline pipeline)
+        internal RegressionIterationResult(ITransformer model, RegressionMetrics metrics, IDataView scoredValidationData, Pipeline pipeline)
         {
             Model = model;
             Metrics = metrics;
