@@ -14,7 +14,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     internal class QuantileRegressionTree : RegressionTree
     {
         /// <summary>
-        /// Holds the labels of samped instances for this tree. This value can be null when training, for example, random forest (FastForest).
+        /// Holds the labels of sampled instances for this tree. This value can be null when training, for example, random forest (FastForest).
         /// </summary>
         private double[] _labelsDistribution;
 
@@ -100,8 +100,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <summary>
         /// Copy training examples' labels and their weights to external variables.
         /// </summary>
-        /// <param name="leafSamples">List of label collections. The type of a collction is a double array. The i-th label collection contains training examples' labels falling into the i-th leaf.</param>
-        /// <param name="leafSampleWeights">List of labels' weight collections. The type of a collction is a double array. The i-th collection contains weights of labels falling into the i-th leaf.
+        /// <param name="leafSamples">List of label collections. The type of a collection is a double array. The i-th label collection contains training examples' labels falling into the i-th leaf.</param>
+        /// <param name="leafSampleWeights">List of labels' weight collections. The type of a collection is a double array. The i-th collection contains weights of labels falling into the i-th leaf.
         /// Specifically, leafSampleWeights[i][j] is the weight of leafSamples[i][j].</param>
         internal void ExtractLeafSamplesAndTheirWeights(out double[][] leafSamples, out double[][] leafSampleWeights)
         {
@@ -111,22 +111,20 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             var sampleCountPerLeaf = _labelsDistribution != null ? _labelsDistribution.Length / NumLeaves : 1;
             for (int i = 0; i < NumLeaves; ++i)
             {
-                var samplesPerLeaf = new List<double>();
-                var sampleWeightsPerLeaf = new List<double>();
+                leafSamples[i] = new double[sampleCountPerLeaf];
+                leafSampleWeights[i] = new double[sampleCountPerLeaf];
                 for (int j = 0; j < sampleCountPerLeaf; ++j)
                 {
                     if (_labelsDistribution != null)
-                        samplesPerLeaf.Add(_labelsDistribution[i * sampleCountPerLeaf + j]);
+                        leafSamples[i][j] = _labelsDistribution[i * sampleCountPerLeaf + j];
                     else
                         // No training label is available, so the i-th leaf's value is used directly. Note that sampleCountPerLeaf must be 1 in this case.
-                        samplesPerLeaf.Add(LeafValues[i]);
+                        leafSampleWeights[i][j] = LeafValues[i];
                     if (_instanceWeights != null)
-                        sampleWeightsPerLeaf.Add(_instanceWeights[i * sampleCountPerLeaf + j]);
+                        leafSamples[i][j] = _instanceWeights[i * sampleCountPerLeaf + j];
                     else
-                        sampleWeightsPerLeaf.Add(1.0);
+                        leafSampleWeights[i][j] = 1.0;
                 }
-                leafSamples[i] = samplesPerLeaf.ToArray();
-                leafSampleWeights[i] = sampleWeightsPerLeaf.ToArray();
             }
         }
 

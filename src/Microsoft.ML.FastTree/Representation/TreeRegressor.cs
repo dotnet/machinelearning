@@ -77,8 +77,9 @@ namespace Microsoft.ML.FastTree.Representation
         /// <summary>
         /// Return categorical thresholds' range used at node indexed by nodeIndex. A categorical split at node indexed
         /// by nodeIndex can consider multiple consecutive input features at one time; their range is specified by
-        /// <see cref="GetCategoricalCategoricalSplitFeatureRangeAt(int)"/>.  The returned value is valid only if
-        /// <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
+        /// <see cref="GetCategoricalCategoricalSplitFeatureRangeAt(int)"/>. The returned value is always a 2-element
+        /// array; its 1st element is the starting index and its 2nd element is the endining index of a feature segment.
+        /// The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
         public ReadOnlySpan<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex) => new ReadOnlySpan<int>(_tree.CategoricalSplitFeatureRanges[nodeIndex]);
 
