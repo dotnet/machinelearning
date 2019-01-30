@@ -61,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var pipeline = ml.Transforms.Concatenate("Text", "workclass", "education", "marital-status",
                     "relationship", "ethnicity", "sex", "native-country")
-                .Append(ml.Transforms.Text.FeaturizeText("Text", "TextFeatures"))
+                .Append(ml.Transforms.Text.FeaturizeText("TextFeatures", "Text"))
                 .Append(ml.Transforms.Concatenate("Features", "TextFeatures", "age", "fnlwgt",
                     "education-num", "capital-gain", "capital-loss", "hours-per-week"))
                 .Append(ml.BinaryClassification.Trainers.LogisticRegression());
