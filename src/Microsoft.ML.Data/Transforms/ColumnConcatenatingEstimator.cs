@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class ColumnConcatenatingEstimator  : IEstimator<ITransformer>
+    public sealed class ColumnConcatenatingEstimator : IEstimator<ITransformer>
     {
         private readonly IHost _host;
         private readonly string _name;
@@ -20,20 +21,20 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="ColumnConcatenatingEstimator"/>
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="outputColumn">The name of the resulting column.</param>
-        /// <param name="inputColumns">The columns to concatenate together.</param>
-        public ColumnConcatenatingEstimator (IHostEnvironment env, string outputColumn, params string[] inputColumns)
+        /// <param name="outputColumnName">The name of the resulting column.</param>
+        /// <param name="inputColumnNames">The columns to concatenate together.</param>
+        public ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("ColumnConcatenatingEstimator ");
 
-            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
-            _host.CheckValue(inputColumns, nameof(inputColumns));
-            _host.CheckParam(!inputColumns.Any(r => string.IsNullOrEmpty(r)), nameof(inputColumns),
+            _host.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
+            _host.CheckValue(inputColumnNames, nameof(inputColumnNames));
+            _host.CheckParam(!inputColumnNames.Any(r => string.IsNullOrEmpty(r)), nameof(inputColumnNames),
                 "Contained some null or empty items");
 
-            _name = outputColumn;
-            _source = inputColumns;
+            _name = outputColumnName;
+            _source = inputColumnNames;
         }
 
         public ITransformer Fit(IDataView input)

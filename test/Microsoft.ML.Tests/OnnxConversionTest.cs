@@ -9,7 +9,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
@@ -41,7 +43,7 @@ namespace Microsoft.ML.Tests
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
         /// ML.NET model's outputs.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotFullFramework))] // Tracked by https://github.com/dotnet/machinelearning/issues/2106
         public void SimpleEndToEndOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.
@@ -70,7 +72,7 @@ namespace Microsoft.ML.Tests
                 // Step 3: Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = new OnnxScoringEstimator(mlContext, onnxModelPath, inputNames, outputNames);
+                var onnxEstimator = new OnnxScoringEstimator(mlContext, outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
 
@@ -116,7 +118,7 @@ namespace Microsoft.ML.Tests
             public float[] Features;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30AndNotFullFramework))] // Tracked by https://github.com/dotnet/machinelearning/issues/2087
         public void KmeansOnnxConversionTest()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -130,12 +132,13 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t');
 
             var pipeline = mlContext.Transforms.Normalize("Features").
-                Append(mlContext.Clustering.Trainers.KMeans(features: "Features", advancedSettings: settings =>
+                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeans.KMeansPlusPlusTrainer.Options
                 {
-                    settings.MaxIterations = 1;
-                    settings.K = 4;
-                    settings.NumThreads = 1;
-                    settings.InitAlgorithm = Trainers.KMeans.KMeansPlusPlusTrainer.InitAlgorithm.Random;
+                    FeatureColumn = DefaultColumnNames.Features,
+                    MaxIterations = 1,
+                    ClustersCount = 4,
+                    NumThreads = 1,
+                    InitAlgorithm = Trainers.KMeans.KMeansPlusPlusTrainer.InitAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
@@ -153,7 +156,7 @@ namespace Microsoft.ML.Tests
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = new OnnxScoringEstimator(mlContext, onnxModelPath, inputNames, outputNames);
+                var onnxEstimator = new OnnxScoringEstimator(mlContext, outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
                 CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 3);
@@ -372,11 +375,7 @@ namespace Microsoft.ML.Tests
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
-                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(labelColumn: "Label", featureColumn: "Features",
-                advancedSettings: settings =>
-                {
-                    settings.UseThreads = false;
-                }));
+                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { UseThreads = false }));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
@@ -454,7 +453,7 @@ namespace Microsoft.ML.Tests
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
             var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, hasHeader: false, separatorChar: '\t');
 
-            var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Tokens", embedNetworkPath, "Embed");
+            var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
@@ -483,8 +482,8 @@ namespace Microsoft.ML.Tests
             var leftColumnIndex = left.Schema[leftColumnName].Index;
             var rightColumnIndex = right.Schema[rightColumnName].Index;
 
-            using (var expectedCursor = left.GetRowCursor(columnIndex => leftColumnIndex == columnIndex))
-            using (var actualCursor = right.GetRowCursor(columnIndex => rightColumnIndex == columnIndex))
+            using (var expectedCursor = left.GetRowCursor(left.Schema[leftColumnIndex]))
+            using (var actualCursor = right.GetRowCursor(right.Schema[rightColumnIndex]))
             {
                 VBuffer<float> expected = default;
                 VBuffer<float> actual = default;
@@ -507,8 +506,8 @@ namespace Microsoft.ML.Tests
             var leftColumnIndex = left.Schema[leftColumnName].Index;
             var rightColumnIndex = right.Schema[rightColumnName].Index;
 
-            using (var expectedCursor = left.GetRowCursor(columnIndex => leftColumnIndex == columnIndex))
-            using (var actualCursor = right.GetRowCursor(columnIndex => rightColumnIndex == columnIndex))
+            using (var expectedCursor = left.GetRowCursor(left.Schema[leftColumnIndex]))
+            using (var actualCursor = right.GetRowCursor(right.Schema[rightColumnIndex]))
             {
                 float expected = default;
                 VBuffer<float> actual = default;

@@ -11,7 +11,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class SchemaManipulation
+    internal static class SchemaManipulation
     {
         [TlcModule.EntryPoint(Name = "Transforms.ColumnConcatenator", Desc = ColumnConcatenatingTransformer.Summary, UserName = ColumnConcatenatingTransformer.UserName, ShortName = ColumnConcatenatingTransformer.LoadName)]
         public static CommonOutputs.TransformOutput ConcatColumns(IHostEnvironment env, ColumnConcatenatingTransformer.Arguments input)

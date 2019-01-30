@@ -3,9 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -44,6 +47,14 @@ namespace Microsoft.ML.Data
         /// Returns information about the output columns, including their name, type and any metadata information.
         /// </summary>
         Schema.DetachedColumn[] GetOutputColumns();
+
+        /// <summary>
+        /// DO NOT USE IT!
+        /// Purpose of this method is to enable legacy loading and unwrapping of RowToRowTransform.
+        /// It should be removed as soon as we get rid of <see cref="TrainedWrapperEstimatorBase"/>
+        /// Returns parent transfomer which uses this mapper.
+        /// </summary>
+        ITransformer GetTransformer();
     }
 
     public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, Schema schema);
@@ -180,22 +191,28 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
-            return new Cursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
+            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
+
+            return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
 
-            var inputs = Source.GetRowCursorSet(predicateInput, n, rand);
+            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
@@ -383,6 +400,11 @@ namespace Microsoft.ML.Data
                 _disposed = true;
                 base.Dispose(disposing);
             }
+        }
+
+        internal ITransformer GetTransformer()
+        {
+            return _mapper.GetTransformer();
         }
     }
 }

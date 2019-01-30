@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -57,20 +58,21 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var t = score.Type;
-            if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known size vector of R4", t.ToString());
+            var t = score.Type as VectorType;
+            if (t == null || !t.IsKnownSize || t.ItemType != NumberType.Float)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
-            t = schema.Label.Value.Type;
-            if (!t.IsKnownSizeVector || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known size vector of R4 or R8", t.ToString());
+            t = schema.Label.Value.Type as VectorType;
+            if (t == null || !t.IsKnownSize || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of float or double", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Host.Assert(score.Type.VectorSize > 0);
-            return new Aggregator(Host, LossFunction, score.Type.VectorSize, schema.Weight != null, stratName);
+            int vectorSize = score.Type.GetVectorSize();
+            Host.Assert(vectorSize > 0);
+            return new Aggregator(Host, LossFunction, vectorSize, schema.Weight != null, stratName);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -143,7 +145,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -393,8 +395,8 @@ namespace Microsoft.ML.Data
         public const string L2 = "L2-loss";
         public const string Dist = "Euclidean-Distance";
 
-        private readonly ColumnType _labelType;
-        private readonly ColumnType _scoreType;
+        private readonly VectorType _labelType;
+        private readonly VectorType _scoreType;
         private readonly Schema.Metadata _labelMetadata;
         private readonly Schema.Metadata _scoreMetadata;
 
@@ -538,27 +540,27 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(Schema schema, out ColumnType labelType, out ColumnType scoreType,
+        private void CheckInputColumnTypes(Schema schema, out VectorType labelType, out VectorType scoreType,
             out Schema.Metadata labelMetadata, out Schema.Metadata scoreMetadata)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema[(int) LabelIndex].Type;
-            if (!t.IsKnownSizeVector || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
-                throw Host.Except("Label column '{0}' has type '{1}' but must be a known-size vector of R4 or R8", LabelCol, t);
-            labelType = new VectorType((PrimitiveType)t.ItemType, t.VectorSize);
-            var slotNamesType = new VectorType(TextType.Instance, t.VectorSize);
+            var t = schema[LabelIndex].Type as VectorType;
+            if (t == null || !t.IsKnownSize || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of float or double", t.ToString());
+            labelType = new VectorType((PrimitiveType)t.ItemType, t.Size);
+            var slotNamesType = new VectorType(TextType.Instance, t.Size);
             var builder = new MetadataBuilder();
-            builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, LabelIndex, labelType.VectorSize, "True"));
+            builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, LabelIndex, labelType.Size, "True"));
             labelMetadata = builder.GetMetadata();
 
-            t = schema[ScoreIndex].Type;
-            if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be a known length vector of type R4", ScoreCol, t);
-            scoreType = new VectorType((PrimitiveType)t.ItemType, t.VectorSize);
+            t = schema[ScoreIndex].Type as VectorType;
+            if (t == null || !t.IsKnownSize || t.ItemType != NumberType.Float)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", t.ToString());
+            scoreType = new VectorType((PrimitiveType)t.ItemType, t.Size);
             builder = new MetadataBuilder();
-            builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.VectorSize, "Predicted"));
+            builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.Size, "Predicted"));
 
             ValueGetter<ReadOnlyMemory<char>> getter = GetScoreColumnKind;
             builder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance, getter);
@@ -674,7 +676,7 @@ namespace Microsoft.ML.Data
             var colCount = fold.Schema.Count;
             var vBufferGetters = new ValueGetter<VBuffer<double>>[colCount];
 
-            using (var cursor = fold.GetRowCursor(col => true))
+            using (var cursor = fold.GetRowCursorForAllColumns())
             {
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
@@ -701,14 +703,14 @@ namespace Microsoft.ML.Data
                         continue;
                     }
 
-                    var type = fold.Schema[i].Type;
-                    if (type.IsKnownSizeVector && type.ItemType == NumberType.R8)
+                    var type = fold.Schema[i].Type as VectorType;
+                    if (type != null && type.IsKnownSize && type.ItemType == NumberType.R8)
                     {
                         vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(i);
                         if (labelCount == 0)
-                            labelCount = type.VectorSize;
+                            labelCount = type.Size;
                         else
-                            ch.Check(labelCount == type.VectorSize, "All vector metrics should contain the same number of slots");
+                            ch.Check(labelCount == type.Size, "All vector metrics should contain the same number of slots");
                     }
                 }
                 var labelNames = new ReadOnlyMemory<char>[labelCount];
@@ -765,7 +767,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static partial class Evaluate
+    internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.MultiOutputRegressionEvaluator", Desc = "Evaluates a multi output regression scored dataset.")]
         public static CommonOutputs.CommonEvaluateOutput MultiOutputRegression(IHostEnvironment env, MultiOutputRegressionMamlEvaluator.Arguments input)

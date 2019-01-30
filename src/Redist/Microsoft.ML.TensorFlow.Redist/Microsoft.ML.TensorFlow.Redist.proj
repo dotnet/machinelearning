@@ -10,7 +10,7 @@
     <TensorFlowConfig Include="linux" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so;include\tensorflow\c\LICENSE" Runtime="linux-x64" />
     <TensorFlowConfig Include="darwin" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so;include\tensorflow\c\LICENSE" Runtime="osx-x64" />
 
-    <AdditionalDownloadFile Include="https://github.com/tensorflow/tensorflow/blob/master/LICENSE" DownloadFile="$(IntermediateOutputPath)LICENSE" />
+    <AdditionalDownloadFile Include="https://raw.githubusercontent.com/tensorflow/tensorflow/master/LICENSE" DownloadFile="$(IntermediateOutputPath)LICENSE" />
   </ItemGroup>
 
   <Target Name="PrepareArchives">

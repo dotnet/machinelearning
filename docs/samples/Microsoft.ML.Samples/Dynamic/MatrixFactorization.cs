@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
     public class MatrixFactorizationExample
     {
         // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
-        // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses
-        // 0-based indices for rows, _synthesizedMatrixFirstRowIndex can be set to 0. Similarly, for 1-based indices, _synthesizedMatrixFirstRowIndex
-        // could be 1.
+        // Because in ML.NET key type's minimal value is zero, the first row index is always zero in C# data structure (e.g., MatrixColumnIndex=0
+        // and MatrixRowIndex=0 in MatrixElement below specifies the value at the upper-left corner in the training matrix). If user's row index 
+        // starts with 1, their row index 1 would be mapped to the 2nd row in matrix factorization module and their first row may contain no values.
+        // This behavior is also true to column index.
         const int _synthesizedMatrixFirstColumnIndex = 1;
         const int _synthesizedMatrixFirstRowIndex = 1;
         const int _synthesizedMatrixColumnCount = 60;
@@ -18,15 +20,11 @@ namespace Microsoft.ML.Samples.Dynamic
         // A data structure used to encode a single value in matrix
         internal class MatrixElement
         {
-            // Matrix column index starts from _synthesizedMatrixFirstColumnIndex and is at most
-            // _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount - 1.
-            // Contieuous=true means that all values between the min and max indexes are all allowed.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            // Matrix column index is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            // Matrix row index starts from _synthesizedMatrixFirstRowIndex and is at most
-            // _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount - 1.
-            // Contieuous=true means that all values between the min and max indexes are all allowed.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            // Matrix row index is at most _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex.
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             // The value at the column MatrixColumnIndex and row MatrixRowIndex.
             public float Value;
@@ -36,9 +34,9 @@ namespace Microsoft.ML.Samples.Dynamic
         // renamed to Score because Score is the default name of matrix factorization's output.
         internal class MatrixElementForScore
         {
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -57,21 +55,23 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext(seed: 0, conc: 1);
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ComponentCreation.CreateDataView(mlContext, dataMatrix);
+            var dataView = mlContext.Data.ReadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
             // names' in MatrixElement class.
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization( 
-                nameof(MatrixElement.MatrixColumnIndex),
-                nameof(MatrixElement.MatrixRowIndex),
-                nameof(MatrixElement.Value),
-                advancedSettings: s =>
-                {
-                    s.NumIterations = 10;
-                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
-                    s.K = 32;
-                });
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                NumIterations = 10,
+                NumThreads = 1,
+                K = 32,
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
@@ -98,10 +98,10 @@ namespace Microsoft.ML.Samples.Dynamic
                 new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = 0 } };
 
             // Again, convert the test data to a format supported by ML.NET.
-            var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);
+            var testDataView = mlContext.Data.ReadFromEnumerable(testMatrix);
 
             // Feed the test data into the model and then iterate through all predictions.
-            foreach (var pred in model.Transform(testDataView).AsEnumerable<MatrixElementForScore>(mlContext, false))
+            foreach (var pred in mlContext.CreateEnumerable<MatrixElementForScore>(testDataView, false))
                 Console.WriteLine($"Predicted value at row {pred.MatrixRowIndex} and column {pred.MatrixColumnIndex} is {pred.Score}");
         }
     }

@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -193,7 +192,7 @@ namespace Microsoft.ML.Transforms
             for (int c = 0; c < schema.Count; ++c)
             {
                 var type = schema[c].Type;
-                if (!type.IsCachable())
+                if (!type.IsCacheable())
                     Utils.Add(ref columnsToDrop, c);
             }
             if (Utils.Size(columnsToDrop) == 0)
@@ -213,7 +212,7 @@ namespace Microsoft.ML.Transforms
             for (int c = 0; c < schema.Count; ++c)
             {
                 var type = schema[c].Type;
-                if (!type.IsCachable())
+                if (!type.IsCacheable())
                     return false;
             }
             return true;
@@ -248,9 +247,8 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
 
             // REVIEW: This is slightly interesting. Our mechanism for inducing
@@ -279,7 +277,7 @@ namespace Microsoft.ML.Transforms
                 rand = myRandom;
             Random sourceRand = shouldShuffleSource ? RandomUtils.Create(myRandom) : null;
 
-            var input = _subsetInput.GetRowCursor(predicate, sourceRand);
+            var input = _subsetInput.GetRowCursor(columnsNeeded, sourceRand);
             // If rand is null (so we're not doing pool shuffling) or number of pool rows is 1
             // (so any pool shuffling, if attempted, would be trivial anyway), just return the
             // source cursor.
@@ -288,11 +286,10 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _poolRows, input, rand);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
         }
 
         /// <summary>
@@ -378,8 +375,8 @@ namespace Microsoft.ML.Transforms
                     Contracts.AssertValue(getter);
 
                     Type pipeType;
-                    if (type.IsVector)
-                        pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
+                    if (type is VectorType vectorType)
+                        pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                     else
                     {
                         Contracts.Assert(type is PrimitiveType);

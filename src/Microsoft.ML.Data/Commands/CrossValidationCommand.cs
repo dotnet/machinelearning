@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
@@ -298,7 +299,7 @@ namespace Microsoft.ML.Data
                 {
                     // Check if group column key type with known cardinality.
                     var type = schema[index].Type;
-                    if (type.KeyCount > 0)
+                    if (type.GetKeyCount() > 0)
                         stratificationColumn = group;
                 }
             }

@@ -8,13 +8,13 @@
 #@   col=int1:I4:10
 #@   col=text1:TX:11
 #@   col=text2:TX:12-13
-#@   col=TermFloat1:U4[0-9]:14
-#@   col=TermFloat4:U4[0-29]:15-18
-#@   col=TermDouble1:U4[0-9]:19
-#@   col=TermDouble4:U4[0-29]:20-23
-#@   col=TermInt1:U4[0-9]:24
-#@   col=TermText1:U4[0-3]:25
-#@   col=TermText2:U4[0-10]:26-27
+#@   col=TermFloat1:U4[10]:14
+#@   col=TermFloat4:U4[30]:15-18
+#@   col=TermDouble1:U4[10]:19
+#@   col=TermDouble4:U4[30]:20-23
+#@   col=TermInt1:U4[10]:24
+#@   col=TermText1:U4[4]:25
+#@   col=TermText2:U4[11]:26-27
 #@ }
 float1	age	fnlwgt	education-num	capital-gain	double1	age	fnlwgt	education-num	capital-gain	int1	text1	Workclass	education	TermFloat1	age	fnlwgt	education-num	capital-gain	TermDouble1	age	fnlwgt	education-num	capital-gain	TermInt1	TermText1	Workclass	education
 25	25	226802	7	0	25	25	226802	7	0	25	Private	Private	11th	0	0	1	2	3	0	0	1	2	3	0	0	0	1

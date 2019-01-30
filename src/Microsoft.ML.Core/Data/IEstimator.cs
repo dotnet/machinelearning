@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Core.Data
@@ -62,9 +63,9 @@ namespace Microsoft.ML.Core.Data
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(metadata);
-                Contracts.CheckParam(!itemType.IsKey, nameof(itemType), "Item type cannot be a key");
-                Contracts.CheckParam(!itemType.IsVector, nameof(itemType), "Item type cannot be a vector");
-                Contracts.CheckParam(!isKey || KeyType.IsValidDataKind(itemType.RawKind), nameof(itemType), "The item type must be valid for a key");
+                Contracts.CheckParam(!(itemType is KeyType), nameof(itemType), "Item type cannot be a key");
+                Contracts.CheckParam(!(itemType is VectorType), nameof(itemType), "Item type cannot be a vector");
+                Contracts.CheckParam(!isKey || KeyType.IsValidDataType(itemType.RawType), nameof(itemType), "The item type must be valid for a key");
 
                 Name = name;
                 Kind = vecKind;
@@ -74,29 +75,29 @@ namespace Microsoft.ML.Core.Data
             }
 
             /// <summary>
-            /// Returns whether <paramref name="inputColumn"/> is a valid input, if this object represents a
+            /// Returns whether <paramref name="source"/> is a valid input, if this object represents a
             /// requirement.
             ///
             /// Namely, it returns true iff:
             ///  - The <see cref="Name"/>, <see cref="Kind"/>, <see cref="ItemType"/>, <see cref="IsKey"/> fields match.
-            ///  - The columns of <see cref="Metadata"/> of <paramref name="inputColumn"/> is a superset of our <see cref="Metadata"/> columns.
+            ///  - The columns of <see cref="Metadata"/> of <paramref name="source"/> is a superset of our <see cref="Metadata"/> columns.
             ///  - Each such metadata column is itself compatible with the input metadata column.
             /// </summary>
             [BestFriend]
-            internal bool IsCompatibleWith(Column inputColumn)
+            internal bool IsCompatibleWith(Column source)
             {
-                Contracts.Check(inputColumn.IsValid, nameof(inputColumn));
-                if (Name != inputColumn.Name)
+                Contracts.Check(source.IsValid, nameof(source));
+                if (Name != source.Name)
                     return false;
-                if (Kind != inputColumn.Kind)
+                if (Kind != source.Kind)
                     return false;
-                if (!ItemType.Equals(inputColumn.ItemType))
+                if (!ItemType.Equals(source.ItemType))
                     return false;
-                if (IsKey != inputColumn.IsKey)
+                if (IsKey != source.IsKey)
                     return false;
                 foreach (var metaCol in Metadata)
                 {
-                    if (!inputColumn.Metadata.TryFindColumn(metaCol.Name, out var inputMetaCol))
+                    if (!source.Metadata.TryFindColumn(metaCol.Name, out var inputMetaCol))
                         return false;
                     if (!metaCol.IsCompatibleWith(inputMetaCol))
                         return false;
@@ -146,17 +147,28 @@ namespace Microsoft.ML.Core.Data
             out ColumnType itemType,
             out bool isKey)
         {
-            if (type.IsKnownSizeVector)
-                vecKind = Column.VectorKind.Vector;
-            else if (type.IsVector)
-                vecKind = Column.VectorKind.VariableVector;
-            else
-                vecKind = Column.VectorKind.Scalar;
+            if (type is VectorType vectorType)
+            {
+                if (vectorType.IsKnownSize)
+                {
+                    vecKind = Column.VectorKind.Vector;
+                }
+                else
+                {
+                    vecKind = Column.VectorKind.VariableVector;
+                }
 
-            itemType = type.ItemType;
-            if (type.ItemType.IsKey)
-                itemType = PrimitiveType.FromKind(type.ItemType.RawKind);
-            isKey = type.ItemType.IsKey;
+                itemType = vectorType.ItemType;
+            }
+            else
+            {
+                vecKind = Column.VectorKind.Scalar;
+                itemType = type;
+            }
+
+            isKey = itemType is KeyType;
+            if (isKey)
+                itemType = ColumnTypeExtensions.PrimitiveTypeFromType(itemType.RawType);
         }
 
         /// <summary>

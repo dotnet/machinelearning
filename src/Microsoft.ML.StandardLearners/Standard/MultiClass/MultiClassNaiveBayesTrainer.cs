@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -101,7 +102,7 @@ namespace Microsoft.ML.Trainers
             data.CheckFeatureFloatVector(out featureCount);
             int labelCount = 0;
             if (labelCol.Type is KeyType labelKeyType)
-                labelCount = labelKeyType.Count;
+                labelCount = labelKeyType.GetCountAsInt32(Host);
 
             int[] labelHistogram = new int[labelCount];
             int[][] featureHistogram = new int[labelCount][];
@@ -164,7 +165,7 @@ namespace Microsoft.ML.Trainers
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""MultiClassNaiveBayesTrainer""]/*'/>",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/example[@name=""MultiClassNaiveBayesTrainer""]/*'/>" })]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainMultiClassNaiveBayes");

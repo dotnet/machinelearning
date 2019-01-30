@@ -23,9 +23,10 @@ namespace Microsoft.ML.Ensemble
             var featCol = data.Schema.Feature.Value;
 
             var type = featCol.Type;
-            Contracts.Assert(features.Length == type.VectorSize);
+            var typeVectorSize = type.GetVectorSize();
+            Contracts.Assert(features.Length == typeVectorSize);
             int card = Utils.GetCardinality(features);
-            if (card == type.VectorSize)
+            if (card == typeVectorSize)
                 return data;
 
             // REVIEW: This doesn't preserve metadata on the features column. Should it?

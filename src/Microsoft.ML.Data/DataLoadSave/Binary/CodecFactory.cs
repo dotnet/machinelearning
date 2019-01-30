@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data.IO
@@ -17,7 +18,7 @@ namespace Microsoft.ML.Data.IO
         // Or maybe not. That may depend on how much flexibility we really need from this.
         private readonly Dictionary<string, GetCodecFromStreamDelegate> _loadNameToCodecCreator;
         // The non-vector non-generic types can have a very simple codec mapping.
-        private readonly Dictionary<DataKind, IValueCodec> _simpleCodecTypeMap;
+        private readonly Dictionary<Type, IValueCodec> _simpleCodecTypeMap;
         // A shared object pool of memory buffers. Objects returned to the memory stream pool
         // should be cleared and have position set to 0. Use the ReturnMemoryStream helper method.
         private readonly MemoryStreamPool _memPool;
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Data.IO
             _encoding = Encoding.UTF8;
 
             _loadNameToCodecCreator = new Dictionary<string, GetCodecFromStreamDelegate>();
-            _simpleCodecTypeMap = new Dictionary<DataKind, IValueCodec>();
+            _simpleCodecTypeMap = new Dictionary<Type, IValueCodec>();
             // Register the current codecs.
             RegisterSimpleCodec(new UnsafeTypeCodec<sbyte>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<byte>(this));
@@ -68,7 +69,8 @@ namespace Microsoft.ML.Data.IO
             RegisterOtherCodec("DvTimeSpan", new UnsafeTypeCodec<TimeSpan>(this).GetCodec);
 
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
-            RegisterOtherCodec("Key", GetKeyCodec);
+            RegisterOtherCodec("Key2", GetKeyCodec);
+            RegisterOtherCodec("Key", GetKeyCodecOld);
         }
 
         private BinaryWriter OpenBinaryWriter(Stream stream)
@@ -84,9 +86,9 @@ namespace Microsoft.ML.Data.IO
         private void RegisterSimpleCodec<T>(SimpleCodec<T> codec)
         {
             Contracts.Assert(!_loadNameToCodecCreator.ContainsKey(codec.LoadName));
-            Contracts.Assert(!_simpleCodecTypeMap.ContainsKey(codec.Type.RawKind));
+            Contracts.Assert(!_simpleCodecTypeMap.ContainsKey(codec.Type.RawType));
             _loadNameToCodecCreator.Add(codec.LoadName, codec.GetCodec);
-            _simpleCodecTypeMap.Add(codec.Type.RawKind, codec);
+            _simpleCodecTypeMap.Add(codec.Type.RawType, codec);
         }
 
         private void RegisterOtherCodec(string name, GetCodecFromStreamDelegate fn)
@@ -98,11 +100,11 @@ namespace Microsoft.ML.Data.IO
         public bool TryGetCodec(ColumnType type, out IValueCodec codec)
         {
             // Handle the primier types specially.
-            if (type.IsKey)
+            if (type is KeyType)
                 return GetKeyCodec(type, out codec);
-            if (type.IsVector)
-                return GetVBufferCodec(type, out codec);
-            return _simpleCodecTypeMap.TryGetValue(type.RawKind, out codec);
+            if (type is VectorType vectorType)
+                return GetVBufferCodec(vectorType, out codec);
+            return _simpleCodecTypeMap.TryGetValue(type.RawType, out codec);
         }
 
         /// <summary>

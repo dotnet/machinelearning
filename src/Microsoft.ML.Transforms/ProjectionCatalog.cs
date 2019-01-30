@@ -13,8 +13,8 @@ namespace Microsoft.ML
         /// Takes column filled with a vector of floats and maps its to a random low-dimensional feature space.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="inputColumn">Name of the column to be transformed.</param>
-        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="newDim">The number of random Fourier features to create.</param>
         /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
         /// <example>
@@ -25,11 +25,11 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog,
-            string inputColumn,
-            string outputColumn = null,
+            string outputColumnName,
+            string inputColumnName = null,
             int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim,
             bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin)
-            => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, newDim, useSin);
+            => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, newDim, useSin);
 
         /// <summary>
         /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.
@@ -43,8 +43,8 @@ namespace Microsoft.ML
         /// Takes column filled with a vector of floats and computes L-p norm of it.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="normKind">Type of norm to use to normalize each sample.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <example>
@@ -54,9 +54,9 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn =null,
+        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string inputColumnName = null,
             LpNormalizingEstimatorBase.NormalizerKind normKind = LpNormalizingEstimatorBase.Defaults.NormKind, bool subMean = LpNormalizingEstimatorBase.Defaults.LpSubstractMean)
-            => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, normKind, subMean);
+            => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, normKind, subMean);
 
         /// <summary>
         /// Takes columns filled with a vector of floats and computes L-p norm of it.
@@ -70,8 +70,8 @@ namespace Microsoft.ML
         /// Takes column filled with a vector of floats and computes global contrast normalization of it.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
@@ -82,11 +82,11 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn = null,
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, string outputColumnName, string inputColumnName = null,
              bool substractMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean,
              bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
              float scale = LpNormalizingEstimatorBase.Defaults.Scale)
-            => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, substractMean, useStdDev, scale);
+            => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, substractMean, useStdDev, scale);
 
         /// <summary>
         /// Takes columns filled with a vector of floats and computes global contrast normalization of it.

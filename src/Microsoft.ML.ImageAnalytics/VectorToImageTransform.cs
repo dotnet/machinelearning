@@ -5,6 +5,7 @@
 using System;
 using System.Drawing;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -58,7 +59,7 @@ namespace Microsoft.ML.ImageAnalytics
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scale factor")]
             public Single? Scale;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -68,7 +69,7 @@ namespace Microsoft.ML.ImageAnalytics
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (ContainsAlpha != null || ContainsRed != null || ContainsGreen != null || ContainsBlue != null || ImageWidth != null ||
@@ -341,10 +342,11 @@ namespace Microsoft.ML.ImageAnalytics
             bool needScale = ex.Offset != 0 || ex.Scale != 1;
             disposer = null;
             var sourceType = InputSchema[Infos[iinfo].Source].Type;
-            if (sourceType.ItemType == NumberType.R4 || sourceType.ItemType == NumberType.R8)
+            var sourceItemType = sourceType.GetItemType();
+            if (sourceItemType == NumberType.R4 || sourceItemType == NumberType.R8)
                 return GetterFromType<float>(input, iinfo, ex, needScale);
             else
-                if (sourceType.ItemType == NumberType.U1)
+                if (sourceItemType == NumberType.U1)
                 return GetterFromType<byte>(input, iinfo, ex, false);
             else
                 throw Contracts.Except("We only support float or byte arrays");
@@ -377,8 +379,8 @@ namespace Microsoft.ML.ImageAnalytics
                     int cpix = height * width;
                     int position = 0;
 
-                    for (int x = 0; x < width; x++)
-                        for (int y = 0; y < height; ++y)
+                    for (int y = 0; y < height; ++y)
+                        for (int x = 0; x < width; x++)
                         {
                             float red = 0;
                             float green = 0;

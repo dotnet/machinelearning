@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -205,22 +206,28 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// Create a new instance of <see cref="SsaSpikeEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the output column. Column is a vector of type double and size 3.
-        /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="trainingWindowSize">The number of points from the beginning of the sequence used for training.</param>
         /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
-        public SsaSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
-            int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
+        public SsaSpikeEstimator(IHostEnvironment env,
+            string outputColumnName,
+            int confidence,
+            int pvalueHistoryLength,
+            int trainingWindowSize,
+            int seasonalityWindowSize,
+            string inputColumnName = null,
+            AnomalySide side = AnomalySide.TwoSided,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
             : this(env, new SsaSpikeDetector.Arguments
                 {
-                    Name = outputColumn,
-                    Source = inputColumn,
+                    Source = inputColumnName ?? outputColumnName,
+                    Name = outputColumnName,
                     Confidence = confidence,
                     PvalueHistoryLength = pvalueHistoryLength,
                     TrainingWindowSize = trainingWindowSize,
@@ -255,7 +262,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             if (!inputSchema.TryFindColumn(_args.Source, out var col))
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source);
             if (col.ItemType != NumberType.R4)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source, NumberType.R4.ToString(), col.GetTypeString());
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)

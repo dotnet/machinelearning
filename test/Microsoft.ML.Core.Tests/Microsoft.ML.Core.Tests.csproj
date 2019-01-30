@@ -23,11 +23,11 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
     <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
+    <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />

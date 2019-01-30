@@ -8,7 +8,7 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.TensorFlow.StaticPipe
+namespace Microsoft.ML.Transforms.StaticPipe
 {
     public static class TensorFlowStaticExtensions
     {
@@ -59,13 +59,9 @@ namespace Microsoft.ML.TensorFlow.StaticPipe
 
                 var outCol = (OutColumn)toOutput[0];
                 if (_modelFile == null)
-                {
-                    return new TensorFlowEstimator(env, _tensorFlowModel, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
-                }
+                    return new TensorFlowEstimator(env, new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] }, _tensorFlowModel);
                 else
-                {
-                    return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
-                }
+                    return new TensorFlowEstimator(env, new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] }, _modelFile);
             }
         }
 

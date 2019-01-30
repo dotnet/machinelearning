@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -66,7 +67,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         private readonly Single[] _weights;
 
         public MovingAverageTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(args.WindowSize + args.Lag - 1, args.WindowSize + args.Lag - 1, args.Source, args.Name, LoaderSignature, env, input)
+            : base(args.WindowSize + args.Lag - 1, args.WindowSize + args.Lag - 1, args.Name, args.Source, LoaderSignature, env, input)
         {
             Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), "Should be at least 1.");
             Host.CheckUserArg(args.Lag >= 0, nameof(args.Lag), "Should be positive.");

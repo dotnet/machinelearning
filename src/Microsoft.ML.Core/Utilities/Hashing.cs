@@ -89,6 +89,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// Make certain to also use <see cref="MixHash"/> on the final hashed value, if you
         /// depend upon having distinct bits.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MurmurRound(uint hash, uint chunk)
         {
             chunk *= 0xCC9E2D51;
@@ -282,6 +283,7 @@ namespace Microsoft.ML.Internal.Utilities
             return hash;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint Rotate(uint x, int r)
         {
             return (x << r) | (x >> (32 - r));

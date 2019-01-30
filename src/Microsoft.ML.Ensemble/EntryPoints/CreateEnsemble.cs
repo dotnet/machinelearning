@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// A component to combine given models into an ensemble model.
     /// </summary>
-    public static class EnsembleCreator
+    internal static class EnsembleCreator
     {
         /// <summary>
         /// These are the combiner options for binary and multi class classifiers.
@@ -355,7 +356,7 @@ namespace Microsoft.ML.EntryPoints
         /// <see ref="dataZipEntryNames"/> and <see ref="dataSerialized"/>.
         /// This method throws if for any of the entries the name/byte sequence are not identical.
         /// </summary>
-        private static void CheckSamePipeline(IHostEnvironment env, IChannel ch,
+        internal static void CheckSamePipeline(IHostEnvironment env, IChannel ch,
             RoleMappedData dataToCompare, byte[][] dataSerialized, string[] dataZipEntryNames)
         {
             Contracts.CheckValue(env, nameof(env));

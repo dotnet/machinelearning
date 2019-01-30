@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
@@ -125,10 +126,10 @@ namespace Microsoft.ML.EntryPoints
             if (trainRms.Label != null)
             {
                 labelType = trainRms.Label.Value.Type;
-                if (labelType is KeyType && trainRms.Label.Value.HasKeyValues(labelType.KeyCount))
+                if (trainRms.Label.Value.HasKeyValues(labelType))
                 {
                     VBuffer<ReadOnlyMemory<char>> keyValues = default;
-                    trainRms.Label.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
+                    trainRms.Label.Value.GetKeyValues(ref keyValues);
                     return keyValues.DenseValues().Select(v => v.ToString()).ToArray();
                 }
             }

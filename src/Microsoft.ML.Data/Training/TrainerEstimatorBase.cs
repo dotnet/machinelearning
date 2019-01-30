@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
@@ -94,16 +95,18 @@ namespace Microsoft.ML.Training
         {
             // Verify that all required input columns are present, and are of the same type.
             if (!inputSchema.TryFindColumn(FeatureColumn.Name, out var featureCol))
-                throw Host.Except($"Feature column '{FeatureColumn.Name}' is not found");
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn.Name);
             if (!FeatureColumn.IsCompatibleWith(featureCol))
-                throw Host.Except($"Feature column '{FeatureColumn.Name}' is not compatible");
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn.Name,
+                    FeatureColumn.GetTypeString(), featureCol.GetTypeString());
 
             if (WeightColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(WeightColumn.Name, out var weightCol))
-                    throw Host.Except($"Weight column '{WeightColumn.Name}' is not found");
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "weight", WeightColumn.Name);
                 if (!WeightColumn.IsCompatibleWith(weightCol))
-                    throw Host.Except($"Weight column '{WeightColumn.Name}' is not compatible");
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "weight", WeightColumn.Name,
+                        WeightColumn.GetTypeString(), weightCol.GetTypeString());
             }
 
             // Special treatment for label column: we allow different types of labels, so the trainers
@@ -111,7 +114,7 @@ namespace Microsoft.ML.Training
             if (LabelColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
-                    throw Host.Except($"Label column '{LabelColumn.Name}' is not found");
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", LabelColumn.Name);
                 CheckLabelCompatible(labelCol);
             }
         }
@@ -122,7 +125,8 @@ namespace Microsoft.ML.Training
             Host.Assert(LabelColumn.IsValid);
 
             if (!LabelColumn.IsCompatibleWith(labelCol))
-                throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
+                throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", WeightColumn.Name,
+                    LabelColumn.GetTypeString(), labelCol.GetTypeString());
         }
 
         protected TTransformer TrainTransformer(IDataView trainSet,

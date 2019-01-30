@@ -1,11 +1,11 @@
 ---- BoundLoader ----
 2 columns:
   CatU8: Vec<Key<U8, 0-100>, 9>
-  CatU2: Vec<Key<U2, 0-*>, 3>
+  CatU2: Vec<Key<U2, 0-65534>, 3>
 ---- RowToRowMapperTransform ----
 4 columns:
   CatU8: Vec<Key<U8, 0-100>, 9>
-  CatU2: Vec<Key<U2, 0-*>, 3>
+  CatU2: Vec<Key<U2, 0-65534>, 3>
   NgramHash: Vec<R4, 32>
   NgramHash2: Vec<R4, 32>
 ---- SelectColumnsDataTransform ----

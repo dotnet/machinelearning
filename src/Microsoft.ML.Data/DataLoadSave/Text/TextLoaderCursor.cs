@@ -7,6 +7,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -45,7 +47,7 @@ namespace Microsoft.ML.Data
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 var bindings = parent._bindings;
 
@@ -83,7 +85,7 @@ namespace Microsoft.ML.Data
             private Cursor(TextLoader parent, ParseStats stats, bool[] active, LineReader reader, int srcNeeded, int cthd)
                 : base(parent._host)
             {
-                Ch.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Ch.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
                 Ch.AssertValue(reader);
                 Ch.AssertValue(stats);
                 Ch.Assert(srcNeeded >= 0);
@@ -137,7 +139,7 @@ namespace Microsoft.ML.Data
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(files);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 int srcNeeded;
                 int cthd;
@@ -154,7 +156,7 @@ namespace Microsoft.ML.Data
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(files);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 int srcNeeded;
                 int cthd;
@@ -198,7 +200,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)_total, 0);
                     };
             }
@@ -267,7 +269,7 @@ namespace Microsoft.ML.Data
                 return sb.ToString();
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.OutputSchema;
 
             protected override void Dispose(bool disposing)
             {
@@ -285,8 +287,6 @@ namespace Microsoft.ML.Data
 
             protected override bool MoveNextCore()
             {
-                Contracts.Assert(State != CursorState.Done);
-
                 if (_ator.MoveNext())
                 {
                     _rows.Index = _ator.Current;
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Data
                 // The line reader can be referenced by multiple workers. This is the reference count.
                 private int _cref;
                 private BlockingCollection<LineBatch> _queue;
-                private Thread _thdRead;
+                private Task _thdRead;
                 private volatile bool _abort;
 
                 public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, long limit, int cref)
@@ -416,8 +416,7 @@ namespace Microsoft.ML.Data
                     _cref = cref;
 
                     _queue = new BlockingCollection<LineBatch>(bufSize);
-                    _thdRead = Utils.CreateBackgroundThread(ThreadProc);
-                    _thdRead.Start();
+                    _thdRead = Utils.RunOnBackgroundThread(ThreadProc);
                 }
 
                 public void Release()
@@ -431,7 +430,7 @@ namespace Microsoft.ML.Data
                     if (_thdRead != null)
                     {
                         _abort = true;
-                        _thdRead.Join();
+                        _thdRead.Wait();
                         _thdRead = null;
                     }
 
@@ -444,27 +443,14 @@ namespace Microsoft.ML.Data
 
                 public LineBatch GetBatch()
                 {
-                    Exception inner = null;
-                    try
-                    {
-                        var batch = _queue.Take();
-                        if (batch.Exception == null)
-                            return batch;
-                        inner = batch.Exception;
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // This code detects when there is no more content by catching the exception thrown by _queue.Take() at the end.
-                        // If _queue.IsAddingCompleted is true, we know that this exception was the result of that specifically.
-                        // This should probably be re-engineered to not rely on exception blocks.
-                        // REVIEW: Come up with a less strange scheme for the interthread communication here, that does not
-                        // rely on exceptions and timeouts throughout the pipeline.
-                        if (_queue.IsAddingCompleted)
-                            return default(LineBatch);
-                        throw;
-                    }
-                    Contracts.AssertValue(inner);
-                    throw Contracts.ExceptDecode(inner, "Stream reading encountered exception");
+                    if (!_queue.TryTake(out LineBatch batch, millisecondsTimeout: -1))
+                        return default;
+
+                    if (batch.Exception == null)
+                        return batch;
+
+                    Contracts.AssertValue(batch.Exception);
+                    throw Contracts.ExceptDecode(batch.Exception, "Stream reading encountered exception");
                 }
 
                 private void ThreadProc()
@@ -654,7 +640,7 @@ namespace Microsoft.ML.Data
                 // A small capacity blocking collection that the main cursor thread consumes.
                 private readonly BlockingCollection<RowBatch> _queue;
 
-                private readonly Thread[] _threads;
+                private readonly Task[] _threads;
 
                 // Number of threads still running.
                 private int _threadsRunning;
@@ -689,13 +675,12 @@ namespace Microsoft.ML.Data
                     // a range that is being served up by the cursor.
                     _queue = new BlockingCollection<RowBatch>(2);
 
-                    _threads = new Thread[cthd];
+                    _threads = new Task[cthd];
                     _threadsRunning = cthd;
 
                     for (int tid = 0; tid < _threads.Length; tid++)
                     {
-                        var thd = _threads[tid] = Utils.CreateBackgroundThread(ThreadProc);
-                        thd.Start(tid);
+                        _threads[tid] = Utils.RunOnBackgroundThread(ThreadProc, tid);
                     }
                 }
 
@@ -703,8 +688,7 @@ namespace Microsoft.ML.Data
                 {
                     // Signal all the threads to shut down and wait for them.
                     Quit();
-                    for (int i = 0; i < _threads.Length; i++)
-                        _threads[i].Join();
+                    Task.WaitAll(_threads);
                 }
 
                 private void Quit()
