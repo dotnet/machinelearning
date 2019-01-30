@@ -3,14 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.ML.RunTests;
+using Microsoft.ML.Data;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests
+namespace Microsoft.ML.RunTests
 {
     public class PartitionedFileLoaderTests : TestDataPipeBase
     {
+        protected override void Initialize()
+        {
+            base.Initialize();
+            Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
+        }
+
         public PartitionedFileLoaderTests(ITestOutputHelper output)
             : base(output)
         {
