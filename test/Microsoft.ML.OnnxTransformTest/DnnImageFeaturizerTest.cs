@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests
         {
             var samplevector = new float[inputSize];
             for (int i = 0; i < inputSize; i++)
-                samplevector[i] = (i / ((float) inputSize));
+                samplevector[i] = (i / ((float)inputSize));
             return samplevector;
         }
 
@@ -57,14 +57,15 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [OnnxFact]
+        // Onnx is only supported on x64 Windows
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         void TestDnnImageFeaturizer()
         {
             // Onnxruntime supports Ubuntu 16.04, but not CentOS
             // Do not execute on CentOS image
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
-            
+
 
             var samplevector = GetSampleArrayData();
 
@@ -96,11 +97,10 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [OnnxFact]
+        // Onnx is only supported on x64 Windows
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void OnnxStatic()
         {
-            // Onnxruntime supports Ubuntu 16.04, but not CentOS
-            // Do not execute on CentOS image
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);
-          
+
             var pipe = data.MakeNewEstimator()
                 .Append(row => (
                     row.name,
@@ -140,9 +140,14 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [OnnxFact]
+        // Onnx is only supported on x64 Windows
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestOldSavingAndLoading()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
+
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.ReadFromEnumerable(
@@ -155,7 +160,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = "data_0";
             var outputNames = "output_1";
-            var est = new DnnImageFeaturizerEstimator(Env, outputNames, m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn ,m.InputColumn), inputNames);
+            var est = new DnnImageFeaturizerEstimator(Env, outputNames, m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), inputNames);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
