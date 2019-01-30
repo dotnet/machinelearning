@@ -55,7 +55,7 @@ namespace Microsoft.ML.Data
     {
     }
 
-    public delegate void SignatureDataSaver();
+    internal delegate void SignatureDataSaver();
 
     [BestFriend]
     internal interface IDataSaver
