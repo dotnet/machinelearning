@@ -148,7 +148,6 @@ namespace Microsoft.ML.Tests
                 return;
 
             var modelFile = "squeezenet/00000001/model.onnx";
-
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.ReadFromEnumerable(
