@@ -1,4 +1,4 @@
-# ML.NET Cookbook
+# ML.NET Cookbook (Using Static API examples)
 
 This document is intended to provide essential samples for common usage patterns of ML.NET, using examples from the experimental "Static API".
 The static api operates on the schema of the data, and strongly types the data columns.
