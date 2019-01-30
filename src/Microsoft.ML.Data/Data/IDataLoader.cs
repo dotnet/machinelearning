@@ -55,6 +55,7 @@ namespace Microsoft.ML.Data
     {
     }
 
+    [BestFriend]
     internal delegate void SignatureDataSaver();
 
     [BestFriend]
@@ -78,14 +79,12 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Signature for creating an <see cref="IDataTransform"/>.
     /// </summary>
-    [BestFriend]
-    internal delegate void SignatureDataTransform(IDataView input);
+    public delegate void SignatureDataTransform(IDataView input);
 
     /// <summary>
     /// Signature for loading an <see cref="IDataTransform"/>.
     /// </summary>
-    [BestFriend]
-    internal delegate void SignatureLoadDataTransform(ModelLoadContext ctx, IDataView input);
+    public delegate void SignatureLoadDataTransform(ModelLoadContext ctx, IDataView input);
 
     /// <summary>
     /// Interface for a data transform. An <see cref="IDataTransform"/> can save its model information
