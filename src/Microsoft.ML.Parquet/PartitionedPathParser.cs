@@ -280,7 +280,7 @@ namespace Microsoft.ML.Data
                 ctx.SaveString(sb.ToString());
             };
         }
-        IEnumerable<PartitionedFileLoader.Column> IPartitionedPathParser.ParseColumns(string path)
+        public IEnumerable<PartitionedFileLoader.Column> ParseColumns(string path)
         {
             if (!TryParseNames(path, out List<string> names))
             {
