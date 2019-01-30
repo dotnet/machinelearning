@@ -73,10 +73,10 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
             public string[] OutputColumns;
 
-            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 10.0.", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.AtMostOnce, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 9.1.", SortOrder = 3)]
             public int? GpuDeviceId = null;
 
-            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.AtMostOnce, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
             public bool FallbackToCpu = false;
         }
 
@@ -87,8 +87,6 @@ namespace Microsoft.ML.Transforms
         internal const string UserName = "ONNX Scoring Transform";
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
-        // A valid device ID, but run on CPU
-        public const int NullGpuID = int.MinValue;
 
         public readonly string[] Inputs;
         public readonly string[] Outputs;

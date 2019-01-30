@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms
             _modelFile = modelFile;
 
             // Reserve Int32.MinValue for test purpose.
-            if (gpuDeviceId != null && gpuDeviceId.Value != OnnxTransformer.NullGpuID)
+            if (gpuDeviceId != null)
             {
                 try
                 {
