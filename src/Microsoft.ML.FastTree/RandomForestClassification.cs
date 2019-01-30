@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.CommandLine;
@@ -247,7 +248,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public static partial class FastForest
+    internal static partial class FastForest
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastForestBinaryClassifier",
             Desc = FastForestClassification.Summary,

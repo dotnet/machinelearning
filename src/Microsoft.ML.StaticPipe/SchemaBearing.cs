@@ -26,10 +26,11 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         internal StaticPipeUtils.IndexHelper<TShape> Indexer
         {
-            get {
-                if (_indexer == null)
-                    Interlocked.CompareExchange(ref _indexer, new StaticPipeUtils.IndexHelper<TShape>(this), null);
-                return _indexer;
+            get
+            {
+                return _indexer ??
+                    Interlocked.CompareExchange(ref _indexer, new StaticPipeUtils.IndexHelper<TShape>(this), null) ??
+                    _indexer;
             }
         }
 

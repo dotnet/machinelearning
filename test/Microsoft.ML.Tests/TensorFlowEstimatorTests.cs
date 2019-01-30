@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -77,11 +78,11 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[4], B = new float[4] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { a = new string[4], b = new string[4] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
-            var pipe = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
+            var pipe = new TensorFlowEstimator(Env, new[] { "c" }, new[] { "a", "b" }, modelFile);
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
-            var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable( stringData);
+            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable( sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -100,7 +101,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Tests
                         b = new[] { 10.0f, 8.0f, 6.0f, 6.0f }
                     }
                 }));
-            var est = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
+            var est = new TensorFlowEstimator(Env, new[] { "c" }, new[] { "a", "b" }, modelFile);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);

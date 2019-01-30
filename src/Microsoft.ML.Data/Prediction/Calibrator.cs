@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.CommandLine;
@@ -1069,7 +1070,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new NaiveCalibrator(env, ctx);
         }
 
-        public void SaveAsBinary(BinaryWriter writer)
+        void ICanSaveInBinaryFormat.SaveAsBinary(BinaryWriter writer)
         {
             ModelSaveContext.Save(writer, SaveCore);
         }
@@ -1653,9 +1654,9 @@ namespace Microsoft.ML.Internal.Calibration
             _host.AssertNonEmpty(mins);
             _host.AssertNonEmpty(maxes);
             _host.AssertNonEmpty(values);
-            _host.Assert(Utils.IsSorted(mins));
-            _host.Assert(Utils.IsSorted(maxes));
-            _host.Assert(Utils.IsSorted(values));
+            _host.Assert(Utils.IsMonotonicallyIncreasing(mins));
+            _host.Assert(Utils.IsMonotonicallyIncreasing(maxes));
+            _host.Assert(Utils.IsMonotonicallyIncreasing(values));
             _host.Assert(values.Length == 0 || (0 <= values[0] && values[values.Length - 1] <= 1));
             _host.Assert(mins.Zip(maxes, (min, max) => min <= max).All(x => x));
 
@@ -1716,7 +1717,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new PavCalibrator(env, ctx);
         }
 
-        public void SaveAsBinary(BinaryWriter writer)
+        void ICanSaveInBinaryFormat.SaveAsBinary(BinaryWriter writer)
         {
             ModelSaveContext.Save(writer, SaveCore);
         }

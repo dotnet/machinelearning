@@ -51,7 +51,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 data.Add(new SsaSpikeData(i));
 
             // Convert data to IDataView.
-            var dataView = ml.CreateStreamingDataView(data);
+            var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
             var inputColumnName = nameof(SsaSpikeData.Value);
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Samples.Dynamic
                     data.Add(new SsaSpikeData(j));
 
             // Convert data to IDataView.
-            var dataView = ml.CreateStreamingDataView(data);
+            var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
             var inputColumnName = nameof(SsaSpikeData.Value);

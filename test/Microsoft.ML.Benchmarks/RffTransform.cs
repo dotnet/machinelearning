@@ -35,15 +35,15 @@ namespace Microsoft.ML.Benchmarks
                 Column = new[]
                 {
                     new TextLoader.Column("Label", DataKind.R4, 64),
-                    new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range() { Min = 0, Max = 63 }})
+                    new TextLoader.Column("Features", DataKind.R4, new[] {new TextLoader.Range() {Min = 0, Max = 63}})
                 },
                 HasHeader = false,
-                Separator = ","
+                Separators = new[] {','}
             });
 
             var data = reader.Read(_dataPath_Digits);
 
-            var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("Features", "FeaturesRFF")
+            var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("FeaturesRFF", "Features")
             .AppendCacheCheckpoint(mlContext)
             .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
             .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))

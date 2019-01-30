@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Utilities;
 
@@ -173,12 +172,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_scoreColumnSetIdType == null)
-                {
-                    var type = new KeyType(DataKind.U4, 0, 0);
-                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, type, null);
-                }
-                return _scoreColumnSetIdType;
+                return _scoreColumnSetIdType ??
+                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, new KeyType(typeof(uint), int.MaxValue), null) ??
+                    _scoreColumnSetIdType;
             }
         }
 
@@ -326,6 +322,9 @@ namespace Microsoft.ML.Data
         public static void GetSlotNames(this Schema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
             => column.Metadata.GetValue(Kinds.SlotNames, ref slotNames);
 
+        public static void GetKeyValues<TValue>(this Schema.Column column, ref VBuffer<TValue> keyValues)
+            => column.Metadata.GetValue(Kinds.KeyValues, ref keyValues);
+
         [BestFriend]
         internal static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<ReadOnlyMemory<char>> slotNames)
         {
@@ -340,8 +339,10 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static bool HasKeyValues(this Schema.Column column, int keyCount)
+        internal static bool HasKeyValues(this Schema.Column column, ColumnType type)
         {
+            // False if type is not KeyType because GetKeyCount() returns 0.
+            ulong keyCount = type.GetKeyCount();
             if (keyCount == 0)
                 return false;
 
@@ -349,7 +350,7 @@ namespace Microsoft.ML.Data
             return
                 metaColumn != null
                 && metaColumn.Value.Type is VectorType vectorType
-                && vectorType.Size == keyCount
+                && keyCount == (ulong)vectorType.Size
                 && vectorType.ItemType is TextType;
         }
 

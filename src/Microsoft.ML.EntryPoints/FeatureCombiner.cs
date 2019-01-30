@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -17,7 +18,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class FeatureCombiner
+    internal static class FeatureCombiner
     {
         public sealed class FeatureCombinerInput : TransformInputBase
         {
@@ -94,19 +95,19 @@ namespace Microsoft.ML.EntryPoints
                 // when the user has slightly different key values between the training and testing set.
                 // The solution is to apply KeyToValue, then Term using the terms from the key metadata of the original key column
                 // and finally the KeyToVector transform.
-                viewTrain = new KeyToValueMappingTransformer(host, ktv.Select(x => (x.Input, x.Output)).ToArray())
+                viewTrain = new KeyToValueMappingTransformer(host, ktv.Select(x => (x.Name, x.InputColumnName)).ToArray())
                     .Transform(viewTrain);
 
                 viewTrain = ValueToKeyMappingTransformer.Create(host,
                     new ValueToKeyMappingTransformer.Arguments()
                     {
                         Column = ktv
-                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
+                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Name, Source = c.Name, Terms = GetTerms(viewTrain, c.InputColumnName) })
                             .ToArray(),
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Output, c.Output)).ToArray()).Transform(viewTrain);
+                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Name, c.Name)).ToArray()).Transform(viewTrain);
             }
             return viewTrain;
         }
@@ -123,7 +124,7 @@ namespace Microsoft.ML.EntryPoints
             if (type == null || !type.IsKnownSize || !(type.ItemType is TextType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
-            col.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
+            col.Value.GetKeyValues(ref metadata);
             if (!metadata.IsDense)
                 return null;
             var sb = new StringBuilder();
@@ -144,7 +145,7 @@ namespace Microsoft.ML.EntryPoints
             Contracts.AssertValue(viewTrain);
             Contracts.AssertValue(env);
             if (Utils.Size(cvt) > 0)
-                viewTrain = new TypeConvertingTransformer(env,cvt.ToArray()).Transform(viewTrain);
+                viewTrain = new TypeConvertingTransformer(env, cvt.ToArray()).Transform(viewTrain);
             return viewTrain;
         }
 
@@ -173,7 +174,7 @@ namespace Microsoft.ML.EntryPoints
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(col.Name, colName));
+                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(colName, col.Name));
                             continue;
                         }
                     }
@@ -184,7 +185,7 @@ namespace Microsoft.ML.EntryPoints
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
                         concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(col.Name, colName, DataKind.R4));
+                        Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(colName, DataKind.R4, col.Name));
                         continue;
                     }
                 }
@@ -233,7 +234,7 @@ namespace Microsoft.ML.EntryPoints
 
             var labelCol = input.Data.Schema.GetColumnOrNull(input.LabelColumn);
             if (!labelCol.HasValue)
-                throw host.ExceptSchemaMismatch(nameof(input), "Label", input.LabelColumn);
+                throw host.ExceptSchemaMismatch(nameof(input), "predicted label", input.LabelColumn);
 
             var labelType = labelCol.Value.Type;
             if (labelType is KeyType || labelType is BoolType)
@@ -269,7 +270,7 @@ namespace Microsoft.ML.EntryPoints
 
             var predictedLabelCol = input.Data.Schema.GetColumnOrNull(input.PredictedLabelColumn);
             if (!predictedLabelCol.HasValue)
-                throw host.ExceptSchemaMismatch(nameof(input), "PredictedLabel",input.PredictedLabelColumn);
+                throw host.ExceptSchemaMismatch(nameof(input), "label", input.PredictedLabelColumn);
             var predictedLabelType = predictedLabelCol.Value.Type;
             if (predictedLabelType is NumberType || predictedLabelType is BoolType)
             {
@@ -311,7 +312,7 @@ namespace Microsoft.ML.EntryPoints
                     }
                 }
             };
-            var xf = new TypeConvertingTransformer(host, new TypeConvertingTransformer.ColumnInfo(input.LabelColumn, input.LabelColumn, DataKind.R4)).Transform(input.Data);
+            var xf = new TypeConvertingTransformer(host, new TypeConvertingTransformer.ColumnInfo(input.LabelColumn, DataKind.R4, input.LabelColumn)).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }

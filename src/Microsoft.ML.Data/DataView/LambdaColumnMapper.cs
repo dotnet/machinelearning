@@ -4,6 +4,7 @@
 
 using System;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Model;
 
@@ -122,11 +123,9 @@ namespace Microsoft.ML.Data
                     {
                         if (keyValueGetter != null)
                         {
-                            int keyCount = _typeDst.GetItemType().GetKeyCount();
-                            Host.Assert(keyCount > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, keyCount), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {

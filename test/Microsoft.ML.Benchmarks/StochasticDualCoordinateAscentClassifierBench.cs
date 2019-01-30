@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Learners;
@@ -100,7 +101,7 @@ namespace Microsoft.ML.Benchmarks
                 AllowSparse = false
             };
             var loader = _env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
-            var text = new TextFeaturizingEstimator(_env, "SentimentText", "WordEmbeddings", args =>
+            var text = new TextFeaturizingEstimator(_env, "WordEmbeddings", "SentimentText", args =>
             {
                 args.OutputTokens = true;
                 args.KeepPunctuations = false;
@@ -109,7 +110,7 @@ namespace Microsoft.ML.Benchmarks
                 args.UseCharExtractor = false;
                 args.UseWordExtractor = false;
             }).Fit(loader).Transform(loader);
-            var trans = new WordEmbeddingsExtractingEstimator(_env, "WordEmbeddings_TransformedText", "Features",
+            var trans = new WordEmbeddingsExtractingEstimator(_env, "Features", "WordEmbeddings_TransformedText", 
                 WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Fit(text).Transform(text);
             // Train
             var trainer = _env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
@@ -157,13 +158,13 @@ namespace Microsoft.ML.Benchmarks
         public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
         [Benchmark]
-        public void PredictIrisBatchOf1() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[0]));
+        public void PredictIrisBatchOf1() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[0]));
 
         [Benchmark]
-        public void PredictIrisBatchOf2() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[1]));
+        public void PredictIrisBatchOf2() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[1]));
 
         [Benchmark]
-        public void PredictIrisBatchOf5() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[2]));
+        public void PredictIrisBatchOf5() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[2]));
     }
 
     public class IrisData

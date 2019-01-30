@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -174,11 +175,11 @@ namespace Microsoft.ML.Transforms
             }
 
             var modelInfo = Model.ModelInfo;
-            Inputs = (args.InputColumns.Count() == 0 ) ? Model.InputNames.ToArray() : args.InputColumns;
-            Outputs = (args.OutputColumns.Count() == 0 ) ? Model.OutputNames.ToArray() : args.OutputColumns;
+            Inputs = (args.InputColumns.Count() == 0) ? Model.InputNames.ToArray() : args.InputColumns;
+            Outputs = (args.OutputColumns.Count() == 0) ? Model.OutputNames.ToArray() : args.OutputColumns;
             OutputTypes = new ColumnType[Outputs.Length];
             var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
-            for (int i=0; i < Outputs.Length; i++)
+            for (int i = 0; i < Outputs.Length; i++)
             {
                 var idx = Model.OutputNames.IndexOf(Outputs[i]);
                 if (idx < 0)
@@ -218,17 +219,17 @@ namespace Microsoft.ML.Transforms
         /// the model specification. Only 1 output column is generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumn">The name of the input data column. Must match model input name.</param>
-        /// <param name="outputColumn">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        public OnnxTransformer(IHostEnvironment env, string outputColumnName, string modelFile, string inputColumnName = null, int? gpuDeviceId = null, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
                 ModelFile = modelFile,
-                InputColumns = new[] { inputColumn },
-                OutputColumns = new[] { outputColumn },
+                InputColumns = new[] { inputColumnName ?? outputColumnName },
+                OutputColumns = new[] { outputColumnName },
                 GpuDeviceId = gpuDeviceId,
                 FallbackToCpu = fallbackToCpu
             })
@@ -240,17 +241,17 @@ namespace Microsoft.ML.Transforms
         /// all model input names. Only the output columns specified will be generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
+        /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="inputColumnNames">The name of the input data columns. Must match model's input names.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        public OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
                 ModelFile = modelFile,
-                InputColumns = inputColumns,
-                OutputColumns = outputColumns,
+                InputColumns = inputColumnNames,
+                OutputColumns = outputColumnNames,
                 GpuDeviceId = gpuDeviceId,
                 FallbackToCpu = fallbackToCpu
             })
@@ -299,7 +300,7 @@ namespace Microsoft.ML.Transforms
             private readonly System.Type[] _inputOnnxTypes;
 
             public Mapper(OnnxTransformer parent, Schema inputSchema) :
-                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
 
                 _parent = parent;
@@ -309,7 +310,7 @@ namespace Microsoft.ML.Transforms
                 _inputOnnxTypes = new System.Type[_parent.Inputs.Length];
 
                 var model = _parent.Model;
-                for (int i = 0; i <  _parent.Inputs.Length; i++)
+                for (int i = 0; i < _parent.Inputs.Length; i++)
                 {
                     var idx = model.InputNames.IndexOf(_parent.Inputs[i]);
                     if (idx < 0)
@@ -341,7 +342,7 @@ namespace Microsoft.ML.Transforms
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
                     // Compute the total size of the known dimensions of the shape.
-                    int valCount = inputShape.Select(x => (int)x).Where(x => x > 0).Aggregate((x, y) => x * y);
+                    int valCount = inputShape.Where(x => x > 0).Aggregate((x, y) => x * y);
                     // The column length should be divisible by this, so that the other dimensions can be integral.
                     int typeValueCount = type.GetValueCount();
                     if (typeValueCount % valCount != 0)
@@ -427,7 +428,7 @@ namespace Microsoft.ML.Transforms
                     var denseTensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
                     if (denseTensor == null)
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
-                    var editor = VBufferEditor.Create(ref dst, (int) denseTensor.Length);
+                    var editor = VBufferEditor.Create(ref dst, (int)denseTensor.Length);
                     denseTensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };
@@ -522,7 +523,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         public OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new OnnxTransformer(env, modelFile, new string[] { }, new string[] { }, gpuDeviceId, fallbackToCpu))
+            : this(env, new OnnxTransformer(env, new string[] { }, new string[] { }, modelFile, gpuDeviceId, fallbackToCpu))
         {
         }
 
@@ -531,13 +532,13 @@ namespace Microsoft.ML.Transforms
         /// all model input names. Only the output columns specified will be generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
+        /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="inputColumnNames">The name of the input data columns. Must match model's input names.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int? gpuDeviceId = null, bool fallbackToCpu = false)
-           : this(env, new OnnxTransformer(env, modelFile, inputColumns, outputColumns, gpuDeviceId, fallbackToCpu))
+        public OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile,  int? gpuDeviceId = null, bool fallbackToCpu = false)
+           : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu))
         {
         }
 
@@ -558,7 +559,7 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
                 var idx = Transformer.Model.InputNames.IndexOf(input);

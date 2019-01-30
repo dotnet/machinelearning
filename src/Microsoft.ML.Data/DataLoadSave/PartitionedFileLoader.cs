@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -90,7 +91,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Required, HelpText = "Index of the directory representing this column.")]
             public int Source;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Data
                 return null;
             }
 
-            public static bool TryParse(string str, out Column column)
+            private static bool TryParse(string str, out Column column)
             {
                 column = null;
 
@@ -117,7 +118,7 @@ namespace Microsoft.ML.Data
                 }
 
                 DataKind? kind = null;
-                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out KeyRange range))
+                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out var keyCount))
                 {
                     kind = parsedKind;
                 }
@@ -137,7 +138,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
 
@@ -316,7 +317,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(subLoader);
 
             var builder = new SchemaBuilder();
-            builder.AddColumns(cols.Select(c => new Schema.DetachedColumn(c.Name, PrimitiveType.FromKind(c.Type.Value), null)));
+            builder.AddColumns(cols.Select(c => new Schema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
             var colSchema = builder.GetSchema();
 
             var subSchema = subLoader.Schema;

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Learners;
 using Microsoft.ML.Model.Onnx;
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Tests
                 // Step 3: Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = new OnnxScoringEstimator(mlContext, onnxModelPath, inputNames, outputNames);
+                var onnxEstimator = new OnnxScoringEstimator(mlContext, outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
 
@@ -155,7 +156,7 @@ namespace Microsoft.ML.Tests
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = new OnnxScoringEstimator(mlContext, onnxModelPath, inputNames, outputNames);
+                var onnxEstimator = new OnnxScoringEstimator(mlContext, outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
                 CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 3);
@@ -452,7 +453,7 @@ namespace Microsoft.ML.Tests
             var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
             var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, hasHeader: false, separatorChar: '\t');
 
-            var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Tokens", embedNetworkPath, "Embed");
+            var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Embed", embedNetworkPath, "Tokens");
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 

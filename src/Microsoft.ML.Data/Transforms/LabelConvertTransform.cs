@@ -5,6 +5,7 @@
 using System;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Transforms
     {
         public sealed class Column : OneToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Transforms
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -70,10 +71,10 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
-        public LabelConvertTransform(IHostEnvironment env, IDataView input, string name, string source = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+        /// <param name="outputColumnName">Name of the output column.</param>
+        /// <param name="inputColumnName">Name of the input column.  If this is null '<paramref name="outputColumnName"/>' will be used.</param>
+        public LabelConvertTransform(IHostEnvironment env, IDataView input, string outputColumnName, string inputColumnName = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = inputColumnName ?? outputColumnName, Name = outputColumnName } } }, input)
         {
         }
 

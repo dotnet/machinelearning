@@ -14,8 +14,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleSentimentData> data = SamplesUtils.DatasetUtils.GetSentimentData();
-            var trainData = ml.CreateStreamingDataView(data);
+            var data = SamplesUtils.DatasetUtils.GetSentimentData();
+            var trainData = ml.Data.ReadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -27,11 +27,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // A pipeline for featurization of the "SentimentText" column, and placing the output in a new column named "DefaultTextFeatures"
             // The pipeline uses the default settings to featurize.
             string defaultColumnName = "DefaultTextFeatures";
-            var default_pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", defaultColumnName);
+            var default_pipeline = ml.Transforms.Text.FeaturizeText(defaultColumnName , "SentimentText");
 
             // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
             string customizedColumnName = "CustomizedTextFeatures";
-            var customized_pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", customizedColumnName, s =>
+            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, "SentimentText", s =>
             {
                 s.KeepPunctuations = false;
                 s.KeepNumbers = false;

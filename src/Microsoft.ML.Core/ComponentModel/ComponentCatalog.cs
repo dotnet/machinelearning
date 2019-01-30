@@ -468,7 +468,7 @@ namespace Microsoft.ML
             var type = info.LoaderType;
 
             // Scan for entry points.
-            foreach (var methodInfo in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+            foreach (var methodInfo in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 var attr = methodInfo.GetCustomAttributes(typeof(TlcModule.EntryPointAttribute), false).FirstOrDefault() as TlcModule.EntryPointAttribute;
                 if (attr == null)
@@ -727,7 +727,7 @@ namespace Microsoft.ML
         [BestFriend]
         internal IEnumerable<EntryPointInfo> AllEntryPoints()
         {
-            return _entryPoints.AsEnumerable();
+            return _entryPoints;
         }
 
         [BestFriend]

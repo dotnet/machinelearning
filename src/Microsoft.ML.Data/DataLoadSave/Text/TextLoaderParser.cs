@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Utilities;
 
@@ -30,9 +29,9 @@ namespace Microsoft.ML.Data
             {
                 get
                 {
-                    if (_instance == null)
-                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null);
-                    return _instance;
+                    return _instance ??
+                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null) ??
+                        _instance;
                 }
             }
 
@@ -56,7 +55,7 @@ namespace Microsoft.ML.Data
                 _creatorsVec = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
                 for (var kind = DataKindExtensions.KindMin; kind < DataKindExtensions.KindLim; kind++)
                 {
-                    var type = PrimitiveType.FromKind(kind);
+                    var type = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                     _creatorsOne[kind.ToIndex()] = GetCreatorOneCore(type);
                     _creatorsVec[kind.ToIndex()] = GetCreatorVecCore(type);
                 }

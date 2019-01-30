@@ -11,6 +11,7 @@ namespace Microsoft.ML.RunTests
 {
     using System.Linq;
     using System.Runtime.InteropServices;
+    using Microsoft.Data.DataView;
     using Microsoft.ML;
     using Microsoft.ML.Data;
     using Microsoft.ML.Ensemble;
@@ -630,7 +631,7 @@ namespace Microsoft.ML.RunTests
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var cat = new OneHotEncodingEstimator(ML, "Categories", "Features").Fit(dataView).Transform(dataView);
+            var cat = new OneHotEncodingEstimator(ML, "Features", "Categories").Fit(dataView).Transform(dataView);
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
@@ -781,7 +782,7 @@ namespace Microsoft.ML.RunTests
 
             var predictors = new PredictorModel[]
             {
-                LightGbm.TrainMultiClass(Env, new LightGbmArguments
+                LightGbm.TrainMultiClass(Env, new Options
                 {
                     FeatureColumn = "Features",
                     NumBoostRound = 5,

@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Internal.Utilities
             return res;
         }
 
-        public static bool AreEqual(Single[] arr1, Single[] arr2)
+        public static bool AreEqual(float[] arr1, float[] arr2)
         {
             if (arr1 == arr2)
                 return true;
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Internal.Utilities
             return true;
         }
 
-        public static bool AreEqual(Double[] arr1, Double[] arr2)
+        public static bool AreEqual(double[] arr1, double[] arr2)
         {
             if (arr1 == arr2)
                 return true;
@@ -615,37 +615,80 @@ namespace Microsoft.ML.Internal.Utilities
             return Regex.Replace(value, "[^A-Za-z0-9]", "");
         }
 
-        public static bool IsSorted(IList<float> values)
+        /// <summary>
+        /// Checks that an input IList is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise. ILists containing NaN values
+        /// are considered to be not monotonically increasing.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
-            for (int i = 1; i < values.Count; i++)
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
-                if (!(values[i] >= prev))
+                var currentValue = values[i];
+                // Inverted check for NaNs
+                if (!(currentValue >= previousValue))
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
             }
 
             return true;
         }
 
-        public static bool IsSorted(int[] values)
+        /// <summary>
+        /// Checks that an input array is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<int> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
-            for (int i = 1; i < values.Length; i++)
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
-                if (values[i] < prev)
+                var currentValue = values[i];
+                if (currentValue < previousValue)
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks that an input array is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise. Arrays containing NaN values
+        /// are considered to be not monotonically increasing.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<double> values)
+        {
+            if (Utils.Size(values) <= 1)
+                return true;
+
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
+            {
+                var currentValue = values[i];
+                // Inverted check for NaNs
+                if (!(currentValue >= previousValue))
+                    return false;
+
+                previousValue = currentValue;
             }
 
             return true;

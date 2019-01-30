@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.EntryPoints;
@@ -11,7 +12,7 @@ using Microsoft.ML.Internal.Calibration;
 
 namespace Microsoft.ML.Ensemble.EntryPoints
 {
-    public static class PipelineEnsemble
+    internal static class PipelineEnsemble
     {
         public sealed class SummaryOutput
         {

@@ -55,9 +55,9 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var pairs = new List<(string input, string output)>();
+                var pairs = new List<(string outputColumnName, string inputColumnName)>();
                 foreach (var outCol in toOutput)
-                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+                    pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input]));
 
                 return new GlobalContrastNormalizingEstimator(env, pairs.ToArray(), _subMean, _useStdDev, _scale);
             }
@@ -118,9 +118,9 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var pairs = new List<(string input, string output)>();
+                var pairs = new List<(string outputColumnName, string inputColumnName)>();
                 foreach (var outCol in toOutput)
-                    pairs.Add((inputNames[((OutPipelineColumn<T>)outCol).Input], outputNames[outCol]));
+                    pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn<T>)outCol).Input]));
 
                 return new MutualInformationFeatureSelectingEstimator(env, inputNames[_labelColumn], _slotsInOutput, _numBins, pairs.ToArray());
             }
@@ -270,7 +270,7 @@ namespace Microsoft.ML.StaticPipe
 
                 var infos = new CountFeatureSelectingEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new CountFeatureSelectingEstimator.ColumnInfo(inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], outputNames[toOutput[i]], _count);
+                    infos[i] = new CountFeatureSelectingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], _count);
 
                 return new CountFeatureSelectingEstimator(env, infos);
             }
@@ -396,7 +396,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToBinaryVectorMappingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]]);
+                    infos[i] = new KeyToBinaryVectorMappingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input]);
                 }
                 return new KeyToBinaryVectorMappingEstimator(env, infos);
             }
@@ -582,7 +582,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToVectorMappingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
+                    infos[i] = new KeyToVectorMappingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input], col.Bag);
                 }
                 return new KeyToVectorMappingEstimator(env, infos);
             }
@@ -807,7 +807,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new MissingValueReplacingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
+                    infos[i] = new MissingValueReplacingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input], col.Config.ReplacementMode, col.Config.ImputeBySlot);
                 }
                 return new MissingValueReplacingEstimator(env, infos);
             }
@@ -937,7 +937,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Kind);
+                    infos[i] = new TypeConvertingTransformer.ColumnInfo(outputNames[toOutput[i]], tcol.Kind, inputNames[tcol.Input]);
                 }
                 return new TypeConvertingEstimator(env, infos);
             }
@@ -1021,14 +1021,16 @@ namespace Microsoft.ML.StaticPipe
             public static readonly Rec Inst = new Rec();
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
             {
                 var infos = new ValueToKeyMappingTransformer.ColumnInfo[toOutput.Length];
                 Action<ValueToKeyMappingTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ITermCol)toOutput[i];
-                    infos[i] = new ValueToKeyMappingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
+                    infos[i] = new ValueToKeyMappingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input],
                         tcol.Config.Max, (ValueToKeyMappingTransformer.SortOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
@@ -1110,11 +1112,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var cols = new (string input, string output)[toOutput.Length];
+                var cols = new (string outputColumnName, string inputColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (IColInput)toOutput[i];
-                    cols[i] = (inputNames[outCol.Input], outputNames[toOutput[i]]);
+                    cols[i] = (outputNames[toOutput[i]], inputNames[outCol.Input]);
                 }
                 return new KeyToValueMappingEstimator(env, cols);
             }
@@ -1421,11 +1423,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var columnPairs = new (string input, string output)[toOutput.Length];
+                var columnPairs = new (string outputColumnName, string inputColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    columnPairs[i] = (inputNames[col.Input], outputNames[toOutput[i]]);
+                    columnPairs[i] = (outputNames[toOutput[i]], inputNames[col.Input]);
                 }
                 return new MissingValueIndicatorEstimator(env, columnPairs);
             }
@@ -1533,7 +1535,7 @@ namespace Microsoft.ML.StaticPipe
 
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputs = outCol.Inputs.Select(x => inputNames[x]);
-                return new TextFeaturizingEstimator(env, inputs, outputNames[outCol], _settings);
+                return new TextFeaturizingEstimator(env, outputNames[outCol], inputs, _settings);
             }
         }
         /// <summary>
@@ -1597,7 +1599,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
                 }
                 return new RandomFourierFeaturizingEstimator(env, infos);
             }
@@ -1638,11 +1640,11 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly PcaTransform.ColumnInfo _colInfo;
+            private readonly PcaTransformer.ColumnInfo _colInfo;
 
             public Reconciler(string weightColumn, int rank, int overSampling, bool center, int? seed = null)
             {
-                _colInfo = new PcaTransform.ColumnInfo(
+                _colInfo = new PcaTransformer.ColumnInfo(
                     null, null, weightColumn, rank, overSampling, center, seed);
             }
 
@@ -1656,7 +1658,7 @@ namespace Microsoft.ML.StaticPipe
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputColName = inputNames[outCol.Input];
                 var outputColName = outputNames[outCol];
-                return new PrincipalComponentAnalysisEstimator(env, inputColName, outputColName,
+                return new PrincipalComponentAnalysisEstimator(env, outputColName, inputColName,
                                          _colInfo.WeightColumn, _colInfo.Rank, _colInfo.Oversampling,
                                          _colInfo.Center, _colInfo.Seed);
             }

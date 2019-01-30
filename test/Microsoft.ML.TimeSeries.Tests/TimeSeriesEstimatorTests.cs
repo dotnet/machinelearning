@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests
             int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             List<Data> data = new List<Data>();
-            var dataView = Env.CreateStreamingDataView(data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -59,14 +59,14 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < ChangeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new SsaChangePointEstimator(Env, "Value", "Change",
-                Confidence, ChangeHistorySize, MaxTrainingSize, SeasonalitySize);
+            var pipe = new SsaChangePointEstimator(Env, "Change", 
+                Confidence, ChangeHistorySize, MaxTrainingSize, SeasonalitySize, "Value");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests
             int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             List<Data> data = new List<Data>();
-            var dataView = Env.CreateStreamingDataView(data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -93,14 +93,14 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < PValueHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new SsaSpikeEstimator(Env, "Value", "Change",
-                Confidence, PValueHistorySize, MaxTrainingSize, SeasonalitySize);
+            var pipe = new SsaSpikeEstimator(Env, "Change",
+                Confidence, PValueHistorySize, MaxTrainingSize, SeasonalitySize, "Value");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
@@ -115,19 +115,19 @@ namespace Microsoft.ML.Tests
             int ChangeHistorySize = 10;
 
             List<Data> data = new List<Data>();
-            var dataView = Env.CreateStreamingDataView(data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             for (int i = 0; i < ChangeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
             var pipe = new IidChangePointEstimator(Env,
-                "Value", "Change", Confidence, ChangeHistorySize);
+                "Change", Confidence, ChangeHistorySize, "Value");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
@@ -142,19 +142,19 @@ namespace Microsoft.ML.Tests
             int PValueHistorySize = 10;
 
             List<Data> data = new List<Data>();
-            var dataView = Env.CreateStreamingDataView(data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             for (int i = 0; i < PValueHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new IidSpikeEstimator(Env, 
-                "Value", "Change", Confidence, PValueHistorySize);
+            var pipe = new IidSpikeEstimator(Env,
+                "Change", Confidence, PValueHistorySize, "Value");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -313,7 +314,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public static partial class FastForest
+    internal static partial class FastForest
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor",
             Desc = FastForestRegression.Summary,

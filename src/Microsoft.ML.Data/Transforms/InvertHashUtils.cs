@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -46,12 +47,12 @@ namespace Microsoft.ML.Data
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema[col].HasKeyValues(keyType.Count))
+            if (schema[col].HasKeyValues(keyType))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
                 VBuffer<ReadOnlyMemory<char>> keyValues = default;
-                schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
+                schema[col].GetKeyValues(ref keyValues);
                 ReadOnlyMemory<char> value = default;
 
                 // REVIEW: We could optimize for identity, but it's probably not worthwhile.

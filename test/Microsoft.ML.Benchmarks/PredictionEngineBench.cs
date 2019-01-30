@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -82,7 +83,7 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(_sentimentDataPath);
 
-            var pipeline = new TextFeaturizingEstimator(env, "SentimentText", "Features")
+            var pipeline = new TextFeaturizingEstimator(env, "Features", "SentimentText")
                 .Append(env.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                     new SdcaBinaryTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
 

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
@@ -21,13 +22,13 @@ namespace Microsoft.ML
         private readonly ICursorable<TDst> _cursorablePipe;
         private long _counter;
 
-        internal PipeEngine(MLContext mlContext, IDataView pipe, bool ignoreMissingColumns, SchemaDefinition schemaDefinition = null)
+        internal PipeEngine(IHostEnvironment env, IDataView pipe, bool ignoreMissingColumns, SchemaDefinition schemaDefinition = null)
         {
-            Contracts.AssertValue(mlContext);
-            mlContext.AssertValue(pipe);
-            mlContext.AssertValueOrNull(schemaDefinition);
+            Contracts.AssertValue(env);
+            env.AssertValue(pipe);
+            env.AssertValueOrNull(schemaDefinition);
 
-            _cursorablePipe = mlContext.Data.AsCursorable<TDst>(pipe, ignoreMissingColumns, schemaDefinition);
+            _cursorablePipe = env.AsCursorable<TDst>(pipe, ignoreMissingColumns, schemaDefinition);
             _counter = 0;
         }
 
@@ -100,6 +101,11 @@ namespace Microsoft.ML
         private readonly Action _disposer;
         private bool _disposed;
 
+        /// <summary>
+        /// Provides output schema.
+        /// </summary>
+        public Schema OutputSchema;
+
         [BestFriend]
         private protected ITransformer Transformer { get; }
 
@@ -127,6 +133,7 @@ namespace Microsoft.ML
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
             PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out _disposer, out _outputRow);
+            OutputSchema = Transformer.GetOutputSchema(_inputRow.Schema);
         }
 
         [BestFriend]

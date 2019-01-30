@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers.HalLearners;
