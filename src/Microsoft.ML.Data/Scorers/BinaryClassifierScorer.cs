@@ -209,7 +209,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public override IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(newSource, nameof(newSource));

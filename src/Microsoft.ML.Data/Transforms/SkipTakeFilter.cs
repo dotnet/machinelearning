@@ -97,10 +97,8 @@ namespace Microsoft.ML.Transforms
             _take = take;
         }
 
-        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
-        {
-            return new SkipTakeFilter(_skip, _take, env, newSource);
-        }
+        IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
+            => new SkipTakeFilter(_skip, _take, env, newSource);
 
         public static SkipTakeFilter Create(IHostEnvironment env, Arguments args, IDataView input)
         {

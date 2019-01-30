@@ -133,7 +133,7 @@ namespace Microsoft.ML.Transforms
 
         public IDataView Source => _source;
 
-        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(newSource, nameof(newSource));

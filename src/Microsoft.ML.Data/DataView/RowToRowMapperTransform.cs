@@ -271,7 +271,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
         {
             Contracts.CheckValue(env, nameof(env));
 

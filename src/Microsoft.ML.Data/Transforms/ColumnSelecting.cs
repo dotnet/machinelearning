@@ -682,7 +682,7 @@ namespace Microsoft.ML.Transforms
                 return new RowImpl(input, _mapper);
             }
 
-            public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+            IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
         }
 
