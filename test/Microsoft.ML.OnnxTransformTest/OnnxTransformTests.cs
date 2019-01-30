@@ -347,4 +347,3 @@ namespace Microsoft.ML.Tests
         }
     }
 }
-
