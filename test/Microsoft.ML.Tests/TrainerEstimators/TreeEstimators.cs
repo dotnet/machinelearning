@@ -61,6 +61,124 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        public void LightGBMBinaryEstimatorMonotoneThroughOptions()
+        {
+            var (pipe, dataView) = GetBinaryClassificationPipeline();
+
+            var trainer = ML.BinaryClassification.Trainers.LightGbm(new Options
+            {
+                NumLeaves = 10,
+                NThread = 1,
+                MinDataPerLeaf = 2,
+                MonotoneConstraints = new string[] {"pos:1-3","neg:4" }
+            });
+
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Train(transformedDataView, transformedDataView);
+            Done();
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentWithRangeAndSingle()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos:0-10,15,17,18-20"};
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 21);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,0,1,1,1,1", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentWithRangeOverlapping()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos:0-10", "neg:5-8"};
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("1,1,1,1,1,-1,-1,-1,-1,1,1,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentWithPositiveAndNegative()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos:0-5", "neg:7-8,15" };
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("1,1,1,1,1,1,0,-1,-1,0,0,0,0,0,0,-1,0,0,0,0", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentInvalid()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos1:2"};
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentPartialInvalid()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos1:2", "neg:4"};
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
+
+        [Fact]
+        public void LightGBMMonotoneArgumentInvalidIndex()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos1:200"};
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentNegativeIndex()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos1:-200"};
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentInvalidRange()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos1:10-1"};
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
 
         [Fact]
         public void GAMClassificationEstimator()

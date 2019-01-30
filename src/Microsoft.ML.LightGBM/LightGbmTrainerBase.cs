@@ -89,6 +89,103 @@ namespace Microsoft.ML.LightGBM
             InitParallelTraining();
         }
 
+        [BestFriend]
+        internal void ExpandMonotoneConstraint(ref Dictionary<string, object> options, int featureCount)
+        {
+            string monotoneArgumentName = "monotone_constraints";
+            if (!options.ContainsKey(monotoneArgumentName))
+                return;
+
+            // If the constraints arguments is not a string array, then return
+            if (!(options[monotoneArgumentName] is string[]))
+                return;
+
+            string[] constraintArguments = (string[])options[monotoneArgumentName];
+            if (constraintArguments == null || constraintArguments.Length == 0)
+            {
+                options.Remove(monotoneArgumentName);
+                return;
+            }
+
+            // Convert the monotone constraints parameter to be consumed by LightGBM.
+            // Format of the constraint is the key word that specifies
+            // the constraint type: pos for positive constraint (which results to
+            // 1 for LightGBM) and neg for negative constraint (which results to -1
+            // for LightGBM).
+            // For example:
+            // pos:0-3,5
+            // neg:6-7
+            // Since the argument is a string array, mulitple ranges can be specified.
+            // In the event of the same index being specified twice, the last one wins.
+            // The end result is a string array of 1s,0s, and -1s that should be equal
+            // to the number of features in the Feature column.
+            int[] constraintArray = new int[featureCount];
+            foreach(var argument in constraintArguments)
+            {
+                // Split by : to get the keyword and range
+                var subArguments = argument.Split(':');
+                if (subArguments.Length != 2)
+                    // Invalid argument, skip to the next argument
+                    continue;
+
+                var keyword = subArguments[0].ToLowerInvariant();
+                var rangesArgument = subArguments[1];
+                int constraint = 0;
+                if (string.Compare(keyword,"pos") == 0)
+                    constraint = 1;
+                else if (string.Compare(keyword, "neg") == 0)
+                    constraint = -1;
+                else
+                    continue;
+
+                // Parse the range. Since multiple ranges
+                // can be specified in a single range, split by comma first
+                var indexRanges = new List<(int min, int max)>();
+                int min;
+                int max;
+                var ranges = rangesArgument.Split(',');
+                if (ranges.Length == 0)
+                    continue;
+
+                foreach(var range in ranges)
+                {
+                    min = 0;
+                    max = 0;
+
+                    // Split by -
+                    var minMax = range.Split('-');
+                    if (minMax.Length > 2)
+                        continue;
+
+                    if (minMax.Length == 1)
+                    {
+                        // single variable
+                        if (int.TryParse(minMax[0], out min) &&
+                            min >= 0 && min < featureCount)
+                            indexRanges.Add((min, min));
+                    }
+                    else
+                    {
+                        if (int.TryParse(minMax[0], out min) &&
+                            int.TryParse(minMax[1], out max) &&
+                            min < max &&
+                            min >= 0 && min < featureCount &&
+                            max > 0 && max < featureCount)
+
+                            indexRanges.Add((min, max));
+                    }
+                }
+
+                // Process each range
+                foreach(var indexRange in indexRanges)
+                   for(int i  = indexRange.min; i <= indexRange.max; ++i)
+                        constraintArray[i] = constraint;
+            }
+            // Update Options to contain the expanded array
+            var optionString = string.Join(",", constraintArray);
+            options[monotoneArgumentName] = optionString;
+        }
+
         private protected LightGbmTrainerBase(IHostEnvironment env, string name, Options options, SchemaShape.Column label)
            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {
@@ -318,6 +415,7 @@ namespace Microsoft.ML.LightGBM
             GetMetainfo(ch, factory, out int numRow, out float[] labels, out float[] weights, out int[] groups);
             catMetaData = GetCategoricalMetaData(ch, trainData, numRow);
             GetDefaultParameters(ch, numRow, catMetaData.CategoricalBoudaries != null, catMetaData.TotalCats);
+            ExpandMonotoneConstraint(ref Options, catMetaData.NumCol);
 
             Dataset dtrain;
             string param = LightGbmInterfaceUtils.JoinParameters(Options);

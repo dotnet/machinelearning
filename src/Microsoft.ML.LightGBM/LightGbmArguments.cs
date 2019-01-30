@@ -371,6 +371,14 @@ namespace Microsoft.ML.LightGBM
         [TlcModule.SweepableDiscreteParam("CatL2", new object[] { 0.1, 0.5, 1, 5, 10 })]
         public double CatL2 = 10;
 
+        [Argument(ArgumentType.Multiple,
+            HelpText = "Sets the constraints for monotonic features. This is a 0 based index for each feature in " +
+            "the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is " +
+            "specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the " +
+            "first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, " +
+            "then no constraint will be applied.")]
+        public string[] MonotoneConstraints;
+
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
         public ISupportParallel ParallelTrainer = new SingleTrainerFactory();
 
@@ -428,6 +436,7 @@ namespace Microsoft.ML.LightGBM
             res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold;
             res[GetArgName(nameof(CatSmooth))] = CatSmooth;
             res[GetArgName(nameof(CatL2))] = CatL2;
+            res[GetArgName(nameof(MonotoneConstraints))] = (object)MonotoneConstraints;
             return res;
         }
     }
