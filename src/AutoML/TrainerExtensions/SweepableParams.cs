@@ -31,14 +31,14 @@ namespace Microsoft.ML.Auto
 
         private static IEnumerable<SweepableParam> BuildTreeArgsParams()
         {
-           return new SweepableParam[]
-           {
+            return new SweepableParam[]
+            {
                 new SweepableLongParam("NumLeaves", 2, 128, isLogScale: true, stepSize: 4),
                 new SweepableDiscreteParam("MinDocumentsInLeafs", new object[] { 1, 10, 50 }),
                 new SweepableDiscreteParam("NumTrees", new object[] { 20, 100, 500 }),
                 new SweepableFloatParam("LearningRates", 0.025f, 0.4f, isLogScale: true),
                 new SweepableFloatParam("Shrinkage", 0.025f, 4f, isLogScale: true),
-           };
+            };
         }
 
         private static IEnumerable<SweepableParam> BuildLbfgsArgsParams()
@@ -123,22 +123,24 @@ namespace Microsoft.ML.Auto
         public static IEnumerable<SweepableParam> BuildSdcaParams()
         {
             return new SweepableParam[] {
-                new SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f }),
-                new SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f }),
+                new SweepableDiscreteParam("L2Const", new object[] { null, 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f }),
+                new SweepableDiscreteParam("L1Threshold", new object[] { null, 0f, 0.25f, 0.5f, 0.75f, 1f }),
                 new SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f }),
-                new SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 }),
+                new SweepableDiscreteParam("MaxIterations", new object[] { null, 10, 20, 100 }),
                 new SweepableDiscreteParam("Shuffle", null, isBool: true),
                 new SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildOrdinaryLeastSquaresParams() {
+        public static IEnumerable<SweepableParam> BuildOrdinaryLeastSquaresParams()
+        {
             return new SweepableParam[] {
                 new SweepableDiscreteParam("L2Weight", new object[] { 1e-6f, 0.1f, 1f })
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildSgdParams() {
+        public static IEnumerable<SweepableParam> BuildSgdParams()
+        {
             return new SweepableParam[] {
                 new SweepableDiscreteParam("L2Weight", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f }),
                 new SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f }),
@@ -147,12 +149,13 @@ namespace Microsoft.ML.Auto
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildSymSgdParams() {
+        public static IEnumerable<SweepableParam> BuildSymSgdParams()
+        {
             return new SweepableParam[] {
                 new SweepableDiscreteParam("NumberOfIterations", new object[] { 1, 5, 10, 20, 30, 40, 50 }),
-                new SweepableDiscreteParam("LearningRate", new object[] { "<Auto>", 1e1f, 1e0f, 1e-1f, 1e-2f, 1e-3f }),
+                new SweepableDiscreteParam("LearningRate", new object[] { null, 1e1f, 1e0f, 1e-1f, 1e-2f, 1e-3f }),
                 new SweepableDiscreteParam("L2Regularization", new object[] { 0.0f, 1e-5f, 1e-5f, 1e-6f, 1e-7f }),
-                new SweepableDiscreteParam("UpdateFrequency", new object[] { "<Auto>", 5, 20 })
+                new SweepableDiscreteParam("UpdateFrequency", new object[] { null, 5, 20 })
             };
         }
     }
