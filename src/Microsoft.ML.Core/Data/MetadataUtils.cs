@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -174,12 +172,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_scoreColumnSetIdType == null)
-                {
-                    var type = new KeyType(typeof(uint), int.MaxValue);
-                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, type, null);
-                }
-                return _scoreColumnSetIdType;
+                return _scoreColumnSetIdType ??
+                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, new KeyType(typeof(uint), int.MaxValue), null) ??
+                    _scoreColumnSetIdType;
             }
         }
 

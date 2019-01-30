@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 // We want the conditional code in this file to always be available to
 // client assemblies that might be DEBUG versions. That is, if someone uses
 // the release build of this assembly to build a DEBUG version of their code,

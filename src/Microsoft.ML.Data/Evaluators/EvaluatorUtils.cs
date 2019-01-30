@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -35,7 +34,8 @@ namespace Microsoft.ML.Data
             {
                 get
                 {
-                    if (_knownEvaluatorFactories == null)
+                    Dictionary<string, Func<IHostEnvironment, IMamlEvaluator>> result = _knownEvaluatorFactories;
+                    if (result == null)
                     {
                         var tmp = new Dictionary<string, Func<IHostEnvironment, IMamlEvaluator>>
                         {
@@ -50,8 +50,9 @@ namespace Microsoft.ML.Data
                         };
                         //tmp.Add(MetadataUtils.Const.ScoreColumnKind.SequenceClassification, "SequenceClassifierEvaluator");
                         Interlocked.CompareExchange(ref _knownEvaluatorFactories, tmp, null);
+                        result = _knownEvaluatorFactories;
                     }
-                    return _knownEvaluatorFactories;
+                    return result;
                 }
             }
         }

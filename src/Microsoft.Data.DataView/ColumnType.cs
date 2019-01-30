@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -77,9 +75,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new TextType(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new TextType(), null) ??
+                    _instance;
             }
         }
 
@@ -118,9 +116,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instI1 == null)
-                    Interlocked.CompareExchange(ref _instI1, new NumberType(typeof(sbyte), "I1"), null);
-                return _instI1;
+                return _instI1 ??
+                    Interlocked.CompareExchange(ref _instI1, new NumberType(typeof(sbyte), "I1"), null) ??
+                    _instI1;
             }
         }
 
@@ -129,9 +127,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instU1 == null)
-                    Interlocked.CompareExchange(ref _instU1, new NumberType(typeof(byte), "U1"), null);
-                return _instU1;
+                return _instU1 ??
+                    Interlocked.CompareExchange(ref _instU1, new NumberType(typeof(byte), "U1"), null) ??
+                    _instU1;
             }
         }
 
@@ -140,9 +138,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instI2 == null)
-                    Interlocked.CompareExchange(ref _instI2, new NumberType(typeof(short), "I2"), null);
-                return _instI2;
+                return _instI2 ??
+                    Interlocked.CompareExchange(ref _instI2, new NumberType(typeof(short), "I2"), null) ??
+                    _instI2;
             }
         }
 
@@ -151,9 +149,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instU2 == null)
-                    Interlocked.CompareExchange(ref _instU2, new NumberType(typeof(ushort), "U2"), null);
-                return _instU2;
+                return _instU2 ??
+                    Interlocked.CompareExchange(ref _instU2, new NumberType(typeof(ushort), "U2"), null) ??
+                    _instU2;
             }
         }
 
@@ -162,9 +160,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instI4 == null)
-                    Interlocked.CompareExchange(ref _instI4, new NumberType(typeof(int), "I4"), null);
-                return _instI4;
+                return _instI4 ??
+                    Interlocked.CompareExchange(ref _instI4, new NumberType(typeof(int), "I4"), null) ??
+                    _instI4;
             }
         }
 
@@ -173,9 +171,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instU4 == null)
-                    Interlocked.CompareExchange(ref _instU4, new NumberType(typeof(uint), "U4"), null);
-                return _instU4;
+                return _instU4 ??
+                    Interlocked.CompareExchange(ref _instU4, new NumberType(typeof(uint), "U4"), null) ??
+                    _instU4;
             }
         }
 
@@ -184,9 +182,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instI8 == null)
-                    Interlocked.CompareExchange(ref _instI8, new NumberType(typeof(long), "I8"), null);
-                return _instI8;
+                return _instI8 ??
+                    Interlocked.CompareExchange(ref _instI8, new NumberType(typeof(long), "I8"), null) ??
+                    _instI8;
             }
         }
 
@@ -195,9 +193,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instU8 == null)
-                    Interlocked.CompareExchange(ref _instU8, new NumberType(typeof(ulong), "U8"), null);
-                return _instU8;
+                return _instU8 ??
+                    Interlocked.CompareExchange(ref _instU8, new NumberType(typeof(ulong), "U8"), null) ??
+                    _instU8;
             }
         }
 
@@ -206,9 +204,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instUG == null)
-                    Interlocked.CompareExchange(ref _instUG, new NumberType(typeof(RowId), "UG"), null);
-                return _instUG;
+                return _instUG ??
+                    Interlocked.CompareExchange(ref _instUG, new NumberType(typeof(RowId), "UG"), null) ??
+                    _instUG;
             }
         }
 
@@ -217,9 +215,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instR4 == null)
-                    Interlocked.CompareExchange(ref _instR4, new NumberType(typeof(float), "R4"), null);
-                return _instR4;
+                return _instR4 ??
+                    Interlocked.CompareExchange(ref _instR4, new NumberType(typeof(float), "R4"), null) ??
+                    _instR4;
             }
         }
 
@@ -228,9 +226,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instR8 == null)
-                    Interlocked.CompareExchange(ref _instR8, new NumberType(typeof(double), "R8"), null);
-                return _instR8;
+                return _instR8 ??
+                    Interlocked.CompareExchange(ref _instR8, new NumberType(typeof(double), "R8"), null) ??
+                    _instR8;
             }
         }
 
@@ -257,9 +255,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new BoolType(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new BoolType(), null) ??
+                    _instance;
             }
         }
 
@@ -289,9 +287,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new DateTimeType(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new DateTimeType(), null) ??
+                    _instance;
             }
         }
 
@@ -318,9 +316,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new DateTimeOffsetType(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new DateTimeOffsetType(), null) ??
+                    _instance;
             }
         }
 
@@ -350,9 +348,9 @@ namespace Microsoft.Data.DataView
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new TimeSpanType(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new TimeSpanType(), null) ??
+                    _instance;
             }
         }
 
