@@ -1312,10 +1312,6 @@ namespace Microsoft.ML.Data
 
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
-        public IDataView Read(string path) => Read(new MultiFileSource(path));
-
-        public IDataView Read(params string[] path) => Read(new MultiFileSource(path));
-
         internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
            bool hasHeader = DefaultArguments.HasHeader,
            char separator = DefaultArguments.Separator,
