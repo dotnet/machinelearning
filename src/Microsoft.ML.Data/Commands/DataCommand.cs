@@ -403,7 +403,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="file"/>.
         /// </summary>
-        internal static void SaveLoader(IDataLoader loader, IFileHandle file)
+        public static void SaveLoader(IDataLoader loader, IFileHandle file)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(file, nameof(file));
@@ -418,7 +418,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="stream"/>.
         /// </summary>
-        internal static void SaveLoader(IDataLoader loader, Stream stream)
+        public static void SaveLoader(IDataLoader loader, Stream stream)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(stream, nameof(stream));
