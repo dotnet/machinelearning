@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
@@ -26,7 +25,8 @@ namespace Microsoft.ML.Data.IO
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public sealed class BinarySaver : IDataSaver
+    [BestFriend]
+    internal sealed class BinarySaver : IDataSaver
     {
         public sealed class Arguments
         {

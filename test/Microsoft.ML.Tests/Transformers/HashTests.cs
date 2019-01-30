@@ -47,10 +47,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new HashingEstimator(Env, new[]{
-                    new HashingTransformer.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
-                    new HashingTransformer.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
-                    new HashingTransformer.ColumnInfo("C", "HashC", seed:42),
-                    new HashingTransformer.ColumnInfo("A", "HashD"),
+                    new HashingTransformer.ColumnInfo("HashA", "A", hashBits:4, invertHash:-1),
+                    new HashingTransformer.ColumnInfo("HashB", "B", hashBits:3, ordered:true),
+                    new HashingTransformer.ColumnInfo("HashC", "C", seed:42),
+                    new HashingTransformer.ColumnInfo("HashD", "A"),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -69,9 +69,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new HashingEstimator(Env, new[] {
-                new HashingTransformer.ColumnInfo("A", "HashA", invertHash:1, hashBits:10),
-                new HashingTransformer.ColumnInfo("A", "HashAUnlim", invertHash:-1, hashBits:10),
-                new HashingTransformer.ColumnInfo("A", "HashAUnlimOrdered", invertHash:-1, hashBits:10, ordered:true)
+                new HashingTransformer.ColumnInfo("HashA", "A", invertHash:1, hashBits:10),
+                new HashingTransformer.ColumnInfo("HashAUnlim", "A", invertHash:-1, hashBits:10),
+                new HashingTransformer.ColumnInfo("HashAUnlimOrdered", "A", invertHash:-1, hashBits:10, ordered:true)
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
@@ -109,10 +109,10 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new HashingEstimator(Env, new[]{
-                    new HashingTransformer.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
-                    new HashingTransformer.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
-                    new HashingTransformer.ColumnInfo("C", "HashC", seed:42),
-                    new HashingTransformer.ColumnInfo("A", "HashD"),
+                    new HashingTransformer.ColumnInfo("HashA", "A", hashBits:4, invertHash:-1),
+                    new HashingTransformer.ColumnInfo("HashB", "B", hashBits:3, ordered:true),
+                    new HashingTransformer.ColumnInfo("HashC", "C", seed:42),
+                    new HashingTransformer.ColumnInfo("HashD" ,"A"),
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Tests.Transformers
             var inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
             // First do an unordered hash.
-            var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits);
+            var info = new HashingTransformer.ColumnInfo("Bar", "Foo", hashBits: bits);
             var xf = new HashingTransformer(Env, new[] { info });
             var mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out int outCol);
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, result);
 
             // Next do an ordered hash.
-            info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
+            info = new HashingTransformer.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
             inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
-            info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: false);
+            info = new HashingTransformer.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: false);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.All(vecResult.DenseValues(), v => Assert.Equal(expected, v));
 
             // Now do ordered with the dense vector.
-            info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
+            info = new HashingTransformer.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
             inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
-            info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: false);
+            info = new HashingTransformer.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: false);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(expected, vecResult.GetItemOrDefault(3));
             Assert.Equal(expected, vecResult.GetItemOrDefault(7));
 
-            info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
+            info = new HashingTransformer.ColumnInfo("Bar", "Foo", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);

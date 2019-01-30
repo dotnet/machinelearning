@@ -261,13 +261,10 @@ namespace Microsoft.ML.Data
                 {
                     get
                     {
-                        if (_bindable == null)
-                        {
+                        return _bindable ??
                             Interlocked.CompareExchange(ref _bindable,
-                                new LabelNameBindableMapper(_host, _mapper, _labelNameType, _labelNameGetter, _metadataKind, _canWrap), null);
-                        }
-                        Contracts.AssertValue(_bindable);
-                        return _bindable;
+                                new LabelNameBindableMapper(_host, _mapper, _labelNameType, _labelNameGetter, _metadataKind, _canWrap), null) ??
+                            _bindable;
                     }
                 }
 

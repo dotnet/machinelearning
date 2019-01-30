@@ -431,24 +431,25 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            void CheckColumnsCompatible(SchemaShape.Column cachedColumn, string expectedColumnName)
+            void CheckColumnsCompatible(SchemaShape.Column cachedColumn, string columnRole)
             {
                 if (!inputSchema.TryFindColumn(cachedColumn.Name, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(col), expectedColumnName, expectedColumnName);
+                    throw Host.ExceptSchemaMismatch(nameof(col), columnRole, cachedColumn.Name);
 
                 if (!cachedColumn.IsCompatibleWith(col))
-                    throw Host.Except($"{expectedColumnName} column '{cachedColumn.Name}' is not compatible");
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, cachedColumn.Name,
+                        cachedColumn.GetTypeString(), col.GetTypeString());
             }
 
             // Check if label column is good.
             var labelColumn = new SchemaShape.Column(LabelName, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-            CheckColumnsCompatible(labelColumn, LabelName);
+            CheckColumnsCompatible(labelColumn, "label");
 
             // Check if columns of matrix's row and column indexes are good. Note that column of IDataView and column of matrix are two different things.
             var matrixColumnIndexColumn = new SchemaShape.Column(MatrixColumnIndexName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
             var matrixRowIndexColumn = new SchemaShape.Column(MatrixRowIndexName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
-            CheckColumnsCompatible(matrixColumnIndexColumn, MatrixColumnIndexName);
-            CheckColumnsCompatible(matrixRowIndexColumn, MatrixRowIndexName);
+            CheckColumnsCompatible(matrixColumnIndexColumn, "matrixColumnIndex");
+            CheckColumnsCompatible(matrixRowIndexColumn, "matrixRowIndex");
 
             // Input columns just pass through so that output column dictionary contains all input columns.
             var outColumns = inputSchema.ToDictionary(x => x.Name);

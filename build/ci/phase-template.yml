@@ -41,7 +41,7 @@ phases:
       displayName: Run Tests.
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /p:CodeCovToken=$(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io
-      condition: eq(variables._codeCoverage, 'true')
+      condition: and(succeeded(), eq(variables._codeCoverage, 'true'))
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()

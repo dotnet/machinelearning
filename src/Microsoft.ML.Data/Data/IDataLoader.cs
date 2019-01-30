@@ -59,9 +59,11 @@ namespace Microsoft.ML.Data
     {
     }
 
-    public delegate void SignatureDataSaver();
+    [BestFriend]
+    internal delegate void SignatureDataSaver();
 
-    public interface IDataSaver
+    [BestFriend]
+    internal interface IDataSaver
     {
         /// <summary>
         /// Check if the column can be saved.

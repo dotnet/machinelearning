@@ -81,7 +81,7 @@ namespace Microsoft.ML.EntryPoints
                     // Rename all the score columns.
                     int colMax;
                     var maxScoreId = input.Data.Schema.GetMaxMetadataKind(out colMax, MetadataUtils.Kinds.ScoreColumnSetId);
-                    var copyCols = new List<(string Source, string Name)>();
+                    var copyCols = new List<(string name, string source)>();
                     for (int i = 0; i < input.Data.Schema.Count; i++)
                     {
                         if (input.Data.Schema[i].IsHidden)
@@ -98,11 +98,11 @@ namespace Microsoft.ML.EntryPoints
                         }
                         var source = input.Data.Schema[i].Name;
                         var name = source + "." + positiveClass;
-                        copyCols.Add((source, name));
+                        copyCols.Add((name, source));
                     }
 
                     var copyColumn = new ColumnCopyingTransformer(env, copyCols.ToArray()).Transform(input.Data);
-                    var dropColumn = ColumnSelectingTransformer.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
+                    var dropColumn = ColumnSelectingTransformer.CreateDrop(env, copyColumn, copyCols.Select(c => c.source).ToArray());
                     return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, dropColumn, input.Data), OutputData = dropColumn };
                 }
             }

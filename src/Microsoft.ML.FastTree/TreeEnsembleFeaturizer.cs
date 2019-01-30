@@ -720,7 +720,7 @@ namespace Microsoft.ML.Data
 
             var col = input.Schema.GetColumnOrNull(labelName);
             if (!col.HasValue)
-                throw ch.ExceptSchemaMismatch(nameof(input), "Label", labelName);
+                throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
 
             ColumnType labelType = col.Value.Type;
             if (!(labelType is KeyType))

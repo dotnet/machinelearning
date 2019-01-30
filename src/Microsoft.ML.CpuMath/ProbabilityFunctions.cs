@@ -119,6 +119,8 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <returns>One intepretation is, the value at which the standard normal CDF evaluates to p.</returns>
         public static double Probit(double p)
         {
+            Contracts.CheckParam(0 <= p && p <= 1, nameof(p), "Input probability should be in range 0 to 1.");
+
             double q = p - 0.5;
             double r = 0.0;
             if (Math.Abs(q) <= 0.425)
@@ -134,8 +136,6 @@ namespace Microsoft.ML.Internal.CpuMath
                     r = p;
                 else
                     r = 1 - p;
-
-                Contracts.CheckParam(r >= 0, nameof(p), "Illegal input value");
 
                 r = Math.Sqrt(-Math.Log(r));
                 double retval = 0.0;

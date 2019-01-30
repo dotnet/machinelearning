@@ -14,13 +14,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
-        /// <param name="inputColumns">The input columns.</param>
-        /// <param name="outputColumns">The output columns resulting from the transformation.</param>
+        /// <param name="outputColumnNames">The input columns.</param>
+        /// <param name="inputColumnNames">The output columns resulting from the transformation.</param>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string modelFile,
-            string[] inputColumns,
-            string[] outputColumns)
-        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), modelFile, inputColumns, outputColumns);
+            string[] outputColumnNames,
+            string[] inputColumnNames)
+        => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, modelFile);
 
         /// <summary>
         /// Initializes a new instance of <see cref="OnnxScoringEstimator"/>.
