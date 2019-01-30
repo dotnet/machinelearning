@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms
     ///  Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
     /// </p>
     /// <p>The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.</p>
-    /// <p>OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. OSX to be supported soon.</p>
+    /// <p>OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. Mac OS to be supported soon.</p>
     /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
     /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
     /// </remarks>
@@ -86,6 +86,8 @@ namespace Microsoft.ML.Transforms
         internal const string UserName = "ONNX Scoring Transform";
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
+        // A valid device ID, but run on CPU
+        public const int NullGpuID = int.MinValue;
 
         public readonly string[] Inputs;
         public readonly string[] Outputs;

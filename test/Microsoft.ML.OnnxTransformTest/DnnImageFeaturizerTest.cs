@@ -56,8 +56,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        // Onnx is only supported on x64 Windows
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [OnnxFact]
         void TestDnnImageFeaturizer()
         {
             // Onnxruntime supports Ubuntu 16.04, but not CentOS
@@ -96,8 +95,7 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        // Onnx is only supported on x64 Windows
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [OnnxFact]
         public void OnnxStatic()
         {
             // Onnxruntime supports Ubuntu 16.04, but not CentOS
@@ -141,16 +139,9 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        // Onnx is only supported on x64 Windows
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [OnnxFact]
         public void TestOldSavingAndLoading()
         {
-            // Onnxruntime supports Ubuntu 16.04, but not CentOS
-            // Do not execute on CentOS image
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-            
-
             var samplevector = GetSampleArrayData();
 
             var dataView = ComponentCreation.CreateDataView(Env,
