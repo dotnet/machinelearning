@@ -20,5 +20,13 @@ namespace Microsoft.ML.Auto.Test
             var columnInferenceWithGrouping = context.Data.InferColumns(dataPath, DatasetUtil.UciAdultLabel, true, groupColumns: true);
             Assert.IsTrue(columnInferenceWithGrouping.Columns.Count() < columnInferenceWithoutGrouping.Columns.Count());
         }
+
+        [TestMethod]
+        public void IncorrectLabelColumnTest()
+        {
+            var dataPath = DatasetUtil.DownloadUciAdultDataset();
+            var context = new MLContext();
+            Assert.ThrowsException<InferenceException>(new System.Action(() => context.Data.InferColumns(dataPath, "Junk", true, groupColumns: false)));
+        }
     }
 }

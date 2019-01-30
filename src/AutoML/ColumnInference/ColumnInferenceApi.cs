@@ -16,6 +16,10 @@ namespace Microsoft.ML.Auto
             var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
             var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader);
             var loaderColumns = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns);
+            if (!loaderColumns.Any(t => label.Equals(t.Name)))
+            {
+                throw new InferenceException(InferenceType.Label, $"Specified Label Column '{label}' was not found.");
+            }
             var typedLoaderArgs = new TextLoader.Arguments
             {
                 Column = loaderColumns,
