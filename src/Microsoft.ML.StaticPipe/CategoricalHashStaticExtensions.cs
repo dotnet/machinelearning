@@ -105,7 +105,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
-                    infos[i] = new OneHotHashEncodingEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
+                    infos[i] = new OneHotHashEncodingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
                         tcol.Config.HashBits, tcol.Config.Seed, tcol.Config.Ordered, tcol.Config.InvertHash);
                 }
                 return new OneHotHashEncodingEstimator(env, infos);

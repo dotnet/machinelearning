@@ -29,13 +29,13 @@ namespace Microsoft.ML
             string labelColumn = MutualInfoSelectDefaults.LabelColumn,
             int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
             int numBins = MutualInfoSelectDefaults.NumBins,
-            params (string input, string output)[] columns)
+            params (string outputColumnName, string inputColumnName)[] columns)
             => new MutualInformationFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), labelColumn, slotsInOutput, numBins, columns);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
@@ -47,11 +47,11 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static MutualInformationFeatureSelectingEstimator SelectFeaturesBasedOnMutualInformation(this TransformsCatalog.FeatureSelectionTransforms catalog,
-            string inputColumn, string outputColumn = null,
+            string outputColumnName, string inputColumnName = null,
             string labelColumn = MutualInfoSelectDefaults.LabelColumn,
             int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
             int numBins = MutualInfoSelectDefaults.NumBins)
-            => new MutualInformationFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, labelColumn, slotsInOutput, numBins);
+            => new MutualInformationFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="catalog">The transform's catalog.</param>
@@ -69,8 +69,8 @@ namespace Microsoft.ML
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -80,9 +80,9 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
-            string inputColumn,
-            string outputColumn = null,
+            string outputColumnName,
+            string inputColumnName = null,
             long count = CountSelectDefaults.Count)
-            => new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, count);
+            => new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, count);
     }
 }

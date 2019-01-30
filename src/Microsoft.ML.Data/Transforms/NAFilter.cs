@@ -28,7 +28,8 @@ using Float = System.Single;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAFilter"]'/>
-    public sealed class NAFilter : FilterBase
+    [BestFriend]
+    internal sealed class NAFilter : FilterBase
     {
         private static class Defaults
         {
@@ -145,13 +146,13 @@ namespace Microsoft.ML.Transforms
                 string src = ctx.LoadNonEmptyString();
                 int index;
                 if (!schema.TryGetColumnIndex(src, out index))
-                    throw Host.Except("Source column '{0}' not found", src);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "source", src);
                 if (_srcIndexToInfoIndex.ContainsKey(index))
                     throw Host.Except("Source column '{0}' specified multiple times", src);
 
                 var type = schema[index].Type;
                 if (!TestType(type))
-                    throw Host.Except($"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "source", src, "scalar or vector of float, double or KeyType", type.ToString());
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);

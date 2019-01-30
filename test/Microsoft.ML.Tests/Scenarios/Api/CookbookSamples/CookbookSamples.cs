@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Start creating our processing pipeline. For now, let's just concatenate all the text columns
             // together into one.
-            var dataPipeline = reader.MakeNewEstimator()
+            var pipeline = reader.MakeNewEstimator()
                 .Append(row => (
                         row.IsOver50K,
                         AllFeatures: row.Workclass.ConcatWith(row.Education, row.MaritalStatus)
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var data = reader.Read(dataPath);
 
             // Fit our data pipeline and transform data with it.
-            var transformedData = dataPipeline.Fit(data).Transform(data);
+            var transformedData = pipeline.Fit(data).Transform(data);
 
             // 'transformedData' is a 'promise' of data. Let's actually read it.
             var someRows = mlContext
@@ -115,13 +115,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Sometime, caching data in-memory after its first access can save some loading time when the data is going to used
             // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
             // User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
-            // a caching step, which provides the same caching function, will be inserted in the considered "learningPipeline."
+            // a caching step, which provides the same caching function, will be inserted in the considered "pipeline."
             var cachedTrainData = trainData.Cache();
 
             // Step two: define the learning pipeline. 
 
             // We 'start' the pipeline with the output of the reader.
-            var learningPipeline = reader.MakeNewEstimator()
+            var pipeline = reader.MakeNewEstimator()
                 // We add a step for caching data in memory so that the downstream iterative training
                 // algorithm can efficiently scan through the data multiple times. Otherwise, the following
                 // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var fx = trainData.GetColumn(x => x.FeatureVector);
 
             // Step three. Train the pipeline.
-            var model = learningPipeline.Fit(trainData);
+            var model = pipeline.Fit(trainData);
 
             // Read the test dataset.
             var testData = reader.Read(testDataPath);
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var trainData = reader.Read(irisDataPath);
 
             // Build the training pipeline.
-            var learningPipeline = reader.MakeNewEstimator()
+            var pipeline = reader.MakeNewEstimator()
                 .Append(r => (
                     r.Label,
                     // Concatenate all the features together into one column 'Features'.
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(r => r.Predictions.predictedLabel.ToValue());
 
             // Train the model.
-            var model = learningPipeline.Fit(trainData).AsDynamic;
+            var model = pipeline.Fit(trainData).AsDynamic;
             return model;
         }
 
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // And these are the normalizer scales that we will learn.
             ImmutableArray<float> normScales;
             // Build the training pipeline.
-            var learningPipeline = reader.MakeNewEstimator()
+            var pipeline = reader.MakeNewEstimator()
                 .Append(r => (
                     r.Label,
                     // Concatenate all the features together into one column 'Features'.
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Train the model. During this call our 'onFit' delegate will be invoked,
             // and our 'predictor' will be set.
-            var model = learningPipeline.Fit(trainData);
+            var model = pipeline.Fit(trainData);
 
             // Now we can use 'predictor' to look at the weights.
             // 'weights' will be an array of weight vectors, one vector per class.
@@ -405,12 +405,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // In our case, we will one-hot encode the demographic category, and concatenate that with the number of visits.
             // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
-            var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
+            var dynamicpipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
                 .Append(new ColumnConcatenatingEstimator (mlContext, "Features", "DemographicCategory", "LastVisits"))
                 .AppendCacheCheckpoint(mlContext) // FastTree will benefit from caching data in memory.
                 .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
-            var dynamicModel = dynamicLearningPipeline.Fit(trainData);
+            var dynamicModel = dynamicpipeline.Fit(trainData);
 
             // Build the same learning pipeline, but statically typed.
             // First, transition to the statically-typed data view.
@@ -420,14 +420,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     LastVisits: c.R4.Vector));
 
             // Build the pipeline, same as the one above.
-            var staticLearningPipeline = staticData.MakeNewEstimator()
+            var staticpipeline = staticData.MakeNewEstimator()
                 .Append(r => (
                     r.HasChurned,
                     Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
                 .AppendCacheCheckpoint() // FastTree will benefit from caching data in memory.
                 .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
 
-            var staticModel = staticLearningPipeline.Fit(staticData);
+            var staticModel = staticpipeline.Fit(staticData);
 
             // Note that dynamicModel should be the same as staticModel.AsDynamic (give or take random variance from
             // the training procedure).
@@ -454,7 +454,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
 
             // Apply various kinds of text operations supported by ML.NET.
-            var learningPipeline = reader.MakeNewEstimator()
+            var pipeline = reader.MakeNewEstimator()
                 // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
                 // cached in memory at their first uses. This step can be removed if user's machine doesn't
                 // have enough memory.
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Let's train our pipeline, and then apply it to the same data.
             // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
-            var transformedData = learningPipeline.Fit(data).Transform(data);
+            var transformedData = pipeline.Fit(data).Transform(data);
 
             // Inspect some columns of the resulting dataset.
             var embeddings = transformedData.GetColumn(x => x.Embeddings).Take(10).ToArray();
@@ -521,7 +521,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
 
             // Build several alternative featurization pipelines.
-            var learningPipeline = reader.MakeNewEstimator()
+            var pipeline = reader.MakeNewEstimator()
                 // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
                 // cached in memory at their first uses. This step can be removed if user's machine doesn't
                 // have enough memory.
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 ));
 
             // Let's train our pipeline, and then apply it to the same data.
-            var transformedData = learningPipeline.Fit(data).Transform(data);
+            var transformedData = pipeline.Fit(data).Transform(data);
 
             // Inspect some columns of the resulting dataset.
             var categoricalBags = transformedData.GetColumn(x => x.CategoricalBag).Take(10).ToArray();
@@ -547,7 +547,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Of course, if we want to train the model, we will need to compose a single float vector of all the features.
             // Here's how we could do this:
 
-            var fullLearningPipeline = learningPipeline
+            var fullpipeline = pipeline
                 .Append(r => (
                     r.Label,
                     // Concatenate two of the 3 categorical pipelines, and the numeric features.
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.Label, r.Features, numTrees: 50));
 
             // Train the model.
-            var model = fullLearningPipeline.Fit(data);
+            var model = fullpipeline.Fit(data);
         }
 
         [Fact]
@@ -587,7 +587,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var data = reader.Read(dataPath);
 
             // Build the training pipeline.
-            var learningPipeline = reader.MakeNewEstimator()
+            var pipeline = reader.MakeNewEstimator()
                 .Append(r => (
                     // Convert string label to a key.
                     Label: r.Label.ToKey(),
@@ -605,13 +605,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Train the model.
-            var model = learningPipeline.Fit(trainData);
+            var model = pipeline.Fit(trainData);
             // Compute quality metrics on the test set.
             var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
             Console.WriteLine(metrics.AccuracyMicro);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.
-            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, learningPipeline, r => r.Label, numFolds: 5);
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, r => r.Label, numFolds: 5);
 
             // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
             // Let's compute the average micro-accuracy.
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var data = reader.Read(dataPath);
 
             // Build the pre-processing pipeline.
-            var learningPipeline = reader.MakeNewEstimator()
+            var pipeline = reader.MakeNewEstimator()
                 .Append(r => (
                     // Convert string label to a key.
                     Label: r.Label.ToKey(),
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Now, at the time of writing, there is no static pipeline for OVA (one-versus-all). So, let's
             // append the OVA learner to the dynamic pipeline.
-            IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
+            IEstimator<ITransformer> dynamicPipe = pipeline.AsDynamic;
 
             // Create a binary classification trainer.
             var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "Features");

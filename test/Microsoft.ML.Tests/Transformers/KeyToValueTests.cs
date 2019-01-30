@@ -45,13 +45,13 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(dataPath);
 
             data = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingTransformer.ColumnInfo("ScalarString", "A"),
-                new ValueToKeyMappingTransformer.ColumnInfo("VectorString", "B") }).Fit(data).Transform(data);
+                new ValueToKeyMappingTransformer.ColumnInfo("A", "ScalarString"),
+                new ValueToKeyMappingTransformer.ColumnInfo("B", "VectorString") }).Fit(data).Transform(data);
 
-            var badData1 = new ColumnCopyingTransformer(Env, ("BareKey", "A")).Transform(data);
-            var badData2 = new ColumnCopyingTransformer(Env, ("VectorString", "B")).Transform(data);
+            var badData1 = new ColumnCopyingTransformer(Env, ("A", "BareKey")).Transform(data);
+            var badData2 = new ColumnCopyingTransformer(Env, ("B", "VectorString")).Transform(data);
 
-            var est = new KeyToValueMappingEstimator(Env, ("A", "A_back"), ("B", "B_back"));
+            var est = new KeyToValueMappingEstimator(Env, ("A_back", "A"), ("B_back", "B"));
             TestEstimatorCore(est, data, invalidInput: badData1);
             TestEstimatorCore(est, data, invalidInput: badData2);
 
@@ -82,8 +82,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingTransformer.ColumnInfo("ScalarString", "A"),
-                new ValueToKeyMappingTransformer.ColumnInfo("VectorString", "B") })
+                new ValueToKeyMappingTransformer.ColumnInfo("A", "ScalarString"),
+                new ValueToKeyMappingTransformer.ColumnInfo("B", "VectorString") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (

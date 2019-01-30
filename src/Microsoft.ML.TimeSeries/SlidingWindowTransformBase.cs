@@ -65,7 +65,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         private TInput _nanValue;
 
         protected SlidingWindowTransformBase(Arguments args, string loaderSignature, IHostEnvironment env, IDataView input)
-            : base(args.WindowSize + args.Lag - 1, args.WindowSize + args.Lag - 1, args.Source, args.Name, loaderSignature, env, input)
+            : base(args.WindowSize + args.Lag - 1, args.WindowSize + args.Lag - 1, args.Name, args.Source, loaderSignature, env, input)
         {
             Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), "Must be at least 1.");
             Host.CheckUserArg(args.Lag >= 0, nameof(args.Lag), "Must be positive.");

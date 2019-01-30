@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -58,9 +56,9 @@ namespace Microsoft.ML.Data.Conversion
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new Conversions(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new Conversions(), null) ??
+                    _instance;
             }
         }
 

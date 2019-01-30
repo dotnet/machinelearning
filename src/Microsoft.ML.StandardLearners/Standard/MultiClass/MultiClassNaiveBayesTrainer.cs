@@ -165,7 +165,7 @@ namespace Microsoft.ML.Trainers
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""MultiClassNaiveBayesTrainer""]/*'/>",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/example[@name=""MultiClassNaiveBayesTrainer""]/*'/>" })]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainMultiClassNaiveBayes");

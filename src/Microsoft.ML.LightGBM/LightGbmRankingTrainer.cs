@@ -141,7 +141,7 @@ namespace Microsoft.ML.LightGBM
             Contracts.Assert(labelCol.IsValid);
 
             Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "R4 or a Key", labelCol.GetTypeString());
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float or KeyType", labelCol.GetTypeString());
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
@@ -186,7 +186,7 @@ namespace Microsoft.ML.LightGBM
     /// <summary>
     /// The entry point for the LightGbmRankingTrainer.
     /// </summary>
-    public static partial class LightGbm
+    internal static partial class LightGbm
     {
         [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker",
             Desc = "Train a LightGBM ranking model.",

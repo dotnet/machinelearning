@@ -76,7 +76,7 @@ namespace Microsoft.ML.StaticPipe
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (OutColumn)toOutput[i];
-                    cols[i] = new WordEmbeddingsExtractingTransformer.ColumnInfo(inputNames[outCol.Input], outputNames[outCol]);
+                    cols[i] = new WordEmbeddingsExtractingTransformer.ColumnInfo(outputNames[outCol], inputNames[outCol.Input]);
                 }
 
                 bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);

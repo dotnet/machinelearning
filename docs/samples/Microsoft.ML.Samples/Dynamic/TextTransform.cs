@@ -27,11 +27,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // A pipeline for featurization of the "SentimentText" column, and placing the output in a new column named "DefaultTextFeatures"
             // The pipeline uses the default settings to featurize.
             string defaultColumnName = "DefaultTextFeatures";
-            var default_pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", defaultColumnName);
+            var default_pipeline = ml.Transforms.Text.FeaturizeText(defaultColumnName , "SentimentText");
 
             // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
             string customizedColumnName = "CustomizedTextFeatures";
-            var customized_pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", customizedColumnName, s =>
+            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, "SentimentText", s =>
             {
                 s.KeepPunctuations = false;
                 s.KeepNumbers = false;

@@ -101,7 +101,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.Assert(labelCol.IsValid);
 
             Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "R4 or a Key", labelCol.GetTypeString());
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float or KeyType", labelCol.GetTypeString());
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
@@ -1155,7 +1155,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
     }
 
-    public static partial class FastTree
+    internal static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker",
             Desc = FastTreeRankingTrainer.Summary,

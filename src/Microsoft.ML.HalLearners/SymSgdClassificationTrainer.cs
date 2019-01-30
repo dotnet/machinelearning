@@ -227,7 +227,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             UserName = SymSgdClassificationTrainer.UserNameValue,
             ShortName = SymSgdClassificationTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""SymSGD""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
+        internal static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSymSGD");

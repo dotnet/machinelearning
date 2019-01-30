@@ -475,7 +475,7 @@ namespace Microsoft.ML.FactorizationMachine
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/member[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/example[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
+        internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("Train a field-aware factorization machine");
@@ -518,25 +518,26 @@ namespace Microsoft.ML.FactorizationMachine
 
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            void CheckColumnsCompatible(SchemaShape.Column column, string defaultName)
+            void CheckColumnsCompatible(SchemaShape.Column column, string columnRole)
             {
 
                 if (!inputSchema.TryFindColumn(column.Name, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(col), defaultName, defaultName);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name);
 
                 if (!column.IsCompatibleWith(col))
-                    throw Host.Except($"{defaultName} column '{column.Name}' is not compatible");
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name,
+                        column.GetTypeString(), col.GetTypeString());
             }
 
-            CheckColumnsCompatible(LabelColumn, DefaultColumnNames.Label);
+            CheckColumnsCompatible(LabelColumn, "label");
 
             foreach (var feat in FeatureColumns)
             {
-                CheckColumnsCompatible(feat, DefaultColumnNames.Features);
+                CheckColumnsCompatible(feat, "feature");
             }
 
             if (WeightColumn.IsValid)
-                CheckColumnsCompatible(WeightColumn, DefaultColumnNames.Weight);
+                CheckColumnsCompatible(WeightColumn, "weight");
 
             var outColumns = inputSchema.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
