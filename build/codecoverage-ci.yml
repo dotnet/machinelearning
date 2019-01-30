@@ -1,0 +1,17 @@
+################################################################################
+# ML.NET's Code Coverage validation build
+################################################################################
+
+phases:
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_x64
+    buildScript: build.cmd
+    customMatrixes:
+      Build_Debug:
+        _configuration: Debug
+        _config_short: D
+        _includeBenchmarkData: false
+    codeCoverage: true
+    queue:
+      name: Hosted VS2017

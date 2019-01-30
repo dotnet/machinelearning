@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -24,7 +26,8 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// This class approximates bootstrap sampling of a dataview.
     /// </summary>
-    public sealed class BootstrapSamplingTransformer : FilterBase
+    [BestFriend]
+    internal sealed class BootstrapSamplingTransformer : FilterBase
     {
         private static class Defaults
         {
@@ -163,20 +166,20 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             // We do not use the input random because this cursor does not support shuffling.
             var rgen = new TauswortheHybrid(_state);
-            var input = Source.GetRowCursor(predicate, _shuffleInput ? new TauswortheHybrid(rgen) : null);
+            var input = Source.GetRowCursor(columnsNeeded, _shuffleInput ? new TauswortheHybrid(rgen) : null);
             RowCursor cursor = new Cursor(this, input, rgen);
             if (_poolSize > 1)
                 cursor = RowShufflingTransformer.GetShuffledCursor(Host, _poolSize, cursor, new TauswortheHybrid(rgen));
             return cursor;
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            var cursor = GetRowCursorCore(predicate, rand);
+            var cursor = GetRowCursorCore(columnsNeeded, rand);
             return new RowCursor[] { cursor };
         }
 
@@ -221,7 +224,6 @@ namespace Microsoft.ML.Transforms
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State != CursorState.Done);
                 Ch.Assert(_remaining >= 0);
                 while (_remaining == 0 && Input.MoveNext())
                 {
@@ -234,7 +236,10 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static class BootstrapSample
+    /// <summary>
+    /// Entry point methods for bootstrap sampling.
+    /// </summary>
+    internal static class BootstrapSample
     {
         [TlcModule.EntryPoint(Name = "Transforms.ApproximateBootstrapSampler", Desc = BootstrapSamplingTransformer.Summary, UserName = BootstrapSamplingTransformer.UserName, ShortName = BootstrapSamplingTransformer.RegistrationName)]
         public static CommonOutputs.TransformOutput GetSample(IHostEnvironment env, BootstrapSamplingTransformer.Arguments input)

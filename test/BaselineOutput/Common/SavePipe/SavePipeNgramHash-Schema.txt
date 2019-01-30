@@ -44,7 +44,7 @@
     Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
   Hash: Vec<Key<U4, 0-1023>>
-  HashBig: Vec<Key<U4, Min:0>>
+  HashBig: Vec<Key<U4, 0-2147483647>>
 ---- RowToRowMapperTransform ----
 8 columns:
   Label: Text
@@ -59,7 +59,7 @@
     Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
   Hash: Vec<Key<U4, 0-1023>>
-  HashBig: Vec<Key<U4, Min:0>>
+  HashBig: Vec<Key<U4, 0-2147483647>>
   NgramHashOne: Vec<R4, 16>
 ---- RowToRowMapperTransform ----
 9 columns:
@@ -75,7 +75,7 @@
     Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
   Hash: Vec<Key<U4, 0-1023>>
-  HashBig: Vec<Key<U4, Min:0>>
+  HashBig: Vec<Key<U4, 0-2147483647>>
   NgramHashOne: Vec<R4, 16>
   HashNgram1: Vec<R4, 1024>
 ---- RowToRowMapperTransform ----
@@ -92,7 +92,7 @@
     Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
   Hash: Vec<Key<U4, 0-1023>>
-  HashBig: Vec<Key<U4, Min:0>>
+  HashBig: Vec<Key<U4, 0-2147483647>>
   NgramHashOne: Vec<R4, 16>
   HashNgram1: Vec<R4, 1024>
   HashNgram2: Vec<R4, 256>
@@ -111,7 +111,7 @@
     Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
   Hash: Vec<Key<U4, 0-1023>>
-  HashBig: Vec<Key<U4, Min:0>>
+  HashBig: Vec<Key<U4, 0-2147483647>>
   NgramHashOne: Vec<R4, 16>
   HashNgram1: Vec<R4, 1024>
   HashNgram2: Vec<R4, 256>
@@ -131,7 +131,7 @@
     Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
   Hash: Vec<Key<U4, 0-1023>>
-  HashBig: Vec<Key<U4, Min:0>>
+  HashBig: Vec<Key<U4, 0-2147483647>>
   NgramHashOne: Vec<R4, 16>
   HashNgram1: Vec<R4, 1024>
   HashNgram2: Vec<R4, 256>
@@ -153,7 +153,7 @@
     Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
   Hash: Vec<Key<U4, 0-1023>>
-  HashBig: Vec<Key<U4, Min:0>>
+  HashBig: Vec<Key<U4, 0-2147483647>>
   NgramHashOne: Vec<R4, 16>
   HashNgram1: Vec<R4, 1024>
   HashNgram2: Vec<R4, 256>

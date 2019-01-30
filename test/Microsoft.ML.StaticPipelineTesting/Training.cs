@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.FactorizationMachine;
@@ -722,9 +723,9 @@ namespace Microsoft.ML.StaticPipelineTesting
                                 r.features,
                                 preds: env.Clustering.Trainers.KMeans
                                 (
-                                    r.features, 
+                                    r.features,
                                     null,
-                                    options : new KMeansPlusPlusTrainer.Options
+                                    options: new KMeansPlusPlusTrainer.Options
                                     {
                                         ClustersCount = 3,
                                         NumThreads = 1
@@ -987,7 +988,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Read data file. The file contains 3 columns, label (float value), matrixColumnIndex (unsigned integer key), and matrixRowIndex (unsigned integer key).
             // More specifically, LoadKey(1, 0, 19) means that the matrixColumnIndex column is read from the 2nd (indexed by 1) column in the data file and as
             // a key type (stored as 32-bit unsigned integer) ranged from 0 to 19 (aka the training matrix has 20 columns).
-            var reader = mlContext.Data.CreateTextReader(ctx => (label: ctx.LoadFloat(0), matrixColumnIndex: ctx.LoadKey(1, 0, 19), matrixRowIndex: ctx.LoadKey(2, 0, 39)), hasHeader: true);
+            var reader = mlContext.Data.CreateTextReader(ctx => (label: ctx.LoadFloat(0), matrixColumnIndex: ctx.LoadKey(1, 20), matrixRowIndex: ctx.LoadKey(2, 40)), hasHeader: true);
 
             // The parameter that will be into the onFit method below. The obtained predictor will be assigned to this variable
             // so that we will be able to touch it.
@@ -996,8 +997,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Create a statically-typed matrix factorization estimator. The MatrixFactorization's input and output defined in MatrixFactorizationStatic
             // tell what (aks a Scalar<float>) is expected. Notice that only one thread is used for deterministic outcome.
             var matrixFactorizationEstimator = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: mlContext.Regression.Trainers.MatrixFactorization(r.label, r.matrixRowIndex, r.matrixColumnIndex, onFit: p => pred = p,
-                advancedSettings: args => { args.NumThreads = 1; })));
+                .Append(r => (r.label, score: mlContext.Regression.Trainers.MatrixFactorization(
+                                            r.label, r.matrixRowIndex, r.matrixColumnIndex,
+                                            new MatrixFactorizationTrainer.Options { NumThreads = 1 },
+                                            onFit: p => pred = p)));
 
             // Create a pipeline from the reader (the 1st step) and the matrix factorization estimator (the 2nd step).
             var pipe = reader.Append(matrixFactorizationEstimator);
@@ -1033,7 +1036,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
-            var dataView = ComponentCreation.CreateDataView(mlContext, examples);
+            var dataView = mlContext.Data.ReadFromEnumerable(examples);
 
             // IDataView is the data format used in dynamic-typed pipeline. To use static-typed pipeline, we need to convert
             // IDataView to DataView by calling AssertStatic(...). The basic idea is to specify the static type for each column

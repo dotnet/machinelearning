@@ -1,15 +1,15 @@
 ---- BoundLoader ----
 5 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
 ---- RowToRowMapperTransform ----
 15 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   _tmp000: Vec<Text>
@@ -25,8 +25,8 @@
 ---- RowToRowMapperTransform ----
 25 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   _tmp000: Vec<Text>
@@ -68,8 +68,8 @@
 ---- RowToRowMapperTransform ----
 30 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   _tmp000: Vec<Text>
@@ -124,8 +124,8 @@
 ---- SelectColumnsDataTransform ----
 20 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   _tmp000: Vec<Text>
@@ -154,8 +154,8 @@
 ---- SelectColumnsDataTransform ----
 10 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   F1: Vec<R4, 8>

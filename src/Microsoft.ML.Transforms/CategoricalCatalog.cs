@@ -16,15 +16,15 @@ namespace Microsoft.ML
         /// Convert a text column into one-hot encoded vector.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="inputColumn">The input column</param>
-        /// <param name="outputColumn">The output column. If <c>null</c>, <paramref name="inputColumn"/> is used.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="outputKind">The conversion mode.</param>
         /// <returns></returns>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
-                string inputColumn,
-                string outputColumn = null,
+                string outputColumnName,
+                string inputColumnName = null,
                 OneHotEncodingTransformer.OutputKind outputKind = OneHotEncodingTransformer.OutputKind.Ind)
-            => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, outputKind);
+            => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, outputKind);
 
         /// <summary>
         /// Convert several text column into one-hot encoded vectors.
@@ -40,8 +40,8 @@ namespace Microsoft.ML
         /// Convert a text column into hash-based one-hot encoded vector.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="inputColumn">The input column</param>
-        /// <param name="outputColumn">The output column. If <c>null</c>, <paramref name="inputColumn"/> is used.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
@@ -50,12 +50,12 @@ namespace Microsoft.ML
         /// <param name="outputKind">The conversion mode.</param>
         /// <returns></returns>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
-                string inputColumn,
-                string outputColumn = null,
+                string outputColumnName,
+                string inputColumnName = null,
                 int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
                 int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
                 OneHotEncodingTransformer.OutputKind outputKind = OneHotEncodingTransformer.OutputKind.Ind)
-            => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, hashBits, invertHash, outputKind);
+            => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, hashBits, invertHash, outputKind);
 
         /// <summary>
         /// Convert several text column into hash-based one-hot encoded vectors.

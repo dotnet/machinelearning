@@ -6,12 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(IDataLoader), typeof(CompositeDataLoader), typeof(CompositeDataLoader.Arguments), typeof(SignatureDataLoader),
     "Composite Data Loader", "CompositeDataLoader", "Composite", "PipeData", "Pipe", "PipeDataLoader")]
@@ -373,7 +374,7 @@ namespace Microsoft.ML.Data
             //     string: args string
 
             int cbFloat = ctx.Reader.ReadInt32();
-            h.CheckDecode(cbFloat == sizeof(Float));
+            h.CheckDecode(cbFloat == sizeof(float));
 
             int cxf = ctx.Reader.ReadInt32();
             h.CheckDecode(cxf >= 0);
@@ -398,6 +399,25 @@ namespace Microsoft.ML.Data
             }
 
             return curView;
+        }
+
+        internal TransformerChain<ITransformer> GetTransformer()
+        {
+            var result = new TransformerChain<ITransformer>();
+            foreach (var transform in _transforms)
+            {
+                if (transform.Transform is RowToRowMapperTransform mapper)
+                {
+                    var transformer = mapper.GetTransformer();
+                    result = result.Append(transformer);
+                }
+                else
+                {
+                    ITransformer transformer = new TransformWrapper(_host, transform.Transform);
+                    result = result.Append(transformer);
+                }
+            }
+            return result;
         }
 
         private CompositeDataLoader(IHost host, TransformEx[] transforms)
@@ -442,7 +462,7 @@ namespace Microsoft.ML.Data
             //     string: args string
 
             int cbFloat = ctx.Reader.ReadInt32();
-            host.CheckDecode(cbFloat == sizeof(Float));
+            host.CheckDecode(cbFloat == sizeof(float));
 
             int cxf = ctx.Reader.ReadInt32();
             host.CheckDecode(cxf >= 0);
@@ -529,7 +549,7 @@ namespace Microsoft.ML.Data
             //     string: tag
             //     string: args string
 
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(transforms.Length);
 
             using (var loaderCtx = new ModelSaveContext(ctx.Repository, Path.Combine(ctx.Directory ?? "", "Loader"), ModelLoadContext.ModelStreamName))
@@ -563,18 +583,20 @@ namespace Microsoft.ML.Data
 
         public Schema Schema => View.Schema;
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return View.GetRowCursor(predicate, rand);
+            _host.AssertValue(columnsNeeded);
+
+            return View.GetRowCursor(columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return View.GetRowCursorSet(predicate, n, rand);
+            _host.AssertValue(columnsNeeded);
+
+            return View.GetRowCursorSet(columnsNeeded, n, rand);
         }
 
         VectorType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);

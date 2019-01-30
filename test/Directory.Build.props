@@ -2,11 +2,10 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <DefaultTestTargetFramework>netcoreapp2.1</DefaultTestTargetFramework>
-    <DefaultTestTargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net462</DefaultTestTargetFramework>
-    <DefaultTestTargetFramework Condition="'$(UseIntrinsics)' == 'true'">netcoreapp3.0</DefaultTestTargetFramework>
-    <TargetFramework>$(DefaultTestTargetFramework)</TargetFramework>
-    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net462'">win-x64</RuntimeIdentifier>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net461</TargetFramework>
+    <TargetFramework Condition="'$(UseIntrinsics)' == 'true'">netcoreapp3.0</TargetFramework>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461'">win-x64</RuntimeIdentifier>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
@@ -31,6 +30,21 @@
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="2.4.0-prerelease-63213-02" />
+    <PackageReference Include="coverlet.msbuild" Version="$(CoverletVersion)" />
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(Coverage)' == 'true'">
+      <CollectCoverage>true</CollectCoverage>
+      <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> <!-- https://github.com/tonerdo/coverlet/issues/72 -->
+      <CoverletOutputFormat>opencover</CoverletOutputFormat>
+      <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).coverage</CoverletOutput>
+      <Include>[Microsoft.ML.*]*</Include>
+      <!-- Excluding for perf reasons. These classes have tests that can be run conditionally
+           but they need to be migrated. Excluding these classes should have very minimal effect on code coverage.
+      -->
+      <Exclude>[*]Microsoft.ML.*Contracts*,[*]Microsoft.ML.Internal.Utilities*,[*]Microsoft.ML.Data.VBuffer*</Exclude>
+      <ExcludeByAttribute>Obsolete,ExcludeFromCodeCoverage</ExcludeByAttribute>
+      <ExcludeByFile>$(BaseOutputPath)..\src\Microsoft.ML.Onnx\OnnxMl.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Buffer.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Tensor.cs,$(BaseOutputPath)..\src\Microsoft.ML.TensorFlow\TensorFlow\Tensorflow.cs</ExcludeByFile>
+  </PropertyGroup>
 
 </Project>

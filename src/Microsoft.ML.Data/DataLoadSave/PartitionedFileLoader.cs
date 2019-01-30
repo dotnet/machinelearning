@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -90,7 +91,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Required, HelpText = "Index of the directory representing this column.")]
             public int Source;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Data
                 return null;
             }
 
-            public static bool TryParse(string str, out Column column)
+            private static bool TryParse(string str, out Column column)
             {
                 column = null;
 
@@ -117,7 +118,7 @@ namespace Microsoft.ML.Data
                 }
 
                 DataKind? kind = null;
-                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out KeyRange range))
+                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out var keyCount))
                 {
                     kind = parsedKind;
                 }
@@ -137,7 +138,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
 
@@ -292,14 +293,14 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            return new Cursor(_host, this, _files, needCol, rand);
+            return new Cursor(_host, this, _files, columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            var cursor = new Cursor(_host, this, _files, needCol, rand);
+            var cursor = new Cursor(_host, this, _files, columnsNeeded, rand);
             return new RowCursor[] { cursor };
         }
 
@@ -316,7 +317,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(subLoader);
 
             var builder = new SchemaBuilder();
-            builder.AddColumns(cols.Select(c => new Schema.DetachedColumn(c.Name, PrimitiveType.FromKind(c.Type.Value), null)));
+            builder.AddColumns(cols.Select(c => new Schema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
             var colSchema = builder.GetSchema();
 
             var subSchema = subLoader.Schema;
@@ -364,28 +365,33 @@ namespace Microsoft.ML.Data
         {
             private PartitionedFileLoader _parent;
 
-            private bool[] _active;
-            private bool[] _subActive; // Active columns of the sub-cursor.
+            private readonly bool[] _active;
+            private readonly bool[] _subActive; // Active columns of the sub-cursor.
             private Delegate[] _getters;
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
+
+            private readonly IEnumerable<Schema.Column> _columnsNeeded;
+            private readonly IEnumerable<Schema.Column> _subActivecolumnsNeeded;
 
             private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
             private RowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
 
-            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, Func<int, bool> predicate, Random rand)
+            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, IEnumerable<Schema.Column> columnsNeeded, Random rand)
                 : base(provider)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(files);
-                Contracts.AssertValue(predicate);
 
                 _parent = parent;
+                _columnsNeeded = columnsNeeded;
 
-                _active = Utils.BuildArray(Schema.Count, predicate);
+                _active = Utils.BuildArray(Schema.Count, columnsNeeded);
                 _subActive = _active.Take(SubColumnCount).ToArray();
                 _colValues = new ReadOnlyMemory<char>[Schema.Count - SubColumnCount];
+
+                _subActivecolumnsNeeded = Schema.Where(x => (_subActive?.Length > x.Index) && _subActive[x.Index]);
 
                 _subGetters = new Delegate[SubColumnCount];
                 _getters = CreateGetters();
@@ -415,7 +421,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
 
                         val = new RowId(0, (ulong)Position);
                     };
@@ -456,7 +462,7 @@ namespace Microsoft.ML.Data
                         continue;
                     }
 
-                    _subCursor = loader.GetRowCursor(col => _subActive[col]);
+                    _subCursor = loader.GetRowCursor(_subActivecolumnsNeeded);
 
                     try
                     {

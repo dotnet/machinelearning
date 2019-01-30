@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -66,7 +67,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         private readonly Double _percentile;
 
         public PercentileThresholdTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(args.WindowSize, args.WindowSize, args.Source, args.Name, LoaderSignature, env, input)
+            : base(args.WindowSize, args.WindowSize, args.Name, args.Source, LoaderSignature, env, input)
         {
             Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), "The size of the sliding window should be at least 1.");
             Host.CheckUserArg(MinPercentile <= args.Percentile && args.Percentile <= MaxPercentile, nameof(args.Percentile), "The percentile value should be in [0, 100].");

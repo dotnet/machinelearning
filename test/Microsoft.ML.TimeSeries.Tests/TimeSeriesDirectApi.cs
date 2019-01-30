@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests
             var env = new MLContext(conc: 1);
             const int size = 10;
             List<Data> data = new List<Data>(size);
-            var dataView = env.CreateStreamingDataView(data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             for (int i = 0; i < size / 2; i++)
                 data.Add(new Data(5));
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests
             const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             List<Data> data = new List<Data>();
-            var dataView = env.CreateStreamingDataView(data);
+            var dataView = env.Data.ReadFromEnumerable(data);
 
             var args = new SsaChangePointDetector.Arguments()
             {
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests
             List<Data> data = new List<Data>();
 
             var ml = new MLContext(seed: 1, conc: 1);
-            var dataView = ml.CreateStreamingDataView(data);
+            var dataView = ml.Data.ReadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Tests
 
 
             // Pipeline.
-            var pipeline = ml.Transforms.Text.FeaturizeText("Text", "Text_Featurized")
+            var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
                 .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
                 {
                     Confidence = 95,
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Tests
             List<Data> data = new List<Data>();
 
             var ml = new MLContext(seed: 1, conc: 1);
-            var dataView = ml.CreateStreamingDataView(data);
+            var dataView = ml.Data.ReadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Tests
 
 
             // Pipeline.
-            var pipeline = ml.Transforms.Text.FeaturizeText("Text", "Text_Featurized")
+            var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
                 .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
                 {
                     Confidence = 95,

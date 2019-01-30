@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
@@ -59,10 +60,11 @@ namespace Microsoft.ML.Data
 
         public abstract Schema OutputSchema { get; }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var rng = CanShuffle ? rand : null;
             bool? useParallel = ShouldUseParallelCursors(predicate);
@@ -73,12 +75,12 @@ namespace Microsoft.ML.Data
             // this is RangeFilter.
             RowCursor curs;
             if (useParallel != false &&
-                DataViewUtils.TryCreateConsolidatingCursor(out curs, this, predicate, Host, rng))
+                DataViewUtils.TryCreateConsolidatingCursor(out curs, this, columnsNeeded, Host, rng))
             {
                 return curs;
             }
 
-            return GetRowCursorCore(predicate, rng);
+            return GetRowCursorCore(columnsNeeded, rng);
         }
 
         /// <summary>
@@ -92,9 +94,9 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Create a single (non-parallel) row cursor.
         /// </summary>
-        protected abstract RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
+        protected abstract RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null);
 
-        public abstract RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null);
+        public abstract RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null);
     }
 
     /// <summary>
@@ -118,7 +120,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for transforms that filter out rows without changing the schema.
     /// </summary>
-    public abstract class FilterBase : TransformBase, ITransformCanSavePfa
+    [BestFriend]
+    internal abstract class FilterBase : TransformBase, ITransformCanSavePfa
     {
         [BestFriend]
         private protected FilterBase(IHostEnvironment env, string name, IDataView input)
@@ -370,7 +373,7 @@ namespace Microsoft.ML.Data
 
                     int colSrc;
                     if (!inputSchema.TryGetColumnIndex(src, out colSrc))
-                        throw host.Except("Source column '{0}' is required but not found", src);
+                        throw host.ExceptSchemaMismatch(nameof(inputSchema), "source", src);
                     var type = inputSchema[colSrc].Type;
                     if (testType != null)
                     {
@@ -581,14 +584,14 @@ namespace Microsoft.ML.Data
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
                 ColInfo info = Infos[iinfo];
-                string sourceColumnName = Source.Schema[info.Source].Name;
-                if (!ctx.ContainsColumn(sourceColumnName))
+                string inputColumnName = Source.Schema[info.Source].Name;
+                if (!ctx.ContainsColumn(inputColumnName))
                 {
                     ctx.RemoveColumn(info.Name, false);
                     continue;
                 }
 
-                if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
                     ctx.AddIntermediateVariable(OutputSchema[_bindings.MapIinfoToCol(iinfo)].Type, info.Name)))
                 {
                     ctx.RemoveColumn(info.Name, true);
@@ -706,25 +709,31 @@ namespace Microsoft.ML.Data
             return _bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
 
-            var inputPred = _bindings.GetDependencies(predicate);
-            var active = _bindings.GetActive(predicate);
-            var input = Source.GetRowCursor(inputPred, rand);
+            Func<int, bool> needCol = c=> columnsNeeded == null ? false: columnsNeeded.Any(x => x.Index == c);
+
+            var inputPred = _bindings.GetDependencies(needCol);
+            var active = _bindings.GetActive(needCol);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols, rand);
             return new Cursor(Host, this, input, active);
         }
 
-        public sealed override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && WantParallelCursors(predicate))

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -131,7 +132,11 @@ namespace Microsoft.ML.Trainers.HalLearners
                 if (typeFeat.ItemType != NumberType.Float)
                     throw ch.Except("Incompatible feature column type {0}, must be vector of {1}", typeFeat, NumberType.Float);
 
-                var cursorFactory = new FloatLabelCursor.Factory(examples, CursOpt.Label | CursOpt.Features);
+                CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
+                if (examples.Schema.Weight.HasValue)
+                    cursorOpt |= CursOpt.Weight;
+
+                var cursorFactory = new FloatLabelCursor.Factory(examples, cursorOpt);
 
                 return TrainCore(ch, cursorFactory, typeFeat.Size);
             }
@@ -494,7 +499,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             UserName = UserNameValue,
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options options)
+        internal static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainOLS");

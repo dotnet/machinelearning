@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -24,13 +25,15 @@ namespace Microsoft.ML.Data
 
         private readonly IHost _host;
         private readonly IDataView _xf;
+        private readonly bool _allowSave;
 
-        public TransformWrapper(IHostEnvironment env, IDataView xf)
+        public TransformWrapper(IHostEnvironment env, IDataView xf, bool allowSave = false)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));
             _host.CheckValue(xf, nameof(xf));
             _xf = xf;
+            _allowSave = allowSave;
             IsRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
@@ -45,6 +48,8 @@ namespace Microsoft.ML.Data
 
         public void Save(ModelSaveContext ctx)
         {
+            if (!_allowSave)
+                throw _host.Except("Saving is not permitted.");
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -88,7 +93,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));
             _host.CheckValue(ctx, nameof(ctx));
-
+            _allowSave = true;
             ctx.CheckAtModel(GetVersionInfo());
             int n = ctx.Reader.ReadInt32();
             _host.CheckDecode(n >= 0);

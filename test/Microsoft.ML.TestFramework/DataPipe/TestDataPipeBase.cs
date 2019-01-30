@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -211,7 +212,7 @@ namespace Microsoft.ML.RunTests
                     // Set the concurrency to 1 for this; restore later.
                     int conc = _env.ConcurrencyFactor;
                     _env.ConcurrencyFactor = 1;
-                    using (var curs = pipe1.GetRowCursor(c => true, null))
+                    using (var curs = pipe1.GetRowCursorForAllColumns())
                     {
                         while (curs.MoveNext())
                         {
@@ -255,8 +256,8 @@ namespace Microsoft.ML.RunTests
                 var newPipe = ApplyTransformUtils.ApplyAllTransformsToData(_env, comp.View, cachedData);
                 if (!newPipe.CanShuffle)
                 {
-                    using (var c1 = newPipe.GetRowCursor(col => true, new Random(123)))
-                    using (var c2 = newPipe.GetRowCursor(col => true))
+                    using (var c1 = newPipe.GetRowCursor(newPipe.Schema, new Random(123)))
+                    using (var c2 = newPipe.GetRowCursorForAllColumns())
                     {
                         if (!CheckSameValues(c1, c2, true, true, true))
                             Failed();
@@ -574,25 +575,25 @@ namespace Microsoft.ML.RunTests
                 }
 
                 // This checks that an unknown metadata kind does the right thing.
-                if (!CheckMetadataNames("PurpleDragonScales", -1, sch1, sch2, col, exactTypes, true))
+                if (!CheckMetadataNames("PurpleDragonScales", 0, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
-                int size = type1 is VectorType vectorType ? vectorType.Size : -1;
-                if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, size, sch1, sch2, col, exactTypes, true))
+                ulong vsize = type1 is VectorType vectorType ? (ulong)vectorType.Size : 0;
+                if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
                 if (!keyNames)
                     continue;
 
-                size = type1.GetItemType() is KeyType keyType ? keyType.Count : -1;
-                if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, size, sch1, sch2, col, exactTypes, false))
+                ulong ksize = type1.GetItemType() is KeyType keyType ? keyType.Count : 0;
+                if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, ksize, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
 
             return true;
         }
 
-        protected bool CheckMetadataNames(string kind, int size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
+        protected bool CheckMetadataNames(string kind, ulong size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
         {
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
@@ -612,6 +613,8 @@ namespace Microsoft.ML.RunTests
                     return Failed();
                 return true;
             }
+            if (size > int.MaxValue)
+                Fail(nameof(KeyType) + "." + nameof(KeyType.Count) + "is larger than int.MaxValue");
             if (!EqualTypes(t1, t2, exactTypes))
             {
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
@@ -628,7 +631,7 @@ namespace Microsoft.ML.RunTests
                 return Failed();
             }
 
-            if (size != t1.GetVectorSize())
+            if ((int)size != t1.GetVectorSize())
             {
                 Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.GetVectorSize(), size);
                 return Failed();
@@ -636,7 +639,7 @@ namespace Microsoft.ML.RunTests
 
             sch1[col].Metadata.GetValue(kind, ref names1);
             sch2[col].Metadata.GetValue(kind, ref names2);
-            if (!CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
+            if (!CompareVec(in names1, in names2, (int)size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
                 return Failed();
@@ -800,8 +803,8 @@ namespace Microsoft.ML.RunTests
             bool all = true;
             bool tmp;
 
-            using (var curs1 = view1.GetRowCursor(col => true))
-            using (var curs2 = view2.GetRowCursor(col => true))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
+            using (var curs2 = view2.GetRowCursorForAllColumns())
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 Check(curs2.Schema == view2.Schema, "Schema of view 2 and its cursor differed");
@@ -810,8 +813,9 @@ namespace Microsoft.ML.RunTests
             Check(tmp, "All same failed");
             all &= tmp;
 
-            using (var curs1 = view1.GetRowCursor(col => true))
-            using (var curs2 = view2.GetRowCursor(col => (col & 1) == 0, null))
+            var view2EvenCols = view2.Schema.Where(col => (col.Index & 1) == 0); 
+            using (var curs1 = view1.GetRowCursorForAllColumns())
+            using (var curs2 = view2.GetRowCursor(view2EvenCols))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 Check(curs2.Schema == view2.Schema, "Schema of view 2 and its cursor differed");
@@ -820,8 +824,9 @@ namespace Microsoft.ML.RunTests
             Check(tmp, "Even same failed");
             all &= tmp;
 
-            using (var curs1 = view1.GetRowCursor(col => true))
-            using (var curs2 = view2.GetRowCursor(col => (col & 1) != 0, null))
+            var view2OddCols = view2.Schema.Where(col => (col.Index & 1) != 0);
+            using (var curs1 = view1.GetRowCursorForAllColumns())
+            using (var curs2 = view2.GetRowCursor(view2OddCols))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 Check(curs2.Schema == view2.Schema, "Schema of view 2 and its cursor differed");
@@ -829,7 +834,7 @@ namespace Microsoft.ML.RunTests
             }
             Check(tmp, "Odd same failed");
 
-            using (var curs1 = view1.GetRowCursor(col => true))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 tmp = CheckSameValues(curs1, view2, exactTypes, exactDoubles, checkId);
@@ -858,7 +863,7 @@ namespace Microsoft.ML.RunTests
                     var type2 = curs2.Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
-                        Fail("Different types");
+                        Fail($"Different types {type1} and {type2}");
                         return Failed();
                     }
                     comps[col] = GetColumnComparer(curs1, curs2, col, type1, exactDoubles);
@@ -934,7 +939,7 @@ namespace Microsoft.ML.RunTests
                 {
                     // curs1 should have all columns active (for simplicity of the code here).
                     Contracts.Assert(curs1.IsColumnActive(col));
-                    cursors[col] = view2.GetRowCursor(c => c == col);
+                    cursors[col] = view2.GetRowCursorForAllColumns();
                 }
 
                 // Get the comparison delegates for each column.

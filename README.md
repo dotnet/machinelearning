@@ -42,6 +42,8 @@ Daily NuGet builds of the project are also available in our [MyGet](https://dotn
 
 To build ML.NET from source please visit our [developers guide](docs/project-docs/developer-guide.md).
 
+[![codecov](https://codecov.io/gh/dotnet/machinelearning/branch/master/graph/badge.svg?flag=production)](https://codecov.io/gh/dotnet/machinelearning)
+
 |    | Debug | Release |
 |:---|----------------:|------------------:|
 |**Linux**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Linux&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Linux&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
@@ -95,6 +97,9 @@ Console.WriteLine("prediction: " + prediction.Prediction);
 ```
 A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
 
+## API Documentation
+
+See the [ML.NET API Reference Documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
 
 ## Samples
 

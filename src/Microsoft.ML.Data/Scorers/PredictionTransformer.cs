@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -176,7 +177,7 @@ namespace Microsoft.ML.Data
             if (featureColumn == null)
                 FeatureColumnType = null;
             else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
-                throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
+                throw Host.ExceptSchemaMismatch(nameof(featureColumn), "feature", featureColumn);
             else
                 FeatureColumnType = trainSchema[col].Type;
 
@@ -191,7 +192,7 @@ namespace Microsoft.ML.Data
             if (FeatureColumn == null)
                 FeatureColumnType = null;
             else if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
-                throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn);
+                throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), "feature", FeatureColumn);
             else
                 FeatureColumnType = TrainSchema[col].Type;
 
@@ -205,9 +206,9 @@ namespace Microsoft.ML.Data
             if (FeatureColumn != null)
             {
                 if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn);
                 if (!inputSchema[col].Type.Equals(FeatureColumnType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema[col].Type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn, FeatureColumnType.ToString(), inputSchema[col].Type.ToString());
             }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;

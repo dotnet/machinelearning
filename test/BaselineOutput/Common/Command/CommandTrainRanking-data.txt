@@ -1,11 +1,11 @@
 #@ TextLoader{
 #@   header+
 #@   sep=tab
-#@   col=Label:U4[0-1]:0
+#@   col=Label:U4[2]:0
 #@   col=Workclass:TX:1
 #@   col=Categories:TX:2-8
 #@   col=NumericFeatures:R4:9-14
-#@   col=GroupId:U4[0-6]:15
+#@   col=GroupId:U4[7]:15
 #@   col=Features:R4:16-21
 #@   col=Score:R4:22
 #@ }

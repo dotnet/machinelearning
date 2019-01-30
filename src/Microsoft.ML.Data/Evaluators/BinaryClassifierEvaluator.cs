@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -128,11 +129,11 @@ namespace Microsoft.ML.Data
             var host = Host.SchemaSensitive();
             var t = score.Type;
             if (t != NumberType.Float)
-                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4", t.ToString());
+                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
             host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
-                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4, R8, BL or a 2-value key", t.ToString());
+                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float, double, bool, or a KeyType with cardinality 2", t.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -144,7 +145,7 @@ namespace Microsoft.ML.Data
                 host.CheckParam(prob.Count == 1, nameof(schema), "Cannot have multiple probability columns");
                 var probType = prob[0].Type;
                 if (probType != NumberType.Float)
-                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "R4", probType.ToString());
+                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "float", probType.ToString());
             }
             else if (!_useRaw)
             {
@@ -177,7 +178,7 @@ namespace Microsoft.ML.Data
                 labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
                 vecType.Size > 0 && vecType.ItemType == TextType.Instance)
             {
-                labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+                labelCol.GetKeyValues(ref labelNames);
             }
             else
                 labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
@@ -333,7 +334,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -354,7 +355,7 @@ namespace Microsoft.ML.Data
                     var confDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
+                        confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
@@ -374,7 +375,7 @@ namespace Microsoft.ML.Data
                         var dvBldr = new ArrayDataViewBuilder(Host);
                         if (hasStrats)
                         {
-                            dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, prStratCol.ToArray());
+                            dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, prStratCol.ToArray());
                             dvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, prStratVal.ToArray());
                         }
                         dvBldr.AddColumn(Threshold, NumberType.R4, scores.ToArray());
@@ -816,7 +817,7 @@ namespace Microsoft.ML.Data
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             CalibratedBinaryClassificationMetrics result;
-            using (var cursor = overall.GetRowCursor(i => true))
+            using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
@@ -853,7 +854,7 @@ namespace Microsoft.ML.Data
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             BinaryClassificationMetrics result;
-            using (var cursor = overall.GetRowCursor(i => true))
+            using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
@@ -1095,20 +1096,20 @@ namespace Microsoft.ML.Data
             Host.AssertValueOrNull(_probCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema[(int) LabelIndex].Type;
+            var t = schema[(int)LabelIndex].Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", LabelCol, t);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float, double, bool or a KeyType with cardinality 2", t.ToString());
 
             t = schema[ScoreIndex].Type;
             if (t != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "float", t.ToString());
 
             if (_probIndex >= 0)
             {
                 Host.Assert(!string.IsNullOrEmpty(_probCol));
                 t = schema[_probIndex].Type;
                 if (t != NumberType.Float)
-                    throw Host.Except("Probability column '{0}' has type '{1}' but must be R4", _probCol, t);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "probability", _probCol, "float", t.ToString());
             }
             else if (!_useRaw)
                 throw Host.Except("Cannot compute the predicted label from the probability column because it does not exist");
@@ -1197,11 +1198,11 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out conf))
                 throw ch.Except("No overall metrics found");
 
-            (string Source, string Name)[] cols =
+            (string name, string source)[] cols =
             {
-                (BinaryClassifierEvaluator.Accuracy, FoldAccuracy),
-                (BinaryClassifierEvaluator.LogLoss, FoldLogLoss),
-                (BinaryClassifierEvaluator.LogLossReduction, FoldLogLosRed)
+                (FoldAccuracy, BinaryClassifierEvaluator.Accuracy),
+                (FoldLogLoss, BinaryClassifierEvaluator.LogLoss),
+                (FoldLogLosRed, BinaryClassifierEvaluator.LogLossReduction)
             };
 
             var colsToKeep = new List<string>();
@@ -1505,7 +1506,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static partial class Evaluate
+    internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.BinaryClassificationEvaluator", Desc = "Evaluates a binary classification scored dataset.")]
         public static CommonOutputs.ClassificationEvaluateOutput Binary(IHostEnvironment env, BinaryClassifierMamlEvaluator.Arguments input)

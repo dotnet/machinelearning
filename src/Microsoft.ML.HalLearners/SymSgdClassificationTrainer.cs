@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -109,7 +110,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
 
-            public void Check(IExceptionContext ectx)
+            internal void Check(IExceptionContext ectx)
             {
                 ectx.CheckUserArg(LearningRate == null || LearningRate.Value > 0, nameof(LearningRate), "Must be positive.");
                 ectx.CheckUserArg(NumberOfIterations > 0, nameof(NumberOfIterations), "Must be positive.");
@@ -183,12 +184,14 @@ namespace Microsoft.ML.Trainers.SymSgd
         /// <summary>
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
         /// </summary>
-        internal SymSgdClassificationTrainer(IHostEnvironment env, Options args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        internal SymSgdClassificationTrainer(IHostEnvironment env, Options options)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
+                  TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
-            args.Check(Host);
-            _options = args;
+            Host.CheckValue(options, nameof(options));
+            options.Check(Host);
+
+            _options = options;
             Info = new TrainerInfo(supportIncrementalTrain: true);
         }
 
@@ -224,7 +227,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             UserName = SymSgdClassificationTrainer.UserNameValue,
             ShortName = SymSgdClassificationTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""SymSGD""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
+        internal static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSymSGD");

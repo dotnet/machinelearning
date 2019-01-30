@@ -48,10 +48,10 @@ namespace Microsoft.ML.RunTests
                 new SparseExample<T>() { X = new VBuffer<T> (5, 3, v2, new int[] { 0, 1, 3 }) }
             };
             var env = new MLContext();
-            var data = env.CreateStreamingDataView(inputs);
+            var data = env.Data.ReadFromEnumerable(inputs);
             var value = new VBuffer<T>();
             int n = 0;
-            using (var cur = data.GetRowCursor(i => true))
+            using (var cur = data.GetRowCursorForAllColumns())
             {
                 var getter = cur.GetGetter<VBuffer<T>>(0);
                 while (cur.MoveNext())
@@ -88,10 +88,10 @@ namespace Microsoft.ML.RunTests
                 new DenseExample<T>() { X = v2 }
             };
             var env = new MLContext();
-            var data = env.CreateStreamingDataView(inputs);
+            var data = env.Data.ReadFromEnumerable(inputs);
             var value = new VBuffer<T>();
             int n = 0;
-            using (var cur = data.GetRowCursor(i => true))
+            using (var cur = data.GetRowCursorForAllColumns())
             {
                 var getter = cur.GetGetter<VBuffer<T>>(0);
                 while (cur.MoveNext())

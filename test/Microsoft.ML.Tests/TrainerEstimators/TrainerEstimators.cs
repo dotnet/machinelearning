@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -127,7 +128,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
-            var pipeline = new TextFeaturizingEstimator(Env, "SentimentText", "Features");
+            var pipeline = new TextFeaturizingEstimator(Env,"Features" ,"SentimentText");
 
             return (pipeline, data);
         }
@@ -149,8 +150,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Pipeline.
             var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
-                                    new ValueToKeyMappingTransformer.ColumnInfo("Workclass", "Group"),
-                                    new ValueToKeyMappingTransformer.ColumnInfo("Label", "Label0") });
+                                    new ValueToKeyMappingTransformer.ColumnInfo("Group", "Workclass"),
+                                    new ValueToKeyMappingTransformer.ColumnInfo("Label0", "Label") });
 
             return (pipeline, data);
         }

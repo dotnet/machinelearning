@@ -78,15 +78,15 @@ namespace Microsoft.ML.Analyzer.Tests
             var diagPc = analyzer.SupportedDiagnostics[7];
 
             var expected = new DiagnosticResult[] {
-                diagF.CreateDiagnosticResult(32, 13, "Class4", "F1"),
-                diagC.CreateDiagnosticResult(33, 13, "Class5"),
-                diagC.CreateDiagnosticResult(34, 13, "Class6"),
+                diagF.CreateDiagnosticResult(33, 13, "Class4", "F1"),
+                diagC.CreateDiagnosticResult(34, 13, "Class5"),
+                diagC.CreateDiagnosticResult(35, 13, "Class6"),
 
-                diagPnas.CreateDiagnosticResult(35, 13, "Class7", "F1"),
-                diagPs.CreateDiagnosticResult(36, 13, "Class8", "F2"),
-                diagPg.CreateDiagnosticResult(37, 13, "Class9", "F2"),
-                diagPc.CreateDiagnosticResult(38, 13, "Class10"),
-                diagPc.CreateDiagnosticResult(39, 13, "Class11"),
+                diagPnas.CreateDiagnosticResult(36, 13, "Class7", "F1"),
+                diagPs.CreateDiagnosticResult(37, 13, "Class8", "F2"),
+                diagPg.CreateDiagnosticResult(38, 13, "Class9", "F2"),
+                diagPc.CreateDiagnosticResult(39, 13, "Class10"),
+                diagPc.CreateDiagnosticResult(40, 13, "Class11"),
             };
 
             VerifyCSharpDiagnostic(SourceClass, expected);

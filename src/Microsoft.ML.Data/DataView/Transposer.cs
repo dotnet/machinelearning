@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 
@@ -280,15 +281,11 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
-        {
-            return _view.GetRowCursor(predicate, rand);
-        }
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            => _view.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
-        {
-            return _view.GetRowCursorSet(predicate, n, rand);
-        }
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => _view.GetRowCursorSet(columnsNeeded, n, rand);
 
         public long? GetRowCount()
         {
@@ -376,10 +373,10 @@ namespace Microsoft.ML.Data
                 return
                     (ref VBuffer<T> dst) =>
                     {
-                        Ch.Check(IsGood, "Cannot get values in the cursor's current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         if (!valid)
                         {
-                            using (var cursor = _view.GetRowCursor(c => c == _col))
+                            using (var cursor = _view.GetRowCursor(_view.Schema[_col]))
                             {
                                 int[] indices = null;
                                 T[] values = null;
@@ -507,7 +504,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private void EnsureValid()
             {
-                Ch.Check(IsGood, "Cursor is not in good state, cannot get values");
+                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                 Ch.Assert(_slotCurr >= 0);
                 if (_colStored == _colCurr)
                     return;
@@ -530,7 +527,7 @@ namespace Microsoft.ML.Data
                 // is having its values loaded into _indices/_values/_counts while the current column is being
                 // served up to the consumer through _cbuff.
 
-                using (var cursor = _view.GetRowCursor(c => c == _colCurr))
+                using (var cursor = _view.GetRowCursor(_view.Schema[_colCurr]))
                 {
                     // Make sure that the buffers (and subbuffers) are all of appropriate size.
                     Utils.EnsureSize(ref _indices, vecLen);
@@ -691,7 +688,7 @@ namespace Microsoft.ML.Data
 
             private void Getter(ref VBuffer<T> dst)
             {
-                Ch.Check(IsGood, "Cannot get values in the cursor's current state");
+                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                 EnsureValid();
                 Ch.Assert(0 <= _slotCurr && _slotCurr < Utils.Size(_cbuff) && _cbuff[_slotCurr].Buffer.Length == _len);
                 _cbuff[_slotCurr].Buffer.CopyTo(ref dst);
@@ -825,21 +822,28 @@ namespace Microsoft.ML.Data
                 splitCol = _colToSplitCol[col];
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
+
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
-                return new Cursor(_host, this, _input.GetRowCursor(srcPred, rand), predicate, activeSplitters);
+
+                var inputCols = _input.Schema.Where(x => srcPred(x.Index));
+                return new Cursor(_host, this, _input.GetRowCursor(inputCols, rand), predicate, activeSplitters);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
+
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
+
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
-                var result = _input.GetRowCursorSet(srcPred, n, rand);
+
+                var srcCols = columnsNeeded.Where( x => srcPred(x.Index));
+                var result = _input.GetRowCursorSet(srcCols, n, rand);
                 for (int i = 0; i < result.Length; ++i)
                     result[i] = new Cursor(_host, this, result[i], predicate, activeSplitters);
                 return result;
@@ -849,7 +853,7 @@ namespace Microsoft.ML.Data
             /// Given a possibly null predicate for this data view, produce the dependency predicate for the sources,
             /// as well as a list of all the splitters for which we should produce rowsets.
             /// </summary>
-            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(Func{int, bool}, Random)"/> method.</param>
+            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/> method.</param>
             /// <param name="activeSplitters">A boolean indicator array of length equal to the number of splitters,
             /// indicating whether that splitter has any active columns in its outputs or not</param>
             /// <returns>The predicate to use when constructing the row cursor from the source</returns>
@@ -1392,10 +1396,10 @@ namespace Microsoft.ML.Data
                 return valueCount;
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
-                return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, predicate(0));
+                bool hasZero = columnsNeeded != null && columnsNeeded.Any(x => x.Index == 0);
+                return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, hasZero);
             }
 
             private RowCursor GetRowCursor<T>(bool active)
@@ -1403,10 +1407,9 @@ namespace Microsoft.ML.Data
                 return new Cursor<T>(this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
-                return new RowCursor[] { GetRowCursor(predicate, rand) };
+                return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
             }
 
             private sealed class Cursor<T> : RootCursorBase
@@ -1449,7 +1452,7 @@ namespace Microsoft.ML.Data
 
                 private void GetId(ref RowId id)
                 {
-                    Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
+                    Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
                     id = new RowId((ulong)_slotCursor.SlotIndex, 0);
                 }
 
@@ -1494,7 +1497,7 @@ namespace Microsoft.ML.Data
 
             private void GetId(ref RowId id)
             {
-                Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
+                Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
                 id = new RowId((ulong)_slotCursor.SlotIndex, 0);
             }
 

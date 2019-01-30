@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// A component to combine given models into an ensemble model.
     /// </summary>
-    public static class EnsembleCreator
+    internal static class EnsembleCreator
     {
         /// <summary>
         /// These are the combiner options for binary and multi class classifiers.

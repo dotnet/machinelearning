@@ -24,9 +24,11 @@ namespace Microsoft.ML.Model
     }
 
     /// <summary>
-    /// For saving to a single stream.
+    /// For saving to a single stream. Note that this interface is mostly deprecated in favor of
+    /// saving more comprehensive and composable "model" objects, via <see cref="ICanSaveModel"/>.
     /// </summary>
-    public interface ICanSaveInBinaryFormat
+    [BestFriend]
+    internal interface ICanSaveInBinaryFormat
     {
         void SaveAsBinary(BinaryWriter writer);
     }

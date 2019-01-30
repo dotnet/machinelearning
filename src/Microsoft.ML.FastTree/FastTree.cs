@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -1381,7 +1382,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     // Convert the group column, if one exists.
                     if (examples.Schema.Group?.Name is string groupName)
-                        data = new TypeConvertingTransformer(Host, new TypeConvertingTransformer.ColumnInfo(groupName, groupName, DataKind.U8)).Transform(data);
+                        data = new TypeConvertingTransformer(Host, new TypeConvertingTransformer.ColumnInfo(groupName, DataKind.U8, groupName)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
@@ -1842,18 +1843,24 @@ namespace Microsoft.ML.Trainers.FastTree
                         e => e.SetProgress(0, pos, rowCountDbl));
                     // REVIEW: Should we ignore rows with bad label, weight, or group? The previous code seemed to let
                     // them through (but filtered out bad features).
-                    CursOpt curOptions = CursOpt.Label | CursOpt.Features | CursOpt.Weight;
+                    CursOpt curOptions = CursOpt.Label | CursOpt.Features;
                     bool hasGroup = false;
                     if (PredictionKind == PredictionKind.Ranking)
                     {
-                        curOptions |= CursOpt.Group;
                         hasGroup = _data.Schema.Group != null;
+
+                        if(hasGroup)
+                            curOptions |= CursOpt.Group;
                     }
                     else
                     {
                         if (_data.Schema.Group != null)
                             ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", _data.Schema.Group.Value.Name);
                     }
+
+                    if (_data.Schema.Weight.HasValue)
+                        curOptions |= CursOpt.Weight;
+
                     using (var cursor = new FloatLabelCursor(_data, curOptions))
                     {
                         ulong groupPrev = 0;

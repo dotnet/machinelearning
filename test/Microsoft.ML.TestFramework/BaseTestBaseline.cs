@@ -34,7 +34,7 @@ namespace Microsoft.ML.RunTests
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
-#if NET462
+#if NETFRAMEWORK
             NotFullFramework = false;
             LessThanNetCore30AndNotFullFramework = false;
 #endif
@@ -764,7 +764,7 @@ namespace Microsoft.ML.RunTests
         public void RunMTAThread(ThreadStart fn)
         {
             Exception inner = null;
-            Thread t = Utils.CreateBackgroundThread(() =>
+            var t = new Thread(() =>
             {
                 try
                 {
@@ -776,6 +776,7 @@ namespace Microsoft.ML.RunTests
                     Fail("The test threw an exception - {0}", e);
                 }
             });
+            t.IsBackground = true;
 #if !CORECLR // CoreCLR does not support apartment state settings for threads.
             t.SetApartmentState(ApartmentState.MTA);
 #endif

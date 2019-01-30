@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
@@ -137,7 +138,7 @@ namespace Microsoft.ML.Transforms
                 var valuesRowCount = 0;
                 // REVIEW: Seems like if the labels are NaN, so that all metrics are NaN, this command will be useless.
                 // In which case probably erroring out is probably the most useful thing.
-                using (var cursor = data.GetRowCursor(col => col == featuresColumnIndex))
+                using (var cursor = data.GetRowCursor(featuresColumn))
                 {
                     var featuresGetter = cursor.GetGetter<VBuffer<float>>(featuresColumnIndex);
                     var featuresBuffer = default(VBuffer<float>);

@@ -2,11 +2,11 @@
 #@   header+
 #@   sep=tab
 #@   col=A:TX:0
-#@   col=KS:U4[3-10]:1
+#@   col=KS:U4[11]:1
 #@   col=AH:R4:2-9
 #@   col=KH:R4:10-17
 #@ }
-A	KS	16	1:an angry ant	4:annie ate an ant	10:3	15:4
-annie ate an ant	4	16	4:1	15:1
-an angry ant	3	16	1:1	10:1
+A	KS	16	1:an angry ant	4:annie ate an ant	8:4	9:3
+annie ate an ant	4	16	4:1	8:1
+an angry ant	3	16	1:1	9:1
 18	0:""

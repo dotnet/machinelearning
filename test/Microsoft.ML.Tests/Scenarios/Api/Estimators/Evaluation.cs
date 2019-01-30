@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Pipeline.
             var pipeline = ml.Data.CreateTextLoader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
-                .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
+                .Append(ml.Transforms.Text.FeaturizeText("Features", "SentimentText"))
                 .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                     new SdcaBinaryTrainer.Options { NumThreads = 1 }));
 
