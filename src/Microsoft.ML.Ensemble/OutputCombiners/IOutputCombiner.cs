@@ -30,7 +30,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
 
     internal interface IStackingTrainer<TOutput>
     {
-        void Train(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models, RoleMappedData data, IHostEnvironment env);
+        void Train(List<FeatureSubsetModel<TOutput>> models, RoleMappedData data, IHostEnvironment env);
         Single ValidationDatasetProportion { get; }
     }
 

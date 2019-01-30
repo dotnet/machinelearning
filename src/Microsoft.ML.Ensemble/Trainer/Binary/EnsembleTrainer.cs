@@ -81,7 +81,7 @@ namespace Microsoft.ML.Ensemble
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
+        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {
             if (models.All(m => m.Predictor is TDistPredictor))
                 return new EnsembleDistributionModelParameters(Host, PredictionKind, CreateModels<TDistPredictor>(models), Combiner);
@@ -98,12 +98,12 @@ namespace Microsoft.ML.Ensemble
             {
                 Host.CheckParam(models.All(m => m is TDistPredictor), nameof(models));
                 return new EnsembleDistributionModelParameters(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TDistPredictor>((TDistPredictor)k)).ToArray(), combiner);
+                    models.Select(k => new FeatureSubsetModel<float>((TDistPredictor)k)).ToArray(), combiner);
             }
 
             Host.CheckParam(models.All(m => m is TScalarPredictor), nameof(models));
             return new EnsembleModelParameters(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
+                    models.Select(k => new FeatureSubsetModel<float>((TScalarPredictor)k)).ToArray(), combiner);
         }
     }
 }

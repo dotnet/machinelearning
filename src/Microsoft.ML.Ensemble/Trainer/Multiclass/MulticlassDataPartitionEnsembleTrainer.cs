@@ -83,7 +83,7 @@ namespace Microsoft.ML.Ensemble
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        private protected override EnsembleMultiClassModelParameters CreatePredictor(List<FeatureSubsetModel<TVectorPredictor>> models)
+        private protected override EnsembleMultiClassModelParameters CreatePredictor(List<FeatureSubsetModel<VBuffer<float>>> models)
         {
             return new EnsembleMultiClassModelParameters(Host, CreateModels<TVectorPredictor>(models), Combiner as IMultiClassOutputCombiner);
         }
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Ensemble
 
             var combiner = _outputCombiner.CreateComponent(Host);
             var predictor = new EnsembleMultiClassModelParameters(Host,
-                models.Select(k => new FeatureSubsetModel<TVectorPredictor>((TVectorPredictor)k)).ToArray(),
+                models.Select(k => new FeatureSubsetModel<VBuffer<float>>((TVectorPredictor)k)).ToArray(),
                 combiner);
             return predictor;
         }

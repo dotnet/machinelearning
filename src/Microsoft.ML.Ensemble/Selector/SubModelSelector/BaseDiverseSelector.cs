@@ -20,14 +20,14 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
         }
 
         private readonly IComponentFactory<IDiversityMeasure<TOutput>> _diversityMetricType;
-        private ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]> _predictions;
+        private ConcurrentDictionary<FeatureSubsetModel<TOutput>, TOutput[]> _predictions;
 
         private protected BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name,
             IComponentFactory<IDiversityMeasure<TOutput>> diversityMetricType)
             : base(args, env, name)
         {
             _diversityMetricType = diversityMetricType;
-            _predictions = new ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]>();
+            _predictions = new ConcurrentDictionary<FeatureSubsetModel<TOutput>, TOutput[]>();
         }
 
         protected IDiversityMeasure<TOutput> CreateDiversityMetric()
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             return _diversityMetricType.CreateComponent(Host);
         }
 
-        public override void CalculateMetrics(FeatureSubsetModel<IPredictorProducing<TOutput>> model,
+        public override void CalculateMetrics(FeatureSubsetModel<TOutput> model,
             ISubsetSelector subsetSelector, Subset subset, Batch batch, bool needMetrics)
         {
             base.CalculateMetrics(model, subsetSelector, subset, batch, needMetrics);
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
         /// </summary>
         /// <param name="models"></param>
         /// <returns></returns>
-        public override IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> Prune(IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
+        public override IList<FeatureSubsetModel<TOutput>> Prune(IList<FeatureSubsetModel<TOutput>> models)
         {
             if (models.Count <= 1)
                 return models;
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
                 modelCountToBeSelected++;
 
             // 3. Take the most diverse classifiers
-            var selectedModels = new List<FeatureSubsetModel<IPredictorProducing<TOutput>>>();
+            var selectedModels = new List<FeatureSubsetModel<TOutput>>();
             foreach (var item in sortedModels)
             {
                 if (selectedModels.Count < modelCountToBeSelected)
@@ -113,8 +113,8 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             return selectedModels;
         }
 
-        public abstract List<ModelDiversityMetric<TOutput>> CalculateDiversityMeasure(IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models,
-            ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]> predictions);
+        public abstract List<ModelDiversityMetric<TOutput>> CalculateDiversityMeasure(IList<FeatureSubsetModel<TOutput>> models,
+            ConcurrentDictionary<FeatureSubsetModel<TOutput>, TOutput[]> predictions);
 
         public class ModelDiversityComparer : IComparer<ModelDiversityMetric<TOutput>>
         {

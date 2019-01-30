@@ -77,7 +77,7 @@ namespace Microsoft.ML.Ensemble
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
+        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {
             return new EnsembleModelParameters(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Ensemble
             var p = models.First();
 
             var predictor = new EnsembleModelParameters(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
+                    models.Select(k => new FeatureSubsetModel<float>((TScalarPredictor)k)).ToArray(), combiner);
 
             return predictor;
         }
