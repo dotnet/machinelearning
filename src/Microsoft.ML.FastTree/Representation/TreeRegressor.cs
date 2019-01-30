@@ -73,7 +73,16 @@ namespace Microsoft.ML.FastTree.Representation
         /// less-than-threshold event and therefore <see cref="LteChild"/>[nodeIndex] is the child node that input
         /// should go next. The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
-        public ReadOnlySpan<int> GetCategoricalSplitFeaturesAt(int nodeIndex) => new ReadOnlySpan<int>(_tree.CategoricalSplitFeatures[nodeIndex]);
+        public ReadOnlySpan<int> GetCategoricalSplitFeaturesAt(int nodeIndex)
+        {
+            if (nodeIndex < 0 || nodeIndex >= NumNodes)
+                throw Contracts.Except($"The input index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumNodes} (exclusive).");
+
+            if (_tree.CategoricalSplitFeatures == null || _tree.CategoricalSplitFeatures[nodeIndex] == null)
+                return new ReadOnlySpan<int>(); // Zero-length vector.
+            else
+                return _tree.CategoricalSplitFeatures[nodeIndex];
+        }
         /// <summary>
         /// Return categorical thresholds' range used at node indexed by nodeIndex. A categorical split at node indexed
         /// by nodeIndex can consider multiple consecutive input features at one time; their range is specified by
@@ -81,14 +90,30 @@ namespace Microsoft.ML.FastTree.Representation
         /// array; its 1st element is the starting index and its 2nd element is the endining index of a feature segment.
         /// The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
-        public ReadOnlySpan<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex) => new ReadOnlySpan<int>(_tree.CategoricalSplitFeatureRanges[nodeIndex]);
+        public ReadOnlySpan<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex)
+        {
+            if (nodeIndex < 0 || nodeIndex >= NumNodes)
+                throw Contracts.Except($"The input node index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumNodes} (exclusive).");
+
+            if (_tree.CategoricalSplitFeatureRanges == null || _tree.CategoricalSplitFeatureRanges[nodeIndex] == null)
+                return new ReadOnlySpan<int>(); // Zero-length vector.
+            else
+                return new ReadOnlySpan<int>(_tree.CategoricalSplitFeatureRanges[nodeIndex]);
+        }
 
         /// <summary>
         /// Return the training labels falling into the specified leaf.
         /// </summary>
         /// <param name="leafIndex">The index of the specified leaf.</param>
         /// <returns>Training labels</returns>
-        public ReadOnlySpan<double> GetLeafSamplesAt(int leafIndex) => new ReadOnlySpan<double>(_leafSamples[leafIndex]);
+        public ReadOnlySpan<double> GetLeafSamplesAt(int leafIndex)
+        {
+            if (leafIndex < 0 || leafIndex >= NumLeaves)
+                throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumLeaves} (exclusive).");
+
+            // _leafSample always contains valid values assigned in constructor.
+            return new ReadOnlySpan<double>(_leafSamples[leafIndex]);
+        }
 
         /// <summary>
         /// Return the weights for training labels falling into the specified leaf. If <see cref="GetLeafSamplesAt"/>
@@ -97,7 +122,14 @@ namespace Microsoft.ML.FastTree.Representation
         /// </summary>
         /// <param name="leafIndex">The index of the specified leaf.</param>
         /// <returns>Training labels' weights</returns>
-        public ReadOnlySpan<double> GetLeafSampleWeightsAt(int leafIndex) => new ReadOnlySpan<double>(_leafSampleWeights[leafIndex]);
+        public ReadOnlySpan<double> GetLeafSampleWeightsAt(int leafIndex)
+        {
+            if (leafIndex < 0 || leafIndex >= NumLeaves)
+                throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumLeaves} (exclusive).");
+
+            // _leafSampleWeights always contains valid values assigned in constructor.
+            return new ReadOnlySpan<double>(_leafSampleWeights[leafIndex]);
+        }
 
         /// <summary>
         /// Number of leaves in the tree. Note that <see cref="NumLeaves"/> does not take non-leaf nodes into account.
