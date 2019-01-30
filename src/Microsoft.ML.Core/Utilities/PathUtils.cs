@@ -21,14 +21,16 @@ namespace Microsoft.ML.Internal.Utilities
         {
             get
             {
-                if (_dllDir == null)
+                string result = _dllDir;
+                if (result == null)
                 {
                     string path = typeof(Utils).Assembly.Location;
                     string directory = Path.GetDirectoryName(path);
                     Interlocked.CompareExchange(ref _dllDir, directory, null);
+                    result = _dllDir;
                 }
 
-                return _dllDir;
+                return result;
             }
         }
 

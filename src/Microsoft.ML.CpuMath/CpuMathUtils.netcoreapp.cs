@@ -80,7 +80,7 @@ namespace Microsoft.ML.Internal.CpuMath
                         float dotProduct = 0;
                         for (int j = 0; j < stride; j++)
                         {
-                            dotProduct += matrix[j * source.Size + i] * source[j];
+                            dotProduct += matrix[j * destination.Size + i] * source[j];
                         }
 
                         destination[i] = dotProduct;

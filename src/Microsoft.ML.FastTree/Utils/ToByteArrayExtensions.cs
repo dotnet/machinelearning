@@ -566,7 +566,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public static unsafe MD5Hash[] ToUInt128Array(this byte[] buffer, ref int position)
+        public static unsafe MD5Hash[] ToRowIdArray(this byte[] buffer, ref int position)
         {
             int length = buffer.ToInt(ref position);
             MD5Hash[] a = new MD5Hash[length];

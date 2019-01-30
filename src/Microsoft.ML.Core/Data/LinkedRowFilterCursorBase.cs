@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
+
 namespace Microsoft.ML.Data
 {
     /// <summary>
@@ -24,8 +26,6 @@ namespace Microsoft.ML.Data
 
         protected override bool MoveNextCore()
         {
-            Ch.Assert(State != CursorState.Done);
-
             while (Root.MoveNext())
             {
                 if (Accept())

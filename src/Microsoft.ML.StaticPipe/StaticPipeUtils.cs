@@ -134,7 +134,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             }
 
             estimator = null;
-            var toCopy = new List<(string src, string dst)>();
+            var toCopy = new List<(string dst, string src)>();
 
             int tempNum = 0;
             // For all outputs, get potential name collisions with used inputs. Resolve by assigning the input a temporary name.
@@ -147,7 +147,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                     ch.Assert(baseInputs.Contains(inputCol));
                     string tempName = $"#Temp_{tempNum++}";
                     ch.Trace($"Input/output name collision: Renaming '{p.Key}' to '{tempName}'.");
-                    toCopy.Add((p.Key, tempName));
+                    toCopy.Add((tempName, p.Key));
                     nameMap[tempName] = nameMap[p.Key];
                     ch.Assert(!nameMap.ContainsKey(p.Key));
                 }
@@ -255,8 +255,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
             if (keyDependsOn.Any(p => p.Value.Count > 0))
             {
                 // This might happen if the user does something incredibly strange, like, say, take some prior
-                // lambda, assign a column to a local variable, then re-use it downstream in a different lambdas.
-                // The user would have to go to some extraorindary effort to do that, but nonetheless we want to
+                // lambda, assign a column to a local variable, then re-use it downstream in a different lambda.
+                // The user would have to go to some extraordinary effort to do that, but nonetheless we want to
                 // fail with a semi-sensible error message.
                 throw ch.Except("There were some leftover columns with unresolved dependencies. " +
                     "Did the caller use a " + nameof(PipelineColumn) + " from another delegate?");
@@ -272,8 +272,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 string currentName = nameMap[p.Value];
                 if (currentName != p.Key)
                 {
-                    ch.Trace($"Will copy '{currentName}' to '{p.Key}'");
-                    toCopy.Add((currentName, p.Key));
+                    ch.Trace($"Will copy '{p.Key}' to '{currentName}'");
+                    toCopy.Add((p.Key, currentName));
                 }
             }
 

@@ -14,9 +14,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var ml = new MLContext();
 
-            // Get a small dataset as an IEnumerable.
+            // Get a small dataset as an IEnumerable and load it into ML.NET data set.
             IEnumerable<SamplesUtils.DatasetUtils.SampleTopicsData> data = SamplesUtils.DatasetUtils.GetTopicsData();
-            var trainData = ml.CreateStreamingDataView(data);
+            var trainData = ml.Data.ReadFromEnumerable(data);
 
             // Preview of one of the columns of the the topics data. 
             // The Review column contains the keys associated with a particular body of text.  
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic
             string defaultColumnName = "DefaultKeys";
             // REVIEW create through the catalog extension
             var default_pipeline = new WordTokenizingEstimator(ml, "Review")
-                .Append(new ValueToKeyMappingEstimator(ml, "Review", defaultColumnName));
+                .Append(new ValueToKeyMappingEstimator(ml, defaultColumnName, "Review"));
 
             // Another pipeline, that customizes the advanced settings of the TermEstimator.
             // We can change the maxNumTerm to limit how many keys will get generated out of the set of words, 
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = new WordTokenizingEstimator(ml, "Review")
-                .Append(new ValueToKeyMappingEstimator(ml, "Review", customizedColumnName, maxNumTerms: 10, sort: ValueToKeyMappingTransformer.SortOrder.Value));
+                .Append(new ValueToKeyMappingEstimator(ml,customizedColumnName,  "Review", maxNumTerms: 10, sort: ValueToKeyMappingTransformer.SortOrder.Value));
 
             // The transformed data.
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);

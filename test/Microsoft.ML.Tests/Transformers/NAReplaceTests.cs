@@ -42,12 +42,12 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 ,C= new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new MissingValueReplacingEstimator(Env,
-                new MissingValueReplacingTransformer.ColumnInfo("A", "NAA", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("B", "NAB", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("C", "NAC", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("D", "NAD", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean));
+                new MissingValueReplacingTransformer.ColumnInfo("NAA", "A", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingTransformer.ColumnInfo("NAB", "B", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingTransformer.ColumnInfo("NAC", "C", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingTransformer.ColumnInfo("NAD", "D", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(dataPath);
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
-            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
+            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
 
             var est = data.MakeNewEstimator().
                    Append(row => (
@@ -107,12 +107,12 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 ,C= new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new MissingValueReplacingEstimator(Env,
-                new MissingValueReplacingTransformer.ColumnInfo("A", "NAA", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("B", "NAB", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("C", "NAC", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("D", "NAD", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean));
+                new MissingValueReplacingTransformer.ColumnInfo("NAA", "A", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingTransformer.ColumnInfo("NAB", "B", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingTransformer.ColumnInfo("NAC", "C", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingTransformer.ColumnInfo("NAD", "D", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean));
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

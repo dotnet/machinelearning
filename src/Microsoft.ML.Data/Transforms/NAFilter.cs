@@ -5,7 +5,9 @@
 // REVIEW: As soon as we stop writing sizeof(Float), or when we retire the double builds, we can remove this.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -26,7 +28,8 @@ using Float = System.Single;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAFilter"]'/>
-    public sealed class NAFilter : FilterBase
+    [BestFriend]
+    internal sealed class NAFilter : FilterBase
     {
         private static class Defaults
         {
@@ -143,13 +146,13 @@ namespace Microsoft.ML.Transforms
                 string src = ctx.LoadNonEmptyString();
                 int index;
                 if (!schema.TryGetColumnIndex(src, out index))
-                    throw Host.Except("Source column '{0}' not found", src);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "source", src);
                 if (_srcIndexToInfoIndex.ContainsKey(index))
                     throw Host.Except("Source column '{0}' specified multiple times", src);
 
                 var type = schema[index].Type;
                 if (!TestType(type))
-                    throw Host.Except($"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "source", src, "scalar or vector of float, double or KeyType", type.ToString());
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);
@@ -204,25 +207,27 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var input = Source.GetRowCursor(inputPred, rand);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols, rand);
             return new Cursor(this, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.

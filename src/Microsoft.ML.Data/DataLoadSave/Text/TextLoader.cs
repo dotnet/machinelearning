@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Data
         ///     col=ColumnName:I4:1,3-10
         ///
         /// Key range column of KeyType with underlying storage type U4 that contains values from columns 1, 3 to 10, that can go from 1 to 100 (0 reserved for out of range)
-        ///     col=ColumnName:U4[1-100]:1,3-10
+        ///     col=ColumnName:U4[100]:1,3-10
         /// </example>
         public sealed class Column
         {
@@ -50,16 +51,15 @@ namespace Microsoft.ML.Data
             {
             }
 
-            public Column(string name, DataKind? type, Range[] source, KeyRange keyRange = null)
+            public Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
-                Contracts.CheckValueOrNull(keyRange);
 
                 Name = name;
                 Type = type;
                 Source = source;
-                KeyRange = keyRange;
+                KeyCount = keyCount;
             }
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
@@ -72,9 +72,9 @@ namespace Microsoft.ML.Data
             public Range[] Source;
 
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key")]
-            public KeyRange KeyRange;
+            public KeyCount KeyCount;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -99,9 +99,9 @@ namespace Microsoft.ML.Data
                 if (rgstr.Length == 3)
                 {
                     DataKind kind;
-                    if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyRange))
+                    if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyCount))
                         return false;
-                    Type = kind == default(DataKind) ? default(DataKind?) : kind;
+                    Type = kind == default ? default(DataKind?) : kind;
                 }
 
                 return TryParseSource(rgstr[istr++]);
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
 
@@ -139,14 +139,14 @@ namespace Microsoft.ML.Data
                 int ich = sb.Length;
                 sb.Append(Name);
                 sb.Append(':');
-                if (Type != null || KeyRange != null)
+                if (Type != null || KeyCount != null)
                 {
                     if (Type != null)
                         sb.Append(Type.Value.GetString());
-                    if (KeyRange != null)
+                    if (KeyCount != null)
                     {
                         sb.Append('[');
-                        if (!KeyRange.TryUnparse(sb))
+                        if (!KeyCount.TryUnparse(sb))
                         {
                             sb.Length = ich;
                             return false;
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             ///  Returns <c>true</c> iff the ranges are disjoint, and each range satisfies 0 &lt;= min &lt;= max.
             /// </summary>
-            public bool IsValid()
+            internal bool IsValid()
             {
                 if (Utils.Size(Source) == 0)
                     return false;
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force scalar columns to be treated as vectors of length one", ShortName = "vector")]
             public bool ForceVector;
 
-            public static Range Parse(string str)
+            internal static Range Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 char dash = AllOther ? '~' : '-';
@@ -354,10 +354,11 @@ namespace Microsoft.ML.Data
             public int? InputSize;
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
-            public string Separator = DefaultArguments.Separator.ToString();
+            // this is internal as it only serves the command line interface
+            internal string Separator = DefaultArguments.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
-            public char[] SeparatorChars = new[] { DefaultArguments.Separator };
+            public char[] Separators = new[] { DefaultArguments.Separator };
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
                 ShortName = "col", SortOrder = 1)]
@@ -461,7 +462,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(isegVar >= -1);
 
                 Name = name;
-                Kind = colType.ItemType.RawKind;
+                Kind = colType.GetItemType().GetRawKind();
                 Contracts.Assert(Kind != 0);
                 ColType = colType;
                 Segments = segs;
@@ -520,26 +521,26 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private sealed class Bindings : ISchema
+        private sealed class Bindings
         {
+            /// <summary>
+            /// <see cref="Infos"/>[i] stores the i-th column's name and type. Columns are loaded from the input text file.
+            /// </summary>
             public readonly ColInfo[] Infos;
-            public readonly Dictionary<string, int> NameToInfoIndex;
+            /// <summary>
+            /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="MetadataUtils.Kinds.SlotNames"/>
+            /// in <see cref="Schema.Metadata"/>.
+            /// </summary>
             private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
-            // Empty iff either header+ not set in args, or if no header present, or upon load
-            // there was no header stored in the model.
+            /// <summary>
+            /// Empty if <see cref="ArgumentsCore.HasHeader"/> is <see langword="false"/>, no header presents, or upon load
+            /// there was no header stored in the model.
+            /// </summary>
             private readonly ReadOnlyMemory<char> _header;
 
-            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
-
-            public Schema AsSchema { get; }
-
-            private Bindings()
-            {
-                _getSlotNames = GetSlotNames;
-            }
+            public Schema OutputSchema { get; }
 
             public Bindings(TextLoader parent, Column[] cols, IMultiStreamSource headerFile, IMultiStreamSource dataSample)
-                : this()
             {
                 Contracts.AssertNonEmpty(cols);
                 Contracts.AssertValueOrNull(headerFile);
@@ -590,27 +591,30 @@ namespace Microsoft.ML.Data
                     int isegOther = -1;
 
                     Infos = new ColInfo[cols.Length];
-                    NameToInfoIndex = new Dictionary<string, int>(Infos.Length);
+
+                    // This dictionary is used only for detecting duplicated column names specified by user.
+                    var nameToInfoIndex = new Dictionary<string, int>(Infos.Length);
+
                     for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
                     {
                         var col = cols[iinfo];
 
                         ch.CheckNonWhiteSpace(col.Name, nameof(col.Name));
                         string name = col.Name.Trim();
-                        if (iinfo == NameToInfoIndex.Count && NameToInfoIndex.ContainsKey(name))
+                        if (iinfo == nameToInfoIndex.Count && nameToInfoIndex.ContainsKey(name))
                             ch.Info("Duplicate name(s) specified - later columns will hide earlier ones");
 
                         PrimitiveType itemType;
                         DataKind kind;
-                        if (col.KeyRange != null)
+                        if (col.KeyCount != null)
                         {
-                            itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyRange);
+                            itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyCount);
                         }
                         else
                         {
                             kind = col.Type ?? DataKind.Num;
                             ch.CheckUserArg(Enum.IsDefined(typeof(DataKind), kind), nameof(Column.Type), "Bad item type");
-                            itemType = PrimitiveType.FromKind(kind);
+                            itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
 
                         // This was checked above.
@@ -669,7 +673,7 @@ namespace Microsoft.ML.Data
                         if (iinfoOther != iinfo)
                             Infos[iinfo] = ColInfo.Create(name, itemType, segs, true);
 
-                        NameToInfoIndex[name] = iinfo;
+                        nameToInfoIndex[name] = iinfo;
                     }
 
                     // Note that segsOther[isegOther] is not a real segment to be included.
@@ -734,11 +738,10 @@ namespace Microsoft.ML.Data
                     if (!_header.IsEmpty)
                         Parser.ParseSlotNames(parent, _header, Infos, _slotNames);
                 }
-                AsSchema = Schema.Create(this);
+                OutputSchema = ComputeOutputSchema();
             }
 
             public Bindings(ModelLoadContext ctx, TextLoader parent)
-                : this()
             {
                 Contracts.AssertValue(ctx);
 
@@ -749,9 +752,7 @@ namespace Microsoft.ML.Data
                 //   byte: DataKind
                 //   byte: bool of whether this is a key type
                 //   for a key type:
-                //     byte: contiguous key range
-                //     ulong: min for key range
-                //     int: count for key range
+                //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
                 //     int: min
@@ -760,7 +761,9 @@ namespace Microsoft.ML.Data
                 int cinfo = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(cinfo > 0);
                 Infos = new ColInfo[cinfo];
-                NameToInfoIndex = new Dictionary<string, int>(Infos.Length);
+
+                // This dictionary is used only for detecting duplicated column names specified by user.
+                var nameToInfoIndex = new Dictionary<string, int>(Infos.Length);
 
                 for (int iinfo = 0; iinfo < cinfo; iinfo++)
                 {
@@ -772,23 +775,33 @@ namespace Microsoft.ML.Data
                     bool isKey = ctx.Reader.ReadBoolByte();
                     if (isKey)
                     {
-                        Contracts.CheckDecode(KeyType.IsValidDataKind(kind));
+                        ulong count;
+                        Contracts.CheckDecode(KeyType.IsValidDataType(kind.ToType()));
 
-                        bool isContig = ctx.Reader.ReadBoolByte();
-                        ulong min = ctx.Reader.ReadUInt64();
-                        Contracts.CheckDecode(min >= 0);
-                        int count = ctx.Reader.ReadInt32();
-                        if (count == 0)
-                            itemType = new KeyType(kind, min, 0, isContig);
+                        // Special treatment for versions that had Min and Contiguous fields in KeyType.
+                        if (ctx.Header.ModelVerWritten < VersionNoMinCount)
+                        {
+                            bool isContig = ctx.Reader.ReadBoolByte();
+                            // We no longer support non contiguous values and non zero Min for KeyType.
+                            Contracts.CheckDecode(isContig);
+                            ulong min = ctx.Reader.ReadUInt64();
+                            Contracts.CheckDecode(min == 0);
+                            int cnt = ctx.Reader.ReadInt32();
+                            Contracts.CheckDecode(cnt >= 0);
+                            count = (ulong)cnt;
+                            // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
+                            if (count == 0)
+                                count = kind.ToMaxInt();
+                        }
                         else
                         {
-                            Contracts.CheckDecode(isContig);
-                            Contracts.CheckDecode(2 <= count && (ulong)count <= kind.ToMaxInt());
-                            itemType = new KeyType(kind, min, count);
+                            count = ctx.Reader.ReadUInt64();
+                            Contracts.CheckDecode(0 < count);
                         }
+                        itemType = new KeyType(kind.ToType(), count);
                     }
                     else
-                        itemType = PrimitiveType.FromKind(kind);
+                        itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
 
                     int cseg = ctx.Reader.ReadInt32();
                     Contracts.CheckDecode(cseg > 0);
@@ -808,7 +821,7 @@ namespace Microsoft.ML.Data
                     // of multiple variable segments (since those segments will overlap and overlapping
                     // segments are illegal).
                     Infos[iinfo] = ColInfo.Create(name, itemType, segs, false);
-                    NameToInfoIndex[name] = iinfo;
+                    nameToInfoIndex[name] = iinfo;
                 }
 
                 _slotNames = new VBuffer<ReadOnlyMemory<char>>[Infos.Length];
@@ -818,7 +831,7 @@ namespace Microsoft.ML.Data
                 if (!string.IsNullOrEmpty(result))
                     Parser.ParseSlotNames(parent, _header = result.AsMemory(), Infos, _slotNames);
 
-                AsSchema = Schema.Create(this);
+                OutputSchema = ComputeOutputSchema();
             }
 
             public void Save(ModelSaveContext ctx)
@@ -832,9 +845,7 @@ namespace Microsoft.ML.Data
                 //   byte: DataKind
                 //   byte: bool of whether this is a key type
                 //   for a key type:
-                //     byte: contiguous key range
-                //     ulong: min for key range
-                //     int: count for key range
+                //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
                 //     int: min
@@ -845,16 +856,13 @@ namespace Microsoft.ML.Data
                 {
                     var info = Infos[iinfo];
                     ctx.SaveNonEmptyString(info.Name);
-                    var type = info.ColType.ItemType;
-                    Contracts.Assert((DataKind)(byte)type.RawKind == type.RawKind);
-                    ctx.Writer.Write((byte)type.RawKind);
-                    ctx.Writer.WriteBoolByte(type.IsKey);
+                    var type = info.ColType.GetItemType();
+                    DataKind rawKind = type.GetRawKind();
+                    Contracts.Assert((DataKind)(byte)rawKind == rawKind);
+                    ctx.Writer.Write((byte)rawKind);
+                    ctx.Writer.WriteBoolByte(type is KeyType);
                     if (type is KeyType key)
-                    {
-                        ctx.Writer.WriteBoolByte(key.Contiguous);
-                        ctx.Writer.Write(key.Min);
                         ctx.Writer.Write(key.Count);
-                    }
                     ctx.Writer.Write(info.Segments.Length);
                     foreach (var seg in info.Segments)
                     {
@@ -869,86 +877,29 @@ namespace Microsoft.ML.Data
                     ctx.SaveTextStream("Header.txt", writer => writer.WriteLine(_header.ToString()));
             }
 
-            public int ColumnCount
+            private Schema ComputeOutputSchema()
             {
-                get { return Infos.Length; }
-            }
+                var schemaBuilder = new SchemaBuilder();
 
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                Contracts.CheckValueOrNull(name);
-                return NameToInfoIndex.TryGetValue(name, out col);
-            }
-
-            public string GetColumnName(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < Infos.Length, nameof(col));
-                return Infos[col].Name;
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < Infos.Length, nameof(col));
-                return Infos[col].ColType;
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                var names = _slotNames[col];
-                if (names.Length > 0)
+                // Iterate through all loaded columns. The index i indicates the i-th column loaded.
+                for (int i = 0; i < Infos.Length; ++i)
                 {
-                    Contracts.Assert(Infos[col].ColType.VectorSize == names.Length);
-                    yield return MetadataUtils.GetSlotNamesPair(names.Length);
+                    var info = Infos[i];
+                    // Retrieve the only possible metadata of this class.
+                    var names = _slotNames[i];
+                    if (names.Length > 0)
+                    {
+                        // Slot names present! Let's add them.
+                        var metadataBuilder = new MetadataBuilder();
+                        metadataBuilder.AddSlotNames(names.Length, (ref VBuffer<ReadOnlyMemory<char>> value) => names.CopyTo(ref value));
+                        schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.GetMetadata());
+                    }
+                    else
+                        // Slot names is empty.
+                        schemaBuilder.AddColumn(info.Name, info.ColType);
                 }
-            }
 
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                switch (kind)
-                {
-                    case MetadataUtils.Kinds.SlotNames:
-                        var names = _slotNames[col];
-                        if (names.Length == 0)
-                            return null;
-                        Contracts.Assert(Infos[col].ColType.VectorSize == names.Length);
-                        return MetadataUtils.GetNamesType(names.Length);
-
-                    default:
-                        return null;
-                }
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                switch (kind)
-                {
-                    case MetadataUtils.Kinds.SlotNames:
-                        _getSlotNames.Marshal(col, ref value);
-                        return;
-
-                    default:
-                        throw MetadataUtils.ExceptGetMetadata();
-                }
-            }
-
-            private void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
-            {
-                Contracts.Assert(0 <= col && col < ColumnCount);
-
-                var names = _slotNames[col];
-                if (names.Length == 0)
-                    throw MetadataUtils.ExceptGetMetadata();
-
-                Contracts.Assert(Infos[col].ColType.VectorSize == names.Length);
-                names.CopyTo(ref dst);
+                return schemaBuilder.GetSchema();
             }
         }
 
@@ -957,6 +908,7 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
+        private const uint VersionNoMinCount = 0x0001000C;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -972,7 +924,8 @@ namespace Microsoft.ML.Data
                 //verWrittenCur: 0x00010008, // Added maxRows
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
-                verWrittenCur: 0x0001000B, // Header now retained if used and present
+                //verWrittenCur: 0x0001000B, // Header now retained if used and present
+                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
@@ -1031,7 +984,7 @@ namespace Microsoft.ML.Data
         private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
         {
             Contracts.AssertValue(separatorChars);
-            var result = new Arguments { Column = columns, HasHeader = hasHeader, SeparatorChars = separatorChars};
+            var result = new Arguments { Column = columns, HasHeader = hasHeader, Separators = separatorChars};
             return result;
         }
 
@@ -1097,13 +1050,13 @@ namespace Microsoft.ML.Data
 
             _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
 
-            //Default arg.Separator is tab and default args.SeparatorChars is also a '\t'.
+            //Default arg.Separator is tab and default args.Separators is also a '\t'.
             //At a time only one default can be different and whichever is different that will
             //be used.
-            if (args.SeparatorChars.Length > 1 || args.SeparatorChars[0] != '\t')
+            if (args.Separators.Length > 1 || args.Separators[0] != '\t')
             {
                 var separators = new HashSet<char>();
-                foreach (char c in args.SeparatorChars)
+                foreach (char c in args.Separators)
                     separators.Add(NormalizeSeparator(c.ToString()));
 
                 _separators = separators.ToArray();
@@ -1355,7 +1308,7 @@ namespace Microsoft.ML.Data
             _bindings.Save(ctx);
         }
 
-        public Schema GetOutputSchema() => _bindings.AsSchema;
+        public Schema GetOutputSchema() => _bindings.OutputSchema;
 
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
@@ -1422,7 +1375,7 @@ namespace Microsoft.ML.Data
             Arguments args = new Arguments
             {
                 HasHeader = hasHeader,
-                SeparatorChars = new[] { separator },
+                Separators = new[] { separator },
                 AllowQuoting = allowQuotedStrings,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,
@@ -1455,21 +1408,19 @@ namespace Microsoft.ML.Data
             // REVIEW: Should we try to support shuffling?
             public bool CanShuffle => false;
 
-            public Schema Schema => _reader._bindings.AsSchema;
+            public Schema Schema => _reader._bindings.OutputSchema;
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.ColumnCount, predicate);
+                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.Create(_reader, _files, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.ColumnCount, predicate);
+                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.CreateSet(_reader, _files, active, n);
             }
 

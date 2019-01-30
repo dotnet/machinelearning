@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -179,7 +180,11 @@ namespace Microsoft.ML.Trainers.PCA
 
             var omega = GaussianMatrix(oversampledRank, dimension, _seed);
 
-            var cursorFactory = new FeatureFloatVectorCursor.Factory(data, CursOpt.Features | CursOpt.Weight);
+            CursOpt cursorOpt = CursOpt.Features;
+            if (data.Schema.Weight.HasValue)
+                cursorOpt |= CursOpt.Weight;
+
+            var cursorFactory = new FeatureFloatVectorCursor.Factory(data, cursorOpt);
             long numBad;
             Project(Host, cursorFactory, ref mean, omega, y, out numBad);
             if (numBad > 0)
@@ -344,7 +349,7 @@ namespace Microsoft.ML.Trainers.PCA
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
                                  @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaAnomalyDetector""]/*' />" })]
-        public static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainPCAAnomaly");

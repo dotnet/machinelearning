@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -49,14 +50,14 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() },
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() }
             };
-            var invalidData = ComponentCreation.CreateDataView(Env, new[] { new TestClassInvalidSchema { A = 1 }, new TestClassInvalidSchema { A = 1 } });
-            var validFitInvalidData = ComponentCreation.CreateDataView(Env, new[] { new TestClassBiggerSize { A = new float[200] }, new TestClassBiggerSize { A = new float[200] } });
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var invalidData = ML.Data.ReadFromEnumerable(new[] { new TestClassInvalidSchema { A = 1 }, new TestClassInvalidSchema { A = 1 } });
+            var validFitInvalidData = ML.Data.ReadFromEnumerable(new[] { new TestClassBiggerSize { A = new float[200] }, new TestClassBiggerSize { A = new float[200] } });
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var generator = new GaussianFourierSampler.Arguments();
 
             var pipe = new RandomFourierFeaturizingEstimator(Env, new[]{
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("A", "RffA", 5, false),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("A", "RffB", 10, true, new LaplacianFourierSampler.Arguments())
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("RffA", 5, false, "A"),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("RffB", 10, true, "A", new LaplacianFourierSampler.Arguments())
                 });
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidData, validForFitNotValidForTransformInput: validFitInvalidData);
@@ -108,11 +109,11 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() },
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() }
             };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var est = new RandomFourierFeaturizingEstimator(Env, new[]{
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("A", "RffA", 5, false),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("A", "RffB", 10, true,new LaplacianFourierSampler.Arguments())
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("RffA", 5, false, "A"),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("RffB", 10, true, "A", new LaplacianFourierSampler.Arguments())
                 });
             var result = est.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

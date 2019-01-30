@@ -2,7 +2,7 @@
 #@   header+
 #@   sep=tab
 #@   col=RawLabel:TX:0
-#@   col=FileLabel:U4[100-*]:1
+#@   col=FileLabel:U4[4294967295]:1
 #@ }
 RawLabel	FileLabel
 Wirtschaft	100

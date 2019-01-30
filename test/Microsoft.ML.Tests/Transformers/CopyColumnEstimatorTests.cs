@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.Tools;
@@ -39,8 +40,8 @@ namespace Microsoft.ML.Tests
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
-            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+            var dataView = env.Data.ReadFromEnumerable(data);
+            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("E", "B"), ("F", "A") });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             ValidateCopyColumnTransformer(result);
@@ -51,8 +52,8 @@ namespace Microsoft.ML.Tests
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
-            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("B", "E") });
+            var dataView = env.Data.ReadFromEnumerable(data);
+            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("E", "B") });
             try
             {
                 var transformer = est.Fit(dataView);
@@ -69,9 +70,9 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
-            var xyDataView = ComponentCreation.CreateDataView(env, xydata);
-            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+            var dataView = env.Data.ReadFromEnumerable(data);
+            var xyDataView = env.Data.ReadFromEnumerable(xydata);
+            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("E", "B"), ("F", "A") });
             var transformer = est.Fit(dataView);
             try
             {
@@ -88,8 +89,8 @@ namespace Microsoft.ML.Tests
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
-            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+            var dataView = env.Data.ReadFromEnumerable(data);
+            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("E", "B"), ("F", "A") });
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
@@ -105,15 +106,15 @@ namespace Microsoft.ML.Tests
         void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            IHostEnvironment env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
-            var est = new ColumnCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+            var env = new MLContext();
+            var dataView = env.Data.ReadFromEnumerable(data);
+            var est = new ColumnCopyingEstimator(env, new[] { ("D", "A"), ("E", "B"), ("F", "A") });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
             {
-                TrainUtils.SaveModel(env, env.Start("saving"), ms, null, resultRoles);
+                TrainUtils.SaveModel(env, ((IHostEnvironment)env).Start("saving"), ms, null, resultRoles);
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(env, dataView, ms);
                 ValidateCopyColumnTransformer(loadedView);
@@ -125,12 +126,12 @@ namespace Microsoft.ML.Tests
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
             var env = new MLContext();
-            var dataView = ComponentCreation.CreateDataView(env, data);
+            var dataView = env.Data.ReadFromEnumerable(data);
             var term = ValueToKeyMappingTransformer.Create(env, new ValueToKeyMappingTransformer.Arguments()
             {
                 Column = new[] { new ValueToKeyMappingTransformer.Column() { Source = "Term", Name = "T" } }
             }, dataView);
-            var est = new ColumnCopyingEstimator(env, "T", "T1");
+            var est = new ColumnCopyingEstimator(env, "T1", "T");
             var transformer = est.Fit(term);
             var result = transformer.Transform(term);
             result.Schema.TryGetColumnIndex("T", out int termIndex);
@@ -139,10 +140,13 @@ namespace Microsoft.ML.Tests
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
-            int size = (itemType1 as KeyType)?.Count ?? -1;
+            var key = itemType1 as KeyType;
+            Assert.NotNull(key);
+            Assert.InRange<ulong>(key.Count, 0, int.MaxValue);
+            int size = (int)key.Count;
             var type2 = result.Schema[copyIndex].Type;
-            result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
-            result.Schema[copyIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names2);
+            result.Schema[termIndex].GetKeyValues(ref names1);
+            result.Schema[copyIndex].GetKeyValues(ref names2);
             Assert.True(CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
         }
 
@@ -155,7 +159,7 @@ namespace Microsoft.ML.Tests
 
         private void ValidateCopyColumnTransformer(IDataView result)
         {
-            using (var cursor = result.GetRowCursor(x => true))
+            using (var cursor = result.GetRowCursorForAllColumns())
             {
                 int avalue = 0;
                 int bvalue = 0;

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data
 {
@@ -100,6 +101,32 @@ namespace Microsoft.ML.Data
                 case DataKind.U8:
                     return ulong.MaxValue;
             }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// For integer Types, this returns the maximum legal value. For un-supported Types,
+        /// it returns zero.
+        /// </summary>
+        public static ulong ToMaxInt(this Type type)
+        {
+            if (type == typeof(sbyte))
+                return (ulong)sbyte.MaxValue;
+            else if (type == typeof(byte))
+                return byte.MaxValue;
+            else if (type == typeof(short))
+                return (ulong)short.MaxValue;
+            else if (type == typeof(ushort))
+                return ushort.MaxValue;
+            else if (type == typeof(int))
+                return int.MaxValue;
+            else if (type == typeof(uint))
+                return uint.MaxValue;
+            else if (type == typeof(long))
+                return long.MaxValue;
+            else if (type == typeof(ulong))
+                return ulong.MaxValue;
 
             return 0;
         }

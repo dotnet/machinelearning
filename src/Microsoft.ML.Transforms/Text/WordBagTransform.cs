@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "Statistical measure used to evaluate how important a word is to a document in a corpus")]
             public NgramExtractingEstimator.WeightingCriteria? Weighting;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -72,7 +73,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || AllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
@@ -143,7 +144,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] = new WordTokenizingTransformer.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
+                tokenizeColumns[iinfo] = new WordTokenizingTransformer.ColumnInfo(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
 
                 extractorArgs.Column[iinfo] =
                     new NgramExtractorTransform.Column()
@@ -195,7 +196,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
             public NgramExtractingEstimator.WeightingCriteria? Weighting;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -205,7 +206,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || AllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
@@ -285,7 +286,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckNonWhiteSpace(col.Source, nameof(col.Source));
                 int colId;
                 if (input.Schema.TryGetColumnIndex(col.Source, out colId) &&
-                    input.Schema[colId].Type.ItemType.IsText)
+                    input.Schema[colId].Type.GetItemType() is TextType)
                 {
                     termCols.Add(col);
                     isTermCol[i] = true;
@@ -352,12 +353,13 @@ namespace Microsoft.ML.Transforms.Text
             for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
             {
                 var column = args.Column[iinfo];
-                ngramColumns[iinfo] = new NgramExtractingTransformer.ColumnInfo(isTermCol[iinfo] ? column.Name : column.Source, column.Name,
+                ngramColumns[iinfo] = new NgramExtractingTransformer.ColumnInfo(column.Name,
                     column.NgramLength ?? args.NgramLength,
                     column.SkipLength ?? args.SkipLength,
                     column.AllLengths ?? args.AllLengths,
                     column.Weighting ?? args.Weighting,
-                    column.MaxNumTerms ?? args.MaxNumTerms
+                    column.MaxNumTerms ?? args.MaxNumTerms,
+                    isTermCol[iinfo] ? column.Name : column.Source
                     );
             }
 
@@ -512,29 +514,18 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             IDataView view = input;
-            var concatCols = new List<ColumnConcatenatingTransformer.Column>();
+            var concatColumns = new List<ColumnConcatenatingTransformer.ColumnInfo>();
             foreach (var col in columns)
             {
                 env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Arguments.Column));
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
-
                 if (col.Source.Length > 1)
-                {
-                    concatCols.Add(
-                        new ColumnConcatenatingTransformer.Column
-                        {
-                            Source = col.Source,
-                            Name = col.Name
-                        });
-                }
+                    concatColumns.Add(new ColumnConcatenatingTransformer.ColumnInfo(col.Name, col.Source));
             }
-            if (concatCols.Count > 0)
-            {
-                var concatArgs = new ColumnConcatenatingTransformer.Arguments { Column = concatCols.ToArray() };
-                return ColumnConcatenatingTransformer.Create(env, concatArgs, view);
-            }
+            if (concatColumns.Count > 0)
+                return new ColumnConcatenatingTransformer(env, concatColumns.ToArray()).Transform(view);
 
             return view;
         }

@@ -5,78 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML
 {
-    // REVIEW: Temporarly moving here since it is used by the Legacy project. Remove when removing the legacy project.
-    /// <summary>
-    /// A class that runs the previously trained model (and the preceding transform pipeline) on the
-    /// in-memory data in batch mode.
-    /// This can also be used with trained pipelines that do not end with a predictor: in this case, the
-    /// 'prediction' will be just the outcome of all the transformations.
-    /// </summary>
-    /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
-    /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    [BestFriend]
-    internal sealed class BatchPredictionEngine<TSrc, TDst>
-        where TSrc : class
-        where TDst : class, new()
-    {
-        // The source data view.
-        private readonly DataViewConstructionUtils.StreamingDataView<TSrc> _srcDataView;
-        // The transformation engine.
-        private readonly PipeEngine<TDst> _pipeEngine;
-
-        internal BatchPredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-        {
-            Contracts.AssertValue(env);
-            Contracts.AssertValue(modelStream);
-            Contracts.AssertValueOrNull(inputSchemaDefinition);
-            Contracts.AssertValueOrNull(outputSchemaDefinition);
-
-            // Initialize pipe.
-            _srcDataView = DataViewConstructionUtils.CreateFromEnumerable(env, new TSrc[] { }, inputSchemaDefinition);
-            var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, _srcDataView);
-            _pipeEngine = new PipeEngine<TDst>(env, pipe, ignoreMissingColumns, outputSchemaDefinition);
-        }
-
-        internal BatchPredictionEngine(IHostEnvironment env, IDataView dataPipeline, bool ignoreMissingColumns,
-           SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-        {
-            Contracts.AssertValue(env);
-            Contracts.AssertValue(dataPipeline);
-            Contracts.AssertValueOrNull(inputSchemaDefinition);
-            Contracts.AssertValueOrNull(outputSchemaDefinition);
-
-            // Initialize pipe.
-            _srcDataView = DataViewConstructionUtils.CreateFromEnumerable(env, new TSrc[] { }, inputSchemaDefinition);
-            var pipe = ApplyTransformUtils.ApplyAllTransformsToData(env, dataPipeline, _srcDataView);
-
-            _pipeEngine = new PipeEngine<TDst>(env, pipe, ignoreMissingColumns, outputSchemaDefinition);
-        }
-
-        /// <summary>
-        /// Run the prediction pipe. This will enumerate the <paramref name="examples"/> exactly once,
-        /// cache all the examples (by reference) into its internal representation and then run
-        /// the transformation pipe.
-        /// </summary>
-        /// <param name="examples">The examples to run the prediction on.</param>
-        /// <param name="reuseRowObjects">If <c>true</c>, the engine will not allocate memory per output, and
-        /// the returned <typeparamref name="TDst"/> objects will actually always be the same object. The user is
-        /// expected to clone the values himself if needed.</param>
-        /// <returns>The <see cref="IEnumerable{TDst}"/> that contains all the pipeline results.</returns>
-        public IEnumerable<TDst> Predict(IEnumerable<TSrc> examples, bool reuseRowObjects)
-        {
-            Contracts.CheckValue(examples, nameof(examples));
-
-            _pipeEngine.Reset();
-            _srcDataView.SetData(examples);
-            return _pipeEngine.RunPipe(reuseRowObjects);
-        }
-    }
 
     /// <summary>
     /// Utility class to run the pipeline to completion and produce a strongly-typed IEnumerable as a result.
@@ -94,7 +28,7 @@ namespace Microsoft.ML
             env.AssertValue(pipe);
             env.AssertValueOrNull(schemaDefinition);
 
-            _cursorablePipe = pipe.AsCursorable<TDst>(env, ignoreMissingColumns, schemaDefinition);
+            _cursorablePipe = env.AsCursorable<TDst>(pipe, ignoreMissingColumns, schemaDefinition);
             _counter = 0;
         }
 
@@ -167,6 +101,11 @@ namespace Microsoft.ML
         private readonly Action _disposer;
         private bool _disposed;
 
+        /// <summary>
+        /// Provides output schema.
+        /// </summary>
+        public Schema OutputSchema;
+
         [BestFriend]
         private protected ITransformer Transformer { get; }
 
@@ -194,6 +133,7 @@ namespace Microsoft.ML
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
             PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out _disposer, out _outputRow);
+            OutputSchema = Transformer.GetOutputSchema(_inputRow.Schema);
         }
 
         [BestFriend]

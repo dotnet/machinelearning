@@ -3,14 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
-    /// Common output classes for trainers and transforms.
+    /// Common output classes for trainers and transform entry-points.
     /// </summary>
-    public static class CommonOutputs
+    [BestFriend]
+    internal static class CommonOutputs
     {
         /// <summary>
         /// The common output class for all transforms.

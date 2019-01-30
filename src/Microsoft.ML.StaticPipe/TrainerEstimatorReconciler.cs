@@ -101,7 +101,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                         newInputNames[p.Key] = old2New.ContainsKey(p.Value) ? old2New[p.Value] : p.Value;
                     inputNames = newInputNames;
                 }
-                result = new ColumnCopyingEstimator(env, old2New.Select(p => (p.Key, p.Value)).ToArray());
+                result = new ColumnCopyingEstimator(env, old2New.Select(p => (p.Value, p.Key)).ToArray());
             }
 
             // Map the inputs to the names.
@@ -115,17 +115,17 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             // OK. Now handle the final renamings from the fixed names, to the desired names, in the case
             // where the output was desired, and a renaming is even necessary.
-            var toRename = new List<(string source, string name)>();
+            var toRename = new List<(string outputColumnName, string inputColumnName)>();
             foreach ((PipelineColumn outCol, string fixedName) in Outputs.Zip(_outputNames, (c, n) => (c, n)))
             {
                 if (outputNames.TryGetValue(outCol, out string desiredName))
-                    toRename.Add((fixedName, desiredName));
+                    toRename.Add((desiredName, fixedName));
                 else
                     env.Assert(!toOutput.Contains(outCol));
             }
             // Finally if applicable handle the renaming back from the temp names to the original names.
             foreach (var p in old2New)
-                toRename.Add((p.Value, p.Key));
+                toRename.Add((p.Key, p.Value));
             if (toRename.Count > 0)
                 result = result.Append(new ColumnCopyingEstimator(env, toRename.ToArray()));
 

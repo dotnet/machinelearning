@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Data
                 {
                     if (ignoreMissingColumns)
                         continue;
-                    throw _host.Except("Column '{0}' not found in the data view", col.ColumnName);
+                    throw _host.ExceptSchemaMismatch(nameof(_data.Schema), "", col.ColumnName);
                 }
                 var realColType = _data.Schema[colIndex].Type;
                 if (!IsCompatibleType(realColType, col.MemberInfo))
@@ -125,7 +126,7 @@ namespace Microsoft.ML.Data
             var schema = _data.Schema;
             for (int i = 0; i < n; i++)
             {
-                if (_columns[i].ColumnType.IsVector)
+                if (_columns[i].ColumnType is VectorType)
                     _peeks[i] = ApiUtils.GeneratePeek<TypedCursorable<TRow>, TRow>(_columns[i]);
                 _pokes[i] = ApiUtils.GeneratePoke<TypedCursorable<TRow>, TRow>(_columns[i]);
             }
@@ -133,15 +134,15 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="memberInfo"/>.
-        /// They must both be vectors or scalars, and the raw data kind should match.
+        /// They must both be vectors or scalars, and the raw data type should match.
         /// </summary>
         private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
         {
-            InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
+            InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type itemType);
             if (isVector)
-                return colType.IsVector && colType.ItemType.RawKind == kind;
+                return colType is VectorType vectorType && vectorType.ItemType.RawType == itemType;
             else
-                return !colType.IsVector && colType.RawKind == kind;
+                return !(colType is VectorType) && colType.RawType == itemType;
         }
 
         /// <summary>
@@ -178,7 +179,10 @@ namespace Microsoft.ML.Data
 
             Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
 
-            var cursor = _data.GetRowCursor(GetDependencies(additionalColumnsPredicate), rand);
+            var deps = GetDependencies(additionalColumnsPredicate);
+
+            var inputCols = _data.Schema.Where(x => deps(x.Index));
+            var cursor = _data.GetRowCursor(inputCols, rand);
             return new RowCursorImplementation(new TypedCursor(this, cursor));
         }
 
@@ -199,8 +203,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
             _host.CheckValueOrNull(rand);
 
-            Func<int, bool> inputPredicate = col => _columnIndices.Contains(col) || additionalColumnsPredicate(col);
-            var inputs = _data.GetRowCursorSet(inputPredicate, n, rand);
+            var inputs = _data.GetRowCursorSet(_data.Schema.Where(col => _columnIndices.Contains(col.Index) || additionalColumnsPredicate(col.Index)), n, rand);
             _host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1)
@@ -274,34 +277,34 @@ namespace Microsoft.ML.Data
                     // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
-                        Ch.Assert(colType.ItemType.IsText);
+                        Ch.Assert(colType.GetItemType() is TextType);
                         return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
 
                     // VBuffer<T> -> T[]
                     if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
-                        Ch.Assert(colType.ItemType.RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
+                        Ch.Assert(colType.GetItemType().RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
                     else
-                        Ch.Assert(colType.ItemType.RawType == fieldType.GetElementType());
+                        Ch.Assert(colType.GetItemType().RawType == fieldType.GetElementType());
                     del = CreateDirectVBufferSetter<int>;
                     genericType = fieldType.GetElementType();
                 }
-                else if (colType.IsVector)
+                else if (colType is VectorType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
                     // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
                     Ch.Assert(fieldType.IsGenericType);
                     Ch.Assert(fieldType.GetGenericTypeDefinition() == typeof(VBuffer<>));
-                    Ch.Assert(fieldType.GetGenericArguments()[0] == colType.ItemType.RawType);
+                    Ch.Assert(fieldType.GetGenericArguments()[0] == vectorType.ItemType.RawType);
                     del = CreateVBufferToVBufferSetter<int>;
-                    genericType = colType.ItemType.RawType;
+                    genericType = vectorType.ItemType.RawType;
                 }
-                else if (colType.IsPrimitive)
+                else if (colType is PrimitiveType)
                 {
                     if (fieldType == typeof(string))
                     {
                         // ReadOnlyMemory<char> -> String
-                        Ch.Assert(colType.IsText);
+                        Ch.Assert(colType is TextType);
                         Ch.Assert(peek == null);
                         return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
@@ -487,7 +490,6 @@ namespace Microsoft.ML.Data
 
             public RowCursorImplementation(TypedCursor cursor) => _cursor = cursor;
 
-            public override CursorState State => _cursor.State;
             public override long Position => _cursor.Position;
             public override long Batch => _cursor.Batch;
             public override Schema Schema => _cursor.Schema;
@@ -505,9 +507,7 @@ namespace Microsoft.ML.Data
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
             public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
-            public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
-            public override bool MoveMany(long count) => _cursor.MoveMany(count);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 
@@ -523,15 +523,11 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row)
             {
-                Ch.Check(_input.State == CursorState.Good, "Can't fill values: the cursor is not active.");
+                Ch.Check(Position >= 0, "Cannot fill values. The cursor is not active.");
                 base.FillValues(row);
             }
 
-            public CursorState State => _input.State;
-
             public bool MoveNext() => _input.MoveNext();
-            public bool MoveMany(long count) => _input.MoveMany(count);
-            public RowCursor GetRootCursor() => _input.GetRootCursor();
         }
     }
 
@@ -544,16 +540,16 @@ namespace Microsoft.ML.Data
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="data">The underlying data view.</param>
         /// <param name="env">The environment.</param>
+        /// <param name="data">The underlying data view.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
-        public static ICursorable<TRow> AsCursorable<TRow>(this IDataView data, IHostEnvironment env, bool ignoreMissingColumns = false,
+        [BestFriend]
+        internal static ICursorable<TRow> AsCursorable<TRow>(this IHostEnvironment env, IDataView data, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
             env.CheckValueOrNull(schemaDefinition);
 
@@ -564,21 +560,21 @@ namespace Microsoft.ML.Data
         /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
+        /// <param name="mlContext">ML context.</param>
         /// <param name="data">The underlying data view.</param>
-        /// <param name="env">The environment.</param>
         /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
-        public static IEnumerable<TRow> AsEnumerable<TRow>(this IDataView data, IHostEnvironment env, bool reuseRowObject,
+        public static IEnumerable<TRow> CreateEnumerable<TRow>(this MLContext mlContext, IDataView data, bool reuseRowObject,
             bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            Contracts.AssertValue(env);
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
+            Contracts.AssertValue(mlContext);
+            mlContext.CheckValue(data, nameof(data));
+            mlContext.CheckValueOrNull(schemaDefinition);
 
-            var engine = new PipeEngine<TRow>(env, data, ignoreMissingColumns, schemaDefinition);
+            var engine = new PipeEngine<TRow>(mlContext, data, ignoreMissingColumns, schemaDefinition);
             return engine.RunPipe(reuseRowObject);
         }
     }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -74,6 +75,8 @@ namespace Microsoft.ML.Data
             private readonly Delegate _getter;
             private readonly IHost _host;
             private readonly Func<ISchemaBoundMapper, ColumnType, bool> _canWrap;
+
+            internal ISchemaBindableMapper Bindable => _bindable;
 
             public VectorType Type => _type;
             bool ICanSavePfa.CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
@@ -192,6 +195,11 @@ namespace Microsoft.ML.Data
                     throw _host.Except("We do not know how to serialize label names of type '{0}'", _type.ItemType);
             }
 
+            internal ISchemaBindableMapper Clone(ISchemaBindableMapper inner)
+            {
+                return new LabelNameBindableMapper(_host, inner, _type, _getter, _metadataKind, _canWrap);
+            }
+
             void IBindableCanSavePfa.SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
@@ -253,13 +261,10 @@ namespace Microsoft.ML.Data
                 {
                     get
                     {
-                        if (_bindable == null)
-                        {
+                        return _bindable ??
                             Interlocked.CompareExchange(ref _bindable,
-                                new LabelNameBindableMapper(_host, _mapper, _labelNameType, _labelNameGetter, _metadataKind, _canWrap), null);
-                        }
-                        Contracts.AssertValue(_bindable);
-                        return _bindable;
+                                new LabelNameBindableMapper(_host, _mapper, _labelNameType, _labelNameGetter, _metadataKind, _canWrap), null) ??
+                            _bindable;
                     }
                 }
 
@@ -372,7 +377,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var keyType = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -392,7 +397,7 @@ namespace Microsoft.ML.Data
         /// from the model of a bindable mapper)</param>
         /// <returns>Whether we can call <see cref="LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
-        private static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
+        internal static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
         {
             Contracts.AssertValue(mapper);
             Contracts.AssertValue(labelNameType);
@@ -411,10 +416,10 @@ namespace Microsoft.ML.Data
             var scoreType = outSchema[scoreIdx].Type;
 
             // Check that the type is vector, and is of compatible size with the score output.
-            return labelNameType.IsVector && labelNameType.VectorSize == scoreType.VectorSize;
+            return labelNameType is VectorType vectorType && vectorType.Size == scoreType.GetVectorSize();
         }
 
-        private static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        internal static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(mapper);
@@ -424,13 +429,13 @@ namespace Microsoft.ML.Data
             // Key values from the training schema label, will map to slot names of the score output.
             var type = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             env.AssertValue(type);
-            env.Assert(type.IsVector);
+            env.Assert(type is VectorType);
 
             // Wrap the fetching of the metadata as a simple getter.
             ValueGetter<VBuffer<T>> getter =
                 (ref VBuffer<T> value) =>
                 {
-                    trainSchema.Label.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref value);
+                    trainSchema.Label.Value.GetKeyValues(ref value);
                 };
 
             return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
@@ -496,8 +501,8 @@ namespace Microsoft.ML.Data
             ValueGetter<VBuffer<Float>> mapperScoreGetter = output.GetGetter<VBuffer<Float>>(Bindings.ScoreColumnIndex);
 
             long cachedPosition = -1;
-            VBuffer<Float> score = default(VBuffer<Float>);
-            int scoreLength = Bindings.PredColType.KeyCount;
+            VBuffer<Float> score = default;
+            int scoreLength = Bindings.PredColType.GetKeyCountAsInt32(Host);
 
             ValueGetter<uint> predFn =
                 (ref uint dst) =>
@@ -528,8 +533,9 @@ namespace Microsoft.ML.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(DataKind.U4, 0, scoreType.VectorSize);
+        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(typeof(uint), scoreType.GetVectorSize());
 
-        private static bool OutputTypeMatches(ColumnType scoreType) => scoreType.IsKnownSizeVector && scoreType.ItemType == NumberType.Float;
+        private static bool OutputTypeMatches(ColumnType scoreType) =>
+            scoreType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberType.Float;
     }
 }

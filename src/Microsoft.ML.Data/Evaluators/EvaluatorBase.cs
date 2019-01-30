@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
@@ -127,7 +129,7 @@ namespace Microsoft.ML.Data
         // the metric. If there are stratified metrics, an additional column is added to the data view containing the
         // stratification value as text in the format "column x = y".
         private Dictionary<string, IDataView> ProcessData(IDataView data, RoleMappedSchema schema,
-            Func<int, bool> activeCols, TAgg aggregator, AggregatorDictionaryBase[] dictionaries)
+            Func<int, bool> activeColsIndices, TAgg aggregator, AggregatorDictionaryBase[] dictionaries)
         {
             Func<bool> finishPass =
                 () =>
@@ -140,6 +142,7 @@ namespace Microsoft.ML.Data
 
             bool needMorePasses = aggregator.Start();
 
+            var activeCols = data.Schema.Where(x => activeColsIndices(x.Index));
             // REVIEW: Add progress reporting.
             while (needMorePasses)
             {
@@ -365,7 +368,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertNonWhiteSpace(stratCol);
                 Contracts.AssertValue(createAgg);
 
-                if (stratType.KeyCount == 0 && !stratType.IsText)
+                if (stratType.GetKeyCount() == 0 && !(stratType is TextType))
                 {
                     throw Contracts.ExceptUserArg(nameof(MamlEvaluatorBase.ArgumentsBase.StratColumn),
                         "Stratification column '{0}' has type '{1}', but must be a known count key or text", stratCol, stratType);
@@ -483,9 +486,9 @@ namespace Microsoft.ML.Data
             LabelCol = labelCol;
 
             if (!string.IsNullOrEmpty(LabelCol) && !schema.TryGetColumnIndex(LabelCol, out LabelIndex))
-                throw Host.Except("Did not find the label column '{0}'", LabelCol);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol);
             if (!schema.TryGetColumnIndex(ScoreCol, out ScoreIndex))
-                throw Host.Except("Did not find column '{0}'", ScoreCol);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
         protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  Schema schema)
@@ -499,9 +502,9 @@ namespace Microsoft.ML.Data
             ScoreCol = ctx.LoadNonEmptyString();
             LabelCol = ctx.LoadStringOrNull();
             if (!string.IsNullOrEmpty(LabelCol) && !schema.TryGetColumnIndex(LabelCol, out LabelIndex))
-                throw Host.Except($"Did not find the label column '{LabelCol}'");
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol);
             if (!schema.TryGetColumnIndex(ScoreCol, out ScoreIndex))
-                throw Host.Except($"Did not find column '{ScoreCol}'");
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
         public virtual void Save(ModelSaveContext ctx)
@@ -531,5 +534,10 @@ namespace Microsoft.ML.Data
 
         [BestFriend]
         private protected abstract Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer);
+
+        public ITransformer GetTransformer()
+        {
+            throw Host.ExceptNotSupp();
+        }
     }
 }

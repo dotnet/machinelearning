@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Command;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -516,7 +517,7 @@ namespace Microsoft.ML.RunTests
                     out pipe, rep, ModelFileUtils.DirDataLoaderModel, files);
             }
 
-            using (var c = pipe.GetRowCursor(col => true))
+            using (var c = pipe.GetRowCursorForAllColumns())
                 tmp = CheckSameValues(c, pipe, true, true, true);
             Check(tmp, "Single value same failed");
         }

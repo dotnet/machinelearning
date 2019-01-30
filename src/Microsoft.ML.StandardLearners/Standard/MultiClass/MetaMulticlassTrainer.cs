@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Learners
         {
             return Args.PredictorType != null ?
                 Args.PredictorType.CreateComponent(Host) :
-                new LinearSvmTrainer(Host, new LinearSvmTrainer.Arguments());
+                new LinearSvmTrainer(Host, new LinearSvmTrainer.Options());
         }
 
         private protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
@@ -152,10 +153,10 @@ namespace Microsoft.ML.Learners
             if (LabelColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
-                    throw Host.ExceptSchemaMismatch(nameof(labelCol), DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel);
+                    throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", LabelColumn.Name);
 
                 if (!LabelColumn.IsCompatibleWith(labelCol))
-                    throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "label", LabelColumn.Name, LabelColumn.GetTypeString(), labelCol.GetTypeString());
             }
 
             var outColumns = inputSchema.ToDictionary(x => x.Name);

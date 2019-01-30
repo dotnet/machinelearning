@@ -18,53 +18,36 @@ namespace Microsoft.ML.StaticPipe
         /// Predict matrix entry using matrix factorization
         /// </summary>
         /// <typeparam name="T">The type of physical value of matrix's row and column index. It must be an integer type such as uint.</typeparam>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label variable.</param>
         /// <param name="matrixColumnIndex">The column index of the considered matrix.</param>
         /// <param name="matrixRowIndex">The row index of the considered matrix.</param>
-        /// <param name="regularizationCoefficient">The frobenius norms of factor matrices.</param>
-        /// <param name="approximationRank">Rank of the two factor matrices whose product is used to approximate the consdered matrix</param>
-        /// <param name="learningRate">Initial learning rate.</param>
-        /// <param name="numIterations">Number of training iterations.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
+        /// <param name="options">Advanced algorithm settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> MatrixFactorization<T>(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> MatrixFactorization<T>(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Key<T> matrixColumnIndex, Key<T> matrixRowIndex,
-            float regularizationCoefficient = 0.1f,
-            int approximationRank = 8,
-            float learningRate = 0.1f,
-            int numIterations = 20,
-            Action<MatrixFactorizationTrainer.Arguments> advancedSettings = null,
+            MatrixFactorizationTrainer.Options options,
             Action<MatrixFactorizationPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(matrixColumnIndex, nameof(matrixColumnIndex));
             Contracts.CheckValue(matrixRowIndex, nameof(matrixRowIndex));
-
-            Contracts.CheckParam(regularizationCoefficient >= 0, nameof(regularizationCoefficient), "Must be non-negative");
-            Contracts.CheckParam(approximationRank > 0, nameof(approximationRank), "Must be positive");
-            Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive");
-            Contracts.CheckParam(numIterations > 0, nameof(numIterations), "Must be positive");
-            Contracts.CheckValueOrNull(advancedSettings);
+            Contracts.CheckValue(options, nameof(options));
             Contracts.CheckValueOrNull(onFit);
 
             var rec = new MatrixFactorizationReconciler<T>((env, labelColName, matrixColumnIndexColName, matrixRowIndexColName) =>
             {
-                var trainer = new MatrixFactorizationTrainer(env, matrixColumnIndexColName, matrixRowIndexColName, labelColName, advancedSettings:
-                    args =>
-                    {
-                        args.Lambda = regularizationCoefficient;
-                        args.K = approximationRank;
-                        args.Eta = learningRate;
-                        args.NumIterations = numIterations;
-                        // The previous settings may be overwritten by the line below.
-                        advancedSettings?.Invoke(args);
-                    });
+                options.MatrixColumnIndexColumnName = matrixColumnIndexColName;
+                options.MatrixRowIndexColumnName = matrixRowIndexColName;
+                options.LabelColumnName = labelColName;
+
+                var trainer = new MatrixFactorizationTrainer(env, options);
+
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                 else

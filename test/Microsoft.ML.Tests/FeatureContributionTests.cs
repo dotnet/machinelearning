@@ -4,11 +4,13 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -30,9 +32,9 @@ namespace Microsoft.ML.Tests
 
             var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, normalize: false))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, bottom: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0));
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numNegativeContributions: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0, numNegativeContributions: 0));
 
             TestEstimatorCore(estPipe, data);
             Done();
@@ -72,7 +74,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSDCARegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.StochasticDualCoordinateAscent(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
+            TestFeatureContribution(ML.Regression.Trainers.StochasticDualCoordinateAscent(
+                new SdcaRegressionTrainer.Options { NumThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
         }
 
         [Fact]
@@ -84,7 +87,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestPoissonRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
+            TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(
+                new PoissonRegression.Options { NumThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
         [Fact]
@@ -146,13 +150,16 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSDCABinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { NumThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary");
         }
 
         [Fact]
         public void TestSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(
+                new StochasticGradientDescentClassificationTrainer.Options { NumThreads = 1}), 
+                GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
         [Fact]
@@ -181,10 +188,10 @@ namespace Microsoft.ML.Tests
             Assert.NotNull(predictor);
 
             // Calculate feature contributions.
-            var est = new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 3, bottom: 0)
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 0, bottom: 3))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1, normalize: false));
+            var est = new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 3, numNegativeContributions: 0)
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 0, numNegativeContributions: 3))
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1))
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1, normalize: false));
 
             TestEstimatorCore(est, data);
             // Verify output.

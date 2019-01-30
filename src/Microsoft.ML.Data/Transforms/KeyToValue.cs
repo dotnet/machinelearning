@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Transforms.Conversions
     {
         public sealed class Column : OneToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -63,10 +64,12 @@ namespace Microsoft.ML.Transforms.Conversions
             public Column[] Column;
         }
 
-        public const string LoaderSignature = "KeyToValueTransform";
-        public const string UserName = "Key To Value Transform";
+        internal const string LoaderSignature = "KeyToValueTransform";
 
-        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
+        [BestFriend]
+        internal const string UserName = "Key To Value Transform";
+
+        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
         {
@@ -90,7 +93,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        public KeyToValueMappingTransformer(IHostEnvironment env, params (string input, string output)[] columns)
+        public KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingTransformer)), columns)
         {
         }
@@ -98,14 +101,15 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Factory method for SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        [BestFriend]
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
             env.CheckNonEmpty(args.Column, nameof(args.Column));
 
-            var transformer = new KeyToValueMappingTransformer(env, args.Column.Select(c => (c.Source ?? c.Name, c.Name)).ToArray());
+            var transformer = new KeyToValueMappingTransformer(env, args.Column.Select(c => (c.Name, c.Source ?? c.Name)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 
@@ -174,7 +178,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     var meta = new MetadataBuilder();
                     meta.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
@@ -189,20 +193,20 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
                 {
                     var info = _parent.ColumnPairs[iinfo];
-                    var srcName = info.input;
+                    var srcName = info.inputColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {
-                        toHide.Add(info.output);
+                        toHide.Add(info.outputColumnName);
                         continue;
                     }
                     var result = _kvMaps[iinfo].SavePfa(ctx, srcToken);
                     if (result == null)
                     {
-                        toHide.Add(info.output);
+                        toHide.Add(info.outputColumnName);
                         continue;
                     }
-                    toDeclare.Add(new KeyValuePair<string, JToken>(info.output, result));
+                    toDeclare.Add(new KeyValuePair<string, JToken>(info.outputColumnName, result));
                 }
                 ctx.Hide(toHide.ToArray());
                 ctx.DeclareVar(toDeclare.ToArray());
@@ -228,16 +232,18 @@ namespace Microsoft.ML.Transforms.Conversions
                     var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
                     var typeVals = schema[ColMapNewToOld[iinfo]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
-                    Host.Check(typeVals.VectorSize == typeSrc.ItemType.KeyCount, "KeyValues metadata size does not match column type key count");
+                    ColumnType valsItemType = typeVals.GetItemType();
+                    ColumnType srcItemType = typeSrc.GetItemType();
+                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCountAsInt32(Host), "KeyValues metadata size does not match column type key count");
                     if (!(typeSrc is VectorType vectorType))
-                        types[iinfo] = typeVals.ItemType;
+                        types[iinfo] = valsItemType;
                     else
-                        types[iinfo] = new VectorType((PrimitiveType)typeVals.ItemType, vectorType);
+                        types[iinfo] = new VectorType((PrimitiveType)valsItemType, vectorType);
 
                     // MarshalInvoke with two generic params.
                     Func<int, ColumnType, ColumnType, KeyToValueMap> func = GetKeyMetadata<int, int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(
-                        new Type[] { typeSrc.ItemType.RawType, types[iinfo].ItemType.RawType });
+                        new Type[] { srcItemType.RawType, types[iinfo].GetItemType().RawType });
                     kvMaps[iinfo] = (KeyToValueMap)meth.Invoke(this, new object[] { iinfo, typeSrc, typeVals });
                 }
             }
@@ -247,15 +253,17 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 Host.AssertValue(typeKey);
                 Host.AssertValue(typeVal);
-                Host.Assert(typeKey.ItemType.RawType == typeof(TKey));
-                Host.Assert(typeVal.ItemType.RawType == typeof(TValue));
+                ColumnType keyItemType = typeKey.GetItemType();
+                ColumnType valItemType = typeVal.GetItemType();
+                Host.Assert(keyItemType.RawType == typeof(TKey));
+                Host.Assert(valItemType.RawType == typeof(TValue));
 
                 var keyMetadata = default(VBuffer<TValue>);
-                InputSchema[ColMapNewToOld[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyMetadata);
-                Host.Check(keyMetadata.Length == typeKey.ItemType.KeyCount);
+                InputSchema[ColMapNewToOld[iinfo]].GetKeyValues(ref keyMetadata);
+                Host.Check(keyMetadata.Length == keyItemType.GetKeyCountAsInt32(Host));
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, (KeyType)typeKey.ItemType, (PrimitiveType)typeVal.ItemType, keyMetadata, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, (KeyType)keyItemType, (PrimitiveType)valItemType, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output
@@ -315,12 +323,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     _values = values;
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
-                    _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(TypeOutput.ItemType, out _naMapsToDefault);
+                    ColumnType outputItemType = TypeOutput.GetItemType();
+                    _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(outputItemType, out _naMapsToDefault);
 
                     if (_naMapsToDefault)
                     {
                         // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
-                        _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
+                        _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(outputItemType);
                     }
 
                     bool identity;
@@ -356,7 +365,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     Parent.Host.AssertValue(input);
 
-                    if (!Parent._types[InfoIndex].IsVector)
+                    if (!(Parent._types[InfoIndex] is VectorType))
                     {
                         var src = default(TKey);
                         ValueGetter<TKey> getSrc = input.GetGetter<TKey>(Parent.ColMapNewToOld[InfoIndex]);
@@ -464,7 +473,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     // probably, which I am not prepared to do.
                     var defaultToken = PfaUtils.Type.DefaultTokenOrNull(TypeOutput);
                     JArray jsonValues;
-                    if (TypeOutput.IsText)
+                    if (TypeOutput is TextType)
                     {
                         jsonValues = new JArray();
                         var keyValues = _values.GetValues();
@@ -478,7 +487,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     JObject cellRef = PfaUtils.Cell(cellName);
 
                     var srcType = Parent.InputSchema[Parent.ColMapNewToOld[InfoIndex]].Type;
-                    if (srcType.IsVector)
+                    if (srcType is VectorType)
                     {
                         var funcName = ctx.GetFreeFunctionName("mapKeyToValue");
                         ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("key", PfaUtils.Type.Int)),
@@ -501,7 +510,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        public KeyToValueMappingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+        public KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columns))
         {
         }
@@ -512,19 +521,19 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
+                if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
                 if (!col.IsKey)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, "key type", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, "KeyType", col.GetTypeString());
 
                 if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMetaCol))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.input}' doesn't contain key values metadata");
+                    throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.inputColumnName}' doesn't contain key values metadata");
 
                 SchemaShape metadata = null;
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotCol))
                     metadata = new SchemaShape(new[] { slotCol });
 
-                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind, keyMetaCol.ItemType, keyMetaCol.IsKey, metadata);
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, keyMetaCol.ItemType, keyMetaCol.IsKey, metadata);
             }
 
             return new SchemaShape(result.Values);

@@ -15,7 +15,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <summary>
     /// Entry points for text anylytics transforms.
     /// </summary>
-    public static class TextAnalytics
+    internal static class TextAnalytics
     {
         [TlcModule.EntryPoint(Name = "Transforms.TextFeaturizer",
             Desc = TextFeaturizingEstimator.Summary,

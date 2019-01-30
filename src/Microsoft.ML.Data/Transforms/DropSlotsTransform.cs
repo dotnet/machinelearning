@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -47,7 +48,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             [Argument(ArgumentType.Multiple, HelpText = "Source slot index range(s) of the column to drop")]
             public Range[] Slots;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.CheckNonWhiteSpace(str, nameof(str));
 
@@ -57,7 +58,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return null;
             }
 
-            protected override bool TryParse(string str)
+            private protected override bool TryParse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -85,7 +86,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.CheckValue(sb, nameof(sb));
 
@@ -121,7 +122,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int? Max;
 
-            public static Range Parse(string str)
+            internal static Range Parse(string str)
             {
                 Contracts.CheckNonWhiteSpace(str, nameof(str));
 
@@ -163,7 +164,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.CheckValue(sb, nameof(sb));
                 sb.Append(Min);
@@ -191,22 +192,24 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// </summary>
         public sealed class ColumnInfo
         {
-            public readonly string Input;
-            public readonly string Output;
+            public readonly string Name;
+            public readonly string InputColumnName;
             public readonly (int min, int? max)[] Slots;
 
             /// <summary>
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
-            /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of the column to transform.
+            /// If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="slots">Ranges of indices in the input column to be dropped. Setting max in <paramref name="slots"/> to null sets max to int.MaxValue.</param>
-            public ColumnInfo(string input, string output = null, params (int min, int? max)[] slots)
+            public ColumnInfo(string name, string inputColumnName = null, params (int min, int? max)[] slots)
             {
-                Input = input;
-                Contracts.CheckValue(Input, nameof(Input));
-                Output = output ?? input;
-                Contracts.CheckValue(Output, nameof(Output));
+                Name = name;
+                Contracts.CheckValue(Name, nameof(Name));
+                InputColumnName = inputColumnName ?? name;
+                Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
+
                 // By default drop everything.
                 Slots = (slots.Length > 0) ? slots : new (int min, int? max)[1];
                 foreach (var (min, max) in Slots)
@@ -215,10 +218,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             internal ColumnInfo(Column column)
             {
-                Input = column.Source ?? column.Name;
-                Contracts.CheckValue(Input, nameof(Input));
-                Output = column.Name;
-                Contracts.CheckValue(Output, nameof(Output));
+                Name = column.Name;
+                Contracts.CheckValue(Name, nameof(Name));
+                InputColumnName = column.Source ?? column.Name;
+                Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
                 Slots = column.Slots.Select(range => (range.Min, range.Max)).ToArray();
                 foreach (var (min, max) in Slots)
                     Contracts.Assert(min >= 0 && (max == null || min <= max));
@@ -250,12 +253,12 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// Initializes a new <see cref="SlotsDroppingTransformer"/> object.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
-        public SlotsDroppingTransformer(IHostEnvironment env, string input, string output = null, int min = default, int? max = null)
-            : this(env, new ColumnInfo(input, output, (min, max)))
+        public SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int min = default, int? max = null)
+            : this(env, new ColumnInfo(outputColumnName, inputColumnName, (min, max)))
         {
         }
 
@@ -407,8 +410,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
-            => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+            => columns.Select(c => (c.Name, c.InputColumnName ?? c.Name)).ToArray();
 
         private static bool AreRangesValid(int[][] slotsMin, int[][] slotsMax)
         {
@@ -460,12 +463,17 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+                    if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _cols[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
-                    if (!IsValidColumnType(_srcTypes[i].ItemType))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-                    _slotDropper[i] = new SlotDropper(_srcTypes[i].ValueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
+                    VectorType srcVectorType = _srcTypes[i] as VectorType;
+
+                    ColumnType itemType = srcVectorType?.ItemType ?? _srcTypes[i];
+                    if (!IsValidColumnType(itemType))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
+
+                    int valueCount = srcVectorType?.Size ?? 1;
+                    _slotDropper[i] = new SlotDropper(valueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
                     ComputeType(inputSchema, i, _slotDropper[i], out _suppressed[i], out _dstTypes[i], out _categoricalRanges[i]);
                 }
             }
@@ -475,7 +483,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// a string, a key, a float or a double.
             /// </summary>
             private static bool IsValidColumnType(ColumnType type)
-                => (0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize) || type == NumberType.R4 || type == NumberType.R8 || type.IsText;
+                => (type is KeyType keytype && 0 < keytype.Count && keytype.Count < Utils.ArrayMaxSize)
+                || type == NumberType.R4 || type == NumberType.R8 || type is TextType;
 
             /// <summary>
             /// Computes the types (column and slotnames), the length reduction, categorical feature indices
@@ -502,22 +511,22 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 categoricalRanges = null;
                 var typeSrc = _srcTypes[iinfo];
-                if (!typeSrc.IsVector)
+                if (!(typeSrc is VectorType vectorType))
                 {
                     type = typeSrc;
                     suppressed = slotsMin.Length > 0 && slotsMin[0] == 0;
                 }
-                else if (!typeSrc.IsKnownSizeVector)
+                else if (!vectorType.IsKnownSize)
                 {
                     type = typeSrc;
                     suppressed = false;
                 }
                 else
                 {
-                    Host.Assert(typeSrc.IsKnownSizeVector);
+                    Host.Assert(vectorType.IsKnownSize);
                     var dstLength = slotDropper.DstLength;
-                    var hasSlotNames = input[_cols[iinfo]].HasSlotNames(_srcTypes[iinfo].VectorSize);
-                    type = new VectorType((PrimitiveType)typeSrc.ItemType, Math.Max(dstLength, 1));
+                    var hasSlotNames = input[_cols[iinfo]].HasSlotNames(vectorType.Size);
+                    type = new VectorType(vectorType.ItemType, Math.Max(dstLength, 1));
                     suppressed = dstLength == 0;
                 }
             }
@@ -699,7 +708,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 var typeSrc = _srcTypes[iinfo];
 
-                if (!typeSrc.IsVector)
+                if (!(typeSrc is VectorType))
                 {
                     if (_suppressed[iinfo])
                         return MakeOneTrivialGetter(input, iinfo);
@@ -714,7 +723,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(!_srcTypes[iinfo].IsVector);
+                Host.Assert(!(_srcTypes[iinfo] is VectorType));
                 Host.Assert(_suppressed[iinfo]);
 
                 Func<ValueGetter<int>> del = MakeOneTrivialGetter<int>;
@@ -737,11 +746,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(_srcTypes[iinfo].IsVector);
+                VectorType vectorType = (VectorType)_srcTypes[iinfo];
                 Host.Assert(_suppressed[iinfo]);
 
                 Func<ValueGetter<VBuffer<int>>> del = MakeVecTrivialGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vectorType.ItemType.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[0]);
             }
 
@@ -760,11 +769,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(_srcTypes[iinfo].IsVector);
+                VectorType vectorType = (VectorType)_srcTypes[iinfo];
                 Host.Assert(!_suppressed[iinfo]);
 
                 Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vectorType.ItemType.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 
@@ -772,8 +781,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
                 var typeDst = _dstTypes[iinfo];
-                int srcValueCount = _srcTypes[iinfo].ValueCount;
-                if (typeDst.IsKnownSizeVector && typeDst.ValueCount == srcValueCount)
+                int srcValueCount = _srcTypes[iinfo].GetValueCount();
+                if (typeDst is VectorType dstVector && dstVector.IsKnownSize && dstVector.Size == srcValueCount)
                     return srcGetter;
 
                 var buffer = default(VBuffer<TDst>);
@@ -812,16 +821,16 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     // Avoid closure when adding metadata.
                     int iinfo = i;
 
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
 
                     // Add SlotNames metadata.
-                    if (_srcTypes[iinfo].IsVector && _srcTypes[iinfo].IsKnownSizeVector)
+                    if (_srcTypes[iinfo] is VectorType vectorType && vectorType.IsKnownSize)
                     {
                         var dstLength = _slotDropper[iinfo].DstLength;
-                        var hasSlotNames = InputSchema[_cols[iinfo]].HasSlotNames(_srcTypes[iinfo].VectorSize);
-                        var type = new VectorType((PrimitiveType)_srcTypes[iinfo].ItemType, Math.Max(dstLength, 1));
+                        var hasSlotNames = InputSchema[_cols[iinfo]].HasSlotNames(vectorType.Size);
+                        var type = new VectorType(vectorType.ItemType, Math.Max(dstLength, 1));
 
                         if (hasSlotNames && dstLength > 0)
                         {
@@ -852,7 +861,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     // Add isNormalize and KeyValues metadata.
                     builder.Add(InputSchema[_cols[iinfo]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
 
-                    result[iinfo] = new Schema.DetachedColumn(_parent.ColumnPairs[iinfo].output, _dstTypes[iinfo], builder.GetMetadata());
+                    result[iinfo] = new Schema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.GetMetadata());
                 }
                 return result;
             }

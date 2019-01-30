@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            FeatureContributionCalculationTransform_RegressionExample.FeatureContributionCalculationTransform_Regression();
+            ConcatTransformExample.ConcatTransform();
         }
     }
 }

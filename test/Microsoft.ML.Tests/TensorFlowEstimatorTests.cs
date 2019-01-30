@@ -5,14 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.TensorFlow.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.StaticPipe;
 using Microsoft.ML.Transforms.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
@@ -59,7 +61,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -76,11 +78,11 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[4], B = new float[4] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { a = new string[4], b = new string[4] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { a = new float[2], b = new float[2] } };
-            var pipe = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
+            var pipe = new TensorFlowEstimator(Env, new[] { "c" }, new[] { "a", "b" }, modelFile);
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
-            var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable( stringData);
+            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable( sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -99,7 +101,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new List<TestData>(new TestData[] {
                     new TestData()
                     {
@@ -117,7 +119,7 @@ namespace Microsoft.ML.Tests
                         b = new[] { 10.0f, 8.0f, 6.0f, 6.0f }
                     }
                 }));
-            var est = new TensorFlowEstimator(Env, modelFile, new[] { "a", "b" }, new[] { "c" });
+            var est = new TensorFlowEstimator(Env, new[] { "c" }, new[] { "a", "b" }, modelFile);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -164,7 +166,7 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = result.GetRowCursor(col => col == output))
+            using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -211,7 +213,7 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = result.GetRowCursor(col => col == output))
+            using (var cursor = result.GetRowCursor(result.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -231,7 +233,7 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("a", out int ColA);
             result.Schema.TryGetColumnIndex("b", out int ColB);
             result.Schema.TryGetColumnIndex("c", out int ColC);
-            using (var cursor = result.GetRowCursor(x => true))
+            using (var cursor = result.GetRowCursorForAllColumns())
             {
                 VBuffer<float> avalue = default;
                 VBuffer<float> bvalue = default;

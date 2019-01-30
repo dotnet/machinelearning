@@ -19,12 +19,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// If they specify a regression or multi-class classifier ideally that should be a compile error.
         /// </summary>
         [Fact]
-        public void New_Metacomponents()
+        public void Metacomponents()
         {
             var ml = new MLContext();
             var data = ml.Data.ReadFromTextFile<IrisData>(GetDataPath(TestDatasets.irisData.trainFilename), separatorChar: ',');
 
-            var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1, });
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)

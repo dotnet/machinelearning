@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Utilities;
 
@@ -30,9 +29,9 @@ namespace Microsoft.ML.Data
             {
                 get
                 {
-                    if (_instance == null)
-                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null);
-                    return _instance;
+                    return _instance ??
+                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null) ??
+                        _instance;
                 }
             }
 
@@ -56,7 +55,7 @@ namespace Microsoft.ML.Data
                 _creatorsVec = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
                 for (var kind = DataKindExtensions.KindMin; kind < DataKindExtensions.KindLim; kind++)
                 {
-                    var type = PrimitiveType.FromKind(kind);
+                    var type = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                     _creatorsOne[kind.ToIndex()] = GetCreatorOneCore(type);
                     _creatorsVec[kind.ToIndex()] = GetCreatorVecCore(type);
                 }
@@ -70,7 +69,7 @@ namespace Microsoft.ML.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorOneCore<T>(PrimitiveType type)
             {
-                Contracts.Assert(type.IsStandardScalar || type.IsKey);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(typeof(T) == type.RawType);
                 var fn = _conv.GetTryParseConversion<T>(type);
                 return rows => new PrimitivePipe<T>(rows, type, fn);
@@ -84,7 +83,7 @@ namespace Microsoft.ML.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorVecCore<T>(PrimitiveType type)
             {
-                Contracts.Assert(type.IsStandardScalar || type.IsKey);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(typeof(T) == type.RawType);
                 var fn = _conv.GetTryParseConversion<T>(type);
                 return rows => new VectorPipe<T>(rows, type, fn);
@@ -666,18 +665,20 @@ namespace Microsoft.ML.Data
                         _creator[i] = cache.GetCreatorOne(keyType);
                         continue;
                     }
-                    else if (info.ColType is VectorType vectorType && vectorType.ItemType is KeyType vectorKeyType)
+
+                    VectorType vectorType = info.ColType as VectorType;
+                    if (vectorType?.ItemType is KeyType vectorKeyType)
                     {
                         _creator[i] = cache.GetCreatorVec(vectorKeyType);
                         continue;
                     }
 
-                    DataKind kind = info.ColType.ItemType.RawKind;
-                    Contracts.Assert(kind != 0);
-                    var map = info.ColType.IsVector ? mapVec : mapOne;
+                    ColumnType itemType = vectorType?.ItemType ?? info.ColType;
+                    Contracts.Assert(itemType is KeyType || itemType.IsStandardScalar());
+                    var map = vectorType != null ? mapVec : mapOne;
                     if (!map.TryGetValue(info.Kind, out _creator[i]))
                     {
-                        var fn = info.ColType.IsVector ?
+                        var fn = vectorType != null ?
                             cache.GetCreatorVec(info.Kind) :
                             cache.GetCreatorOne(info.Kind);
                         map.Add(info.Kind, fn);
@@ -750,7 +751,7 @@ namespace Microsoft.ML.Data
                 for (int iinfo = 0; iinfo < infos.Length; iinfo++)
                 {
                     var info = infos[iinfo];
-                    if (!info.ColType.IsKnownSizeVector)
+                    if (!info.ColType.IsKnownSizeVector())
                         continue;
                     bldr.Reset(info.SizeBase, false);
                     int ivDst = 0;
@@ -1282,7 +1283,7 @@ namespace Microsoft.ML.Data
                     var v = rows.Pipes[iinfo];
                     Contracts.Assert(v != null);
 
-                    if (!info.ColType.IsVector)
+                    if (!(info.ColType is VectorType))
                         ProcessOne(fields, info, v, irow, line);
                     else
                         ProcessVec(srcLim, fields, info, v, irow, line);
@@ -1292,7 +1293,7 @@ namespace Microsoft.ML.Data
             private void ProcessVec(int srcLim, FieldSet fields, ColInfo info, ColumnPipe v, int irow, long line)
             {
                 Contracts.Assert(srcLim >= 0);
-                Contracts.Assert(info.ColType.IsVector);
+                Contracts.Assert(info.ColType is VectorType);
                 Contracts.Assert(info.SizeBase > 0 || info.IsegVariable >= 0);
 
                 int sizeVar = 0;
@@ -1348,7 +1349,7 @@ namespace Microsoft.ML.Data
 
             private void ProcessOne(FieldSet vs, ColInfo info, ColumnPipe v, int irow, long line)
             {
-                Contracts.Assert(!info.ColType.IsVector);
+                Contracts.Assert(!(info.ColType is VectorType));
                 Contracts.Assert(Utils.Size(info.Segments) == 1);
                 Contracts.Assert(info.Segments[0].Lim == info.Segments[0].Min + 1);
 

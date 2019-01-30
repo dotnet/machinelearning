@@ -5,7 +5,9 @@
 using System;
 using System.IO;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
@@ -164,7 +166,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         private protected SequentialAnomalyDetectionTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
             AnomalySide anomalySide, MartingaleType martingale, AlertingScore alertingScore, Double powerMartingaleEpsilon,
             Double alertThreshold)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, inputColumnName, outputColumnName, new VectorType(NumberType.R8, GetOutputLength(alertingScore, env)))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorType(NumberType.R8, GetOutputLength(alertingScore, env)))
         {
             Host.CheckUserArg(Enum.IsDefined(typeof(MartingaleType), martingale), nameof(ArgumentsBase.Martingale), "Value is undefined.");
             Host.CheckUserArg(Enum.IsDefined(typeof(AnomalySide), anomalySide), nameof(ArgumentsBase.Side), "Value is undefined.");
@@ -592,7 +594,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
                 var colType = inputSchema[_inputColumnIndex].Type;
                 if (colType != NumberType.R4)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, NumberType.R4.ToString(), colType.ToString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, "float", colType.ToString());
 
                 _parent = parent;
                 _parentSchema = inputSchema;
@@ -680,6 +682,11 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 {
                     State = (TState)_parent.StateRef.Clone();
                 }
+            }
+
+            public ITransformer GetTransformer()
+            {
+                return _parent;
             }
         }
     }

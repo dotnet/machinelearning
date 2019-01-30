@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
@@ -44,7 +45,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        /// <param name="ctx">The regression context.</param>
+        /// <param name="catalog">The regression catalog.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
@@ -55,7 +56,7 @@ namespace Microsoft.ML
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RegressionMetricsStatistics>
             PermutationFeatureImportance(
-                this RegressionContext ctx,
+                this RegressionCatalog catalog,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
@@ -65,10 +66,10 @@ namespace Microsoft.ML
                 int permutationCount = 1)
         {
             return PermutationFeatureImportance<RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(ctx),
+                            CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,
-                            idv => ctx.Evaluate(idv, label),
+                            idv => catalog.Evaluate(idv, label),
                             RegressionDelta,
                             features,
                             permutationCount,
@@ -121,7 +122,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        /// <param name="ctx">The binary classification context.</param>
+        /// <param name="catalog">The binary classification catalog.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
@@ -132,7 +133,7 @@ namespace Microsoft.ML
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<BinaryClassificationMetricsStatistics>
             PermutationFeatureImportance(
-                this BinaryClassificationContext ctx,
+                this BinaryClassificationCatalog catalog,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
@@ -142,10 +143,10 @@ namespace Microsoft.ML
                 int permutationCount = 1)
         {
             return PermutationFeatureImportance<BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(ctx),
+                            CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,
-                            idv => ctx.Evaluate(idv, label),
+                            idv => catalog.Evaluate(idv, label),
                             BinaryClassifierDelta,
                             features,
                             permutationCount,
@@ -195,7 +196,7 @@ namespace Microsoft.ML
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
-        /// <param name="ctx">The clustering context.</param>
+        /// <param name="catalog">The clustering catalog.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
@@ -206,7 +207,7 @@ namespace Microsoft.ML
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<MultiClassClassifierMetricsStatistics>
             PermutationFeatureImportance(
-                this MulticlassClassificationContext ctx,
+                this MulticlassClassificationCatalog catalog,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
@@ -216,10 +217,10 @@ namespace Microsoft.ML
                 int permutationCount = 1)
         {
             return PermutationFeatureImportance<MultiClassClassifierMetrics, MultiClassClassifierMetricsStatistics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(ctx),
+                            CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,
-                            idv => ctx.Evaluate(idv, label),
+                            idv => catalog.Evaluate(idv, label),
                             MulticlassClassificationDelta,
                             features,
                             permutationCount,
@@ -274,7 +275,7 @@ namespace Microsoft.ML
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
-        /// <param name="ctx">The clustering context.</param>
+        /// <param name="catalog">The clustering catalog.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
@@ -286,7 +287,7 @@ namespace Microsoft.ML
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RankerMetricsStatistics>
             PermutationFeatureImportance(
-                this RankingContext ctx,
+                this RankingCatalog catalog,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
@@ -297,10 +298,10 @@ namespace Microsoft.ML
                 int permutationCount = 1)
         {
             return PermutationFeatureImportance<RankerMetrics, RankerMetricsStatistics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(ctx),
+                            CatalogUtils.GetEnvironment(catalog),
                             model,
                             data,
-                            idv => ctx.Evaluate(idv, label, groupId),
+                            idv => catalog.Evaluate(idv, label, groupId),
                             RankingDelta,
                             features,
                             permutationCount,

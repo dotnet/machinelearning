@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -24,7 +25,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 1: Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(
+            var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("Sentiment", DataKind.BL, 0),
@@ -59,15 +60,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // If we wanted to specify more advanced parameters for the algorithm, 
             // we could do so by tweaking the 'advancedSetting'.
             var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
-                                  .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent
-                                  (labelColumn: "Sentiment",
-                                   featureColumn: "Features",
-                                   advancedSettings: s=>
-                                       {
-                                           s.ConvergenceTolerance = 0.01f;   // The learning rate for adjusting bias from being regularized
-                                           s.NumThreads = 2;            // Degree of lock-free parallelism 
-                                       })
-                                   );
+                                  .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                                      new SdcaBinaryTrainer.Options { 
+                                        LabelColumn = "Sentiment",
+                                        FeatureColumn = "Features",
+                                        ConvergenceTolerance = 0.01f,  // The learning rate for adjusting bias from being regularized
+                                        NumThreads = 2, // Degree of lock-free parallelism 
+                                      }));
 
             // Run Cross-Validation on this second pipeline.
             var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment", numFolds: 3);

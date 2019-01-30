@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 data.Add(new SsaChangePointData(i * 100));
 
             // Convert data to IDataView.
-            var dataView = ml.CreateStreamingDataView(data);
+            var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup SsaChangePointDetector arguments
             var inputColumnName = nameof(SsaChangePointData.Value);
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = new SsaChangePointEstimator(ml, args).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
-            var predictionColumn = transformedData.AsEnumerable<ChangePointPrediction>(ml, reuseRowObject: false);
+            var predictionColumn = ml.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Samples.Dynamic
                     data.Add(new SsaChangePointData(j));
 
             // Convert data to IDataView.
-            var dataView = ml.CreateStreamingDataView(data);
+            var dataView = ml.Data.ReadFromEnumerable(data);
 
             // Setup SsaChangePointDetector arguments
             var inputColumnName = nameof(SsaChangePointData.Value);

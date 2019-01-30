@@ -1,15 +1,15 @@
 ---- BoundLoader ----
 5 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
 ---- RowToRowMapperTransform ----
 7 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AH: Key<U4, 0-7>
@@ -17,12 +17,12 @@
       [1] 'an angry ant', [4] 'annie ate an ant'
   KH: Key<U4, 0-7>
     Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
-      [2] '3', [7] '4'
+      [0] '4', [1] '3'
 ---- RowToRowMapperTransform ----
 9 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AH: Key<U4, 0-7>
@@ -34,15 +34,15 @@
       [1] 'an angry ant', [4] 'annie ate an ant'
   KH: Key<U4, 0-7>
     Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
-      [2] '3', [7] '4'
+      [0] '4', [1] '3'
   KH: Vec<R4, 8>
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
-      [2] '3', [7] '4'
+      [0] '4', [1] '3'
 ---- SelectColumnsDataTransform ----
 4 columns:
   A: Text
-  KS: Key<U4, 3-10>
+  KS: Key<U4, 0-10>
   AH: Vec<R4, 8>
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
@@ -50,4 +50,4 @@
   KH: Vec<R4, 8>
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
-      [2] '3', [7] '4'
+      [0] '4', [1] '3'

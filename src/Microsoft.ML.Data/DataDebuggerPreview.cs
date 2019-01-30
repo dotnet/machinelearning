@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -37,7 +38,7 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < columns.Length; i++)
                 columns[i] = new List<object>();
 
-            using (var cursor = data.GetRowCursor(c => true))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var setters = new Action<RowInfo, List<object>>[n];
                 for (int i = 0; i < n; i++)

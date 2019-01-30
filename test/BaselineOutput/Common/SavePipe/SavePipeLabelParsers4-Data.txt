@@ -3,7 +3,7 @@
 #@   sep=tab
 #@   col=RawLabel:TX:0
 #@   col=FileLabelNum:R4:1
-#@   col=FileLabelKey:U4[0-*]:2
+#@   col=FileLabelKey:U4[4294967295]:2
 #@ }
 RawLabel	FileLabelNum	FileLabelKey
 Wirtschaft	3.14	

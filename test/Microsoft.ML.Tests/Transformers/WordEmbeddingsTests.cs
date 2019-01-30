@@ -22,29 +22,22 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestWordEmbeddings()
         {
-            var dataPath = GetDataPath(ScenariosTests.SentimentDataPath);
-            var testDataPath = GetDataPath(ScenariosTests.SentimentTestPath);
+            var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
+            var testDataPath = GetDataPath(TestDatasets.Sentiment.testFilename);
 
             var data = TextLoaderStatic.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath);
-
-            var dynamicData = TextFeaturizingEstimator.Create(Env, new TextFeaturizingEstimator.Arguments()
+            var dynamicData = new TextFeaturizingEstimator(Env, "SentimentText_Features", "SentimentText",  args =>
             {
-                Column = new TextFeaturizingEstimator.Column
-                {
-                    Name = "SentimentText_Features",
-                    Source = new[] { "SentimentText" }
-                },
-                OutputTokens = true,
-                KeepPunctuations = false,
-                UsePredefinedStopWordRemover = true,
-                VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
-                CharFeatureExtractor = null,
-                WordFeatureExtractor = null,
-            }, data.AsDynamic);
-
+                args.OutputTokens = true;
+                args.KeepPunctuations = false;
+                args.UseStopRemover = true;
+                args.VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None;
+                args.UseCharExtractor = false;
+                args.UseWordExtractor = false;
+            }).Fit(data.AsDynamic).Transform(data.AsDynamic);
             var data2 = dynamicData.AssertStatic(Env, ctx => (
                 SentimentText_Features_TransformedText: ctx.Text.VarVector,
                 SentimentText: ctx.Text.Scalar,

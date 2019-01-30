@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Core.Data;
@@ -93,14 +94,14 @@ namespace Microsoft.ML.Calibrator
         /// <param name="inputSchema">The input <see cref="SchemaShape"/>.</param>
         SchemaShape IEstimator<CalibratorTransformer<TICalibrator>>.GetOutputSchema(SchemaShape inputSchema)
         {
-            Action<SchemaShape.Column, string> checkColumnValid = (SchemaShape.Column column, string expected) =>
+            Action<SchemaShape.Column, string> checkColumnValid = (SchemaShape.Column column, string columnRole) =>
             {
                 if (column.IsValid)
                 {
                     if (!inputSchema.TryFindColumn(column.Name, out var outCol))
-                        throw Host.Except($"{expected} column '{column.Name}' is not found");
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name);
                     if (!column.IsCompatibleWith(outCol))
-                        throw Host.Except($"{expected} column '{column.Name}' is not compatible");
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name, column.GetTypeString(), outCol.GetTypeString());
                 }
             };
 
@@ -122,6 +123,13 @@ namespace Microsoft.ML.Calibrator
             return new SchemaShape(outColumns.Values);
         }
 
+        /// <summary>
+        /// Fits the scored <see cref="IDataView"/> creating a <see cref="CalibratorTransformer{TICalibrator}"/> that can transform the data by adding a
+        /// <see cref="DefaultColumnNames.Probability"/> column containing the calibrated <see cref="DefaultColumnNames.Score"/>.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns>A trained <see cref="CalibratorTransformer{TICalibrator}"/> that will transform the data by adding the
+        /// <see cref="DefaultColumnNames.Probability"/> column.</returns>
         public CalibratorTransformer<TICalibrator> Fit(IDataView input)
         {
             TICalibrator calibrator = null;
@@ -224,7 +232,7 @@ namespace Microsoft.ML.Calibrator
             private CalibratorTransformer<TCalibrator> _parent;
 
             internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, Schema inputSchema) :
-                base(parent.Host, inputSchema)
+                base(parent.Host, inputSchema, parent)
             {
                 _calibrator = calibrator;
                 _parent = parent;

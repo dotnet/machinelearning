@@ -14,12 +14,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// The learner might be trees with early stopping.
         /// </summary>
         [Fact]
-        public void New_TrainWithValidationSet()
+        public void TrainWithValidationSet()
         {
             var ml = new MLContext(seed: 1, conc: 1);
             // Pipeline.
             var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
-            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features");
+            var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText");
 
             // Train the pipeline, prepare train and validation set.
             var preprocess = pipeline.Fit(data);

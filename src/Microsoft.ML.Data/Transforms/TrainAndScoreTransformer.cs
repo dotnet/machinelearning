@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -58,7 +59,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputModelFile">The model file.</param>
         /// <param name="featureColumn">Role name for the features.</param>
         /// <param name="groupColumn">Role name for the group column.</param>
-        public static IDataTransform Create(IHostEnvironment env,
+        internal static IDataTransform Create(IHostEnvironment env,
             IDataView input,
             string inputModelFile,
             string featureColumn = DefaultColumnNames.Features,
@@ -74,7 +75,8 @@ namespace Microsoft.ML.Transforms
             return Create(env, args, input);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckUserArg(!string.IsNullOrWhiteSpace(args.InputModelFile), nameof(args.InputModelFile), "The input model file is required.");
@@ -173,7 +175,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="featureColumn">Role name for features.</param>
         /// <param name="labelColumn">Role name for label.</param>
         /// <param name="groupColumn">Role name for the group column.</param>
-        public static IDataTransform Create(IHostEnvironment env,
+        internal static IDataTransform Create(IHostEnvironment env,
             IDataView input,
             ITrainer trainer,
             string featureColumn = DefaultColumnNames.Features,
@@ -197,7 +199,8 @@ namespace Microsoft.ML.Transforms
             return Create(env, args, trainer, input, null);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -208,7 +211,8 @@ namespace Microsoft.ML.Transforms
             return Create(env, args, args.Trainer.CreateComponent(env), input, null);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory)
+        [BestFriend]
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input, IComponentFactory<IPredictor, ISchemaBindableMapper> mapperFactory)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));

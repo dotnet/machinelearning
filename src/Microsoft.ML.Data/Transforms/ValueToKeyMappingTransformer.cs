@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -62,7 +63,12 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
             public bool? TextKeyValues;
 
-            protected override bool TryUnparseCore(StringBuilder sb)
+            private protected ColumnBase()
+            {
+            }
+
+            [BestFriend]
+            private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
@@ -76,7 +82,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Column : ColumnBase
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -84,7 +90,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -146,13 +152,13 @@ namespace Microsoft.ML.Transforms.Conversions
         internal sealed class ColInfo
         {
             public readonly string Name;
-            public readonly string Source;
+            public readonly string InputColumnName;
             public readonly ColumnType TypeSrc;
 
-            public ColInfo(string name, string source, ColumnType type)
+            public ColInfo(string name, string inputColumnName, ColumnType type)
             {
                 Name = name;
-                Source = source;
+                InputColumnName = inputColumnName;
                 TypeSrc = type;
             }
         }
@@ -162,8 +168,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         public class ColumnInfo
         {
-            public readonly string Input;
-            public readonly string Output;
+            public readonly string Name;
+            public readonly string InputColumnName;
             public readonly SortOrder Sort;
             public readonly int MaxNumTerms;
             public readonly string[] Term;
@@ -174,23 +180,23 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
             /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
             /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
             /// <param name="term">List of terms.</param>
             /// <param name="textKeyValues">Whether key value metadata should be text, regardless of the actual input type.</param>
-            public ColumnInfo(string input, string output = null,
+            public ColumnInfo(string name, string inputColumnName = null,
                 int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms,
                 SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null,
                 bool textKeyValues = false
                 )
             {
-                Contracts.CheckNonWhiteSpace(input, nameof(input));
-                Input = input;
-                Output = output ?? input;
+                Contracts.CheckNonWhiteSpace(name, nameof(name));
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
                 Sort = sort;
                 MaxNumTerms = maxNumTerms;
                 Term = term;
@@ -255,15 +261,18 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly bool[] _textMetadata;
         private const string RegistrationName = "Term";
 
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Input, x.Output)).ToArray();
+            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        internal string TestIsKnownDataKind(ColumnType type)
+        private string TestIsKnownDataKind(ColumnType type)
         {
-            if (type.ItemType.RawKind != default && (type.IsVector || type.IsPrimitive))
+            VectorType vectorType = type as VectorType;
+            ColumnType itemType = vectorType?.ItemType ?? type;
+
+            if (itemType is KeyType || itemType.IsStandardScalar())
                 return null;
             return "standard type or a vector of standard type";
         }
@@ -274,37 +283,33 @@ namespace Microsoft.ML.Transforms.Conversions
             var infos = new ColInfo[ColumnPairs.Length];
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
+                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].inputColumnName, out int colSrc))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].inputColumnName);
                 var type = inputSchema[colSrc].Type;
                 string reason = TestIsKnownDataKind(type);
                 if (reason != null)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
-                infos[i] = new ColInfo(ColumnPairs[i].output, ColumnPairs[i].input, type);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].inputColumnName, reason, type.ToString());
+                infos[i] = new ColInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, type);
             }
             return infos;
         }
 
-        public ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
+        internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
             params ColumnInfo[] columns) :
-            this(env, input, columns, null, null, null)
+            this(env, input, columns, null, false)
         { }
 
         internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
-            ColumnInfo[] columns,
-            string file = null, string termsColumn = null,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
+            ColumnInfo[] columns, IDataView keyData, bool autoConvert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             using (var ch = Host.Start("Training"))
             {
                 var infos = CreateInfos(input.Schema);
-                _unboundMaps = Train(Host, ch, infos, file, termsColumn, loaderFactory, columns, input);
+                _unboundMaps = Train(Host, ch, infos, keyData, columns, input, autoConvert);
                 _textMetadata = new bool[_unboundMaps.Length];
                 for (int iinfo = 0; iinfo < columns.Length; ++iinfo)
-                {
                     _textMetadata[iinfo] = columns[iinfo].TextKeyValues;
-                }
                 ch.Assert(_unboundMaps.Length == columns.Length);
             }
         }
@@ -337,16 +342,18 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (!Enum.IsDefined(typeof(SortOrder), sortOrder))
                         throw env.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
 
-                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                    cols[i] = new ColumnInfo(
                         item.Name,
+                        item.Source ?? item.Name,
                         item.MaxNumTerms ?? args.MaxNumTerms,
                         sortOrder,
                         item.Term,
                         item.TextKeyValues ?? args.TextKeyValues);
                     cols[i].Terms = item.Terms ?? args.Terms;
                 };
+                var keyData = GetKeyDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
+                return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
             }
-            return new ValueToKeyMappingTransformer(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -413,29 +420,44 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
-        /// Utility method to create the file-based <see cref="TermMap"/>.
+        /// Returns a single-column <see cref="IDataView"/>, based on values from <see cref="Arguments"/>,
+        /// in the case where <see cref="ArgumentsBase.DataFile"/> is set. If that is not set, this will
+        /// return <see langword="null"/>.
         /// </summary>
-        private static TermMap CreateFileTermMap(IHostEnvironment env, IChannel ch, string file, string termsColumn,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory, Builder bldr)
+        /// <param name="env">The host environment.</param>
+        /// <param name="ch">The host channel to use to mark exceptions and log messages.</param>
+        /// <param name="file">The name of the file. Must be specified if this method is called.</param>
+        /// <param name="termsColumn">The single column to select out of this transform. If not specified,
+        /// this method will attempt to guess.</param>
+        /// <param name="loaderFactory">The loader creator. If <see langword="null"/> we will attempt to determine
+        /// this </param>
+        /// <param name="autoConvert">Whether we should try to convert to the desired type by ourselves when doing
+        /// the term map. This will not be true in the case that the loader was adequately specified automatically.</param>
+        /// <returns>The single-column data containing the term data from the file.</returns>
+        [BestFriend]
+        internal static IDataView GetKeyDataViewOrNull(IHostEnvironment env, IChannel ch,
+            string file, string termsColumn, IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory,
+            out bool autoConvert)
         {
-            Contracts.AssertValue(ch);
             ch.AssertValue(env);
-            ch.Assert(!string.IsNullOrWhiteSpace(file));
-            ch.AssertValue(bldr);
+            ch.AssertValueOrNull(file);
+            ch.AssertValueOrNull(termsColumn);
+            ch.AssertValueOrNull(loaderFactory);
+
+            // If the user manually specifies a loader, or this is already a pre-processed binary
+            // file, then we assume the user knows what they're doing when they are so explicit,
+            // and do not attempt to convert to the desired type ourselves.
+            autoConvert = false;
+            if (string.IsNullOrWhiteSpace(file))
+                return null;
 
             // First column using the file.
             string src = termsColumn;
             IMultiStreamSource fileSource = new MultiFileSource(file);
 
-            // If the user manually specifies a loader, or this is already a pre-processed binary
-            // file, then we assume the user knows what they're doing and do not attempt to convert
-            // to the desired type ourselves.
-            bool autoConvert = false;
-            IDataView termData;
+            IDataView keyData;
             if (loaderFactory != null)
-            {
-                termData = loaderFactory.CreateComponent(env, fileSource);
-            }
+                keyData = loaderFactory.CreateComponent(env, fileSource);
             else
             {
                 // Determine the default loader from the extension.
@@ -448,11 +470,11 @@ namespace Microsoft.ML.Transforms.Conversions
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(src), nameof(termsColumn),
                         "Must be specified");
                     if (isBinary)
-                        termData = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
+                        keyData = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
                     else
                     {
                         ch.Assert(isTranspose);
-                        termData = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
+                        keyData = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
                     }
                 }
                 else
@@ -460,32 +482,53 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (!string.IsNullOrWhiteSpace(src))
                     {
                         ch.Warning(
-                            "{0} should not be specified when default loader is TextLoader. Ignoring {0}={1}",
+                            "{0} should not be specified when default loader is " + nameof(TextLoader) + ". Ignoring {0}={1}",
                             nameof(Arguments.TermsColumn), src);
                     }
-                    termData = new TextLoader(env,
+                    keyData = new TextLoader(env,
                         columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
                         dataSample: fileSource)
                         .Read(fileSource);
                     src = "Term";
+                    // In this case they are relying on heuristics, so auto-loading in this case is most appropriate.
                     autoConvert = true;
                 }
             }
             ch.AssertNonEmpty(src);
-
-            int colSrc;
-            if (!termData.Schema.TryGetColumnIndex(src, out colSrc))
+            if (keyData.Schema.GetColumnOrNull(src) == null)
                 throw ch.ExceptUserArg(nameof(termsColumn), "Unknown column '{0}'", src);
-            var typeSrc = termData.Schema[colSrc].Type;
-            if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
-                throw ch.ExceptUserArg(nameof(termsColumn), "Must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
+            // Now, remove everything but that one column.
+            var selectTransformer = new ColumnSelectingTransformer(env, new string[] { src }, null);
+            keyData = selectTransformer.Transform(keyData);
+            ch.Assert(keyData.Schema.Count == 1);
+            return keyData;
+        }
 
-            using (var cursor = termData.GetRowCursor(col => col == colSrc))
-            using (var pch = env.StartProgressChannel("Building term dictionary from file"))
+        /// <summary>
+        /// Utility method to create the file-based <see cref="TermMap"/>.
+        /// </summary>
+        private static TermMap CreateTermMapFromData(IHostEnvironment env, IChannel ch, IDataView keyData, bool autoConvert, Builder bldr)
+        {
+            Contracts.AssertValue(ch);
+            ch.AssertValue(env);
+            ch.AssertValue(keyData);
+            ch.AssertValue(bldr);
+            if (keyData.Schema.Count != 1)
+            {
+                throw ch.ExceptParam(nameof(keyData), $"Input data containing terms should contain exactly one column, but " +
+                    $"had {keyData.Schema.Count} instead. Consider using {nameof(ColumnSelectingEstimator)} on that data first.");
+            }
+
+            var typeSrc = keyData.Schema[0].Type;
+            if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
+                throw ch.ExceptUserArg(nameof(keyData), "Input data's column must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
+
+            using (var cursor = keyData.GetRowCursor(keyData.Schema[0]))
+            using (var pch = env.StartProgressChannel("Building dictionary from term data"))
             {
                 var header = new ProgressHeader(new[] { "Total Terms" }, new[] { "examples" });
-                var trainer = Trainer.Create(cursor, colSrc, autoConvert, int.MaxValue, bldr);
-                double rowCount = termData.GetRowCount() ?? double.NaN;
+                var trainer = Trainer.Create(cursor, 0, autoConvert, int.MaxValue, bldr);
+                double rowCount = keyData.GetRowCount() ?? double.NaN;
                 long rowCur = 0;
                 pch.SetHeader(header,
                     e =>
@@ -498,7 +541,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 while (cursor.MoveNext() && trainer.ProcessRow())
                     rowCur++;
                 if (trainer.Count == 0)
-                    ch.Warning("Term map loaded from file resulted in an empty map.");
+                    ch.Warning("Map from the term data resulted in an empty map.");
                 pch.Checkpoint(trainer.Count, rowCur);
                 return trainer.Finish();
             }
@@ -508,12 +551,12 @@ namespace Microsoft.ML.Transforms.Conversions
         /// This builds the <see cref="TermMap"/> instances per column.
         /// </summary>
         private static TermMap[] Train(IHostEnvironment env, IChannel ch, ColInfo[] infos,
-            string file, string termsColumn,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory, ColumnInfo[] columns, IDataView trainingData)
+            IDataView keyData, ColumnInfo[] columns, IDataView trainingData, bool autoConvert)
         {
             Contracts.AssertValue(env);
             env.AssertValue(ch);
             ch.AssertValue(infos);
+            ch.AssertValueOrNull(keyData);
             ch.AssertValue(columns);
             ch.AssertValue(trainingData);
 
@@ -541,23 +584,23 @@ namespace Microsoft.ML.Transforms.Conversions
                         bldr.ParseAddTermArg(termsArray, ch);
                     termMap[iinfo] = bldr.Finish();
                 }
-                else if (!string.IsNullOrWhiteSpace(file))
+                else if (keyData != null)
                 {
                     // First column using this file.
                     if (termsFromFile == null)
                     {
                         var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
-                        termsFromFile = CreateFileTermMap(env, ch, file, termsColumn, loaderFactory, bldr);
+                        termsFromFile = CreateTermMapFromData(env, ch, keyData, autoConvert, bldr);
                     }
-                    if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.ItemType))
+                    if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.GetItemType()))
                     {
                         // We have no current plans to support re-interpretation based on different column
                         // type, not only because it's unclear what realistic customer use-cases for such
                         // a complicated feature would be, and also because it's difficult to see how we
                         // can logically reconcile "reinterpretation" for different types with the resulting
                         // data view having an actual type.
-                        throw ch.ExceptUserArg(nameof(file), "Data file terms loaded as type '{0}' but mismatches column '{1}' item type '{2}'",
-                            termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.ItemType);
+                        throw ch.ExceptParam(nameof(keyData), "Terms from input data type '{0}' but mismatches column '{1}' item type '{2}'",
+                            termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.GetItemType());
                     }
                     termMap[iinfo] = termsFromFile;
                 }
@@ -566,7 +609,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     // Auto train this column. Leave the term map null for now, but set the lim appropriately.
                     lims[iinfo] = columns[iinfo].MaxNumTerms;
                     ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), "Must be positive");
-                    Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].Source, out int colIndex));
+                    Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex));
                     Utils.Add(ref toTrain, colIndex);
                     ++trainsNeeded;
                 }
@@ -580,7 +623,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 int[] trainerInfo = new int[trainsNeeded];
                 // Open the cursor, then instantiate the trainers.
                 int itrainer;
-                using (var cursor = trainingData.GetRowCursor(toTrain.Contains))
+                using (var cursor = trainingData.GetRowCursor(trainingData.Schema.Where(c => toTrain.Contains(c.Index))))
                 using (var pch = env.StartProgressChannel("Building term dictionary"))
                 {
                     long rowCur = 0;
@@ -594,7 +637,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             continue;
                         var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
                         trainerInfo[itrainer] = iinfo;
-                        trainingData.Schema.TryGetColumnIndex(infos[iinfo].Source, out int colIndex);
+                        trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex);
                         trainer[itrainer++] = Trainer.Create(cursor, colIndex, false, lims[iinfo], bldr);
                     }
                     ch.Assert(itrainer == trainer.Length);
@@ -638,7 +681,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     trainer[itrainer] = null;
                 }
                 ch.Assert(termMap.All(tm => tm != null));
-                ch.Assert(termMap.Zip(infos, (tm, info) => tm.ItemType.Equals(info.TypeSrc.ItemType)).All(x => x));
+                ch.Assert(termMap.Zip(infos, (tm, info) => tm.ItemType.Equals(info.TypeSrc.GetItemType())).All(x => x));
             }
 
             return termMap;
@@ -734,13 +777,13 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
                     _termMap[i].AddMetadata(builder);
 
                     builder.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
@@ -758,7 +801,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!info.TypeSrc.ItemType.IsText)
+                if (!(info.TypeSrc.GetItemType() is TextType))
                     return false;
 
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
@@ -782,14 +825,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {
                     ColInfo info = _infos[iinfo];
-                    string sourceColumnName = info.Source;
-                    if (!ctx.ContainsColumn(sourceColumnName))
+                    string inputColumnName = info.InputColumnName;
+                    if (!ctx.ContainsColumn(inputColumnName))
                     {
                         ctx.RemoveColumn(info.Name, false);
                         continue;
                     }
 
-                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
                         ctx.AddIntermediateVariable(_types[iinfo], info.Name)))
                     {
                         ctx.RemoveColumn(info.Name, true);
@@ -807,7 +850,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
                 {
                     var info = _infos[iinfo];
-                    var srcName = info.Source;
+                    var srcName = info.InputColumnName;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
                     {
@@ -834,7 +877,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.AssertValue(srcToken);
                 //Contracts.Assert(CanSavePfa);
 
-                if (!info.TypeSrc.ItemType.IsText)
+                VectorType vectorType = info.TypeSrc as VectorType;
+                ColumnType itemType = vectorType?.ItemType ?? info.TypeSrc;
+                if (!(itemType is TextType))
                     return null;
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
                 TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
@@ -846,7 +891,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     "TermMap", PfaUtils.Type.Map(PfaUtils.Type.Int), jsonMap);
                 JObject cellRef = PfaUtils.Cell(cellName);
 
-                if (info.TypeSrc.IsVector)
+                if (vectorType != null)
                 {
                     var funcName = ctx.GetFreeFunctionName("mapTerm");
                     ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("term", PfaUtils.Type.String)),

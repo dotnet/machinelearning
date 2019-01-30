@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -59,7 +58,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         private IHost _host;
-        private readonly (string input, string output)[] _columns;
+        private readonly (string outputColumnName, string inputColumnName)[] _columns;
         private readonly string _labelColumn;
         private readonly int _slotsInOutput;
         private readonly int _numBins;
@@ -81,7 +80,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             string labelColumn = Defaults.LabelColumn,
             int slotsInOutput = Defaults.SlotsInOutput,
             int numBins = Defaults.NumBins,
-            params(string input, string output)[] columns)
+            params (string outputColumnName, string inputColumnName)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -99,8 +98,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="env">The environment to use.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
@@ -111,9 +110,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// ]]>
         /// </format>
         /// </example>
-        public MutualInformationFeatureSelectingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public MutualInformationFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             string labelColumn = Defaults.LabelColumn, int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
-            : this(env, labelColumn, slotsInOutput, numBins, (inputColumn, outputColumn ?? inputColumn))
+            : this(env, labelColumn, slotsInOutput, numBins, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
@@ -128,7 +127,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 var colSet = new HashSet<string>();
                 foreach (var col in _columns)
                 {
-                    if (!colSet.Add(col.input))
+                    if (!colSet.Add(col.inputColumnName))
                         ch.Warning("Column '{0}' specified multiple time.", col);
                 }
                 var colArr = colSet.ToArray();
@@ -142,8 +141,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 // If no slots should be dropped in a column, use CopyColumn to generate the corresponding output column.
                 SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns;
-                (string input, string output)[] copyColumnPairs;
-                CreateDropAndCopyColumns(colArr.Length, scores, threshold, tiedScoresToKeep, _columns.Where(col => colSet.Contains(col.input)).ToArray(), out int[] selectedCount, out dropSlotsColumns, out copyColumnPairs);
+                (string outputColumnName, string inputColumnName)[] copyColumnPairs;
+                CreateDropAndCopyColumns(colArr.Length, scores, threshold, tiedScoresToKeep, _columns.Where(col => colSet.Contains(col.inputColumnName)).ToArray(), out int[] selectedCount, out dropSlotsColumns, out copyColumnPairs);
 
                 for (int i = 0; i < selectedCount.Length; i++)
                     ch.Info("Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], colArr[i]);
@@ -169,18 +168,18 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in _columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.input, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
+                if (!inputSchema.TryFindColumn(colPair.inputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName);
                 if (!MutualInformationFeatureSelectionUtils.IsValidColumnType(col.ItemType))
                     throw _host.ExceptUserArg(nameof(inputSchema),
-                        "Column '{0}' does not have compatible type. Expected types are float, double, int, bool and key.", colPair.input);
+                        "Column '{0}' does not have compatible type. Expected types are float, double, int, bool and key.", colPair.inputColumnName);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var categoricalSlotMeta))
                     metadata.Add(categoricalSlotMeta);
                 metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
-                result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
+                result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
         }
@@ -199,7 +198,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
             host.Check(args.NumBins > 1, "numBins must be greater than 1.");
 
-            (string input, string output)[] cols = args.Column.Select(col => (col, col)).ToArray();
+            (string outputColumnName, string inputColumnName)[] cols = args.Column.Select(col => (col, col)).ToArray();
             return new MutualInformationFeatureSelectingEstimator(env, args.LabelColumn, args.SlotsInOutput, args.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
         }
 
@@ -252,8 +251,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return threshold;
         }
 
-        private static void CreateDropAndCopyColumns(int size, float[][] scores, float threshold, int tiedScoresToKeep, (string input, string output)[] cols,
-            out int[] selectedCount, out SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns, out (string input, string output)[] copyColumnsPairs)
+        private static void CreateDropAndCopyColumns(int size, float[][] scores, float threshold, int tiedScoresToKeep, (string outputColumnName, string inputColumnName)[] cols,
+            out int[] selectedCount, out SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns, out (string outputColumnName, string inputColumnName)[] copyColumnsPairs)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
@@ -261,7 +260,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             Contracts.Assert(threshold > 0 || (threshold == 0 && tiedScoresToKeep == 0));
 
             var dropCols = new List<SlotsDroppingTransformer.ColumnInfo>();
-            var copyCols = new List<(string input, string output)>();
+            var copyCols = new List<(string outputColumnName, string inputColumnName)>();
             selectedCount = new int[scores.Length];
             for (int i = 0; i < size; i++)
             {
@@ -306,7 +305,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (slots.Count <= 0)
                     copyCols.Add(cols[i]);
                 else
-                    dropCols.Add(new SlotsDroppingTransformer.ColumnInfo(cols[i].input, cols[i].output, slots.ToArray()));
+                    dropCols.Add(new SlotsDroppingTransformer.ColumnInfo(cols[i].outputColumnName, cols[i].inputColumnName, slots.ToArray()));
             }
             dropSlotsColumns = dropCols.ToArray();
             copyColumnsPairs = copyCols.ToArray();
@@ -334,8 +333,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         internal static bool IsValidColumnType(ColumnType type)
         {
             // REVIEW: Consider supporting all integer and unsigned types.
+            ulong keyCount = type.GetKeyCount();
             return
-                (0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize) || type.IsBool ||
+                (0 < keyCount && keyCount < Utils.ArrayMaxSize) || type is BoolType ||
                 type == NumberType.R4 || type == NumberType.R8 || type == NumberType.I4;
         }
 
@@ -393,20 +393,20 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     }
 
                     var colType = schema[colSrc].Type;
-                    if (colType.IsVector && !colType.IsKnownSizeVector)
+                    if (colType is VectorType vectorType && !vectorType.IsKnownSize)
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
                             "Variable length column '{0}' is not allowed", colName);
                     }
 
-                    if (!IsValidColumnType(colType.ItemType))
+                    if (!IsValidColumnType(colType.GetItemType()))
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
                             "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
                     }
 
                     colSrcs[i] = colSrc;
-                    colSizes[i] = colType.ValueCount;
+                    colSizes[i] = colType.GetValueCount();
                 }
 
                 var scores = new float[size][];
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     BinDoubles(in tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
-                else if (labelType.IsBool)
+                else if (labelType is BoolType)
                 {
                     var tmp = default(VBuffer<bool>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
@@ -479,12 +479,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 }
                 else
                 {
-                    Contracts.Assert(0 < labelType.KeyCount && labelType.KeyCount < Utils.ArrayMaxSize);
+                    ulong labelKeyCount = labelType.GetKeyCount();
+                    Contracts.Assert(labelKeyCount < Utils.ArrayMaxSize);
                     KeyLabelGetter<int> del = GetKeyLabels<int>;
                     var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(labelType.RawType);
                     var parameters = new object[] { trans, labelCol, labelType };
                     _labels = (VBuffer<int>)methodInfo.Invoke(this, parameters);
-                    _numLabels = labelType.KeyCount + 1;
+                    _numLabels = labelType.GetKeyCountAsInt32(_host) + 1;
 
                     // No need to densify or shift in this case.
                     return;
@@ -521,7 +522,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 // Note: NAs have their own separate bin.
                 var type = trans.Schema[col].Type;
-                if (type.ItemType == NumberType.I4)
+                var itemType = type.GetItemType();
+                if (itemType == NumberType.I4)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<int> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -529,7 +531,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinInts(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (type.ItemType == NumberType.R4)
+                if (itemType == NumberType.R4)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Single> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -537,7 +539,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinSingles(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (type.ItemType == NumberType.R8)
+                if (itemType == NumberType.R8)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Double> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -545,7 +547,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinDoubles(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (type.ItemType.IsBool)
+                if (itemType is BoolType)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<bool> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -555,12 +557,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinBools(in src, ref dst);
                         });
                 }
-                Contracts.Assert(0 < type.ItemType.KeyCount && type.ItemType.KeyCount < Utils.ArrayMaxSize);
+                ulong keyCount = itemType.GetKeyCount();
+                Contracts.Assert(keyCount < Utils.ArrayMaxSize);
                 Func<ColumnType, Mapper<int>> del = MakeKeyMapper<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
                 ComputeMutualInformationDelegate<int> cmiDel = ComputeMutualInformation;
-                var cmiMethodInfo = cmiDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
-                return (Single[])cmiMethodInfo.Invoke(this, new object[] { trans, col, methodInfo.Invoke(null, new object[] { type.ItemType }) });
+                var cmiMethodInfo = cmiDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
+                return (Single[])cmiMethodInfo.Invoke(this, new object[] { trans, col, methodInfo.Invoke(null, new object[] { itemType }) });
             }
 
             private delegate float[] ComputeMutualInformationDelegate<T>(Transposer trans, int col, Mapper<T> mapper);
@@ -569,13 +572,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             private static Mapper<T> MakeKeyMapper<T>(ColumnType type)
             {
-                Contracts.Assert(0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize);
+                ulong keyCount = type.GetKeyCount();
+                Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
                 var mapper = BinKeys<T>(type);
                 return
                     (ref VBuffer<T> src, ref VBuffer<int> dst, out int min, out int lim) =>
                     {
                         min = 0;
-                        lim = type.KeyCount + 1;
+                        lim = (int)type.GetKeyCount() + 1;
                         mapper(in src, ref dst);
                     };
             }
@@ -585,7 +589,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// </summary>
             private float[] ComputeMutualInformation<T>(Transposer trans, int col, Mapper<T> mapper)
             {
-                var slotCount = trans.Schema[col].Type.ValueCount;
+                var slotCount = trans.Schema[col].Type.GetValueCount();
                 var scores = new float[slotCount];
                 int iScore = 0;
                 VBuffer<int> slotValues = default(VBuffer<int>);

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 1: Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(
+            var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
@@ -77,10 +77,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // First, let's get the index of the variable we want to look at
             var studentTeacherRatioIndex = featureNames.ToList().FindIndex(str => str.Equals("TeacherRatio"));
 
-            // Next, let's get the array of bin upper bounds from the model for this feature
-            var teacherRatioBinUpperBounds = gamModel.GetFeatureBinUpperBounds(studentTeacherRatioIndex);
-            // And the array of bin weights; these are the effect size for each bin
-            var teacherRatioFeatureWeights = gamModel.GetFeatureWeights(studentTeacherRatioIndex);
+            // Next, let's get the array of histogram bin upper bounds from the model for this feature
+            // For each feature, the shape function is calculated at `MaxBins` locations along the range of 
+            // values that the feature takes, and the resulting shape function can be seen as a histogram of
+            // effects.
+            var teacherRatioBinUpperBounds = gamModel.GetBinUpperBounds(studentTeacherRatioIndex);
+            // And the array of bin effects; these are the effect size for each bin
+            var teacherRatioBinEffects = gamModel.GetBinEffects(studentTeacherRatioIndex);
 
             // Now, write the function to the console. The function is a set of bins, and the corresponding
             // function values. You can think of GAMs as building a bar-chart lookup table.
@@ -118,7 +121,7 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine("Student-Teacher Ratio");
             for (int i = 0; i < teacherRatioBinUpperBounds.Length; i++)
             {
-                Console.WriteLine($"x < {teacherRatioBinUpperBounds[i]:0.00} => {teacherRatioFeatureWeights[i]:0.000}");
+                Console.WriteLine($"x < {teacherRatioBinUpperBounds[i]:0.00} => {teacherRatioBinEffects[i]:0.000}");
             }
             Console.WriteLine();
         }

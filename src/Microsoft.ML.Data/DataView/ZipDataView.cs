@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Data
 
         private readonly IHost _host;
         private readonly IDataView[] _sources;
-        private readonly CompositeSchema _compositeSchema;
+        private readonly ZipBinding _zipBinding;
 
         public static IDataView Create(IHostEnvironment env, IEnumerable<IDataView> sources)
         {
@@ -47,12 +48,12 @@ namespace Microsoft.ML.Data
 
             _host.Assert(Utils.Size(sources) > 1);
             _sources = sources;
-            _compositeSchema = new CompositeSchema(_sources.Select(x => x.Schema).ToArray());
+            _zipBinding = new ZipBinding(_sources.Select(x => x.Schema).ToArray());
         }
 
         public bool CanShuffle { get { return false; } }
 
-        public Schema Schema => _compositeSchema.AsSchema;
+        public Schema Schema => _zipBinding.OutputSchema;
 
         public long? GetRowCount()
         {
@@ -70,12 +71,12 @@ namespace Microsoft.ML.Data
             return min;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             _host.CheckValueOrNull(rand);
 
-            var srcPredicates = _compositeSchema.GetInputPredicates(predicate);
+            var srcPredicates = _zipBinding.GetInputPredicates(predicate);
 
             // REVIEW: if we know the row counts, we could only open cursor if it has needed columns, and have the
             // outer cursor handle the early stopping. If we don't know row counts, we need to open all the cursors because
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Data
             // One reason this is not done currently is because the API has 'somewhat mutable' data views, so potentially this
             // optimization might backfire.
             var srcCursors = _sources
-                .Select((dv, i) => srcPredicates[i] == null ? GetMinimumCursor(dv) : dv.GetRowCursor(srcPredicates[i], null)).ToArray();
+                .Select((dv, i) => srcPredicates[i] == null ? GetMinimumCursor(dv) : dv.GetRowCursor(dv.Schema.Where(x => srcPredicates[i](x.Index)), null)).ToArray();
             return new Cursor(this, srcCursors, predicate);
         }
 
@@ -95,18 +96,18 @@ namespace Microsoft.ML.Data
         private RowCursor GetMinimumCursor(IDataView dv)
         {
             _host.AssertValue(dv);
-            return dv.GetRowCursor(x => false);
+            return dv.GetRowCursor();
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            return new RowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         private sealed class Cursor : RootCursorBase
         {
             private readonly RowCursor[] _cursors;
-            private readonly CompositeSchema _compositeSchema;
+            private readonly ZipBinding _zipBinding;
             private readonly bool[] _isColumnActive;
             private bool _disposed;
 
@@ -119,8 +120,8 @@ namespace Microsoft.ML.Data
                 Ch.AssertValue(predicate);
 
                 _cursors = srcCursors;
-                _compositeSchema = parent._compositeSchema;
-                _isColumnActive = Utils.BuildArray(_compositeSchema.ColumnCount, predicate);
+                _zipBinding = parent._zipBinding;
+                _isColumnActive = Utils.BuildArray(_zipBinding.ColumnCount, predicate);
             }
 
             protected override void Dispose(bool disposing)
@@ -141,17 +142,15 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)Position, 0);
                     };
             }
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State != CursorState.Done);
                 foreach (var cursor in _cursors)
                 {
-                    Ch.Assert(cursor.State != CursorState.Done);
                     if (!cursor.MoveNext())
                         return false;
                 }
@@ -159,24 +158,11 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            protected override bool MoveManyCore(long count)
-            {
-                Ch.Assert(State != CursorState.Done);
-                foreach (var cursor in _cursors)
-                {
-                    Ch.Assert(cursor.State != CursorState.Done);
-                    if (!cursor.MoveMany(count))
-                        return false;
-                }
-
-                return true;
-            }
-
-            public override Schema Schema => _compositeSchema.AsSchema;
+            public override Schema Schema => _zipBinding.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {
-                _compositeSchema.CheckColumnInRange(col);
+                _zipBinding.CheckColumnInRange(col);
                 return _isColumnActive[col];
             }
 
@@ -184,7 +170,7 @@ namespace Microsoft.ML.Data
             {
                 int dv;
                 int srcCol;
-                _compositeSchema.GetColumnSource(col, out dv, out srcCol);
+                _zipBinding.GetColumnSource(col, out dv, out srcCol);
                 return _cursors[dv].GetGetter<TValue>(srcCol);
             }
         }

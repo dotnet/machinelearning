@@ -11,11 +11,11 @@ using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
-using Microsoft.ML.OnnxTransform.StaticPipe;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests
         public OnnxTransformTests(ITestOutputHelper output) : base(output)
         {
         }
-        
+
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         void TestSimpleCase()
         {
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests
 
             var samplevector = GetSampleArrayData();
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -108,11 +108,11 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = new OnnxScoringEstimator(Env, modelFile, new[] { "data_0" }, new[] { "softmaxout_1" });
+            var pipe = new OnnxScoringEstimator(Env, new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile);
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
-            var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
@@ -126,8 +126,10 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
-        void TestOldSavingAndLoading()
+        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        [InlineData(null, false)]
+        [InlineData(null, true)]
+        void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
@@ -136,7 +138,7 @@ namespace Microsoft.ML.Tests
 
             var samplevector = GetSampleArrayData();
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -146,7 +148,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = new[] { "data_0" };
             var outputNames = new[] { "softmaxout_1" };
-            var est = new OnnxScoringEstimator(Env, modelFile, inputNames, outputNames);
+            var est = new OnnxScoringEstimator(Env, outputNames, inputNames, modelFile, gpuDeviceId, fallbackToCpu);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -157,7 +159,8 @@ namespace Microsoft.ML.Tests
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
 
                 loadedView.Schema.TryGetColumnIndex(outputNames[0], out int softMaxOut1);
-                using (var cursor = loadedView.GetRowCursor(col => col == softMaxOut1))
+
+                using (var cursor = loadedView.GetRowCursor(loadedView.Schema[softMaxOut1]))
                 {
                     VBuffer<float> softMaxValue = default;
                     var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);
@@ -214,7 +217,8 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
-            using (var cursor = result.GetRowCursor(col => col == output))
+
+            using (var cursor = result.GetRowCursor(result.Schema["softmaxout_1"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -236,10 +240,10 @@ namespace Microsoft.ML.Tests
                 return;
 
             var env = new MLContext();
-            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
+            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx} GpuDeviceId=0 FallbackToCpu=+}" });
             Assert.Equal(0, x);
         }
-        
+
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         public void OnnxModelScenario()
         {
@@ -251,22 +255,21 @@ namespace Microsoft.ML.Tests
             {
                 var samplevector = GetSampleArrayData();
 
-                var dataView = ComponentCreation.CreateDataView(Env,
+                var dataView = ML.Data.ReadFromEnumerable(
                     new TestData[] {
-                    new TestData()
-                    {
-                        data_0 = samplevector
-                    }
+                        new TestData()
+                        {
+                            data_0 = samplevector
+                        }
                     });
 
-                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
-                    new[] { "data_0" },
-                    new[] { "softmaxout_1" });
+                var onnx = new OnnxTransformer(env, "softmaxout_1", modelFile, "data_0").Transform(dataView);
 
-                onnx.Schema.TryGetColumnIndex("softmaxout_1", out int scores);
-                using (var curs = onnx.GetRowCursor(col => col == scores))
+                onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
+
+                using (var curs = onnx.GetRowCursor(onnx.Schema["softmaxout_1"]))
                 {
-                    var getScores = curs.GetGetter<VBuffer<float>>(scores);
+                    var getScores = curs.GetGetter<VBuffer<float>>(score);
                     var buffer = default(VBuffer<float>);
                     while (curs.MoveNext())
                     {
@@ -288,22 +291,19 @@ namespace Microsoft.ML.Tests
             {
                 var samplevector = GetSampleArrayData();
 
-                var dataView = ComponentCreation.CreateDataView(Env,
+                var dataView = ML.Data.ReadFromEnumerable(
                     new TestDataMulti[] {
-                    new TestDataMulti()
-                    {
-                        ina = new float[] {1,2,3,4,5},
-                        inb = new float[] {1,2,3,4,5}
-                    }
+                        new TestDataMulti()
+                        {
+                            ina = new float[] {1,2,3,4,5},
+                            inb = new float[] {1,2,3,4,5}
+                        }
                     });
-
-                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
-                    new[] { "ina", "inb" },
-                    new[] { "outa", "outb" });
+                var onnx = new OnnxTransformer(env, new[] { "outa", "outb" }, new[] { "ina", "inb" }, modelFile).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
-                using (var curs = onnx.GetRowCursor(col => col == scoresa || col == scoresb))
+                using (var curs = onnx.GetRowCursor(onnx.Schema["outa"], onnx.Schema["outb"]))
                 {
                     var getScoresa = curs.GetGetter<VBuffer<float>>(scoresa);
                     var getScoresb = curs.GetGetter<VBuffer<float>>(scoresb);
@@ -333,16 +333,16 @@ namespace Microsoft.ML.Tests
             // model: input dims = [-1, 3], output argmax dims = [-1]
             var modelFile = @"unknowndimensions/test_unknowndimensions_float.onnx";
             var mlContext = new MLContext();
-            var data = new TestDataUnknownDimensions[] 
+            var data = new TestDataUnknownDimensions[]
                 {
                     new TestDataUnknownDimensions(){input = new float[] {1.1f, 1.3f, 1.2f }},
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, -1.2f }},
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, 1.2f }},
                 };
-            var idv = mlContext.CreateStreamingDataView(data);
-            var pipeline = new OnnxScoringEstimator(mlContext, modelFile);   
+            var idv = mlContext.Data.ReadFromEnumerable(data);
+            var pipeline = new OnnxScoringEstimator(mlContext, modelFile);
             var transformedValues = pipeline.Fit(idv).Transform(idv);
-            var predictions = transformedValues.AsEnumerable<PredictionUnknownDimensions>(mlContext, reuseRowObject: false).ToArray();
+            var predictions = mlContext.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();
 
             Assert.Equal(1, predictions[0].argmax[0]);
             Assert.Equal(0, predictions[1].argmax[0]);

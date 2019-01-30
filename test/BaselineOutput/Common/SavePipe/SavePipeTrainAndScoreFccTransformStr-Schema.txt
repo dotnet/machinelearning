@@ -8,17 +8,17 @@
   Features: Vec<R4, 9>
   PredictedLabel: Bool
     Metadata 'ScoreColumnKind': Text: 'BinaryClassification'
-    Metadata 'ScoreColumnSetId': Key<U4, 0-*>: '0'
+    Metadata 'ScoreColumnSetId': Key<U4, 0-2147483646>: '0'
     Metadata 'ScoreValueKind': Text: 'PredictedLabel'
   Score: R4
     Metadata 'ScoreColumnKind': Text: 'BinaryClassification'
-    Metadata 'ScoreColumnSetId': Key<U4, 0-*>: '0'
+    Metadata 'ScoreColumnSetId': Key<U4, 0-2147483646>: '0'
     Metadata 'ScoreValueKind': Text: 'Score'
   Probability: R4
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'ScoreColumnKind': Text: 'BinaryClassification'
-    Metadata 'ScoreColumnSetId': Key<U4, 0-*>: '0'
+    Metadata 'ScoreColumnSetId': Key<U4, 0-2147483646>: '0'
     Metadata 'ScoreValueKind': Text: 'Probability'
   FeatureContributions: Text
     Metadata 'ScoreColumnKind': Text: 'BinaryClassification'
-    Metadata 'ScoreColumnSetId': Key<U4, 0-*>: '0'
+    Metadata 'ScoreColumnSetId': Key<U4, 0-2147483646>: '0'
