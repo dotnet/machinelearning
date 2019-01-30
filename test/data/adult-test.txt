@@ -1,0 +1,119 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Label:R4:0
+#@   col=Workclass:TX:1
+#@   col=Categories:TX:2-8
+#@   col=NumericFeatures:R4:9-14
+#@ }
+Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	native-country-region	age	fnlwgt	education-num	capital-gain	capital-loss	hours-per-week
+0	Private	Bachelors	Married-civ-spouse	Exec-managerial	Husband	White	Male	United-States	45	59287	13	0	0	40
+0	Private	Bachelors	Never-married	Sales	Not-in-family	White	Female	United-States	41	138868	13	0	0	40
+0	Private	Assoc-acdm	Never-married	Tech-support	Other-relative	White	Female	United-States	26	185885	12	0	0	20
+0	Private	11th	Never-married	Sales	Own-child	White	Female	United-States	17	40299	7	0	0	25
+0	Private	HS-grad	Married-civ-spouse	Other-service	Husband	White	Male	?	27	500068	9	0	0	36
+0	Private	HS-grad	Married-civ-spouse	Machine-op-inspct	Husband	White	Male	United-States	43	51494	9	0	0	65
+0	Private	HS-grad	Never-married	Transport-moving	Own-child	White	Male	United-States	35	179481	9	0	0	55
+0	Private	Bachelors	Divorced	Adm-clerical	Unmarried	White	Female	United-States	38	365907	13	0	0	40
+0	Private	HS-grad	Never-married	Machine-op-inspct	Not-in-family	White	Male	United-States	26	284343	9	0	0	40
+0	Private	Some-college	Never-married	Exec-managerial	Own-child	White	Female	United-States	28	204862	10	0	0	40
+1	Private	Bachelors	Married-civ-spouse	Prof-specialty	Wife	White	Female	United-States	38	272476	13	0	0	24
+0	Private	11th	Divorced	Transport-moving	Unmarried	White	Female	United-States	36	175130	7	0	0	40
+1	Private	HS-grad	Married-civ-spouse	Adm-clerical	Wife	White	Female	United-States	33	118941	9	0	0	40
+0	Private	HS-grad	Never-married	Handlers-cleaners	Own-child	White	Male	United-States	19	164339	9	1055	0	70
+0	?	Assoc-acdm	Never-married	?	Own-child	White	Male	United-States	22	213291	12	0	0	25
+0	Federal-gov	10th	Married-civ-spouse	Adm-clerical	Husband	White	Male	Mexico	42	55457	6	0	0	40
+1	Private	10th	Married-civ-spouse	Transport-moving	Husband	White	Male	United-States	50	280292	6	0	0	40
+0	Private	HS-grad	Married-civ-spouse	Handlers-cleaners	Husband	White	Male	United-States	30	446894	9	0	0	30
+0	State-gov	Some-college	Married-civ-spouse	Prof-specialty	Other-relative	Asian-Pac-Islander	Male	Cambodia	37	67083	10	0	0	40
+1	Self-emp-inc	Prof-school	Married-civ-spouse	Prof-specialty	Husband	White	Male	United-States	54	159219	15	99999	0	40
+0	Self-emp-inc	Bachelors	Never-married	Exec-managerial	Not-in-family	White	Male	United-States	52	168539	13	0	0	40
+0	Private	1st-4th	Married-civ-spouse	Handlers-cleaners	Husband	Other	Male	?	65	88145	2	0	0	40
+0	Private	HS-grad	Divorced	Craft-repair	Not-in-family	White	Female	United-States	33	150309	9	0	0	40
+0	Private	Some-college	Never-married	Tech-support	Other-relative	White	Male	United-States	25	122999	10	0	0	40
+0	Private	Bachelors	Never-married	Sales	Not-in-family	White	Male	United-States	24	302195	13	0	0	45
+0	Private	Assoc-voc	Separated	Adm-clerical	Unmarried	Black	Female	United-States	26	210982	11	114	0	40
+1	Private	HS-grad	Separated	Adm-clerical	Not-in-family	White	Male	United-States	39	177140	9	0	0	40
+0	Private	HS-grad	Divorced	Other-service	Not-in-family	White	Female	United-States	59	113838	9	0	0	40
+0	Private	Some-college	Never-married	Adm-clerical	Unmarried	White	Female	United-States	29	97165	10	0	0	40
+0	Private	11th	Never-married	Other-service	Own-child	White	Female	United-States	47	104301	7	0	0	45
+0	?	Some-college	Never-married	?	Own-child	White	Female	United-States	23	192028	10	0	0	35
+0	Self-emp-inc	HS-grad	Married-civ-spouse	Transport-moving	Husband	White	Male	United-States	64	115931	9	0	0	50
+0	Private	HS-grad	Never-married	Other-service	Own-child	Other	Male	United-States	21	147280	9	0	0	20
+1	Private	Some-college	Married-civ-spouse	Adm-clerical	Wife	Black	Female	United-States	32	185433	10	0	0	40
+0	Private	HS-grad	Never-married	Exec-managerial	Not-in-family	Black	Female	United-States	26	599057	9	0	0	37
+0	?	Some-college	Never-married	?	Own-child	Black	Female	United-States	19	50626	10	0	0	20
+0	Self-emp-not-inc	Masters	Married-civ-spouse	Prof-specialty	Husband	White	Male	United-States	62	71467	14	0	0	40
+1	Private	Bachelors	Married-civ-spouse	Craft-repair	Husband	White	Male	United-States	32	183977	13	0	0	55
+0	?	10th	Married-spouse-absent	?	Not-in-family	White	Female	United-States	75	26586	6	0	0	5
+0	Self-emp-not-inc	HS-grad	Married-civ-spouse	Exec-managerial	Husband	White	Male	United-States	45	196858	9	0	0	60
+1	Private	Bachelors	Married-civ-spouse	Exec-managerial	Husband	White	Male	United-States	31	160594	13	0	1887	50
+0	Private	HS-grad	Married-civ-spouse	Adm-clerical	Husband	White	Male	United-States	32	65278	9	2580	0	40
+0	Private	Bachelors	Married-civ-spouse	Sales	Husband	White	Male	United-States	24	102258	13	0	0	40
+0	Private	Bachelors	Never-married	Sales	Own-child	White	Female	United-States	25	196947	13	0	0	40
+0	Self-emp-not-inc	HS-grad	Married-civ-spouse	Exec-managerial	Husband	White	Male	United-States	41	233150	9	0	0	60
+0	Private	Some-college	Never-married	Sales	Own-child	White	Female	United-States	18	42857	10	0	0	20
+1	Private	Doctorate	Married-civ-spouse	Prof-specialty	Husband	White	Male	United-States	44	118059	16	0	0	55
+0	Private	Some-college	Married-civ-spouse	Exec-managerial	Husband	White	Male	United-States	40	169262	10	3411	0	50
+0	Private	Bachelors	Never-married	Prof-specialty	Not-in-family	White	Male	United-States	27	95108	13	0	0	40
+0	Private	Bachelors	Never-married	Adm-clerical	Own-child	White	Male	United-States	23	161092	13	0	0	40
+0	Private	Some-college	Never-married	Adm-clerical	Not-in-family	Other	Male	United-States	21	345253	10	2174	0	40
+0	State-gov	HS-grad	Married-civ-spouse	Transport-moving	Husband	White	Male	United-States	37	111275	9	0	0	40
+0	Self-emp-not-inc	HS-grad	Married-civ-spouse	Farming-fishing	Husband	White	Male	United-States	65	178878	9	0	0	48
+1	Federal-gov	Masters	Married-civ-spouse	Prof-specialty	Husband	White	Male	United-States	43	157237	14	0	0	40
+0	Private	HS-grad	Never-married	Adm-clerical	Not-in-family	White	Male	United-States	45	155664	9	0	0	44
+0	State-gov	Bachelors	Never-married	Exec-managerial	Not-in-family	White	Female	United-States	24	322658	13	0	0	40
+0	Private	Some-college	Never-married	Machine-op-inspct	Not-in-family	White	Male	United-States	24	208503	10	0	0	42
+0	Local-gov	Some-college	Never-married	Protective-serv	Own-child	White	Male	United-States	19	223326	10	0	1721	35
+1	Private	Bachelors	Married-civ-spouse	Prof-specialty	Husband	White	Male	United-States	37	20308	13	0	0	65
+0	Private	HS-grad	Never-married	Adm-clerical	Own-child	White	Female	United-States	24	124751	9	0	0	35
+0	Private	Some-college	Married-civ-spouse	Machine-op-inspct	Husband	White	Male	Germany	34	113364	10	0	0	40
+0	State-gov	HS-grad	Married-civ-spouse	Other-service	Wife	White	Female	United-States	50	196900	9	0	0	39
+0	Private	HS-grad	Married-civ-spouse	Craft-repair	Husband	White	Male	Puerto-Rico	36	168170	9	0	0	40
+0	Private	Bachelors	Married-civ-spouse	Sales	Husband	White	Male	United-States	39	205338	13	0	0	60
+0	Self-emp-not-inc	7th-8th	Married-civ-spouse	Craft-repair	Husband	White	Male	United-States	44	98806	4	0	0	38
+0	State-gov	HS-grad	Married-civ-spouse	Other-service	Husband	White	Male	United-States	45	226452	9	0	0	40
+0	State-gov	11th	Never-married	Protective-serv	Own-child	White	Male	United-States	32	479179	7	0	0	40
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Label:R4:0
+#@   col=Workclass:TX:1
+#@   col=Categories:TX:2-8
+#@   col=NumericFeatures:R4:9-14
+#@ }
+Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	native-country-region	age	fnlwgt	education-num	capital-gain	capital-loss	hours-per-week
+1	Federal-gov	Masters	Married-civ-spouse	Exec-managerial	Husband	Black	Male	United-States	47	471990	14	0	0	40
+0	Private	HS-grad	Married-civ-spouse	Machine-op-inspct	Husband	White	Male	United-States	50	44728	9	0	0	40
+0	Private	Assoc-voc	Married-civ-spouse	Other-service	Husband	White	Male	United-States	32	33117	11	0	0	40
+0	Private	HS-grad	Never-married	Handlers-cleaners	Own-child	White	Male	United-States	19	264876	9	0	0	40
+0	?	Some-college	Never-married	?	Own-child	White	Female	United-States	19	47235	10	0	0	20
+0	State-gov	Masters	Divorced	Prof-specialty	Not-in-family	White	Male	?	28	293628	14	0	0	10
+0	Private	HS-grad	Divorced	Sales	Other-relative	White	Male	United-States	28	193122	9	0	0	50
+1	Federal-gov	Masters	Never-married	Prof-specialty	Not-in-family	White	Male	Poland	39	149347	14	0	0	40
+0	Private	Some-college	Never-married	Other-service	Not-in-family	White	Male	United-States	21	129172	10	2907	0	40
+0	Self-emp-not-inc	Some-college	Widowed	Farming-fishing	Not-in-family	White	Female	United-States	73	151255	10	0	0	75
+0	Private	7th-8th	Married-civ-spouse	Other-service	Husband	White	Male	Mexico	39	98886	4	4508	0	40
+0	Private	Some-college	Never-married	Machine-op-inspct	Not-in-family	White	Male	United-States	25	238673	10	0	0	40
+0	Private	Some-college	Married-AF-spouse	Sales	Wife	White	Female	United-States	31	137991	10	0	0	20
+0	Private	Some-college	Divorced	Sales	Not-in-family	White	Female	United-States	51	85942	10	0	0	32
+0	Private	Bachelors	Married-civ-spouse	Adm-clerical	Wife	White	Female	United-States	39	85783	13	0	0	28
+0	Private	Bachelors	Divorced	Handlers-cleaners	Own-child	White	Male	United-States	31	174789	13	0	0	40
+0	Private	Some-college	Never-married	Sales	Own-child	Black	Male	United-States	21	457162	10	0	0	17
+1	Private	Bachelors	Divorced	Exec-managerial	Not-in-family	White	Male	United-States	46	176026	13	27828	0	50
+0	Private	HS-grad	Divorced	Exec-managerial	Not-in-family	White	Female	United-States	73	88594	9	0	0	35
+0	Private	HS-grad	Divorced	Craft-repair	Not-in-family	White	Male	United-States	41	311101	9	0	0	40
+0	Private	HS-grad	Never-married	Transport-moving	Own-child	White	Male	United-States	20	273989	9	0	0	40
+0	Private	Assoc-acdm	Never-married	Other-service	Not-in-family	White	Male	United-States	27	370242	12	0	0	30
+0	Private	Bachelors	Never-married	Prof-specialty	Not-in-family	White	Male	United-States	24	194630	13	0	0	35
+0	Private	Some-college	Married-civ-spouse	Craft-repair	Husband	White	Male	United-States	20	313817	10	0	0	40
+0	Private	Assoc-voc	Never-married	Machine-op-inspct	Own-child	White	Male	United-States	39	195843	11	0	0	40
+0	Private	Bachelors	Never-married	Handlers-cleaners	Not-in-family	White	Male	United-States	27	203160	13	0	0	28
+0	Private	11th	Married-civ-spouse	Sales	Husband	White	Male	United-States	33	175856	7	0	0	60
+0	Private	HS-grad	Married-civ-spouse	Handlers-cleaners	Husband	Amer-Indian-Inuit	Male	United-States	33	75435	9	0	0	40
+0	State-gov	9th	Married-civ-spouse	Craft-repair	Husband	Black	Male	United-States	36	291676	5	0	0	40
+0	Private	Some-college	Married-civ-spouse	Exec-managerial	Husband	White	Male	United-States	55	192869	10	0	0	36
+0	Private	Some-college	Never-married	Machine-op-inspct	Own-child	White	Male	United-States	19	124464	10	0	0	40
+0	Private	HS-grad	Never-married	Exec-managerial	Not-in-family	White	Male	United-States	35	98776	9	0	0	60
+0	Private	5th-6th	Never-married	Machine-op-inspct	Other-relative	Asian-Pac-Islander	Male	Laos	34	107960	3	0	0	40
+0	State-gov	Prof-school	Divorced	Prof-specialty	Not-in-family	White	Female	United-States	62	312286	15	0	0	35
