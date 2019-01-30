@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Concatenation is necessary because learners take **feature vectors** as inputs.
             //   e.g. var regressionTrainer = mlContext.Regression.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features");
             string outputColumnName = "Features";
-            var pipeline = new ColumnConcatenatingEstimator(mlContext, outputColumnName, new[] { "Age", "Parity", "Induced"});
+            var pipeline = mlContext.Transforms.Concatenate(outputColumnName, new[] { "Age", "Parity", "Induced" });
 
             // The transformed data.
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
