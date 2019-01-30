@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data.IO
     /// Saver for a format that can be loaded using the <see cref="TransposeLoader"/>.
     /// </summary>
     /// <seealso cref="TransposeLoader"/>
-    public sealed class TransposeSaver : IDataSaver
+    internal sealed class TransposeSaver : IDataSaver
     {
         public sealed class Arguments
         {

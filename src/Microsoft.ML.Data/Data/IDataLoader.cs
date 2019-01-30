@@ -57,7 +57,8 @@ namespace Microsoft.ML.Data
 
     public delegate void SignatureDataSaver();
 
-    public interface IDataSaver
+    [BestFriend]
+    internal interface IDataSaver
     {
         /// <summary>
         /// Check if the column can be saved.
@@ -77,12 +78,14 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Signature for creating an <see cref="IDataTransform"/>.
     /// </summary>
-    public delegate void SignatureDataTransform(IDataView input);
+    [BestFriend]
+    internal delegate void SignatureDataTransform(IDataView input);
 
     /// <summary>
     /// Signature for loading an <see cref="IDataTransform"/>.
     /// </summary>
-    public delegate void SignatureLoadDataTransform(ModelLoadContext ctx, IDataView input);
+    [BestFriend]
+    internal delegate void SignatureLoadDataTransform(ModelLoadContext ctx, IDataView input);
 
     /// <summary>
     /// Interface for a data transform. An <see cref="IDataTransform"/> can save its model information

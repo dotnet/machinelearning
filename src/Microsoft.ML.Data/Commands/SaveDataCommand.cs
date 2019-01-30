@@ -182,7 +182,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static class DataSaverUtils
+    [BestFriend]
+    internal static class DataSaverUtils
     {
         public static void SaveDataView(IChannel ch, IDataSaver saver, IDataView view, IFileHandle file, bool keepHidden = false)
         {
