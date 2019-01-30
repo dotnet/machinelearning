@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -71,8 +72,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weights: weights,
-                            advancedSettings: s => { s.InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel; });
+            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options {
+                FeatureColumn = featureColumn,
+                WeightColumn = weights,
+                InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel,
+            });
 
             TestEstimatorCore(pipeline, data);
 
@@ -86,7 +90,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            var trainer = new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features");
+            var trainer = ML.BinaryClassification.Trainers.StochasticGradientDescent();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -124,7 +128,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
-            var pipeline = new TextFeaturizingEstimator(Env, "SentimentText", "Features");
+            var pipeline = new TextFeaturizingEstimator(Env,"Features" ,"SentimentText");
 
             return (pipeline, data);
         }
@@ -146,8 +150,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Pipeline.
             var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
-                                    new ValueToKeyMappingTransformer.ColumnInfo("Workclass", "Group"),
-                                    new ValueToKeyMappingTransformer.ColumnInfo("Label", "Label0") });
+                                    new ValueToKeyMappingTransformer.ColumnInfo("Group", "Workclass"),
+                                    new ValueToKeyMappingTransformer.ColumnInfo("Label0", "Label") });
 
             return (pipeline, data);
         }

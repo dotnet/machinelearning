@@ -21,7 +21,7 @@
   <!-- nuspec properties -->
   <PropertyGroup>
     <Authors>Microsoft</Authors>
-    <PackageLicenseUrl>https://github.com/dotnet/machinelearning/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
     <PackageIconUrl>https://aka.ms/mlnetlogo</PackageIconUrl>
     <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
@@ -37,8 +37,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">
-    <Content Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="\" />
-    <Content Include="$(RepoRoot)\LICENSE" Pack="true" PackagePath="\" />
+    <Content Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="" />
+    <Content Include="$(RepoRoot)\LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsSymbolsPackage)' != 'true'">

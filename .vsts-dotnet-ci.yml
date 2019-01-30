@@ -10,11 +10,50 @@ resources:
 phases:
 - template: /build/ci/phase-template.yml
   parameters:
+    name: core30
+    buildScript: build.cmd
+    customMatrixes:
+      Build_Debug_Intrinsics:
+        _configuration: Debug-Intrinsics
+        _config_short: DI
+        _includeBenchmarkData: false
+      Build_Release_Intrinsics:
+        _configuration: Release-Intrinsics
+        _config_short: RI
+        _includeBenchmarkData: true
+    queue:
+      name: Hosted VS2017
+
+- template: /build/ci/phase-template.yml
+  parameters:
     name: Linux
     buildScript: ./build.sh
     queue:
       name: Hosted Ubuntu 1604
       container: LinuxContainer
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: MacOS
+    buildScript: ./build.sh
+    queue:
+      name: Hosted macOS
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_NetFx
+    buildScript: build.cmd
+    customMatrixes:
+      Build_Debug_netfx:
+        _configuration: Debug-netfx
+        _config_short: DFX
+        _includeBenchmarkData: false
+      Build_Release_netfx:
+        _configuration: Release-netfx
+        _config_short: RFX
+        _includeBenchmarkData: false
+    queue:
+      name: Hosted VS2017
 
 - template: /build/ci/phase-template.yml
   parameters:
@@ -25,29 +64,8 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: core30
-    buildScript: build.cmd
-    customMatrixes:
-      Build_Debug_Intrinsics:
-        _configuration: Debug-Intrinsics
-        _config_short: DI
-      Build_Release_Intrinsics:
-        _configuration: Release-Intrinsics
-        _config_short: RI
-    queue:
-      name: Hosted VS2017
-
-- template: /build/ci/phase-template.yml
-  parameters:
     name: Windows_x86
     architecture: x86
     buildScript: build.cmd
     queue:
       name: Hosted VS2017
-
-- template: /build/ci/phase-template.yml
-  parameters:
-    name: MacOS
-    buildScript: ./build.sh
-    queue:
-      name: Hosted macOS

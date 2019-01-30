@@ -41,7 +41,7 @@ namespace Microsoft.ML.LightGBM
             public bool[] IsCategoricalFeature;
         }
 
-        private protected readonly LightGbmArguments Args;
+        private protected readonly Options Args;
 
         /// <summary>
         /// Stores argumments as objects to convert them to invariant string type in the end so that
@@ -67,19 +67,15 @@ namespace Microsoft.ML.LightGBM
             int? numLeaves,
             int? minDataPerLeaf,
             double? learningRate,
-            int numBoostRound,
-            Action<LightGbmArguments> advancedSettings)
+            int numBoostRound)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
-            Args = new LightGbmArguments();
+            Args = new Options();
 
             Args.NumLeaves = numLeaves;
             Args.MinDataPerLeaf = minDataPerLeaf;
             Args.LearningRate = learningRate;
             Args.NumBoostRound = numBoostRound;
-
-            //apply the advanced args, if the user supplied any
-            advancedSettings?.Invoke(Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
@@ -93,12 +89,12 @@ namespace Microsoft.ML.LightGBM
             InitParallelTraining();
         }
 
-        private protected LightGbmTrainerBase(IHostEnvironment env, string name, LightGbmArguments args, SchemaShape.Column label)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+        private protected LightGbmTrainerBase(IHostEnvironment env, string name, Options options, SchemaShape.Column label)
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            Args = args;
+            Args = options;
             InitParallelTraining();
         }
 
@@ -197,9 +193,12 @@ namespace Microsoft.ML.LightGBM
 
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
-            var loadFlags = CursOpt.AllLabels | CursOpt.AllWeights | CursOpt.Features;
+            var loadFlags = CursOpt.AllLabels | CursOpt.Features;
             if (PredictionKind == PredictionKind.Ranking)
                 loadFlags |= CursOpt.Group;
+
+            if (data.Schema.Weight.HasValue)
+                loadFlags |= CursOpt.AllWeights;
 
             var factory = new FloatLabelCursor.Factory(data, loadFlags);
             return factory;
@@ -285,11 +284,11 @@ namespace Microsoft.ML.LightGBM
                 ch.Info("Auto-tuning parameters: " + nameof(Args.UseCat) + " = " + useCat);
             if (useCat)
             {
-                trainData.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
-                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureIndex, out categoricalFeatures);
+                var featureCol = trainData.Schema.Schema[DefaultColumnNames.Features];
+                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
-            int rawNumCol = colType.VectorSize;
+            int rawNumCol = colType.GetVectorSize();
             FeatureCount = rawNumCol;
             catMetaData.TotalCats = 0;
             if (categoricalFeatures == null)

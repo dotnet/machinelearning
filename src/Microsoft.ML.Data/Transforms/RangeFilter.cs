@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -27,7 +30,8 @@ namespace Microsoft.ML.Transforms
     /// Keeps the values that are in the specified min/max range. NaNs are always filtered out.
     /// If the input is a Key type, the min/max are considered percentages of the number of values.
     /// </summary>
-    public sealed class RangeFilter : FilterBase
+    [BestFriend]
+    internal sealed class RangeFilter : FilterBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -105,7 +109,7 @@ namespace Microsoft.ML.Transforms
                 _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
                     throw ch.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible type", args.Column);
-                if (_type.IsKey)
+                if (_type is KeyType)
                 {
                     if (args.Min < 0)
                     {
@@ -126,7 +130,7 @@ namespace Microsoft.ML.Transforms
                     throw ch.ExceptUserArg(nameof(args.Min), "min must be less than or equal to max");
                 _complement = args.Complement;
                 _includeMin = args.IncludeMin;
-                _includeMax = args.IncludeMax ?? (args.Max == null || (_type.IsKey && _max >= 1));
+                _includeMax = args.IncludeMax ?? (args.Max == null || (_type is KeyType && _max >= 1));
             }
         }
 
@@ -148,11 +152,11 @@ namespace Microsoft.ML.Transforms
             var column = ctx.LoadNonEmptyString();
             var schema = Source.Schema;
             if (!schema.TryGetColumnIndex(column, out _index))
-                throw Host.Except("column", "Source column '{0}' not found", column);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column);
 
             _type = schema[_index].Type;
-            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.KeyCount == 0)
-                throw Host.Except("column", "Column '{0}' does not have compatible type", column);
+            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.GetKeyCount() == 0)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "float, double or KeyType", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
             _max = ctx.Reader.ReadDouble();
@@ -204,25 +208,28 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var input = Source.GetRowCursor(inputPred, rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+
+            var input = Source.GetRowCursor(inputCols, rand);
             return CreateCursorCore(input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
+
             Host.CheckValueOrNull(rand);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
@@ -238,7 +245,7 @@ namespace Microsoft.ML.Transforms
                 return new SingleRowCursor(this, input, active);
             if (_type == NumberType.R8)
                 return new DoubleRowCursor(this, input, active);
-            Host.Assert(_type.IsKey);
+            Host.Assert(_type is KeyType);
             return RowCursorBase.CreateKeyRowCursor(this, input, active);
         }
 
@@ -257,7 +264,7 @@ namespace Microsoft.ML.Transforms
         {
             ectx.CheckValue(type, nameof(type));
 
-            return type == NumberType.R4 || type == NumberType.R8 || type.KeyCount > 0;
+            return type == NumberType.R4 || type == NumberType.R8 || type.GetKeyCount() > 0;
         }
 
         private abstract class RowCursorBase : LinkedRowFilterCursorBase
@@ -320,7 +327,7 @@ namespace Microsoft.ML.Transforms
 
             public static RowCursor CreateKeyRowCursor(RangeFilter filter, RowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type.IsKey);
+                Contracts.Assert(filter._type is KeyType);
                 Func<RangeFilter, RowCursor, bool[], RowCursor> del = CreateKeyRowCursor<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(filter._type.RawType);
                 return (RowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
@@ -328,7 +335,7 @@ namespace Microsoft.ML.Transforms
 
             private static RowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, RowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type.IsKey);
+                Contracts.Assert(filter._type is KeyType);
                 return new KeyRowCursor<TSrc>(filter, input, active);
             }
         }
@@ -347,7 +354,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref Single value) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         value = _value;
                     };
             }
@@ -380,7 +387,7 @@ namespace Microsoft.ML.Transforms
                 _getter =
                     (ref Double value) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         value = _value;
                     };
             }
@@ -405,18 +412,18 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<T> _getter;
             private T _value;
             private readonly ValueMapper<T, ulong> _conv;
-            private readonly int _count;
+            private readonly ulong _count;
 
             public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
-                Ch.Assert(Parent._type.KeyCount > 0);
-                _count = Parent._type.KeyCount;
+                Ch.Assert(Parent._type.GetKeyCount() > 0);
+                _count = Parent._type.GetKeyCount();
                 _srcGetter = Input.GetGetter<T>(Parent._index);
                 _getter =
                     (ref T dst) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         dst = _value;
                     };
                 bool identity;
@@ -425,19 +432,19 @@ namespace Microsoft.ML.Transforms
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type.IsKey);
+                Ch.Assert(Parent._type is KeyType);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type.IsKey);
+                Ch.Assert(Parent._type is KeyType);
                 _srcGetter(ref _value);
                 ulong value = 0;
                 _conv(in _value, ref value);
-                if (value == 0 || value > (ulong)_count)
+                if (value == 0 || value > _count)
                     return false;
-                if (!CheckBounds(((Double)(uint)value - 0.5) / _count))
+                if (!CheckBounds(((uint)value - 0.5) / _count))
                     return false;
                 return true;
             }

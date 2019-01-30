@@ -5,10 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints.JsonUtils;
+using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -37,7 +40,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
                 }, logCurs: true);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var col1 = cursor.GetGetter<sbyte>(0);
                 var col2 = cursor.GetGetter<short>(1);
@@ -185,7 +188,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Number1',
                                         'Type': 'R4',
@@ -198,7 +201,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,
@@ -257,7 +260,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                        'ForceVector':false
                                     }
                                  ],
-                                 'KeyRange':null
+                                 'KeyCount':null
                               },
                               {  
                                  'Name':'Text',
@@ -272,7 +275,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                        'ForceVector':false
                                     }
                                  ],
-                                 'KeyRange':null
+                                 'KeyCount':null
                               }
                            ],
                            'TrimWhitespace':false,
@@ -294,7 +297,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             var data = runner.GetOutput<IDataView>("data"); Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var IDGetter = cursor.GetGetter<float>(0);
                 var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
@@ -366,7 +369,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'C2',
                                         'Type': 'R4',
@@ -379,7 +382,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'C3',
                                         'Type': 'R4',
@@ -392,7 +395,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'C4',
                                         'Type': 'R4',
@@ -405,7 +408,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'C5',
                                         'Type': 'R4',
@@ -418,7 +421,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,
@@ -441,7 +444,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = runner.GetOutput<IDataView>("data");
             Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var getters = new ValueGetter<float>[]{
                         cursor.GetGetter<float>(0),
@@ -519,7 +522,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Text',
                                         'Type': 'TX',
@@ -532,7 +535,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': true,
@@ -555,7 +558,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = runner.GetOutput<IDataView>("data");
             Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var IDGetter = cursor.GetGetter<float>(0);
                 var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
@@ -720,7 +723,7 @@ namespace Microsoft.ML.EntryPoints.Tests
            var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
-            var dataIris = mlContext.Data.CreateTextReader<Iris>(separatorChar: ',').Read(dataPath);
+            var dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Read(dataPath);
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
@@ -736,7 +739,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
             // Load with start and end indexes
-            var dataIrisStartEnd = mlContext.Data.CreateTextReader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
+            var dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
@@ -753,7 +756,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             // load setting the distinct columns. Loading column 0 and 2
-            var dataIrisColumnIndices = mlContext.Data.CreateTextReader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
+            var dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
             var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
 
             Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);
@@ -767,6 +770,24 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(vals4[0], irisFirstRowValues.Current);
             irisFirstRowValues.MoveNext(); irisFirstRowValues.MoveNext(); // skip col 1
             Assert.Equal(vals4[1], irisFirstRowValues.Current);
+        }
+
+        [Fact]
+        public void TestTextLoaderKeyTypeBackCompat()
+        {
+            // Model generated with the following command on a version of the code previous to the KeyType change that removed Min and Contiguous:
+            // Train data=...\breast-cancer.txt loader =TextLoader{col=Label:R4:0 col=Features:R4:1-9 col=key:U4[0-*]:3} tr=LogisticRegression {} out=model.zip
+            var mlContext = new MLContext();
+            string textLoaderModelPath = GetDataPath("backcompat/textloader-with-key-model.zip");
+            string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+
+            using (FileStream modelfs = File.OpenRead(textLoaderModelPath))
+            using (var rep = RepositoryReader.Open(modelfs, mlContext))
+            {
+                var result = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(breastCancerPath), false);
+                Assert.True(result.Schema.TryGetColumnIndex("key", out int featureIdx));
+                Assert.True(result.Schema[featureIdx].Type is KeyType keyType && keyType.Count == typeof(uint).ToMaxInt());
+            }
         }
     }
 }

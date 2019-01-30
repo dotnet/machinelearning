@@ -2,33 +2,33 @@
 14 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
 ---- RowToRowMapperTransform ----
 16 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
   Cat: Vec<Key<U4, 0-2>, 3>
     Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
@@ -40,17 +40,17 @@
 20 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
   Cat: Vec<Key<U4, 0-2>, 3>
     Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
@@ -66,17 +66,17 @@
 25 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
   Cat: Vec<Key<U4, 0-2>, 3>
     Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
@@ -97,17 +97,17 @@
 29 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
   Cat: Vec<Key<U4, 0-2>, 3>
     Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
@@ -132,17 +132,17 @@
 31 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
   Cat: Vec<Key<U4, 0-2>, 3>
     Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
@@ -169,17 +169,17 @@
 35 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
   Cat: Vec<Key<U4, 0-2>, 3>
     Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
@@ -210,17 +210,17 @@
 36 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
   Cat: Vec<Key<U4, 0-2>, 3>
     Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
@@ -252,17 +252,17 @@
 37 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 2-4>, 3>
-  CatU8: Vec<Key<U8, 0-*>, 3>
-  OneU1: Key<U1, 0-*>
-  OneU2: Key<U2, 0-*>
-  OneU4: Key<U4, 0-*>
-  OneU8: Key<U8, 0-*>
+  CatU2: Vec<Key<U2, 0-4>, 3>
+  CatU8: Vec<Key<U8, 0-18446744073709551614>, 3>
+  OneU1: Key<U1, 0-254>
+  OneU2: Key<U2, 0-65534>
+  OneU4: Key<U4, 0-4294967294>
+  OneU8: Key<U8, 0-18446744073709551614>
   Single: Text
-  VarU1: Vec<Key<U1, 0-*>>
-  VarU2: Vec<Key<U2, 0-*>>
-  VarU4: Vec<Key<U4, 0-*>>
-  VarU8: Vec<Key<U8, 0-*>>
+  VarU1: Vec<Key<U1, 0-254>>
+  VarU2: Vec<Key<U2, 0-65534>>
+  VarU4: Vec<Key<U4, 0-4294967294>>
+  VarU8: Vec<Key<U8, 0-18446744073709551614>>
   Variable: Vec<Text>
   Cat: Vec<Key<U4, 0-2>, 3>
     Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3

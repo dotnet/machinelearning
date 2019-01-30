@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
@@ -472,6 +473,13 @@ namespace Microsoft.ML.Data.IO
 
             protected readonly BinaryLoader Parent;
 
+            /// <summary>
+            /// Return <see cref="ValueGetter{TValue}"/> to the stored entry value as <see cref="Delegate"/>. An example of stored value is
+            /// <see cref="MetadataTableOfContentsEntry{T}.Value"/>. For implementations of <see cref="GetGetter"/>, see <see cref="ImplDead"/>,
+            /// <see cref="ImplOne{T}"/>, and <see cref="ImplVec{T}"/>.
+            /// </summary>
+            public abstract Delegate GetGetter();
+
             protected MetadataTableOfContentsEntry(BinaryLoader parent, string kind,
                 CompressionKind compression, long blockOffset, long blockSize)
             {
@@ -499,7 +507,7 @@ namespace Microsoft.ML.Data.IO
 
                 var type = codec.Type;
                 Type entryType;
-                if (type.IsVector)
+                if (type is VectorType)
                 {
                     Type valueType = type.RawType;
                     ectx.Assert(valueType.IsGenericEx(typeof(VBuffer<>)));
@@ -541,6 +549,8 @@ namespace Microsoft.ML.Data.IO
                 {
                     _codec = codec;
                 }
+
+                public override Delegate GetGetter() => null;
             }
 
             private sealed class ImplOne<T> : MetadataTableOfContentsEntry<T>
@@ -551,10 +561,11 @@ namespace Microsoft.ML.Data.IO
                 {
                 }
 
-                public override void Get(ref T value)
+                public override Delegate GetGetter()
                 {
                     EnsureValue();
-                    value = Value;
+                    ValueGetter<T> getter = (ref T value) => value = Value;
+                    return getter;
                 }
             }
 
@@ -566,10 +577,11 @@ namespace Microsoft.ML.Data.IO
                 {
                 }
 
-                public override void Get(ref VBuffer<T> value)
+                public override Delegate GetGetter()
                 {
                     EnsureValue();
-                    Value.CopyTo(ref value);
+                    ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) => Value.CopyTo(ref value);
+                    return getter;
                 }
             }
         }
@@ -592,6 +604,10 @@ namespace Microsoft.ML.Data.IO
                 _codec = codec;
             }
 
+            /// <summary>
+            /// By calling <see cref="EnsureValue"/>, we make sure <see cref="Value"/>'s content get loaded definitely.
+            /// Without calling <see cref="EnsureValue"/>, <see cref="Value"/> could be default value of its type.
+            /// </summary>
             protected void EnsureValue()
             {
                 if (!_fetched)
@@ -614,87 +630,51 @@ namespace Microsoft.ML.Data.IO
                     }
                 }
             }
-
-            public abstract void Get(ref T value);
         }
 
-        private sealed class SchemaImpl : ISchema
+        /// <summary>
+        /// This function returns output schema, <see cref="Schema"/>, of <see cref="BinaryLoader"/> by translating <see cref="_aliveColumns"/> into
+        /// <see cref="Schema.Column"/>s. If a <see cref="BinaryLoader"/> loads a text column from the input file, its <see cref="Schema"/>
+        /// should contains a <see cref="Schema.Column"/> with <see cref="TextType.Instance"/> as its <see cref="ColumnType"/>.
+        /// </summary>
+        /// <returns><see cref="Schema"/> of loaded file.</returns>
+        private Schema ComputeOutputSchema()
         {
-            private readonly TableOfContentsEntry[] _toc;
-            private readonly Dictionary<string, int> _name2col;
-            private readonly IExceptionContext _ectx;
+            var schemaBuilder = new SchemaBuilder();
 
-            public SchemaImpl(BinaryLoader parent)
+            for(int i = 0; i < _aliveColumns.Length; ++i)
             {
-                Contracts.AssertValue(parent, "parent");
-                Contracts.AssertValue(parent._host, "parent");
-                _ectx = parent._host;
+                // Informaiton of a column loaded from a binary file.
+                var loadedColumn = _aliveColumns[i];
+                // Metadata fields of the loaded column.
+                var metadataArray = loadedColumn.GetMetadataTocArray();
 
-                _name2col = new Dictionary<string, int>();
-                _toc = parent._aliveColumns;
-                for (int c = 0; c < _toc.Length; ++c)
-                    _name2col[_toc[c].Name] = c;
-            }
-
-            public int ColumnCount { get { return _toc.Length; } }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                _ectx.CheckValueOrNull(name);
-                if (name == null)
+                if (Utils.Size(metadataArray) > 0)
                 {
-                    col = default(int);
-                    return false;
+                    // We got some metadata fields here.
+                    var metadataBuilder = new MetadataBuilder();
+                    foreach(var loadedMetadataColumn in metadataArray)
+                    {
+                        var metadataGetter = loadedMetadataColumn.GetGetter();
+                        if (metadataGetter == null)
+                            throw MetadataUtils.ExceptGetMetadata();
+                        metadataBuilder.Add(loadedMetadataColumn.Kind, loadedMetadataColumn.Codec.Type, metadataGetter);
+                    }
+                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.GetMetadata());
                 }
-                return _name2col.TryGetValue(name, out col);
+                else
+                    // This case has no metadata.
+                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type);
             }
 
-            public string GetColumnName(int col)
-            {
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _toc[col].Name;
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _toc[col].Type;
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                var metadatas = _toc[col].GetMetadataTocArray();
-                if (Utils.Size(metadatas) > 0)
-                    return metadatas.Select(e => new KeyValuePair<string, ColumnType>(e.Kind, e.Codec.Type));
-                return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                _ectx.CheckNonEmpty(kind, nameof(kind));
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                var entry = _toc[col].GetMetadataTocEntryOrNull(kind);
-                return entry == null ? null : entry.Codec.Type;
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                _ectx.CheckNonEmpty(kind, nameof(kind));
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                var entry = _toc[col].GetMetadataTocEntryOrNull(kind) as MetadataTableOfContentsEntry<TValue>;
-                if (entry == null)
-                    throw MetadataUtils.ExceptGetMetadata();
-                entry.Get(ref value);
-            }
+            return schemaBuilder.GetSchema();
         }
 
         private readonly Stream _stream;
         private readonly BinaryReader _reader;
         private readonly CodecFactory _factory;
         private readonly Header _header;
-        private readonly Schema _schema;
+        private readonly Schema _outputSchema;
         private readonly bool _autodeterminedThreads;
         private readonly int _threads;
         private readonly string _generatedRowIndexName;
@@ -757,13 +737,13 @@ namespace Microsoft.ML.Data.IO
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
-        public Schema Schema { get { return _schema; } }
+        public Schema Schema => _outputSchema;
 
-        private long RowCount { get { return _header.RowCount; } }
+        private long RowCount => _header.RowCount;
 
-        public long? GetRowCount() { return RowCount; }
+        public long? GetRowCount() => RowCount;
 
-        public bool CanShuffle { get { return true; } }
+        public bool CanShuffle => true;
 
         internal const string Summary = "Loads native Binary IDV data file.";
         internal const string LoadName = "BinaryLoader";
@@ -805,8 +785,8 @@ namespace Microsoft.ML.Data.IO
                 _threads = Math.Max(1, args.Threads ?? (Environment.ProcessorCount / 2));
                 _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
-                _schema = Schema.Create(new SchemaImpl(this));
-                _host.Assert(_schema.Count == Utils.Size(_aliveColumns));
+                _outputSchema = ComputeOutputSchema();
+                _host.Assert(_outputSchema.Count == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
@@ -823,7 +803,7 @@ namespace Microsoft.ML.Data.IO
         /// <param name="args">Arguments</param>
         /// <param name="env">Host environment</param>
         /// <param name="leaveOpen">Whether to leave the input stream open</param>
-        public BinaryLoader(IHostEnvironment env, Arguments args, Stream stream, bool leaveOpen = true)
+        internal BinaryLoader(IHostEnvironment env, Arguments args, Stream stream, bool leaveOpen = true)
             : this(args, env.Register(LoadName), stream, leaveOpen)
         {
         }
@@ -894,8 +874,8 @@ namespace Microsoft.ML.Data.IO
 
                 _header = InitHeader();
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
-                _schema = Schema.Create(new SchemaImpl(this));
-                ch.Assert(_schema.Count == Utils.Size(_aliveColumns));
+                _outputSchema = ComputeOutputSchema();
+                ch.Assert(_outputSchema.Count == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
@@ -904,7 +884,7 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        public static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        private static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(LoadName);
@@ -940,7 +920,7 @@ namespace Microsoft.ML.Data.IO
         /// Creates a binary loader from a stream that is not owned by the loader.
         /// This creates its own independent copy of input stream for the binary loader.
         /// </summary>
-        public static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, Stream stream)
+        private static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(LoadName);
@@ -1225,45 +1205,41 @@ namespace Microsoft.ML.Data.IO
             // so this should be a key with *genuinely* a count of 0. However, a count of a key of 0 means
             // that the key length is unknown. Unsure of how to reconcile this. Is the least harmful thing
             // to do, if RowCount=0, to set count to some value like 1?
-            int count = _header.RowCount <= int.MaxValue ? (int)_header.RowCount : 0;
-            KeyType type = new KeyType(DataKind.U8, 0, count);
+            ulong count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
+            KeyType type = new KeyType(typeof(ulong), count);
             // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
             ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
             var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);
             return entry;
         }
 
-        private RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        private RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
             {
                 // Don't bother with block shuffling, if the shuffle cursor is just going to hold
                 // the entire dataset in memory anyway.
                 var ourRand = _randomShufflePoolRows == _header.RowCount ? null : rand;
-                var cursor = new Cursor(this, predicate, ourRand);
+                var cursor = new Cursor(this, columnsNeeded, ourRand);
                 return RowShufflingTransformer.GetShuffledCursor(_host, _randomShufflePoolRows, cursor, rand);
             }
-            return new Cursor(this, predicate, rand);
+            return new Cursor(this, columnsNeeded, rand);
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return GetRowCursorCore(predicate, rand);
+            return GetRowCursorCore(columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
         }
 
         private sealed class Cursor : RootCursorBase
         {
-            private const string _badCursorState = "cursor is either not started or is ended, and cannot get values";
-
             private readonly BinaryLoader _parent;
             private readonly int[] _colToActivesIndex;
             private readonly TableOfContentsEntry[] _actives;
@@ -1276,7 +1252,7 @@ namespace Microsoft.ML.Data.IO
             // This may be null, in the event that we are not shuffling.
             private readonly int[] _blockShuffleOrder;
 
-            private readonly Thread _readerThread;
+            private readonly Task _readerThread;
             private readonly Task _pipeTask;
             private readonly ExceptionMarshaller _exMarshaller;
 
@@ -1291,18 +1267,17 @@ namespace Microsoft.ML.Data.IO
                 get { return 0; }
             }
 
-            public Cursor(BinaryLoader parent, Func<int, bool> predicate, Random rand)
+            public Cursor(BinaryLoader parent, IEnumerable<Schema.Column> columnsNeeded, Random rand)
                 : base(parent._host)
             {
                 _parent = parent;
-                Ch.AssertValue(predicate);
                 Ch.AssertValueOrNull(rand);
 
                 _exMarshaller = new ExceptionMarshaller();
 
                 TableOfContentsEntry[] toc = _parent._aliveColumns;
                 int[] activeIndices;
-                Utils.BuildSubsetMaps(toc.Length, predicate, out activeIndices, out _colToActivesIndex);
+                Utils.BuildSubsetMaps(toc.Length, columnsNeeded, out activeIndices, out _colToActivesIndex);
                 _actives = new TableOfContentsEntry[activeIndices.Length];
                 for (int i = 0; i < activeIndices.Length; ++i)
                     _actives[i] = toc[activeIndices[i]];
@@ -1355,8 +1330,7 @@ namespace Microsoft.ML.Data.IO
                     _pipeGetters[c] = _pipes[c].GetGetter();
                 }
                 // The data structures are initialized. Now set up the workers.
-                _readerThread = Utils.CreateBackgroundThread(ReaderWorker);
-                _readerThread.Start();
+                _readerThread = Utils.RunOnBackgroundThread(ReaderWorker);
 
                 _pipeTask = SetupDecompressTask();
             }
@@ -1420,7 +1394,7 @@ namespace Microsoft.ML.Data.IO
                         finally
                         {
                             _pipeTask.Wait();
-                            _readerThread.Join();
+                            _readerThread.Wait();
                         }
                     }
                 }
@@ -1430,12 +1404,12 @@ namespace Microsoft.ML.Data.IO
 
             private Task SetupDecompressTask()
             {
-                Thread[] pipeWorkers = new Thread[_parent._threads];
+                Task[] pipeWorkers = new Task[_parent._threads];
                 long decompressSequence = -1;
                 long decompressSequenceLim = (long)_numBlocks * _actives.Length;
                 for (int w = 0; w < pipeWorkers.Length; ++w)
                 {
-                    Thread worker = pipeWorkers[w] = Utils.CreateBackgroundThread(() =>
+                    pipeWorkers[w] = Utils.RunOnBackgroundThread(() =>
                     {
                         try
                         {
@@ -1457,15 +1431,8 @@ namespace Microsoft.ML.Data.IO
                             _exMarshaller.Set("decompressing", ex);
                         }
                     });
-                    worker.Start();
                 }
-                Task pipeTask = new Task(() =>
-                {
-                    foreach (Thread worker in pipeWorkers)
-                        worker.Join();
-                });
-                pipeTask.Start();
-                return pipeTask;
+                return Task.WhenAll(pipeWorkers);
             }
 
             private void ReaderWorker()
@@ -1718,7 +1685,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Ectx.Check(_curr != null, _badCursorState);
+                    Ectx.Check(_curr != null, RowCursorUtils.FetchValueStateError);
                     long src = _curr.RowIndexLim - _remaining - 1;
                     _mapper(in src, ref value);
                 }
@@ -2007,7 +1974,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Contracts.Check(_curr != null, _badCursorState);
+                    Contracts.Check(_curr != null, RowCursorUtils.FetchValueStateError);
                     _curr.Reader.Get(ref value);
                 }
 
@@ -2051,7 +2018,7 @@ namespace Microsoft.ML.Data.IO
                         // wait forever to do it.
                         const int timeOut = 100;
                         _pipeTask.Wait(timeOut);
-                        _readerThread.Join(timeOut);
+                        _readerThread.Wait(timeOut);
                         // Throw. Considering we are here, this must throw.
                         _exMarshaller.ThrowIfSet(Ch);
                         // This can't be, cause the cancellation token we were waiting
@@ -2074,7 +2041,7 @@ namespace Microsoft.ML.Data.IO
                     // completed their work, but for the sake of hygiene join
                     // against them anyway.
                     _pipeTask.Wait();
-                    _readerThread.Join();
+                    _readerThread.Wait();
                 }
                 return more;
             }
@@ -2100,11 +2067,7 @@ namespace Microsoft.ML.Data.IO
 
             private Delegate NoRowGetter<T>()
             {
-                ValueGetter<T> del =
-                    (ref T value) =>
-                    {
-                        throw Ch.Except(_badCursorState);
-                    };
+                ValueGetter<T> del = (ref T value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
                 return del;
             }
 
@@ -2115,7 +2078,7 @@ namespace Microsoft.ML.Data.IO
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
@@ -2134,7 +2097,7 @@ namespace Microsoft.ML.Data.IO
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         long pos = Position;
                         if (pos >= firstPositionToCorrect)
                             pos += correction;

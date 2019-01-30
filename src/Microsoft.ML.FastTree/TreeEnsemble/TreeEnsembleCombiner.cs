@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Trainers.FastTree.Internal;
@@ -78,12 +79,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 if (modelCount == 1)
                 {
                     binaryClassifier = calibrated != null;
-                    featureCount = tree.InputType.ValueCount;
+                    featureCount = tree.InputType.GetValueCount();
                 }
                 else
                 {
                     _host.Check((calibrated != null) == binaryClassifier, "Ensemble contains both calibrated and uncalibrated models");
-                    _host.Check(featureCount == tree.InputType.ValueCount, "Found models with different number of features");
+                    _host.Check(featureCount == tree.InputType.GetValueCount(), "Found models with different number of features");
                 }
             }
 

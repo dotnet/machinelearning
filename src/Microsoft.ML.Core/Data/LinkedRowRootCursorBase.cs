@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
+
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// A base class for a <see cref="RowCursor"/> that has an input cursor, but still needs
-    /// to do work on <see cref="RowCursor.MoveNext"/>/<see cref="RowCursor.MoveMany(long)"/>. Note
-    /// that the default <see cref="LinkedRowRootCursorBase.GetGetter{TValue}(int)"/> assumes
-    /// that each input column is exposed as an output column with the same column index.
+    /// A base class for a <see cref="RowCursor"/> that has an input cursor, but still needs to do work on
+    /// <see cref="RowCursor.MoveNext"/>. Note that the default
+    /// <see cref="LinkedRowRootCursorBase.GetGetter{TValue}(int)"/> assumes that each input column is exposed as an
+    /// output column with the same column index.
     /// </summary>
     [BestFriend]
     internal abstract class LinkedRowRootCursorBase : LinkedRootCursorBase

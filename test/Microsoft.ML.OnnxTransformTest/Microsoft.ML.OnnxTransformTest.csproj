@@ -28,4 +28,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <NativeAssemblyReference Include="MklImports" />
+  </ItemGroup>
+
 </Project>

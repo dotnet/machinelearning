@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
@@ -48,14 +49,15 @@ namespace Microsoft.ML.Ensemble
             {
                 Parent = parent;
                 InputRoleMappedSchema = schema;
-                OutputSchema = Schema.Create(new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind));
+                OutputSchema = ScoreSchemaFactory.Create(Parent.ScoreType, Parent._scoreColumnKind);
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
                     var name = Parent._inputCols[i];
-                    if (!InputRoleMappedSchema.Schema.TryGetColumnIndex(name, out int col))
-                        throw Parent.Host.Except("Schema does not contain required input column '{0}'", name);
-                    _inputColIndices.Add(col);
+                    var col = InputRoleMappedSchema.Schema.GetColumnOrNull(name);
+                    if (!col.HasValue)
+                        throw Parent.Host.ExceptSchemaMismatch(nameof(InputRoleMappedSchema), "input", name);
+                    _inputColIndices.Add(col.Value.Index);
                 }
 
                 Mappers = new ISchemaBoundRowMapper[Parent.PredictorModels.Length];
@@ -74,8 +76,10 @@ namespace Microsoft.ML.Ensemble
                         throw Parent.Host.Except("Predictor {0} is not a row to row mapper", i);
 
                     // Make sure there is a score column, and remember its index.
-                    if (!Mappers[i].OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
+                    var scoreCol = Mappers[i].OutputSchema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                    if (!scoreCol.HasValue)
                         throw Parent.Host.Except("Predictor {0} does not contain a score column", i);
+                    ScoreCols[i] = scoreCol.Value.Index;
 
                     // Get the pipeline.
                     var dv = new EmptyDataView(Parent.Host, schema.Schema);
@@ -325,7 +329,7 @@ namespace Microsoft.ML.Ensemble
                 if (caliTrainer.NeedsTraining)
                 {
                     var bound = new Bound(this, new RoleMappedSchema(data.Schema));
-                    using (var curs = data.GetRowCursor(col => true))
+                    using (var curs = data.GetRowCursorForAllColumns())
                     {
                         var scoreGetter = (ValueGetter<Single>)bound.CreateScoreGetter(curs, col => true, out Action disposer);
 
@@ -596,14 +600,14 @@ namespace Microsoft.ML.Ensemble
             var labelCol = rmd.Schema.Label.Value;
 
             var labelType = labelCol.Type;
-            if (!labelType.IsKey)
+            if (!(labelType is KeyType labelKeyType))
                 return CheckNonKeyLabelColumnCore(env, pred, models, isBinary, labelType);
 
-            if (isBinary && labelType.KeyCount != 2)
+            if (isBinary && labelKeyType.Count != 2)
                 throw env.Except("Label is not binary");
             var schema = rmd.Schema.Schema;
-            var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            if (mdType == null || !mdType.IsKnownSizeVector)
+            var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            if (mdType == null || !mdType.IsKnownSize)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
             return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelCol.Index, mdType);
@@ -614,7 +618,7 @@ namespace Microsoft.ML.Ensemble
         // If any of the predictors do not implement IValueMapper we throw an exception. Returns the class count.
         private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, PredictorModel[] models, bool isBinary, ColumnType labelType)
         {
-            env.Assert(!labelType.IsKey);
+            env.Assert(!(labelType is KeyType));
             env.AssertNonEmpty(models);
 
             if (isBinary)
@@ -623,7 +627,7 @@ namespace Microsoft.ML.Ensemble
             // The label is numeric, we just have to check that the number of classes is the same.
             if (!(pred is IValueMapper vm))
                 throw env.Except("Cannot determine the number of classes the predictor outputs");
-            var classCount = vm.OutputType.VectorSize;
+            var classCount = vm.OutputType.GetVectorSize();
 
             for (int i = 1; i < models.Length; i++)
             {
@@ -631,7 +635,7 @@ namespace Microsoft.ML.Ensemble
                 var edv = new EmptyDataView(env, model.TransformModel.InputSchema);
                 model.PrepareData(env, edv, out RoleMappedData rmd, out pred);
                 vm = pred as IValueMapper;
-                if (vm.OutputType.VectorSize != classCount)
+                if (vm.OutputType.GetVectorSize() != classCount)
                     throw env.Except("Label of model {0} has different number of classes than model 0", i);
             }
             return classCount;
@@ -639,13 +643,13 @@ namespace Microsoft.ML.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, ColumnType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, VectorType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
             env.AssertNonEmpty(models);
             var labelNames = default(VBuffer<T>);
-            schema[labelIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+            schema[labelIndex].GetKeyValues(ref labelNames);
             var classCount = labelNames.Length;
 
             var curLabelNames = default(VBuffer<T>);
@@ -666,7 +670,7 @@ namespace Microsoft.ML.Ensemble
                 var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                 if (!mdType.Equals(keyValuesType))
                     throw env.Except("Label column of model {0} has different key value type than model 0", i);
-                labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref curLabelNames);
+                labelCol.GetKeyValues(ref curLabelNames);
                 if (!AreEqual(in labelNames, in curLabelNames))
                     throw env.Except("Label of model {0} has different values than model 0", i);
             }

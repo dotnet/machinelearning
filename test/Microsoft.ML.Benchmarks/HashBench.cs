@@ -5,11 +5,14 @@
 using System;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class HashBench
     {
         private sealed class RowImpl : Row
@@ -70,7 +73,7 @@ namespace Microsoft.ML.Benchmarks
                 getter = (ref T dst) => dst = val;
             _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
-            var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
+            var info = new HashingTransformer.ColumnInfo("Bar", "Foo", hashBits: hashBits);
             var xf = new HashingTransformer(_env, new[] { info });
             var mapper = xf.GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
@@ -152,7 +155,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarKey))]
         public void SetupHashScalarKey()
         {
-            InitMap(6u, new KeyType(typeof(uint), 0, 100));
+            InitMap(6u, new KeyType(typeof(uint), 100));
         }
 
         [Benchmark]
@@ -203,7 +206,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashVectorKey))]
         public void SetupHashVectorKey()
         {
-            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 0, 100));
+            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 100));
         }
 
         [Benchmark]

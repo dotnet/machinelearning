@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
@@ -18,7 +20,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// A transform that does nothing.
     /// </summary>
-    public sealed class NopTransform : IDataTransform, IRowToRowMapper
+    [BestFriend]
+    internal sealed class NopTransform : IDataTransform, IRowToRowMapper
     {
         private readonly IHost _host;
 
@@ -96,10 +99,7 @@ namespace Microsoft.ML.Data
             // Nothing :)
         }
 
-        public bool CanShuffle
-        {
-            get { return Source.CanShuffle; }
-        }
+        public bool CanShuffle => Source.CanShuffle;
 
         /// <summary>
         /// Explicit implementation prevents Schema from being accessed from derived classes.
@@ -117,15 +117,11 @@ namespace Microsoft.ML.Data
             return Source.GetRowCount();
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
-        {
-            return Source.GetRowCursor(predicate, rand);
-        }
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            => Source.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
-        {
-            return Source.GetRowCursorSet(predicate, n, rand);
-        }
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => Source.GetRowCursorSet(columnsNeeded, n, rand);
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {

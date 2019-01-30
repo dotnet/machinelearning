@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Scenarios
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var reader = mlContext.Data.CreateTextReader(columns: new[]
+            var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
                     new TextLoader.Column("SepalLength", DataKind.R4, 0),
                     new TextLoader.Column("SepalWidth", DataKind.R4, 1),
@@ -34,10 +35,11 @@ namespace Microsoft.ML.Scenarios
             // Create Estimator
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(mlContext.Transforms.Normalize("Features"))
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("IrisPlantType", "Label"), TransformerScope.TrainTest)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label", "IrisPlantType"), TransformerScope.TrainTest)
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1))
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Plant")));
+                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaMultiClassTrainer.Options { NumThreads = 1 }))
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("Plant", "PredictedLabel")));
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);

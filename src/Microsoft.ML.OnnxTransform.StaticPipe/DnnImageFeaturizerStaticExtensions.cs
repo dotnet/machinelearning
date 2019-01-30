@@ -8,9 +8,8 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.OnnxTransform.StaticPipe
+namespace Microsoft.ML.Transforms.StaticPipe
 {
     public static class DnnImageFeaturizerStaticExtensions
     {
@@ -43,7 +42,7 @@ namespace Microsoft.ML.OnnxTransform.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new DnnImageFeaturizerEstimator(env, _modelFactory, inputNames[outCol.Input], outputNames[outCol]);
+                return new DnnImageFeaturizerEstimator(env, outputNames[outCol], _modelFactory, inputNames[outCol.Input]);
             }
         }
 

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 
@@ -208,7 +209,7 @@ namespace Microsoft.ML.Internal.Internallearn
     /// </summary>
     public interface ICalculateFeatureContribution : IPredictor
     {
-        FeatureContributionCalculator FeatureContributionClaculator { get; }
+        FeatureContributionCalculator FeatureContributionCalculator { get; }
     }
 
     /// <summary>

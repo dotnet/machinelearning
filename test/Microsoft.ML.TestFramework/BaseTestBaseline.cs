@@ -24,12 +24,20 @@ namespace Microsoft.ML.RunTests
     {
         public const int DigitsOfPrecision = 7;
 
+        public static bool NotFullFramework { get; set;} = true;
+
         public static bool LessThanNetCore30OrNotNetCore { get; } = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? true : false;
+
+        public static bool LessThanNetCore30AndNotFullFramework { get; set; } = LessThanNetCore30OrNotNetCore;
 
         public static bool LessThanNetCore30OrNotNetCoreAnd64BitProcess { get; } = LessThanNetCore30OrNotNetCore && Environment.Is64BitProcess;
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
+#if NETFRAMEWORK
+            NotFullFramework = false;
+            LessThanNetCore30AndNotFullFramework = false;
+#endif
         }
 
         internal const string RawSuffix = ".raw";
@@ -756,7 +764,7 @@ namespace Microsoft.ML.RunTests
         public void RunMTAThread(ThreadStart fn)
         {
             Exception inner = null;
-            Thread t = Utils.CreateBackgroundThread(() =>
+            var t = new Thread(() =>
             {
                 try
                 {
@@ -768,6 +776,7 @@ namespace Microsoft.ML.RunTests
                     Fail("The test threw an exception - {0}", e);
                 }
             });
+            t.IsBackground = true;
 #if !CORECLR // CoreCLR does not support apartment state settings for threads.
             t.SetApartmentState(ApartmentState.MTA);
 #endif

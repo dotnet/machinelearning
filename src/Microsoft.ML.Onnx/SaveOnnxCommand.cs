@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Google.Protobuf;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
@@ -177,6 +178,11 @@ namespace Microsoft.ML.Model.Onnx
                     continue;
 
                 var variableName = ctx.TryGetVariableName(idataviewColumnName);
+                // Null variable name occurs when an unsupported transform produces an output and a downsteam step consumes that output.
+                // or user accidently removes a transform whose output is used by other transforms.
+                ch.Check(variableName != null, "The targeted pipeline can not be fully converted into a well-defined ONNX model. " +
+                    "Please check if all steps in that pipeline are convertible to ONNX " +
+                    "and all necessary variables are not dropped (via command line arguments).");
                 var trueVariableName = ctx.AddIntermediateVariable(null, idataviewColumnName, true);
                 ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"), "");
                 ctx.AddOutputVariable(outputData.Schema[i].Type, trueVariableName);

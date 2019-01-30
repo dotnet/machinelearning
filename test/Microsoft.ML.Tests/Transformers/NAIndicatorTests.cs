@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -44,9 +45,9 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1, C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new MissingValueIndicatorEstimator(Env,
-                new (string input, string output)[] { ("A", "NAA"), ("B", "NAB"), ("C", "NAC"), ("D", "NAD") });
+                new (string outputColumnName, string inputColumnName)[] { ("NAA", "A"), ("NAB", "B"), ("NAC", "C"), ("NAD", "D") });
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -68,9 +69,9 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1 , C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new MissingValueIndicatorEstimator(Env,
-                new (string input, string output)[] { ("A", "NAA"), ("B", "NAB"), ("C", "NAC"), ("D", "NAD") });
+                new (string outputColumnName, string inputColumnName)[] { ("NAA", "A"), ("NAB", "B"), ("NAC", "C"), ("NAD", "D") });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
@@ -94,9 +95,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
-            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
+            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
             var est = new MissingValueIndicatorEstimator(Env,
-               new (string input, string output)[] { ("ScalarFloat", "A"), ("ScalarDouble", "B"), ("VectorFloat", "C"), ("VectorDoulbe", "D") });
+               new (string outputColumnName, string inputColumnName)[] { ("A", "ScalarFloat"), ("B", "ScalarDouble"), ("C", "VectorFloat"), ("D", "VectorDoulbe") });
 
             TestEstimatorCore(est, data, invalidInput: invalidData);
             var outputPath = GetOutputPath("NAIndicator", "featurized.tsv");
@@ -123,9 +124,9 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = 2, B = 1, C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
             };
 
-            var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new OneHotEncodingEstimator(Env, "A", "CatA");
-            var newpipe = pipe.Append(new MissingValueIndicatorEstimator(Env, new (string input, string output)[] { ("CatA", "NAA") }));
+            var dataView = ML.Data.ReadFromEnumerable(data);
+            var pipe = new OneHotEncodingEstimator(Env, "CatA", "A");
+            var newpipe = pipe.Append(new MissingValueIndicatorEstimator(Env, new (string name, string source)[] { ("NAA", "CatA") }));
             var result = newpipe.Fit(dataView).Transform(dataView);
             Assert.True(result.Schema.TryGetColumnIndex("NAA", out var col));
             // Check that the column is normalized.

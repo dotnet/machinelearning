@@ -24,9 +24,9 @@ namespace Microsoft.ML.Internal.Utilities
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new ResourceManagerUtils(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new ResourceManagerUtils(), null) ??
+                    _instance;
             }
         }
 

@@ -28,9 +28,9 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a text loader.
-            var reader = mlContext.Data.CreateTextReader(new TextLoader.Arguments()
+            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
             {
-                Separator = "tab",
+                Separators = new[] { '\t' },
                 HasHeader = true,
                 Column = new[]
                     {

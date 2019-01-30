@@ -16,12 +16,14 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
+    <ProjectReference Include="..\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />

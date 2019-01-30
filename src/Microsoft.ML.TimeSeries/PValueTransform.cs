@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -71,7 +72,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         private readonly bool _isPositiveSide;
 
         public PValueTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(args.WindowSize, args.InitialWindowSize, args.Source, args.Name, LoaderSignature, env, input)
+            : base(args.WindowSize, args.InitialWindowSize, args.Name, args.Source, LoaderSignature, env, input)
         {
             Host.CheckUserArg(args.WindowSize >= 1, nameof(args.WindowSize), "The size of the sliding window should be at least 1.");
             _seed = args.Seed;

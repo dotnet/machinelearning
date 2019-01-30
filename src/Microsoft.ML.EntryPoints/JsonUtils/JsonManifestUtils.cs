@@ -154,7 +154,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             var defaults = Activator.CreateInstance(inputType);
 
             var inputs = new List<KeyValuePair<Double, JObject>>();
-            foreach (var fieldInfo in inputType.GetFields())
+            foreach (var fieldInfo in inputType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var inputAttr = fieldInfo.GetCustomAttributes(typeof(ArgumentAttribute), false).FirstOrDefault() as ArgumentAttribute;
                 if (inputAttr == null || inputAttr.Visibility == ArgumentAttribute.VisibilityType.CmdLineOnly)
@@ -276,7 +276,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(CommonOutputs.MacroOutput<>))
                 outputType = outputType.GetGenericArguments()[0];
 
-            foreach (var fieldInfo in outputType.GetFields())
+            foreach (var fieldInfo in outputType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var outputAttr = fieldInfo.GetCustomAttributes(typeof(TlcModule.OutputAttribute), false)
                     .FirstOrDefault() as TlcModule.OutputAttribute;
@@ -476,7 +476,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             // Iterate over all fields of the factory object, and compare the values with the defaults.
             // If the value differs, insert it into the settings object.
             bool anyValue = false;
-            foreach (var fieldInfo in type.GetFields())
+            foreach (var fieldInfo in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var attr = fieldInfo.GetCustomAttributes(typeof(ArgumentAttribute), false).FirstOrDefault()
                     as ArgumentAttribute;

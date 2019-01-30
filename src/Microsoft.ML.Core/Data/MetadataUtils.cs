@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Utilities;
 
@@ -173,12 +172,9 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_scoreColumnSetIdType == null)
-                {
-                    var type = new KeyType(DataKind.U4, 0, 0);
-                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, type, null);
-                }
-                return _scoreColumnSetIdType;
+                return _scoreColumnSetIdType ??
+                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, new KeyType(typeof(uint), int.MaxValue), null) ??
+                    _scoreColumnSetIdType;
             }
         }
 
@@ -238,7 +234,7 @@ namespace Microsoft.ML.Data
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
-                if (columnType == null || !columnType.IsKey || columnType.RawKind != DataKind.U4)
+                if (!(columnType is KeyType) || columnType.RawType != typeof(uint))
                     continue;
                 if (filterFunc != null && !filterFunc(schema, col))
                     continue;
@@ -263,7 +259,7 @@ namespace Microsoft.ML.Data
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
-                if (columnType != null && columnType.IsKey && columnType.RawKind == DataKind.U4)
+                if (columnType is KeyType && columnType.RawType == typeof(uint))
                 {
                     uint val = 0;
                     schema[col].Metadata.GetValue(metadataKind, ref val);
@@ -283,7 +279,7 @@ namespace Microsoft.ML.Data
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
-                if (columnType != null && columnType is TextType)
+                if (columnType is TextType)
                 {
                     ReadOnlyMemory<char> val = default;
                     schema[col].Metadata.GetValue(metadataKind, ref val);
@@ -300,7 +296,9 @@ namespace Microsoft.ML.Data
         ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length N
         /// </summary>
         public static bool HasSlotNames(this Schema.Column column)
-            => column.Type.IsKnownSizeVector && column.HasSlotNames(column.Type.VectorSize);
+            => column.Type is VectorType vectorType
+                && vectorType.Size > 0
+                && column.HasSlotNames(vectorType.Size);
 
         /// <summary>
         /// Returns <c>true</c> if the specified column:
@@ -316,13 +314,16 @@ namespace Microsoft.ML.Data
             var metaColumn = column.Metadata.Schema.GetColumnOrNull(Kinds.SlotNames);
             return
                 metaColumn != null
-                && metaColumn.Value.Type.IsVector
-                && metaColumn.Value.Type.VectorSize == vectorSize
-                && metaColumn.Value.Type.ItemType is TextType;
+                && metaColumn.Value.Type is VectorType vectorType
+                && vectorType.Size == vectorSize
+                && vectorType.ItemType is TextType;
         }
 
         public static void GetSlotNames(this Schema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
             => column.Metadata.GetValue(Kinds.SlotNames, ref slotNames);
+
+        public static void GetKeyValues<TValue>(this Schema.Column column, ref VBuffer<TValue> keyValues)
+            => column.Metadata.GetValue(Kinds.KeyValues, ref keyValues);
 
         [BestFriend]
         internal static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<ReadOnlyMemory<char>> slotNames)
@@ -338,17 +339,19 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static bool HasKeyValues(this Schema.Column column, int keyCount)
+        internal static bool HasKeyValues(this Schema.Column column, ColumnType type)
         {
+            // False if type is not KeyType because GetKeyCount() returns 0.
+            ulong keyCount = type.GetKeyCount();
             if (keyCount == 0)
                 return false;
 
             var metaColumn = column.Metadata.Schema.GetColumnOrNull(Kinds.KeyValues);
             return
                 metaColumn != null
-                && metaColumn.Value.Type.IsVector
-                && metaColumn.Value.Type.VectorSize == keyCount
-                && metaColumn.Value.Type.ItemType is TextType;
+                && metaColumn.Value.Type is VectorType vectorType
+                && keyCount == (ulong)vectorType.Size
+                && vectorType.ItemType is TextType;
         }
 
         [BestFriend]

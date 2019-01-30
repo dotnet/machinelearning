@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -132,7 +133,7 @@ namespace Microsoft.ML.Data
             int numPositiveContributions = FeatureContributionCalculatingEstimator.Defaults.NumPositiveContributions,
             int numNegativeContributions = FeatureContributionCalculatingEstimator.Defaults.NumNegativeContributions,
             bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), new[] { (input: featureColumn, output: DefaultColumnNames.FeatureContributions) })
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), new[] { (name: DefaultColumnNames.FeatureContributions, source: featureColumn) })
         {
             Host.CheckValue(modelParameters, nameof(modelParameters));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -212,7 +213,7 @@ namespace Microsoft.ML.Data
             private readonly FeatureContributionCalculatingTransformer _parent;
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _featureColumnIndex;
-            private readonly ColumnType _featureColumnType;
+            private readonly VectorType _featureColumnType;
 
             public Mapper(FeatureContributionCalculatingTransformer parent, Schema schema)
                 : base(parent.Host, parent, schema)
@@ -220,16 +221,16 @@ namespace Microsoft.ML.Data
                 _parent = parent;
 
                 // Check that the featureColumn is present and has the expected type.
-                if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].input, out _featureColumnIndex))
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].input);
-                _featureColumnType = schema[_featureColumnIndex].Type;
-                if (_featureColumnType.ItemType != NumberType.R4 || !_featureColumnType.IsVector)
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature column", _parent.ColumnPairs[0].input, "Expected type is vector of float.", _featureColumnType.ItemType.ToString());
+                if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].inputColumnName, out _featureColumnIndex))
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
+                _featureColumnType = schema[_featureColumnIndex].Type as VectorType;
+                if (_featureColumnType == null || _featureColumnType.ItemType != NumberType.R4)
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of float.", _featureColumnType.ItemType.ToString());
 
-                if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.VectorSize))
+                if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
                     InputSchema[_featureColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                 else
-                    _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(_featureColumnType.VectorSize);
+                    _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(_featureColumnType.Size);
             }
 
             // The FeatureContributionCalculatingTransformer produces two sets of columns: the columns obtained from scoring and the FeatureContribution column.
@@ -239,7 +240,7 @@ namespace Microsoft.ML.Data
                 // Add FeatureContributions column.
                 var builder = new MetadataBuilder();
                 builder.Add(InputSchema[_featureColumnIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
-                return new[] { new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _featureColumnType.ValueCount), builder.GetMetadata()) };
+                return new[] { new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _featureColumnType.Size), builder.GetMetadata()) };
             }
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> active, out Action disposer)
@@ -319,7 +320,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
             // Check that the feature column is of the correct type: a vector of float.
             if (col.ItemType != NumberType.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature column", _featureColumn, "Expected type is vector of float.", col.GetTypeString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "column", _featureColumn, "vector of float.", col.GetTypeString());
 
             // Build output schemaShape.
             var result = inputSchema.ToDictionary(x => x.Name);
