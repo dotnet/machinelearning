@@ -10,9 +10,10 @@ namespace Microsoft.ML.Data
 {
     /// <summary>
     /// An interface for exposing some number of items that can be opened for reading.
+    /// </summary>
     /// REVIEW: Reconcile this with the functionality exposed by IHostEnvironment. For example,
     /// we could simply replace this with an array of IFileHandle.
-    /// </summary>
+
     public interface IMultiStreamSource
     {
         /// <summary>
@@ -32,8 +33,8 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Opens the indicated item and returns a text stream reader on it.
-        /// REVIEW: Consider making this an extension method.
         /// </summary>
+        /// REVIEW: Consider making this an extension method.
         TextReader OpenTextReader(int index);
     }
 
