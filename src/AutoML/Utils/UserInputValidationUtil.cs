@@ -112,7 +112,7 @@ namespace Microsoft.ML.Auto
         {
             if(validationData == null)
             {
-                throw new ArgumentNullException("Validation data cannot be null", nameof(validationData));
+                return;
             }
 
             const string schemaMismatchError = "Training data and validation data schemas do not match.";

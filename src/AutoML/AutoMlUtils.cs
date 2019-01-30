@@ -30,6 +30,20 @@ namespace Microsoft.ML.Auto
             return new CacheDataView(context, filter, Enumerable.Range(0, data.Schema.Count).ToArray());
         }
 
+        public static IDataView DropLastColumn(this IDataView data)
+        {
+            return new MLContext().Transforms.DropColumns(data.Schema[data.Schema.Count - 1].Name).Fit(data).Transform(data);
+        }
+
+        public static (IDataView testData, IDataView validationData) TestValidateSplit(this TrainContextBase context, IDataView trainData)
+        {
+            IDataView validationData;
+            (trainData, validationData) = context.TrainTestSplit(trainData);
+            trainData = trainData.DropLastColumn();
+            validationData = validationData.DropLastColumn();
+            return (trainData, validationData);
+        }
+
         public static IDataView Skip(this IDataView data, int count)
         {
             var context = new MLContext();

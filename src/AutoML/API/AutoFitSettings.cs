@@ -7,29 +7,38 @@ using System.Diagnostics;
 
 namespace Microsoft.ML.Auto
 {
-    public class AutoFitSettings
+    internal static class AutoFitDefaults
     {
+        public const uint TimeOutInMinutes = 24 * 60;
+        public const uint MaxIterations = 1000;
+    }
+
+    internal class AutoFitSettings
+    {
+        // All the following settings only capture the surface area of capabilities we want to ship in future.
+        // However, most certainly they will not ship using following types and structures
+        // These should remain internal until we have rationalized 
+
         public ExperimentStoppingCriteria StoppingCriteria = new ExperimentStoppingCriteria();
         internal IterationStoppingCriteria IterationStoppingCriteria;
         internal Concurrency Concurrency;
         internal Filters Filters;
         internal CrossValidationSettings CrossValidationSettings;
         internal OptimizingMetric OptimizingMetric;
-        internal bool EnableEnsembling;
-        internal bool EnableModelExplainability;
-        internal bool EnableAutoTransformation;
+        internal bool DisableEnsembling;
+        internal bool CaclculateModelExplainability;
+        internal bool DisableFeaturization;
 
-        // spec question: Are following automatic or a user setting?
-        internal bool EnableSubSampling;
-        internal bool EnableCaching;
+        internal bool DisableSubSampling;
+        internal bool DisableCaching;
         internal bool ExternalizeTraining;
-        internal TraceLevel TraceLevel; // Should this be controlled through code or appconfig?
+        internal TraceLevel TraceLevel; 
     }
 
-    public class ExperimentStoppingCriteria
+    internal class ExperimentStoppingCriteria
     {
-        public int MaxIterations = 100;
-        public int TimeOutInMinutes = 300;
+        public uint TimeOutInMinutes = AutoFitDefaults.TimeOutInMinutes;
+        public uint MaxIterations = AutoFitDefaults.MaxIterations;
         internal bool StopAfterConverging;
         internal double ExperimentExitScore;
     }
@@ -40,19 +49,20 @@ namespace Microsoft.ML.Auto
         internal IEnumerable<Trainers> BlackListTrainers;
         internal IEnumerable<Transformers> WhitelistTransformers;
         internal IEnumerable<Transformers> BlacklistTransformers;
-        internal bool PreferExplainability;
-        internal bool PreferInferenceSpeed;
-        internal bool PreferSmallDeploymentSize;
-        internal bool PreferSmallMemoryFootprint;
+        internal uint? Explainability;
+        internal uint? InferenceSpeed;
+        internal uint? DeploymentSize;
+        internal uint? TrainingMemorySize;
+        internal bool? GpuTraining;
     }
 
-    public class IterationStoppingCriteria
+    internal class IterationStoppingCriteria
     {
         internal int TimeOutInSeconds;
         internal bool TerminateOnLowAccuracy;
     }
 
-    public class Concurrency
+    internal class Concurrency
     {
         internal int MaxConcurrentIterations;
         internal int MaxCoresPerIteration;

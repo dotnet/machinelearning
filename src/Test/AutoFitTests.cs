@@ -29,8 +29,8 @@ namespace Microsoft.ML.Auto.Test
                     }
                 }, debugLogger: null);
 
-            Assert.IsNotNull(best?.BestPipeline?.Model);
-            Assert.IsTrue(best.BestPipeline.Metrics.Accuracy > 0.80);
+            Assert.IsNotNull(best?.BestIteration?.Model);
+            Assert.IsTrue(best.BestIteration.Metrics.Accuracy > 0.80);
         }
 
         [TestMethod]
@@ -53,8 +53,8 @@ namespace Microsoft.ML.Auto.Test
                     }
                 }, debugLogger: null);
 
-            Assert.IsNotNull(best?.BestPipeline?.Model);
-            Assert.IsTrue(best.BestPipeline.Metrics.AccuracyMicro > 0.80);
+            Assert.IsNotNull(best?.BestIteration?.Model);
+            Assert.IsTrue(best.BestIteration.Metrics.AccuracyMicro > 0.80);
         }
 
         [TestMethod]
@@ -77,8 +77,8 @@ namespace Microsoft.ML.Auto.Test
                     }
                 }, debugLogger: null);
 
-            Assert.IsNotNull(best?.BestPipeline?.Model);
-            Assert.IsTrue(best.BestPipeline.Metrics.RSquared > 0.9);
+            Assert.IsNotNull(best?.BestIteration?.Model);
+            Assert.IsTrue(best.BestIteration.Metrics.RSquared > 0.9);
         }
     }
 }

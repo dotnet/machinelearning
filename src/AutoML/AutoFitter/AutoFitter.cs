@@ -48,7 +48,7 @@ namespace Microsoft.ML.Auto
             do
             {
                 // get next pipeline
-                var iterationsRemaining = _settings.StoppingCriteria.MaxIterations - _history.Count;
+                var iterationsRemaining = (int)_settings.StoppingCriteria.MaxIterations - _history.Count;
                 var pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, iterationsRemaining, _optimizingMetricInfo.IsMaximizing);
 
                 // break if no candidates returned, means no valid pipeline available

@@ -14,32 +14,42 @@ namespace Microsoft.ML.Auto
     {
         public static RegressionResult AutoFit(this RegressionContext context,
             IDataView trainData,
-            string label,
-            IDataView validationData,
-            AutoFitSettings settings = null,
-            IEnumerable<(string, ColumnPurpose)> purposeOverrides = null,
+            string label = DefaultColumnNames.Label,
+            IDataView validationData = null,
+            uint timeoutInMinutes = AutoFitDefaults.TimeOutInMinutes,
+            IEstimator<ITransformer> preFeaturizers = null,
+            IEnumerable<(string, ColumnPurpose)> columnPurposes = null,
             CancellationToken cancellationToken = default,
             IProgress<RegressionIterationResult> iterationCallback = null)
         {
+            var settings = new AutoFitSettings();
+            settings.StoppingCriteria.TimeOutInMinutes = timeoutInMinutes;
+
             return AutoFit(context, trainData, label, validationData, settings,
-                purposeOverrides, cancellationToken, iterationCallback, null);
+                preFeaturizers, columnPurposes, cancellationToken, iterationCallback, null);
         }
         
         internal static RegressionResult AutoFit(this RegressionContext context,
             IDataView trainData,
-            string label,
-            IDataView validationData,
+            string label = DefaultColumnNames.Label,
+            IDataView validationData = null,
             AutoFitSettings settings = null,
-            IEnumerable<(string, ColumnPurpose)> purposeOverrides = null,
+            IEstimator<ITransformer> preFeaturizers = null,
+            IEnumerable<(string, ColumnPurpose)> columnPurposes = null,
             CancellationToken cancellationToken = default,
             IProgress<RegressionIterationResult> iterationCallback = null,
             IDebugLogger debugLogger = null)
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(trainData, label, validationData, settings, purposeOverrides);
+            UserInputValidationUtil.ValidateAutoFitArgs(trainData, label, validationData, settings, columnPurposes);
+
+            if (validationData == null)
+            {
+                (trainData, validationData) = context.TestValidateSplit(trainData);
+            }
 
             // run autofit & get all pipelines run in that process
             var (allPipelines, bestPipeline) = AutoFitApi.Fit(trainData, validationData, label,
-                settings, TaskKind.Regression, OptimizingMetric.RSquared, purposeOverrides, debugLogger);
+                settings, preFeaturizers, TaskKind.Regression, OptimizingMetric.RSquared, columnPurposes, debugLogger);
 
             var results = new RegressionIterationResult[allPipelines.Length];
             for (var i = 0; i < results.Length; i++)
@@ -57,33 +67,43 @@ namespace Microsoft.ML.Auto
     {
         public static BinaryClassificationResult AutoFit(this BinaryClassificationContext context,
             IDataView trainData,
-            string label,
-            IDataView validationData,
-            AutoFitSettings settings = null,
-            IEnumerable<(string, ColumnPurpose)> purposeOverrides = null,
+            string label = DefaultColumnNames.Label,
+            IDataView validationData = null,
+            uint timeoutInMinutes = AutoFitDefaults.TimeOutInMinutes,
+            IEstimator<ITransformer> preFeaturizers = null,
+            IEnumerable<(string, ColumnPurpose)> columnPurposes = null,
             CancellationToken cancellationToken = default,
             IProgress<BinaryClassificationItertionResult> iterationCallback = null)
         {
+            var settings = new AutoFitSettings();
+            settings.StoppingCriteria.TimeOutInMinutes = timeoutInMinutes;
+
             return AutoFit(context, trainData, label, validationData, settings,
-                purposeOverrides, cancellationToken, iterationCallback, null);
+                preFeaturizers, columnPurposes, cancellationToken, iterationCallback, null);
         }
 
         internal static BinaryClassificationResult AutoFit(this BinaryClassificationContext context,
             IDataView trainData,
-            string label,
-            IDataView validationData,
+            string label = DefaultColumnNames.Label,
+            IDataView validationData = null,
             AutoFitSettings settings = null,
-            IEnumerable<(string, ColumnPurpose)> purposeOverrides = null,
+            IEstimator<ITransformer> preFeaturizers = null,
+            IEnumerable<(string, ColumnPurpose)> columnPurposes = null,
             CancellationToken cancellationToken = default,
             IProgress<BinaryClassificationItertionResult> iterationCallback = null,
             IDebugLogger debugLogger = null)
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(trainData, label, validationData, settings, purposeOverrides);
+            UserInputValidationUtil.ValidateAutoFitArgs(trainData, label, validationData, settings, columnPurposes);
+
+            if (validationData == null)
+            {
+                (trainData, validationData) = context.TestValidateSplit(trainData);
+            }
 
             // run autofit & get all pipelines run in that process
             var (allPipelines, bestPipeline) = AutoFitApi.Fit(trainData, validationData, label,
-                settings, TaskKind.BinaryClassification, OptimizingMetric.Accuracy,
-                purposeOverrides, debugLogger);
+                settings, preFeaturizers, TaskKind.BinaryClassification, OptimizingMetric.Accuracy,
+                columnPurposes, debugLogger);
 
             var results = new BinaryClassificationItertionResult[allPipelines.Length];
             for (var i = 0; i < results.Length; i++)
@@ -101,32 +121,42 @@ namespace Microsoft.ML.Auto
     {
         public static MulticlassClassificationResult AutoFit(this MulticlassClassificationContext context,
             IDataView trainData,
-            string label,
-            IDataView validationData,
-            AutoFitSettings settings = null,
-            IEnumerable<(string, ColumnPurpose)> purposeOverrides = null,
+            string label = DefaultColumnNames.Label,
+            IDataView validationData = null,
+            uint timeoutInMinutes = AutoFitDefaults.TimeOutInMinutes,
+            IEstimator<ITransformer> preFeaturizers = null,
+            IEnumerable<(string, ColumnPurpose)> columnPurposes = null,
             CancellationToken cancellationToken = default,
             IProgress<MulticlassClassificationIterationResult> iterationCallback = null)
         {
+            var settings = new AutoFitSettings();
+            settings.StoppingCriteria.TimeOutInMinutes = timeoutInMinutes;
+
             return AutoFit(context, trainData, label, validationData, settings,
-                purposeOverrides, cancellationToken, iterationCallback, null);
+                preFeaturizers, columnPurposes, cancellationToken, iterationCallback, null);
         }
 
         internal static MulticlassClassificationResult AutoFit(this MulticlassClassificationContext context,
             IDataView trainData,
-            string label,
-            IDataView validationData,
+            string label = DefaultColumnNames.Label,
+            IDataView validationData = null,
             AutoFitSettings settings = null,
-            IEnumerable<(string, ColumnPurpose)> purposeOverrides = null,
+            IEstimator<ITransformer> preFeaturizers = null,
+            IEnumerable<(string, ColumnPurpose)> columnPurposes = null,
             CancellationToken cancellationToken = default,
             IProgress<MulticlassClassificationIterationResult> iterationCallback = null, IDebugLogger debugLogger = null)
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(trainData, label, validationData, settings, purposeOverrides);
+            UserInputValidationUtil.ValidateAutoFitArgs(trainData, label, validationData, settings, columnPurposes);
+
+            if (validationData == null)
+            {
+                (trainData, validationData) = context.TestValidateSplit(trainData);
+            }
 
             // run autofit & get all pipelines run in that process
             var (allPipelines, bestPipeline) = AutoFitApi.Fit(trainData, validationData, label,
-                settings, TaskKind.MulticlassClassification, OptimizingMetric.Accuracy,
-                purposeOverrides, debugLogger);
+                settings, preFeaturizers, TaskKind.MulticlassClassification, OptimizingMetric.Accuracy,
+                columnPurposes, debugLogger);
 
             var results = new MulticlassClassificationIterationResult[allPipelines.Length];
             for (var i = 0; i < results.Length; i++)
@@ -142,39 +172,39 @@ namespace Microsoft.ML.Auto
 
     public class BinaryClassificationResult
     {
-        public readonly BinaryClassificationItertionResult BestPipeline;
+        public readonly BinaryClassificationItertionResult BestIteration;
         public readonly BinaryClassificationItertionResult[] IterationResults;
 
         public BinaryClassificationResult(BinaryClassificationItertionResult bestPipeline,
             BinaryClassificationItertionResult[] iterationResults)
         {
-            BestPipeline = bestPipeline;
+            BestIteration = bestPipeline;
             IterationResults = iterationResults;
         }
     }
 
     public class MulticlassClassificationResult
     {
-        public readonly MulticlassClassificationIterationResult BestPipeline;
+        public readonly MulticlassClassificationIterationResult BestIteration;
         public readonly MulticlassClassificationIterationResult[] IterationResults;
 
         public MulticlassClassificationResult(MulticlassClassificationIterationResult bestPipeline,
             MulticlassClassificationIterationResult[] iterationResults)
         {
-            BestPipeline = bestPipeline;
+            BestIteration = bestPipeline;
             IterationResults = iterationResults;
         }
     }
 
     public class RegressionResult
     {
-        public readonly RegressionIterationResult BestPipeline;
+        public readonly RegressionIterationResult BestIteration;
         public readonly RegressionIterationResult[] IterationResults;
 
         public RegressionResult(RegressionIterationResult bestPipeline,
             RegressionIterationResult[] iterationResults)
         {
-            BestPipeline = bestPipeline;
+            BestIteration = bestPipeline;
             IterationResults = iterationResults;
         }
     }
