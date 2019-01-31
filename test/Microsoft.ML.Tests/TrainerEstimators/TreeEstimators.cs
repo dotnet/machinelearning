@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
@@ -425,6 +426,21 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
 
             Done();
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        public void LightGbmInDifferentCulture()
+        {
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+            var (pipeline, dataView) = GetMultiClassPipeline();
+            var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
+            var pipe = pipeline.Append(trainer)
+                    .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+            var model = pipe.Fit(dataView);
+            var metrics = ML.MulticlassClassification.Evaluate(model.Transform(dataView));
+            Assert.True(metrics.AccuracyMacro > 0.8);
+            Thread.CurrentThread.CurrentCulture = currentCulture;
         }
     }
 }
