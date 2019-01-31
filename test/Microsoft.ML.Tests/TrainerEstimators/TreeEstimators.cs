@@ -428,7 +428,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmInDifferentCulture()
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;
