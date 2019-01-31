@@ -61,25 +61,137 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
-        public void LightGBMBinaryEstimatorMonotoneThroughOptions()
+
+        class DataPoint
         {
-            var (pipe, dataView) = GetBinaryClassificationPipeline();
+            [VectorType(1)]
+            public float[] Features { get; set; } 
+
+            public float Label { get; set; }
+        }
+
+        public class DataPointResult
+        {
+            public float Label;
+            public float[] Features;
+            public float Score;
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        public void LightGBMEstimatorMonotone()
+        {
+            // Create a sample dataset to verify that the constraint is working
+            var mlContext = new MLContext();
+
+            int size = 200;
+            int xSize = 10;
+            DataPoint[] dataPoints = new DataPoint[size];
+            float xSum = 0;
+            float xDelta = xSize / size;
+            var rand = RandomUtils.Create(size);
+
+            for(int i = 0; i < size; ++i)
+            {
+                dataPoints[i] = new DataPoint()
+                {
+                    Features[0] = new float[1] { xSum },
+                    Label = (float)Math.Pow(xSum, 2) + (float)(xSize * rand.Next())
+                };
+                xSum += xDelta;
+            }
+
+            var data = mlContext.Data.ReadFromEnumerable(dataPoints);
+            var trainer = mlContext.Regression.Trainers.LightGbm(new Options() { MonotoneConstraints=new string[] { "pos:0" } }).Fit(data);
+            Array.Sort<DataPoint>(dataPoints, new Comparison<DataPoint>((d1, d2) => d1.X[0].CompareTo(d2.X[0])));
+            var dataSorted = mlContext.Data.ReadFromEnumerable(dataPoints);
+            var transformedData = trainer.Transform(dataSorted);
+            
+            var rows = ML.CreateEnumerable<Result>(transformedData, reuseRowObject: false);
+            float lastScore = float.MinValue;
+            foreach(var row in rows)
+            {
+                Assert.True(lastScore <= row.Score);
+                lastScore = row.Score;
+            }
+            
+            // Sort the data by X
+
+/*
+            // Step one: read the data as an IDataView.
+            //  Retrieve the training data.
+            var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(GetDataPath("iris.data"),
+                // Default separator is tab, but the dataset has comma.
+                separatorChar: ','
+            );
+
+            //Preview the data
+            var dataPreview = trainData.Preview();
+
+            // Build the training pipeline.
+            var pipeline =
+                // Concatenate all the features together into one column 'Features'.
+                mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                // Note that the label is text, so it needs to be converted to key.
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                // Cache data in memory for steps after the cache check point stage.
+                .AppendCacheCheckpoint(mlContext)
+                // Use the multi-class SDCA model to predict the label using features.
+                .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Options() {
+                    MonotoneConstraints=new string[] {"pos:0-3"}
+                }));
+
+            var transformedDataView = pipeline.Fit(trainData).Transform(trainData);
+            var rows = ML.CreateEnumerable<Result>(transformedDataView, reuseRowObject: false);
+            foreach(var row in rows)
+            {
+            }
+*/
+
+            /*
+            var pipeWithTrainer = pipe.Append(trainer);
+            //TestEstimatorCore(pipeWithTrainer, dataView);
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var rows = ML.CreateEnumerable<Result>(transformedDataView, reuseRowObject: false);
+            float lastScore = 0;
+            foreach(var row in rows)
+            {
+                Assert.True(row.Score >= lastScore);
+                lastScore = row.Score;
+            }*/
+
+            //var model = trainer.Train(transformedDataView, transformedDataView);
+            //Done();
+/*
+            var data = new InputData[10];
+            for (int i = 0; i < 10; ++i)
+            {
+                data[i] = new InputData()
+                {
+                    Label = (i%2 == 0) ? true : false,
+                    array = Utils.CreateArray<float>(10, i)
+                };
+                //data[i].array[2] = (float)i;
+            }
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var trainer = ML.BinaryClassification.Trainers.LightGbm(new Options
             {
                 NumLeaves = 10,
                 NThread = 1,
                 MinDataPerLeaf = 2,
-                MonotoneConstraints = new string[] {"pos:1-3","neg:4" }
+                MonotoneConstraints = new string[] {"pos:0-9" }
             });
 
-            var pipeWithTrainer = pipe.Append(trainer);
-            TestEstimatorCore(pipeWithTrainer, dataView);
-
-            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
-            Done();
+            var result = trainer.Fit(dataView).Transform(dataView);
+            var rows = ML.CreateEnumerable<Result>(result, reuseRowObject: false);
+            float lastScore = 0;
+            foreach(var row in rows)
+            {
+                Assert.True(row.Score >= lastScore);
+                lastScore = row.Score;
+            }
+            */
         }
 
         [Fact]

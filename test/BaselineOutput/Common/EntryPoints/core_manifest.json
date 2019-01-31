@@ -11607,6 +11607,18 @@
           }
         },
         {
+          "Name": "MonotoneConstraints",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Sets the constraints for monotonic features. This is a 0 based index for each feature in the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, then no constraint will be applied.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -12100,6 +12112,18 @@
               10
             ]
           }
+        },
+        {
+          "Name": "MonotoneConstraints",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Sets the constraints for monotonic features. This is a 0 based index for each feature in the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, then no constraint will be applied.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "ParallelTrainer",
@@ -12597,6 +12621,18 @@
           }
         },
         {
+          "Name": "MonotoneConstraints",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Sets the constraints for monotonic features. This is a 0 based index for each feature in the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, then no constraint will be applied.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -13090,6 +13126,18 @@
               10
             ]
           }
+        },
+        {
+          "Name": "MonotoneConstraints",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "Sets the constraints for monotonic features. This is a 0 based index for each feature in the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, then no constraint will be applied.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "ParallelTrainer",
