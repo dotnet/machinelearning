@@ -126,7 +126,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data loader from the arguments object.
         /// </summary>
-        public static IDataLoader CreateLoader<TArgs>(this IHostEnvironment env, TArgs arguments, IMultiStreamSource files)
+        [BestFriend]
+        internal static IDataLoader CreateLoader<TArgs>(this IHostEnvironment env, TArgs arguments, IMultiStreamSource files)
             where TArgs : class, new()
         {
             Contracts.CheckValue(env, nameof(env));
@@ -137,7 +138,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data loader from the 'LoadName{settings}' string.
         /// </summary>
-        public static IDataLoader CreateLoader(this IHostEnvironment env, string settings, IMultiStreamSource files)
+        [BestFriend]
+        internal static IDataLoader CreateLoader(this IHostEnvironment env, string settings, IMultiStreamSource files)
         {
             Contracts.CheckValue(env, nameof(env));
             Contracts.CheckValue(files, nameof(files));
@@ -148,7 +150,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data saver from the arguments object.
         /// </summary>
-        public static IDataSaver CreateSaver<TArgs>(this IHostEnvironment env, TArgs arguments)
+        internal static IDataSaver CreateSaver<TArgs>(this IHostEnvironment env, TArgs arguments)
             where TArgs : class, new()
         {
             Contracts.CheckValue(env, nameof(env));
@@ -158,7 +160,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data saver from the 'LoadName{settings}' string.
         /// </summary>
-        public static IDataSaver CreateSaver(this IHostEnvironment env, string settings)
+        internal static IDataSaver CreateSaver(this IHostEnvironment env, string settings)
         {
             Contracts.CheckValue(env, nameof(env));
             return CreateCore<IDataSaver>(env, typeof(SignatureDataSaver), settings);

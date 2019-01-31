@@ -397,7 +397,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static class LoaderUtils
+    [BestFriend]
+    internal static class LoaderUtils
     {
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="file"/>.

@@ -23,7 +23,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Learners;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model.Onnx;
-using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -354,6 +353,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
 
             var catalog = Env.ComponentCatalog;
 

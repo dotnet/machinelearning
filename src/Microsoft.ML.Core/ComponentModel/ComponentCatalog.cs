@@ -272,7 +272,6 @@ namespace Microsoft.ML
             public readonly string Description;
             public readonly string ShortName;
             public readonly string FriendlyName;
-            public readonly string[] XmlInclude;
             public readonly MethodInfo Method;
             public readonly Type InputType;
             public readonly Type OutputType;
@@ -291,7 +290,6 @@ namespace Microsoft.ML
                 Method = method;
                 ShortName = attribute.ShortName;
                 FriendlyName = attribute.UserName;
-                XmlInclude = attribute.XmlInclude;
                 ObsoleteAttribute = obsoleteAttribute;
 
                 // There are supposed to be 2 parameters, env and input for non-macro nodes.

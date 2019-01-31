@@ -36,7 +36,8 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Data.IO
 {
-    public sealed class BinaryLoader : IDataLoader, IDisposable
+    [BestFriend]
+    internal sealed class BinaryLoader : IDataLoader, IDisposable
     {
         public sealed class Arguments
         {

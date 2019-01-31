@@ -253,9 +253,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.EntryPoint(Name = "Trainers.FastForestBinaryClassifier",
             Desc = FastForestClassification.Summary,
             UserName = FastForestClassification.UserNameValue,
-            ShortName = FastForestClassification.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
-                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestBinaryClassifier""]/*' />"})]
+            ShortName = FastForestClassification.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

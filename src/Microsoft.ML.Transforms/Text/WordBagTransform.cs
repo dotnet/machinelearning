@@ -425,7 +425,7 @@ namespace Microsoft.ML.Transforms.Text
         public string DataFile;
 
         [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
-        public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+        internal IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string TermsColumn;
