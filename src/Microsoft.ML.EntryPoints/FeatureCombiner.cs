@@ -74,7 +74,7 @@ namespace Microsoft.ML.EntryPoints
                 // as a group id. That's just one example - you get the idea.
                 string nameFeat = DefaultColumnNames.Features;
                 viewTrain = ColumnConcatenatingTransformer.Create(host,
-                    new ColumnConcatenatingTransformer.TaggedArguments()
+                    new ColumnConcatenatingTransformer.TaggedOptions()
                     {
                         Columns =
                             new[] { new ColumnConcatenatingTransformer.TaggedColumn() { Name = nameFeat, Source = concatNames.ToArray() } }

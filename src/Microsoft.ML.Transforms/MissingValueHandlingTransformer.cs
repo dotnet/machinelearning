@@ -237,7 +237,7 @@ namespace Microsoft.ML.Transforms
 
             // Concat the NAReplaceTransform output and the NAIndicatorTransform output.
             if (naIndicatorCols.Count > 0)
-                output = ColumnConcatenatingTransformer.Create(h, new ColumnConcatenatingTransformer.TaggedArguments() { Columns = concatCols.ToArray() }, output);
+                output = ColumnConcatenatingTransformer.Create(h, new ColumnConcatenatingTransformer.TaggedOptions() { Columns = concatCols.ToArray() }, output);
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)

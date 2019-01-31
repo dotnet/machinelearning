@@ -23,7 +23,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="outputColumnName">The name of the resulting column.</param>
         /// <param name="inputColumnNames">The columns to concatenate together.</param>
-        public ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
+        internal ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("ColumnConcatenatingEstimator ");
