@@ -448,9 +448,7 @@ namespace Microsoft.ML.Trainers
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentClassifier",
             Desc = SdcaMultiClassTrainer.Summary,
             UserName = SdcaMultiClassTrainer.UserNameValue,
-            ShortName = SdcaMultiClassTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentClassifier""]/*' />" })]
+            ShortName = SdcaMultiClassTrainer.ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, SdcaMultiClassTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

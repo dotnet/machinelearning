@@ -716,8 +716,7 @@ namespace Microsoft.ML.Transforms.Projections
         [TlcModule.EntryPoint(Name = "Transforms.LpNormalizer",
             Desc = LpNormalizingTransformer.Summary,
             UserName = LpNormalizingTransformer.UserNameLP,
-            ShortName = LpNormalizingTransformer.ShortNameLP,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""LpNormalize""]/*' />" })]
+            ShortName = LpNormalizingTransformer.ShortNameLP)]
         public static CommonOutputs.TransformOutput Normalize(IHostEnvironment env, LpNormalizingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LpNormalize", input);
@@ -732,8 +731,7 @@ namespace Microsoft.ML.Transforms.Projections
         [TlcModule.EntryPoint(Name = "Transforms.GlobalContrastNormalizer",
             Desc = LpNormalizingTransformer.GcnSummary,
             UserName = LpNormalizingTransformer.UserNameGn,
-            ShortName = LpNormalizingTransformer.ShortNameGn,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""GcNormalize""]/*' />" })]
+            ShortName = LpNormalizingTransformer.ShortNameGn)]
         public static CommonOutputs.TransformOutput GcNormalize(IHostEnvironment env, LpNormalizingTransformer.GcnArguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "GcNormalize", input);

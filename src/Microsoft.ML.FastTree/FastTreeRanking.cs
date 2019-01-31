@@ -1160,9 +1160,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeRanker",
             Desc = FastTreeRankingTrainer.Summary,
             UserName = FastTreeRankingTrainer.UserNameValue,
-            ShortName = FastTreeRankingTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
-                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeRanker""]/*' />"})]
+            ShortName = FastTreeRankingTrainer.ShortName)]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, FastTreeRankingTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

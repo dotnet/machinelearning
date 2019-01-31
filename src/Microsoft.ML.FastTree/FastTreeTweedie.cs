@@ -515,8 +515,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeTweedieRegressor",
             Desc = FastTreeTweedieTrainer.Summary,
             UserName = FastTreeTweedieTrainer.UserNameValue,
-            ShortName = FastTreeTweedieTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
+            ShortName = FastTreeTweedieTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainTweedieRegression(IHostEnvironment env, FastTreeTweedieTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
