@@ -44,8 +44,9 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col")]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col")]
+            public Column[] Columns;
         }
 
         internal const string Summary = "Convert a label column into a standard floating point representation.";
@@ -73,15 +74,15 @@ namespace Microsoft.ML.Transforms
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
         public LabelConvertTransform(IHostEnvironment env, IDataView input, string name, string source = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
         {
         }
 
         public LabelConvertTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, RowCursorUtils.TestGetLabelGetter)
+            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Columns, input, RowCursorUtils.TestGetLabelGetter)
         {
             Contracts.AssertNonEmpty(Infos);
-            Contracts.Assert(Infos.Length == Utils.Size(args.Column));
+            Contracts.Assert(Infos.Length == Utils.Size(args.Columns));
             Metadata.Seal();
         }
 
@@ -190,7 +191,8 @@ namespace Microsoft.ML.Transforms
             return _slotType;
         }
 
-        protected override SlotCursor GetSlotCursorCore(int iinfo)
+        [BestFriend]
+        internal override SlotCursor GetSlotCursorCore(int iinfo)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             Host.AssertValue(Infos[iinfo].SlotTypeSrc);

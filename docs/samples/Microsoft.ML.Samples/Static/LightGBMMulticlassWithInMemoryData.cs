@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Static
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
-            var dataView = ComponentCreation.CreateDataView(mlContext, examples);
+            var dataView = mlContext.Data.ReadFromEnumerable(examples);
 
             // IDataView is the data format used in dynamic-typed pipeline. To use static-typed pipeline, we need to convert
             // IDataView to DataView by calling AssertStatic(...). The basic idea is to specify the static type for each column
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Samples.Static
             Console.WriteLine ("Macro accuracy: {0}, Micro accuracy: {1}.", 0.863482146891263, 0.86309523809523814);
 
             // Convert prediction in ML.NET format to native C# class.
-            var nativePredictions = new List<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic.AsEnumerable<DatasetUtils.MulticlassClassificationExample>(mlContext, false));
+            var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
 
             // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA"). The call to "AsDynamic" converts our statically-typed pipeline into

@@ -36,8 +36,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", ShortName = "col", SortOrder = 1)]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public string[] Columns;
 
             [Argument(ArgumentType.Required, HelpText = "If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved", ShortName = "c", SortOrder = 1)]
             public long Count = Defaults.Count;
@@ -166,10 +166,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             var host = env.Register(RegistrationName);
             host.CheckValue(args, nameof(args));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
             host.CheckUserArg(args.Count > 0, nameof(args.Count));
 
-            var columnInfos = args.Column.Select(inColName => new ColumnInfo(inColName, minCount: args.Count)).ToArray();
+            var columnInfos = args.Columns.Select(inColName => new ColumnInfo(inColName, minCount: args.Count)).ToArray();
 
             return new CountFeatureSelectingEstimator(env, columnInfos).Fit(input).Transform(input) as IDataTransform;
         }
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeInput = new bool[schema.Count];
+            var activeCols = new List<Schema.Column>();
             var colSrcs = new int[size];
             var colTypes = new ColumnType[size];
             colSizes = new int[size];
@@ -243,13 +243,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 int colSrc;
                 var colName = columns[i];
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Source column '{0}' not found", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Columns), "Source column '{0}' not found", colName);
 
                 var colType = schema[colSrc].Type;
                 if (colType is VectorType vectorType && !vectorType.IsKnownSize)
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Columns), "Variable length column '{0}' is not allowed", colName);
 
-                activeInput[colSrc] = true;
+                activeCols.Add(schema[colSrc]);
                 colSrcs[i] = colSrc;
                 colTypes[i] = colType;
                 colSizes[i] = colType.GetValueCount();
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             long rowCur = 0;
             double rowCount = input.GetRowCount() ?? double.NaN;
             using (var pch = env.StartProgressChannel("Aggregating counts"))
-            using (var cursor = input.GetRowCursor(col => activeInput[col]))
+            using (var cursor = input.GetRowCursor(activeCols))
             {
                 var header = new ProgressHeader(new[] { "rows" });
                 pch.SetHeader(header, e => { e.SetProgress(0, rowCur, rowCount); });

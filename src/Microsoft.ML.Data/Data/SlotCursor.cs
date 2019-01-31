@@ -10,25 +10,26 @@ namespace Microsoft.ML.Data
     /// A cursor that allows slot-by-slot access of data. This is to <see cref="ITransposeDataView"/>
     /// what <see cref="RowCursor"/> is to <see cref="IDataView"/>.
     /// </summary>
-    public abstract class SlotCursor : IDisposable
+    [BestFriend]
+    internal abstract class SlotCursor : IDisposable
     {
         [BestFriend]
         private protected readonly IChannel Ch;
-        private CursorState _state;
+        private bool _started;
+        protected bool Disposed { get; private set; }
 
         /// <summary>
         /// Whether the cursor is in a state where it can serve up data, that is, <see cref="MoveNext"/>
         /// has been called and returned <see langword="true"/>.
         /// </summary>
         [BestFriend]
-        private protected bool IsGood => _state == CursorState.Good;
+        private protected bool IsGood => _started && !Disposed;
 
         [BestFriend]
         private protected SlotCursor(IChannelProvider provider)
         {
             Contracts.AssertValue(provider);
             Ch = provider.Start("Slot Cursor");
-            _state = CursorState.NotStarted;
         }
 
         /// <summary>
@@ -45,24 +46,30 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// The slot type for this cursor. Note that this should equal the
-        /// <see cref="ITransposeSchema.GetSlotType"/> for the column from which this slot cursor
+        /// <see cref="ITransposeDataView.GetSlotType"/> for the column from which this slot cursor
         /// was created.
         /// </summary>
         public abstract VectorType GetSlotType();
 
         /// <summary>
         /// A getter delegate for the slot values. The type <typeparamref name="TValue"/> must correspond
-        /// to the item type from <see cref="ITransposeSchema.GetSlotType"/>.
+        /// to the item type from <see cref="ITransposeDataView.GetSlotType"/>.
         /// </summary>
         public abstract ValueGetter<VBuffer<TValue>> GetGetter<TValue>();
 
-        public virtual void Dispose()
+        public void Dispose()
         {
-            if (_state != CursorState.Done)
-            {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (Disposed)
+                return;
+            if (disposing)
                 Ch.Dispose();
-                _state = CursorState.Done;
-            }
+            Disposed = true;
         }
 
         /// <summary>
@@ -107,33 +114,35 @@ namespace Microsoft.ML.Data
 
             public override int SlotIndex => _slotIndex;
 
-            public override void Dispose()
+            protected sealed override void Dispose(bool disposing)
             {
-                base.Dispose();
-                _slotIndex = -1;
+                if (Disposed)
+                    return;
+                if (disposing)
+                    _slotIndex = -1;
+                base.Dispose(disposing);
             }
 
             public override bool MoveNext()
             {
-                if (_state == CursorState.Done)
-                    return false;
+                if (Disposed)
+                    return true;
 
-                Ch.Assert(_state == CursorState.NotStarted || _state == CursorState.Good);
                 if (MoveNextCore())
                 {
-                    Ch.Assert(_state == CursorState.NotStarted || _state == CursorState.Good);
-
                     _slotIndex++;
-                    _state = CursorState.Good;
+                    Ch.Assert(_slotIndex >= 0);
+                    _started = true;
                     return true;
                 }
 
                 Dispose();
+                Ch.Assert(_slotIndex < 0);
                 return false;
             }
 
             /// <summary>
-            /// Core implementation of <see cref="MoveNext"/>. Called only if this method
+            /// Core implementation of <see cref="MoveNext"/>. This is called only if this method
             /// has not yet previously returned <see langword="false"/>.
             /// </summary>
             protected abstract bool MoveNextCore();

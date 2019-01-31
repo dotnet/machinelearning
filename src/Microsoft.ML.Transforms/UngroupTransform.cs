@@ -85,8 +85,8 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to unroll, or 'pivot'", ShortName = "col")]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to unroll, or 'pivot'", Name = "Column", ShortName = "col")]
+            public string[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies how to unroll multiple pivot columns of different size.")]
             public UngroupMode Mode = UngroupMode.Inner;
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="mode">Specifies how to unroll multiple pivot columns of different size.</param>
         /// <param name="columns">Columns to unroll, or 'pivot'</param>
         public UngroupTransform(IHostEnvironment env, IDataView input, UngroupMode mode, params string[] columns)
-            : this(env, new Arguments() { Column = columns, Mode = mode }, input)
+            : this(env, new Arguments() { Columns = columns, Mode = mode }, input)
         {
         }
 
@@ -110,11 +110,11 @@ namespace Microsoft.ML.Transforms
             : base(env, LoaderSignature, input)
         {
             Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "There must be at least one pivot column");
-            Host.CheckUserArg(args.Column.Distinct().Count() == args.Column.Length, nameof(args.Column),
+            Host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns), "There must be at least one pivot column");
+            Host.CheckUserArg(args.Columns.Distinct().Count() == args.Columns.Length, nameof(args.Columns),
                 "Duplicate pivot columns are not allowed");
 
-            _ungroupBinding = new UngroupBinding(Host, Source.Schema, args.Mode, args.Column);
+            _ungroupBinding = new UngroupBinding(Host, Source.Schema, args.Mode, args.Columns);
         }
 
         public static UngroupTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -177,18 +177,24 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
-            var inputCursor = Source.GetRowCursor(col => activeInput[col], null);
+
+            var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
+            var inputCursor = Source.GetRowCursor(inputCols, null);
             return new Cursor(Host, inputCursor, _ungroupBinding, predicate);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate,
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded,
             int n, Random rand = null)
         {
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
-            var inputCursors = Source.GetRowCursorSet(col => activeInput[col], n, null);
+
+            var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
+            var inputCursors = Source.GetRowCursorSet(inputCols, n, null);
             return Utils.BuildArray<RowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _ungroupBinding, predicate));
         }
@@ -323,12 +329,12 @@ namespace Microsoft.ML.Transforms
                 {
                     var name = pivotColumns[i];
                     // REVIEW: replace Check with CheckUser, once existing CheckUser is renamed to CheckUserArg or something.
-                    ectx.CheckUserArg(!string.IsNullOrEmpty(name), nameof(Arguments.Column), "Column name cannot be empty");
+                    ectx.CheckUserArg(!string.IsNullOrEmpty(name), nameof(Arguments.Columns), "Column name cannot be empty");
                     int col;
                     if (!inputSchema.TryGetColumnIndex(name, out col))
-                        throw ectx.ExceptUserArg(nameof(Arguments.Column), "Pivot column '{0}' is not found", name);
+                        throw ectx.ExceptUserArg(nameof(Arguments.Columns), "Pivot column '{0}' is not found", name);
                     if (!(inputSchema[col].Type is VectorType colType))
-                        throw ectx.ExceptUserArg(nameof(Arguments.Column),
+                        throw ectx.ExceptUserArg(nameof(Arguments.Columns),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, inputSchema[col].Type);
                     infos[i] = new PivotColumnInfo(name, col, colType.Size, colType.ItemType);
                 }
@@ -507,10 +513,7 @@ namespace Microsoft.ML.Transforms
 
             }
 
-            public override long Batch
-            {
-                get { return Input.Batch; }
-            }
+            public override long Batch => Input.Batch;
 
             public override ValueGetter<RowId> GetIdGetter()
             {
@@ -524,8 +527,7 @@ namespace Microsoft.ML.Transforms
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State == CursorState.NotStarted ||
-                           (0 <= _pivotColPosition && _pivotColPosition < _pivotColSize));
+                Ch.Assert(Position < 0 || (0 <= _pivotColPosition && _pivotColPosition < _pivotColSize));
                 // In the very first call to MoveNext, both _pivotColPosition and _pivotColSize are equal to zero.
                 // So, the below code will work seamlessly, advancing the input cursor.
 
@@ -633,7 +635,7 @@ namespace Microsoft.ML.Transforms
                     (ref T value) =>
                     {
                         // This delegate can be called from within MoveNext, so our own IsGood is not yet set.
-                        Ch.Check(Input.State == CursorState.Good, "Cursor is not active");
+                        Ch.Check(Input.Position >= 0, RowCursorUtils.FetchValueStateError);
 
                         Ch.Assert(cachedPosition <= Input.Position);
                         if (cachedPosition < Input.Position)

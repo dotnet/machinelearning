@@ -59,8 +59,9 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         public const string LoaderSignature = "KeyToValueTransform";
@@ -104,9 +105,9 @@ namespace Microsoft.ML.Transforms.Conversions
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckNonEmpty(args.Column, nameof(args.Column));
+            env.CheckNonEmpty(args.Columns, nameof(args.Columns));
 
-            var transformer = new KeyToValueMappingTransformer(env, args.Column.Select(c => (c.Source ?? c.Name, c.Name)).ToArray());
+            var transformer = new KeyToValueMappingTransformer(env, args.Columns.Select(c => (c.Source ?? c.Name, c.Name)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 
@@ -231,7 +232,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
                     ColumnType valsItemType = typeVals.GetItemType();
                     ColumnType srcItemType = typeSrc.GetItemType();
-                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCount(), "KeyValues metadata size does not match column type key count");
+                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCountAsInt32(Host), "KeyValues metadata size does not match column type key count");
                     if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = valsItemType;
                     else
@@ -257,7 +258,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 var keyMetadata = default(VBuffer<TValue>);
                 InputSchema[ColMapNewToOld[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyMetadata);
-                Host.Check(keyMetadata.Length == keyItemType.GetKeyCount());
+                Host.Check(keyMetadata.Length == keyItemType.GetKeyCountAsInt32(Host));
 
                 VBufferUtils.Densify(ref keyMetadata);
                 return new KeyToValueMap<TKey, TValue>(this, (KeyType)keyItemType, (PrimitiveType)valItemType, keyMetadata, iinfo);

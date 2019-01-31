@@ -75,7 +75,7 @@ namespace Microsoft.ML.EntryPoints
                 viewTrain = ColumnConcatenatingTransformer.Create(host,
                     new ColumnConcatenatingTransformer.TaggedArguments()
                     {
-                        Column =
+                        Columns =
                             new[] { new ColumnConcatenatingTransformer.TaggedColumn() { Name = nameFeat, Source = concatNames.ToArray() } }
                     },
                     viewTrain);
@@ -100,8 +100,8 @@ namespace Microsoft.ML.EntryPoints
                 viewTrain = ValueToKeyMappingTransformer.Create(host,
                     new ValueToKeyMappingTransformer.Arguments()
                     {
-                        Column = ktv
-                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
+                        Columns = ktv
+                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Output, Source = c.Output, Term = GetTerms(viewTrain, c.Input) })
                             .ToArray(),
                         TextKeyValues = true
                     },
@@ -244,7 +244,7 @@ namespace Microsoft.ML.EntryPoints
 
             var args = new ValueToKeyMappingTransformer.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                     new ValueToKeyMappingTransformer.Column()
                     {
@@ -301,7 +301,7 @@ namespace Microsoft.ML.EntryPoints
 
             var args = new TypeConvertingTransformer.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                     new TypeConvertingTransformer.Column()
                     {

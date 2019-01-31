@@ -17,7 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var mlContext = new MLContext();
             var data = GetTensorData();
-            var idv = mlContext.CreateStreamingDataView(data);
+            var idv = mlContext.Data.ReadFromEnumerable(data);
 
             // Create a ML pipeline.
             var pipeline = mlContext.Transforms.ScoreTensorFlowModel(
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedValues = estimator.Transform(idv);
 
             // Retrieve model scores.
-            var outScores = transformedValues.AsEnumerable<OutputScores>(mlContext, reuseRowObject: false);
+            var outScores = mlContext.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
 
             // Display scores. (for the sake of brevity we display scores of the first 3 classes)
             foreach (var prediction in outScores)

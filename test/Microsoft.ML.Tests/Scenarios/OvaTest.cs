@@ -23,7 +23,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Scenarios
             // Pipeline
             var pipeline = new Ova(
                 mlContext, 
-                new LogisticRegression(mlContext, "Label", "Features"),
+                mlContext.BinaryClassification.Trainers.LogisticRegression(),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
@@ -70,7 +70,8 @@ namespace Microsoft.ML.Scenarios
             // Pipeline
             var pipeline = new Ova(
                 mlContext,
-                new AveragedPerceptronTrainer(mlContext, "Label", "Features", advancedSettings: s => { s.Shuffle = true;  s.Calibrator = null; }),
+                mlContext.BinaryClassification.Trainers.AveragedPerceptron(
+                    new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -91,7 +92,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
@@ -125,7 +126,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
@@ -136,7 +137,9 @@ namespace Microsoft.ML.Scenarios
             var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
 
             // Pipeline
-            var pipeline = new Ova(mlContext, new LinearSvmTrainer(mlContext, numIterations: 100),  useProbabilities: false);
+            var pipeline = new Ova(mlContext, 
+                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumIterations = 100 }),
+                useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);

@@ -18,7 +18,7 @@ namespace Microsoft.ML.StaticPipe
         /// Predict matrix entry using matrix factorization
         /// </summary>
         /// <typeparam name="T">The type of physical value of matrix's row and column index. It must be an integer type such as uint.</typeparam>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label variable.</param>
         /// <param name="matrixColumnIndex">The column index of the considered matrix.</param>
         /// <param name="matrixRowIndex">The row index of the considered matrix.</param>
@@ -33,7 +33,7 @@ namespace Microsoft.ML.StaticPipe
         /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> MatrixFactorization<T>(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> MatrixFactorization<T>(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Key<T> matrixColumnIndex, Key<T> matrixRowIndex,
             float regularizationCoefficient = 0.1f,
             int approximationRank = 8,

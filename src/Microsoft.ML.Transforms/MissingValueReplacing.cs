@@ -115,8 +115,8 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:rep:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:rep:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind")]
             public ReplacementKind ReplacementKind = (ReplacementKind)MissingValueReplacingEstimator.Defaults.ReplacementMode;
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms
             List<int> columnsToImpute = null;
             // REVIEW: Would like to get rid of the sourceColumns list but seems to be the best way to provide
             // the cursor with what columns to cursor through.
-            HashSet<int> sourceColumns = null;
+           var sourceColumns = new List<Schema.Column>();
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 input.Schema.TryGetColumnIndex(columns[iinfo].Input, out int colSrc);
@@ -346,7 +346,7 @@ namespace Microsoft.ML.Transforms
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.GetItemType());
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);
-                        Utils.Add(ref sourceColumns, colSrc);
+                        sourceColumns.Add(input.Schema[colSrc]);
                         break;
                     default:
                         Host.Assert(false);
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Transforms
 
             // Impute values.
             using (var ch = Host.Start("Computing Statistics"))
-            using (var cursor = input.GetRowCursor(sourceColumns.Contains))
+            using (var cursor = input.GetRowCursor(sourceColumns))
             {
                 StatAggregator[] statAggregators = new StatAggregator[columnsToImpute.Count];
                 for (int ii = 0; ii < columnsToImpute.Count; ii++)
@@ -471,11 +471,11 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
                 var kind = item.Kind ?? args.ReplacementKind;
                 if (!Enum.IsDefined(typeof(ReplacementKind), kind))
                     throw env.ExceptUserArg(nameof(args.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.Name);

@@ -37,8 +37,8 @@ namespace Microsoft.ML.Transforms.Projections
     {
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.Multiple, HelpText = "The name of the weight column", ShortName = "weight", Purpose = SpecialPurpose.ColumnName)]
             public string WeightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn;
@@ -290,8 +290,8 @@ namespace Microsoft.ML.Transforms.Projections
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = args.Column.Select(item => new ColumnInfo(
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = args.Columns.Select(item => new ColumnInfo(
                         item.Source,
                         item.Name,
                         item.WeightColumn,
@@ -453,7 +453,8 @@ namespace Microsoft.ML.Transforms.Projections
                     activeColumns[sInfo.WeightColumnIndex] = true;
             }
 
-            using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
+            var inputCols = trainingData.Schema.Where(x => activeColumns[x.Index]);
+            using (var cursor = trainingData.GetRowCursor(inputCols))
             {
                 var weightGetters = new ValueGetter<float>[_numColumns];
                 var columnGetters = new ValueGetter<VBuffer<float>>[_numColumns];

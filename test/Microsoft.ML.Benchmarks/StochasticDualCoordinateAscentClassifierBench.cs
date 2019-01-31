@@ -68,7 +68,7 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = reader.Read(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(_env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(new SdcaMultiClassTrainer(_env, "Label", "Features"));
+                .Append(_env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             return pipeline.Fit(data);
         }
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Benchmarks
             // Pipeline
             var arguments = new TextLoader.Arguments()
             {
-                Column = new TextLoader.Column[]
+                Columns = new TextLoader.Column[]
                 {
                     new TextLoader.Column()
                     {
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Benchmarks
             var trans = new WordEmbeddingsExtractingEstimator(_env, "WordEmbeddings_TransformedText", "Features",
                 WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Fit(text).Transform(text);
             // Train
-            var trainer = new SdcaMultiClassTrainer(_env, "Label", "Features", maxIterations: 20);
+            var trainer = _env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }
@@ -157,13 +157,13 @@ namespace Microsoft.ML.Benchmarks
         public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
         [Benchmark]
-        public void PredictIrisBatchOf1() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[0]));
+        public void PredictIrisBatchOf1() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[0]));
 
         [Benchmark]
-        public void PredictIrisBatchOf2() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[1]));
+        public void PredictIrisBatchOf2() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[1]));
 
         [Benchmark]
-        public void PredictIrisBatchOf5() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[2]));
+        public void PredictIrisBatchOf5() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[2]));
     }
 
     public class IrisData

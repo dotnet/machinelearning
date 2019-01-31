@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -33,8 +34,8 @@ namespace Microsoft.ML.Transforms.Projections
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
             public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
@@ -307,7 +308,7 @@ namespace Microsoft.ML.Transforms.Projections
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
-            bool[] activeColumns = new bool[input.Schema.Count];
+            var activeColumns = new List<Schema.Column>();
             int[] srcCols = new int[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
@@ -318,10 +319,10 @@ namespace Microsoft.ML.Transforms.Projections
                 if (reason != null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input, reason, type.ToString());
                 srcCols[i] = srcCol;
-                activeColumns[srcCol] = true;
+                activeColumns.Add(input.Schema[srcCol]);
             }
             var reservoirSamplers = new ReservoirSamplerWithReplacement<VBuffer<float>>[columns.Length];
-            using (var cursor = input.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = input.GetRowCursor(activeColumns))
             {
                 for (int i = 0; i < columns.Length; i++)
                 {
@@ -452,14 +453,14 @@ namespace Microsoft.ML.Transforms.Projections
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
 
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     cols[i] = new ColumnInfo(item.Source ?? item.Name,
                         item.Name,
                         item.NewDim ?? args.NewDim,

@@ -17,14 +17,14 @@ namespace Microsoft.ML.StaticPipe
         /// Evaluates scored binary classification data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="ctx">The binary classification context.</param>
+        /// <param name="catalog">The binary classification catalog.</param>
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="pred">The index delegate for columns from calibrated prediction of a binary classifier.
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
         public static CalibratedBinaryClassificationMetrics Evaluate<T>(
-            this BinaryClassificationContext ctx,
+            this BinaryClassificationCatalog catalog,
             DataView<T> data,
             Func<T, Scalar<bool>> label,
             Func<T, (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)> pred)
@@ -53,14 +53,14 @@ namespace Microsoft.ML.StaticPipe
         /// Evaluates scored binary classification data, if the predictions are not calibrated.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="ctx">The binary classification context.</param>
+        /// <param name="catalog">The binary classification catalog.</param>
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="pred">The index delegate for columns from uncalibrated prediction of a binary classifier.
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
         public static BinaryClassificationMetrics Evaluate<T>(
-            this BinaryClassificationContext ctx,
+            this BinaryClassificationCatalog catalog,
             DataView<T> data,
             Func<T, Scalar<bool>> label,
             Func<T, (Scalar<float> score, Scalar<bool> predictedLabel)> pred)
@@ -87,14 +87,14 @@ namespace Microsoft.ML.StaticPipe
         /// Evaluates scored clustering prediction data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="ctx">The clustering context.</param>
+        /// <param name="catalog">The clustering catalog.</param>
         /// <param name="data">The data to evaluate.</param>
         /// <param name="score">The index delegate for the predicted score column.</param>
         /// <param name="label">The optional index delegate for the label column.</param>
         /// <param name="features">The optional index delegate for the features column.</param>
         /// <returns>The evaluation metrics.</returns>
         public static ClusteringMetrics Evaluate<T>(
-            this ClusteringContext ctx,
+            this ClusteringCatalog catalog,
             DataView<T> data,
             Func<T, Vector<float>> score,
             Func<T, Key<uint>> label = null,
@@ -121,7 +121,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
         /// <typeparam name="TKey">The value type for the key label.</typeparam>
-        /// <param name="ctx">The multiclass classification context.</param>
+        /// <param name="catalog">The multiclass classification catalog.</param>
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="pred">The index delegate for columns from the prediction of a multiclass classifier.
@@ -131,7 +131,7 @@ namespace Microsoft.ML.StaticPipe
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation metrics.</returns>
         public static MultiClassClassifierMetrics Evaluate<T, TKey>(
-            this MulticlassClassificationContext ctx,
+            this MulticlassClassificationCatalog catalog,
             DataView<T> data,
             Func<T, Key<uint, TKey>> label,
             Func<T, (Vector<float> score, Key<uint, TKey> predictedLabel)> pred,
@@ -171,14 +171,14 @@ namespace Microsoft.ML.StaticPipe
         /// Evaluates scored regression data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="ctx">The regression context.</param>
+        /// <param name="catalog">The regression catalog.</param>
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <param name="loss">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
         /// <returns>The evaluation metrics.</returns>
         public static RegressionMetrics Evaluate<T>(
-            this RegressionContext ctx,
+            this RegressionCatalog catalog,
             DataView<T> data,
             Func<T, Scalar<float>> label,
             Func<T, Scalar<float>> score,
@@ -205,14 +205,14 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
         /// <typeparam name="TVal">The type of data, before being converted to a key.</typeparam>
-        /// <param name="ctx">The ranking context.</param>
+        /// <param name="catalog">The ranking catalog.</param>
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="groupId">The index delegate for the groupId column. </param>
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <returns>The evaluation metrics.</returns>
         public static RankerMetrics Evaluate<T, TVal>(
-            this RankingContext ctx,
+            this RankingCatalog catalog,
             DataView<T> data,
             Func<T, Scalar<float>> label,
             Func<T, Key<uint, TVal>> groupId,

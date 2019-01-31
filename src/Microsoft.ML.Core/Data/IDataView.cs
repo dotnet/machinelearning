@@ -3,63 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Microsoft.ML.Data
 {
-    /// <summary>
-    /// Legacy interface for schema information.
-    /// Please avoid implementing this interface, use <see cref="Schema"/>.
-    /// </summary>
-    [BestFriend]
-    internal interface ISchema
-    {
-        /// <summary>
-        /// Number of columns.
-        /// </summary>
-        int ColumnCount { get; }
-
-        /// <summary>
-        /// If there is a column with the given name, set col to its index and return true.
-        /// Otherwise, return false. The expectation is that if there are multiple columns
-        /// with the same name, the greatest index is returned.
-        /// </summary>
-        bool TryGetColumnIndex(string name, out int col);
-
-        /// <summary>
-        /// Get the name of the given column index. Column names must be non-empty and non-null,
-        /// but multiple columns may have the same name.
-        /// </summary>
-        string GetColumnName(int col);
-
-        /// <summary>
-        /// Get the type of the given column index. This must be non-null.
-        /// </summary>
-        ColumnType GetColumnType(int col);
-
-        /// <summary>
-        /// Produces the metadata kinds and associated types supported by the given column.
-        /// If there is no metadata the returned enumerable should be non-null, but empty.
-        /// The string key values are unique, non-empty, non-null strings. The type should
-        /// be non-null.
-        /// </summary>
-        IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col);
-
-        /// <summary>
-        /// If the given column has metadata of the indicated kind, this returns the type of the metadata.
-        /// Otherwise, it returns null.
-        /// </summary>
-        ColumnType GetMetadataTypeOrNull(string kind, int col);
-
-        /// <summary>
-        /// Fetches the indicated metadata for the indicated column.
-        /// This should only be called if a corresponding call to GetMetadataTypeOrNull
-        /// returned non-null. And the TValue type should be compatible with the type
-        /// returned by that call. Otherwise, this should throw an exception.
-        /// </summary>
-        void GetMetadata<TValue>(string kind, int col, ref TValue value);
-    }
-
     /// <summary>
     /// The input and output of Query Operators (Transforms). This is the fundamental data pipeline
     /// type, comparable to <see cref="IEnumerable{T}"/> for LINQ.
@@ -85,10 +33,10 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Get a row cursor. The active column indices are those for which needCol(col) returns true.
         /// The schema of the returned cursor will be the same as the schema of the IDataView, but getting
-        /// a getter for an inactive columns will throw. The <paramref name="needCol"/> predicate must be
-        /// non-null. To activate all columns, pass "col => true".
+        /// a getter for inactive columns will throw. The <paramref name="columnsNeeded"/> indicate the columns that are needed
+        /// to iterate over.If set to an empty <see cref="IEnumerable"/> no column is requested.
         /// </summary>
-        RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null);
+        RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null);
 
         /// <summary>
         /// This constructs a set of parallel batch cursors. The value <paramref name="n"/> is a recommended limit on
@@ -97,7 +45,7 @@ namespace Microsoft.ML.Data
         /// recommendation: it is entirely possible that an implementation can return a different number of cursors.
         ///
         /// The cursors should return the same data as returned through
-        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>, except partitioned: no two cursors should return the
+        /// <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/>, except partitioned: no two cursors should return the
         /// "same" row as would have been returned through the regular serial cursor, but all rows should be returned by
         /// exactly one of the cursors returned from this cursor. The cursors can have their values reconciled
         /// downstream through the use of the <see cref="Row.Batch"/> property.
@@ -106,13 +54,13 @@ namespace Microsoft.ML.Data
         /// working threads that consume from them independently while, ultimately, the results are finally collated in
         /// the end by exploiting the ordering of the <see cref="Row.Batch"/> property described above. More typical
         /// scenarios will be content with pulling from the single serial cursor of
-        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>.
+        /// <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/>.
         /// </summary>
-        /// <param name="needCol">The predicate, where a column is active if this returns true.</param>
+        /// <param name="columnsNeeded">The active columns needed. If passed an empty <see cref="IEnumerable"/> no column is requested.</param>
         /// <param name="n">The suggested degree of parallelism.</param>
-        /// <param name="rand">An instance </param>
+        /// <param name="rand">An instance of <see cref="Random"/> to seed randomizing the access.</param>
         /// <returns></returns>
-        RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null);
+        RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null);
 
         /// <summary>
         /// Gets an instance of Schema.
@@ -133,10 +81,10 @@ namespace Microsoft.ML.Data
     public abstract class Row : IDisposable
     {
         /// <summary>
-        /// This is incremented when the underlying contents changes, giving clients a way to detect change. Generally
-        /// it's -1 when the object is in an invalid state. In particular, for an <see cref="RowCursor"/>, this is -1
-        /// when the <see cref="RowCursor.State"/> is <see cref="CursorState.NotStarted"/> or <see
-        /// cref="CursorState.Done"/>.
+        /// This is incremented when the underlying contents changes, giving clients a way to detect change. It should be
+        /// -1 when the object is in a state where values cannot be fetched. In particular, for an <see cref="RowCursor"/>,
+        /// this will be before <see cref="RowCursor.MoveNext"/> if ever called for the first time, or after the first time
+        /// <see cref="RowCursor.MoveNext"/> is called and returns <see langword="false"/>.
         ///
         /// Note that this position is not position within the underlying data, but position of this cursor only. If
         /// one, for example, opened a set of parallel streaming cursors, or a shuffled cursor, each such cursor's first
@@ -146,15 +94,15 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// This provides a means for reconciling multiple rows that have been produced generally from
-        /// <see cref="IDataView.GetRowCursorSet(Func{int, bool}, int, Random)"/>. When getting a set, there is a need
+        /// <see cref="IDataView.GetRowCursorSet(IEnumerable{Schema.Column}, int, Random)"/>. When getting a set, there is a need
         /// to, while allowing parallel processing to proceed, always have an aim that the original order should be
         /// reconverable. Note, whether or not a user cares about that original order in ones specific application is
         /// another story altogether (most callers of this as a practical matter do not, otherwise they would not call
         /// it), but at least in principle it should be possible to reconstruct the original order one would get from an
-        /// identically configured <see cref="IDataView.GetRowCursor(Func{int, bool}, Random)"/>. So: for any cursor
+        /// identically configured <see cref="IDataView.GetRowCursor(IEnumerable{Schema.Column}, Random)"/>. So: for any cursor
         /// implementation, batch numbers should be non-decreasing. Furthermore, any given batch number should only
         /// appear in one of the cursors as returned by
-        /// <see cref="IDataView.GetRowCursorSet(Func{int, bool}, int, Random)"/>. In this way, order is determined by
+        /// <see cref="IDataView.GetRowCursorSet(IEnumerable{Schema.Column}, int, Random)"/>. In this way, order is determined by
         /// batch number. An operation that reconciles these cursors to produce a consistent single cursoring, could do
         /// so by drawing from the single cursor, among all cursors in the set, that has the smallest batch number
         /// available.
@@ -223,52 +171,18 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// Defines the possible states of a cursor.
-    /// </summary>
-    public enum CursorState
-    {
-        NotStarted,
-        Good,
-        Done
-    }
-
-    /// <summary>
     /// The basic cursor base class to cursor through rows of an <see cref="IDataView"/>. Note that
-    /// this is also an <see cref="Row"/>. The <see cref="Row.Position"/> is incremented by <see cref="MoveNext"/>
-    /// and <see cref="MoveMany"/>. When the cursor state is <see cref="CursorState.NotStarted"/> or
-    /// <see cref="CursorState.Done"/>, <see cref="Row.Position"/> is <c>-1</c>. Otherwise,
-    /// <see cref="Row.Position"/> >= 0.
+    /// this is also an <see cref="Row"/>. The <see cref="Row.Position"/> is incremented by <see cref="MoveNext"/>.
+    /// Prior to the first call to <see cref="MoveNext"/>, or after the first call to <see cref="MoveNext"/> that
+    /// returns <see langword="false"/>, <see cref="Row.Position"/> is <c>-1</c>. Otherwise, in a situation where the
+    /// last call to <see cref="MoveNext"/> returned <see langword="true"/>, <see cref="Row.Position"/> >= 0.
     /// </summary>
     public abstract class RowCursor : Row
     {
         /// <summary>
-        /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/> or
-        /// <see cref="MoveMany(long)"/> this should be <see cref="CursorState.NotStarted"/>. After
-        /// any call those move functions that returns <see langword="true"/>, this should return
-        /// <see cref="CursorState.Good"/>,
-        /// </summary>
-        public abstract CursorState State { get; }
-
-        /// <summary>
         /// Advance to the next row. When the cursor is first created, this method should be called to
-        /// move to the first row. Returns <c>false</c> if there are no more rows.
+        /// move to the first row. Returns <see langword="false"/> if there are no more rows.
         /// </summary>
         public abstract bool MoveNext();
-
-        /// <summary>
-        /// Logically equivalent to calling <see cref="MoveNext"/> the given number of times. The
-        /// <paramref name="count"/> parameter must be positive. Note that cursor implementations may be
-        /// able to optimize this.
-        /// </summary>
-        public abstract bool MoveMany(long count);
-
-        /// <summary>
-        /// Returns a cursor that can be used for invoking <see cref="Row.Position"/>, <see cref="State"/>,
-        /// <see cref="MoveNext"/>, and <see cref="MoveMany"/>, with results identical to calling those
-        /// on this cursor. Generally, if the root cursor is not the same as this cursor, using the
-        /// root cursor will be faster. As an aside, note that this is not necessarily the case of
-        /// values from <see cref="Row.GetIdGetter"/>.
-        /// </summary>
-        public abstract RowCursor GetRootCursor();
     }
 }

@@ -79,9 +79,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Environment, m.InputColumn, m.OutputColumn), "data_0", "output_1");
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
-            var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             pipe.GetOutputSchema(SchemaShape.Create(invalidDataWrongVectorSize.Schema));
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("output_1", out int output);
-            using (var cursor = result.GetRowCursor(col => col == output))
+            using (var cursor = result.GetRowCursor(result.Schema["output_1"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests
 
             var samplevector = GetSampleArrayData();
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = ML.Data.ReadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Tests
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
 
                 loadedView.Schema.TryGetColumnIndex(outputNames, out int softMaxOut1);
-                using (var cursor = loadedView.GetRowCursor(col => col == softMaxOut1))
+                using (var cursor = loadedView.GetRowCursor(loadedView.Schema[outputNames]))
                 {
                     VBuffer<float> softMaxValue = default;
                     var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);

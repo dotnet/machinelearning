@@ -57,8 +57,8 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:rep:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:rep:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind", SortOrder = 2)]
             public ReplacementKind ReplaceWith = ReplacementKind.DefaultValue;
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Transforms
         {
             var args = new Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                     new Column() { Source = source ?? name, Name = name }
                 },
@@ -136,18 +136,18 @@ namespace Microsoft.ML.Transforms
             var h = env.Register("Categorical");
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
 
             var replaceCols = new List<MissingValueReplacingTransformer.ColumnInfo>();
             var naIndicatorCols = new List<MissingValueIndicatorTransformer.Column>();
             var naConvCols = new List<TypeConvertingTransformer.ColumnInfo>();
             var concatCols = new List<ColumnConcatenatingTransformer.TaggedColumn>();
             var dropCols = new List<string>();
-            var tmpIsMissingColNames = input.Schema.GetTempColumnNames(args.Column.Length, "IsMissing");
-            var tmpReplaceColNames = input.Schema.GetTempColumnNames(args.Column.Length, "Replace");
-            for (int i = 0; i < args.Column.Length; i++)
+            var tmpIsMissingColNames = input.Schema.GetTempColumnNames(args.Columns.Length, "IsMissing");
+            var tmpReplaceColNames = input.Schema.GetTempColumnNames(args.Columns.Length, "Replace");
+            for (int i = 0; i < args.Columns.Length; i++)
             {
-                var column = args.Column[i];
+                var column = args.Columns[i];
 
                 var addInd = column.ConcatIndicator ?? args.Concat;
                 if (!addInd)
@@ -177,7 +177,13 @@ namespace Microsoft.ML.Transforms
 
                 // Add a ConvertTransform column if necessary.
                 if (!identity)
-                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceItemType.RawKind));
+                {
+                    if (!replaceItemType.RawType.TryGetDataKind(out DataKind replaceItemTypeKind))
+                    {
+                        throw h.Except("Cannot get a DataKind for type '{0}'", replaceItemType.RawType);
+                    }
+                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceItemTypeKind));
+                }
 
                 // Add the NAReplaceTransform column.
                 replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Source, tmpReplacementColName, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
@@ -216,7 +222,7 @@ namespace Microsoft.ML.Transforms
 
             // Create the indicator columns.
             if (naIndicatorCols.Count > 0)
-                output = MissingValueIndicatorTransformer.Create(h, new MissingValueIndicatorTransformer.Arguments() { Column = naIndicatorCols.ToArray() }, input);
+                output = MissingValueIndicatorTransformer.Create(h, new MissingValueIndicatorTransformer.Arguments() { Columns = naIndicatorCols.ToArray() }, input);
 
             // Convert the indicator columns to the correct type so that they can be concatenated to the NAReplace outputs.
             if (naConvCols.Count > 0)
@@ -230,7 +236,7 @@ namespace Microsoft.ML.Transforms
 
             // Concat the NAReplaceTransform output and the NAIndicatorTransform output.
             if (naIndicatorCols.Count > 0)
-                output = ColumnConcatenatingTransformer.Create(h, new ColumnConcatenatingTransformer.TaggedArguments() { Column = concatCols.ToArray() }, output);
+                output = ColumnConcatenatingTransformer.Create(h, new ColumnConcatenatingTransformer.TaggedArguments() { Columns = concatCols.ToArray() }, output);
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)

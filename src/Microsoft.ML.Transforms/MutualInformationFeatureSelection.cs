@@ -41,9 +41,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", ShortName = "col",
-                SortOrder = 1)]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public string[] Columns;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab",
                 SortOrder = 4, Purpose = SpecialPurpose.ColumnName)]
@@ -194,12 +193,12 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             var host = env.Register(RegistrationName);
             host.CheckValue(args, nameof(args));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
             host.CheckUserArg(args.SlotsInOutput > 0, nameof(args.SlotsInOutput));
             host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
             host.Check(args.NumBins > 1, "numBins must be greater than 1.");
 
-            (string input, string output)[] cols = args.Column.Select(col => (col, col)).ToArray();
+            (string input, string output)[] cols = args.Columns.Select(col => (col, col)).ToArray();
             return new MutualInformationFeatureSelectingEstimator(env, args.LabelColumn, args.SlotsInOutput, args.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
         }
 
@@ -334,7 +333,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         internal static bool IsValidColumnType(ColumnType type)
         {
             // REVIEW: Consider supporting all integer and unsigned types.
-            int keyCount = type.GetKeyCount();
+            ulong keyCount = type.GetKeyCount();
             return
                 (0 < keyCount && keyCount < Utils.ArrayMaxSize) || type is BoolType ||
                 type == NumberType.R4 || type == NumberType.R8 || type == NumberType.I4;
@@ -389,20 +388,20 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     var colName = columns[i];
                     if (!schema.TryGetColumnIndex(colName, out int colSrc))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
                             "Source column '{0}' not found", colName);
                     }
 
                     var colType = schema[colSrc].Type;
                     if (colType is VectorType vectorType && !vectorType.IsKnownSize)
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
                             "Variable length column '{0}' is not allowed", colName);
                     }
 
                     if (!IsValidColumnType(colType.GetItemType()))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
                             "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
                     }
 
@@ -480,13 +479,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 }
                 else
                 {
-                    int labelKeyCount = labelType.GetKeyCount();
-                    Contracts.Assert(0 < labelKeyCount && labelKeyCount < Utils.ArrayMaxSize);
+                    ulong labelKeyCount = labelType.GetKeyCount();
+                    Contracts.Assert(labelKeyCount < Utils.ArrayMaxSize);
                     KeyLabelGetter<int> del = GetKeyLabels<int>;
                     var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(labelType.RawType);
                     var parameters = new object[] { trans, labelCol, labelType };
                     _labels = (VBuffer<int>)methodInfo.Invoke(this, parameters);
-                    _numLabels = labelKeyCount + 1;
+                    _numLabels = labelType.GetKeyCountAsInt32(_host) + 1;
 
                     // No need to densify or shift in this case.
                     return;
@@ -558,8 +557,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinBools(in src, ref dst);
                         });
                 }
-                int keyCount = itemType.GetKeyCount();
-                Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
+                ulong keyCount = itemType.GetKeyCount();
+                Contracts.Assert(keyCount < Utils.ArrayMaxSize);
                 Func<ColumnType, Mapper<int>> del = MakeKeyMapper<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
                 ComputeMutualInformationDelegate<int> cmiDel = ComputeMutualInformation;
@@ -573,14 +572,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             private static Mapper<T> MakeKeyMapper<T>(ColumnType type)
             {
-                int keyCount = type.GetKeyCount();
+                ulong keyCount = type.GetKeyCount();
                 Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
                 var mapper = BinKeys<T>(type);
                 return
                     (ref VBuffer<T> src, ref VBuffer<int> dst, out int min, out int lim) =>
                     {
                         min = 0;
-                        lim = keyCount + 1;
+                        lim = (int)type.GetKeyCount() + 1;
                         mapper(in src, ref dst);
                     };
             }

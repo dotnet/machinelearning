@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -22,8 +23,8 @@ namespace Microsoft.ML.Data
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column index to select", ShortName = "ind")]
-            public int[] Index;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column indices to select", Name = "Index", ShortName = "ind")]
+            public int[] Indices;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, selected columns are dropped instead of kept, with the order of kept columns being the same as the original", ShortName = "d")]
             public bool Drop;
@@ -32,7 +33,7 @@ namespace Microsoft.ML.Data
         private sealed class Bindings
         {
             /// <summary>
-            /// A collection of source column indexes after removing those we want to drop. Specifically, j=_sources[i] means
+            /// A collection of source column indices after removing those we want to drop. Specifically, j=_sources[i] means
             /// that the i-th output column in the output schema is the j-th column in the input schema.
             /// </summary>
             private readonly int[] _sources;
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Data
                 // Store user-specified arguments as the major state of this transform. Only the major states will
                 // be saved and all other attributes can be reconstructed from them.
                 _drop = args.Drop;
-                _selectedColumnIndexes = args.Index;
+                _selectedColumnIndexes = args.Indices;
 
                 // Compute actually used attributes in runtime from those major states.
                 ComputeSources(_drop, _selectedColumnIndexes, _sourceSchema, out _sources);
@@ -83,10 +84,10 @@ namespace Microsoft.ML.Data
             {
                 // Compute the mapping, <see cref="_sources"/>, from output column index to input column index.
                 if (drop)
-                    // Drop columns indexed by args.Index
+                    // Drop columns indexed by args.Indices
                     sources = Enumerable.Range(0, sourceSchema.Count).Except(selectedColumnIndexes).ToArray();
                 else
-                    // Keep columns indexed by args.Index
+                    // Keep columns indexed by args.Indices
                     sources = selectedColumnIndexes;
 
                 // Make sure the output of this transform is meaningful.
@@ -240,25 +241,30 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var input = Source.GetRowCursor(inputPred, rand);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols, rand);
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public sealed override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.

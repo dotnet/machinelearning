@@ -32,7 +32,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         public static bool CanExecute =>
 #if DEBUG
             false; // BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG
-#elif NET462
+#elif NET461
             false; // We are currently not running Benchmarks for FullFramework
 #else
             Environment.Is64BitProcess; // we don't support 32 bit yet

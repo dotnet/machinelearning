@@ -13,11 +13,7 @@ namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This class represents the <see cref="Schema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="Row"/>.
-    /// On the high level, the schema is a collection of 'columns'. Each column has the following properties:
-    /// - Column name.
-    /// - Column type.
-    /// - Metadata. The metadata itself is a 'single-row dataset' (namely, an instance of <see cref="Metadata"/>), that contains its own schema
-    /// and values.
+    /// On the high level, the schema is a collection of <see cref="Schema.Column"/>.
     /// </summary>
     [System.Diagnostics.DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
     public sealed class Schema : IReadOnlyList<Schema.Column>
@@ -73,10 +69,7 @@ namespace Microsoft.ML.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public override string ToString()
-        {
-            return $"{Count} columns";
-        }
+        public override string ToString() => $"{Count} columns";
 
         /// <summary>
         /// This class describes one column in the particular schema.
@@ -261,38 +254,6 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(_columns[i].Index == i);
                 _nameMap[_columns[i].Name] = i;
             }
-        }
-
-        /// <summary>
-        /// Manufacture an instance of <see cref="Schema"/> out of any <see cref="ISchema"/>.
-        /// </summary>
-        [BestFriend]
-        internal static Schema Create(ISchema inputSchema)
-        {
-            Contracts.CheckValue(inputSchema, nameof(inputSchema));
-
-            var builder = new SchemaBuilder();
-            for (int i = 0; i < inputSchema.ColumnCount; i++)
-            {
-                var meta = new MetadataBuilder();
-                foreach (var kvp in inputSchema.GetMetadataTypes(i))
-                {
-                    var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputSchema, i, kvp.Key);
-                    meta.Add(kvp.Key, kvp.Value, getter);
-                }
-                builder.AddColumn(inputSchema.GetColumnName(i), inputSchema.GetColumnType(i), meta.GetMetadata());
-            }
-
-            return builder.GetSchema();
-        }
-
-        private static Delegate GetMetadataGetterDelegate<TValue>(ISchema schema, int col, string kind)
-        {
-            // REVIEW: We are facing a choice here: cache 'value' and get rid of 'schema' reference altogether,
-            // or retain the reference but be more memory efficient. This code should not stick around for too long
-            // anyway, so let's not sweat too much, and opt for the latter.
-            ValueGetter<TValue> getter = (ref TValue value) => schema.GetMetadata(kind, col, ref value);
-            return getter;
         }
 
         /// <summary>

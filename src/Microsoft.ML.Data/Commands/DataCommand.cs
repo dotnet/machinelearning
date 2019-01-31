@@ -53,8 +53,9 @@ namespace Microsoft.ML.Data
                 HelpText = "Desired degree of parallelism in the data pipeline", ShortName = "n")]
             public int? Parallel;
 
-            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
-            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transform;
+            [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly,
+                HelpText = "Transform", Name ="Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transforms;
         }
 
         [BestFriend]
@@ -133,9 +134,9 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(pipe);
 
-                if (Args.Transform != null)
+                if (Args.Transforms != null)
                 {
-                    foreach (var transform in Args.Transform)
+                    foreach (var transform in Args.Transforms)
                         SendTelemetryComponent(pipe, transform.Value);
                 }
             }
@@ -159,7 +160,8 @@ namespace Microsoft.ML.Data
                 Dictionary<string, double> averageMetric = new Dictionary<string, double>();
                 foreach (Dictionary<string, IDataView> mValue in metricValues)
                 {
-                    using (var cursor = mValue.First().Value.GetRowCursor(col => true))
+                    var data = mValue.First().Value;
+                    using (var cursor = data.GetRowCursorForAllColumns())
                     {
                         while (cursor.MoveNext())
                         {
@@ -291,8 +293,8 @@ namespace Microsoft.ML.Data
                             trainPipe = pipe;
                     }
 
-                    if (Utils.Size(Args.Transform) > 0)
-                        pipe = CompositeDataLoader.Create(Host, pipe, Args.Transform);
+                    if (Utils.Size(Args.Transforms) > 0)
+                        pipe = CompositeDataLoader.Create(Host, pipe, Args.Transforms);
 
                     // Next consider loading the training data's role mapped schema.
                     trainSchema = null;
@@ -328,7 +330,7 @@ namespace Microsoft.ML.Data
 
             private IDataLoader CreateTransformChain(IDataLoader loader)
             {
-                return CompositeDataLoader.Create(Host, loader, Args.Transform);
+                return CompositeDataLoader.Create(Host, loader, Args.Transforms);
             }
 
             protected IDataLoader CreateRawLoader(

@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var reader = new TextLoader(Env, new TextLoader.Arguments
             {
-                Column = new[]
+                Columns = new[]
                 {
                     new TextLoader.Column("ScalarString", DataKind.TX, 1),
                     new TextLoader.Column("VectorString", DataKind.TX, new[] {new TextLoader.Range(1, 4) }),
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.Transformers
                         Name="BareKey",
                         Source = new[] { new TextLoader.Range(0) },
                         Type = DataKind.U4,
-                        KeyRange = new KeyRange(0, 5),
+                        KeyCount = new KeyCount(6),
                     }
                 }
             });

@@ -84,7 +84,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(TextType.Instance, schema[textIdx].Type);
             Assert.Equal(new VectorType(NumberType.R4, 3), schema[numericFeaturesIdx].Type);
             // Next actually inspect the data.
-            using (var cursor = textData.GetRowCursor(c => true))
+            using (var cursor = textData.GetRowCursorForAllColumns())
             {
                 var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
                 var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
@@ -209,7 +209,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
-                P("friend", new KeyType(typeof(uint), 0, 3)));
+                P("friend", new KeyType(typeof(uint), 3)));
             var view = new EmptyDataView(env, schema);
 
             view.AssertStatic(env, c => new
@@ -233,7 +233,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
-                P("friend", new KeyType(typeof(uint), 0, 3)));
+                P("friend", new KeyType(typeof(uint), 3)));
             var view = new EmptyDataView(env, schema);
 
             Assert.ThrowsAny<Exception>(() =>
@@ -262,23 +262,23 @@ namespace Microsoft.ML.StaticPipelineTesting
             metaBuilder.AddKeyValues<ReadOnlyMemory<char>>(3, TextType.Instance, metaValues1.CopyTo);
 
             var builder = new MetadataBuilder();
-            builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 0, 3), 2u, metaBuilder.GetMetadata());
+            builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 3), 2u, metaBuilder.GetMetadata());
 
             // Next the case where those values are ints.
             var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
             metaBuilder = new MetadataBuilder();
             metaBuilder.AddKeyValues<int>(3, NumberType.I4, metaValues2.CopyTo);
             var value2 = new VBuffer<byte>(2, 0, null, null);
-            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 2, 3), 2), value2.CopyTo, metaBuilder.GetMetadata());
+            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 3), 2), value2.CopyTo, metaBuilder.GetMetadata());
 
             // Then the case where a value of that kind exists, but is of not of the right kind, in which case it should not be identified as containing that metadata.
             metaBuilder = new MetadataBuilder();
             metaBuilder.AddPrimitiveValue(MetadataUtils.Kinds.KeyValues, NumberType.R4, 2f);
-            builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 0, 2), (ushort)1, metaBuilder.GetMetadata());
+            builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 2), (ushort)1, metaBuilder.GetMetadata());
 
             // Then a final case where metadata of that kind is actaully simply altogether absent.
             var value4 = new VBuffer<uint>(5, 0, null, null);
-            builder.Add<VBuffer<uint>>("listen", new VectorType(new KeyType(typeof(uint), 0, 2)), value4.CopyTo);
+            builder.Add<VBuffer<uint>>("listen", new VectorType(new KeyType(typeof(uint), 2)), value4.CopyTo);
 
             // Finally compose a trivial data view out of all this.
             var view = RowCursorUtils.RowAsDataView(env, MetadataUtils.MetadataAsRow(builder.GetMetadata()));
@@ -448,7 +448,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("valuesKey", out int valuesCol));
             Assert.True(schema.TryGetColumnIndex("valuesKeyKey", out int valuesKeyCol));
 
-            Assert.Equal(3, (schema[labelCol].Type as KeyType)?.Count);
+            Assert.Equal((ulong)3, (schema[labelCol].Type as KeyType)?.Count);
             Assert.True(schema[valuesCol].Type is VectorType valuesVecType && valuesVecType.ItemType is KeyType);
             Assert.True(schema[valuesKeyCol].Type is VectorType valuesKeyVecType && valuesKeyVecType.ItemType is KeyType);
 
@@ -720,7 +720,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));

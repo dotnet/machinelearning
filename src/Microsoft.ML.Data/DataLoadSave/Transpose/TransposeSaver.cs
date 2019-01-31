@@ -109,7 +109,7 @@ namespace Microsoft.ML.Data.IO
             header.Signature = TransposeLoader.Header.SignatureValue;
             header.Version = TransposeLoader.Header.WriterVersion;
             header.CompatibleVersion = TransposeLoader.Header.WriterVersion;
-            VectorType slotType = data.TransposeSchema.GetSlotType(cols[0]);
+            var slotType = data.GetSlotType(cols[0]);
             ch.AssertValue(slotType);
             header.RowCount = slotType.Size;
             header.ColumnCount = cols.Length;
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Data.IO
 
             // First write out the no-row data, limited to these columns.
             IDataView subdata = new ChooseColumnsByIndexTransform(_host,
-                new ChooseColumnsByIndexTransform.Arguments() { Index = cols }, data);
+                new ChooseColumnsByIndexTransform.Arguments() { Indices = cols }, data);
             // If we want the "dual mode" row-wise and slot-wise file, don't filter out anything.
             if (!_writeRowData)
                 subdata = SkipTakeFilter.Create(_host, new SkipTakeFilter.TakeArguments() { Count = 0 }, subdata);

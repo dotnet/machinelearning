@@ -21,24 +21,24 @@ namespace Microsoft.ML
         /// <summary>
         /// Trainers and tasks specific to binary classification problems.
         /// </summary>
-        public BinaryClassificationContext BinaryClassification { get; }
+        public BinaryClassificationCatalog BinaryClassification { get; }
         /// <summary>
         /// Trainers and tasks specific to multiclass classification problems.
         /// </summary>
-        public MulticlassClassificationContext MulticlassClassification { get; }
+        public MulticlassClassificationCatalog MulticlassClassification { get; }
         /// <summary>
         /// Trainers and tasks specific to regression problems.
         /// </summary>
-        public RegressionContext Regression { get; }
+        public RegressionCatalog Regression { get; }
         /// <summary>
         /// Trainers and tasks specific to clustering problems.
         /// </summary>
-        public ClusteringContext Clustering { get; }
+        public ClusteringCatalog Clustering { get; }
 
         /// <summary>
         /// Trainers and tasks specific to ranking problems.
         /// </summary>
-        public RankingContext Ranking { get; }
+        public RankingCatalog Ranking { get; }
 
         /// <summary>
         /// Data processing operations.
@@ -53,7 +53,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Data loading and saving.
         /// </summary>
-        public DataOperations Data { get; }
+        public DataOperationsCatalog Data { get; }
 
         // REVIEW: I think it's valuable to have the simplest possible interface for logging interception here,
         // and expand if and when necessary. Exposing classes like ChannelMessage, MessageSensitivity and so on
@@ -78,14 +78,14 @@ namespace Microsoft.ML
             _env = new LocalEnvironment(seed, conc, MakeCompositionContainer);
             _env.AddListener(ProcessMessage);
 
-            BinaryClassification = new BinaryClassificationContext(_env);
-            MulticlassClassification = new MulticlassClassificationContext(_env);
-            Regression = new RegressionContext(_env);
-            Clustering = new ClusteringContext(_env);
-            Ranking = new RankingContext(_env);
+            BinaryClassification = new BinaryClassificationCatalog(_env);
+            MulticlassClassification = new MulticlassClassificationCatalog(_env);
+            Regression = new RegressionCatalog(_env);
+            Clustering = new ClusteringCatalog(_env);
+            Ranking = new RankingCatalog(_env);
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
-            Data = new DataOperations(_env);
+            Data = new DataOperationsCatalog(_env);
         }
 
         private CompositionContainer MakeCompositionContainer()

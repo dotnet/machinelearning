@@ -27,7 +27,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1, conc: 1);
             var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                     {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Label", DataKind.TX, 1),
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Scenarios
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(new SdcaMultiClassTrainer(mlContext));
+                    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
 
             var transformer = pipeEstimator.Fit(data);

@@ -52,8 +52,8 @@ namespace Microsoft.ML.Transforms.Text
     {
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 49)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", Name = "Column", ShortName = "col", SortOrder = 49)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "20,40,100,200")]
@@ -872,9 +872,9 @@ namespace Microsoft.ML.Transforms.Text
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckValue(args.Column, nameof(args.Column));
+            env.CheckValue(args.Columns, nameof(args.Columns));
 
-            var cols = args.Column.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
+            var cols = args.Columns.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
             return TrainLdaTransformer(env, input, cols).MakeDataTransform(input);
         }
 
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Transforms.Text
             ch.AssertValue(states);
             ch.Assert(states.Length == columns.Length);
 
-            bool[] activeColumns = new bool[inputData.Schema.Count];
+            var activeColumns = new List<Schema.Column>();
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
 
@@ -951,7 +951,7 @@ namespace Microsoft.ML.Transforms.Text
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
 
                 srcCols[i] = srcCol;
-                activeColumns[srcCol] = true;
+                activeColumns.Add(inputData.Schema[srcCol]);
                 numVocabs[i] = 0;
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;
@@ -968,7 +968,7 @@ namespace Microsoft.ML.Transforms.Text
             long[] corpusSize = new long[columns.Length];
             int[] numDocArray = new int[columns.Length];
 
-            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = inputData.GetRowCursor(activeColumns))
             {
                 var getters = new ValueGetter<VBuffer<Double>>[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
@@ -977,7 +977,7 @@ namespace Microsoft.ML.Transforms.Text
                     numDocArray[i] = 0;
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
                 }
-                VBuffer<Double> src = default(VBuffer<Double>);
+                VBuffer<Double> src = default;
                 long rowCount = 0;
                 while (cursor.MoveNext())
                 {
@@ -1045,7 +1045,7 @@ namespace Microsoft.ML.Transforms.Text
                 states[i] = state;
             }
 
-            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = inputData.GetRowCursor(activeColumns))
             {
                 int[] docSizeCheck = new int[columns.Length];
                 // This could be optimized so that if multiple trainers consume the same column, it is
@@ -1057,7 +1057,7 @@ namespace Microsoft.ML.Transforms.Text
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
                 }
 
-                VBuffer<Double> src = default(VBuffer<Double>);
+                VBuffer<double> src = default;
 
                 while (cursor.MoveNext())
                 {

@@ -1,41 +1,41 @@
 ---- BoundLoader ----
 5 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
 ---- RowToRowMapperTransform ----
 6 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AT: Vec<Text>
 ---- RowToRowMapperTransform ----
 7 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AT: Vec<Text>
-  AH: Vec<Key<U4, Min:0>>
+  AH: Vec<Key<U4, 0-1073741823>>
 ---- RowToRowMapperTransform ----
 8 columns:
   A: Text
-  K: Vec<Key<U4, 3-10>, 2>
-  KS: Key<U4, 3-10>
+  K: Vec<Key<U4, 0-10>, 2>
+  KS: Key<U4, 0-10>
   B: Text
   E: Text
   AT: Vec<Text>
-  AH: Vec<Key<U4, Min:0>>
+  AH: Vec<Key<U4, 0-1073741823>>
   AH: Vec<R4, 16>
     Metadata 'SlotNames': Vec<Text, 16>: Length=16, Count=16
-      [1] '521979783|1996464617|800576372', [4] '1996464617|800576372|1369198847', [7] '800576372|1906560460|1369198847'
+      [0] '922722793|800576372|295457023', [2] '800576372|832818636|295457023', [9] '521979783|922722793|800576372'
 ---- SelectColumnsDataTransform ----
 1 columns:
   AH: Vec<R4, 16>
     Metadata 'SlotNames': Vec<Text, 16>: Length=16, Count=16
-      [1] '521979783|1996464617|800576372', [4] '1996464617|800576372|1369198847', [7] '800576372|1906560460|1369198847'
+      [0] '922722793|800576372|295457023', [2] '800576372|832818636|295457023', [9] '521979783|922722793|800576372'

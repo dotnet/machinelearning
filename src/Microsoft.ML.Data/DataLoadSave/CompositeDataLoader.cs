@@ -35,8 +35,8 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SignatureType = typeof(SignatureDataLoader))]
             public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
-            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transform;
+            [Argument(ArgumentType.Multiple, HelpText = "Transform", Name = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transforms;
         }
 
         private readonly struct TransformEx
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Data
             h.CheckValue(files, nameof(files));
 
             var loader = args.Loader.CreateComponent(h, files);
-            return CreateCore(h, loader, args.Transform);
+            return CreateCore(h, loader, args.Transforms);
         }
 
         /// <summary>
@@ -408,8 +408,6 @@ namespace Microsoft.ML.Data
 
             View = transforms[transforms.Length - 1].Transform;
             _tview = View as ITransposeDataView;
-            _transposeSchema = _tview?.TransposeSchema ?? new TransposerUtils.SimpleTransposeSchema(View.Schema);
-
             var srcLoader = transforms[0].Transform.Source as IDataLoader;
 
 #if DEBUG
@@ -565,27 +563,28 @@ namespace Microsoft.ML.Data
 
         public Schema Schema => View.Schema;
 
-        private readonly ITransposeSchema _transposeSchema;
-        ITransposeSchema ITransposeDataView.TransposeSchema => _transposeSchema;
-
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return View.GetRowCursor(predicate, rand);
+            _host.AssertValue(columnsNeeded);
+
+            return View.GetRowCursor(columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return View.GetRowCursorSet(predicate, n, rand);
+            _host.AssertValue(columnsNeeded);
+
+            return View.GetRowCursorSet(columnsNeeded, n, rand);
         }
 
-        public SlotCursor GetSlotCursor(int col)
+        VectorType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);
+
+        SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < Schema.Count, nameof(col));
-            if (_transposeSchema?.GetSlotType(col) == null)
+            if (_tview?.GetSlotType(col) == null)
             {
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
                     Schema[col].Name);

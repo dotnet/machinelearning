@@ -5,6 +5,7 @@
 // REVIEW: As soon as we stop writing sizeof(Float), or when we retire the double builds, we can remove this.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -35,8 +36,8 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column", ShortName = "col", SortOrder = 1)]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public string[] Columns;
 
             [Argument(ArgumentType.Multiple, HelpText = "If true, keep only rows that contain NA values, and filter the rest.")]
             public bool Complement = Defaults.Complement;
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="complement">If true, keep only rows that contain NA values, and filter the rest.</param>
         /// <param name="columns">Name of the columns. Only these columns will be used to filter rows having 'NA' values.</param>
         public NAFilter(IHostEnvironment env, IDataView input, bool complement = Defaults.Complement, params string[] columns)
-            : this(env, new Arguments() { Column = columns, Complement = complement }, input)
+            : this(env, new Arguments() { Columns = columns, Complement = complement }, input)
         {
         }
 
@@ -95,25 +96,25 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValue(args, nameof(args));
             Host.CheckValue(input, nameof(input));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            Host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
             Host.CheckValue(env, nameof(env));
 
-            _infos = new ColInfo[args.Column.Length];
+            _infos = new ColInfo[args.Columns.Length];
             _srcIndexToInfoIndex = new Dictionary<int, int>(_infos.Length);
             _complement = args.Complement;
             var schema = Source.Schema;
             for (int i = 0; i < _infos.Length; i++)
             {
-                string src = args.Column[i];
+                string src = args.Columns[i];
                 int index;
                 if (!schema.TryGetColumnIndex(src, out index))
-                    throw Host.ExceptUserArg(nameof(args.Column), "Source column '{0}' not found", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), "Source column '{0}' not found", src);
                 if (_srcIndexToInfoIndex.ContainsKey(index))
-                    throw Host.ExceptUserArg(nameof(args.Column), "Source column '{0}' specified multiple times", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), "Source column '{0}' specified multiple times", src);
 
                 var type = schema[index].Type;
                 if (!TestType(type))
-                    throw Host.ExceptUserArg(nameof(args.Column), $"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), $"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);
@@ -204,25 +205,27 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var input = Source.GetRowCursor(inputPred, rand);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols, rand);
             return new Cursor(this, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.

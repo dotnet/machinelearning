@@ -385,9 +385,9 @@ var data = reader.Read(dataPath);
 var transformedData = dataPipeline.Fit(data).Transform(data);
 
 // 'transformedData' is a 'promise' of data. Let's actually read it.
-var someRows = transformedData.AsDynamic
+var someRows = mlContext
     // Convert to an enumerable of user-defined type. 
-    .AsEnumerable<InspectedRowWithAllFeatures>(mlContext, reuseRowObject: false)
+    .CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
     // Take a couple values as an array.
     .Take(4).ToArray();
 
@@ -424,9 +424,9 @@ var dynamicPipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education
 var transformedData = dynamicPipeline.Fit(data).Transform(data);
 
 // 'transformedData' is a 'promise' of data. Let's actually read it.
-var someRows = transformedData
+var someRows = mlContext
     // Convert to an enumerable of user-defined type. 
-    .AsEnumerable<InspectedRowWithAllFeatures>(mlContext, reuseRowObject: false)
+    .CreateEnumerable<InspectedRowWithAllFeatures>(transformedData, reuseRowObject: false)
     // Take a couple values as an array.
     .Take(4).ToArray();
 
@@ -779,7 +779,7 @@ IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
 // Turn the data into the ML.NET data view.
 // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
 // or merely an IEnumerable.
-var trainData = mlContext.CreateStreamingDataView(churnData);
+var trainData = mlContext.Data.ReadFromEnumerable(churnData);
 
 // Now note that 'trainData' is just an IDataView, so we face a choice here: either declare the static type
 // and proceed in the statically typed fashion, or keep dynamic types and build a dynamic pipeline.

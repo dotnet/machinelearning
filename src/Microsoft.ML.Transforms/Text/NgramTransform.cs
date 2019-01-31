@@ -78,8 +78,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram")]
             public int NgramLength = NgramExtractingEstimator.Defaults.NgramLength;
@@ -301,16 +301,16 @@ namespace Microsoft.ML.Transforms.Text
             // i in _counts counts how many (i+1)-grams are in the pool for column iinfo.
             var counts = new int[columns.Length][];
             var ngramMaps = new SequencePool[columns.Length];
-            var activeInput = new bool[trainingData.Schema.Count];
+            var activeCols = new List<Schema.Column>();
             var srcTypes = new ColumnType[columns.Length];
             var srcCols = new int[columns.Length];
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 trainingData.Schema.TryGetColumnIndex(columns[iinfo].Input, out srcCols[iinfo]);
                 srcTypes[iinfo] = trainingData.Schema[srcCols[iinfo]].Type;
-                activeInput[srcCols[iinfo]] = true;
+                activeCols.Add(trainingData.Schema[srcCols[iinfo]]);
             }
-            using (var cursor = trainingData.GetRowCursor(col => activeInput[col]))
+            using (var cursor = trainingData.GetRowCursor(activeCols))
             using (var pch = env.StartProgressChannel("Building n-gram dictionary"))
             {
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)
@@ -485,14 +485,14 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
 
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     var maxNumTerms = Utils.Size(item.MaxNumTerms) > 0 ? item.MaxNumTerms : args.MaxNumTerms;
                     cols[i] = new ColumnInfo(item.Source ?? item.Name,
                         item.Name,
@@ -581,7 +581,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
-                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType().GetKeyCount()))
+                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType()))
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
@@ -595,14 +595,14 @@ namespace Microsoft.ML.Transforms.Text
 
             private void GetSlotNames(int iinfo, int size, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
+                var itemType = _srcTypes[iinfo].GetItemType();
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-
-                var keyCount = _srcTypes[iinfo].GetItemType().GetKeyCount();
-                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues(keyCount));
+                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues(itemType));
 
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
                 // Get the key values of the unigrams.
+                var keyCount = itemType.GetKeyCountAsInt32(Host);
                 InputSchema[_srcCols[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref unigramNames);
                 Host.Check(unigramNames.Length == keyCount);
 

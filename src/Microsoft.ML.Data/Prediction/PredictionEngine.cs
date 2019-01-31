@@ -27,7 +27,7 @@ namespace Microsoft.ML
             env.AssertValue(pipe);
             env.AssertValueOrNull(schemaDefinition);
 
-            _cursorablePipe = pipe.AsCursorable<TDst>(env, ignoreMissingColumns, schemaDefinition);
+            _cursorablePipe = env.AsCursorable<TDst>(pipe, ignoreMissingColumns, schemaDefinition);
             _counter = 0;
         }
 

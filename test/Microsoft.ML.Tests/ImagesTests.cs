@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
             }, new MultiFileSource(dataFile));
             var invalidData = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.R4, 0),
                     }
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Tests
 
             cropped.Schema.TryGetColumnIndex("ImagePath", out int pathColumn);
             cropped.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = cropped.GetRowCursor((x) => true))
+            using (var cursor = cropped.GetRowCursorForAllColumns())
             {
                 var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(pathColumn);
                 ReadOnlyMemory<char> path = default;
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tests
             DeleteOutputPath(fname);
 
             grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
-            using (var cursor = grey.GetRowCursor((x) => true))
+            using (var cursor = grey.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(greyColumn);
                 Bitmap bitmap = default;
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Tests
                 InterleaveArgb = true,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Tests
                 InterleaveArgb = true,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Tests
                 InterleaveArgb = false,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Tests
                 InterleaveArgb = false,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -457,7 +457,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
             {
                 InterleaveArgb = true,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
@@ -488,7 +488,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -537,7 +537,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
             {
                 InterleaveArgb = true,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -589,7 +589,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
             {
                 InterleaveArgb = false,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
@@ -620,7 +620,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;
@@ -655,7 +655,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -668,7 +668,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
             {
                 InterleaveArgb = false,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
@@ -685,7 +685,7 @@ namespace Microsoft.ML.Tests
 
             backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
             backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
-            using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
                 var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
                 Bitmap restoredBitmap = default;

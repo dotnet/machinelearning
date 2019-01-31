@@ -5,10 +5,10 @@
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// A base class for a <see cref="RowCursor"/> that has an input cursor, but still needs
-    /// to do work on <see cref="RowCursor.MoveNext"/>/<see cref="RowCursor.MoveMany(long)"/>. Note
-    /// that the default <see cref="LinkedRowRootCursorBase.GetGetter{TValue}(int)"/> assumes
-    /// that each input column is exposed as an output column with the same column index.
+    /// A base class for a <see cref="RowCursor"/> that has an input cursor, but still needs to do work on
+    /// <see cref="RowCursor.MoveNext"/>. Note that the default
+    /// <see cref="LinkedRowRootCursorBase.GetGetter{TValue}(int)"/> assumes that each input column is exposed as an
+    /// output column with the same column index.
     /// </summary>
     [BestFriend]
     internal abstract class LinkedRowRootCursorBase : LinkedRootCursorBase

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.ML;
@@ -383,12 +384,13 @@ namespace Microsoft.ML.Data.IO
             ch.AssertNonEmpty(cols);
 
             // Determine the active columns and whether there is header information.
-            bool[] active = new bool[data.Schema.Count];
+            var activeCols = new List<Schema.Column>();
             for (int i = 0; i < cols.Length; i++)
             {
-                ch.Check(0 <= cols[i] && cols[i] < active.Length);
-                ch.Check(data.Schema[cols[i]].Type.GetItemType().RawKind != 0);
-                active[cols[i]] = true;
+                ch.Check(0 <= cols[i] && cols[i] < data.Schema.Count);
+                ColumnType itemType = data.Schema[cols[i]].Type.GetItemType();
+                ch.Check(itemType is KeyType || itemType.IsStandardScalar());
+                activeCols.Add(data.Schema[cols[i]]);
             }
 
             bool hasHeader = false;
@@ -412,7 +414,7 @@ namespace Microsoft.ML.Data.IO
                 }
             }
 
-            using (var cursor = data.GetRowCursor(i => active[i]))
+            using (var cursor = data.GetRowCursor(activeCols))
             {
                 var pipes = new ValueWriter[cols.Length];
                 for (int i = 0; i < cols.Length; i++)
@@ -485,28 +487,15 @@ namespace Microsoft.ML.Data.IO
 
         private TextLoader.Column GetColumn(string name, ColumnType type, int? start)
         {
-            DataKind? kind;
-            KeyRange keyRange = null;
+            KeyCount keyCount = null;
             VectorType vectorType = type as VectorType;
             ColumnType itemType = vectorType?.ItemType ?? type;
             if (itemType is KeyType key)
-            {
-                if (!key.Contiguous)
-                    keyRange = new KeyRange(key.Min, contiguous: false);
-                else if (key.Count == 0)
-                    keyRange = new KeyRange(key.Min);
-                else
-                {
-                    Contracts.Assert(key.Count >= 1);
-                    keyRange = new KeyRange(key.Min, key.Min + (ulong)(key.Count - 1));
-                }
-                kind = key.RawKind;
-            }
-            else
-                kind = itemType.RawKind;
+                keyCount = new KeyCount(key.Count);
+
+            DataKind kind = itemType.GetRawKind();
 
             TextLoader.Range[] source = null;
-
             TextLoader.Range range = null;
             int minValue = start ?? -1;
             if (vectorType?.IsKnownSize == true)
@@ -516,7 +505,7 @@ namespace Microsoft.ML.Data.IO
             else
                 range = new TextLoader.Range { Min = minValue };
             source = new TextLoader.Range[1] { range };
-            return new TextLoader.Column() { Name = name, KeyRange = keyRange, Source = source, Type = kind };
+            return new TextLoader.Column() { Name = name, KeyCount = keyCount, Source = source, Type = kind };
         }
 
         private sealed class State

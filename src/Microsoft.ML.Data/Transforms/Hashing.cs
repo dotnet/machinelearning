@@ -38,9 +38,9 @@ namespace Microsoft.ML.Transforms.Conversions
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col",
-                SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive",
                 ShortName = "bits", SortOrder = 2)]
@@ -221,9 +221,9 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private ColumnType GetOutputType(Schema inputSchema, ColumnInfo column)
         {
-            var keyCount = column.HashBits < 31 ? 1 << column.HashBits : 0;
+            var keyCount = (ulong)1 << column.HashBits;
             inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
-            var itemType = new KeyType(DataKind.U4, 0, keyCount, keyCount > 0);
+            var itemType = new KeyType(typeof(uint), keyCount);
             var srcType = inputSchema[srcCol].Type;
             if (srcType is VectorType vectorType)
                 return new VectorType(itemType, vectorType.Size);
@@ -254,12 +254,13 @@ namespace Microsoft.ML.Transforms.Conversions
             var types = new ColumnType[_columns.Length];
             List<int> invertIinfos = null;
             List<int> invertHashMaxCounts = null;
-            HashSet<int> sourceColumnsForInvertHash = new HashSet<int>();
+            var sourceColumnsForInvertHash = new List<Schema.Column>();
             for (int i = 0; i < _columns.Length; i++)
             {
-                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
+                Schema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].input);
+                if (srcCol == null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
-                CheckInputColumn(input.Schema, i, srcCol);
+                CheckInputColumn(input.Schema, i, srcCol.Value.Index);
 
                 types[i] = GetOutputType(input.Schema, _columns[i]);
                 int invertHashMaxCount;
@@ -271,12 +272,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     Utils.Add(ref invertIinfos, i);
                     Utils.Add(ref invertHashMaxCounts, invertHashMaxCount);
-                    sourceColumnsForInvertHash.Add(srcCol);
+                    sourceColumnsForInvertHash.Add(srcCol.Value);
                 }
             }
             if (Utils.Size(sourceColumnsForInvertHash) > 0)
             {
-                using (RowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
+                using (RowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash))
                 {
                     using (var ch = Host.Start("Invert hash building"))
                     {
@@ -302,7 +303,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
-                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCount());
+                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCountAsInt32(Host));
                             _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }
@@ -380,11 +381,11 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
                 var kind = item.InvertHash ?? args.InvertHash;
                 cols[i] = new ColumnInfo(item.Source ?? item.Name,
                     item.Name,
@@ -409,102 +410,91 @@ namespace Microsoft.ML.Transforms.Conversions
 
             if (srcType is KeyType)
             {
-                switch (srcType.RawKind)
-                {
-                    case DataKind.U1:
-                        return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
-                    case DataKind.U2:
-                        return MakeScalarHashGetter<ushort, HashKey2>(input, srcCol, seed, mask);
-                    case DataKind.U4:
-                        return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
-                    default:
-                        Host.Assert(srcType.RawKind == DataKind.U8);
-                        return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
-                }
+                if (srcType.RawType == typeof(uint))
+                    return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
+                else if (srcType.RawType == typeof(ulong))
+                    return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
+                else if (srcType.RawType == typeof(ushort))
+                    return MakeScalarHashGetter<ushort, HashKey2>(input, srcCol, seed, mask);
+
+                Host.Assert(srcType.RawType == typeof(byte));
+                return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
             }
 
-            switch (srcType.RawKind)
-            {
-                case DataKind.U1:
-                    return MakeScalarHashGetter<byte, HashU1>(input, srcCol, seed, mask);
-                case DataKind.U2:
-                    return MakeScalarHashGetter<ushort, HashU2>(input, srcCol, seed, mask);
-                case DataKind.U4:
-                    return MakeScalarHashGetter<uint, HashU4>(input, srcCol, seed, mask);
-                case DataKind.U8:
-                    return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
-                case DataKind.U16:
-                    return MakeScalarHashGetter<RowId, HashU16>(input, srcCol, seed, mask);
-                case DataKind.I1:
-                    return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
-                case DataKind.I2:
-                    return MakeScalarHashGetter<short, HashI2>(input, srcCol, seed, mask);
-                case DataKind.I4:
-                    return MakeScalarHashGetter<int, HashI4>(input, srcCol, seed, mask);
-                case DataKind.I8:
-                    return MakeScalarHashGetter<long, HashI8>(input, srcCol, seed, mask);
-                case DataKind.R4:
-                    return MakeScalarHashGetter<float, HashFloat>(input, srcCol, seed, mask);
-                case DataKind.R8:
-                    return MakeScalarHashGetter<double, HashDouble>(input, srcCol, seed, mask);
-                case DataKind.BL:
-                    return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
-                default:
-                    Host.Assert(srcType.RawKind == DataKind.Text);
-                    return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask);
-            }
+            if (srcType.RawType == typeof(ReadOnlyMemory<char>))
+                return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(float))
+                return MakeScalarHashGetter<float, HashFloat>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(double))
+                return MakeScalarHashGetter<double, HashDouble>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(sbyte))
+                return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(short))
+                return MakeScalarHashGetter<short, HashI2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(int))
+                return MakeScalarHashGetter<int, HashI4>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(long))
+                return MakeScalarHashGetter<long, HashI8>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(byte))
+                return MakeScalarHashGetter<byte, HashU1>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(ushort))
+                return MakeScalarHashGetter<ushort, HashU2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(uint))
+                return MakeScalarHashGetter<uint, HashU4>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(ulong))
+                return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(RowId))
+                return MakeScalarHashGetter<RowId, HashU16>(input, srcCol, seed, mask);
+
+            Host.Assert(srcType.RawType == typeof(bool));
+            return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
         }
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVec(Row input, int iinfo, int srcCol, VectorType srcType)
         {
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
 
+            Type rawType = srcType.ItemType.RawType;
             if (srcType.ItemType is KeyType)
             {
-                switch (srcType.ItemType.RawKind)
-                {
-                    case DataKind.U1:
-                        return ComposeGetterVecCore<byte, HashKey1>(input, iinfo, srcCol, srcType);
-                    case DataKind.U2:
-                        return ComposeGetterVecCore<ushort, HashKey2>(input, iinfo, srcCol, srcType);
-                    case DataKind.U4:
-                        return ComposeGetterVecCore<uint, HashKey4>(input, iinfo, srcCol, srcType);
-                    default:
-                        Host.Assert(srcType.ItemType.RawKind == DataKind.U8);
-                        return ComposeGetterVecCore<ulong, HashKey8>(input, iinfo, srcCol, srcType);
-                }
+                if (rawType == typeof(byte))
+                    return ComposeGetterVecCore<byte, HashKey1>(input, iinfo, srcCol, srcType);
+                else if (rawType == typeof(ushort))
+                    return ComposeGetterVecCore<ushort, HashKey2>(input, iinfo, srcCol, srcType);
+                else if (rawType == typeof(uint))
+                    return ComposeGetterVecCore<uint, HashKey4>(input, iinfo, srcCol, srcType);
+
+                Host.Assert(rawType == typeof(ulong));
+                return ComposeGetterVecCore<ulong, HashKey8>(input, iinfo, srcCol, srcType);
             }
 
-            switch (srcType.ItemType.RawKind)
-            {
-                case DataKind.U1:
-                    return ComposeGetterVecCore<byte, HashU1>(input, iinfo, srcCol, srcType);
-                case DataKind.U2:
-                    return ComposeGetterVecCore<ushort, HashU2>(input, iinfo, srcCol, srcType);
-                case DataKind.U4:
-                    return ComposeGetterVecCore<uint, HashU4>(input, iinfo, srcCol, srcType);
-                case DataKind.U8:
-                    return ComposeGetterVecCore<ulong, HashU8>(input, iinfo, srcCol, srcType);
-                case DataKind.U16:
-                    return ComposeGetterVecCore<RowId, HashU16>(input, iinfo, srcCol, srcType);
-                case DataKind.I1:
-                    return ComposeGetterVecCore<sbyte, HashI1>(input, iinfo, srcCol, srcType);
-                case DataKind.I2:
-                    return ComposeGetterVecCore<short, HashI2>(input, iinfo, srcCol, srcType);
-                case DataKind.I4:
-                    return ComposeGetterVecCore<int, HashI4>(input, iinfo, srcCol, srcType);
-                case DataKind.I8:
-                    return ComposeGetterVecCore<long, HashI8>(input, iinfo, srcCol, srcType);
-                case DataKind.R4:
-                    return ComposeGetterVecCore<float, HashFloat>(input, iinfo, srcCol, srcType);
-                case DataKind.R8:
-                    return ComposeGetterVecCore<double, HashDouble>(input, iinfo, srcCol, srcType);
-                case DataKind.BL:
-                    return ComposeGetterVecCore<bool, HashBool>(input, iinfo, srcCol, srcType);
-                default:
-                    Host.Assert(srcType.ItemType.RawKind == DataKind.TX);
-                    return ComposeGetterVecCore<ReadOnlyMemory<char>, HashText>(input, iinfo, srcCol, srcType);
-            }
+            if (rawType == typeof(byte))
+                return ComposeGetterVecCore<byte, HashU1>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(ushort))
+                return ComposeGetterVecCore<ushort, HashU2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(uint))
+                return ComposeGetterVecCore<uint, HashU4>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(ulong))
+                return ComposeGetterVecCore<ulong, HashU8>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(RowId))
+                return ComposeGetterVecCore<RowId, HashU16>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(sbyte))
+                return ComposeGetterVecCore<sbyte, HashI1>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(short))
+                return ComposeGetterVecCore<short, HashI2>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(int))
+                return ComposeGetterVecCore<int, HashI4>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(long))
+                return ComposeGetterVecCore<long, HashI8>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(float))
+                return ComposeGetterVecCore<float, HashFloat>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(double))
+                return ComposeGetterVecCore<double, HashDouble>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(bool))
+                return ComposeGetterVecCore<bool, HashBool>(input, iinfo, srcCol, srcType);
+
+            Host.Assert(srcType.ItemType == TextType.Instance);
+            return ComposeGetterVecCore<ReadOnlyMemory<char>, HashText>(input, iinfo, srcCol, srcType);
         }
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(Row input, int iinfo, int srcCol, VectorType srcType)

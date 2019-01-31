@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
@@ -31,8 +32,8 @@ namespace Microsoft.ML.Transforms
     {
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s)", ShortName = "col", SortOrder = 1)]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public string[] Columns;
         }
 
         private sealed class Bindings : ColumnBindingsBase
@@ -67,15 +68,15 @@ namespace Microsoft.ML.Transforms
 
             public static Bindings Create(Arguments args, Schema input, OptionalColumnTransform parent)
             {
-                var names = new string[args.Column.Length];
-                var columnTypes = new ColumnType[args.Column.Length];
-                var srcCols = new int[args.Column.Length];
-                for (int i = 0; i < args.Column.Length; i++)
+                var names = new string[args.Columns.Length];
+                var columnTypes = new ColumnType[args.Columns.Length];
+                var srcCols = new int[args.Columns.Length];
+                for (int i = 0; i < args.Columns.Length; i++)
                 {
-                    names[i] = args.Column[i];
+                    names[i] = args.Columns[i];
                     int col;
                     bool success = input.TryGetColumnIndex(names[i], out col);
-                    Contracts.CheckUserArg(success, nameof(args.Column));
+                    Contracts.CheckUserArg(success, nameof(args.Columns));
                     columnTypes[i] = input[col].Type;
                     srcCols[i] = col;
                 }
@@ -241,7 +242,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="columns">Columns to transform.</param>
         public OptionalColumnTransform(IHostEnvironment env, IDataView input, params string[] columns)
-            : this(env, new Arguments() { Column = columns }, input)
+            : this(env, new Arguments() { Columns = columns }, input)
         {
         }
 
@@ -252,7 +253,7 @@ namespace Microsoft.ML.Transforms
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            Host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
 
             _bindings = Bindings.Create(args, Source.Schema, this);
         }
@@ -296,29 +297,33 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var input = Source.GetRowCursor(inputPred);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols);
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var inputPred = _bindings.GetDependencies(predicate);
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+
             var active = _bindings.GetActive(predicate);
             RowCursor input;
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
-                var inputs = Source.GetRowCursorSet(inputPred, n);
+                var inputs = Source.GetRowCursorSet(inputCols, n);
                 Host.AssertNonEmpty(inputs);
 
                 if (inputs.Length != 1)
@@ -331,7 +336,7 @@ namespace Microsoft.ML.Transforms
                 input = inputs[0];
             }
             else
-                input = Source.GetRowCursor(inputPred);
+                input = Source.GetRowCursor(inputCols);
 
             return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
         }

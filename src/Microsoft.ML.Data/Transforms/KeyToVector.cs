@@ -77,8 +77,9 @@ namespace Microsoft.ML.Transforms.Conversions
         }
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.")]
@@ -212,11 +213,11 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
 
                 cols[i] = new ColumnInfo(item.Source ?? item.Name,
                     item.Name,
@@ -264,10 +265,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     int valueCount = _infos[i].TypeSrc.GetValueCount();
+                    int keyCount = _infos[i].TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
                     if (_parent._columns[i].Bag || valueCount == 1)
-                        _types[i] = new VectorType(NumberType.Float, _infos[i].TypeSrc.GetItemType().GetKeyCount());
+                        _types[i] = new VectorType(NumberType.Float, keyCount);
                     else
-                        _types[i] = new VectorType(NumberType.Float, valueCount, _infos[i].TypeSrc.GetItemType().GetKeyCount());
+                        _types[i] = new VectorType(NumberType.Float, valueCount, keyCount);
                 }
             }
 
@@ -313,7 +315,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
                     typeNames = inputMetadata.Schema[metaKeyValuesCol].Type as VectorType;
                 if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextType) ||
-                    typeNames.Size != srcType.GetItemType().GetKeyCount())
+                    typeNames.Size != srcType.GetItemType().GetKeyCountAsInt32(Host))
                 {
                     typeNames = null;
                 }
@@ -384,7 +386,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 else
                     namesSlotSrc = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(typeSrc.Size);
 
-                int keyCount = typeSrc.ItemType.GetKeyCount();
+                int keyCount = typeSrc.ItemType.GetKeyCountAsInt32(Host);
                 int slotLim = _types[iinfo].Size;
                 Host.Assert(slotLim == (long)typeSrc.Size * keyCount);
 
@@ -432,7 +434,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(valueCount > 0);
 
                 int[] ranges = new int[valueCount * 2];
-                int size = info.TypeSrc.GetItemType().GetKeyCount();
+                int size = info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
 
                 ranges[0] = 0;
                 ranges[1] = size - 1;
@@ -468,9 +470,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.AssertValue(input);
                 KeyType keyTypeSrc = _infos[iinfo].TypeSrc as KeyType;
                 Host.Assert(keyTypeSrc != null);
-                Host.Assert(keyTypeSrc.Count == _types[iinfo].Size);
-
-                int size = keyTypeSrc.Count;
+                int size = keyTypeSrc.GetCountAsInt32(Host);
+                Host.Assert(size == _types[iinfo].Size);
                 Host.Assert(size > 0);
                 input.Schema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
                 Host.Assert(srcCol >= 0);
@@ -507,9 +508,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 KeyType keyTypeSrc = srcVectorType.ItemType as KeyType;
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(_parent._columns[iinfo].Bag);
-                Host.Assert(keyTypeSrc.Count == _types[iinfo].Size);
-
-                int size = keyTypeSrc.Count;
+                int size = keyTypeSrc.GetCountAsInt32(Host);
+                Host.Assert(size == _types[iinfo].Size);
                 Host.Assert(size > 0);
 
                 int cv = srcVectorType.Size;
@@ -555,7 +555,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(!_parent._columns[iinfo].Bag);
 
-                int size = keyTypeSrc.Count;
+                int size = keyTypeSrc.GetCountAsInt32(Host);
                 Host.Assert(size > 0);
 
                 int cv = srcVectorType.Size;
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 ColumnType srcType = info.TypeSrc;
                 ColumnType srcItemType = srcType.GetItemType();
-                int keyCount = srcItemType.GetKeyCount();
+                int keyCount = srcItemType.GetKeyCountAsInt32(Host);
                 Host.Assert(keyCount > 0);
                 // If the input type is scalar, we can just use the fanout function.
                 if (!(srcType is VectorType srcVectorType))
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 string opType = "OneHotEncoder";
                 var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.GetItemType().GetKeyCount()).Select(x => (long)x));
+                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.GetItemType().GetKeyCountAsInt32(Host)).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
                 if (_parent._columns[iinfo].Bag)
                 {
@@ -767,7 +767,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if ((col.ItemType.GetItemType().RawKind == default) || !(col.ItemType is VectorType || col.ItemType is PrimitiveType))
+                if (!col.ItemType.IsStandardScalar())
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 var metadata = new List<SchemaShape.Column>();

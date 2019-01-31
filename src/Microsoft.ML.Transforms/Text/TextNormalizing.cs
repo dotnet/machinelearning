@@ -56,8 +56,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 1)]
             public TextNormalizingEstimator.CaseNormalizationMode TextCase = TextNormalizingEstimator.Defaults.TextCase;
@@ -174,11 +174,11 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new (string input, string output)[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new (string input, string output)[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
                 cols[i] = (item.Source ?? item.Name, item.Name);
             }
             return new TextNormalizingTransformer(env, args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers, cols).MakeDataTransform(input);
