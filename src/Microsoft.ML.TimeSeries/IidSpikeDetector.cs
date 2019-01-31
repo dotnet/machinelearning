@@ -35,9 +35,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
     public sealed class IidSpikeDetector : IidAnomalyDetectionBase
     {
         internal const string Summary = "This transform detects the spikes in a i.i.d. sequence using adaptive kernel density estimation.";
-        public const string LoaderSignature = "IidSpikeDetector";
-        public const string UserName = "IID Spike Detection";
-        public const string ShortName = "ispike";
+        internal const string LoaderSignature = "IidSpikeDetector";
+        internal const string UserName = "IID Spike Detection";
+        internal const string ShortName = "ispike";
 
         public sealed class Arguments : TransformInputBase
         {

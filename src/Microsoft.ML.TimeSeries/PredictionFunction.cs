@@ -200,7 +200,7 @@ namespace Microsoft.ML.TimeSeries
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }
 
-        protected override Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        internal override Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(IsRowToRowMapper(transformer), nameof(transformer), "Must be a row to row mapper or " + nameof(IStatefulTransformer));

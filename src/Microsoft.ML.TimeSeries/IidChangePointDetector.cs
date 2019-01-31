@@ -36,9 +36,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
     public sealed class IidChangePointDetector : IidAnomalyDetectionBase
     {
         internal const string Summary = "This transform detects the change-points in an i.i.d. sequence using adaptive kernel density estimation and martingales.";
-        public const string LoaderSignature = "IidChangePointDetector";
-        public const string UserName = "IID Change Point Detection";
-        public const string ShortName = "ichgpnt";
+        internal const string LoaderSignature = "IidChangePointDetector";
+        internal const string UserName = "IID Change Point Detection";
+        internal const string ShortName = "ichgpnt";
 
         public sealed class Arguments : TransformInputBase
         {

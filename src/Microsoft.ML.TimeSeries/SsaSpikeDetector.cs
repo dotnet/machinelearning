@@ -36,9 +36,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
     public sealed class SsaSpikeDetector : SsaAnomalyDetectionBase
     {
         internal const string Summary = "This transform detects the spikes in a seasonal time-series using Singular Spectrum Analysis (SSA).";
-        public const string LoaderSignature = "SsaSpikeDetector";
-        public const string UserName = "SSA Spike Detection";
-        public const string ShortName = "spike";
+        internal const string LoaderSignature = "SsaSpikeDetector";
+        internal const string UserName = "SSA Spike Detection";
+        internal const string ShortName = "spike";
 
         public sealed class Arguments : TransformInputBase
         {

@@ -27,7 +27,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.IidChangePointDetector.Summary, UserName = TimeSeriesProcessing.IidChangePointDetector.UserName, ShortName = TimeSeriesProcessing.IidChangePointDetector.ShortName)]
-        public static CommonOutputs.TransformOutput IidChangePointDetector(IHostEnvironment env, IidChangePointDetector.Arguments input)
+        internal static CommonOutputs.TransformOutput IidChangePointDetector(IHostEnvironment env, IidChangePointDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidChangePointDetector", input);
             var view = new IidChangePointEstimator(h, input).Fit(input.Data).Transform(input.Data);
@@ -39,7 +39,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.IidSpikeDetector.Summary, UserName = TimeSeriesProcessing.IidSpikeDetector.UserName, ShortName = TimeSeriesProcessing.IidSpikeDetector.ShortName)]
-        public static CommonOutputs.TransformOutput IidSpikeDetector(IHostEnvironment env, IidSpikeDetector.Arguments input)
+        internal static CommonOutputs.TransformOutput IidSpikeDetector(IHostEnvironment env, IidSpikeDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidSpikeDetector", input);
             var view = new IidSpikeEstimator(h, input).Fit(input.Data).Transform(input.Data);
@@ -87,7 +87,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.SsaChangePointDetector.Summary, UserName = TimeSeriesProcessing.SsaChangePointDetector.UserName, ShortName = TimeSeriesProcessing.SsaChangePointDetector.ShortName)]
-        public static CommonOutputs.TransformOutput SsaChangePointDetector(IHostEnvironment env, SsaChangePointDetector.Arguments input)
+        internal static CommonOutputs.TransformOutput SsaChangePointDetector(IHostEnvironment env, SsaChangePointDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaChangePointDetector", input);
             var view = new SsaChangePointEstimator(h, input).Fit(input.Data).Transform(input.Data);
@@ -99,7 +99,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.SsaSpikeDetector.Summary, UserName = TimeSeriesProcessing.SsaSpikeDetector.UserName, ShortName = TimeSeriesProcessing.SsaSpikeDetector.ShortName)]
-        public static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Arguments input)
+        internal static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaSpikeDetector", input);
             var view = new SsaSpikeEstimator(h, input).Fit(input.Data).Transform(input.Data);
