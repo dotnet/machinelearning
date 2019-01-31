@@ -77,7 +77,7 @@ namespace Microsoft.ML.Auto
 
         public static IDictionary<string, object> BuildPipelineNodeProps(TrainerName trainerName, IEnumerable<SweepableParam> sweepParams)
         {
-            if (trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
+            if(trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
                 trainerName == TrainerName.LightGbmRegression)
             {
                 return BuildLightGbmPipelineNodeProps(sweepParams);
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Auto
 
             var props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
             props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;
-
+            
             return props;
         }
 
@@ -155,9 +155,24 @@ namespace Microsoft.ML.Auto
                     {
                         var optIndex = (int)dp.RawValue;
                         //Contracts.Assert(0 <= optIndex && optIndex < dp.Options.Length, $"Options index out of range: {optIndex}");
-                        var option = dp.Options[optIndex];
+                        var option = dp.Options[optIndex].ToString().ToLower();
 
-                        if (option != null)
+                        // Handle <Auto> string values in sweep params
+                        if (option == "auto" || option == "<auto>" || option == "< auto >")
+                        {
+                            //Check if nullable type, in which case 'null' is the auto value.
+                            if (Nullable.GetUnderlyingType(fi.FieldType) != null)
+                                fi.SetValue(obj, null);
+                            else if (fi.FieldType.IsEnum)
+                            {
+                                // Check if there is an enum option named Auto
+                                var enumDict = fi.FieldType.GetEnumValues().Cast<int>()
+                                    .ToDictionary(v => Enum.GetName(fi.FieldType, v), v => v);
+                                if (enumDict.ContainsKey("Auto"))
+                                    fi.SetValue(obj, enumDict["Auto"]);
+                            }
+                        }
+                        else
                             SetValue(fi, (IComparable)dp.Options[optIndex], obj, propType);
                     }
                     else
