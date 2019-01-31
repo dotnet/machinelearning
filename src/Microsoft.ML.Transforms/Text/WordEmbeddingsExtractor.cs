@@ -727,11 +727,11 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var parsedData = new ConcurrentBag<(string key, float[] values, long lineNumber)>();
                     int skippedLinesCount = Math.Max(1, _linesToSkip);
-
+                    var invariantCulture = _modelKind != null;
                     Parallel.ForEach(File.ReadLines(_modelFileNameWithPath).Skip(skippedLinesCount), GetParallelOptions(hostEnvironment),
                         (line, parallelState, lineNumber) =>
                         {
-                            (bool isSuccess, string key, float[] values) = LineParser.ParseKeyThenNumbers(line);
+                            (bool isSuccess, string key, float[] values) = LineParser.ParseKeyThenNumbers(line, invariantCulture);
 
                             if (isSuccess)
                                 parsedData.Add((key, values, lineNumber + skippedLinesCount));
@@ -870,10 +870,14 @@ namespace Microsoft.ML.Transforms.Text
         public WordEmbeddingsExtractingTransformer Fit(IDataView input)
         {
             bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);
+            WordEmbeddingsExtractingTransformer transformer;
             if (customLookup)
-                return new WordEmbeddingsExtractingTransformer(_host, _customLookupTable, _columns);
+                transformer = new WordEmbeddingsExtractingTransformer(_host, _customLookupTable, _columns);
             else
-                return new WordEmbeddingsExtractingTransformer(_host, _modelKind.Value, _columns);
+                transformer = new WordEmbeddingsExtractingTransformer(_host, _modelKind.Value, _columns);
+            // Validate input schema.
+            transformer.GetOutputSchema(input.Schema);
+            return transformer;
         }
     }
 }
