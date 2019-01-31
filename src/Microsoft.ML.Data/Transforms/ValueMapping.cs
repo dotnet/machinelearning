@@ -33,10 +33,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Transforms.Conversions
 {
-    /// <summary>
-    /// The ValueMappingEstimator is a 1-1 mapping from a key to value. This particular class load the mappings from an <see cref="IDataView"/>.
-    /// This gives user the flexibility to load the mapping from file instead of using IEnumerable in <see cref="ValueMappingEstimator{TKey, TValue}"/>
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
     public class ValueMappingEstimator : TrivialEstimator<ValueMappingTransformer>
     {
         private readonly (string outputColumnName, string inputColumnName)[] _columns;

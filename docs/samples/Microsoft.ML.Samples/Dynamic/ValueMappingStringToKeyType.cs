@@ -19,9 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
             public string EducationCategory = default;
         }
 
-        ///<summary>
-        /// This example demonstrates the use of KeyTypes by setting treatValuesAsKeyTypes to true, 
-        /// <see cref="ValueMappingEstimator.ValueMappingEstimator(IHostEnvironment, IEnumerable{TKey}, IEnumerable{TValue}, bool, (string input, string output)[])")/> to true.
+        /// This example demonstrates the use of KeyTypes in the ValueMappingEstimator by setting treatValuesAsKeyTypes to true, 
         /// This is useful in cases where you want the output to be integer based rather than the actual value.
         ///
         /// When using KeyTypes as a Value, the ValueMappingEstimator will do one of the following:
@@ -34,16 +32,15 @@ namespace Microsoft.ML.Samples.Dynamic
         /// we can convert a KeyType back to the actual value the KeyType represents. To demonstrate
         /// the reverse lookup and to confirm the correct value is mapped, a KeyToValueEstimator is added
         /// to the pipeline to convert back to the original value.
-        /// </summary>
         public static void Run()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext();
+            var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
 
             // Creating a list of keys based on the Education values from the dataset
             // These lists are created by hand for the demonstration, but the ValueMappingEstimator does take an IEnumerable.
@@ -58,24 +55,24 @@ namespace Microsoft.ML.Samples.Dynamic
             var educationValues = new List<string>()
             {
                 "Cat1",
-                "Cat2", 
+                "Cat2",
                 "Cat3"
             };
 
             // Generate the ValueMappingEstimator that will output KeyTypes even though our values are strings.
             // The KeyToValueMappingEstimator is added to provide a reverse lookup of the KeyType, converting the KeyType value back
             // to the original value.
-            var pipeline = new ValueMappingEstimator<string, string>(ml, educationKeys, educationValues, true, ("EducationKeyType", "Education"))
-                              .Append(new KeyToValueMappingEstimator(ml, ("EducationCategory", "EducationKeyType")));
+            var pipeline = new ValueMappingEstimator<string, string>(mlContext, educationKeys, educationValues, true, ("EducationKeyType", "Education"))
+                              .Append(new KeyToValueMappingEstimator(mlContext, ("EducationCategory", "EducationKeyType")));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationKeyType column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleInfertDataWithFeatures.
-            IEnumerable<SampleInfertDataWithFeatures> featureRows = ml.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
-            
+            IEnumerable<SampleInfertDataWithFeatures> featureRows = mlContext.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
+
             Console.WriteLine($"Example of mapping string->keytype");
-            Console.WriteLine($"Age\tEducation\tEducationLabel");
+            Console.WriteLine($"Age\tEducation\tEducationCategory");
             foreach (var featureRow in featureRows)
             {
                 Console.WriteLine($"{featureRow.Age}\t{featureRow.Education}  \t{featureRow.EducationCategory}");
@@ -83,7 +80,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Features column obtained post-transformation.
             //
-            // Age Education    EducationLabel
+            // Age Education    EducationCategory
             // 26  0-5yrs       Cat1
             // 42  0-5yrs       Cat1
             // 39  12+yrs       Cat3

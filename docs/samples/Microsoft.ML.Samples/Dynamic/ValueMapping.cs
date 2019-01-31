@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -15,25 +14,21 @@ namespace Microsoft.ML.Samples.Dynamic
             public string EducationCategory = default;
         }
 
-        ///<summary>
         /// This example demonstrates the use of the ValueMappingEstimator by mapping string-to-string values. The ValueMappingEstimator uses
         /// level of education as keys to a respective string label which is the value.
         /// The mapping looks like the following:
-        /// <list>
-        ///     <item>0-5yrs -> Cat1</item>
-        ///     <item>6-11yrs -> Cat2</item>
-        ///     <item>12+yrs -> Cat3</item>
-        /// </list>
-        /// </summary>
+        ///  0-5yrs  -> Cat1
+        ///  6-11yrs -> Cat2
+        ///  12+yrs  -> Cat3
         public static void Run()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext();
+            var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -57,21 +52,21 @@ namespace Microsoft.ML.Samples.Dynamic
             var educationValues = new List<string>()
             {
                 "Cat1",
-                "Cat2", 
+                "Cat2",
                 "Cat3"
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = new ValueMappingEstimator<string, string>(ml, educationKeys, educationValues, ("EducationCategory", "Education"));
+            var pipeline = mlContext.Transforms.Conversion.ValueMap(educationKeys, educationValues, ("EducationCategory", "Education"));
 
             // Fits the ValueMappingEstimator and transforms the data converting the Education to EducationCategory.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleInfertDataWithFeatures. This will contain the newly created column EducationCategory
-            IEnumerable<SampleInfertDataWithFeatures> featureRows = ml.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
-            
+            IEnumerable<SampleInfertDataWithFeatures> featureRows = mlContext.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
+
             Console.WriteLine($"Example of mapping string->string");
-            Console.WriteLine($"Age\tEducation\tEducationLabel");
+            Console.WriteLine($"Age\tEducation\tEducationCategory");
             foreach (var featureRow in featureRows)
             {
                 Console.WriteLine($"{featureRow.Age}\t{featureRow.Education}  \t{featureRow.EducationCategory}");
@@ -79,7 +74,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Features column obtained post-transformation.
             //
-            // Age Education    EducationLabel
+            // Age Education    EducationCategory
             // 26  0-5yrs       Cat1
             // 42  0-5yrs       Cat1
             // 39  12+yrs       Cat3

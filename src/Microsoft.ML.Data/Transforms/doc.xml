@@ -63,6 +63,33 @@
         but can be defined through other means: either with the mapping defined directly on the command line, or as loaded from an external file.
       </remarks>
     </member>
+    <member name="ValueMappingEstimator">
+      <summary>
+        The ValueMappingEstimator is a 1-1 mapping from a key to value. 
+      </summary>
+      <remarks>
+        Given a set of keys and values, the ValueMappingEstimator builds up a dictionary so that when given a specific key it will return a 
+        specific value. The ValueMappingEstimator supports keys and values of different <see cref="System.Type"/> to support different data types.
+        Examples for using a ValueMappingEstimator are:
+        <list>
+          <li>
+            <description>Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals')</description>
+          </li>
+          <li>
+            <description>Converting a string value to a integer value (i.e. converting the text description like quality to an numeric where 'good' maps to 1, 'poor' maps to 0</description>
+          </li>
+          <li>
+            <description>
+              Converting a float value to a string value and have the string value represented as a <see cref="KeyType"/>
+              (i.e. specific wind speeds could map to a group ('category1', 'category2',...) which will generate a unique integer identifier (1,2,...) that could used
+              as part of a feature set for a trainer).
+            </description>
+          </li>
+        </list>
+        Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
+        can be specified either through lists, where the key list and value list must be the same size or can be done through an <see cref="IDataView"/>.
+      </remarks>
+    </member>
 
     <member name="NAHandle">
       <summary>
