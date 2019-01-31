@@ -234,7 +234,7 @@ namespace Microsoft.ML.EntryPoints
 
             var labelCol = input.Data.Schema.GetColumnOrNull(input.LabelColumn);
             if (!labelCol.HasValue)
-                throw host.ExceptSchemaMismatch(nameof(input), "Label", input.LabelColumn);
+                throw host.ExceptSchemaMismatch(nameof(input), "predicted label", input.LabelColumn);
 
             var labelType = labelCol.Value.Type;
             if (labelType is KeyType || labelType is BoolType)
@@ -270,7 +270,7 @@ namespace Microsoft.ML.EntryPoints
 
             var predictedLabelCol = input.Data.Schema.GetColumnOrNull(input.PredictedLabelColumn);
             if (!predictedLabelCol.HasValue)
-                throw host.ExceptSchemaMismatch(nameof(input), "PredictedLabel",input.PredictedLabelColumn);
+                throw host.ExceptSchemaMismatch(nameof(input), "label", input.PredictedLabelColumn);
             var predictedLabelType = predictedLabelCol.Value.Type;
             if (predictedLabelType is NumberType || predictedLabelType is BoolType)
             {

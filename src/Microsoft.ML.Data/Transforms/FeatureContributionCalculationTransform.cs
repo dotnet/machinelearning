@@ -225,7 +225,7 @@ namespace Microsoft.ML.Data
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
                 _featureColumnType = schema[_featureColumnIndex].Type as VectorType;
                 if (_featureColumnType == null || _featureColumnType.ItemType != NumberType.R4)
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature column", _parent.ColumnPairs[0].inputColumnName, "Expected type is vector of float.", _featureColumnType.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of float.", _featureColumnType.ItemType.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
                     InputSchema[_featureColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
             // Check that the feature column is of the correct type: a vector of float.
             if (col.ItemType != NumberType.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature column", _featureColumn, "Expected type is vector of float.", col.GetTypeString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "column", _featureColumn, "vector of float.", col.GetTypeString());
 
             // Build output schemaShape.
             var result = inputSchema.ToDictionary(x => x.Name);

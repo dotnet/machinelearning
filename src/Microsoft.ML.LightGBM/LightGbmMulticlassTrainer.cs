@@ -236,9 +236,7 @@ namespace Microsoft.ML.LightGBM
             Name = "Trainers.LightGbmClassifier",
             Desc = "Train a LightGBM multi class model.",
             UserName = LightGbmMulticlassTrainer.Summary,
-            ShortName = LightGbmMulticlassTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
-                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmClassifier""]/*' />"})]
+            ShortName = LightGbmMulticlassTrainer.ShortName)]
         public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -481,9 +481,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Desc = Summary,
             Name = "Transforms.OptionalColumnCreator",
             UserName = UserName,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""OptionalColumnTransform""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""OptionalColumnTransform""]/*' />"})]
+            ShortName = ShortName)]
 
         public static CommonOutputs.TransformOutput MakeOptional(IHostEnvironment env, Arguments input)
         {

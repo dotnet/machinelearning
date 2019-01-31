@@ -405,9 +405,7 @@ namespace Microsoft.ML.Learners
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionBinaryClassifier",
             Desc = Summary,
             UserName = UserNameValue,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionBinaryClassifier""]/*' />"})]
+            ShortName = ShortName)]
 
         internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {

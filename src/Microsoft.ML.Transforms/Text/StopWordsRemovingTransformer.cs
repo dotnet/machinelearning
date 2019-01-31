@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -146,7 +144,8 @@ namespace Microsoft.ML.Transforms.Text
         {
             get
             {
-                if (_stopWords == null)
+                NormStr.Pool[] result = _stopWords;
+                if (result == null)
                 {
                     var values = Enum.GetValues(typeof(StopWordsRemovingEstimator.Language)).Cast<int>();
                     var langValues = values as int[] ?? values.ToArray();
@@ -156,9 +155,10 @@ namespace Microsoft.ML.Transforms.Text
 
                     var stopWords = new NormStr.Pool[maxValue + 1];
                     Interlocked.CompareExchange(ref _stopWords, stopWords, null);
+                    result = _stopWords;
                 }
 
-                return _stopWords;
+                return result;
             }
         }
 
@@ -166,14 +166,16 @@ namespace Microsoft.ML.Transforms.Text
         {
             get
             {
-                if (_langsDictionary == null)
+                Dictionary<ReadOnlyMemory<char>, StopWordsRemovingEstimator.Language> result = _langsDictionary;
+                if (result == null)
                 {
                     var langsDictionary = Enum.GetValues(typeof(StopWordsRemovingEstimator.Language)).Cast<StopWordsRemovingEstimator.Language>()
                         .ToDictionary(lang => lang.ToString().AsMemory(), new ReadOnlyMemoryUtils.ReadonlyMemoryCharComparer());
                     Interlocked.CompareExchange(ref _langsDictionary, langsDictionary, null);
+                    result = _langsDictionary;
                 }
 
-                return _langsDictionary;
+                return result;
             }
         }
 
@@ -406,7 +408,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (!string.IsNullOrEmpty(_parent._columns[i].LanguageColumn))
                     {
                         if (!inputSchema.TryGetColumnIndex(_parent._columns[i].LanguageColumn, out int langCol))
-                            throw Host.ExceptSchemaMismatch(nameof(inputSchema), "language column", _parent._columns[i].LanguageColumn);
+                            throw Host.ExceptSchemaMismatch(nameof(inputSchema), "language", _parent._columns[i].LanguageColumn);
                         _languageColumns[i] = langCol;
                     }
                     else
@@ -634,7 +636,7 @@ namespace Microsoft.ML.Transforms.Text
             public string DataFile;
 
             [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            internal IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the stopwords", ShortName = "stopwordsCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string StopwordsColumn;

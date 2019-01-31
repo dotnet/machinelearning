@@ -17,16 +17,14 @@ namespace Microsoft.ML.Tests.Transformers
 {
     public sealed class PcaTests : TestDataPipeBase
     {
-        private readonly IHostEnvironment _env;
         private readonly string _dataSource;
         private readonly TextSaver _saver;
 
         public PcaTests(ITestOutputHelper helper)
             : base(helper)
         {
-            _env = new MLContext(seed: 1);
             _dataSource = GetDataPath("generated_regression_dataset.csv");
-            _saver = new TextSaver(_env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+            _saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
         }
 
         [Fact]

@@ -179,9 +179,7 @@ namespace Microsoft.ML.LightGBM
             Name = "Trainers.LightGbmBinaryClassifier",
             Desc = LightGbmBinaryTrainer.Summary,
             UserName = LightGbmBinaryTrainer.UserName,
-            ShortName = LightGbmBinaryTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
-                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmBinaryClassifier""]/*' />"})]
+            ShortName = LightGbmBinaryTrainer.ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -82,11 +82,12 @@ namespace Microsoft.ML.Transforms
         {
             _modelFile = modelFile;
 
-            if (gpuDeviceId.HasValue)
+            if (gpuDeviceId != null)
             {
                 try
                 {
-                    _session = new InferenceSession(modelFile, SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
+                    _session = new InferenceSession(modelFile,
+                        SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
                 }
                 catch (OnnxRuntimeException)
                 {

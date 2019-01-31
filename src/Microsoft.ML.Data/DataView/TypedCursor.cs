@@ -103,7 +103,7 @@ namespace Microsoft.ML.Data
                 {
                     if (ignoreMissingColumns)
                         continue;
-                    throw _host.Except("Column '{0}' not found in the data view", col.ColumnName);
+                    throw _host.ExceptSchemaMismatch(nameof(_data.Schema), "", col.ColumnName);
                 }
                 var realColType = _data.Schema[colIndex].Type;
                 if (!IsCompatibleType(realColType, col.MemberInfo))

@@ -31,7 +31,8 @@ namespace Microsoft.ML.Data.IO
     /// the master sub-IDV stores the overall schema, and optionally the data in row-wise format.
     /// </summary>
     /// <seealso cref="TransposeSaver"/>
-    public sealed class TransposeLoader : IDataLoader, ITransposeDataView
+    [BestFriend]
+    internal sealed class TransposeLoader : IDataLoader, ITransposeDataView
     {
         public sealed class Arguments
         {

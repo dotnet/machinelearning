@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -264,7 +262,8 @@ namespace Microsoft.ML.Transforms.Text
             {
                 get
                 {
-                    if (_combinedDiacriticsMap == null)
+                    Dictionary<char, char> result = _combinedDiacriticsMap;
+                    if (result == null)
                     {
                         var combinedDiacriticsMap = new Dictionary<char, char>();
                         for (int i = 0; i < _combinedDiacriticsPairs.Length; i++)
@@ -274,9 +273,10 @@ namespace Microsoft.ML.Transforms.Text
                         }
 
                         Interlocked.CompareExchange(ref _combinedDiacriticsMap, combinedDiacriticsMap, null);
+                        result = _combinedDiacriticsMap;
                     }
 
-                    return _combinedDiacriticsMap;
+                    return result;
                 }
             }
 

@@ -32,7 +32,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Loads a parquet file into an IDataView. Supports basic mapping from Parquet input column data types to framework data types.
     /// </summary>
-    public sealed class ParquetLoader : IDataLoader, IDisposable
+    [BestFriend]
+    internal sealed class ParquetLoader : IDataLoader, IDisposable
     {
         /// <summary>
         /// A Column is a singular representation that consolidates all the related column chunks in the

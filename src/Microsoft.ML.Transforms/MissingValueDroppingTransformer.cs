@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms
         {
             var inType = inputSchema[srcCol].Type;
             if (!(inType is VectorType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema[srcCol].Name, "Vector", inType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema[srcCol].Name, "vector", inType.ToString());
         }
 
         // Factory method for SignatureLoadModel
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(colPair.inputColumnName, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector || col.Kind == SchemaShape.Column.VectorKind.VariableVector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName, "Vector", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName, "known-size vector", col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
                     metadata.Add(keyMeta);

@@ -146,9 +146,7 @@ namespace Microsoft.ML.Data
 
             private IProgressChannel StartProgressChannel(int level)
             {
-#pragma warning disable 420 // Interlocked with volatile.
                 var newId = Interlocked.Increment(ref _maxSubId);
-#pragma warning restore 420
                 return new SubChannel(this, level, newId);
             }
 

@@ -675,9 +675,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.Segregator",
             Desc = UngroupTransform.Summary,
             UserName = UngroupTransform.UserName,
-            ShortName = UngroupTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Ungroup""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""Ungroup""]/*' />"})]
+            ShortName = UngroupTransform.ShortName)]
         public static CommonOutputs.TransformOutput Ungroup(IHostEnvironment env, UngroupTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
