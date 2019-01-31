@@ -44,16 +44,19 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     /// <remarks>
     /// <p>Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
-    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/'>Microsoft.ML.OnnxRuntime.Gpu</a> library.
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library.
     /// </p>
-    /// <p>Models are scored on CPU by default. If GPU execution is needed (optional), install
-    /// <a href='https://developer.nvidia.com/cuda-downloads'>CUDA 10.0 Toolkit</a>
+    /// <p>Models are scored on CPU by default. If GPU execution is needed (optional), use the
+    /// NuGet package available at
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/'>Microsoft.ML.OnnxRuntime.Gpu</a>
+    /// and download
+    /// <a href='https://developer.nvidia.com/cuda-downloads'>CUDA 9.1 Toolkit</a>
     /// and
-    /// <a href='https://developer.nvidia.com/cudnn'>cuDNN</a>
-    /// , and set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
+    /// <a href='https://developer.nvidia.com/cudnn'>cuDNN</a>.
+    ///  Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
     /// </p>
     /// <p>The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.</p>
-    /// <p>OnnxRuntime currently works on Windows 64-bit platforms only. Linux and OSX to be supported soon.</p>
+    /// <p>OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. Mac OS to be supported soon.</p>
     /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
     /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
     /// </remarks>
@@ -70,10 +73,10 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
             public string[] OutputColumns;
 
-            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 10.0.", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 9.1.", SortOrder = 3)]
             public int? GpuDeviceId = null;
 
-            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
             public bool FallbackToCpu = false;
         }
 
@@ -582,4 +585,3 @@ namespace Microsoft.ML.Transforms
         }
     }
 }
-
