@@ -87,7 +87,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes and transforms one column.
         /// </summary>
-        public KeyToValueMappingTransformer(IHostEnvironment env, string columnName)
+        internal KeyToValueMappingTransformer(IHostEnvironment env, string columnName)
             : this(env, (columnName, columnName))
         {
         }
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        public KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingTransformer)), columns)
         {
         }
@@ -517,6 +517,10 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
+        /// <summary>
+        /// Returns the shape of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

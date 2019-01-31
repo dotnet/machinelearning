@@ -105,8 +105,15 @@ namespace Microsoft.ML.Transforms.Conversions
             _keyData = keyData;
         }
 
+        /// <summary>
+        /// Fit to the <paramref name="input"/> data and build the dictionaries used for mapping.
+        /// </summary>
         public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _keyData, false);
 
+        /// <summary>
+        /// Returns the shape of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));

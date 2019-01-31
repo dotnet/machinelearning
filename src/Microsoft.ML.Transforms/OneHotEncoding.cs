@@ -275,6 +275,10 @@ namespace Microsoft.ML.Transforms.Categorical
             }
         }
 
+        /// <summary>
+        /// Returns the shape of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             if (_toSomething != null)
