@@ -4,6 +4,7 @@
 
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
@@ -14,7 +15,8 @@ using Microsoft.ML.Internal.Internallearn;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class SummarizePredictor
+    [BestFriend]
+    internal static class SummarizePredictor
     {
         public abstract class InputBase
         {

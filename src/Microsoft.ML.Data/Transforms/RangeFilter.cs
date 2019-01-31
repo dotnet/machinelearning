@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -29,7 +30,8 @@ namespace Microsoft.ML.Transforms
     /// Keeps the values that are in the specified min/max range. NaNs are always filtered out.
     /// If the input is a Key type, the min/max are considered percentages of the number of values.
     /// </summary>
-    public sealed class RangeFilter : FilterBase
+    [BestFriend]
+    internal sealed class RangeFilter : FilterBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -150,11 +152,11 @@ namespace Microsoft.ML.Transforms
             var column = ctx.LoadNonEmptyString();
             var schema = Source.Schema;
             if (!schema.TryGetColumnIndex(column, out _index))
-                throw Host.Except("column", "Source column '{0}' not found", column);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column);
 
             _type = schema[_index].Type;
             if (_type != NumberType.R4 && _type != NumberType.R8 && _type.GetKeyCount() == 0)
-                throw Host.Except("column", "Column '{0}' does not have compatible type", column);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "float, double or KeyType", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
             _max = ctx.Reader.ReadDouble();
@@ -410,7 +412,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<T> _getter;
             private T _value;
             private readonly ValueMapper<T, ulong> _conv;
-            private readonly int _count;
+            private readonly ulong _count;
 
             public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
@@ -440,9 +442,9 @@ namespace Microsoft.ML.Transforms
                 _srcGetter(ref _value);
                 ulong value = 0;
                 _conv(in _value, ref value);
-                if (value == 0 || value > (ulong)_count)
+                if (value == 0 || value > _count)
                     return false;
-                if (!CheckBounds(((Double)(uint)value - 0.5) / _count))
+                if (!CheckBounds(((uint)value - 0.5) / _count))
                     return false;
                 return true;
             }

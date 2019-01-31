@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
@@ -119,7 +120,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for transforms that filter out rows without changing the schema.
     /// </summary>
-    public abstract class FilterBase : TransformBase, ITransformCanSavePfa
+    [BestFriend]
+    internal abstract class FilterBase : TransformBase, ITransformCanSavePfa
     {
         [BestFriend]
         private protected FilterBase(IHostEnvironment env, string name, IDataView input)
@@ -371,7 +373,7 @@ namespace Microsoft.ML.Data
 
                     int colSrc;
                     if (!inputSchema.TryGetColumnIndex(src, out colSrc))
-                        throw host.Except("Source column '{0}' is required but not found", src);
+                        throw host.ExceptSchemaMismatch(nameof(inputSchema), "source", src);
                     var type = inputSchema[colSrc].Type;
                     if (testType != null)
                     {
@@ -582,14 +584,14 @@ namespace Microsoft.ML.Data
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
                 ColInfo info = Infos[iinfo];
-                string sourceColumnName = Source.Schema[info.Source].Name;
-                if (!ctx.ContainsColumn(sourceColumnName))
+                string inputColumnName = Source.Schema[info.Source].Name;
+                if (!ctx.ContainsColumn(inputColumnName))
                 {
                     ctx.RemoveColumn(info.Name, false);
                     continue;
                 }
 
-                if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(inputColumnName),
                     ctx.AddIntermediateVariable(OutputSchema[_bindings.MapIinfoToCol(iinfo)].Type, info.Name)))
                 {
                     ctx.RemoveColumn(info.Name, true);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -12,7 +13,7 @@ using Microsoft.ML.EntryPoints;
 [assembly: LoadableClass(typeof(void), typeof(Cache), null, typeof(SignatureEntryPointModule), "Cache")]
 namespace Microsoft.ML.EntryPoints
 {
-    public static class Cache
+    internal static class Cache
     {
         public enum CachingType
         {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -23,7 +24,8 @@ namespace Microsoft.ML.Data.IO
     /// Saver for a format that can be loaded using the <see cref="TransposeLoader"/>.
     /// </summary>
     /// <seealso cref="TransposeLoader"/>
-    public sealed class TransposeSaver : IDataSaver
+    [BestFriend]
+    internal sealed class TransposeSaver : IDataSaver
     {
         public sealed class Arguments
         {

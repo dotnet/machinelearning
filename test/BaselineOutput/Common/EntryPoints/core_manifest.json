@@ -280,36 +280,18 @@
                         "Default": null
                       },
                       {
-                        "Name": "KeyRange",
+                        "Name": "KeyCount",
                         "Type": {
                           "Kind": "Struct",
                           "Fields": [
                             {
-                              "Name": "Min",
+                              "Name": "Count",
                               "Type": "UInt",
-                              "Desc": "First index in the range",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": false,
-                              "Default": 0
-                            },
-                            {
-                              "Name": "Max",
-                              "Type": "UInt",
-                              "Desc": "Last index in the range",
+                              "Desc": "Count of valid key values",
                               "Required": false,
                               "SortOrder": 150.0,
                               "IsNullable": true,
                               "Default": null
-                            },
-                            {
-                              "Name": "Contiguous",
-                              "Type": "Bool",
-                              "Desc": "Whether the key is contiguous",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": false,
-                              "Default": true
                             }
                           ]
                         },

@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
+    <ProjectReference Include="..\RemoteExecutorConsoleApp\RemoteExecutorConsoleApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

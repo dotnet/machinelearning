@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Data
 
         public sealed class Column : ManyToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
                 var res = new Column();
@@ -52,7 +53,7 @@ namespace Microsoft.ML.Data
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -69,10 +70,10 @@ namespace Microsoft.ML.Data
             // tag if it is non empty. For vector columns, the slot names will be 'ColumnName.SlotName' if the
             // tag is empty, 'Tag.SlotName' if tag is non empty, and simply the slot name if tag is non empty
             // and equal to the column name.
-            [Argument(ArgumentType.Multiple, HelpText = "Name of the source column", ShortName = "src")]
+            [Argument(ArgumentType.Multiple, HelpText = "Names of the source columns", ShortName = "src")]
             public KeyValuePair<string, string>[] Source;
 
-            public static TaggedColumn Parse(string str)
+            internal static TaggedColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
                 // REVIEW: Support a short form for aliases.
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Data
                 return taggedColumn;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Source == null || Source.Any(kvp => !string.IsNullOrEmpty(kvp.Key)))
@@ -125,43 +126,43 @@ namespace Microsoft.ML.Data
 
         public sealed class ColumnInfo
         {
-            public readonly string Output;
-            private readonly (string name, string alias)[] _inputs;
-            public IReadOnlyList<(string name, string alias)> Inputs => _inputs.AsReadOnly();
+            public readonly string Name;
+            private readonly (string name, string alias)[] _sources;
+            public IReadOnlyList<(string name, string alias)> Sources => _sources.AsReadOnly();
 
             /// <summary>
-            /// This denotes a concatenation of all <paramref name="inputNames"/> into column called <paramref name="outputName"/>.
+            /// This denotes a concatenation of all <paramref name="inputColumnNames"/> into column called <paramref name="name"/>.
             /// </summary>
-            public ColumnInfo(string outputName, params string[] inputNames)
-                : this(outputName, GetPairs(inputNames))
+            public ColumnInfo(string name, params string[] inputColumnNames)
+                : this(name, GetPairs(inputColumnNames))
             {
             }
 
-            private static IEnumerable<(string name, string alias)> GetPairs(string[] inputNames)
+            private static IEnumerable<(string name, string alias)> GetPairs(string[] inputColumnNames)
             {
-                Contracts.CheckValue(inputNames, nameof(inputNames));
-                return inputNames.Select(name => (name, (string)null));
+                Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
+                return inputColumnNames.Select(name => (name, (string)null));
             }
 
             /// <summary>
-            /// This denotes a concatenation of input columns into one column called <paramref name="outputName"/>.
+            /// This denotes a concatenation of input columns into one column called <paramref name="name"/>.
             /// For each input column, an 'alias' can be specified, to be used in constructing the resulting slot names.
             /// If the alias is not specified, it defaults to be column name.
             /// </summary>
-            public ColumnInfo(string outputName, IEnumerable<(string name, string alias)> inputs)
+            public ColumnInfo(string name, IEnumerable<(string name, string alias)> inputColumnNames)
             {
-                Contracts.CheckNonEmpty(outputName, nameof(outputName));
-                Contracts.CheckValue(inputs, nameof(inputs));
-                Contracts.CheckParam(inputs.Any(), nameof(inputs), "Can not be empty");
+                Contracts.CheckNonEmpty(name, nameof(name));
+                Contracts.CheckValue(inputColumnNames, nameof(inputColumnNames));
+                Contracts.CheckParam(inputColumnNames.Any(), nameof(inputColumnNames), "Can not be empty");
 
-                foreach (var (name, alias) in inputs)
+                foreach (var (output, alias) in inputColumnNames)
                 {
-                    Contracts.CheckNonEmpty(name, nameof(inputs));
+                    Contracts.CheckNonEmpty(output, nameof(inputColumnNames));
                     Contracts.CheckValueOrNull(alias);
                 }
 
-                Output = outputName;
-                _inputs = inputs.ToArray();
+                Name = name;
+                _sources = inputColumnNames.ToArray();
             }
 
             public void Save(ModelSaveContext ctx)
@@ -174,10 +175,10 @@ namespace Microsoft.ML.Data
                 //   int: id of name
                 //   int: id of alias
 
-                ctx.SaveNonEmptyString(Output);
-                Contracts.Assert(_inputs.Length > 0);
-                ctx.Writer.Write(_inputs.Length);
-                foreach (var (name, alias) in _inputs)
+                ctx.SaveNonEmptyString(Name);
+                Contracts.Assert(_sources.Length > 0);
+                ctx.Writer.Write(_sources.Length);
+                foreach (var (name, alias) in _sources)
                 {
                     ctx.SaveNonEmptyString(name);
                     ctx.SaveStringOrNull(alias);
@@ -194,15 +195,15 @@ namespace Microsoft.ML.Data
                 //   int: id of name
                 //   int: id of alias
 
-                Output = ctx.LoadNonEmptyString();
+                Name = ctx.LoadNonEmptyString();
                 int n = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(n > 0);
-                _inputs = new (string name, string alias)[n];
+                _sources = new (string name, string alias)[n];
                 for (int i = 0; i < n; i++)
                 {
                     var name = ctx.LoadNonEmptyString();
                     var alias = ctx.LoadStringOrNull();
-                    _inputs[i] = (name, alias);
+                    _sources[i] = (name, alias);
                 }
             }
         }
@@ -212,12 +213,12 @@ namespace Microsoft.ML.Data
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
 
         /// <summary>
-        /// Concatename columns in <paramref name="inputNames"/> into one column <paramref name="outputName"/>.
+        /// Concatename columns in <paramref name="inputColumnNames"/> into one column <paramref name="outputColumnName"/>.
         /// Original columns are also preserved.
         /// The column types must match, and the output column type is always a vector.
         /// </summary>
-        public ColumnConcatenatingTransformer(IHostEnvironment env, string outputName, params string[] inputNames)
-            : this(env, new ColumnInfo(outputName, inputNames))
+        public ColumnConcatenatingTransformer(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
+            : this(env, new ColumnInfo(outputColumnName, inputColumnNames))
         {
         }
 
@@ -273,7 +274,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            if (ctx.Header.ModelVerReadable >= VersionTransformer)
+            if (ctx.Header.ModelVerWritten >= VersionTransformer)
             {
                 // *** Binary format ***
                 // int: number of columns
@@ -414,7 +415,7 @@ namespace Microsoft.ML.Data
             public bool CanSavePfa => true;
 
             public Mapper(ColumnConcatenatingTransformer parent, Schema inputSchema) :
-                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
 
@@ -431,7 +432,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
 
                 ColumnType itemType = null;
-                int[] sources = new int[_parent._columns[iinfo].Inputs.Count];
+                int[] sources = new int[_parent._columns[iinfo].Sources.Count];
                 // Go through the columns, and establish the following:
                 // - indices of input columns in the input schema. Throw if they are not there.
                 // - output type. Throw if the types of inputs are not the same.
@@ -448,9 +449,9 @@ namespace Microsoft.ML.Data
                 bool isNormalized = true;
                 bool hasSlotNames = false;
                 bool hasCategoricals = false;
-                for (int i = 0; i < _parent._columns[iinfo].Inputs.Count; i++)
+                for (int i = 0; i < _parent._columns[iinfo].Sources.Count; i++)
                 {
-                    var (srcName, srcAlias) = _parent._columns[iinfo].Inputs[i];
+                    var (srcName, srcAlias) = _parent._columns[iinfo].Sources[i];
                     if (!inputSchema.TryGetColumnIndex(srcName, out int srcCol))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
                     sources[i] = srcCol;
@@ -555,7 +556,7 @@ namespace Microsoft.ML.Data
                     if (_isIdentity)
                     {
                         var inputCol = _inputSchema[SrcIndices[0]];
-                        return new Schema.DetachedColumn(_columnInfo.Output, inputCol.Type, inputCol.Metadata);
+                        return new Schema.DetachedColumn(_columnInfo.Name, inputCol.Type, inputCol.Metadata);
                     }
 
                     var metadata = new MetadataBuilder();
@@ -566,7 +567,7 @@ namespace Microsoft.ML.Data
                     if (_hasCategoricals)
                         metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, _categoricalRangeType, (ValueGetter<VBuffer<int>>)GetCategoricalSlotRanges);
 
-                    return new Schema.DetachedColumn(_columnInfo.Output, OutputType, metadata.GetMetadata());
+                    return new Schema.DetachedColumn(_columnInfo.Name, OutputType, metadata.GetMetadata());
                 }
 
                 private void GetIsNormalized(ref bool value) => value = _isNormalized;
@@ -615,9 +616,9 @@ namespace Microsoft.ML.Data
                     {
                         int colSrc = SrcIndices[i];
                         var typeSrc = _srcTypes[i];
-                        Contracts.Assert(_columnInfo.Inputs[i].alias != "");
+                        Contracts.Assert(_columnInfo.Sources[i].alias != "");
                         var colName = _inputSchema[colSrc].Name;
-                        var nameSrc = _columnInfo.Inputs[i].alias ?? colName;
+                        var nameSrc = _columnInfo.Sources[i].alias ?? colName;
                         if (!(typeSrc is VectorType vectorTypeSrc))
                         {
                             bldr.AddFeature(slot++, nameSrc.AsMemory());
@@ -635,7 +636,7 @@ namespace Microsoft.ML.Data
                         {
                             inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
                             sb.Clear();
-                            if (_columnInfo.Inputs[i].alias != colName)
+                            if (_columnInfo.Sources[i].alias != colName)
                                 sb.Append(nameSrc).Append(".");
                             int len = sb.Length;
                             foreach (var kvp in names.Items())
@@ -786,7 +787,7 @@ namespace Microsoft.ML.Data
                 public KeyValuePair<string, JToken> SavePfaInfo(BoundPfaContext ctx)
                 {
                     Contracts.AssertValue(ctx);
-                    string outName = _columnInfo.Output;
+                    string outName = _columnInfo.Name;
                     if (!OutputType.IsKnownSize) // Do not attempt variable length.
                         return new KeyValuePair<string, JToken>(outName, null);
 
@@ -794,7 +795,7 @@ namespace Microsoft.ML.Data
                     bool[] srcPrimitive = new bool[SrcIndices.Length];
                     for (int i = 0; i < SrcIndices.Length; ++i)
                     {
-                        var srcName = _columnInfo.Inputs[i].name;
+                        var srcName = _columnInfo.Sources[i].name;
                         if ((srcTokens[i] = ctx.TokenOrNullForName(srcName)) == null)
                             return new KeyValuePair<string, JToken>(outName, null);
                         srcPrimitive[i] = _srcTypes[i] is PrimitiveType;
@@ -887,7 +888,7 @@ namespace Microsoft.ML.Data
                     var colInfo = _parent._columns[iinfo];
                     var boundCol = _columns[iinfo];
 
-                    string outName = colInfo.Output;
+                    string outName = colInfo.Name;
                     var outColType = boundCol.OutputType;
                     if (!outColType.IsKnownSize)
                     {
@@ -898,7 +899,7 @@ namespace Microsoft.ML.Data
                     List<KeyValuePair<string, long>> inputList = new List<KeyValuePair<string, long>>();
                     for (int i = 0; i < boundCol.SrcIndices.Length; ++i)
                     {
-                        var srcName = colInfo.Inputs[i].name;
+                        var srcName = colInfo.Sources[i].name;
                         if (!ctx.ContainsColumn(srcName))
                         {
                             ctx.RemoveColumn(outName, false);

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -28,7 +29,8 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
-    public class OptionalColumnTransform : RowToRowMapperTransformBase
+    [BestFriend]
+    internal sealed class OptionalColumnTransform : RowToRowMapperTransformBase
     {
         public sealed class Arguments : TransformInputBase
         {

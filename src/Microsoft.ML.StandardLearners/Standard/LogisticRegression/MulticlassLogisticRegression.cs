@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -130,7 +131,7 @@ namespace Microsoft.ML.Learners
                 return;
             }
             VBuffer<ReadOnlyMemory<char>> labelNames = default;
-            labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+            labelCol.GetKeyValues(ref labelNames);
 
             // If label names is not dense or contain NA or default value, then it follows that
             // at least one class does not have a valid name for its label. If the label names we
@@ -512,7 +513,7 @@ namespace Microsoft.ML.Learners
                 Host.CheckDecode(numStarts == _numClasses + 1);
                 int[] starts = ctx.Reader.ReadIntArray(numStarts);
                 Host.CheckDecode(starts[0] == 0);
-                Host.CheckDecode(Utils.IsSorted(starts));
+                Host.CheckDecode(Utils.IsMonotonicallyIncreasing(starts));
 
                 int numIndices = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numIndices == starts[starts.Length - 1]);
@@ -1004,7 +1005,7 @@ namespace Microsoft.ML.Learners
             ShortName = MulticlassLogisticRegression.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Options input)
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRMultiClass");

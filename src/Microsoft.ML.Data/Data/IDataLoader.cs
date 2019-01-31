@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
@@ -54,9 +55,11 @@ namespace Microsoft.ML.Data
     {
     }
 
-    public delegate void SignatureDataSaver();
+    [BestFriend]
+    internal delegate void SignatureDataSaver();
 
-    public interface IDataSaver
+    [BestFriend]
+    internal interface IDataSaver
     {
         /// <summary>
         /// Check if the column can be saved.

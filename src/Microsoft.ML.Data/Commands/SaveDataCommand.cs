@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
@@ -181,7 +182,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static class DataSaverUtils
+    [BestFriend]
+    internal static class DataSaverUtils
     {
         public static void SaveDataView(IChannel ch, IDataSaver saver, IDataView view, IFileHandle file, bool keepHidden = false)
         {

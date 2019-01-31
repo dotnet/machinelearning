@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Transforms.Projections
                            "the global random is used)")]
             public int? Seed;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -77,7 +78,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NewDim != null || MatrixGenerator != null || UseSin != null || Seed != null)
@@ -233,8 +234,8 @@ namespace Microsoft.ML.Transforms.Projections
 
         public sealed class ColumnInfo
         {
-            public readonly string Input;
-            public readonly string Output;
+            public readonly string Name;
+            public readonly string InputColumnName;
             public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
             public readonly int NewDim;
             public readonly bool UseSin;
@@ -243,17 +244,17 @@ namespace Microsoft.ML.Transforms.Projections
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of output column.</param>
-            /// <param name="generator">Which fourier generator to use.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="newDim">The number of random Fourier features to create.</param>
             /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
+            /// <param name="inputColumnName">Name of column to transform. </param>
+            /// <param name="generator">Which fourier generator to use.</param>
             /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used.</param>
-            public ColumnInfo(string input, string output, int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
+            public ColumnInfo(string name, int newDim, bool useSin, string inputColumnName = null, IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
             {
                 Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
-                Input = input;
-                Output = output;
+                InputColumnName = inputColumnName ?? name;
+                Name = name;
                 Generator = generator ?? new GaussianFourierSampler.Arguments();
                 NewDim = newDim;
                 UseSin = useSin;
@@ -261,10 +262,10 @@ namespace Microsoft.ML.Transforms.Projections
             }
         }
 
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Input, x.Output)).ToArray();
+            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
@@ -272,9 +273,9 @@ namespace Microsoft.ML.Transforms.Projections
             var type = inputSchema[srcCol].Type;
             string reason = TestColumnType(type);
             if (reason != null)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, reason, type.ToString());
             if (_transformInfos[col].SrcDim != type.GetVectorSize())
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input,
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName,
                     new VectorType(NumberType.Float, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
@@ -285,7 +286,7 @@ namespace Microsoft.ML.Transforms.Projections
             _transformInfos = new TransformInfo[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
-                input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
+                input.Schema.TryGetColumnIndex(columns[i].InputColumnName, out int srcCol);
                 var typeSrc = input.Schema[srcCol].Type;
                 _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), columns[i],
                     typeSrc.GetValueCount(), avgDistances[i]);
@@ -312,12 +313,12 @@ namespace Microsoft.ML.Transforms.Projections
             int[] srcCols = new int[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
-                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
-                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].inputColumnName, out int srcCol))
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].inputColumnName);
                 var type = input.Schema[srcCol].Type;
                 string reason = TestColumnType(type);
                 if (reason != null)
-                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input, reason, type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].inputColumnName, reason, type.ToString());
                 srcCols[i] = srcCol;
                 activeColumns.Add(input.Schema[srcCol]);
             }
@@ -461,10 +462,11 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = args.Column[i];
-                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                    cols[i] = new ColumnInfo(
                         item.Name,
                         item.NewDim ?? args.NewDim,
                         item.UseSin ?? args.UseSin,
+                        item.Source ?? item.Name,
                         item.MatrixGenerator ?? args.MatrixGenerator,
                         item.Seed ?? args.Seed);
                 };
@@ -520,7 +522,7 @@ namespace Microsoft.ML.Transforms.Projections
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
                     //validate typeSrc.ValueCount and transformInfo.SrcDim
@@ -533,7 +535,7 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], null);
                 return result;
             }
 
@@ -655,12 +657,12 @@ namespace Microsoft.ML.Transforms.Projections
         /// Convinence constructor for simple one column case
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the column to be transformed.</param>
-        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="newDim">The number of random Fourier features to create.</param>
         /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
-        public RandomFourierFeaturizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
-            : this(env, new RandomFourierFeaturizingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, newDim, useSin))
+        public RandomFourierFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
+            : this(env, new RandomFourierFeaturizingTransformer.ColumnInfo(outputColumnName, newDim, useSin, inputColumnName ?? outputColumnName))
         {
         }
 
@@ -679,12 +681,12 @@ namespace Microsoft.ML.Transforms.Projections
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.ItemType.RawType != typeof(float) || col.Kind != SchemaShape.Column.VectorKind.Vector)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
             }
 
             return new SchemaShape(result.Values);

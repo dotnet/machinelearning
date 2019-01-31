@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -30,7 +31,8 @@ namespace Microsoft.ML.Transforms
     /// It will be used in conjunction with a filter transform to create random
     /// partitions of the data, used in cross validation.
     /// </summary>
-    public sealed class GenerateNumberTransform : RowToRowTransformBase
+    [BestFriend]
+    internal sealed class GenerateNumberTransform : RowToRowTransformBase
     {
         public sealed class Column
         {
@@ -43,7 +45,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "The random seed")]
             public uint? Seed;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -467,7 +469,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static class RandomNumberGenerator
+    internal static class RandomNumberGenerator
     {
         [TlcModule.EntryPoint(Name = "Transforms.RandomNumberGenerator", Desc = GenerateNumberTransform.Summary, UserName = GenerateNumberTransform.UserName, ShortName = GenerateNumberTransform.ShortName)]
         public static CommonOutputs.TransformOutput Generate(IHostEnvironment env, GenerateNumberTransform.Arguments input)

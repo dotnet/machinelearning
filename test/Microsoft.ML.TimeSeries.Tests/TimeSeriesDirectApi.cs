@@ -156,7 +156,7 @@ namespace Microsoft.ML.Tests
 
 
             // Pipeline.
-            var pipeline = ml.Transforms.Text.FeaturizeText("Text", "Text_Featurized")
+            var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
                 .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
                 {
                     Confidence = 95,
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Tests
 
 
             // Pipeline.
-            var pipeline = ml.Transforms.Text.FeaturizeText("Text", "Text_Featurized")
+            var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
                 .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
                 {
                     Confidence = 95,

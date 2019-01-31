@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         public sealed class Column : NgramHashExtractingTransformer.ColumnBase
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -37,7 +38,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            protected override bool TryParse(string str)
+            private protected override bool TryParse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Transforms.Text
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || Seed != null ||
@@ -113,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
                 var curTmpNames = new string[srcCount];
                 Contracts.Assert(uniqueSourceNames[iinfo].Length == args.Column[iinfo].Source.Length);
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                    tokenizeColumns.Add(new WordTokenizingTransformer.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]));
+                    tokenizeColumns.Add(new WordTokenizingTransformer.ColumnInfo(curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc], args.Column[iinfo].Source[isrc]));
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =
@@ -198,7 +199,7 @@ namespace Microsoft.ML.Transforms.Text
             // column names instead of the real column names.
             public string[] FriendlyNames;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -208,7 +209,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            protected override bool TryParse(string str)
+            private protected override bool TryParse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -227,7 +228,7 @@ namespace Microsoft.ML.Transforms.Text
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || Seed != null ||
@@ -359,12 +360,12 @@ namespace Microsoft.ML.Transforms.Text
                             });
                     }
 
-                    hashColumns.Add(new HashingTransformer.ColumnInfo(termLoaderArgs == null ? column.Source[isrc] : tmpName,
-                        tmpName, 30, column.Seed ?? args.Seed, false, column.InvertHash ?? args.InvertHash));
+                    hashColumns.Add(new HashingTransformer.ColumnInfo(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
+                        30, column.Seed ?? args.Seed, false, column.InvertHash ?? args.InvertHash));
                 }
 
                 ngramHashColumns[iinfo] =
-                    new NgramHashingTransformer.ColumnInfo(tmpColNames[iinfo], column.Name,
+                    new NgramHashingTransformer.ColumnInfo(column.Name, tmpColNames[iinfo],
                     column.NgramLength ?? args.NgramLength,
                     column.SkipLength ?? args.SkipLength,
                     column.AllLengths ?? args.AllLengths,
@@ -394,7 +395,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 if (termLoaderArgs.DropUnknowns)
                 {
-                    var missingDropColumns = new (string input, string output)[termCols.Count];
+                    var missingDropColumns = new (string outputColumnName, string inputColumnName)[termCols.Count];
                     for (int iinfo = 0; iinfo < termCols.Count; iinfo++)
                         missingDropColumns[iinfo] = (termCols[iinfo].Name, termCols[iinfo].Name);
                     view = new MissingValueDroppingTransformer(h, missingDropColumns).Transform(view);

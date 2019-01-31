@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Data
                     var groupDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, groupStratCol.ToArray());
+                        groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, groupStratCol.ToArray());
                         groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, groupStratVal.ToArray());
                     }
                     if (groupSummary)
@@ -950,7 +950,8 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                if (_discountMap == null)
+                double[] result = _discountMap;
+                if (result == null)
                 {
                     var discountMap = new Double[100]; //Hard to believe anyone would set truncation Level higher than 100
                     for (int i = 0; i < discountMap.Length; i++)
@@ -958,8 +959,9 @@ namespace Microsoft.ML.Data
                         discountMap[i] = 1 / Math.Log(2 + i);
                     }
                     Interlocked.CompareExchange(ref _discountMap, discountMap, null);
+                    result = _discountMap;
                 }
-                return _discountMap;
+                return result;
             }
         }
 
@@ -1048,7 +1050,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static partial class Evaluate
+    internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.RankerEvaluator", Desc = "Evaluates a ranking scored dataset.")]
         public static CommonOutputs.CommonEvaluateOutput Ranking(IHostEnvironment env, RankerMamlEvaluator.Arguments input)

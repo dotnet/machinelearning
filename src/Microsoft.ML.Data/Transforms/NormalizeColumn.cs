@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -41,14 +42,23 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms.Normalizers
 {
-    public sealed partial class NormalizeTransform
+    /// <summary>
+    /// The normalize transform for support of normalization via the <see cref="IDataTransform"/> mechanism.
+    /// More contemporaneous API usage of normalization ought to use <see cref="NormalizingEstimator"/>
+    /// and <see cref="NormalizingTransformer"/> rather than this structure.
+    /// </summary>
+    internal sealed partial class NormalizeTransform
     {
         public abstract class ColumnBase : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer", ShortName = "maxtrain")]
             public long? MaxTrainingExamples;
 
-            protected override bool TryUnparseCore(StringBuilder sb)
+            private protected ColumnBase()
+            {
+            }
+
+            private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (MaxTrainingExamples != null)
@@ -64,7 +74,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to map zero to zero, preserving sparsity", ShortName = "zero")]
             public bool? FixZero;
 
-            protected override bool TryUnparseCore(StringBuilder sb)
+            private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (FixZero != null)
@@ -75,7 +85,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public sealed class AffineColumn : FixZeroColumnBase
         {
-            public static AffineColumn Parse(string str)
+            internal static AffineColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -85,7 +95,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -98,7 +108,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             [TGUI(Label = "Max number of bins")]
             public int? NumBins;
 
-            public static BinColumn Parse(string str)
+            internal static BinColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -108,7 +118,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (NumBins != null)
@@ -119,7 +129,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public sealed class LogNormalColumn : ColumnBase
         {
-            public static LogNormalColumn Parse(string str)
+            internal static LogNormalColumn Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -129,7 +139,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -259,13 +269,13 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        public static IDataView CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
+        /// <param name="outputColumnName">Name of the output column.</param>
+        /// <param name="inputColumnName">Name of the column to be transformed. If this is null '<paramref name="outputColumnName"/>' will be used.</param>
+        public static IDataView CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string outputColumnName, string inputColumnName = null)
         {
             Contracts.CheckValue(env, nameof(env));
 
-            var normalizer = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumn(source ?? name, name));
+            var normalizer = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumn(outputColumnName, inputColumnName ?? outputColumnName));
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -280,8 +290,8 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             var columns = args.Column
                 .Select(col => new NormalizingEstimator.MinMaxColumn(
-                    col.Source ?? col.Name,
                     col.Name,
+                    col.Source ?? col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero))
                 .ToArray();
@@ -298,8 +308,8 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             var columns = args.Column
                 .Select(col => new NormalizingEstimator.MeanVarColumn(
-                    col.Source ?? col.Name,
                     col.Name,
+                    col.Source ?? col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero))
                 .ToArray();
@@ -318,8 +328,8 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             var columns = args.Column
                 .Select(col => new NormalizingEstimator.LogMeanVarColumn(
-                    col.Source ?? col.Name,
                     col.Name,
+                    col.Source ?? col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.UseCdf))
                 .ToArray();
@@ -338,8 +348,8 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             var columns = args.Column
                 .Select(col => new NormalizingEstimator.BinningColumn(
-                    col.Source ?? col.Name,
                     col.Name,
+                    col.Source ?? col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero,
                     col.NumBins ?? args.NumBins))
@@ -754,10 +764,10 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 if (type is KeyType keyType)
                 {
-                    Host.Assert(keyType.Count > 0);
-                    labelCardinality = keyType.Count;
+                    Host.Assert(type.GetKeyCountAsInt32(Host) > 0);
+                    labelCardinality = type.GetKeyCountAsInt32(Host);
 
-                    int size = keyType.Count;
+                    int size = type.GetKeyCountAsInt32(Host);
                     ulong src = 0;
                     var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col);
                     return
@@ -909,8 +919,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 host.AssertValue(args);
 
                 return CreateBuilder(new NormalizingEstimator.MinMaxColumn(
-                    args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
+                    args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.Column[icol].FixZero ?? args.FixZero), host, srcIndex, srcType, cursor);
             }
@@ -945,8 +955,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 host.AssertValue(args);
 
                 return CreateBuilder(new NormalizingEstimator.MeanVarColumn(
-                    args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
+                    args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.Column[icol].FixZero ?? args.FixZero,
                     args.UseCdf), host, srcIndex, srcType, cursor);
@@ -985,8 +995,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 host.AssertValue(args);
 
                 return CreateBuilder(new NormalizingEstimator.LogMeanVarColumn(
-                    args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
+                    args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
@@ -1011,7 +1021,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     if (vectorType.ItemType == NumberType.R8)
                         return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
-                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.Input, srcType.ToString());
+                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
             }
         }
 
@@ -1024,8 +1034,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 host.AssertValue(args);
 
                 return CreateBuilder(new NormalizingEstimator.BinningColumn(
-                    args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
+                    args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.Column[icol].FixZero ?? args.FixZero,
                     args.Column[icol].NumBins ?? args.NumBins), host, srcIndex, srcType, cursor);
@@ -1050,7 +1060,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     if (vectorType.ItemType == NumberType.R8)
                         return Dbl.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
-                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.Input, srcType.ToString());
+                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
             }
         }
 
@@ -1073,8 +1083,8 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 return CreateBuilder(
                     new NormalizingEstimator.SupervisedBinningColumn(
-                        args.Column[icol].Source ?? args.Column[icol].Name,
                         args.Column[icol].Name,
+                        args.Column[icol].Source ?? args.Column[icol].Name,
                         args.LabelColumn ?? DefaultColumnNames.Label,
                         args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                         args.Column[icol].FixZero ?? args.FixZero,
@@ -1111,7 +1121,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
 
                 throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.",
-                    column.Input,
+                    column.InputColumnName,
                     srcType.ToString());
             }
 
@@ -1127,7 +1137,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public static partial class AffineNormSerializationUtils
+    internal static partial class AffineNormSerializationUtils
     {
         public const string LoaderSignature = "AffineNormExec";
 
@@ -1145,7 +1155,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public static partial class BinNormSerializationUtils
+    internal static partial class BinNormSerializationUtils
     {
         public const string LoaderSignature = "BinNormExec";
 

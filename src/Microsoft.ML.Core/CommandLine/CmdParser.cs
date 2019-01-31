@@ -466,7 +466,7 @@ namespace Microsoft.ML.CommandLine
             var map = new Dictionary<string, Argument>();
             Argument def = null;
 
-            foreach (FieldInfo field in type.GetFields())
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 ArgumentAttribute attr = GetAttribute(field);
                 if (attr != null)
@@ -1359,8 +1359,8 @@ namespace Microsoft.ML.CommandLine
             private static MethodInfo GetParseMethod(Type type)
             {
                 Contracts.AssertValue(type);
-                var meth = type.GetMethod("Parse", new[] { typeof(string) });
-                if (meth != null && meth.IsStatic && meth.IsPublic && meth.ReturnType == type)
+                var meth = type.GetMethod("Parse", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, binder: null, new[] { typeof(string) }, null);
+                if (meth != null && meth.IsStatic && !meth.IsPrivate && meth.ReturnType == type)
                     return meth;
                 return null;
             }
@@ -1368,8 +1368,8 @@ namespace Microsoft.ML.CommandLine
             private static MethodInfo GetUnparseMethod(Type type)
             {
                 Contracts.AssertValue(type);
-                var meth = type.GetMethod("TryUnparse", new[] { typeof(StringBuilder) });
-                if (meth != null && !meth.IsStatic && meth.IsPublic && meth.ReturnType == typeof(bool))
+                var meth = type.GetMethod("TryUnparse", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, binder: null, new[] { typeof(StringBuilder) }, null);
+                if (meth != null && !meth.IsPrivate && meth.ReturnType == typeof(bool))
                     return meth;
                 return null;
             }

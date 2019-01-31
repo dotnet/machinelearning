@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Core.Data;
@@ -394,7 +395,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// The Entry Point for the FastTree Binary Classifier.
     /// </summary>
-    public static partial class FastTree
+    internal static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeBinaryClassifier",
             Desc = FastTreeBinaryClassificationTrainer.Summary,

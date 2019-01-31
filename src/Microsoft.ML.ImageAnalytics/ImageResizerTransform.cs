@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -69,7 +70,7 @@ namespace Microsoft.ML.ImageAnalytics
             [Argument(ArgumentType.AtMostOnce, HelpText = "Anchor for cropping", ShortName = "anchor")]
             public Anchor? CropAnchor;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -79,7 +80,7 @@ namespace Microsoft.ML.ImageAnalytics
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (ImageWidth != null || ImageHeight != null || Resizing != null || CropAnchor != null)
@@ -116,8 +117,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// </summary>
         public sealed class ColumnInfo
         {
-            public readonly string Input;
-            public readonly string Output;
+            public readonly string Name;
+            public readonly string InputColumnName;
 
             public readonly int Width;
             public readonly int Height;
@@ -128,23 +129,23 @@ namespace Microsoft.ML.ImageAnalytics
             /// <summary>
             /// Describes how the transformer handles one image resize column pair.
             /// </summary>
-            /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="width">Width of resized image.</param>
             /// <param name="height">Height of resized image.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="resizing">What <see cref="ResizingKind"/> to use.</param>
             /// <param name="anchor">If <paramref name="resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
-            public ColumnInfo(string input, string output, int width, int height, ResizingKind resizing = Defaults.Resizing, Anchor anchor = Defaults.CropAnchor)
+            public ColumnInfo(string name, int width, int height, string inputColumnName = null, ResizingKind resizing = Defaults.Resizing, Anchor anchor = Defaults.CropAnchor)
             {
-                Contracts.CheckNonEmpty(input, nameof(input));
-                Contracts.CheckNonEmpty(output, nameof(output));
+                Contracts.CheckNonEmpty(name, nameof(name));
+                Contracts.CheckNonEmpty(inputColumnName, nameof(inputColumnName));
                 Contracts.CheckUserArg(width > 0, nameof(Column.ImageWidth));
                 Contracts.CheckUserArg(height > 0, nameof(Column.ImageHeight));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(ResizingKind), resizing), nameof(Column.Resizing));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(Anchor), anchor), nameof(Column.CropAnchor));
 
-                Input = input;
-                Output = output;
+                Name = name;
+                InputColumnName = inputColumnName;
                 Width = width;
                 Height = height;
                 Resizing = resizing;
@@ -181,15 +182,15 @@ namespace Microsoft.ML.ImageAnalytics
         /// Resize image.
         ///</summary>
         /// <param name="env">The host environment.</param>
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="imageWidth">Width of resized image.</param>
         /// <param name="imageHeight">Height of resized image.</param>
+        /// <param name="inputColumnName">Name of the input column.</param>
         /// <param name="resizing">What <see cref="ResizingKind"/> to use.</param>
         /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
-        public ImageResizerTransformer(IHostEnvironment env, string input, string output,
-            int imageWidth, int imageHeight, ResizingKind resizing = ResizingKind.IsoCrop, Anchor cropAnchor = Anchor.Center)
-            : this(env, new ColumnInfo(input, output, imageWidth, imageHeight, resizing, cropAnchor))
+        public ImageResizerTransformer(IHostEnvironment env, string outputColumnName,
+            int imageWidth, int imageHeight, string inputColumnName = null, ResizingKind resizing = ResizingKind.IsoCrop, Anchor cropAnchor = Anchor.Center)
+            : this(env, new ColumnInfo(outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
         {
         }
 
@@ -204,10 +205,10 @@ namespace Microsoft.ML.ImageAnalytics
             _columns = columns.ToArray();
         }
 
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Input, x.Output)).ToArray();
+            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
         // Factory method for SignatureDataTransform.
@@ -224,10 +225,10 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 var item = args.Column[i];
                 cols[i] = new ColumnInfo(
-                    item.Source ?? item.Name,
                     item.Name,
                     item.ImageWidth ?? args.ImageWidth,
                     item.ImageHeight ?? args.ImageHeight,
+                    item.Source ?? item.Name,
                     item.Resizing ?? args.Resizing,
                     item.CropAnchor ?? args.CropAnchor);
             }
@@ -270,7 +271,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Host.CheckDecode(Enum.IsDefined(typeof(ResizingKind), scale));
                 var anchor = (Anchor)ctx.Reader.ReadByte();
                 Host.CheckDecode(Enum.IsDefined(typeof(Anchor), anchor));
-                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, width, height, scale, anchor);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, width, height, ColumnPairs[i].inputColumnName, scale, anchor);
             }
         }
 
@@ -316,7 +317,7 @@ namespace Microsoft.ML.ImageAnalytics
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].Input, "image", inputSchema[srcCol].Type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].InputColumnName, "image", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase
@@ -330,7 +331,7 @@ namespace Microsoft.ML.ImageAnalytics
             }
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent._columns.Select(x => new Schema.DetachedColumn(x.Output, x.Type, null)).ToArray();
+                => _parent._columns.Select(x => new Schema.DetachedColumn(x.Name, x.Type, null)).ToArray();
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
@@ -461,16 +462,20 @@ namespace Microsoft.ML.ImageAnalytics
         /// Estimator which resizes images.
         /// </summary>
         /// <param name="env">The host environment.</param>
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="imageWidth">Width of resized image.</param>
         /// <param name="imageHeight">Height of resized image.</param>
+        /// <param name="inputColumnName">Name of the input column.</param>
         /// <param name="resizing">What <see cref="ImageResizerTransformer.ResizingKind"/> to use.</param>
         /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ImageResizerTransformer.ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
-        public ImageResizingEstimator(IHostEnvironment env, string input, string output,
-            int imageWidth, int imageHeight, ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.Defaults.Resizing,
+        public ImageResizingEstimator(IHostEnvironment env,
+            string outputColumnName,
+            int imageWidth,
+            int imageHeight,
+            string inputColumnName = null,
+            ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.Defaults.Resizing,
             ImageResizerTransformer.Anchor cropAnchor = ImageResizerTransformer.Defaults.CropAnchor)
-            : this(env, new ImageResizerTransformer(env, input, output, imageWidth, imageHeight, resizing, cropAnchor))
+            : this(env, new ImageResizerTransformer(env, outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
         {
         }
 
@@ -495,12 +500,12 @@ namespace Microsoft.ML.ImageAnalytics
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, new ImageType().ToString(), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageType().ToString(), col.GetTypeString());
 
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Scalar, colInfo.Type, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Scalar, colInfo.Type, false);
             }
 
             return new SchemaShape(result.Values);

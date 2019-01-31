@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -44,7 +45,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 ShortName = "kind", SortOrder = 102)]
             public OneHotEncodingTransformer.OutputKind? OutputKind;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return null;
             }
 
-            protected override bool TryParse(string str)
+            private protected override bool TryParse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Seed != null || Ordered != null || InvertHash != null)
@@ -123,7 +124,7 @@ namespace Microsoft.ML.Transforms.Categorical
         internal const string Summary = "Converts the categorical value into an indicator array by hashing the value and using the hash as an index in the "
             + "bag. If the input column is a vector, a single indicator bag is returned for it.";
 
-        public const string UserName = "Categorical Hash Transform";
+        internal const string UserName = "Categorical Hash Transform";
 
         /// <summary>
         /// A helper method to create <see cref="OneHotHashEncoding"/>.
@@ -161,8 +162,8 @@ namespace Microsoft.ML.Transforms.Categorical
             foreach (var column in args.Column)
             {
                 var col = new OneHotHashEncodingEstimator.ColumnInfo(
-                    column.Source ?? column.Name,
                     column.Name,
+                    column.Source ?? column.Name,
                     column.OutputKind ?? args.OutputKind,
                     column.HashBits ?? args.HashBits,
                     column.Seed ?? args.Seed,
@@ -217,8 +218,8 @@ namespace Microsoft.ML.Transforms.Categorical
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of output column.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="outputKind">Kind of output: bag, indicator vector etc.</param>
             /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
@@ -227,14 +228,14 @@ namespace Microsoft.ML.Transforms.Categorical
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
             /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-            public ColumnInfo(string input, string output,
+            public ColumnInfo(string name, string inputColumnName = null,
                 OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind,
                 int hashBits = Defaults.HashBits,
                 uint seed = Defaults.Seed,
                 bool ordered = Defaults.Ordered,
                 int invertHash = Defaults.InvertHash)
             {
-                HashInfo = new HashingTransformer.ColumnInfo(input, output, hashBits, seed, ordered, invertHash);
+                HashInfo = new HashingTransformer.ColumnInfo(name, inputColumnName ?? name, hashBits, seed, ordered, invertHash);
                 OutputKind = outputKind;
             }
         }
@@ -243,10 +244,13 @@ namespace Microsoft.ML.Transforms.Categorical
         private readonly IEstimator<ITransformer> _toSomething;
         private HashingEstimator _hash;
 
+        /// <summary>
         /// A helper method to create <see cref="OneHotHashEncodingEstimator"/> for public facing API.
+        /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform.
+        /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
@@ -254,12 +258,12 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="outputKind">The type of output expected.</param>
         public OneHotHashEncodingEstimator(IHostEnvironment env,
-            string inputColumn,
-            string outputColumn,
+            string outputColumnName,
+            string inputColumnName = null,
             int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
             int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
             OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind)
-            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind, hashBits, invertHash: invertHash))
+            : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, outputKind, hashBits, invertHash: invertHash))
         {
         }
 
@@ -270,8 +274,8 @@ namespace Microsoft.ML.Transforms.Categorical
             _hash = new HashingEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
             using (var ch = _host.Start(nameof(OneHotHashEncodingEstimator)))
             {
-                var binaryCols = new List<(string input, string output)>();
-                var cols = new List<(string input, string output, bool bag)>();
+                var binaryCols = new List<(string outputColumnName, string inputColumnName)>();
+                var cols = new List<(string outputColumnName, string inputColumnName, bool bag)>();
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var column = columns[i];
@@ -285,22 +289,22 @@ namespace Microsoft.ML.Transforms.Categorical
                         case OneHotEncodingTransformer.OutputKind.Bin:
                             if ((column.HashInfo.InvertHash) != 0)
                                 ch.Warning("Invert hashing is being used with binary encoding.");
-                            binaryCols.Add((column.HashInfo.Output, column.HashInfo.Output));
+                            binaryCols.Add((column.HashInfo.Name, column.HashInfo.Name));
                             break;
                         case OneHotEncodingTransformer.OutputKind.Ind:
-                            cols.Add((column.HashInfo.Output, column.HashInfo.Output, false));
+                            cols.Add((column.HashInfo.Name, column.HashInfo.Name, false));
                             break;
                         case OneHotEncodingTransformer.OutputKind.Bag:
-                            cols.Add((column.HashInfo.Output, column.HashInfo.Output, true));
+                            cols.Add((column.HashInfo.Name, column.HashInfo.Name, true));
                             break;
                     }
                 }
                 IEstimator<ITransformer> toBinVector = null;
                 IEstimator<ITransformer> toVector = null;
                 if (binaryCols.Count > 0)
-                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.input, x.output)).ToArray());
+                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName)).ToArray());
                 if (cols.Count > 0)
-                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName, x.bag)).ToArray());
 
                 if (toBinVector != null && toVector != null)
                     _toSomething = toVector.Append(toBinVector);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,6 +9,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data.Conversion
@@ -57,9 +56,9 @@ namespace Microsoft.ML.Data.Conversion
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new Conversions(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new Conversions(), null) ??
+                    _instance;
             }
         }
 
@@ -390,15 +389,9 @@ namespace Microsoft.ML.Data.Conversion
                 // types that are large enough.
                 if (typeDst is KeyType keyDst)
                 {
-                    // We allow the Min value to shift. We currently don't allow the counts to vary.
                     // REVIEW: Should we allow the counts to vary? Allowing the dst to be bigger is trivial.
                     // Smaller dst means mapping values to NA.
                     if (keySrc.Count != keyDst.Count)
-                        return false;
-                    if (keySrc.Count == 0 && Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(keyDst.RawType))
-                        return false;
-                    // REVIEW: Should we allow contiguous to be changed when Count is zero?
-                    if (keySrc.Contiguous != keyDst.Contiguous)
                         return false;
                 }
                 else
@@ -410,9 +403,7 @@ namespace Microsoft.ML.Data.Conversion
                         return false;
                     if (Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(typeDst.RawType))
                     {
-                        if (keySrc.Count == 0)
-                            return false;
-                        if ((ulong)keySrc.Count > typeDst.RawType.ToMaxInt())
+                        if (keySrc.Count > typeDst.RawType.ToMaxInt())
                             return false;
                     }
                 }
@@ -487,45 +478,23 @@ namespace Microsoft.ML.Data.Conversion
 
             // For key types, first convert to ulong, then do the range check,
             // then convert to StringBuilder.
-            U8 min = key.Min;
-            int count = key.Count;
-            Contracts.Assert(count >= 0 && (U8)count <= U8.MaxValue - min);
-
+            ulong count = key.Count;
             bool identity;
             var convSrc = GetStandardConversion<TSrc, U8>(key, NumberType.U8, out identity);
             var convU8 = GetStringConversion<U8>(NumberType.U8);
-            if (count > 0)
-            {
-                return
-                    (in TSrc src, ref SB dst) =>
+            return
+                (in TSrc src, ref SB dst) =>
+                {
+                    ulong tmp = 0;
+                    convSrc(in src, ref tmp);
+                    if (tmp == 0 || tmp > count)
+                        ClearDst(ref dst);
+                    else
                     {
-                        ulong tmp = 0;
-                        convSrc(in src, ref tmp);
-                        if (tmp == 0 || tmp > (ulong)count)
-                            ClearDst(ref dst);
-                        else
-                        {
-                            tmp = tmp + min - 1;
-                            convU8(in tmp, ref dst);
-                        }
-                    };
-            }
-            else
-            {
-                return
-                    (in TSrc src, ref SB dst) =>
-                    {
-                        U8 tmp = 0;
-                        convSrc(in src, ref tmp);
-                        if (tmp == 0 || min > 1 && tmp > U8.MaxValue - min + 1)
-                            ClearDst(ref dst);
-                        else
-                        {
-                            tmp = tmp + min - 1;
-                            convU8(in tmp, ref dst);
-                        }
-                    };
-            }
+                        tmp = tmp - 1;
+                        convU8(in tmp, ref dst);
+                    }
+                };
         }
 
         public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
@@ -547,20 +516,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.Assert(key.RawType == typeof(TDst));
 
             // First parse as ulong, then convert to T.
-            ulong min = key.Min;
-            ulong max;
-
-            ulong count = key.RawType.ToMaxInt();
-            if (key.Count > 0)
-                max = min - 1 + (ulong)key.Count;
-            else if (min == 0)
-                max = count - 1;
-            else if (key.RawType == typeof(ulong))
-                max = ulong.MaxValue;
-            else if (min - 1 > ulong.MaxValue - count)
-                max = ulong.MaxValue;
-            else
-                max = min - 1 + count;
+            ulong max = key.Count - 1;
 
             var fnConv = GetKeyStandardConversion<TDst>();
             return
@@ -568,7 +524,7 @@ namespace Microsoft.ML.Data.Conversion
                 {
                     ulong uu;
                     dst = default(TDst);
-                    if (!TryParseKey(in src, min, max, out uu))
+                    if (!TryParseKey(in src, max, out uu))
                         return false;
                     // REVIEW: This call to fnConv should never need range checks, so could be made faster.
                     // Also, it would be nice to be able to assert that it doesn't overflow....
@@ -589,20 +545,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.Assert(key.RawType == typeof(TDst));
 
             // First parse as ulong, then convert to T.
-            ulong min = key.Min;
-            ulong max;
-
-            ulong count = key.RawType.ToMaxInt();
-            if (key.Count > 0)
-                max = min - 1 + (ulong)key.Count;
-            else if (min == 0)
-                max = count - 1;
-            else if (key.RawType == typeof(U8))
-                max = ulong.MaxValue;
-            else if (min - 1 > ulong.MaxValue - count)
-                max = ulong.MaxValue;
-            else
-                max = min - 1 + count;
+            ulong max = key.Count - 1;
 
             var fnConv = GetKeyStandardConversion<TDst>();
             return
@@ -610,7 +553,7 @@ namespace Microsoft.ML.Data.Conversion
                 {
                     ulong uu;
                     dst = default(TDst);
-                    if (!TryParseKey(in src, min, max, out uu))
+                    if (!TryParseKey(in src, max, out uu))
                     {
                         dst = default(TDst);
                         return;
@@ -1130,12 +1073,12 @@ namespace Microsoft.ML.Data.Conversion
         }
 
         /// <summary>
-        /// Utility to assist in parsing key-type values. The min and max values define
-        /// the legal input value bounds. The output dst value is "normalized" so min is
-        /// mapped to 1, max is mapped to 1 + (max - min).
+        /// Utility to assist in parsing key-type values. The max value defines
+        /// the legal input value bound. The output dst value is "normalized" by adding 1
+        /// so max is mapped to 1 + max.
         /// Unparsable or out of range values are mapped to zero with a false return.
         /// </summary>
-        public bool TryParseKey(in TX src, U8 min, U8 max, out U8 dst)
+        public bool TryParseKey(in TX src, U8 max, out U8 dst)
         {
             var span = src.Span;
             // Both empty and missing map to zero (NA for key values) and that mapping is valid,
@@ -1146,12 +1089,10 @@ namespace Microsoft.ML.Data.Conversion
                 return true;
             }
 
-            Contracts.Assert(min <= max);
-
-            // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
-            // we map min to 1, which would cause max to overflow to zero. Specifically, it protects
-            // against overflow in the expression uu - min + 1 below.
-            Contracts.Assert((max - min) < U8.MaxValue);
+            // This simply ensures we don't have max == U8.MaxValue. This is illegal since
+            // it would cause max to overflow to zero. Specifically, it protects
+            // against overflow in the expression uu + 1 below.
+            Contracts.Assert(max < U8.MaxValue);
 
             // Parse a ulong.
             ulong uu;
@@ -1162,13 +1103,13 @@ namespace Microsoft.ML.Data.Conversion
                 return false;
             }
 
-            if (min > uu || uu > max)
+            if (uu > max)
             {
                 dst = 0;
                 return false;
             }
 
-            dst = uu - min + 1;
+            dst = uu + 1;
             return true;
         }
 

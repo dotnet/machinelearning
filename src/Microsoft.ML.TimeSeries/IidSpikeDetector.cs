@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -190,18 +191,18 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// Create a new instance of <see cref="IidSpikeEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the output column. Column is a vector of type double and size 3.
-        /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// Column is a vector of type double and size 4. The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
-        public IidSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
+        public IidSpikeEstimator(IHostEnvironment env, string outputColumnName, int confidence, int pvalueHistoryLength, string inputColumnName, AnomalySide side = AnomalySide.TwoSided)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
                 new IidSpikeDetector(env, new IidSpikeDetector.Arguments
                 {
-                    Name = outputColumn,
-                    Source = inputColumn,
+                    Name = outputColumnName,
+                    Source = inputColumnName,
                     Confidence = confidence,
                     PvalueHistoryLength = pvalueHistoryLength,
                     Side = side
@@ -221,7 +222,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             if (!inputSchema.TryFindColumn(Transformer.InputColumnName, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName);
             if (col.ItemType != NumberType.R4)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName, NumberType.R4.ToString(), col.GetTypeString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)

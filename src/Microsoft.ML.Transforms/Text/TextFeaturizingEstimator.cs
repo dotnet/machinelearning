@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Column : ManyToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Transforms.Text
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -257,25 +258,25 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
-        public TextFeaturizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public TextFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             Action<Settings> advancedSettings = null)
-            : this(env, new[] { inputColumn }, outputColumn ?? inputColumn, advancedSettings)
+            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, advancedSettings)
         {
         }
 
-        public TextFeaturizingEstimator(IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
+        public TextFeaturizingEstimator(IHostEnvironment env, string name, IEnumerable<string> source,
             Action<Settings> advancedSettings = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TextFeaturizingEstimator));
-            _host.CheckValue(inputColumns, nameof(inputColumns));
-            _host.CheckParam(inputColumns.Any(), nameof(inputColumns));
-            _host.CheckParam(!inputColumns.Any(string.IsNullOrWhiteSpace), nameof(inputColumns));
-            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
+            _host.CheckValue(source, nameof(source));
+            _host.CheckParam(source.Any(), nameof(source));
+            _host.CheckParam(!source.Any(string.IsNullOrWhiteSpace), nameof(source));
+            _host.CheckNonEmpty(name, nameof(name));
             _host.CheckValueOrNull(advancedSettings);
 
-            _inputColumns = inputColumns.ToArray();
-            OutputColumn = outputColumn;
+            _inputColumns = source.ToArray();
+            OutputColumn = name;
 
             AdvancedSettings = new Settings();
             advancedSettings?.Invoke(AdvancedSettings);
@@ -311,13 +312,13 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.NeedsNormalizeTransform)
             {
-                var xfCols = new (string input, string output)[textCols.Length];
+                var xfCols = new (string outputColumnName, string inputColumnName)[textCols.Length];
                 string[] dstCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
                     dstCols[i] = GenerateColumnName(view.Schema, textCols[i], "TextNormalizer");
                     tempCols.Add(dstCols[i]);
-                    xfCols[i] = (textCols[i], dstCols[i]);
+                    xfCols[i] = (dstCols[i], textCols[i]);
                 }
 
                 view = new TextNormalizingEstimator(h, tparams.TextCase, tparams.KeepDiacritics, tparams.KeepPunctuations, tparams.KeepNumbers, xfCols).Fit(view).Transform(view);
@@ -331,10 +332,10 @@ namespace Microsoft.ML.Transforms.Text
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new WordTokenizingTransformer.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
+                    var col = new WordTokenizingTransformer.ColumnInfo(GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"), textCols[i]);
                     xfCols[i] = col;
-                    wordTokCols[i] = col.Output;
-                    tempCols.Add(col.Output);
+                    wordTokCols[i] = col.Name;
+                    tempCols.Add(col.Name);
                 }
 
                 view = new WordTokenizingEstimator(h, xfCols).Fit(view).Transform(view);
@@ -348,7 +349,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < wordTokCols.Length; i++)
                 {
                     var tempName = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
-                    var col = new StopWordsRemovingTransformer.ColumnInfo(wordTokCols[i], tempName, tparams.StopwordsLanguage);
+                    var col = new StopWordsRemovingTransformer.ColumnInfo(tempName, wordTokCols[i], tparams.StopwordsLanguage);
                     dstCols[i] = tempName;
                     tempCols.Add(tempName);
 
@@ -383,12 +384,12 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var srcCols = tparams.UsePredefinedStopWordRemover ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
-                    var xfCols = new (string input, string output)[srcCols.Length];
+                    var xfCols = new (string outputColumnName, string inputColumnName)[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
                     {
-                        xfCols[i] = (srcCols[i], GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"));
-                        tempCols.Add(xfCols[i].output);
-                        charTokCols[i] = xfCols[i].output;
+                        xfCols[i] = (GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"), srcCols[i]);
+                        tempCols.Add(xfCols[i].outputColumnName);
+                        charTokCols[i] = xfCols[i].outputColumnName;
                     }
                     view = new TokenizingByCharactersTransformer(h, columns: xfCols).Transform(view);
                 }
@@ -414,7 +415,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, charFeatureCol, "LpCharNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingTransformer.LpNormColumnInfo(charFeatureCol, dstCol, normalizerKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormalizingTransformer.LpNormColumnInfo(dstCol, charFeatureCol, normalizerKind: tparams.LpNormalizerKind));
                     charFeatureCol = dstCol;
                 }
 
@@ -422,7 +423,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, wordFeatureCol, "LpWordNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingTransformer.LpNormColumnInfo(wordFeatureCol, dstCol, normalizerKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormalizingTransformer.LpNormColumnInfo(dstCol, wordFeatureCol, normalizerKind: tparams.LpNormalizerKind));
                     wordFeatureCol = dstCol;
                 }
 
@@ -515,7 +516,7 @@ namespace Microsoft.ML.Transforms.Text
                 s.UseCharExtractor = args.CharFeatureExtractor != null;
             };
 
-            var estimator = new TextFeaturizingEstimator(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
+            var estimator = new TextFeaturizingEstimator(env, args.Column.Name, args.Column.Source ?? new[] { args.Column.Name }, settings);
             estimator._dictionary = args.Dictionary;
             estimator._wordFeatureExtractor = args.WordFeatureExtractor;
             estimator._charFeatureExtractor = args.CharFeatureExtractor;

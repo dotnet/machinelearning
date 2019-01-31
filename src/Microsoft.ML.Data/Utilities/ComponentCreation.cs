@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Model;
@@ -147,7 +148,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data saver from the arguments object.
         /// </summary>
-        public static IDataSaver CreateSaver<TArgs>(this IHostEnvironment env, TArgs arguments)
+        internal static IDataSaver CreateSaver<TArgs>(this IHostEnvironment env, TArgs arguments)
             where TArgs : class, new()
         {
             Contracts.CheckValue(env, nameof(env));
@@ -157,7 +158,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data saver from the 'LoadName{settings}' string.
         /// </summary>
-        public static IDataSaver CreateSaver(this IHostEnvironment env, string settings)
+        internal static IDataSaver CreateSaver(this IHostEnvironment env, string settings)
         {
             Contracts.CheckValue(env, nameof(env));
             return CreateCore<IDataSaver>(env, typeof(SignatureDataSaver), settings);

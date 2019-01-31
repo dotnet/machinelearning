@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -47,27 +48,27 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.MinMaxColumn("float4"),
                 new NormalizingEstimator.MinMaxColumn("double1"),
                 new NormalizingEstimator.MinMaxColumn("double4"),
-                new NormalizingEstimator.BinningColumn("float1", "float1bin"),
-                new NormalizingEstimator.BinningColumn("float4", "float4bin"),
-                new NormalizingEstimator.BinningColumn("double1", "double1bin"),
-                new NormalizingEstimator.BinningColumn("double4", "double4bin"),
-                new NormalizingEstimator.SupervisedBinningColumn("float1", "float1supervisedbin", labelColumn:"int1"),
-                new NormalizingEstimator.SupervisedBinningColumn("float4", "float4supervisedbin", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumn("double1", "double1supervisedbin", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumn("double4", "double4supervisedbin", labelColumn: "int1"),
-                new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),
-                new NormalizingEstimator.MeanVarColumn("float4", "float4mv"),
-                new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),
-                new NormalizingEstimator.MeanVarColumn("double4", "double4mv"),
-                new NormalizingEstimator.LogMeanVarColumn("float1", "float1lmv"),
-                new NormalizingEstimator.LogMeanVarColumn("float4", "float4lmv"),
-                new NormalizingEstimator.LogMeanVarColumn("double1", "double1lmv"),
-                new NormalizingEstimator.LogMeanVarColumn("double4", "double4lmv"));
+                new NormalizingEstimator.BinningColumn("float1bin", "float1"),
+                new NormalizingEstimator.BinningColumn("float4bin", "float4"),
+                new NormalizingEstimator.BinningColumn("double1bin", "double1"),
+                new NormalizingEstimator.BinningColumn("double4bin", "double4"),
+                new NormalizingEstimator.SupervisedBinningColumn("float1supervisedbin", "float1", labelColumn: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumn("float4supervisedbin", "float4", labelColumn: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumn("double1supervisedbin", "double1", labelColumn: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumn("double4supervisedbin", "double4", labelColumn: "int1"),
+                new NormalizingEstimator.MeanVarColumn("float1mv", "float1"),
+                new NormalizingEstimator.MeanVarColumn("float4mv", "float4"),
+                new NormalizingEstimator.MeanVarColumn("double1mv", "double1"),
+                new NormalizingEstimator.MeanVarColumn("double4mv", "double4"),
+                new NormalizingEstimator.LogMeanVarColumn("float1lmv", "float1"),
+                new NormalizingEstimator.LogMeanVarColumn("float4lmv", "float4"),
+                new NormalizingEstimator.LogMeanVarColumn("double1lmv", "double1"),
+                new NormalizingEstimator.LogMeanVarColumn("double4lmv", "double4"));
 
             var data = loader.Read(dataPath);
 
-            var badData1 = new ColumnCopyingTransformer(Env, ("int1", "float1")).Transform(data);
-            var badData2 = new ColumnCopyingTransformer(Env, ("float0", "float4")).Transform(data);
+            var badData1 = new ColumnCopyingTransformer(Env, ("float1", "int1")).Transform(data);
+            var badData2 = new ColumnCopyingTransformer(Env, ("float4", "float0")).Transform(data);
 
             TestEstimatorCore(est, data, null, badData1);
             TestEstimatorCore(est, data, null, badData2);
@@ -107,22 +108,22 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
 
             var est = new NormalizingEstimator(Env,
-                new NormalizingEstimator.MinMaxColumn("float1"), 
+                new NormalizingEstimator.MinMaxColumn("float1"),
                 new NormalizingEstimator.MinMaxColumn("float4"),
-                new NormalizingEstimator.MinMaxColumn("double1"), 
+                new NormalizingEstimator.MinMaxColumn("double1"),
                 new NormalizingEstimator.MinMaxColumn("double4"),
-                new NormalizingEstimator.BinningColumn("float1", "float1bin"),
-                new NormalizingEstimator.BinningColumn("float4", "float4bin"), 
-                new NormalizingEstimator.BinningColumn("double1", "double1bin"),
-                new NormalizingEstimator.BinningColumn("double4", "double4bin"),
-                new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),
-                new NormalizingEstimator.MeanVarColumn("float4", "float4mv"),
-                new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),
-                new NormalizingEstimator.MeanVarColumn("double4", "double4mv"),
-                new NormalizingEstimator.LogMeanVarColumn("float1", "float1lmv"),
-                new NormalizingEstimator.LogMeanVarColumn("float4", "float4lmv"),
-                new NormalizingEstimator.LogMeanVarColumn("double1", "double1lmv"),
-                new NormalizingEstimator.LogMeanVarColumn("double4", "double4lmv"));
+                new NormalizingEstimator.BinningColumn("float1bin", "float1"),
+                new NormalizingEstimator.BinningColumn("float4bin", "float4"),
+                new NormalizingEstimator.BinningColumn("double1bin", "double1"),
+                new NormalizingEstimator.BinningColumn("double4bin", "double4"),
+                new NormalizingEstimator.MeanVarColumn("float1mv", "float1"),
+                new NormalizingEstimator.MeanVarColumn("float4mv", "float4"),
+                new NormalizingEstimator.MeanVarColumn("double1mv", "double1"),
+                new NormalizingEstimator.MeanVarColumn("double4mv", "double4"),
+                new NormalizingEstimator.LogMeanVarColumn("float1lmv", "float1"),
+                new NormalizingEstimator.LogMeanVarColumn("float4lmv", "float4"),
+                new NormalizingEstimator.LogMeanVarColumn("double1lmv", "double1"),
+                new NormalizingEstimator.LogMeanVarColumn("double4lmv", "double4"));
 
             var data = loader.Read(dataPath);
 
@@ -143,10 +144,10 @@ namespace Microsoft.ML.Tests.Transformers
             var doubleAffineDataVec = transformer.Columns[3].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<double>>;
             Assert.Equal(4, doubleAffineDataVec.Scale.Length);
             Assert.Empty(doubleAffineDataVec.Offset);
-            
+
             var floatBinData = transformer.Columns[4].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<float>;
             Assert.True(35 == floatBinData.UpperBounds.Length);
-            Assert.True(34 ==  floatBinData.Density);
+            Assert.True(34 == floatBinData.Density);
             Assert.True(0 == floatBinData.Offset);
 
             var floatBinDataVec = transformer.Columns[5].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<float>>;
@@ -164,7 +165,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(35, doubleBinDataVec.UpperBounds[0].Length);
             Assert.Equal(4, doubleBinDataVec.Density.Length);
             Assert.Empty(doubleBinDataVec.Offset);
-            
+
             var floatCdfMeanData = transformer.Columns[8].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
             Assert.Equal(0.169309646f, floatCdfMeanData.Scale);
             Assert.Equal(0, floatCdfMeanData.Offset);
@@ -271,9 +272,9 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new LpNormalizingEstimator(ML, "features", "lpnorm")
-                .Append(new GlobalContrastNormalizingEstimator(ML, "features", "gcnorm"))
-                .Append(new VectorWhiteningEstimator(ML, "features", "whitened"));
+            var est = new LpNormalizingEstimator(ML, "lpnorm", "features")
+                .Append(new GlobalContrastNormalizingEstimator(ML, "gcnorm", "features"))
+                .Append(new VectorWhiteningEstimator(ML, "whitened", "features"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv");
@@ -305,8 +306,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new VectorWhiteningEstimator(ML, "features", "whitened1")
-                .Append(new VectorWhiteningEstimator(ML, "features", "whitened2", kind: WhiteningKind.Pca, pcaNum: 5));
+            var est = new VectorWhiteningEstimator(ML, "whitened1", "features")
+                .Append(new VectorWhiteningEstimator(ML, "whitened2", "features", kind: WhiteningKind.Pca, pcaNum: 5));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "whitened.tsv");
@@ -338,7 +339,7 @@ namespace Microsoft.ML.Tests.Transformers
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new VectorWhiteningEstimator(ML, "features", "whitened");
+            var pipe = new VectorWhiteningEstimator(ML, "whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -365,8 +366,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new LpNormalizingEstimator(ML, "features", "lpNorm1")
-                .Append(new LpNormalizingEstimator(ML, "features", "lpNorm2", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, substractMean: true));
+            var est = new LpNormalizingEstimator(ML, "lpNorm1", "features")
+                .Append(new LpNormalizingEstimator(ML, "lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, substractMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");
@@ -398,7 +399,7 @@ namespace Microsoft.ML.Tests.Transformers
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new LpNormalizingEstimator(ML, "features", "whitened");
+            var pipe = new LpNormalizingEstimator(ML, "whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -424,8 +425,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new GlobalContrastNormalizingEstimator(ML, "features", "gcnNorm1")
-                .Append(new GlobalContrastNormalizingEstimator(ML, "features", "gcnNorm2", substractMean: false, useStdDev: true, scale: 3));
+            var est = new GlobalContrastNormalizingEstimator(ML, "gcnNorm1", "features")
+                .Append(new GlobalContrastNormalizingEstimator(ML, "gcnNorm2", "features", substractMean: false, useStdDev: true, scale: 3));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "gcnNorm.tsv");
@@ -457,7 +458,7 @@ namespace Microsoft.ML.Tests.Transformers
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new GlobalContrastNormalizingEstimator(ML, "features", "whitened");
+            var pipe = new GlobalContrastNormalizingEstimator(ML, "whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

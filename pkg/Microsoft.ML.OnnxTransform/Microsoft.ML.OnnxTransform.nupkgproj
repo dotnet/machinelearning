@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="$(MicrosoftMLOnnxRuntimeGpuPackageVersion)"/>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimePackageVersion)"/>
   </ItemGroup>
 
 </Project>

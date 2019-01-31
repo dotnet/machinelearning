@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -41,7 +42,7 @@ namespace Microsoft.ML.ImageAnalytics
     {
         public sealed class Column : OneToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -49,7 +50,7 @@ namespace Microsoft.ML.ImageAnalytics
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -80,7 +81,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         private const string RegistrationName = "ImageGrayscale";
 
-        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
+        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Converts the images to grayscale.
@@ -88,7 +89,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
         /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
 
-        public ImageGrayscaleTransformer(IHostEnvironment env, params (string input, string output)[] columns)
+        public ImageGrayscaleTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
         }
@@ -101,7 +102,7 @@ namespace Microsoft.ML.ImageAnalytics
             env.CheckValue(input, nameof(input));
             env.CheckValue(args.Column, nameof(args.Column));
 
-            return new ImageGrayscaleTransformer(env, args.Column.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
+            return new ImageGrayscaleTransformer(env, args.Column.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(input);
         }
 
@@ -155,7 +156,7 @@ namespace Microsoft.ML.ImageAnalytics
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "image", inputSchema[srcCol].Type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "image", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase
@@ -169,7 +170,7 @@ namespace Microsoft.ML.ImageAnalytics
             }
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent.ColumnPairs.Select((x, idx) => new Schema.DetachedColumn(x.output, InputSchema[ColMapNewToOld[idx]].Type, null)).ToArray();
+                => _parent.ColumnPairs.Select((x, idx) => new Schema.DetachedColumn(x.outputColumnName, InputSchema[ColMapNewToOld[idx]].Type, null)).ToArray();
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
@@ -226,7 +227,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// </summary>
         /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
         /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
-        public ImageGrayscalingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+        public ImageGrayscalingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscalingEstimator)), new ImageGrayscaleTransformer(env, columns))
         {
         }
@@ -237,12 +238,12 @@ namespace Microsoft.ML.ImageAnalytics
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
+                if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, new ImageType().ToString(), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new ImageType().ToString(), col.GetTypeString());
 
-                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind, col.ItemType, col.IsKey, col.Metadata);
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, col.ItemType, col.IsKey, col.Metadata);
             }
 
             return new SchemaShape(result.Values);

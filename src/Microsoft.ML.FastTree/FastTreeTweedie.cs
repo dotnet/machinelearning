@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -509,7 +510,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 
-    public static partial class FastTree
+    internal static partial class FastTree
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastTreeTweedieRegressor",
             Desc = FastTreeTweedieTrainer.Summary,

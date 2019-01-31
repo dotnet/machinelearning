@@ -9,7 +9,10 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    public static class NAHandling
+    /// <summary>
+    /// Entry point methods for NA handling.
+    /// </summary>
+    internal static class NAHandling
     {
         [TlcModule.EntryPoint(Name = "Transforms.MissingValuesDropper",
             Desc = MissingValueDroppingTransformer.Summary,
