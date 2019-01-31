@@ -98,6 +98,9 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Extracts word embeddings.
+        /// Output three times more values than dimension of the model specified in <paramref name="modelKind"/>
+        /// First set of values represent minumum encountered values (for each dimension), second set represent average (for each dimension)
+        /// and third one represent maximum encountered values (for each dimension).
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
