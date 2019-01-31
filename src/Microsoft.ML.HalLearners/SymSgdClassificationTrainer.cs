@@ -225,8 +225,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier",
             Desc = "Train a symbolic SGD.",
             UserName = SymSgdClassificationTrainer.UserNameValue,
-            ShortName = SymSgdClassificationTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""SymSGD""]/*' />" })]
+            ShortName = SymSgdClassificationTrainer.ShortName)]
         internal static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));

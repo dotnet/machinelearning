@@ -187,9 +187,7 @@ namespace Microsoft.ML.Trainers.Online
         [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",
              Desc = Summary,
              UserName = UserNameValue,
-             ShortName = ShortName,
-             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""AP""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""AP""]/*' />"})]
+             ShortName = ShortName)]
         internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
