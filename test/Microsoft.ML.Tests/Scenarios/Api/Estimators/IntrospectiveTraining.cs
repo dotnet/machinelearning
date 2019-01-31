@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -42,6 +44,47 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Get feature weights.
             VBuffer<float> weights = default;
             model.LastTransformer.Model.GetFeatureWeights(ref weights);
+        }
+
+        [Fact]
+        public void FastTreeClassificationIntrospectiveTraining()
+        {
+            var ml = new MLContext(seed: 1, conc: 1);
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
+
+            var trainer = ml.BinaryClassification.Trainers.FastTree(numLeaves: 5, numTrees: 3);
+
+            BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> pred = null;
+
+            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
+                .AppendCacheCheckpoint(ml)
+                .Append(trainer.WithOnFitDelegate(p => pred = p));
+
+            // Train.
+            var model = pipeline.Fit(data);
+
+            // Extract the learned GBDT model.
+            var treeCollection = ((FastTreeBinaryModelParameters)((Internal.Calibration.FeatureWeightsCalibratedPredictor)pred.Model).SubPredictor).TrainedTreeCollection;
+
+            // Inspect properties in the extracted model.
+            Assert.Equal(3, treeCollection.Trees.Count);
+            Assert.Equal(3, treeCollection.TreeWeights.Count);
+            Assert.Equal(0, treeCollection.Bias);
+            Assert.All(treeCollection.TreeWeights, weight => Assert.Equal(1.0, weight));
+
+            // Inspect the last tree.
+            var tree = treeCollection.Trees[2];
+
+            Assert.Equal(5, tree.NumLeaves);
+            Assert.Equal(4, tree.NumNodes);
+            Assert.Equal(tree.LteChild.ToArray(), new int[] { 2, -2, -1, -3 });
+            Assert.Equal(tree.GtChild.ToArray(), new int[] { 1, 3, -4, -5 });
+            Assert.Equal(tree.NumericalSplitFeatureIndexes.ToArray(), new int[] { 14, 294, 633, 266 });
+            Assert.Equal(tree.NumericalSplitThresholds.ToArray(), new float[] { 0.0911167f, 0.06509889f, 0.019873254f, 0.0361835f });
+            Assert.All(tree.CategoricalSplitFlags.ToArray(), flag => Assert.False(flag));
+
+            Assert.Equal(0, tree.GetCategoricalSplitFeaturesAt(0).Length);
+            Assert.Equal(0, tree.GetCategoricalCategoricalSplitFeatureRangeAt(0).Length);
         }
     }
 }
