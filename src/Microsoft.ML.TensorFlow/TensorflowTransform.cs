@@ -1124,6 +1124,10 @@ namespace Microsoft.ML.Transforms
             args.ReTrain = false;
             return args;
         }
+
+        /// <summary>
+        /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -1149,6 +1153,9 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(resultDic.Values);
         }
 
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
         public TensorFlowTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
