@@ -673,9 +673,7 @@ namespace Microsoft.ML.Transforms.Conversions
         [TlcModule.EntryPoint(Name = "Transforms.HashConverter",
             Desc = HashJoiningTransform.Summary,
             UserName = HashJoiningTransform.UserName,
-            ShortName = HashJoiningTransform.RegistrationName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""HashJoin""]/*' />"})]
+            ShortName = HashJoiningTransform.RegistrationName)]
         public static CommonOutputs.TransformOutput Apply(IHostEnvironment env, HashJoiningTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

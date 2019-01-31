@@ -551,7 +551,7 @@ namespace Microsoft.ML.Transforms.Projections
             string inputSchema; // just used for the excpections
 
             if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberType.R4)))
-                throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
+                throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "known-size vector of float of two or more items", type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase
@@ -644,9 +644,7 @@ namespace Microsoft.ML.Transforms.Projections
         [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator",
             Desc = Summary,
             UserName = UserName,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
-                                 @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaCalculator""]/*' />"})]
+            ShortName = ShortName)]
         internal static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Pca", input);

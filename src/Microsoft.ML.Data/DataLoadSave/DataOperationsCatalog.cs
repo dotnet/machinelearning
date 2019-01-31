@@ -87,7 +87,7 @@ namespace Microsoft.ML
 
             var type = input.Schema[columnName].Type;
             if (type.GetKeyCount() == 0)
-                throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "a known cardinality key", type.ToString());
+                throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "KeyType", type.ToString());
             return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
     }

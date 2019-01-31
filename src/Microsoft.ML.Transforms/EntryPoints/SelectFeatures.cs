@@ -15,9 +15,7 @@ namespace Microsoft.ML.Transforms
     {
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount",
             Desc = CountFeatureSelectingEstimator.Summary,
-            UserName = CountFeatureSelectingEstimator.UserName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CountFeatureSelection""]/*'/>",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CountFeatureSelection""]/*'/>"})]
+            UserName = CountFeatureSelectingEstimator.UserName)]
         public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectingEstimator.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -32,9 +30,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByMutualInformation",
             Desc = MutualInformationFeatureSelectingEstimator.Summary,
             UserName = MutualInformationFeatureSelectingEstimator.UserName,
-            ShortName = MutualInformationFeatureSelectingEstimator.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""MutualInformationFeatureSelection""]/*'/>",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""MutualInformationFeatureSelection""]/*'/>"})]
+            ShortName = MutualInformationFeatureSelectingEstimator.ShortName)]
         public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectingEstimator.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

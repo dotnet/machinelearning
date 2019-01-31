@@ -525,11 +525,6 @@ namespace Microsoft.ML.EntryPoints
             /// Short name of the Entry Point
             /// </summary>
             public string ShortName { get; set; }
-
-            /// <summary>
-            /// The path to the XML documentation on the CSharpAPI component
-            /// </summary>
-            public string[] XmlInclude { get; set; }
         }
 
         /// <summary>

@@ -165,9 +165,7 @@ namespace Microsoft.ML.LightGBM
         [TlcModule.EntryPoint(Name = "Trainers.LightGbmRegressor",
             Desc = LightGbmRegressorTrainer.Summary,
             UserName = LightGbmRegressorTrainer.UserNameValue,
-            ShortName = LightGbmRegressorTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
-                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmRegressor""]/*' />"})]
+            ShortName = LightGbmRegressorTrainer.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));

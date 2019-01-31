@@ -720,7 +720,7 @@ namespace Microsoft.ML.Data
 
             var col = input.Schema.GetColumnOrNull(labelName);
             if (!col.HasValue)
-                throw ch.ExceptSchemaMismatch(nameof(input), "Label", labelName);
+                throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
 
             ColumnType labelType = col.Value.Type;
             if (!(labelType is KeyType))
@@ -741,8 +741,7 @@ namespace Microsoft.ML.Data
         [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer",
             Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary,
             UserName = TreeEnsembleFeaturizerTransform.UserName,
-            ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""TreeEnsembleFeaturizerTransform""]/*'/>" })]
+            ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
         public static CommonOutputs.TransformOutput Featurizer(IHostEnvironment env, TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint input)
         {
             Contracts.CheckValue(env, nameof(env));

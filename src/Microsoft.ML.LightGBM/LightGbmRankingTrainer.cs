@@ -141,7 +141,7 @@ namespace Microsoft.ML.LightGBM
             Contracts.Assert(labelCol.IsValid);
 
             Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "R4 or a Key", labelCol.GetTypeString());
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float or KeyType", labelCol.GetTypeString());
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
@@ -191,9 +191,7 @@ namespace Microsoft.ML.LightGBM
         [TlcModule.EntryPoint(Name = "Trainers.LightGbmRanker",
             Desc = "Train a LightGBM ranking model.",
             UserName = LightGbmRankingTrainer.UserName,
-            ShortName = LightGbmRankingTrainer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name=""LightGBM""]/*' />",
-                                 @"<include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name=""LightGbmRanker""]/*' />"})]
+            ShortName = LightGbmRankingTrainer.ShortName)]
         public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));

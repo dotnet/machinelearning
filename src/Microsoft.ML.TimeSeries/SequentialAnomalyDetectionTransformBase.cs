@@ -594,7 +594,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
                 var colType = inputSchema[_inputColumnIndex].Type;
                 if (colType != NumberType.R4)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, NumberType.R4.ToString(), colType.ToString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, "float", colType.ToString());
 
                 _parent = parent;
                 _parentSchema = inputSchema;

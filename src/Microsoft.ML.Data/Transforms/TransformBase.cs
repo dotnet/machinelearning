@@ -373,7 +373,7 @@ namespace Microsoft.ML.Data
 
                     int colSrc;
                     if (!inputSchema.TryGetColumnIndex(src, out colSrc))
-                        throw host.Except("Source column '{0}' is required but not found", src);
+                        throw host.ExceptSchemaMismatch(nameof(inputSchema), "source", src);
                     var type = inputSchema[colSrc].Type;
                     if (testType != null)
                     {
