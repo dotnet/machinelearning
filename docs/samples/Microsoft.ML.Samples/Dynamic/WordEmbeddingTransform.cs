@@ -24,7 +24,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // false        ==RUDE== Dude, 2.
             // true          Until the next game, this is the best Xbox game!
 
-            // Pipeline which goes through SentimentText and normalize it, tokenize it by words, and removes default stopwords.
+            // Pipeline which goes through SentimentText and normalizes it, tokenize it by words, and removes default stopwords.
             var wordsPipeline = ml.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
                 .Append(ml.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
                 .Append(ml.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));

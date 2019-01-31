@@ -96,12 +96,7 @@ namespace Microsoft.ML
             => new TextNormalizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, inputColumnName, textCase, keepDiacritics, keepPunctuations, keepNumbers);
 
-        /// <summary>
-        /// Extracts word embeddings.
-        /// Output three times more values than dimension of the model specified in <paramref name="modelKind"/>
-        /// First set of values represent minumum encountered values (for each dimension), second set represent average (for each dimension)
-        /// and third one represent maximum encountered values (for each dimension).
-        /// </summary>
+        /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
@@ -119,10 +114,7 @@ namespace Microsoft.ML
             WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
             => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, modelKind);
 
-        /// Extracts word embeddings.
-        /// Output three times more values than dimension of the model specified in <paramref name="customModelFile"/>
-        /// First set of values represent minumum encountered values (for each dimension), second set represent average (for each dimension)
-        /// and third one represent maximum encountered values (for each dimension).
+        /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
@@ -141,12 +133,7 @@ namespace Microsoft.ML
             => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, customModelFile, inputColumnName ?? outputColumnName);
 
-        /// <summary>
-        /// Extracts word embeddings.
-        /// Output three times more values than dimension of the model specified in <paramref name="modelKind"/>
-        /// First set of values represent minumum encountered values (for each dimension), second set represent average (for each dimension)
-        /// and third one represent maximum encountered values (for each dimension).
-        /// </summary>
+        /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
