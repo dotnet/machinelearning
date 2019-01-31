@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         {
             _host.CheckValue(models, nameof(models));
 
-            var ensemble = new TreeEnsemble();
+            var ensemble = new InternalTreeEnsemble();
             int modelCount = 0;
             int featureCount = -1;
             bool binaryClassifier = false;
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                     int position = -1;
                     t.ToByteArray(bytes, ref position);
                     position = -1;
-                    var tNew = new RegressionTree(bytes, ref position);
+                    var tNew = new InternalRegressionTree(bytes, ref position);
                     if (paramA != 1)
                     {
                         for (int i = 0; i < tNew.NumLeaves; i++)

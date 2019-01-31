@@ -77,14 +77,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             Assert.Equal(5, tree.NumLeaves);
             Assert.Equal(4, tree.NumNodes);
-            Assert.Equal(tree.LteChild.ToArray(), new int[] { 2, -2, -1, -3 });
-            Assert.Equal(tree.GtChild.ToArray(), new int[] { 1, 3, -4, -5 });
-            Assert.Equal(tree.NumericalSplitFeatureIndexes.ToArray(), new int[] { 14, 294, 633, 266 });
-            Assert.Equal(tree.NumericalSplitThresholds.ToArray(), new float[] { 0.0911167f, 0.06509889f, 0.019873254f, 0.0361835f });
-            Assert.All(tree.CategoricalSplitFlags.ToArray(), flag => Assert.False(flag));
+            Assert.Equal(tree.LteChild, new int[] { 2, -2, -1, -3 });
+            Assert.Equal(tree.GtChild, new int[] { 1, 3, -4, -5 });
+            Assert.Equal(tree.NumericalSplitFeatureIndexes, new int[] { 14, 294, 633, 266 });
+            Assert.Equal(tree.NumericalSplitThresholds, new float[] { 0.0911167f, 0.06509889f, 0.019873254f, 0.0361835f });
+            Assert.All(tree.CategoricalSplitFlags, flag => Assert.False(flag));
 
-            Assert.Equal(0, tree.GetCategoricalSplitFeaturesAt(0).Length);
-            Assert.Equal(0, tree.GetCategoricalCategoricalSplitFeatureRangeAt(0).Length);
+            Assert.Equal(0, tree.GetCategoricalSplitFeaturesAt(0).Count);
+            Assert.Equal(0, tree.GetCategoricalCategoricalSplitFeatureRangeAt(0).Count);
         }
     }
 }

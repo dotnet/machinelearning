@@ -23,12 +23,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _quantileEnabled = quantileEnabled;
         }
 
-        protected override RegressionTree NewTree()
+        protected override InternalRegressionTree NewTree()
         {
             return new QuantileRegressionTree(NumLeaves);
         }
 
-        public RegressionTree FitTargets(IChannel ch, bool[] activeFeatures, Double[] weightedtargets, Double[] targets, Double[] weights)
+        public InternalRegressionTree FitTargets(IChannel ch, bool[] activeFeatures, Double[] weightedtargets, Double[] targets, Double[] weights)
         {
             var tree = (QuantileRegressionTree)FitTargets(ch, activeFeatures, weightedtargets);
             if (tree != null && _quantileEnabled)

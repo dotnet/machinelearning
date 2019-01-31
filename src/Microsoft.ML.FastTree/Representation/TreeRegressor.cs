@@ -1,20 +1,21 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Trainers.FastTree.Internal;
 
-namespace Microsoft.ML.FastTree.Representation
+namespace Microsoft.ML.FastTree
 {
     /// <summary>
-    /// A container class for exposing <see cref="RegressionTree"/>'s attributes to users.
+    /// A container class for exposing <see cref="InternalRegressionTree"/>'s attributes to users.
     /// This class should not be mutable, so it contains a lot of read-only members.
     /// </summary>
-    public class TreeRegressor
+    public class RegressionTree
     {
         /// <summary>
-        /// <see cref="TreeRegressor"/> is an immutable wrapper over <see cref="_tree"/> for exposing some tree's
+        /// <see cref="RegressionTree"/> is an immutable wrapper over <see cref="_tree"/> for exposing some tree's
         /// attribute to users.
         /// </summary>
-        private readonly RegressionTree _tree;
+        private readonly InternalRegressionTree _tree;
 
         /// <summary>
         /// Sample labels from training data. <see cref="_leafSamples"/>[i] stores the labels falling into the
@@ -29,6 +30,31 @@ namespace Microsoft.ML.FastTree.Representation
         private readonly double[][] _leafSampleWeights;
 
         /// <summary>
+        /// See <see cref="LteChild"/>.
+        /// </summary>
+        private readonly ImmutableArray<int> _lteChild;
+        /// <summary>
+        /// See <see cref="GtChild"/>.
+        /// </summary>
+        private readonly ImmutableArray<int> _gtChild;
+        /// <summary>
+        /// See <see cref="NumericalSplitFeatureIndexes"/>.
+        /// </summary>
+        private readonly ImmutableArray<int> _numericalSplitFeatureIndexes;
+        /// <summary>
+        /// See <see cref="NumericalSplitThresholds"/>.
+        /// </summary>
+        private readonly ImmutableArray<float> _numericalSplitThresholds;
+        /// <summary>
+        /// See <see cref="CategoricalSplitFlags"/>.
+        /// </summary>
+        private readonly ImmutableArray<bool> _categoricalSplitFlags;
+        /// <summary>
+        /// See <see cref="LeafValues"/>.
+        /// </summary>
+        private readonly ImmutableArray<double> _leafValues;
+
+        /// <summary>
         /// <see cref="LteChild"/>[i] is the i-th node's child index used when
         /// (1) the numerical feature indexed by <see cref="NumericalSplitFeatureIndexes"/>[i] is less than the
         /// threshold <see cref="NumericalSplitThresholds"/>[i], or
@@ -40,46 +66,52 @@ namespace Microsoft.ML.FastTree.Representation
         /// the underlying <see cref="_tree"/>. A negative returned value means a leaf; for example, -1 stands for the
         /// first leaf in the underlying <see cref="_tree"/>.
         /// </summary>
-        public ReadOnlySpan<int> LteChild => new ReadOnlySpan<int>(_tree.LteChild, 0, _tree.NumNodes);
+        public IReadOnlyList<int> LteChild => _lteChild;
+
         /// <summary>
         /// <see cref="GtChild"/>[i] is the i-th node's child index used when the two conditions, (1) and (2),
         /// described in <see cref="LteChild"/>'s document are not true. Its return value follows the format
         /// used in <see cref="LteChild"/>.
         /// </summary>
-        public ReadOnlySpan<int> GtChild => new ReadOnlySpan<int>(_tree.GtChild, 0, _tree.NumNodes);
+        public IReadOnlyList<int> GtChild => _gtChild;
+
         /// <summary>
         /// <see cref="NumericalSplitFeatureIndexes"/>[i] is the feature index used the splitting function of the
         /// i-th node. This value is valid only if <see cref="CategoricalSplitFlags"/>[i] is false.
         /// </summary>
-        public ReadOnlySpan<int> NumericalSplitFeatureIndexes => new ReadOnlySpan<int>(_tree.SplitFeatures, 0, _tree.NumNodes);
+        public IReadOnlyList<int> NumericalSplitFeatureIndexes => _numericalSplitFeatureIndexes;
+
         /// <summary>
         /// <see cref="NumericalSplitThresholds"/>[i] is the threshold on feature indexed by
         /// <see cref="NumericalSplitFeatureIndexes"/>[i], where i is the i-th node's index
         /// (for example, i is 1 for the 2nd node in <see cref="_tree"/>).
         /// </summary>
-        public ReadOnlySpan<float> NumericalSplitThresholds => new ReadOnlySpan<float>(_tree.RawThresholds, 0, _tree.NumNodes);
+        public IReadOnlyList<float> NumericalSplitThresholds => _numericalSplitThresholds;
+
         /// <summary>
         /// Determine the types of splitting function. If <see cref="CategoricalSplitFlags"/>[i] is true, the i-th
         /// node's uses categorical splitting function. Otherwise, traditional numerical split is used.
         /// </summary>
-        public ReadOnlySpan<bool> CategoricalSplitFlags => new ReadOnlySpan<bool>(_tree.CategoricalSplit, 0, _tree.NumNodes);
+        public IReadOnlyList<bool> CategoricalSplitFlags => _categoricalSplitFlags;
+
         /// <summary>
         /// <see cref="LeafValues"/>[i] is the learned value at the i-th leaf.
         /// </summary>
-        public ReadOnlySpan<double> LeafValues => new ReadOnlySpan<double>(_tree.LeafValues, 0, _tree.NumLeaves);
+        public IReadOnlyList<double> LeafValues => _leafValues;
+
         /// <summary>
         /// Return categorical thresholds used at node indexed by nodeIndex. If the considered input feature does NOT
         /// matche any of values returned by <see cref="GetCategoricalSplitFeaturesAt(int)"/>, we call it a
         /// less-than-threshold event and therefore <see cref="LteChild"/>[nodeIndex] is the child node that input
         /// should go next. The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
-        public ReadOnlySpan<int> GetCategoricalSplitFeaturesAt(int nodeIndex)
+        public IReadOnlyList<int> GetCategoricalSplitFeaturesAt(int nodeIndex)
         {
             if (nodeIndex < 0 || nodeIndex >= NumNodes)
                 throw Contracts.Except($"The input index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumNodes} (exclusive).");
 
             if (_tree.CategoricalSplitFeatures == null || _tree.CategoricalSplitFeatures[nodeIndex] == null)
-                return new ReadOnlySpan<int>(); // Zero-length vector.
+                return new List<int>(); // Zero-length vector.
             else
                 return _tree.CategoricalSplitFeatures[nodeIndex];
         }
@@ -90,15 +122,15 @@ namespace Microsoft.ML.FastTree.Representation
         /// array; its 1st element is the starting index and its 2nd element is the endining index of a feature segment.
         /// The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
-        public ReadOnlySpan<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex)
+        public IReadOnlyList<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex)
         {
             if (nodeIndex < 0 || nodeIndex >= NumNodes)
                 throw Contracts.Except($"The input node index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumNodes} (exclusive).");
 
             if (_tree.CategoricalSplitFeatureRanges == null || _tree.CategoricalSplitFeatureRanges[nodeIndex] == null)
-                return new ReadOnlySpan<int>(); // Zero-length vector.
+                return new List<int>(); // Zero-length vector.
             else
-                return new ReadOnlySpan<int>(_tree.CategoricalSplitFeatureRanges[nodeIndex]);
+                return _tree.CategoricalSplitFeatureRanges[nodeIndex];
         }
 
         /// <summary>
@@ -106,13 +138,13 @@ namespace Microsoft.ML.FastTree.Representation
         /// </summary>
         /// <param name="leafIndex">The index of the specified leaf.</param>
         /// <returns>Training labels</returns>
-        public ReadOnlySpan<double> GetLeafSamplesAt(int leafIndex)
+        public IReadOnlyList<double> GetLeafSamplesAt(int leafIndex)
         {
             if (leafIndex < 0 || leafIndex >= NumLeaves)
                 throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumLeaves} (exclusive).");
 
             // _leafSample always contains valid values assigned in constructor.
-            return new ReadOnlySpan<double>(_leafSamples[leafIndex]);
+            return _leafSamples[leafIndex];
         }
 
         /// <summary>
@@ -122,13 +154,13 @@ namespace Microsoft.ML.FastTree.Representation
         /// </summary>
         /// <param name="leafIndex">The index of the specified leaf.</param>
         /// <returns>Training labels' weights</returns>
-        public ReadOnlySpan<double> GetLeafSampleWeightsAt(int leafIndex)
+        public IReadOnlyList<double> GetLeafSampleWeightsAt(int leafIndex)
         {
             if (leafIndex < 0 || leafIndex >= NumLeaves)
                 throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumLeaves} (exclusive).");
 
             // _leafSampleWeights always contains valid values assigned in constructor.
-            return new ReadOnlySpan<double>(_leafSampleWeights[leafIndex]);
+            return _leafSampleWeights[leafIndex];
         }
 
         /// <summary>
@@ -150,11 +182,19 @@ namespace Microsoft.ML.FastTree.Representation
         // The index of leaf starts with 1 because interally we use "-1" as the 1st leaf's index, "-2" for the 2nd leaf's index, and so on.
         public int NumNodes => _tree.NumNodes;
 
-        internal TreeRegressor(RegressionTree tree)
+        internal RegressionTree(InternalRegressionTree tree)
         {
             _tree = tree;
             _leafSamples = null;
             _leafSampleWeights = null;
+
+            _lteChild = ImmutableArray.Create(_tree.LteChild, 0, _tree.NumNodes);
+            _gtChild = ImmutableArray.Create(_tree.GtChild, 0, _tree.NumNodes);
+
+            _numericalSplitFeatureIndexes = ImmutableArray.Create(_tree.SplitFeatures, 0, _tree.NumNodes);
+            _numericalSplitThresholds = ImmutableArray.Create(_tree.RawThresholds, 0, _tree.NumNodes);
+            _categoricalSplitFlags = ImmutableArray.Create(_tree.CategoricalSplit, 0, _tree.NumNodes);
+            _leafValues = ImmutableArray.Create(_tree.LeafValues, 0, _tree.NumLeaves);
 
             if (tree is QuantileRegressionTree)
                 ((QuantileRegressionTree)tree).ExtractLeafSamplesAndTheirWeights(out _leafSamples, out _leafSampleWeights);

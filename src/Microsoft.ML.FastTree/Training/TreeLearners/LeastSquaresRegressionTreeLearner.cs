@@ -187,12 +187,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             largerCandidates = new LeafSplitCandidates(data);
         }
 
-        protected virtual RegressionTree NewTree()
+        protected virtual InternalRegressionTree NewTree()
         {
-            return new RegressionTree(NumLeaves);
+            return new InternalRegressionTree(NumLeaves);
         }
 
-        protected virtual void MakeDummyRootSplit(RegressionTree tree, double rootTarget, double[] targets)
+        protected virtual void MakeDummyRootSplit(InternalRegressionTree tree, double rootTarget, double[] targets)
         {
             // Pick a random feature and split on it:
             SplitInfo newRootSplitInfo = new SplitInfo();
@@ -213,13 +213,13 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// Learns a new tree for the current outputs
         /// </summary>
         /// <returns>A regression tree</returns>
-        internal sealed override RegressionTree FitTargets(IChannel ch, bool[] activeFeatures, double[] targets)
+        internal sealed override InternalRegressionTree FitTargets(IChannel ch, bool[] activeFeatures, double[] targets)
         {
             int maxLeaves = base.NumLeaves;
             using (Timer.Time(TimerEvent.TreeLearnerGetTree))
             {
                 // create a new tree
-                RegressionTree tree = NewTree();
+                InternalRegressionTree tree = NewTree();
                 // Not use weak reference here to avoid the change of activeFeatures in the ParallelInterface.
                 tree.ActiveFeatures = (bool[])activeFeatures.Clone();
 
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        protected virtual void PerformSplit(RegressionTree tree, int bestLeaf, double[] targets, out int lteChild, out int gtChild)
+        protected virtual void PerformSplit(InternalRegressionTree tree, int bestLeaf, double[] targets, out int lteChild, out int gtChild)
         {
             SplitInfo bestSplitInfo = BestSplitInfoPerLeaf[bestLeaf];
 

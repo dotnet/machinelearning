@@ -17,10 +17,10 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    /// Note that <see cref="RegressionTree"/> is shared between FastTree and LightGBM assemblies,
-    /// so <see cref="RegressionTree"/> has <see cref="BestFriendAttribute"/>.
+    /// Note that <see cref="InternalRegressionTree"/> is shared between FastTree and LightGBM assemblies,
+    /// so <see cref="InternalRegressionTree"/> has <see cref="BestFriendAttribute"/>.
     [BestFriend]
-    internal class RegressionTree
+    internal class InternalRegressionTree
     {
         private double _maxOutput;
         private double[] _splitGain;
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             FastForest = 2
         }
 
-        private RegressionTree()
+        private InternalRegressionTree()
         {
             Weight = 1.0;
         }
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <summary>
         /// constructs a regression tree with an upper bound on depth
         /// </summary>
-        public RegressionTree(int maxLeaves)
+        public InternalRegressionTree(int maxLeaves)
             : this()
         {
             SplitFeatures = new int[maxLeaves - 1];
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             NumLeaves = 1;
         }
 
-        public RegressionTree(byte[] buffer, ref int position)
+        public InternalRegressionTree(byte[] buffer, ref int position)
             : this()
         {
             NumLeaves = buffer.ToInt(ref position);
@@ -162,14 +162,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <summary>
         /// Create a Regression Tree object from raw tree contents.
         /// </summary>
-        public static RegressionTree Create(int numLeaves, int[] splitFeatures, double[] splitGain,
+        public static InternalRegressionTree Create(int numLeaves, int[] splitFeatures, double[] splitGain,
             float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtChild, double[] leafValues,
             int[][] categoricalSplitFeatures, bool[] categoricalSplit)
         {
             if (numLeaves <= 1)
             {
                 // Create a dummy tree.
-                RegressionTree tree = new RegressionTree(2);
+                InternalRegressionTree tree = new InternalRegressionTree(2);
                 tree.SetOutput(0, 0.0);
                 tree.SetOutput(1, 0.0);
                 return tree;
@@ -185,11 +185,11 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 Contracts.CheckParam(numLeaves == Utils.Size(leafValues), nameof(leafValues), "Size error, should equal to numLeaves.");
                 Contracts.CheckParam(numLeaves - 1 == Utils.Size(categoricalSplitFeatures), nameof(categoricalSplitFeatures), "Size error, should equal to numLeaves - 1.");
                 Contracts.CheckParam(numLeaves - 1 == Utils.Size(categoricalSplit), nameof(categoricalSplit), "Size error, should equal to numLeaves - 1.");
-                return new RegressionTree(splitFeatures, splitGain, null, rawThresholds, defaultValueForMissing, lteChild, gtChild, leafValues, categoricalSplitFeatures, categoricalSplit);
+                return new InternalRegressionTree(splitFeatures, splitGain, null, rawThresholds, defaultValueForMissing, lteChild, gtChild, leafValues, categoricalSplitFeatures, categoricalSplit);
             }
         }
 
-        internal RegressionTree(int[] splitFeatures, double[] splitGain, double[] gainPValue,
+        internal InternalRegressionTree(int[] splitFeatures, double[] splitGain, double[] gainPValue,
             float[] rawThresholds, float[] defaultValueForMissing, int[] lteChild, int[] gtChild, double[] leafValues,
             int[][] categoricalSplitFeatures, bool[] categoricalSplit)
             : this()
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        internal RegressionTree(ModelLoadContext ctx, bool usingDefaultValue, bool categoricalSplits)
+        internal InternalRegressionTree(ModelLoadContext ctx, bool usingDefaultValue, bool categoricalSplits)
             : this()
         {
             // *** Binary format ***
@@ -414,13 +414,13 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Save(ctx, TreeType.Regression);
         }
 
-        public static RegressionTree Load(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
+        public static InternalRegressionTree Load(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
         {
             TreeType code = (TreeType)ctx.Reader.ReadByte();
             switch (code)
             {
             case TreeType.Regression:
-                return new RegressionTree(ctx, usingDefaultValues, categoricalSplits);
+                return new InternalRegressionTree(ctx, usingDefaultValues, categoricalSplits);
             case TreeType.Affine:
                 // Affine regression trees do not actually work, nor is it clear how they ever
                 // could have worked within TLC, so the chance of this happening seems remote.
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             LeafValues.ToByteArray(buffer, ref position);
         }
 
-        public void SumupValue(IChannel ch, RegressionTree tree)
+        public void SumupValue(IChannel ch, InternalRegressionTree tree)
         {
             if (LeafValues.Length != tree.LeafValues.Length)
             {

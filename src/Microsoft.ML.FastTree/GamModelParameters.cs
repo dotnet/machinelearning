@@ -437,7 +437,7 @@ namespace Microsoft.ML.Trainers.FastTree
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.CheckValue(writer, nameof(writer), "writer must not be null");
-            var ensemble = new TreeEnsemble();
+            var ensemble = new InternalTreeEnsemble();
 
             for (int featureIndex = 0; featureIndex < NumShapeFunctions; featureIndex++)
             {
@@ -525,11 +525,11 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private static RegressionTree CreateRegressionTree(
+        private static InternalRegressionTree CreateRegressionTree(
             int numLeaves, int[] splitFeatures, float[] rawThresholds, int[] lteChild, int[] gtChild, double[] leafValues)
         {
             var numInternalNodes = numLeaves - 1;
-            return RegressionTree.Create(
+            return InternalRegressionTree.Create(
                 numLeaves: numLeaves,
                 splitFeatures: splitFeatures,
                 rawThresholds: rawThresholds,

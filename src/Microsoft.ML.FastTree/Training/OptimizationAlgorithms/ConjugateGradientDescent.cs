@@ -11,7 +11,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         private double[] _currentGradient;
         private double[] _currentDk;
 
-        public ConjugateGradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        public ConjugateGradientDescent(InternalTreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores, gradientWrapper)
         {
             _currentDk = new double[trainData.NumDocs];

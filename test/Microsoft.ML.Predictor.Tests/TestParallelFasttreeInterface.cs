@@ -74,7 +74,7 @@ namespace Microsoft.ML.RunTests
             return Utils.CreateArray<bool>(numFeatures, true);
         }
 
-        public double[] GlobalMean(Dataset dataset, RegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas)
+        public double[] GlobalMean(Dataset dataset, InternalRegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas)
         {
             Assert.True(_isInitEnv);
             Assert.True(_isInitTreeLearner);

@@ -11,7 +11,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    internal class QuantileRegressionTree : RegressionTree
+    internal class QuantileRegressionTree : InternalRegressionTree
     {
         /// <summary>
         /// Holds the labels of sampled instances for this tree. This value can be null when training, for example, random forest (FastForest).

@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        internal FastTreeBinaryModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeBinaryModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            public void AdjustTreeOutputs(IChannel ch, RegressionTree tree,
+            public void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree,
                 DocumentPartitioning partitioning, ScoreTracker trainingScores)
             {
                 const double epsilon = 1.4e-45;

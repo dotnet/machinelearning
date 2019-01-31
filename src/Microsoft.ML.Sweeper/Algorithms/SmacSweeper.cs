@@ -339,7 +339,7 @@ namespace Microsoft.ML.Sweeper
             foreach (ParameterSet config in configs)
             {
                 List<double> leafValues = new List<double>();
-                foreach (RegressionTree t in e.Trees)
+                foreach (InternalRegressionTree t in e.Trees)
                 {
                     Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, config, true);
                     VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);

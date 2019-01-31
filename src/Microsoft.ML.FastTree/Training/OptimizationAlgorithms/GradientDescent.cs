@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         private double[] _droppedScores;
         private double[] _scores;
 
-        internal GradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        internal GradientDescent(InternalTreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores)
         {
             _gradientWrapper = gradientWrapper;
@@ -90,11 +90,11 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        internal override RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures)
+        internal override InternalRegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures)
         {
             Contracts.CheckValue(ch, nameof(ch));
             // Fit a regression tree to the gradient using least squares.
-            RegressionTree tree = TreeLearner.FitTargets(ch, activeFeatures, AdjustTargetsAndSetWeights(ch));
+            InternalRegressionTree tree = TreeLearner.FitTargets(ch, activeFeatures, AdjustTargetsAndSetWeights(ch));
             if (tree == null)
                 return null; // Could not learn a tree. Exit.
 

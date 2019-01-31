@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Used for calculating leaf output value.
         /// will return a array this is the mean output of all leaves.
         /// </summary>
-        double[] GlobalMean(Dataset dataset, RegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas);
+        double[] GlobalMean(Dataset dataset, InternalRegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas);
 
         /// <summary>
         /// Get indices of features that should be find bin in local.

@@ -374,7 +374,7 @@ namespace Microsoft.ML.Trainers.FastTree
             PrintTestGraph(ch);
         }
 
-        private protected override void CustomizedTrainingIteration(RegressionTree tree)
+        private protected override void CustomizedTrainingIteration(InternalRegressionTree tree)
         {
             Contracts.AssertValueOrNull(tree);
             if (tree != null && Args.CompressEnsemble)
@@ -992,7 +992,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            void IStepSearch.AdjustTreeOutputs(IChannel ch, RegressionTree tree, DocumentPartitioning partitioning,
+            void IStepSearch.AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning,
                                             ScoreTracker trainingScores)
             {
                 const double epsilon = 1.4e-45;
@@ -1131,7 +1131,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        internal FastTreeRankingModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeRankingModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }

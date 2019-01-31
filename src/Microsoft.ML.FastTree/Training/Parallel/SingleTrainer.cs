@@ -49,7 +49,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return Utils.CreateArray<bool>(numFeatures, true);
         }
 
-        double[] IParallelTraining.GlobalMean(Dataset dataset, RegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas)
+        double[] IParallelTraining.GlobalMean(Dataset dataset, InternalRegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas)
         {
             double[] means = new double[tree.NumLeaves];
             for (int l = 0; l < tree.NumLeaves; ++l)

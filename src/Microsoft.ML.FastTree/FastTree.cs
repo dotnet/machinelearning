@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected readonly TArgs Args;
         protected readonly bool AllowGC;
         protected int FeatureCount;
-        private protected TreeEnsemble TrainedEnsemble;
+        private protected InternalTreeEnsemble TrainedEnsemble;
         private protected RoleMappedData ValidData;
         /// <summary>
         /// If not null, it's a test data set passed in from training context. It will be converted to one element in
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected double[] InitValidScores;
         protected double[][] InitTestScores;
         //protected int Iteration;
-        private protected TreeEnsemble Ensemble;
+        private protected InternalTreeEnsemble Ensemble;
 
         protected bool HasValidSet => ValidSet != null;
 
@@ -488,7 +488,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void InitializeEnsemble()
         {
-            Ensemble = new TreeEnsemble();
+            Ensemble = new InternalTreeEnsemble();
         }
 
         /// <summary>
@@ -793,7 +793,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         // This method is called at the end of each training iteration, with the tree that was learnt on that iteration.
         // Note that this tree can be null if no tree was learnt this iteration.
-        private protected virtual void CustomizedTrainingIteration(RegressionTree tree)
+        private protected virtual void CustomizedTrainingIteration(InternalRegressionTree tree)
         {
         }
 
@@ -924,7 +924,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// of features we actually trained on. This can be null in the event that no filtering
         /// occurred.
         /// </summary>
-        /// <seealso cref="TreeEnsemble.RemapFeatures"/>
+        /// <seealso cref="InternalTreeEnsemble.RemapFeatures"/>
         public int[] FeatureMap;
 
         protected readonly IHost Host;
@@ -2811,13 +2811,13 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSaveOnnx
     {
         /// <summary>
-        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/> <see cref="TreeEnsemble"/> in <see cref="ML.FastTree.Representation.TreeRegressorCollection"/>.
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/> <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.Representation.TreeEnsemble"/>.
         /// </summary>
-        public ML.FastTree.Representation.TreeRegressorCollection TrainedTreeCollection { get; }
+        public ML.FastTree.Representation.TreeEnsemble TrainedTreeCollection { get; }
 
         // The below two properties are necessary for tree Visualizer
         [BestFriend]
-        internal TreeEnsemble TrainedEnsemble => TrainedTreeCollection.TreeEnsemble;
+        internal InternalTreeEnsemble TrainedEnsemble => TrainedTreeCollection.UnderlyingTreeEnsemble;
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
@@ -2861,7 +2861,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// The following function is used in both FastTree and LightGBM so <see cref="BestFriendAttribute"/> is required.
         [BestFriend]
-        internal TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+        internal TreeEnsembleModelParameters(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));
@@ -2871,7 +2871,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // REVIEW: When we make the predictor wrapper, we may want to further "optimize"
             // the trained ensemble to, for instance, resize arrays so that they are of the length
             // the actual number of leaves/nodes, or remove unnecessary arrays, and so forth.
-            TrainedTreeCollection = new ML.FastTree.Representation.TreeRegressorCollection(trainedEnsemble);
+            TrainedTreeCollection = new ML.FastTree.Representation.TreeEnsemble(trainedEnsemble);
             InnerArgs = innerArgs;
             NumFeatures = numFeatures;
 
@@ -2899,7 +2899,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
                 categoricalSplits = true;
 
-            TrainedTreeCollection = new ML.FastTree.Representation.TreeRegressorCollection(new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits));
+            TrainedTreeCollection = new ML.FastTree.Representation.TreeEnsemble(new InternalTreeEnsemble(ctx, usingDefaultValues, categoricalSplits));
             MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
             InnerArgs = ctx.LoadStringOrNull();
@@ -3202,7 +3202,7 @@ namespace Microsoft.ML.Trainers.FastTree
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
 
             int i = 0;
-            foreach (RegressionTree tree in TrainedEnsemble.Trees)
+            foreach (InternalRegressionTree tree in TrainedEnsemble.Trees)
             {
                 writer.Write("double treeOutput{0}=", i);
                 SaveTreeAsCode(tree, writer, in names);
@@ -3218,13 +3218,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Convert a single tree to code, called recursively
         /// </summary>
-        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, in VBuffer<ReadOnlyMemory<char>> names)
+        private void SaveTreeAsCode(InternalRegressionTree tree, TextWriter writer, in VBuffer<ReadOnlyMemory<char>> names)
         {
             ToCSharp(tree, writer, 0, in names);
         }
 
         // converts a subtree into a C# expression
-        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, in VBuffer<ReadOnlyMemory<char>> names)
+        private void ToCSharp(InternalRegressionTree tree, TextWriter writer, int node, in VBuffer<ReadOnlyMemory<char>> names)
         {
             if (node < 0)
             {
@@ -3308,9 +3308,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private sealed class Tree : ITree<VBuffer<Float>>
         {
-            private readonly RegressionTree _regTree;
+            private readonly InternalRegressionTree _regTree;
 
-            public Tree(RegressionTree regTree)
+            public Tree(InternalRegressionTree regTree)
             {
                 _regTree = regTree;
             }
