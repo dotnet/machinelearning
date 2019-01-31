@@ -429,7 +429,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-
         public void LightGbmInDifferentCulture()
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;
@@ -441,7 +440,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var model = pipe.Fit(dataView);
             var metrics = ML.MulticlassClassification.Evaluate(model.Transform(dataView));
             Assert.True(metrics.AccuracyMacro > 0.8);
-
             Thread.CurrentThread.CurrentCulture = currentCulture;
         }
     }
