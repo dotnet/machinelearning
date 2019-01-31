@@ -241,7 +241,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             int trainingWindowSize,
             int seasonalityWindowSize,
             string inputColumnName = null,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
+            ErrorFunction errorFunction = ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power,
             double eps = 0.1)
             : this(env, new SsaChangePointDetector.Arguments

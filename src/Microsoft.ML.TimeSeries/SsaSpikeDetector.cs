@@ -223,7 +223,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             int seasonalityWindowSize,
             string inputColumnName = null,
             AnomalySide side = AnomalySide.TwoSided,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
+            ErrorFunction errorFunction = ErrorFunction.SignedDifference)
             : this(env, new SsaSpikeDetector.Arguments
                 {
                     Source = inputColumnName ?? outputColumnName,
