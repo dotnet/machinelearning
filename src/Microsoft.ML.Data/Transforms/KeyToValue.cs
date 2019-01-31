@@ -507,12 +507,12 @@ namespace Microsoft.ML.Transforms.Conversions
 
     public sealed class KeyToValueMappingEstimator : TrivialEstimator<KeyToValueMappingTransformer>
     {
-        public KeyToValueMappingEstimator(IHostEnvironment env, string columnName)
+        internal KeyToValueMappingEstimator(IHostEnvironment env, string columnName)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columnName))
         {
         }
 
-        public KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columns))
         {
         }

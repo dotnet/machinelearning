@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new OneHotEncodingEstimator(Env, new[]{
+            var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
                     new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
                     new OneHotEncodingEstimator.ColumnInfo("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
                     new OneHotEncodingEstimator.ColumnInfo("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind),
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests.Transformers
             var sideData = sideDataBuilder.GetDataView();
 
             var ci = new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag);
-            var pipe = new OneHotEncodingEstimator(mlContext, new[] { ci }, sideData);
+            var pipe = mlContext.Transforms.Categorical.OneHotEncoding(new[] { ci }, sideData);
 
             var output = pipe.Fit(dataView).Transform(dataView);
 
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new OneHotEncodingEstimator(Env, new[] {
+            var pipe = ML.Transforms.Categorical.OneHotEncoding(new[] {
                 new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
                 new OneHotEncodingEstimator.ColumnInfo("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag),
                 new OneHotEncodingEstimator.ColumnInfo("CatC", "C", OneHotEncodingTransformer.OutputKind.Bag),
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new OneHotEncodingEstimator(Env, new[]{
+            var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
                     new OneHotEncodingEstimator.ColumnInfo("TermA", "A"),
                     new OneHotEncodingEstimator.ColumnInfo("TermB", "B"),
                     new OneHotEncodingEstimator.ColumnInfo("TermC", "C")

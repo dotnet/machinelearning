@@ -631,7 +631,7 @@ namespace Microsoft.ML.RunTests
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var cat = new OneHotEncodingEstimator(ML, "Features", "Categories").Fit(dataView).Transform(dataView);
+            var cat = ML.Transforms.Categorical.OneHotEncoding("Features", "Categories").Fit(dataView).Transform(dataView);
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {

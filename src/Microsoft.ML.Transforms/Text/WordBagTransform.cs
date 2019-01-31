@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="ValueToKeyMappingTransformer.Arguments"/> and
+        /// This class is a merger of <see cref="ValueToKeyMappingTransformer.Options"/> and
         /// <see cref="NgramExtractingTransformer.Arguments"/>, with the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
@@ -300,12 +300,12 @@ namespace Microsoft.ML.Transforms.Text
             // of args.column are not text nor keys).
             if (termCols.Count > 0)
             {
-                ValueToKeyMappingTransformer.Arguments termArgs = null;
+                ValueToKeyMappingTransformer.Options termArgs = null;
                 string[] missingDropColumns = null;
                 if (termLoaderArgs != null)
                 {
                     termArgs =
-                        new ValueToKeyMappingTransformer.Arguments()
+                        new ValueToKeyMappingTransformer.Options()
                         {
                             MaxNumTerms = int.MaxValue,
                             Term = termLoaderArgs.Term,
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms.Text
                 else
                 {
                     termArgs =
-                        new ValueToKeyMappingTransformer.Arguments()
+                        new ValueToKeyMappingTransformer.Options()
                         {
                             MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
@@ -432,7 +432,7 @@ namespace Microsoft.ML.Transforms.Text
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
             "If by value, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 5)]
-        public ValueToKeyMappingTransformer.SortOrder Sort = ValueToKeyMappingTransformer.SortOrder.Occurrence;
+        public ValueToKeyMappingEstimator.SortOrder Sort = ValueToKeyMappingEstimator.SortOrder.Occurrence;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Drop unknown terms instead of mapping them to NA term.", ShortName = "dropna", SortOrder = 6)]
         public bool DropUnknowns = false;

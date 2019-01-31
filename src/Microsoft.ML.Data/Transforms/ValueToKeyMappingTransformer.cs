@@ -22,7 +22,7 @@ using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer),
-    typeof(ValueToKeyMappingTransformer.Arguments), typeof(SignatureDataTransform),
+    typeof(ValueToKeyMappingTransformer.Options), typeof(SignatureDataTransform),
     ValueToKeyMappingTransformer.UserName, "Term", "AutoLabel", "TermTransform", "AutoLabelTransform", DocName = "transform/TermTransform.md")]
 
 [assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -45,6 +45,7 @@ namespace Microsoft.ML.Transforms.Conversions
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
     public sealed partial class ValueToKeyMappingTransformer : OneToOneTransformerBase
     {
+        [BestFriend]
         internal abstract class ColumnBase : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
@@ -80,6 +81,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
+        [BestFriend]
         internal sealed class Column : ColumnBase
         {
             internal static Column Parse(string str)
@@ -97,6 +99,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
+        [BestFriend]
         internal abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
@@ -133,7 +136,8 @@ namespace Microsoft.ML.Transforms.Conversions
             public bool TextKeyValues;
         }
 
-        internal sealed class Arguments : ArgumentsBase
+        [BestFriend]
+        internal sealed class Options : ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -266,7 +270,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         [BestFriend]
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -370,7 +374,7 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
-        /// Returns a single-column <see cref="IDataView"/>, based on values from <see cref="Arguments"/>,
+        /// Returns a single-column <see cref="IDataView"/>, based on values from <see cref="Options"/>,
         /// in the case where <see cref="ArgumentsBase.DataFile"/> is set. If that is not set, this will
         /// return <see langword="null"/>.
         /// </summary>
@@ -433,7 +437,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         ch.Warning(
                             "{0} should not be specified when default loader is " + nameof(TextLoader) + ". Ignoring {0}={1}",
-                            nameof(Arguments.TermsColumn), src);
+                            nameof(Options.TermsColumn), src);
                     }
                     keyData = new TextLoader(env,
                         columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },

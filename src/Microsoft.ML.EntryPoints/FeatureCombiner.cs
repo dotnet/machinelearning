@@ -99,7 +99,7 @@ namespace Microsoft.ML.EntryPoints
                     .Transform(viewTrain);
 
                 viewTrain = ValueToKeyMappingTransformer.Create(host,
-                    new ValueToKeyMappingTransformer.Arguments()
+                    new ValueToKeyMappingTransformer.Options()
                     {
                         Columns = ktv
                             .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Name, Source = c.Name, Term = GetTerms(viewTrain, c.InputColumnName) })
@@ -243,7 +243,7 @@ namespace Microsoft.ML.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new ValueToKeyMappingTransformer.Arguments()
+            var args = new ValueToKeyMappingTransformer.Options()
             {
                 Columns = new[]
                 {
@@ -252,7 +252,7 @@ namespace Microsoft.ML.EntryPoints
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = ValueToKeyMappingTransformer.SortOrder.Value
+                        Sort = ValueToKeyMappingEstimator.SortOrder.Value
                     }
                 }
             };

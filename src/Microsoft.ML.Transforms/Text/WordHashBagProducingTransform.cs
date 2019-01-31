@@ -380,7 +380,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 h.Assert(Utils.Size(termCols) == hashColumns.Count);
                 var termArgs =
-                    new ValueToKeyMappingTransformer.Arguments()
+                    new ValueToKeyMappingTransformer.Options()
                     {
                         MaxNumTerms = int.MaxValue,
                         Term = termLoaderArgs.Term,
