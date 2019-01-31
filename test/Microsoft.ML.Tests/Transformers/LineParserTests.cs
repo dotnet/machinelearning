@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
             Random rand = new Random();
             var arraySize = 100;
             var data = new float[arraySize];
-            var separator = new char[2] { ' ', '\t' };
+            var separator = new string[2] { " ", "\t" };
 
             for (int sep = 0; sep < 4; sep++)
             {
