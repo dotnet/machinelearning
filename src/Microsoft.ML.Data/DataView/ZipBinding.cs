@@ -12,6 +12,7 @@ namespace Microsoft.ML.Data
     /// A convenience class for concatenating several schemas together.
     /// This would be necessary when combining IDataViews through any type of combining operation, for example, zip.
     /// </summary>
+    [BestFriend]
     internal sealed class ZipBinding
     {
         private readonly Schema[] _sources;
