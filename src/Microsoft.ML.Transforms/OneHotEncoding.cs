@@ -339,7 +339,7 @@ namespace Microsoft.ML.Transforms.Categorical
         [TlcModule.EntryPoint(Name = "Transforms.KeyToTextConverter",
             Desc = "KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the KeyValues metadata.",
             UserName = KeyToValueMappingTransformer.UserName)]
-        public static CommonOutputs.TransformOutput KeyToText(IHostEnvironment env, KeyToValueMappingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput KeyToText(IHostEnvironment env, KeyToValueMappingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("KeyToValue");

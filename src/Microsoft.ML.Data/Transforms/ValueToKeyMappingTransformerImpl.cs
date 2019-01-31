@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ItemType = type;
             }
 
-            public static Builder Create(ColumnType type, SortOrder sortOrder)
+            public static Builder Create(ColumnType type, ValueToKeyMappingEstimator.SortOrder sortOrder)
             {
                 Contracts.AssertValue(type);
                 Contracts.Assert(type is VectorType || type is PrimitiveType);
@@ -45,8 +45,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 // accept any value, but currently the internal implementations of Builder are split
                 // along this being a purely binary option, for now (though this can easily change
                 // with mot implementations of Builder).
-                Contracts.Assert(sortOrder == SortOrder.Occurrence || sortOrder == SortOrder.Value);
-                bool sorted = sortOrder == SortOrder.Value;
+                Contracts.Assert(sortOrder == ValueToKeyMappingEstimator.SortOrder.Occurrence || sortOrder == ValueToKeyMappingEstimator.SortOrder.Value);
+                bool sorted = sortOrder == ValueToKeyMappingEstimator.SortOrder.Value;
 
                 PrimitiveType itemType = type.GetItemType() as PrimitiveType;
                 Contracts.AssertValue(itemType);

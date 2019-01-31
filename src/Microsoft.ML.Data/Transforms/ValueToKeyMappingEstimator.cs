@@ -15,11 +15,63 @@ namespace Microsoft.ML.Transforms.Conversions
         public static class Defaults
         {
             public const int MaxNumTerms = 1000000;
-            public const ValueToKeyMappingTransformer.SortOrder Sort = ValueToKeyMappingTransformer.SortOrder.Occurrence;
+            public const SortOrder Sort = SortOrder.Occurrence;
+        }
+
+        /// <summary>
+        /// Controls how the order of the output keys.
+        /// </summary>
+        public enum SortOrder : byte
+        {
+            Occurrence = 0,
+            Value = 1,
+            // REVIEW: We can think about having a frequency order option. What about
+            // other things, like case insensitive (where appropriate), culturally aware, etc.?
+        }
+
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public class ColumnInfo
+        {
+            public readonly string Name;
+            public readonly string InputColumnName;
+            public readonly SortOrder Sort;
+            public readonly int MaxNumTerms;
+            public readonly string[] Term;
+            public readonly bool TextKeyValues;
+
+            protected internal string Terms { get; set; }
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
+            /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
+            /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+            /// <param name="term">List of terms.</param>
+            /// <param name="textKeyValues">Whether key value metadata should be text, regardless of the actual input type.</param>
+            public ColumnInfo(string name, string inputColumnName = null,
+                int maxNumTerms = Defaults.MaxNumTerms,
+                SortOrder sort = Defaults.Sort,
+                string[] term = null,
+                bool textKeyValues = false
+                )
+            {
+                Contracts.CheckNonWhiteSpace(name, nameof(name));
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                Sort = sort;
+                MaxNumTerms = maxNumTerms;
+                Term = term;
+                TextKeyValues = textKeyValues;
+            }
         }
 
         private readonly IHost _host;
-        private readonly ValueToKeyMappingTransformer.ColumnInfo[] _columns;
+        private readonly ColumnInfo[] _columns;
         private readonly IDataView _keyData;
 
         /// <summary>
@@ -29,14 +81,14 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
-        /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        public ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
-           this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, maxNumTerms, sort) })
+        /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
+        /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        public ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort) :
+           this(env, new [] { new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, maxNumTerms, sort) })
         {
         }
 
-        public ValueToKeyMappingEstimator(IHostEnvironment env, ValueToKeyMappingTransformer.ColumnInfo[] columns, IDataView keyData = null)
+        public ValueToKeyMappingEstimator(IHostEnvironment env, ColumnInfo[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));
@@ -93,12 +145,12 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Terms will be assigned ID in the order in which they appear.
         /// </summary>
-        Occurence = ValueToKeyMappingTransformer.SortOrder.Occurrence,
+        Occurence = ValueToKeyMappingEstimator.SortOrder.Occurrence,
 
         /// <summary>
         /// Terms will be assigned ID according to their sort via an ordinal comparison for the type.
         /// </summary>
-        Value = ValueToKeyMappingTransformer.SortOrder.Value
+        Value = ValueToKeyMappingEstimator.SortOrder.Value
     }
 
     /// <summary>
