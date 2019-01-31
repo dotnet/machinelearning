@@ -80,9 +80,8 @@
           </li>
           <li>
             <description>
-              Converting a float value to a string value and have the string value represented as a <see cref="KeyType"/>
-              (i.e. specific wind speeds could map to a group ('category1', 'category2',...) which will generate a unique integer identifier (1,2,...) that could used
-              as part of a feature set for a trainer).
+              Converting a integer value to a string value and have the string value represented as a <see cref="KeyType"/>
+              (i.e. convert zip codes to a state string value, which will generate a unique integer value that can be used as a label.
             </description>
           </li>
         </list>

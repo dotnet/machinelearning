@@ -14,12 +14,12 @@ namespace Microsoft.ML.Samples.Dynamic
             public string EducationCategory = default;
         }
 
-        /// This example demonstrates the use of the ValueMappingEstimator by mapping string-to-string values. The ValueMappingEstimator uses
-        /// level of education as keys to a respective string label which is the value.
-        /// The mapping looks like the following:
-        ///  0-5yrs  -> Cat1
-        ///  6-11yrs -> Cat2
-        ///  12+yrs  -> Cat3
+        /// This example demonstrates the use of the ValueMappingEstimator by mapping string-to-string values. This is useful
+        /// to map strings to a grouping. In this example, the Education data maps to the groups Undergraduate and Postgraduate:
+        ///   0-5yrs  -> Undergraduate 
+        ///   6-11yrs -> Postgraduate
+        ///   12+yrs  -> Postgraduate
+        /// Its possible to have multiple keys map to the same value.
         public static void Run()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -39,8 +39,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // 34.0   1.0   0-5yrs      2.0         4.0       2.0      4.0  ...
             // 35.0   1.0   6-11yrs     1.0         3.0       32.0     5.0  ...
 
-            // Creating a list of keys based on the Education values from the dataset
-            // These lists are created by hand for the demonstration, but the ValueMappingEstimator does take an IEnumerable.
+            // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
+            // Creating a list of keys based on the Education values from the dataset. 
             var educationKeys = new List<string>()
             {
                 "0-5yrs",
@@ -51,9 +51,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Creating a list of associated values that will map respectively to each educationKey
             var educationValues = new List<string>()
             {
-                "Cat1",
-                "Cat2",
-                "Cat3"
+                "Undergraduate",
+                "Postgraduate",
+                "Postgraduate"
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
@@ -75,11 +75,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // Features column obtained post-transformation.
             //
             // Age Education    EducationCategory
-            // 26  0-5yrs       Cat1
-            // 42  0-5yrs       Cat1
-            // 39  12+yrs       Cat3
-            // 34  0-5yrs       Cat1
-            // 35  6-11yrs      Cat2
+            // 26  0-5yrs       Undergraduate 
+            // 42  0-5yrs       Undergraudate 
+            // 39  12+yrs       Postgraduate 
+            // 34  0-5yrs       Undergraduate 
+            // 35  6-11yrs      Postgraduate 
         }
     }
 }

@@ -10,17 +10,16 @@ namespace Microsoft.ML.Samples.Dynamic
         /// <summary>
         /// Helper class for retrieving the resulting data
         /// </summary>
-        class SampleInfertDataWithInducedCategory
+        class SampleTemperatureDataWithCategory
         {
-            public float Age = 0;
-            public float Induced = 0.0f;
-            public string InducedCategory = default;
+            public DateTime Date = default;
+            public float Temperature = 0.0f;
+            public string TemperatureCategory = default;
         }
 
-        /// This example demonstrates the use of floating types as the key type for ValueMappingEstimator by mapping a float-to-string value.
-        /// The mapping looks like the following:
-        ///     1.0 -> Cat1
-        ///     2.0 -> Cat2
+        /// This example demonstrates the use of ValueMappingEstimator by mapping float-to-string values. This is useful if the key
+        /// data are floating point and need to be grouped into string values. In this example, the Induction value is mapped to 
+        /// "T1", "T2", "T3", and "T4" groups.
         public static void Run()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -28,49 +27,54 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
+            IEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData> data = SamplesUtils.DatasetUtils.GetSampleTemperatureData();
             IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
 
+            // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
+            
             // Creating a list of keys based on the induced value from the dataset
-            // These lists are created by hand for the demonstration, but the ValueMappingEstimator does take an IEnumerable.
-            var inducedKeys = new List<float>()
+            var temperatureKeys = new List<float>()
             {
-                1.0f,
-                2.0f
+                39.0F,
+                67.0F,
+                75.0F,
+                82.0F,
             };
 
             // Creating a list of values, these strings will map accordingly to each key.
-            var inducedValues = new List<string>()
+            var classificationValues = new List<string>()
             {
-                "Cat1",
-                "Cat2"
+                "T1",
+                "T2",
+                "T3", 
+                "T4"
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.ValueMap(inducedKeys, inducedValues, ("InducedCategory", "Induced"));
+            var pipeline = mlContext.Transforms.Conversion.ValueMap(temperatureKeys, classificationValues, ("TemperatureCategory", "Temperature"));
 
-            // Fits the ValueMappingEstimator and transforms the data adding the InducedCategory column.
+            // Fits the ValueMappingEstimator and transforms the data adding the TemperatureCategory column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
-            // Getting the resulting data as an IEnumerable of SampleInfertDataWithInducedCategory. This will contain the newly created column InducedCategory
-            IEnumerable<SampleInfertDataWithInducedCategory> featureRows = mlContext.CreateEnumerable<SampleInfertDataWithInducedCategory>(transformedData, reuseRowObject: false);
+            // Getting the resulting data as an IEnumerable of SampleTemperatureDataWithCategory. This will contain the newly created column TemperatureCategory
+            IEnumerable<SampleTemperatureDataWithCategory> featureRows = mlContext.CreateEnumerable<SampleTemperatureDataWithCategory>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping float->string");
-            Console.WriteLine($"Age\tInduced\tInducedCategory");
+            Console.WriteLine($"Date\t\tTemperature\tTemperatureCategory");
             foreach (var featureRow in featureRows)
             {
-                Console.WriteLine($"{featureRow.Age}\t{featureRow.Induced}\t{featureRow.InducedCategory}");
+                Console.WriteLine($"{featureRow.Date.ToString("d")}\t{featureRow.Temperature}\t\t{featureRow.TemperatureCategory}");
             }
 
             // Features column obtained post-transformation.
             //
             // Example of mapping float->string
-            // Age     Induced InducedCategory
-            // 26      1       Cat1
-            // 42      1       Cat1
-            // 39      2       Cat2
-            // 34      2       Cat2
-            // 35      1       Cat1
+            // Date         Temperature TemperatureCategory
+            // 1/1/2012     39          T1
+            // 1/2/2012     82          T4
+            // 1/3/2012     75          T3
+            // 1/4/2012     67          T2
+            // 1/5/2012     75          T3
         }
     }
 }

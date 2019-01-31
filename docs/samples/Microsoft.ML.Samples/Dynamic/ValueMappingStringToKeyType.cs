@@ -19,19 +19,15 @@ namespace Microsoft.ML.Samples.Dynamic
             public string EducationCategory = default;
         }
 
-        /// This example demonstrates the use of KeyTypes in the ValueMappingEstimator by setting treatValuesAsKeyTypes to true, 
-        /// This is useful in cases where you want the output to be integer based rather than the actual value.
-        ///
-        /// When using KeyTypes as a Value, the ValueMappingEstimator will do one of the following:
-        /// 1) If the Value type is an unsigned int or unsigned long, the specified values are used directly as the KeyType values. 
-        /// 2) If the Value type is not an unsigned int or unsigned long, new KeyType values are generated for each unique value.
+        /// This example demonstrates the use of KeyTypes using both the ValueMappingEstimator and KeyToValueEstimator. Using a KeyType
+        /// instead of the actual value provides a unique integer representation of the value. When the treatValueAsKeyTypes is true, 
+        /// the ValueMappingEstimator will generate a KeyType for each unique value.
         /// 
-        /// In this example, the Value type is a string. Since we are setting treatValueAsKeyTypes to true, 
-        /// the ValueMappingEstimator will generate its own KeyType values for each unique string.
-        /// As with KeyTypes, they contain the actual Value information as part of the metadata, therefore
-        /// we can convert a KeyType back to the actual value the KeyType represents. To demonstrate
-        /// the reverse lookup and to confirm the correct value is mapped, a KeyToValueEstimator is added
-        /// to the pipeline to convert back to the original value.
+        /// In this example, the education data is mapped to a grouping of 'Undergraudate' and 'Postgraduate'. Because KeyTypes are used, the
+        /// ValueMappingEstimator will output the KeyType value rather than string value of 'Undergraduate' or 'Postgraduate'.
+        /// 
+        /// The KeyToValueEstimator is added to the pipeline to convert the KeyType back to the original value. Therefore the output of this example 
+        /// results in the string value of 'Undergraduate' and 'Postgraduate'.
         public static void Run()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -54,9 +50,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Creating a list of values that are sample strings. These will be converted to KeyTypes
             var educationValues = new List<string>()
             {
-                "Cat1",
-                "Cat2",
-                "Cat3"
+                "Undergraduate",
+                "Postgraduate",
+                "Postgraduate"
             };
 
             // Generate the ValueMappingEstimator that will output KeyTypes even though our values are strings.
@@ -81,11 +77,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // Features column obtained post-transformation.
             //
             // Age Education    EducationCategory
-            // 26  0-5yrs       Cat1
-            // 42  0-5yrs       Cat1
-            // 39  12+yrs       Cat3
-            // 34  0-5yrs       Cat1
-            // 35  6-11yrs      Cat2
+            // 26  0-5yrs       Undergraduate 
+            // 42  0-5yrs       Undergraduate 
+            // 39  12+yrs       Postgraduate 
+            // 34  0-5yrs       Undergraduate 
+            // 35  6-11yrs      Postgraduate 
         }
     }
 }
