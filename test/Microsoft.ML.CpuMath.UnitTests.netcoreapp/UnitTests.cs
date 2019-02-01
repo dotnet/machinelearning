@@ -272,7 +272,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
@@ -295,7 +295,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
@@ -318,7 +318,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] expected = (float[])dst.Clone();
@@ -342,7 +342,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
@@ -366,7 +366,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] expected = (float[])dst.Clone();
@@ -390,7 +390,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 int[] idx = _testIndexArray;
@@ -415,7 +415,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] result = (float[])dst.Clone();
@@ -569,7 +569,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.SumSq(defaultScale, src);
 
@@ -611,7 +611,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.SumAbs(defaultScale, src);
 
@@ -658,7 +658,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.MaxAbsDiff(defaultScale, src);
 
@@ -797,7 +797,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] v = (float[])src.Clone();
                 float[] w = (float[])src.Clone();
@@ -824,7 +824,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
-                float defaultScale = float.Parse(arg2, NumberStyles.Any, CultureInfo.InvariantCulture);
+                float defaultScale = float.Parse(arg2, CultureInfo.InvariantCulture);
                 float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] v = (float[])src.Clone();
                 float[] w = (float[])src.Clone();
