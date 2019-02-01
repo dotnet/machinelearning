@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -168,7 +169,7 @@ namespace Microsoft.ML.RunTests
         /// * pathData defaults to breast-cancer.txt.
         /// * actLoader is invoked for extra validation (if non-null).
         /// </summary>
-        protected IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
+        internal IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
             Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
             bool forceDense = false, bool logCurs = false, bool roundTripText = true,
             bool checkTranspose = false, bool checkId = true, bool baselineSchema = true, int digitsOfPrecision = DigitsOfPrecision)
@@ -300,7 +301,7 @@ namespace Microsoft.ML.RunTests
             return pipe1;
         }
 
-        protected IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
+        private IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
         {
             VerifyArgParsing(env, argsPipe);
 
@@ -315,30 +316,6 @@ namespace Microsoft.ML.RunTests
                 Failed();
 
             return pipe;
-        }
-
-        /// <summary>
-        /// Apply pipe's transforms and optionally ChooseColumns transform to newView, 
-        /// and test if pipe and newPipe have the same schema and values.
-        /// </summary>
-        protected void TestApplyTransformsToData(IHostEnvironment env, IDataLoader pipe, IDataView newView, string chooseArgs = null)
-        {
-            Contracts.AssertValue(pipe);
-            Contracts.AssertValue(newView);
-
-            IDataView view = pipe;
-            newView = ApplyTransformUtils.ApplyAllTransformsToData(env, view, newView);
-            if (!string.IsNullOrWhiteSpace(chooseArgs))
-            {
-                var component = new SubComponent<IDataTransform, SignatureDataTransform>("Choose", chooseArgs);
-                view = component.CreateInstance(env, view);
-                newView = component.CreateInstance(env, newView);
-            }
-
-            if (!CheckSameSchemas(view.Schema, newView.Schema))
-                Failed();
-            else if (!CheckSameValues(view, newView))
-                Failed();
         }
 
         protected void VerifyArgParsing(IHostEnvironment env, string[] strs)
@@ -447,7 +424,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected string SavePipe(IDataLoader pipe, string suffix = "", string dir = "Pipeline")
+        protected private string SavePipe(IDataLoader pipe, string suffix = "", string dir = "Pipeline")
         {
             string name = TestName + suffix + ".zip";
             string pathModel = DeleteOutputPath("SavePipe", name);
@@ -470,7 +447,7 @@ namespace Microsoft.ML.RunTests
             return res;
         }
 
-        protected IDataLoader LoadPipe(string pathModel, IHostEnvironment env, IMultiStreamSource files)
+        private IDataLoader LoadPipe(string pathModel, IHostEnvironment env, IMultiStreamSource files)
         {
             using (var file = Env.OpenInputFile(pathModel))
             using (var strm = file.OpenReadStream())

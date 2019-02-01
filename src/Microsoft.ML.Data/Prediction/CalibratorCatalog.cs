@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Core.Data;
@@ -93,14 +94,14 @@ namespace Microsoft.ML.Calibrator
         /// <param name="inputSchema">The input <see cref="SchemaShape"/>.</param>
         SchemaShape IEstimator<CalibratorTransformer<TICalibrator>>.GetOutputSchema(SchemaShape inputSchema)
         {
-            Action<SchemaShape.Column, string> checkColumnValid = (SchemaShape.Column column, string expected) =>
+            Action<SchemaShape.Column, string> checkColumnValid = (SchemaShape.Column column, string columnRole) =>
             {
                 if (column.IsValid)
                 {
                     if (!inputSchema.TryFindColumn(column.Name, out var outCol))
-                        throw Host.Except($"{expected} column '{column.Name}' is not found");
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name);
                     if (!column.IsCompatibleWith(outCol))
-                        throw Host.Except($"{expected} column '{column.Name}' is not compatible");
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name, column.GetTypeString(), outCol.GetTypeString());
                 }
             };
 
@@ -231,7 +232,7 @@ namespace Microsoft.ML.Calibrator
             private CalibratorTransformer<TCalibrator> _parent;
 
             internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, Schema inputSchema) :
-                base(parent.Host, inputSchema)
+                base(parent.Host, inputSchema, parent)
             {
                 _calibrator = calibrator;
                 _parent = parent;

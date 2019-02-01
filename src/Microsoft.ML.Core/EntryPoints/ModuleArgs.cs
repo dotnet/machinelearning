@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.EntryPoints
@@ -524,11 +525,6 @@ namespace Microsoft.ML.EntryPoints
             /// Short name of the Entry Point
             /// </summary>
             public string ShortName { get; set; }
-
-            /// <summary>
-            /// The path to the XML documentation on the CSharpAPI component
-            /// </summary>
-            public string[] XmlInclude { get; set; }
         }
 
         /// <summary>

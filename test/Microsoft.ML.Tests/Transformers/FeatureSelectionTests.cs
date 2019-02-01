@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -38,10 +39,10 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new WordBagEstimator(ML, "text", "bag_of_words")
+            var est = new WordBagEstimator(ML, "bag_of_words", "text")
                 .AppendCacheCheckpoint(ML)
-                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("bag_of_words", "bag_of_words_count", 10)
-                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("bag_of_words", "bag_of_words_mi", labelColumn: "label")));
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("bag_of_words_count", "bag_of_words", 10)
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("bag_of_words_mi", "bag_of_words", labelColumn: "label")));
 
             var outputPath = GetOutputPath("FeatureSelection", "featureselection.tsv");
             using (var ch = Env.Start("save"))
@@ -73,12 +74,12 @@ namespace Microsoft.ML.Tests.Transformers
 
             var columns = new[]
             {
-                new SlotsDroppingTransformer.ColumnInfo("VectorFloat", "dropped1", (min: 0, max: 1)),
-                new SlotsDroppingTransformer.ColumnInfo("VectorFloat", "dropped2"),
-                new SlotsDroppingTransformer.ColumnInfo("ScalarFloat", "dropped3", (min:0, max: 3)),
-                new SlotsDroppingTransformer.ColumnInfo("VectorFloat", "dropped4", (min: 1, max: 2)),
-                new SlotsDroppingTransformer.ColumnInfo("VectorDouble", "dropped5", (min: 1, null)),
-                new SlotsDroppingTransformer.ColumnInfo("VectorFloat", "dropped6", (min: 100, null))
+                new SlotsDroppingTransformer.ColumnInfo("dropped1", "VectorFloat", (min: 0, max: 1)),
+                new SlotsDroppingTransformer.ColumnInfo("dropped2", "VectorFloat"),
+                new SlotsDroppingTransformer.ColumnInfo("dropped3", "ScalarFloat", (min:0, max: 3)),
+                new SlotsDroppingTransformer.ColumnInfo("dropped4", "VectorFloat", (min: 1, max: 2)),
+                new SlotsDroppingTransformer.ColumnInfo("dropped5", "VectorDouble", (min: 1, null)),
+                new SlotsDroppingTransformer.ColumnInfo("dropped6", "VectorFloat", (min: 100, null))
             };
             var trans = new SlotsDroppingTransformer(ML, columns);
 
@@ -114,13 +115,13 @@ namespace Microsoft.ML.Tests.Transformers
             var data = ML.Data.Cache(reader.Read(new MultiFileSource(dataPath)).AsDynamic);
 
             var columns = new[] {
-                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "FeatureSelectDouble", minCount: 1),
-                new CountFeatureSelectingEstimator.ColumnInfo("ScalarFloat", "ScalFeatureSelectMissing690", minCount: 690),
-                new CountFeatureSelectingEstimator.ColumnInfo("ScalarFloat", "ScalFeatureSelectMissing100", minCount: 100),
-                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing690", minCount: 690),
-                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing100", minCount: 100)
+                new CountFeatureSelectingEstimator.ColumnInfo("FeatureSelectDouble", "VectorDouble", minCount: 1),
+                new CountFeatureSelectingEstimator.ColumnInfo("ScalFeatureSelectMissing690", "ScalarFloat", minCount: 690),
+                new CountFeatureSelectingEstimator.ColumnInfo("ScalFeatureSelectMissing100", "ScalarFloat", minCount: 100),
+                new CountFeatureSelectingEstimator.ColumnInfo("VecFeatureSelectMissing690", "VectorDouble", minCount: 690),
+                new CountFeatureSelectingEstimator.ColumnInfo("VecFeatureSelectMissing100", "VectorDouble", minCount: 100)
             };
-            var est = new CountFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", minCount: 1)
+            var est = new CountFeatureSelectingEstimator(ML, "FeatureSelect", "VectorFloat", minCount: 1)
                 .Append(new CountFeatureSelectingEstimator(ML, columns));
 
             TestEstimatorCore(est, data);
@@ -155,7 +156,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var pipe = new CountFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", minCount: 1);
+            var pipe = new CountFeatureSelectingEstimator(ML, "FeatureSelect", "VectorFloat", minCount: 1);
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -181,11 +182,11 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var est = new MutualInformationFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", slotsInOutput: 1, labelColumn: "Label")
+            var est = new MutualInformationFeatureSelectingEstimator(ML, "FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label")
                 .Append(new MutualInformationFeatureSelectingEstimator(ML, labelColumn: "Label", slotsInOutput: 2, numBins: 100,
                     columns: new[] {
-                        (input: "VectorFloat", output: "out1"),
-                        (input: "VectorDouble", output: "out2")
+                        (name: "out1", source: "VectorFloat"),
+                        (name: "out2", source: "VectorDouble")
                     }));
             TestEstimatorCore(est, data);
 
@@ -219,7 +220,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var pipe = new MutualInformationFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", slotsInOutput: 1, labelColumn: "Label");
+            var pipe = new MutualInformationFeatureSelectingEstimator(ML, "FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

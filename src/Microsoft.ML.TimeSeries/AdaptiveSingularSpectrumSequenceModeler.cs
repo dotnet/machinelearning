@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
@@ -1229,7 +1230,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             _host.CheckParam(data.Schema.Feature.HasValue, nameof(data), "Must have features column.");
             var featureCol = data.Schema.Feature.Value;
             if (featureCol.Type != NumberType.Float)
-                throw _host.ExceptSchemaMismatch(nameof(data), "feature", featureCol.Name, "R4", featureCol.Type.ToString());
+                throw _host.ExceptSchemaMismatch(nameof(data), "feature", featureCol.Name, "float", featureCol.Type.ToString());
 
             Single[] dataArray = new Single[_trainSize];
 

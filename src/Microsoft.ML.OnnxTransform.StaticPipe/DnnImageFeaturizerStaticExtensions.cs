@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new DnnImageFeaturizerEstimator(env, _modelFactory, inputNames[outCol.Input], outputNames[outCol]);
+                return new DnnImageFeaturizerEstimator(env, outputNames[outCol], _modelFactory, inputNames[outCol.Input]);
             }
         }
 

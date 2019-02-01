@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -57,7 +58,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         private readonly Single _decay;
 
         public ExponentialAverageTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(1, 1, args.Source, args.Name, LoaderSignature, env, input)
+            : base(1, 1, args.Name, args.Source, LoaderSignature, env, input)
         {
             Host.CheckUserArg(0 <= args.Decay && args.Decay <= 1, nameof(args.Decay), "Should be in [0, 1].");
             _decay = args.Decay;

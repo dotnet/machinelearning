@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
 
-            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -87,8 +87,8 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<int>() { 1, 2, 3, 4 };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA")
-                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("TokenizeA", "VecD"), ("B", "E"), ("C", "F") }));
+                    new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
+                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<ReadOnlyMemory<char>>() { "a".AsMemory(), "b".AsMemory(), "c".AsMemory(), "d".AsMemory() };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA")
-                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("TokenizeA", "VecD"), ("B", "E"), ("C", "F") }));
+                    new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
+                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new int[] {100, 200 },
                 new int[] {400, 500, 600, 700 }};
 
-            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -177,6 +177,46 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(values[0].Length, fValue.Length);
         }
 
+        class Map
+        {
+            public string Key;
+            public int Value;
+        }
+
+        [Fact]
+        public void ValueMapDataViewAsMapTest()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
+            var dataView = ML.Data.ReadFromEnumerable(data);
+
+            var map = new[] { new Map() { Key = "foo", Value = 1 },
+                              new Map() { Key = "bar", Value = 2 },
+                              new Map() { Key = "test", Value = 3 },
+                              new Map() { Key = "wahoo", Value = 4 }
+                            };
+            var mapView = ML.Data.ReadFromEnumerable(map);
+
+            var estimator = new ValueMappingEstimator(Env, mapView, "Key", "Value", new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursorForAllColumns();
+            var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
+            cursor.MoveNext();
+
+            int dValue = 0;
+            getterD(ref dValue);
+            Assert.Equal(2, dValue);
+            int eValue = 0;
+            getterE(ref eValue);
+            Assert.Equal(3, eValue);
+            int fValue = 0;
+            getterF(ref fValue);
+            Assert.Equal(1, fValue);
+        }
+
         [Fact]
         public void ValueMapVectorStringValueTest()
         {
@@ -189,7 +229,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new string[] {"forest", "city", "town" },
                 new string[] {"winter", "summer", "autumn", "spring" }};
 
-            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -222,7 +262,7 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
 
-            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -252,7 +292,7 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<string>() { "foo", "foo" };
             var values = new List<int>() { 1, 2 };
 
-            Assert.Throws<InvalidOperationException>(() => new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") }));
+            Assert.Throws<InvalidOperationException>(() => new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") }));
         }
 
         [Fact]
@@ -264,7 +304,7 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
 
-            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var outputSchema  = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
             Assert.Equal(6, outputSchema.Count());
@@ -291,7 +331,7 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<string>() { "t", "s", "u", "v" };
 
-            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, true, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var outputSchema  = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
             Assert.Equal(6, outputSchema.Count());
             Assert.True(outputSchema.TryFindColumn("D", out SchemaShape.Column dColumn));
@@ -321,7 +361,7 @@ namespace Microsoft.ML.Tests.Transformers
             // These are the expected key type values
             var values = new List<uint>() { 51, 25, 42, 61 };
 
-            var estimator = new ValueMappingEstimator<string, uint>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, uint>(Env, keys, values, true, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
 
             var t = estimator.Fit(dataView);
 
@@ -360,7 +400,7 @@ namespace Microsoft.ML.Tests.Transformers
             // These are the expected key type values
             var values = new List<ulong>() { 51, Int32.MaxValue, 42, 61 };
 
-            var estimator = new ValueMappingEstimator<string, ulong>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, ulong>(Env, keys, values, true, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
 
             var t = estimator.Fit(dataView);
 
@@ -398,7 +438,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Generating the list of strings for the key type values, note that foo1 is duplicated as intended to test that the same index value is returned
             var values = new List<string>() { "foo1", "foo2", "foo1", "foo3" };
 
-            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, true, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -435,8 +475,8 @@ namespace Microsoft.ML.Tests.Transformers
             // Generating the list of strings for the key type values, note that foo1 is duplicated as intended to test that the same index value is returned
             var values = new List<ReadOnlyMemory<char>>() { "foo1".AsMemory(), "foo2".AsMemory(), "foo1".AsMemory(), "foo3".AsMemory() };
 
-            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("A", "D") })
-                            .Append(new KeyToValueMappingEstimator(Env, ("D", "DOutput")));
+            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("D", "A") })
+                            .Append(new KeyToValueMappingEstimator(Env, ("DOutput","D")));
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -462,7 +502,7 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<int>() { 1, 2, 3, 4 };
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -510,7 +550,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = new ValueMappingEstimator<string, int>(Env, 
                                                 new List<string>() { "foo", "bar", "test" }, 
                                                 new List<int>() { 2, 43, 56 }, 
-                                                new [] {("A","D"), ("B", "E")});
+                                                new [] { ("D", "A"), ("E", "B") });
 
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())

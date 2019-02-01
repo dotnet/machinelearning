@@ -8,7 +8,7 @@
   <ItemGroup> 
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
     <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
-    <Content Include="$(SourceDir)Native\MatrixFactorizationNative\libmf\COPYRIGHT" Pack="true" PackagePath=".\" />
+    <Content Include="$(SourceDir)Native\MatrixFactorizationNative\libmf\COPYRIGHT" Pack="true" PackagePath="" />
   </ItemGroup> 
   
 </Project>

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -20,7 +21,7 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// This macro entry point implements cross validation.
     /// </summary>
-    public static class CrossValidationMacro
+    internal static class CrossValidationMacro
     {
         public sealed class SubGraphInput
         {

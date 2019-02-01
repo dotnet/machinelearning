@@ -180,7 +180,7 @@ namespace Microsoft.ML.TestFramework
             args = CmdLexer.UnquoteValue(str.Substring(ich));
         }
 
-        public static SubComponent Parse(string str)
+        internal static SubComponent Parse(string str)
         {
             string kind;
             string args;
@@ -191,7 +191,7 @@ namespace Microsoft.ML.TestFramework
             return new SubComponent(kind, args);
         }
 
-        public static SubComponent<TRes, TSig> Parse<TRes, TSig>(string str)
+        internal static SubComponent<TRes, TSig> Parse<TRes, TSig>(string str)
             where TRes : class
         {
             string kind;

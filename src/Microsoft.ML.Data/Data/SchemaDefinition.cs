@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -380,7 +381,7 @@ namespace Microsoft.ML.Data
                     itemType = new KeyType(dataType, keyAttr.Count);
                 }
                 else
-                    itemType = PrimitiveType.FromType(dataType);
+                    itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
 
                 // Get the column type.
                 ColumnType columnType;

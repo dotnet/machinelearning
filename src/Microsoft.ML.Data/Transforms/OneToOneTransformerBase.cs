@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
@@ -13,19 +14,19 @@ namespace Microsoft.ML.Data
     /// </summary>
     public abstract class OneToOneTransformerBase : RowToRowTransformerBase
     {
-        protected readonly (string input, string output)[] ColumnPairs;
+        protected readonly (string outputColumnName, string inputColumnName)[] ColumnPairs;
 
-        protected OneToOneTransformerBase(IHost host, params (string input, string output)[] columns) : base(host)
+        protected OneToOneTransformerBase(IHost host, params (string outputColumnName, string inputColumnName)[] columns) : base(host)
         {
             host.CheckValue(columns, nameof(columns));
             var newNames = new HashSet<string>();
             foreach (var column in columns)
             {
-                host.CheckNonEmpty(column.input, nameof(columns));
-                host.CheckNonEmpty(column.output, nameof(columns));
+                host.CheckNonEmpty(column.inputColumnName, nameof(columns));
+                host.CheckNonEmpty(column.outputColumnName, nameof(columns));
 
-                if (!newNames.Add(column.output))
-                    throw Contracts.ExceptParam(nameof(columns), $"Output column '{column.output}' specified multiple times");
+                if (!newNames.Add(column.outputColumnName))
+                    throw Contracts.ExceptParam(nameof(columns), $"Name of the result column '{column.outputColumnName}' specified multiple times");
             }
 
             ColumnPairs = columns;
@@ -40,12 +41,12 @@ namespace Microsoft.ML.Data
             //   int: id of input column name
 
             int n = ctx.Reader.ReadInt32();
-            ColumnPairs = new (string input, string output)[n];
+            ColumnPairs = new (string outputColumnName, string inputColumnName)[n];
             for (int i = 0; i < n; i++)
             {
-                string output = ctx.LoadNonEmptyString();
-                string input = ctx.LoadNonEmptyString();
-                ColumnPairs[i] = (input, output);
+                string outputColumnName = ctx.LoadNonEmptyString();
+                string inputColumnName = ctx.LoadNonEmptyString();
+                ColumnPairs[i] = (outputColumnName, inputColumnName);
             }
         }
 
@@ -62,8 +63,8 @@ namespace Microsoft.ML.Data
             ctx.Writer.Write(ColumnPairs.Length);
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                ctx.SaveNonEmptyString(ColumnPairs[i].output);
-                ctx.SaveNonEmptyString(ColumnPairs[i].input);
+                ctx.SaveNonEmptyString(ColumnPairs[i].outputColumnName);
+                ctx.SaveNonEmptyString(ColumnPairs[i].inputColumnName);
             }
         }
 
@@ -72,8 +73,8 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(inputSchema);
             Contracts.Assert(0 <= col && col < ColumnPairs.Length);
 
-            if (!inputSchema.TryGetColumnIndex(ColumnPairs[col].input, out srcCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input);
+            if (!inputSchema.TryGetColumnIndex(ColumnPairs[col].inputColumnName, out srcCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName);
             CheckInputColumn(inputSchema, col, srcCol);
         }
 
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Data
             protected readonly Dictionary<int, int> ColMapNewToOld;
             private readonly OneToOneTransformerBase _parent;
 
-            protected OneToOneMapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema) : base(host, inputSchema)
+            protected OneToOneMapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema) : base(host, inputSchema, parent)
             {
                 Contracts.AssertValue(parent);
                 _parent = parent;

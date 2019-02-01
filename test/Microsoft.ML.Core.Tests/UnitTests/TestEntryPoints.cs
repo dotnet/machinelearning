@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -351,6 +353,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
 
             var catalog = Env.ComponentCatalog;
 
@@ -457,9 +460,9 @@ namespace Microsoft.ML.RunTests
                     ScoreModel.Score(Env,
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
-                individualScores[i] = new ColumnCopyingTransformer(Env,(
-                    MetadataUtils.Const.ScoreValueKind.Score,
-                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString())
+                individualScores[i] = new ColumnCopyingTransformer(Env, (
+                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString(),
+                     MetadataUtils.Const.ScoreValueKind.Score)
                     ).Transform(individualScores[i]);
 
                 individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
@@ -743,8 +746,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
@@ -996,7 +999,7 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = new TextFeaturizingEstimator(Env, "Text", "Features", args =>
+                    data = new TextFeaturizingEstimator(Env, "Features", "Text", args =>
                     {
                         args.UseStopRemover = true;
                     }).Fit(data).Transform(data);
@@ -1195,8 +1198,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
@@ -5639,5 +5642,20 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(10, (schema[2].Type as VectorType)?.Size);
         }
 
+        [Fact]
+        public void LoadEntryPointModel()
+        {
+            var ml = new MLContext();
+            for (int i = 0; i < 5; i++)
+            {
+                var modelPath = GetDataPath($"backcompat/ep_model{i}.zip");
+                ITransformer loadedModel;
+                using (var stream = File.OpenRead(modelPath))
+                {
+                    loadedModel = ml.Model.Load(stream);
+                }
+
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Utilities;
 
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Data.DataLoadSave
                 var partialMetadata = shape[i].Metadata;
                 for (int j = 0; j < partialMetadata.Count; ++j)
                 {
-                    var metaColumnType = MakeColumnType(partialMetadata[i]);
+                    var metaColumnType = MakeColumnType(partialMetadata[j]);
                     Delegate del;
                     if (metaColumnType is VectorType vectorType)
                         del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, vectorType.ItemType.RawType);
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Data.DataLoadSave
                         del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
                     metaBuilder.Add(partialMetadata[j].Name, metaColumnType, del);
                 }
-                builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]));
+                builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]), metaBuilder.GetMetadata());
             }
             return builder.GetSchema();
         }

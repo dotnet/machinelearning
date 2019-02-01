@@ -8,8 +8,10 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.Categorical;
@@ -45,10 +47,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Start creating our processing pipeline. For now, let's just concatenate all the text columns
             // together into one.
-            var dynamicPipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education", "MaritalStatus");
+            var pipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education", "MaritalStatus");
 
             // Fit our data pipeline and transform data with it.
-            var transformedData = dynamicPipeline.Fit(data).Transform(data);
+            var transformedData = pipeline.Fit(data).Transform(data);
 
             // 'transformedData' is a 'promise' of data. Let's actually read it.
             var someRows = mlContext
@@ -87,13 +89,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
             // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
             // User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
-            // a caching step, which provides the same caching function, will be inserted in the considered "dynamicPipeline."
+            // a caching step, which provides the same caching function, will be inserted in the considered "pipeline."
             var cachedTrainData = mlContext.Data.Cache(trainData);
 
             // Step two: define the learning pipeline. 
 
             // We 'start' the pipeline with the output of the reader.
-            var dynamicPipeline =
+            var pipeline =
                 // First 'normalize' the data (rescale to be
                 // between -1 and 1 for all examples), and then train the model.
                 mlContext.Transforms.Normalize("FeatureVector")
@@ -110,7 +112,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Target", featureColumn: "FeatureVector"));
 
             // Step three. Fit the pipeline to the training data.
-            var model = dynamicPipeline.Fit(trainData);
+            var model = pipeline.Fit(trainData);
 
             // Read the test dataset.
             var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
@@ -155,8 +157,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separatorChar: ','
             );
 
+            //Preview the data
+            var dataPreview = trainData.Preview();
+
             // Build the training pipeline.
-            var dynamicPipeline =
+            var pipeline =
                 // Concatenate all the features together into one column 'Features'.
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
@@ -164,13 +169,38 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Cache data in memory for steps after the cache check point stage.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
-                // Apply the inverse conversion from 'PredictedLabel' column back to string value.
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
+                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             // Train the model.
-            var model = dynamicPipeline.Fit(trainData);
-            return model;
+            var trainedModel = pipeline.Fit(trainData);
+
+            // Inspect the model parameters. 
+            var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+
+            // Get the weights and the numbers of classes
+            VBuffer<float>[] weights = default;
+            modelParameters.GetWeights(ref weights, out int numClasses);
+
+            // numClasses
+            // 3
+            // weights
+            // {float[4]}       { float[4]}         { float[4]}
+            // 2.45233274       0.181766108         -3.05772042
+            // 4.61404276       0.0578986146        -4.85828352
+            // - 6.934741       -0.0424297452       6.63682
+            // - 3.64960361     -4.072106           7.55050659
+
+            // Get the biases
+            var biases = modelParameters.GetBiases();
+            // 		[0]	1.151999	float
+            //      [1]	8.337694	float
+            // 		[2]	-9.709775	float
+
+            // Apply the inverse conversion from 'PredictedLabel' column back to string value.
+            var finalPipeline = pipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(("Data", "PredictedLabel")));
+            dataPreview = finalPipeline.Preview(trainData);
+
+            return finalPipeline.Fit(trainData);
         }
 
         private void PredictOnIris(ITransformer model)
@@ -215,9 +245,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline =
                 mlContext.Transforms.Normalize(
-                    new NormalizingEstimator.MinMaxColumn("Features", "MinMaxNormalized", fixZero: true),
-                    new NormalizingEstimator.MeanVarColumn("Features", "MeanVarNormalized", fixZero: true),
-                    new NormalizingEstimator.BinningColumn("Features", "BinNormalized", numBins: 256));
+                    new NormalizingEstimator.MinMaxColumn("MinMaxNormalized", "Features", fixZero: true),
+                    new NormalizingEstimator.MeanVarColumn("MeanVarNormalized", "Features", fixZero: true),
+                    new NormalizingEstimator.BinningColumn("BinNormalized", "Features", numBins: 256));
 
             // Let's train our pipeline of normalizers, and then apply it to the same data.
             var normalizedData = pipeline.Fit(trainData).Transform(trainData);
@@ -264,33 +294,33 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var messageTexts = data.GetColumn<string>(mlContext, "Message").Take(20).ToArray();
 
             // Apply various kinds of text operations supported by ML.NET.
-            var dynamicPipeline =
+            var pipeline =
                 // One-stop shop to run the full text featurization.
-                mlContext.Transforms.Text.FeaturizeText("Message", "TextFeatures")
+                mlContext.Transforms.Text.FeaturizeText("TextFeatures", "Message")
 
                 // Normalize the message for later transforms
-                .Append(mlContext.Transforms.Text.NormalizeText("Message", "NormalizedMessage"))
+                .Append(mlContext.Transforms.Text.NormalizeText("NormalizedMessage", "Message"))
 
                 // NLP pipeline 1: bag of words.
-                .Append(new WordBagEstimator(mlContext, "NormalizedMessage", "BagOfWords"))
+                .Append(new WordBagEstimator(mlContext, "BagOfWords", "NormalizedMessage"))
 
                 // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
-                .Append(new WordHashBagEstimator(mlContext, "NormalizedMessage", "BagOfBigrams",
+                .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
                             ngramLength: 2, allLengths: false))
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-                .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
-                .Append(new NgramExtractingEstimator(mlContext, "MessageChars", "BagOfTrichar",
+                .Append(mlContext.Transforms.Text.TokenizeCharacters("MessageChars", "Message"))
+                .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
                             ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
-                .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
-                .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("TokenizedMessage", "Embeddings",
+                .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
+                .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
                             WordEmbeddingsExtractingTransformer.PretrainedModelKind.GloVeTwitter25D));
 
             // Let's train our pipeline, and then apply it to the same data.
             // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
-            var transformedData = dynamicPipeline.Fit(data).Transform(data);
+            var transformedData = pipeline.Fit(data).Transform(data);
 
             // Inspect some columns of the resulting dataset.
             var embeddings = transformedData.GetColumn<float[]>(mlContext, "Embeddings").Take(10).ToArray();
@@ -336,17 +366,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take(10).ToArray();
 
             // Build several alternative featurization pipelines.
-            var dynamicPipeline =
+            var pipeline =
                 // Convert each categorical feature into one-hot encoding independently.
-                mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot")
+                mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
                 // Convert all categorical features into indices, and build a 'word bag' of these.
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalBag", OneHotEncodingTransformer.OutputKind.Bag))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingTransformer.OutputKind.Bag))
                 // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("Workclass", "WorkclassOneHot"))
-                .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
+                .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
 
             // Let's train our pipeline, and then apply it to the same data.
-            var transformedData = dynamicPipeline.Fit(data).Transform(data);
+            var transformedData = pipeline.Fit(data).Transform(data);
 
             // Inspect some columns of the resulting dataset.
             var categoricalBags = transformedData.GetColumn<float[]>(mlContext, "CategoricalBag").Take(10).ToArray();
@@ -355,7 +385,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Of course, if we want to train the model, we will need to compose a single float vector of all the features.
             // Here's how we could do this:
 
-            var fullLearningPipeline = dynamicPipeline
+            var fullLearningPipeline = pipeline
                 // Concatenate two of the 3 categorical pipelines, and the numeric features.
                 .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
                 // Cache data in memory so that the following trainer will be able to access training examples without
@@ -385,7 +415,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             );
 
             // Build the training pipeline.
-            var dynamicPipeline =
+            var pipeline =
                 // Concatenate all the features together into one column 'Features'.
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
@@ -401,13 +431,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Train the model.
-            var model = dynamicPipeline.Fit(trainData);
+            var model = pipeline.Fit(trainData);
             // Compute quality metrics on the test set.
             var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData));
             Console.WriteLine(metrics.AccuracyMicro);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.
-            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, dynamicPipeline, numFolds: 5);
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
 
             // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
             // Let's compute the average micro-accuracy.

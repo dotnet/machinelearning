@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Tests
         {
             var samplevector = new float[inputSize];
             for (int i = 0; i < inputSize; i++)
-                samplevector[i] = (i / ((float) inputSize));
+                samplevector[i] = (i / ((float)inputSize));
             return samplevector;
         }
 
@@ -60,9 +61,11 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         void TestDnnImageFeaturizer()
         {
+            // Onnxruntime supports Ubuntu 16.04, but not CentOS
+            // Do not execute on CentOS image
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
-            
+
 
             var samplevector = GetSampleArrayData();
 
@@ -77,7 +80,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Environment, m.InputColumn, m.OutputColumn), "data_0", "output_1");
+            var pipe = new DnnImageFeaturizerEstimator(Env, "output_1", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "data_0");
 
             var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
@@ -111,12 +114,12 @@ namespace Microsoft.ML.Tests
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);
-          
+
             var pipe = data.MakeNewEstimator()
                 .Append(row => (
                     row.name,
                     data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ModelSelector.ResNet18(m.Environment, m.InputColumn, m.OutputColumn))));
+                .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn))));
 
             TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
@@ -143,7 +146,7 @@ namespace Microsoft.ML.Tests
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
-            
+
 
             var samplevector = GetSampleArrayData();
 
@@ -157,7 +160,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = "data_0";
             var outputNames = "output_1";
-            var est = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Environment, m.InputColumn, m.OutputColumn), inputNames, outputNames);
+            var est = new DnnImageFeaturizerEstimator(Env, outputNames, m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), inputNames);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);

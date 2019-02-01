@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -58,11 +59,11 @@ namespace Microsoft.ML.Transforms
     /// </remarks>
     public sealed class GroupTransform : TransformBase
     {
-        public const string Summary = "Groups values of a scalar column into a vector, by a contiguous group ID";
-        public const string UserName = "Group Transform";
-        public const string ShortName = "Group";
+        internal const string Summary = "Groups values of a scalar column into a vector, by a contiguous group ID";
+        internal const string UserName = "Group Transform";
+        internal const string ShortName = "Group";
         private const string RegistrationName = "GroupTransform";
-        public const string LoaderSignature = "GroupTransform";
+        internal const string LoaderSignature = "GroupTransform";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -648,13 +649,12 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static partial class GroupingOperations
+    internal static partial class GroupingOperations
     {
         [TlcModule.EntryPoint(Name = "Transforms.CombinerByContiguousGroupId",
             Desc = GroupTransform.Summary,
             UserName = GroupTransform.UserName,
-            ShortName = GroupTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Group""]/*' />" })]
+            ShortName = GroupTransform.ShortName)]
         public static CommonOutputs.TransformOutput Group(IHostEnvironment env, GroupTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
