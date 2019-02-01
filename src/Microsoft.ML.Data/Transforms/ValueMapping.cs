@@ -84,11 +84,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
-    /// <summary>
-    /// The ValueMappingEstimator is a 1-1 mapping from a key to value. The key type and value type are specified
-    /// through TKey and TValue. TKey is always a scalar. TValue can be either a scalar or an array (array is only possible when input is scalar).
-    /// The mapping is specified, not trained by providing a list of keys and a list of values.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
     /// <typeparam name="TKey">Specifies the key type.</typeparam>
     /// <typeparam name="TValue">Specifies the value type.</typeparam>
     public sealed class ValueMappingEstimator<TKey, TValue> : ValueMappingEstimator
@@ -299,6 +295,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
     public class ValueMappingTransformer : OneToOneTransformerBase
     {
         internal const string Summary = "Maps text values columns to new columns using a map dataset.";
