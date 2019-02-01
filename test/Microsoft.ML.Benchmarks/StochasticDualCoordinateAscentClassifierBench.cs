@@ -80,7 +80,7 @@ namespace Microsoft.ML.Benchmarks
             // Pipeline
             var arguments = new TextLoader.Arguments()
             {
-                Column = new TextLoader.Column[]
+                Columns = new TextLoader.Column[]
                 {
                     new TextLoader.Column()
                     {

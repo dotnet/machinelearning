@@ -167,7 +167,7 @@ namespace Microsoft.ML.Data
             // REVIEW: This can potentially cause hidden columns to become unhidden. See task 3739.
             var args = new ChooseColumnsByIndexTransform.Arguments();
             args.Drop = true;
-            args.Index = columnsToDrop.ToArray();
+            args.Indices = columnsToDrop.ToArray();
             return new ChooseColumnsByIndexTransform(env, args, data);
         }
 

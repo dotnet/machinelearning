@@ -72,7 +72,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
                     // Split the data into train and test sets.
                     string name = Data.Data.Schema.GetTempColumnName();
                     var args = new GenerateNumberTransform.Arguments();
-                    args.Column = new[] { new GenerateNumberTransform.Column() { Name = name } };
+                    args.Columns = new[] { new GenerateNumberTransform.Column() { Name = name } };
                     args.Seed = (uint)rand.Next();
                     var view = new GenerateNumberTransform(Host, args, Data.Data);
                     var viewTest = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Max = ValidationDatasetProportion }, view);

@@ -432,9 +432,9 @@ namespace Microsoft.ML.Internal.Internallearn.ResultProcessor
             var chainArgs = commandArgs as ChainCommand.Arguments;
             if (chainArgs != null)
             {
-                if (Utils.Size(chainArgs.Command) == 0)
+                if (Utils.Size(chainArgs.Commands) == 0)
                     return null;
-                var acceptableCommand = chainArgs.Command.Cast<ICommandLineComponentFactory>().FirstOrDefault(x =>
+                var acceptableCommand = chainArgs.Commands.Cast<ICommandLineComponentFactory>().FirstOrDefault(x =>
                     string.Equals(x.Name, "CV", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(x.Name, "TrainTest", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(x.Name, "Test", StringComparison.OrdinalIgnoreCase));

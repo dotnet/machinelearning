@@ -69,8 +69,8 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Label of the positive class.", ShortName = "index")]
             public int ClassIndex;
@@ -127,20 +127,20 @@ namespace Microsoft.ML.Transforms
             int classIndex,
             string name,
             string source = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ClassIndex = classIndex }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, ClassIndex = classIndex }, input)
         {
         }
 
         public LabelIndicatorTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, LoadName, Contracts.CheckRef(args, nameof(args)).Column,
+            : base(env, LoadName, Contracts.CheckRef(args, nameof(args)).Columns,
                 input, TestIsMulticlassLabel)
         {
             Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Host.Assert(Infos.Length == Utils.Size(args.Columns));
             _classIndex = new int[Infos.Length];
 
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
-                _classIndex[iinfo] = args.Column[iinfo].ClassIndex ?? args.ClassIndex;
+                _classIndex[iinfo] = args.Columns[iinfo].ClassIndex ?? args.ClassIndex;
 
             Metadata.Seal();
         }

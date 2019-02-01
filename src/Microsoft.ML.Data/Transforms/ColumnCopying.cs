@@ -108,8 +108,9 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         // Factory method corresponding to SignatureDataTransform.
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
 
-            var transformer = new ColumnCopyingTransformer(env, args.Column.Select(x => (x.Name, x.Source)).ToArray());
+            var transformer = new ColumnCopyingTransformer(env, args.Columns.Select(x => (x.Name, x.Source)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 

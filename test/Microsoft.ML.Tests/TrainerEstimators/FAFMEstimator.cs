@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 Separator = "\t",
                 HasHeader = false,
-                Column = new[]
+                Columns = new[]
                 {
                     new TextLoader.Column("Feature1", DataKind.R4, new [] { new TextLoader.Range(1, 2) }),
                     new TextLoader.Column("Feature2", DataKind.R4, new [] { new TextLoader.Range(3, 4) }),

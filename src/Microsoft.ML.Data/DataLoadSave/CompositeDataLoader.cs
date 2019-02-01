@@ -37,8 +37,8 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SignatureType = typeof(SignatureDataLoader))]
             public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
-            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transform;
+            [Argument(ArgumentType.Multiple, HelpText = "Transform", Name = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transforms;
         }
 
         private readonly struct TransformEx
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Data
             h.CheckValue(files, nameof(files));
 
             var loader = args.Loader.CreateComponent(h, files);
-            return CreateCore(h, loader, args.Transform);
+            return CreateCore(h, loader, args.Transforms);
         }
 
         /// <summary>

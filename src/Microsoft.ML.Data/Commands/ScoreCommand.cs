@@ -49,8 +49,8 @@ namespace Microsoft.ML.Data
 
             [Argument(ArgumentType.Multiple,
                 HelpText = "Input columns: Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
-                ShortName = "col", SortOrder = 10)]
-            public KeyValuePair<string, string>[] CustomColumn;
+                Name = "CustomColumn", ShortName = "col", SortOrder = 10)]
+            public KeyValuePair<string, string>[] CustomColumns;
 
             [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", SignatureType = typeof(SignatureDataScorer))]
             public TScorerFactory Scorer;
@@ -70,8 +70,9 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output all columns or just scores", ShortName = "all")]
             public bool? OutputAllColumns;
 
-            [Argument(ArgumentType.Multiple, HelpText = "What columns to output beyond score columns, if outputAllColumns=-.", ShortName = "outCol")]
-            public string[] OutputColumn;
+            [Argument(ArgumentType.Multiple, HelpText = "What columns to output beyond score columns, if outputAllColumns=-.",
+                Name = "OutputColumn", ShortName = "outCol")]
+            public string[] OutputColumns;
         }
 
         internal const string Summary = "Scores a data file.";
@@ -114,7 +115,7 @@ namespace Microsoft.ML.Data
                 nameof(Args.FeatureColumn), Args.FeatureColumn, DefaultColumnNames.Features);
             string group = TrainUtils.MatchNameOrDefaultOrNull(ch, loader.Schema,
                 nameof(Args.GroupColumn), Args.GroupColumn, DefaultColumnNames.GroupId);
-            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
+            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumns);
             var schema = new RoleMappedSchema(loader.Schema, label: null, feature: feat, group: group, custom: customCols, opt: true);
             var mapper = bindable.Bind(Host, schema);
 
@@ -156,20 +157,20 @@ namespace Microsoft.ML.Data
 
             bool outputAllColumns =
                 Args.OutputAllColumns == true
-                || (Args.OutputAllColumns == null && Utils.Size(Args.OutputColumn) == 0 && outputIsBinary);
+                || (Args.OutputAllColumns == null && Utils.Size(Args.OutputColumns) == 0 && outputIsBinary);
 
             bool outputNamesAndLabels =
-                Args.OutputAllColumns == true || Utils.Size(Args.OutputColumn) == 0;
+                Args.OutputAllColumns == true || Utils.Size(Args.OutputColumns) == 0;
 
-            if (Args.OutputAllColumns == true && Utils.Size(Args.OutputColumn) != 0)
-                ch.Warning(nameof(Args.OutputAllColumns) + "=+ always writes all columns irrespective of " + nameof(Args.OutputColumn) + " specified.");
+            if (Args.OutputAllColumns == true && Utils.Size(Args.OutputColumns) != 0)
+                ch.Warning(nameof(Args.OutputAllColumns) + "=+ always writes all columns irrespective of " + nameof(Args.OutputColumns) + " specified.");
 
-            if (!outputAllColumns && Utils.Size(Args.OutputColumn) != 0)
+            if (!outputAllColumns && Utils.Size(Args.OutputColumns) != 0)
             {
-                foreach (var outCol in Args.OutputColumn)
+                foreach (var outCol in Args.OutputColumns)
                 {
                     if (!loader.Schema.TryGetColumnIndex(outCol, out int dummyColIndex))
-                        throw ch.ExceptUserArg(nameof(Arguments.OutputColumn), "Column '{0}' not found.", outCol);
+                        throw ch.ExceptUserArg(nameof(Arguments.OutputColumns), "Column '{0}' not found.", outCol);
                 }
             }
 
@@ -226,7 +227,7 @@ namespace Microsoft.ML.Data
                         break;
                 }
             }
-            if (Args.OutputColumn != null && Array.FindIndex(Args.OutputColumn, schema[i].Name.Equals) >= 0)
+            if (Args.OutputColumns != null && Array.FindIndex(Args.OutputColumns, schema[i].Name.Equals) >= 0)
                 return true;
             return false;
         }

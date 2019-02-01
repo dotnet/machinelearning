@@ -175,7 +175,7 @@ namespace Microsoft.ML.Tests.Transformers
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var data = TextLoader.Create(ML, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                     new TextLoader.Column("Text", DataKind.TX, 1)
                 }

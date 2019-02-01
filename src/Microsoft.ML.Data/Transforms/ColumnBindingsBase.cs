@@ -311,9 +311,9 @@ namespace Microsoft.ML.Data
             // In lieu of actual protections, I have the following silly asserts, so we can have some
             // warning if we decide to rename this argument, and so know to change the below hard-coded
             // standard column name.
-            const string standardColumnArgName = "Column";
-            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Arguments.Column) == standardColumnArgName);
-            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Column) == standardColumnArgName);
+            const string standardColumnArgName = "Columns";
+            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Arguments.Columns) == standardColumnArgName);
+            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Columns) == standardColumnArgName);
 
             for (int iinfo = 0; iinfo < names.Length; iinfo++)
             {

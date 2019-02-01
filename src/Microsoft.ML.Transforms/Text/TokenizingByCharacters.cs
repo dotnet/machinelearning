@@ -55,8 +55,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.Multiple, HelpText = "Whether to mark the beginning/end of each row/slot with start of text character (0x02)/end of text character (0x03)",
                 ShortName = "mark", SortOrder = 2)]
@@ -167,11 +167,11 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new (string outputColumnName, string inputColumnName)[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new (string outputColumnName, string inputColumnName)[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
                 cols[i] = (item.Name, item.Source ?? item.Name);
             }
             return new TokenizingByCharactersTransformer(env, args.UseMarkerChars, cols).MakeDataTransform(input);

@@ -87,7 +87,7 @@ namespace Microsoft.ML.EntryPoints
                 data = new GenerateNumberTransform(host,
                     new GenerateNumberTransform.Arguments
                     {
-                        Column = new[] { new GenerateNumberTransform.Column { Name = stratCol } }
+                        Columns = new[] { new GenerateNumberTransform.Column { Name = stratCol } }
                     }, data);
             }
             else
@@ -95,7 +95,7 @@ namespace Microsoft.ML.EntryPoints
                 data = new HashJoiningTransform(host,
                     new HashJoiningTransform.Arguments
                     {
-                        Column = new[] { new HashJoiningTransform.Column { Name = stratCol, Source = stratificationColumn } },
+                        Columns = new[] { new HashJoiningTransform.Column { Name = stratCol, Source = stratificationColumn } },
                         Join = true,
                         HashBits = 30
                     }, data);
