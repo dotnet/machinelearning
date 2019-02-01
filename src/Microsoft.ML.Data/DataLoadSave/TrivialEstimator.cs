@@ -14,7 +14,7 @@ namespace Microsoft.ML.Data
     /// Concrete implementations still have to provide the schema propagation mechanism, since
     /// there is no easy way to infer it from the transformer.
     /// </summary>
-    public abstract class TrivialEstimator<TTransformer> : IEstimator<TTransformer>
+    public abstract class TrivialEstimator<TTransformer> : IEstimator<TTransformer>, ITransformer
         where TTransformer : class, ITransformer
     {
         protected readonly IHost Host;
@@ -38,5 +38,10 @@ namespace Microsoft.ML.Data
         }
 
         public abstract SchemaShape GetOutputSchema(SchemaShape inputSchema);
+
+        public bool IsRowToRowMapper => Transformer.IsRowToRowMapper;
+        public Schema GetOutputSchema(Schema inputSchema) => Transformer.GetOutputSchema(inputSchema);
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => Transformer.GetRowToRowMapper(inputSchema);
+        public IDataView Transform(IDataView input) => Transformer.Transform(input);
     }
 }
