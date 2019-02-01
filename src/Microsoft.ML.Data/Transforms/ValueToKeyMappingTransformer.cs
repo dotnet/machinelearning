@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Columns[i];
+                    var item = options.Columns[i];
                     var sortOrder = item.Sort ?? options.Sort;
                     if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), sortOrder))
                         throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
