@@ -55,7 +55,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, params TypeConvertingTransformer.ColumnInfo[] columns)
+        public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, params TypeConvertingEstimator.ColumnInfo[] columns)
             => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>

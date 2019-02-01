@@ -15,7 +15,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms.FeatureSelection;
 
-[assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Options), typeof(SignatureDataTransform),
     CountFeatureSelectingEstimator.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
 namespace Microsoft.ML.Transforms.FeatureSelection
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             public const long Count = 1;
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
             public string[] Columns;
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// ]]>
         /// </format>
         /// </example>
-        public CountFeatureSelectingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal CountFeatureSelectingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -100,11 +100,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// ]]>
         /// </format>
         /// </example>
-        public CountFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, long minCount = Defaults.Count)
+        internal CountFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, long minCount = Defaults.Count)
             : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, minCount))
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -126,6 +130,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return new SchemaShape(result.Values);
         }
 
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
         public ITransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
@@ -162,16 +169,16 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
         /// </summary>
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
-            host.CheckValue(args, nameof(args));
+            host.CheckValue(options, nameof(options));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
-            host.CheckUserArg(args.Count > 0, nameof(args.Count));
+            host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
+            host.CheckUserArg(options.Count > 0, nameof(options.Count));
 
-            var columnInfos = args.Columns.Select(inColName => new ColumnInfo(inColName, minCount: args.Count)).ToArray();
+            var columnInfos = options.Columns.Select(inColName => new ColumnInfo(inColName, minCount: options.Count)).ToArray();
 
             return new CountFeatureSelectingEstimator(env, columnInfos).Fit(input).Transform(input) as IDataTransform;
         }
@@ -245,11 +252,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 int colSrc;
                 var colName = columns[i];
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Columns), "Source column '{0}' not found", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), "Source column '{0}' not found", colName);
 
                 var colType = schema[colSrc].Type;
                 if (colType is VectorType vectorType && !vectorType.IsKnownSize)
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Columns), "Variable length column '{0}' is not allowed", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), "Variable length column '{0}' is not allowed", colName);
 
                 activeCols.Add(schema[colSrc]);
                 colSrcs[i] = colSrc;
