@@ -749,17 +749,19 @@ namespace Microsoft.ML.Tests
                 var leftMid = bitmap.GetPixel(bitmap.Width / 3, bitmap.Height / 2);
                 var rightMid = bitmap.GetPixel(bitmap.Width / 3 * 2, bitmap.Height / 2);
 
+                // it turns out rounding errors on certain platforms may lead to a test failure
+                // instead of checking for exactly FFFFFF and FF0000 we allow a small interval here to be safe
                 Assert.All(new[] { topLeft, topRight, bottomLeft, bottomRight, middle }, c =>
                 {
-                    Assert.Equal(255, c.R);
-                    Assert.Equal(255, c.G);
-                    Assert.Equal(255, c.B);
+                    Assert.True(c.R >= 250);
+                    Assert.True(c.G >= 250);
+                    Assert.True(c.B >= 250);
                 });
                 Assert.All(new[] { midTop, midBottom, leftMid, rightMid }, c =>
                 {
-                    Assert.Equal(255, c.R);
-                    Assert.Equal(0, c.G);
-                    Assert.Equal(0, c.B);
+                    Assert.True(c.R >= 250);
+                    Assert.True(c.G < 6);
+                    Assert.True(c.B < 6);
                 });
             }
 
