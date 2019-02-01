@@ -64,8 +64,22 @@ namespace Microsoft.ML
         /// DropColumns is used to select a list of columns that user wants to drop from a given input. Any column not specified will
         /// be maintained in the output schema.
         /// </summary>
+        /// <remarks>
+        /// <see cref="DropColumns"/> is commonly used to remove unwanted columns from the schema if the dataset is going to be serialized or
+        /// written out to a file. It is not actually necessary to drop unused columns before training or
+        /// performing transforms, as IDataView's lazy evaluation won't actually materialize those columns.
+        /// In the case of serialization, every column in the schema will be written out. If you have columns
+        /// that you don't want to save, you can use DropColumns to remove them from the schema.
+        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnsToDrop">The array of column names to drop.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/DropColumns.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ColumnSelectingEstimator DropColumns(this TransformsCatalog catalog, params string[] columnsToDrop)
             => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnsToDrop);
 
