@@ -37,6 +37,9 @@ namespace Microsoft.ML.Transforms
             _source = inputColumnNames;
         }
 
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
         public ITransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
@@ -109,6 +112,10 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape.Column(name, vecKind, itemType, false, new SchemaShape(meta));
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));

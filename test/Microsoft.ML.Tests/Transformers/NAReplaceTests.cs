@@ -43,11 +43,11 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new MissingValueReplacingEstimator(Env,
-                new MissingValueReplacingTransformer.ColumnInfo("NAA", "A", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAB", "B", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAC", "C", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAD", "D", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean));
+            var pipe = ML.Transforms.ReplaceMissingValues(
+                new MissingValueReplacingEstimator.ColumnInfo("NAA", "A", MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnInfo("NAB", "B", MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnInfo("NAC", "C", MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnInfo("NAD", "D", MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -69,10 +69,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = data.MakeNewEstimator().
                    Append(row => (
-                   A: row.ScalarFloat.ReplaceNaNValues(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Maximum),
-                   B: row.ScalarDouble.ReplaceNaNValues(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                   C: row.VectorFloat.ReplaceNaNValues(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                   D: row.VectorDoulbe.ReplaceNaNValues(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Minimum)
+                   A: row.ScalarFloat.ReplaceNaNValues(MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Maximum),
+                   B: row.ScalarDouble.ReplaceNaNValues(MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean),
+                   C: row.VectorFloat.ReplaceNaNValues(MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean),
+                   D: row.VectorDoulbe.ReplaceNaNValues(MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Minimum)
                    ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
@@ -108,11 +108,11 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new MissingValueReplacingEstimator(Env,
-                new MissingValueReplacingTransformer.ColumnInfo("NAA", "A", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAB", "B", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAC", "C", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean),
-                new MissingValueReplacingTransformer.ColumnInfo("NAD", "D", MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.Mean));
+            var pipe = ML.Transforms.ReplaceMissingValues(
+                new MissingValueReplacingEstimator.ColumnInfo("NAA", "A", MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnInfo("NAB", "B", MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnInfo("NAC", "C", MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean),
+                new MissingValueReplacingEstimator.ColumnInfo("NAD", "D", MissingValueReplacingEstimator.ColumnInfo.ReplacementMode.Mean));
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
