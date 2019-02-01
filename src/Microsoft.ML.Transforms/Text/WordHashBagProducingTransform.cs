@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashingTransformer.Arguments"/> and
+        /// This class is a merger of <see cref="HashingTransformer.Options"/> and
         /// <see cref="NgramHashingTransformer.Arguments"/>, with the ordered option,
         /// the rehashUnigrams option and the allLength option removed.
         /// </summary>
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms.Text
             List<ValueToKeyMappingTransformer.Column> termCols = null;
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
-            var hashColumns = new List<HashingTransformer.ColumnInfo>();
+            var hashColumns = new List<HashingEstimator.ColumnInfo>();
             var ngramHashColumns = new NgramHashingTransformer.ColumnInfo[args.Columns.Length];
 
             var colCount = args.Columns.Length;
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Transforms.Text
                             });
                     }
 
-                    hashColumns.Add(new HashingTransformer.ColumnInfo(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
+                    hashColumns.Add(new HashingEstimator.ColumnInfo(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
                         30, column.Seed ?? args.Seed, false, column.InvertHash ?? args.InvertHash));
                 }
 
