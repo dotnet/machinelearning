@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Transformers
                    {
                        Separator = "\t",
                        HasHeader = true,
-                       Column = new[]
+                       Columns = new[]
                        {
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("SentimentText", DataKind.Text, 1)
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.Transformers
                    {
                        Separator = "\t",
                        HasHeader = true,
-                       Column = new[]
+                       Columns = new[]
                        {
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("SentimentText", DataKind.Text, 1)
