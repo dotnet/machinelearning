@@ -41,7 +41,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The column settings.</param>
         /// <param name="keyData">Specifies an ordering for the encoding. If specified, this should be a single column data view,
-        /// and the key-values will be taken from taht column. If unspecified, the ordering will be determined from the input data upon fitting.</param>
+        /// and the key-values will be taken from that column. If unspecified, the ordering will be determined from the input data upon fitting.</param>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 OneHotEncodingEstimator.ColumnInfo[] columns,
                 IDataView keyData = null)
