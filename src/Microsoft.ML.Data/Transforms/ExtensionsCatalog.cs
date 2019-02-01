@@ -65,7 +65,7 @@ namespace Microsoft.ML
         /// be maintained in the output schema.
         /// </summary>
         /// <remarks>
-        /// DropColumns is commonly used to remove unwanted columns from the schema if the dataset is going to be serialized or
+        /// <see cref="DropColumns"> is commonly used to remove unwanted columns from the schema if the dataset is going to be serialized or
         /// written out to a file. It is not actually necessary to drop unused columns before training or
         /// performing transforms, as <see cref="IDataView">'s lazy evaluation won't actually materialize those columns.
         /// In the case of serialization, every column in the schema will be written out. If you have columns
