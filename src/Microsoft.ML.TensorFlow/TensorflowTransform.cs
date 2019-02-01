@@ -19,7 +19,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer),
-    typeof(TensorFlowTransformer.Arguments), typeof(SignatureDataTransform), TensorFlowTransformer.UserName, TensorFlowTransformer.ShortName)]
+    typeof(TensorFlowTransformer.Options), typeof(SignatureDataTransform), TensorFlowTransformer.UserName, TensorFlowTransformer.ShortName)]
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer), null, typeof(SignatureLoadDataTransform),
     TensorFlowTransformer.UserName, TensorFlowTransformer.LoaderSignature)]
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransformer"]/*' />
     public sealed class TensorFlowTransformer : RowToRowTransformerBase
     {
-        public sealed class Arguments : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             /// <summary>
             /// Location of the TensorFlow model.
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -308,12 +308,12 @@ namespace Microsoft.ML.Transforms
             return new TensorFlowTransformer(env, args, input).MakeDataTransform(input);
         }
 
-        internal TensorFlowTransformer(IHostEnvironment env, Arguments args, IDataView input)
+        internal TensorFlowTransformer(IHostEnvironment env, Options args, IDataView input)
             : this(env, args, TensorFlowUtils.LoadTensorFlowModel(env, args.ModelLocation), input)
         {
         }
 
-        internal TensorFlowTransformer(IHostEnvironment env, Arguments args, TensorFlowModelInfo tensorFlowModel, IDataView input)
+        internal TensorFlowTransformer(IHostEnvironment env, Options args, TensorFlowModelInfo tensorFlowModel, IDataView input)
             : this(env, tensorFlowModel.Session, args.OutputColumns, args.InputColumns, TensorFlowUtils.IsSavedModel(env, args.ModelLocation) ? args.ModelLocation : null, false)
         {
 
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private void CheckTrainingParameters(Arguments args)
+        private void CheckTrainingParameters(Options args)
         {
             Host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
             Host.CheckNonWhiteSpace(args.OptimizationOperation, nameof(args.OptimizationOperation));
@@ -401,7 +401,7 @@ namespace Microsoft.ML.Transforms
             return (inputColIndex, isInputVector, tfInputType, tfInputShape);
         }
 
-        private void TrainCore(Arguments args, IDataView input)
+        private void TrainCore(Options args, IDataView input)
         {
             var inputsForTraining = new string[Inputs.Length + 1];
             var inputColIndices = new int[inputsForTraining.Length];
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Transforms
             string[] inputsForTraining,
             ITensorValueGetter[] srcTensorGetters,
             List<string> fetchList,
-            Arguments args)
+            Options args)
         {
             float loss = 0;
             float metric = 0;
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Transforms
         /// After retraining Session and Graphs are both up-to-date
         /// However model on disk is not which is used to serialzed to ML.Net stream
         /// </summary>
-        private void UpdateModelOnDisk(string modelDir, Arguments args)
+        private void UpdateModelOnDisk(string modelDir, Options args)
         {
             try
             {
@@ -957,7 +957,7 @@ namespace Microsoft.ML.Transforms
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName)]
-        internal static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
@@ -1080,28 +1080,28 @@ namespace Microsoft.ML.Transforms
     public sealed class TensorFlowEstimator : IEstimator<TensorFlowTransformer>
     {
         private readonly IHost _host;
-        private readonly TensorFlowTransformer.Arguments _args;
+        private readonly TensorFlowTransformer.Options _args;
         private readonly TensorFlowModelInfo _tensorFlowModel;
         private readonly TFDataType[] _tfInputTypes;
         private readonly ColumnType[] _outputTypes;
         private TensorFlowTransformer _transformer;
 
-        public TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelLocation)
+        internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelLocation)
             : this(env, outputColumnNames, inputColumnNames, TensorFlowUtils.LoadTensorFlowModel(env, modelLocation))
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, TensorFlowModelInfo tensorFlowModel)
+        internal TensorFlowEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, TensorFlowModelInfo tensorFlowModel)
             : this(env, CreateArguments(tensorFlowModel, outputColumnNames, inputColumnNames), tensorFlowModel)
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Arguments args)
+        internal TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Options args)
             : this(env, args, TensorFlowUtils.LoadTensorFlowModel(env, args.ModelLocation))
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Arguments args, TensorFlowModelInfo tensorFlowModel)
+        internal TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Options args, TensorFlowModelInfo tensorFlowModel)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowEstimator));
             _args = args;
@@ -1112,15 +1112,19 @@ namespace Microsoft.ML.Transforms
             _outputTypes = outputTuple.outputTypes;
         }
 
-        private static TensorFlowTransformer.Arguments CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
+        private static TensorFlowTransformer.Options CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
         {
-            var args = new TensorFlowTransformer.Arguments();
+            var args = new TensorFlowTransformer.Options();
             args.ModelLocation = tensorFlowModel.ModelPath;
             args.InputColumns = inputColumnName;
             args.OutputColumns = outputColumnNames;
             args.ReTrain = false;
             return args;
         }
+
+        /// <summary>
+        /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -1146,6 +1150,9 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(resultDic.Values);
         }
 
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
         public TensorFlowTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
