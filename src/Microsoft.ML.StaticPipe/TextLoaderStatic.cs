@@ -85,7 +85,7 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.AssertValue(env);
                 Contracts.AssertValue(toOutput);
                 Contracts.AssertValue(outputNames);
-                Contracts.Assert(_args.Column == null);
+                Contracts.Assert(_args.Columns == null);
 
                 TextLoader.Column Create(PipelineColumn pipelineCol)
                 {
@@ -95,7 +95,7 @@ namespace Microsoft.ML.StaticPipe
                     return argCol;
                 }
 
-                var cols = _args.Column = new TextLoader.Column[toOutput.Length];
+                var cols = _args.Columns = new TextLoader.Column[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                     cols[i] = Create(toOutput[i]);
 

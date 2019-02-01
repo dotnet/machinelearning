@@ -55,7 +55,7 @@ namespace Microsoft.ML.EntryPoints
             // Convert label into T,F based on k.
             var labelIndicatorArgs = new LabelIndicatorTransform.Arguments();
             labelIndicatorArgs.ClassIndex = k;
-            labelIndicatorArgs.Column = new[] { new LabelIndicatorTransform.Column() { Name = label, Source = label } };
+            labelIndicatorArgs.Columns = new[] { new LabelIndicatorTransform.Column() { Name = label, Source = label } };
 
             var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
             var inputMap = new Dictionary<ParameterBinding, VariableBinding>();

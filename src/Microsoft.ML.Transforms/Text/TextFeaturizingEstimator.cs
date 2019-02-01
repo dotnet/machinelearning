@@ -81,8 +81,8 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Required, HelpText = "New column definition (optional form: name:srcs).", ShortName = "col", SortOrder = 1)]
-            public Column Column;
+            [Argument(ArgumentType.Required, HelpText = "New column definition (optional form: name:srcs).", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dataset language or 'AutoDetect' to detect language per row.", ShortName = "lang", SortOrder = 3)]
             public Language Language = DefaultLanguage;
@@ -516,7 +516,7 @@ namespace Microsoft.ML.Transforms.Text
                 s.UseCharExtractor = args.CharFeatureExtractor != null;
             };
 
-            var estimator = new TextFeaturizingEstimator(env, args.Column.Name, args.Column.Source ?? new[] { args.Column.Name }, settings);
+            var estimator = new TextFeaturizingEstimator(env, args.Columns.Name, args.Columns.Source ?? new[] { args.Columns.Name }, settings);
             estimator._dictionary = args.Dictionary;
             estimator._wordFeatureExtractor = args.WordFeatureExtractor;
             estimator._charFeatureExtractor = args.CharFeatureExtractor;

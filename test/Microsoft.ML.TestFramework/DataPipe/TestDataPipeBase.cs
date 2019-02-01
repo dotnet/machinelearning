@@ -330,7 +330,7 @@ namespace Microsoft.ML.RunTests
 
             // For the loader and each transform, verify that custom unparsing is correct.
             VerifyCustArgs(env, args.Loader);
-            foreach (var kvp in args.Transform)
+            foreach (var kvp in args.Transforms)
                 VerifyCustArgs(env, kvp.Value);
         }
 
@@ -400,7 +400,7 @@ namespace Microsoft.ML.RunTests
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
-                chooseargs.Index = savable.ToArray();
+                chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 
@@ -671,7 +671,7 @@ namespace Microsoft.ML.RunTests
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
-                chooseargs.Index = savable.ToArray();
+                chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 
@@ -722,7 +722,7 @@ namespace Microsoft.ML.RunTests
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
-                chooseargs.Index = savable.ToArray();
+                chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 

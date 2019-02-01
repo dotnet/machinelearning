@@ -97,7 +97,7 @@
       "ShortName": null,
       "Inputs": [
         {
-          "Name": "Model",
+          "Name": "Models",
           "Type": {
             "Kind": "Array",
             "ItemType": "PredictorModel"
@@ -110,7 +110,7 @@
       ],
       "Outputs": [
         {
-          "Name": "OutputModel",
+          "Name": "OutputModels",
           "Type": {
             "Kind": "Array",
             "ItemType": "PredictorModel"
@@ -21932,7 +21932,7 @@
     {
       "Name": "Transforms.ScoreColumnSelector",
       "Desc": "Selects only the last score columns and the extra columns specified in the arguments.",
-      "FriendlyName": "Choose Columns By Index",
+      "FriendlyName": "Choose Columns By Indices",
       "ShortName": null,
       "Inputs": [
         {

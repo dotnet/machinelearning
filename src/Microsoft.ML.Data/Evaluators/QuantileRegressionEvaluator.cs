@@ -520,7 +520,7 @@ namespace Microsoft.ML.Data
                     output = LambdaColumnMapper.Create(Host, "Quantile Regression", output, name, name, type, NumberType.R8,
                         (in VBuffer<Double> src, ref Double dst) => dst = src.GetItemOrDefault(index));
                     output = new ChooseColumnsByIndexTransform(Host,
-                        new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { i } }, output);
+                        new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = new[] { i } }, output);
                 }
             }
             return output;

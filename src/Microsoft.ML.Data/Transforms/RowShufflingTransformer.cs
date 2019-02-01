@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms
 
             var args = new ChooseColumnsByIndexTransform.Arguments();
             args.Drop = true;
-            args.Index = columnsToDrop.ToArray();
+            args.Indices = columnsToDrop.ToArray();
             return new ChooseColumnsByIndexTransform(env, args, data);
         }
 

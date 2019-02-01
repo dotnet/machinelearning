@@ -99,8 +99,8 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public sealed class Arguments : ValueToKeyMappingTransformer.ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
                 ShortName = "kind", SortOrder = 102)]
@@ -125,10 +125,10 @@ namespace Microsoft.ML.Transforms.Categorical
             var h = env.Register("Categorical");
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
 
             var columns = new List<OneHotEncodingEstimator.ColumnInfo>();
-            foreach (var column in args.Column)
+            foreach (var column in args.Columns)
             {
                 var col = new OneHotEncodingEstimator.ColumnInfo(
                     column.Name,
@@ -136,8 +136,8 @@ namespace Microsoft.ML.Transforms.Categorical
                     column.OutputKind ?? args.OutputKind,
                     column.MaxNumTerms ?? args.MaxNumTerms,
                     column.Sort ?? args.Sort,
-                    column.Term ?? args.Term);
-                col.SetTerms(column.Terms ?? args.Terms);
+                    column.Terms ?? args.Terms);
+                col.SetTerms(column.Term ?? args.Term);
                 columns.Add(col);
             }
             IDataView keyData = null;

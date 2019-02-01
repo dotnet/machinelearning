@@ -44,8 +44,8 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         public const string LoaderSignature = "MissingIndicatorFunction";
@@ -75,11 +75,11 @@ namespace Microsoft.ML.Transforms
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
         public MissingValueIndicatorTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
+            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Columns,
                 input, TestIsFloatItem)
         {
             Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Host.Assert(Infos.Length == Utils.Size(args.Columns));
 
             _types = GetTypesAndMetadata();
         }

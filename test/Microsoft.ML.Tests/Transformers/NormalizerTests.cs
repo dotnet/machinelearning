@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
-                Column = new[] {
+                Columns = new[] {
                     new TextLoader.Column("float1", DataKind.R4, 1),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
                     new TextLoader.Column("double1", DataKind.R8, 1),
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
-                Column = new[] {
+                Columns = new[] {
                     new TextLoader.Column("float1", DataKind.R4, 1),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
                     new TextLoader.Column("double1", DataKind.R8, 1),
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
-                Column = new[] {
+                Columns = new[] {
                     new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
                 }

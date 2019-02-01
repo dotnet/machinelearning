@@ -134,7 +134,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 Separator = "\t",
                 HasHeader = true,
-                Column = new[]
+                Columns = new[]
                 {
                     new TextLoader.Column(labelColumnName, DataKind.R4, new [] { new TextLoader.Range(0) }),
                     new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyCount(20)),

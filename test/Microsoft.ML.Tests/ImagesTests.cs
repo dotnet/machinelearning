@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests
             }, new MultiFileSource(dataFile));
             var invalidData = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.R4, 0),
                     }
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Tests
                 InterleaveArgb = true,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Tests
                 InterleaveArgb = true,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Tests
                 InterleaveArgb = false,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Tests
                 InterleaveArgb = false,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
             {
                 InterleaveArgb = true,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
@@ -524,7 +524,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
             {
                 InterleaveArgb = true,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -604,7 +604,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
             {
                 InterleaveArgb = false,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Tests
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -669,7 +669,7 @@ namespace Microsoft.ML.Tests
             IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
             {
                 InterleaveArgb = false,
-                Column = new VectorToImageTransform.Column[1]{
+                Columns = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
