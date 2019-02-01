@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Drop the Age and Education columns from the dataset.
             var pipeline = mlContext.Transforms.DropColumns("Age", "Education");
 
-            // Now we can transform the data and look at the output
+            // Now we can transform the data and look at the output.
             // Don't forget that this operation doesn't actually operate on data until we perform an action that requires 
             // the data to be materialized.
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
