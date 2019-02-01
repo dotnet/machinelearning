@@ -16,24 +16,24 @@ namespace Microsoft.ML.Samples.Dynamic
             // Preview of the content of the images.tsv file
             //
             // imagePath    imageType
-            // tomato.bmp	tomato
+            // tomato.bmp   tomato
             // banana.jpg   banana
             // hotdog.jpg   hotdog
             // tomato.jpg   tomato
 
             var data = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
+                }
             }).Read(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageReal", "ImagePath"))
-                        .Append(mlContext.Transforms.Resize());
+                        .Append(mlContext.Transforms.Resize("ImageReal", imageWidth: 100, imageHeight: 100));
                                 
 
             var transformedData = pipeline.Fit(data).Transform(data);
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The actual images, in the ImageReal column are of type System.Drawing.Bitmap.
             //
             // ImagePath    Name        ImageReal
-            // tomato.bmp	tomato      {System.Drawing.Bitmap}
+            // tomato.bmp   tomato      {System.Drawing.Bitmap}
             // banana.jpg   banana      {System.Drawing.Bitmap}
             // hotdog.jpg   hotdog      {System.Drawing.Bitmap}
             // tomato.jpg   tomato      {System.Drawing.Bitmap}

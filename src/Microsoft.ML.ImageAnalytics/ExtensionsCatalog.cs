@@ -9,7 +9,7 @@ namespace Microsoft.ML
 {
     public static class ImageEstimatorsCatalog
     {
-        /// <include file='doc.xml' path='doc/members/member[@name="ImageLoadingEstimator"]/*' />
+        /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnPairs">The name of the columns containing the name of the resulting output column (first item of the tuple), and the paths of the images to work on (second item of the tuple).</param>
         /// <example>
@@ -28,7 +28,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/LoadImage.cs)]
+        ///  [!code-csharp[LoadImage](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/LoadImage.cs)]
         /// ]]></format>
         /// </example>
         public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params (string outputColumnName, string inputColumnName)[] columnPairs)
@@ -38,15 +38,15 @@ namespace Microsoft.ML
         /// <param name="catalog"> The transform's catalog.</param>
         /// <param name="outputColumnName"> Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName"> Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="colors">The color schema as defined in <see cref="ImagePixelExtractingEstimator.ColorBits"/>.</param>
-        /// <param name="interleave">Wheather to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them separated in the plannar form.</param>
+        /// <param name="colors"> Specifies which colors to extract from the image. The order of colors is: Alpha, Red, Green Blue.</param>
+        /// <param name="interleave">Wheather to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them separated in the planar form.</param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
         /// <param name="offset">Offset color pixel value by this amount.</param>
         /// <param name="asFloat">Output the array as float array. If false, output as byte array.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ExtractPixels.cs)]
+        ///  [!code-csharp[ExtractPixels](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ExtractPixels.cs)]
         /// ]]></format>
         /// </example>
         public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog,
@@ -61,12 +61,6 @@ namespace Microsoft.ML
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The name of the columns containing the image paths, and per-column configurations.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ExtractPixels.cs)]
-        /// ]]></format>
-        /// </example>
         public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog, params ImagePixelExtractingEstimator.ColumnInfo[] columns)
             => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
@@ -92,7 +86,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ResizeImage.cs)]
+        ///  [!code-csharp[Resize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ResizeImage.cs)]
         /// ]]></format>
         /// </example>
         public static ImageResizingEstimator Resize(this TransformsCatalog catalog,

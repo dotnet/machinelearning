@@ -16,14 +16,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // Preview of the content of the images.tsv file
             //
             // imagePath    imageType
-            // tomato.bmp	tomato
+            // tomato.bmp   tomato
             // banana.jpg   banana
             // hotdog.jpg   hotdog
             // tomato.jpg   tomato
 
             var data = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The actual images, in the ImageReal column are of type System.Drawing.Bitmap.
             //
             // ImagePath    Name        ImageObject                 "Pixels"
-            // tomato.bmp	tomato      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 232, 243, 226, ...
+            // tomato.bmp   tomato      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 232, 243, 226, ...
             // banana.jpg   banana      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 90,  54,  43, ...
             // hotdog.jpg   hotdog      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 132, 143, 126, ...
             // tomato.jpg   tomato      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 16,  21,  23, ...

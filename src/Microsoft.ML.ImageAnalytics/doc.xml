@@ -29,7 +29,7 @@
         Loads the images from a given folder into memory as an <see cref="ImageType"/>
       </summary>
       <remarks>
-        The images to load are present in the folder specfied as imageFolder. The get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type. 
+        The images to load are present in the folder specfied as imageFolder. They get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type. 
         Loading the images in memory is the first step of almost every pipeline that does image processing, and further analysis on images. 
         The images to load need to be in the formats supported by <see cref="System.Drawing.Bitmap" />.
 
