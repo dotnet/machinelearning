@@ -276,7 +276,7 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         /// <summary>
-        /// Returns the shape of the schema which will be produced by the transformer.
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
         /// Used for schema propagation and verification in a pipeline.
         /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -287,6 +287,9 @@ namespace Microsoft.ML.Transforms.Categorical
                 return _term.GetOutputSchema(inputSchema);
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="OneHotEncodingTransformer"/>.
+        /// <summary>
         public OneHotEncodingTransformer Fit(IDataView input) => new OneHotEncodingTransformer(_term, _toSomething, input);
 
         [BestFriend]

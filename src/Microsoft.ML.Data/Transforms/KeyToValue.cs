@@ -518,7 +518,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         /// <summary>
-        /// Returns the shape of the schema which will be produced by the transformer.
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
         /// Used for schema propagation and verification in a pipeline.
         /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)

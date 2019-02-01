@@ -12,7 +12,8 @@ namespace Microsoft.ML.Transforms.Conversions
     /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
     public sealed class ValueToKeyMappingEstimator : IEstimator<ValueToKeyMappingTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const int MaxNumKeys = 1000000;
             public const SortOrder Sort = SortOrder.Occurrence;
@@ -106,12 +107,12 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         /// <summary>
-        /// Fit to the <paramref name="input"/> data and build the dictionaries used for mapping.
-        /// </summary>
+        /// Trains and returns a <see cref="ValueToKeyMappingTransformer"/>.
+        /// <summary>
         public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _keyData, false);
 
         /// <summary>
-        /// Returns the shape of the schema which will be produced by the transformer.
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
         /// Used for schema propagation and verification in a pipeline.
         /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
