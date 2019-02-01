@@ -52,7 +52,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  Age and Education were not available, so an exception was thrown: Could not find  column 'Age'.
             //  Parameter name: Schema
 
-            // And we can write a few columns from the dataset to see that the rest of the data is still available.
+            // And we can write a few columns out to see that the rest of the data is still available.
             var rowEnumerable = mlContext.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
             Console.WriteLine($"The columns we didn't drop are still available.");
             foreach (var row in rowEnumerable)
