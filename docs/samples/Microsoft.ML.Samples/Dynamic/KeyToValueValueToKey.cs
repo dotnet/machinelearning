@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = new WordTokenizingEstimator(ml, "Review")
-                .Append(ml.Transforms.Conversion.MapValueToKey(customizedColumnName, "Review", maxNumTerms: 10, sort: ValueToKeyMappingEstimator.SortOrder.Value));
+                .Append(ml.Transforms.Conversion.MapValueToKey(customizedColumnName, "Review", maxNumKeys: 10, sort: ValueToKeyMappingEstimator.SortOrder.Value));
 
             // The transformed data.
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);

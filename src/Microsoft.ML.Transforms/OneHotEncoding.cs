@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// <param name="term">List of terms.</param>
             public ColumnInfo(string name, string inputColumnName = null,
                 OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
-                int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, ValueToKeyMappingEstimator.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
+                int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumKeys, ValueToKeyMappingEstimator.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
                 : base(name, inputColumnName ?? name, maxNumTerms, sort, term, true)
             {
@@ -247,13 +247,13 @@ namespace Microsoft.ML.Transforms.Categorical
                     case OneHotEncodingTransformer.OutputKind.Key:
                         continue;
                     case OneHotEncodingTransformer.OutputKind.Bin:
-                        binaryCols.Add((column.Name, column.Name));
+                        binaryCols.Add((column.OutputColumnName, column.OutputColumnName));
                         break;
                     case OneHotEncodingTransformer.OutputKind.Ind:
-                        cols.Add((column.Name, column.Name, false));
+                        cols.Add((column.OutputColumnName, column.OutputColumnName, false));
                         break;
                     case OneHotEncodingTransformer.OutputKind.Bag:
-                        cols.Add((column.Name, column.Name, true));
+                        cols.Add((column.OutputColumnName, column.OutputColumnName, true));
                         break;
                 }
             }

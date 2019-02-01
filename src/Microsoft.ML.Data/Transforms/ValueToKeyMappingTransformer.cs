@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms.Conversions
         internal abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
+            public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Term;
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ValueToKeyMappingEstimator.ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
+            return columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray();
         }
 
         private string TestIsKnownDataKind(ColumnType type)
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 else
                 {
                     // Auto train this column. Leave the term map null for now, but set the lim appropriately.
-                    lims[iinfo] = columns[iinfo].MaxNumTerms;
+                    lims[iinfo] = columns[iinfo].MaxNumKeys;
                     ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), "Must be positive");
                     Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex));
                     Utils.Add(ref toTrain, colIndex);
