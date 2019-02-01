@@ -34,10 +34,7 @@ namespace Microsoft.ML.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
-    /// <summary>
-    /// Transform which takes one or many columns of <see cref="ImageType"/> type in IDataView and
-    /// convert them to greyscale representation of the same image.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
     public sealed class ImageGrayscaleTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
@@ -216,9 +213,8 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
-    /// <summary>
-    /// Converts the images to grayscale.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
+    [BestFriend]
     public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscaleTransformer>
     {
 
@@ -227,7 +223,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// </summary>
         /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
         /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
-        public ImageGrayscalingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal ImageGrayscalingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscalingEstimator)), new ImageGrayscaleTransformer(env, columns))
         {
         }

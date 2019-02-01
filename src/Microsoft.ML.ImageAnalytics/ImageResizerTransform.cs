@@ -150,14 +150,13 @@ namespace Microsoft.ML.ImageAnalytics
             public ColumnInfo(string name, int width, int height, string inputColumnName = null, ResizingKind resizing = Defaults.Resizing, Anchor anchor = Defaults.CropAnchor)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckNonEmpty(inputColumnName, nameof(inputColumnName));
                 Contracts.CheckUserArg(width > 0, nameof(Column.ImageWidth));
                 Contracts.CheckUserArg(height > 0, nameof(Column.ImageHeight));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(ResizingKind), resizing), nameof(Column.Resizing));
                 Contracts.CheckUserArg(Enum.IsDefined(typeof(Anchor), anchor), nameof(Column.CropAnchor));
 
                 Name = name;
-                InputColumnName = inputColumnName;
+                InputColumnName = inputColumnName ?? name;
                 Width = width;
                 Height = height;
                 Resizing = resizing;

@@ -216,9 +216,7 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
-    /// <summary>
-    /// Load images in memory.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ImageLoadingEstimator"]/*' />
     public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoaderTransformer>
     {
         private readonly ImageType _imageType;
