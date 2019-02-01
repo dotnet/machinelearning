@@ -45,21 +45,38 @@ namespace Samples
             // STEP 3: Print metrics for each iteration 
             int iterationIndex = 0;
             PrintRegressionMetricsHeader();
-            foreach (var i in autoFitResults.IterationResults)
+
+            IDataView testDataViewWithBestScore = null;
+            IterationResult<RegressionMetrics> bestIteration = null;
+            double bestScore = 0;
+
+            foreach (var iterationResult in autoFitResults)
             {
-                IDataView iterationPredictions = autoFitResults.BestIteration.Model.Transform(testDataView);
-                var testMetrics = mlContext.Regression.Evaluate(iterationPredictions, label: "Lable", score: "Score");
+                if (iterationResult.Exception != null)
+                {
+                    Console.WriteLine(iterationResult.Exception);
+                    continue;
+                }
+
+                IDataView testDataViewWithScore = iterationResult.Model.Transform(testDataView);
+                var testMetrics = mlContext.Regression.Evaluate(testDataViewWithScore, label: DefaultColumnNames.Label, DefaultColumnNames.Score);
+                if (bestScore < iterationResult.Metrics.RSquared)
+                {
+                    bestScore = iterationResult.Metrics.RSquared;
+                    bestIteration = iterationResult;
+                    testDataViewWithBestScore = testDataViewWithScore;
+                }
 
                 ++iterationIndex;
-                PrintRegressionMetrics(iterationIndex, "validation metrics", i.Metrics);
+                PrintRegressionMetrics(iterationIndex, "validation metrics", iterationResult.Metrics);
                 PrintRegressionMetrics(iterationIndex, "test metrics      ", testMetrics);
                 Console.WriteLine();
             }
 
             // STEP 4: Compare and print actual value vs predicted value for top 5 rows from validation data
             PrintActualVersusPredictedHeader();
-            IEnumerable<float> fareAmounts = autoFitResults.BestIteration.ScoredValidationData.GetColumn<float>(mlContext, "FareAmount");
-            IEnumerable<float> scores = autoFitResults.BestIteration.ScoredValidationData.GetColumn<float>(mlContext, "Score");
+            IEnumerable<float> fareAmounts = testDataViewWithBestScore.GetColumn<float>(mlContext, "FareAmount");
+            IEnumerable<float> scores = testDataViewWithBestScore.GetColumn<float>(mlContext, "Score");
             int rowCount = 1;
             do
             {
@@ -69,9 +86,9 @@ namespace Samples
 
             // STEP 5: Save the best model for later deployment and inferencing
             using (var fs = File.Create(ModelPath))
-                autoFitResults.BestIteration.Model.SaveTo(mlContext, fs);
+                bestIteration.Model.SaveTo(mlContext, fs);
 
-            Console.WriteLine("Press any key to exit..");
+            Console.WriteLine("Press any key to continue..");
             Console.ReadLine();
         }
 
@@ -82,7 +99,7 @@ namespace Samples
 
         static void PrintActualVersusPredictedValue(int index, float fareAmount, float score)
         {
-            Console.WriteLine($"{index}        {fareAmount}        {score}");
+            Console.WriteLine($"{index}         {fareAmount}            {score}");
         }
 
         static void PrintRegressionMetricsHeader()
@@ -90,7 +107,7 @@ namespace Samples
             Console.WriteLine($"*************************************************");
             Console.WriteLine($"*       Metrics for regression model      ");
             Console.WriteLine($"*------------------------------------------------");
-            Console.WriteLine($"iteration   type        LossFn      R2-Score    Absolute-loss   Squared-loss    RMS-loss");
+            Console.WriteLine($"iteration       type        LossFn      R2-Score   Absolute-loss  Squared-loss   RMS-loss");
         }
 
         static void PrintActualVersusPredictedHeader()

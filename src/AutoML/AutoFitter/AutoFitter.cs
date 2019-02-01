@@ -7,41 +7,61 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    internal class AutoFitter
+    internal class AutoFitter<T> where T : class
     {
         private readonly IDebugLogger _debugLogger;
-        private readonly IList<InferredPipelineRunResult> _history;
+        private readonly IList<SuggestedPipelineResult<T>> _history;
         private readonly string _label;
         private readonly MLContext _context;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
         private readonly IDictionary<string, ColumnPurpose> _purposeOverrides;
         private readonly AutoFitSettings _settings;
-        private readonly IDataView _trainData;
         private readonly TaskKind _task;
-        private readonly IDataView _validationData;
+        private readonly IEstimator<ITransformer> _preFeaturizers;
 
-        public AutoFitter(MLContext context, OptimizingMetricInfo metricInfo, AutoFitSettings settings, 
-            TaskKind task, string label, IDataView trainData, IDataView validationData,
-            IDictionary<string, ColumnPurpose> purposeOverrides, IDebugLogger debugLogger)
+        private IDataView _trainData;
+        private IDataView _validationData;
+
+        public AutoFitter(TaskKind task, 
+            IDataView trainData,
+            string label,
+            IDataView validationData,
+            AutoFitSettings settings,
+            IEstimator<ITransformer> preFeaturizers,
+            IEnumerable<(string, ColumnPurpose)> purposeOverrides,
+            OptimizingMetric metric,
+            IDebugLogger debugLogger)
         {
             _debugLogger = debugLogger;
-            _history = new List<InferredPipelineRunResult>();
+            _history = new List<SuggestedPipelineResult<T>>();
             _label = label;
-            _context = context;
-            _optimizingMetricInfo = metricInfo;
+            _context = new MLContext();
+            _optimizingMetricInfo = new OptimizingMetricInfo(metric);
             _settings = settings ?? new AutoFitSettings();
-            _purposeOverrides = purposeOverrides;
+            _purposeOverrides = purposeOverrides?.ToDictionary(p => p.Item1, p => p.Item2);
             _trainData = trainData;
             _task = task;
             _validationData = validationData;
+            _preFeaturizers = preFeaturizers;
         }
 
-        public InferredPipelineRunResult[] Fit()
+        public IEnumerable<IterationResult<T>> Fit()
         {
+            ITransformer preprocessorTransform = null;
+            if (_preFeaturizers != null)
+            {
+                // preprocess train and validation data
+                preprocessorTransform = _preFeaturizers.Fit(_trainData);
+                _trainData = preprocessorTransform.Transform(_trainData);
+                _validationData = preprocessorTransform.Transform(_validationData);
+            }
+
             var stopwatch = Stopwatch.StartNew();
             var columns = AutoMlUtils.GetColumnInfoTuples(_context, _trainData, _label, _purposeOverrides);
 
@@ -58,62 +78,56 @@ namespace Microsoft.ML.Auto
                 }
 
                 // evaluate pipeline
-                ProcessPipeline(pipeline);
+                SuggestedPipelineResult<T> runResult = ProcessPipeline(pipeline);
+
+                if (preprocessorTransform != null)
+                {
+                    runResult.Model = preprocessorTransform.Append(runResult.Model);
+                }
+
+                yield return runResult.ToIterationResult();
 
             } while (_history.Count < _settings.StoppingCriteria.MaxIterations &&
                     stopwatch.Elapsed.TotalMinutes < _settings.StoppingCriteria.TimeOutInMinutes);
-
-            return _history.ToArray();
         }
 
-        private void ProcessPipeline(InferredPipeline pipeline)
+        private SuggestedPipelineResult<T> ProcessPipeline(SuggestedPipeline pipeline)
         {
             // run pipeline
             var stopwatch = Stopwatch.StartNew();
 
-            InferredPipelineRunResult runResult;
+            SuggestedPipelineResult<T> runResult;
             try
             {
-                var pipelineModel = pipeline.TrainTransformer(_trainData);
+                var pipelineModel = pipeline.Fit(_trainData);
                 var scoredValidationData = pipelineModel.Transform(_validationData);
                 var evaluatedMetrics = GetEvaluatedMetrics(scoredValidationData);
                 var score = GetPipelineScore(evaluatedMetrics);
-                runResult = new InferredPipelineRunResult(evaluatedMetrics, pipelineModel, pipeline, score, scoredValidationData);
+                runResult = new SuggestedPipelineResult<T>(evaluatedMetrics, pipelineModel, pipeline, score, null);
             }
             catch(Exception ex)
             {
                 WriteDebugLog(DebugStream.Exception, $"{pipeline.Trainer} Crashed {ex}");
-                runResult = new InferredPipelineRunResult(pipeline, false);
+                runResult = new SuggestedPipelineResult<T>(null, null, pipeline, 0, ex);
             }
 
             // save pipeline run
             _history.Add(runResult);
+            WriteIterationLog(pipeline, runResult, stopwatch);
 
-            // debug log pipeline result
-            if(runResult.RunSucceded)
-            {
-                var transformsSb = new StringBuilder();
-                foreach (var transform in pipeline.Transforms)
-                {
-                    transformsSb.Append("xf=");
-                    transformsSb.Append(transform);
-                    transformsSb.Append(" ");
-                }
-                var commandLineStr = $"{transformsSb.ToString()} tr={pipeline.Trainer}";
-                WriteDebugLog(DebugStream.RunResult, $"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{commandLineStr}");
-            }
+            return runResult;
         }
 
-        private object GetEvaluatedMetrics(IDataView scoredData)
+        private T GetEvaluatedMetrics(IDataView scoredData)
         {
             switch(_task)
             {
                 case TaskKind.BinaryClassification:
-                    return _context.BinaryClassification.EvaluateNonCalibrated(scoredData);
+                    return _context.BinaryClassification.EvaluateNonCalibrated(scoredData) as T;
                 case TaskKind.MulticlassClassification:
-                    return _context.MulticlassClassification.Evaluate(scoredData);
+                    return _context.MulticlassClassification.Evaluate(scoredData) as T;
                 case TaskKind.Regression:
-                    return _context.Regression.Evaluate(scoredData);
+                    return _context.Regression.Evaluate(scoredData) as T;
                 // should not be possible to reach here
                 default:
                     throw new InvalidOperationException($"unsupported machine learning task type {_task}");
@@ -138,6 +152,23 @@ namespace Microsoft.ML.Auto
             
             // should not be possible to reach here
             throw new InvalidOperationException($"unsupported machine learning task type {_task}");
+        }
+
+        private void WriteIterationLog(SuggestedPipeline pipeline, SuggestedPipelineResult runResult, Stopwatch stopwatch)
+        {
+            // debug log pipeline result
+            if (runResult.RunSucceded)
+            {
+                var transformsSb = new StringBuilder();
+                foreach (var transform in pipeline.Transforms)
+                {
+                    transformsSb.Append("xf=");
+                    transformsSb.Append(transform);
+                    transformsSb.Append(" ");
+                }
+                var commandLineStr = $"{transformsSb.ToString()} tr={pipeline.Trainer}";
+                WriteDebugLog(DebugStream.RunResult, $"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{commandLineStr}");
+            }
         }
 
         private void WriteDebugLog(DebugStream stream, string message)

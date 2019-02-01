@@ -45,21 +45,38 @@ namespace Samples
             // STEP 3: Print metrics for each iteration 
             int iterationIndex = 0;
             PrintMulticlassClassificationMetricsHeader();
-            foreach (var i in autoFitResults.IterationResults)
+
+            IDataView testDataViewWithBestScore = null;
+            IterationResult<MultiClassClassifierMetrics> bestIteration = null;
+            double bestScore = 0;
+
+            foreach (var iterationResult in autoFitResults)
             {
-                IDataView iterationPredictions = autoFitResults.BestIteration.Model.Transform(testDataView);
-                var testMetrics = mlContext.MulticlassClassification.Evaluate(iterationPredictions, label: "Label", score: "Score");
+                if (iterationResult.Exception != null)
+                {
+                    Console.WriteLine(iterationResult.Exception);
+                    continue;
+                }
+
+                IDataView testDataViewWithScore = iterationResult.Model.Transform(testDataView);
+                var testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithScore, label: "Label", score: "Score");
+                if (bestScore < iterationResult.Metrics.AccuracyMacro)
+                {
+                    bestScore = iterationResult.Metrics.AccuracyMacro;
+                    bestIteration = iterationResult;
+                    testDataViewWithBestScore = testDataViewWithScore;
+                }
 
                 ++iterationIndex;
-                PrintMulticlassClassificationMetrics(iterationIndex, "validation metrics", i.Metrics);
+                PrintMulticlassClassificationMetrics(iterationIndex, "validation metrics", iterationResult.Metrics);
                 PrintMulticlassClassificationMetrics(iterationIndex, "test metrics      ", testMetrics);
                 Console.WriteLine();
             }
 
             // STEP 4: Compare and print actual value vs predicted value for top 5 rows from validation data
             PrintActualVersusPredictedHeader();
-            IEnumerable<uint> labels = autoFitResults.BestIteration.ScoredValidationData.GetColumn<uint>(mlContext, "Label");
-            IEnumerable<uint> scores = autoFitResults.BestIteration.ScoredValidationData.GetColumn<uint>(mlContext, "PredictedLabel");
+            IEnumerable<uint> labels = testDataViewWithBestScore.GetColumn<uint>(mlContext, DefaultColumnNames.Label);
+            IEnumerable<uint> scores = testDataViewWithBestScore.GetColumn<uint>(mlContext, DefaultColumnNames.PredictedLabel);
             int rowCount = 1;
             do
             {
@@ -68,9 +85,9 @@ namespace Samples
 
             // STEP 5: Save the best model for later deployment and inferencing
             using (var fs = File.Create(ModelPath))
-                autoFitResults.BestIteration.Model.SaveTo(mlContext, fs);
+                bestIteration.Model.SaveTo(mlContext, fs);
 
-            Console.WriteLine("Press any key to exit..");
+            Console.WriteLine("Press any key to continue..");
             Console.ReadLine();
         }
 

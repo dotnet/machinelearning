@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 
 namespace Microsoft.ML.Auto.Test
 {
@@ -19,7 +20,7 @@ namespace Microsoft.ML.Auto.Test
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(100);
             trainData = trainData.Skip(100);
-            var best = context.BinaryClassification.AutoFit(trainData, DatasetUtil.UciAdultLabel, validationData, settings:
+            var result = context.BinaryClassification.AutoFit(trainData, DatasetUtil.UciAdultLabel, validationData, settings:
                 new AutoFitSettings()
                 {
                     StoppingCriteria = new ExperimentStoppingCriteria()
@@ -29,8 +30,7 @@ namespace Microsoft.ML.Auto.Test
                     }
                 }, debugLogger: null);
 
-            Assert.IsNotNull(best?.BestIteration?.Model);
-            Assert.IsTrue(best.BestIteration.Metrics.Accuracy > 0.80);
+            Assert.IsTrue(result.Max(i => i.Metrics.Accuracy) > 0.80);
         }
 
         [TestMethod]
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Auto.Test
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(20);
             trainData = trainData.Skip(20);
-            var best = context.MulticlassClassification.AutoFit(trainData, DatasetUtil.TrivialDatasetLabel, validationData, settings:
+            var result = context.MulticlassClassification.AutoFit(trainData, DatasetUtil.TrivialDatasetLabel, validationData, settings:
                 new AutoFitSettings()
                 {
                     StoppingCriteria = new ExperimentStoppingCriteria()
@@ -53,8 +53,7 @@ namespace Microsoft.ML.Auto.Test
                     }
                 }, debugLogger: null);
 
-            Assert.IsNotNull(best?.BestIteration?.Model);
-            Assert.IsTrue(best.BestIteration.Metrics.AccuracyMicro > 0.80);
+            Assert.IsTrue(result.Max(i => i.Metrics.AccuracyMacro) > 0.80);
         }
 
         [TestMethod]
@@ -67,7 +66,7 @@ namespace Microsoft.ML.Auto.Test
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(20);
             trainData = trainData.Skip(20);
-            var best = context.Regression.AutoFit(trainData, DatasetUtil.MlNetGeneratedRegressionLabel, validationData, settings:
+            var result = context.Regression.AutoFit(trainData, DatasetUtil.MlNetGeneratedRegressionLabel, validationData, settings:
                 new AutoFitSettings()
                 {
                     StoppingCriteria = new ExperimentStoppingCriteria()
@@ -77,8 +76,7 @@ namespace Microsoft.ML.Auto.Test
                     }
                 }, debugLogger: null);
 
-            Assert.IsNotNull(best?.BestIteration?.Model);
-            Assert.IsTrue(best.BestIteration.Metrics.RSquared > 0.9);
+            Assert.IsTrue(result.Max(i => i.Metrics.RSquared > 0.9));
         }
     }
 }

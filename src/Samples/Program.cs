@@ -21,6 +21,9 @@ namespace Samples
                 AutoTrainMulticlassClassification.Run();
                 Console.Clear();
 
+                EarlyStopping.Run();
+                Console.Clear();
+
                 Console.WriteLine("Done");
             }
             catch (Exception ex)

@@ -14,13 +14,13 @@ namespace Microsoft.ML.Auto
     /// A runnable pipeline. Contains a learner and set of transforms,
     /// along with a RunSummary if it has already been exectued.
     /// </summary>
-    internal class InferredPipeline
+    internal class SuggestedPipeline
     {
         private readonly MLContext _context;
         public readonly IList<SuggestedTransform> Transforms;
         public readonly SuggestedTrainer Trainer;
 
-        public InferredPipeline(IEnumerable<SuggestedTransform> transforms,
+        public SuggestedPipeline(IEnumerable<SuggestedTransform> transforms,
             SuggestedTrainer trainer,
             MLContext context = null,
             bool autoNormalize = true)
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Auto
 
         public override bool Equals(object obj)
         {
-            var pipeline = obj as InferredPipeline;
+            var pipeline = obj as SuggestedPipeline;
             if(pipeline == null)
             {
                 return false;
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Auto
             return new Pipeline(pipelineElements.ToArray());
         }
 
-        public static InferredPipeline FromPipeline(Pipeline pipeline)
+        public static SuggestedPipeline FromPipeline(Pipeline pipeline)
         {
             var context = new MLContext();
 
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Auto
                 }
             }
 
-            return new InferredPipeline(transforms, trainer, null, false);
+            return new SuggestedPipeline(transforms, trainer, null, false);
         }
 
         public IEstimator<ITransformer> ToEstimator()
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Auto
             return pipeline;
         }
 
-        public ITransformer TrainTransformer(IDataView trainData)
+        public ITransformer Fit(IDataView trainData)
         {
             var estimator = ToEstimator();
             return estimator.Fit(trainData);

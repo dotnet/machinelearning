@@ -20,7 +20,7 @@ namespace Microsoft.ML.Auto.Test
             var columns = AutoMlUtils.GetColumnInfoTuples(context, uciAdult, DatasetUtil.UciAdultLabel, null);
 
             // get next pipeline
-            var pipeline = PipelineSuggester.GetNextPipeline(new List<PipelineRunResult>(), columns, TaskKind.BinaryClassification, 5);
+            var pipeline = PipelineSuggester.GetNextPipeline(new List<PipelineScore>(), columns, TaskKind.BinaryClassification, 5);
 
             // serialize & deserialize pipeline
             var serialized = JsonConvert.SerializeObject(pipeline);
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Auto.Test
             var estimator = deserialized.ToEstimator();
             var scoredData = estimator.Fit(uciAdult).Transform(uciAdult);
             var score = context.BinaryClassification.EvaluateNonCalibrated(scoredData).Accuracy;
-            var result = new PipelineRunResult(deserialized, score, true);
+            var result = new PipelineScore(deserialized, score, true);
 
             Assert.IsNotNull(result);
         }
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Auto.Test
             var columns = AutoMlUtils.GetColumnInfoTuples(context, uciAdult, DatasetUtil.UciAdultLabel, null);
 
             // get next pipeline loop
-            var history = new List<PipelineRunResult>();
+            var history = new List<PipelineScore>();
             var maxIterations = 10;
             for (var i = 0; i < maxIterations; i++)
             {
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Auto.Test
                     break;
                 }
 
-                var result = new PipelineRunResult(pipeline, AutoMlUtils.Random.NextDouble(), true);
+                var result = new PipelineScore(pipeline, AutoMlUtils.Random.NextDouble(), true);
                 history.Add(result);
             }
 

@@ -40,21 +40,38 @@ namespace Samples
             // STEP 3: Print metrics for each iteration 
             int iterationIndex = 0;
             PrintBinaryClassificationMetricsHeader();
-            foreach (var i in autoFitResults.IterationResults)
+
+            IDataView testDataViewWithBestScore = null;
+            IterationResult<BinaryClassificationMetrics> bestIteration = null;
+            double bestScore = 0;
+
+            foreach (var iterationResult in autoFitResults)
             {
-                IDataView iterationPredictions = autoFitResults.BestIteration.Model.Transform(testDataView);
-                var testMetrics = mlContext.BinaryClassification.EvaluateNonCalibrated(iterationPredictions, label: "Label", score: "Score");
+                if (iterationResult.Exception != null)
+                {
+                    Console.WriteLine(iterationResult.Exception);
+                    continue;
+                }
+
+                IDataView testDataViewWithScore = iterationResult.Model.Transform(testDataView);
+                var testMetrics = mlContext.BinaryClassification.EvaluateNonCalibrated(testDataViewWithScore, label: "Label", score: "Score");
+                if (bestScore < iterationResult.Metrics.Accuracy)
+                {
+                    bestScore = iterationResult.Metrics.Accuracy;
+                    bestIteration = iterationResult;
+                    testDataViewWithBestScore = testDataViewWithScore;
+                }
 
                 ++iterationIndex;
-                PrintBinaryClassificationMetrics(iterationIndex, "validation metrics", i.Metrics);
+                PrintBinaryClassificationMetrics(iterationIndex, "validation metrics", iterationResult.Metrics);
                 PrintBinaryClassificationMetrics(iterationIndex, "test metrics      ", testMetrics);
                 Console.WriteLine();
             }
 
             // STEP 4: Compare and print actual value vs predicted value for top 5 rows from validation data
             PrintActualVersusPredictedHeader();
-            IEnumerable<bool> labels = autoFitResults.BestIteration.ScoredValidationData.GetColumn<bool>(mlContext, "Label");
-            IEnumerable<float> scores = autoFitResults.BestIteration.ScoredValidationData.GetColumn<float>(mlContext, "Score");
+            IEnumerable<bool> labels = testDataViewWithBestScore.GetColumn<bool>(mlContext, DefaultColumnNames.Label);
+            IEnumerable<float> scores = testDataViewWithBestScore.GetColumn<float>(mlContext, DefaultColumnNames.Score);
             int rowCount = 1;
             do
             {
@@ -64,9 +81,9 @@ namespace Samples
 
             // STEP 5: Save the best model for later deployment and inferencing
             using (var fs = File.Create(ModelPath))
-                autoFitResults.BestIteration.Model.SaveTo(mlContext, fs);
+                bestIteration.Model.SaveTo(mlContext, fs);
 
-            Console.WriteLine("Press any key to exit..");
+            Console.WriteLine("Press any key to continue..");
             Console.ReadLine();
         }
         

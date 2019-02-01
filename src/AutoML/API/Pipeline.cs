@@ -23,7 +23,7 @@ namespace Microsoft.ML.Auto
         
         public IEstimator<ITransformer> ToEstimator()
         {
-            var inferredPipeline = InferredPipeline.FromPipeline(this);
+            var inferredPipeline = SuggestedPipeline.FromPipeline(this);
             return inferredPipeline.ToEstimator();
         }
     }
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    internal class PipelineRunResult
+    internal class PipelineScore
     {
         public readonly double Score;
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Auto
 
         internal readonly Pipeline Pipeline;
 
-        internal PipelineRunResult(Pipeline pipeline, double score, bool runSucceeded)
+        internal PipelineScore(Pipeline pipeline, double score, bool runSucceeded)
         {
             Pipeline = pipeline;
             Score = score;
