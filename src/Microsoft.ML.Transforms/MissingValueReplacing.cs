@@ -893,7 +893,8 @@ namespace Microsoft.ML.Transforms
 
     public sealed class MissingValueReplacingEstimator : IEstimator<MissingValueReplacingTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const ColumnInfo.ReplacementMode ReplacementMode = ColumnInfo.ReplacementMode.DefaultValue;
             public const bool ImputeBySlot = true;
@@ -912,9 +913,23 @@ namespace Microsoft.ML.Transforms
                 Maximum = 3,
             }
 
+            /// <summary>
+            /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of column to transform.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// If true, per-slot imputation of replacement is performed.
+            /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+            /// where imputation is always for the entire column.
+            /// </summary>
             public readonly bool ImputeBySlot;
+            /// <summary>
+            /// What to replace the missing value with.
+            /// </summary>
             public readonly ReplacementMode Replacement;
 
             /// <summary>
@@ -927,7 +942,7 @@ namespace Microsoft.ML.Transforms
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
             public ColumnInfo(string name, string inputColumnName = null, ReplacementMode replacementMode = Defaults.ReplacementMode,
-                bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+                bool imputeBySlot = Defaults.ImputeBySlot)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
@@ -985,7 +1000,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="MissingValueReplacingTransformer"/>.
         /// </summary>
         public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
     }

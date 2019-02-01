@@ -239,7 +239,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="NormalizingTransformer"/>.
         /// </summary>
         public NormalizingTransformer Fit(IDataView input)
         {

@@ -21,9 +21,9 @@ using Microsoft.ML.Transforms.Conversions;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAHandle"]'/>
-    public static class MissingValueHandlingTransformer
+    internal static class MissingValueHandlingTransformer
     {
-        internal enum ReplacementKind : byte
+        public enum ReplacementKind : byte
         {
             /// <summary>
             /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Transforms
             Max = Maximum,
         }
 
-        internal sealed class Options : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:rep:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms
             public bool Concat = true;
         }
 
-        internal sealed class Column : OneToOneColumn
+        public sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize")]
             public ReplacementKind? Kind;

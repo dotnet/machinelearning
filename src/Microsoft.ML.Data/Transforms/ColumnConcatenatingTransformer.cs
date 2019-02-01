@@ -33,6 +33,9 @@ namespace Microsoft.ML.Data
 {
     using PfaType = PfaUtils.Type;
 
+    /// <summary>
+    /// Concatenates columns in an <see cref="IDataView"/> together.
+    /// </summary>
     public sealed class ColumnConcatenatingTransformer : RowToRowTransformerBase
     {
         internal const string Summary = "Concatenates one or more columns of the same item type.";
@@ -215,7 +218,8 @@ namespace Microsoft.ML.Data
 
         private readonly ColumnInfo[] _columns;
 
-        internal IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+        public IReadOnlyCollection<(string outputColumnName, string[] inputColumnNames)> Columns
+            => _columns.Select(col => (outputColumnName: col.Name, inputColumnNames: col.Sources.Select(source => source.name).ToArray())).ToArray().AsReadOnly();
 
         /// <summary>
         /// Concatename columns in <paramref name="inputColumnNames"/> into one column <paramref name="outputColumnName"/>.

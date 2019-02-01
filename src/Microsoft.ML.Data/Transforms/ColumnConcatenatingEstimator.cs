@@ -11,7 +11,10 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class ColumnConcatenatingEstimator : IEstimator<ITransformer>
+    /// <summary>
+    /// Concatenates columns in an <see cref="IDataView"/> together.
+    /// </summary>
+    public sealed class ColumnConcatenatingEstimator : IEstimator<ColumnConcatenatingTransformer>
     {
         private readonly IHost _host;
         private readonly string _name;
@@ -38,9 +41,9 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="ColumnConcatenatingTransformer"/>.
         /// </summary>
-        public ITransformer Fit(IDataView input)
+        public ColumnConcatenatingTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             return new ColumnConcatenatingTransformer(_host, _name, _source);
