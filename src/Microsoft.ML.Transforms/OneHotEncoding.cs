@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         /// <summary>
         /// Trains and returns a <see cref="OneHotEncodingTransformer"/>.
-        /// <summary>
+        /// </summary>
         public OneHotEncodingTransformer Fit(IDataView input) => new OneHotEncodingTransformer(_term, _toSomething, input);
 
         [BestFriend]
