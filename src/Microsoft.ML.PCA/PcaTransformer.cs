@@ -17,7 +17,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Transforms.Projections;
 
-[assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), typeof(PcaTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), typeof(PcaTransformer.Options), typeof(SignatureDataTransform),
     PcaTransformer.UserName, PcaTransformer.LoaderSignature, PcaTransformer.ShortName)]
 
 [assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), null, typeof(SignatureLoadDataTransform),
@@ -36,10 +36,10 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaTransformer : OneToOneTransformerBase
     {
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
-            public Column[] Columns;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
+            public Column[] Column;
 
             [Argument(ArgumentType.Multiple, HelpText = "The name of the weight column", ShortName = "weight", Purpose = SpecialPurpose.ColumnName)]
             public string WeightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn;
@@ -287,13 +287,13 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = args.Columns.Select(item => new ColumnInfo(
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = args.Column.Select(item => new ColumnInfo(
                         item.Name,
                         item.Source,
                         item.WeightColumn,
@@ -645,7 +645,7 @@ namespace Microsoft.ML.Transforms.Projections
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName)]
-        internal static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Pca", input);
             var view = PcaTransformer.Create(h, input, input.Data);
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public PrincipalComponentAnalysisEstimator(IHostEnvironment env,
+        internal PrincipalComponentAnalysisEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
             string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
@@ -696,15 +696,21 @@ namespace Microsoft.ML.Transforms.Projections
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The dataset columns to use, and their specific settings.</param>
-        public PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransformer.ColumnInfo[] columns)
+        internal PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(PrincipalComponentAnalysisEstimator));
             _columns = columns;
         }
 
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
         public PcaTransformer Fit(IDataView input) => new PcaTransformer(_host, input, _columns);
 
+        /// <summary>
+        /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
