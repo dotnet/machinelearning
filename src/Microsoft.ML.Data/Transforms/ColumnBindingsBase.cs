@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms.Conversions;
@@ -21,13 +22,17 @@ namespace Microsoft.ML.Data
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the source column", ShortName = "src")]
         public string Source;
 
+        [BestFriend]
+        private protected SourceNameColumnBase() { }
+
         /// <summary>
         /// For parsing from a string. This supports "name" and "name:source".
         /// Derived classes that want to provide parsing functionality to the CmdParser need to implement
         /// a static Parse method. That method can call this (directly or indirectly) to handle the supported
         /// syntax.
         /// </summary>
-        protected virtual bool TryParse(string str)
+        [BestFriend]
+        private protected virtual bool TryParse(string str)
         {
             Contracts.AssertNonEmpty(str);
             return ColumnParsingUtils.TryParse(str, out Name, out Source);
@@ -40,7 +45,8 @@ namespace Microsoft.ML.Data
         /// a static Parse method. That method can call this (directly or indirectly) to handle the supported
         /// syntax.
         /// </summary>
-        protected bool TryParse(string str, out string extra)
+        [BestFriend]
+        private protected bool TryParse(string str, out string extra)
         {
             Contracts.AssertNonEmpty(str);
             return ColumnParsingUtils.TryParse(str, out Name, out Source, out extra);
@@ -49,7 +55,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The core unparsing functionality, for generating succinct command line forms "name" and "name:source".
         /// </summary>
-        protected virtual bool TryUnparseCore(StringBuilder sb)
+        [BestFriend]
+        private protected virtual bool TryUnparseCore(StringBuilder sb)
         {
             Contracts.AssertValue(sb);
 
@@ -67,7 +74,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The core unparsing functionality, for generating the succinct command line form "name:extra:source".
         /// </summary>
-        protected virtual bool TryUnparseCore(StringBuilder sb, string extra)
+        [BestFriend]
+        private protected virtual bool TryUnparseCore(StringBuilder sb, string extra)
         {
             Contracts.AssertValue(sb);
             Contracts.AssertNonEmpty(extra);
@@ -97,26 +105,8 @@ namespace Microsoft.ML.Data
 
     public abstract class OneToOneColumn : SourceNameColumnBase
     {
-    }
-
-    public interface IOneToOneColumn
-    {
-        string Name { get; set; }
-        string Source { get; set; }
-    }
-
-    public abstract class OneToOneColumn<T>
-        where T : IOneToOneColumn, new()
-    {
-        public static T Create(string source)
-        {
-            return new T() { Name = source, Source = source };
-        }
-
-        public static T Create(string name, string source)
-        {
-            return new T() { Name = name, Source = source };
-        }
+        [BestFriend]
+        private protected OneToOneColumn() { }
     }
 
     public abstract class ManyToOneColumn
@@ -127,11 +117,17 @@ namespace Microsoft.ML.Data
         [Argument(ArgumentType.Multiple, HelpText = "Name of the source column", ShortName = "src")]
         public string[] Source;
 
+        [BestFriend]
+        private protected ManyToOneColumn()
+        {
+        }
+
         /// <summary>
         /// The parsing functionality for custom parsing from a string. This supports "name" and "name:sources",
         /// where sources is a comma separated list of source column names.
         /// </summary>
-        protected virtual bool TryParse(string str)
+        [BestFriend]
+        private protected virtual bool TryParse(string str)
         {
             Contracts.AssertNonEmpty(str);
 
@@ -160,7 +156,8 @@ namespace Microsoft.ML.Data
         /// Parsing functionality for custom parsing from a string with an "extra" value between name and sources.
         /// This supports "name", "name:sources" and "name:extra:sources".
         /// </summary>
-        protected bool TryParse(string str, out string extra)
+        [BestFriend]
+        private protected bool TryParse(string str, out string extra)
         {
             Contracts.AssertNonEmpty(str);
 
@@ -238,21 +235,6 @@ namespace Microsoft.ML.Data
                 pre = ",";
             }
             return true;
-        }
-    }
-
-    public interface IManyToOneColumn
-    {
-        string Name { get; set; }
-        string[] Source { get; set; }
-    }
-
-    public abstract class ManyToOneColumn<T>
-        where T : IManyToOneColumn, new()
-    {
-        public static T Create(string name, params string[] source)
-        {
-            return new T() { Name = name, Source = source };
         }
     }
 
@@ -650,7 +632,8 @@ namespace Microsoft.ML.Data
     /// at the end.
     /// This class is intended to simplify predicate propagation for this case.
     /// </summary>
-    public sealed class ColumnBindings
+    [BestFriend]
+    internal sealed class ColumnBindings
     {
         // Indices of columns in the merged schema. Old indices are as is, new indices are stored as ~idx.
         private readonly int[] _colMap;
@@ -717,7 +700,7 @@ namespace Microsoft.ML.Data
 
             // Create the output schema.
             var schemaColumns = indices.Select(idx => idx >= 0 ? new Schema.DetachedColumn(input[idx]) : addedColumns[~idx]);
-            Schema = SchemaBuilder.MakeSchema(schemaColumns);
+            Schema = SchemaExtensions.MakeSchema(schemaColumns);
 
             // Memorize column maps.
             _colMap = indices.ToArray();
@@ -786,7 +769,8 @@ namespace Microsoft.ML.Data
     /// Parsing utilities for converting between transform column argument objects and
     /// command line representations.
     /// </summary>
-    public static class ColumnParsingUtils
+    [BestFriend]
+    internal static class ColumnParsingUtils
     {
         /// <summary>
         /// For parsing name and source from a string. This supports "name" and "name:source".

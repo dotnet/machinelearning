@@ -29,7 +29,7 @@ namespace Microsoft.ML.Benchmarks.Harness
 
         public ProjectGenerator(string targetFrameworkMoniker) : base(targetFrameworkMoniker, null, null, null)
         {
-#if NET461
+#if NETFRAMEWORK
             runtimeIdentifier = "win-x64";
 #endif
         }

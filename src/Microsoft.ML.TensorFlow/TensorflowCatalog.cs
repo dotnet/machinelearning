@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -15,8 +16,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
-        /// <param name="inputs"> The names of the model inputs.</param>
-        /// <param name="outputs">The names of the requested model outputs.</param>
+        /// <param name="inputColumnNames"> The names of the model inputs.</param>
+        /// <param name="outputColumnNames">The names of the requested model outputs.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -26,22 +27,22 @@ namespace Microsoft.ML
         /// </example>
         public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             string modelLocation,
-            string[] inputs,
-            string[] outputs)
-            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), modelLocation, inputs, outputs);
+            string[] outputColumnNames,
+            string[] inputColumnNames)
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, modelLocation);
 
         /// <summary>
         /// Scores a dataset using a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
-        /// <param name="inputs"> The names of the model inputs.</param>
-        /// <param name="outputs">The names of the requested model outputs.</param>
+        /// <param name="inputColumnNames"> The names of the model inputs.</param>
+        /// <param name="outputColumnNames">The names of the requested model outputs.</param>
         public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             TensorFlowModelInfo tensorFlowModel,
-            string[] inputs,
-            string[] outputs)
-            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), tensorFlowModel, inputs, outputs);
+            string[] outputColumnNames,
+            string[] inputColumnNames)
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, tensorFlowModel);
 
         /// <summary>
         /// Score or Retrain a tensorflow model (based on setting of the <see cref="TensorFlowTransformer.Arguments.ReTrain"/>) setting.

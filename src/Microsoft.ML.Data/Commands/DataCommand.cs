@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data.IO;
@@ -397,7 +398,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static class LoaderUtils
+    [BestFriend]
+    internal static class LoaderUtils
     {
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="file"/>.

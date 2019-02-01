@@ -12,7 +12,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// Entry points for text anylytics transforms.
     /// </summary>
-    public static class TimeSeriesProcessingEntryPoints
+    internal static class TimeSeriesProcessingEntryPoints
     {
         [TlcModule.EntryPoint(Desc = ExponentialAverageTransform.Summary, UserName = ExponentialAverageTransform.UserName, ShortName = ExponentialAverageTransform.ShortName)]
         public static CommonOutputs.TransformOutput ExponentialAverage(IHostEnvironment env, ExponentialAverageTransform.Arguments input)

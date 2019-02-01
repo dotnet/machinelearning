@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
@@ -26,7 +27,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
             var trainer = ML.BinaryClassification.Trainers.FastTree(
-                new FastTreeBinaryClassificationTrainer.Options { 
+                new FastTreeBinaryClassificationTrainer.Options
+                {
                     NumThreads = 1,
                     NumTrees = 10,
                     NumLeaves = 5,
@@ -45,12 +47,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new LightGbmBinaryTrainer(Env, "Label", "Features", advancedSettings: s =>
+            var trainer = ML.BinaryClassification.Trainers.LightGbm(new Options
             {
-                s.NumLeaves = 10;
-                s.NThread = 1;
-                s.MinDataPerLeaf = 2;
+                NumLeaves = 10,
+                NThread = 1,
+                MinDataPerLeaf = 2,
             });
+
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -84,8 +87,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = ML.BinaryClassification.Trainers.FastForest( 
-                new FastForestClassification.Options { 
+            var trainer = ML.BinaryClassification.Trainers.FastForest(
+                new FastForestClassification.Options
+                {
                     NumLeaves = 10,
                     NumTrees = 20,
                 });
@@ -107,7 +111,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipe, dataView) = GetRankingPipeline();
 
             var trainer = ML.Ranking.Trainers.FastTree(
-                new FastTreeRankingTrainer.Options {
+                new FastTreeRankingTrainer.Options
+                {
                     FeatureColumn = "NumericFeatures",
                     NumTrees = 10
                 });
@@ -128,8 +133,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = new LightGbmRankingTrainer(Env, "Label0", "NumericFeatures", "Group",
-                                advancedSettings: s => { s.LearningRate = 0.4; });
+            var trainer = ML.Ranking.Trainers.LightGbm(labelColumn: "Label0", featureColumn: "NumericFeatures", groupIdColumn: "Group", learningRate: 0.4);
+
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -160,11 +165,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGBMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new LightGbmRegressorTrainer(Env, "Label", "Features", advancedSettings: s =>
+            var trainer = ML.Regression.Trainers.LightGbm(new Options
             {
-                s.NThread = 1;
-                s.NormalizeFeatures = NormalizeOption.Warn;
-                s.CatL2 = 5;
+                NThread = 1,
+                NormalizeFeatures = NormalizeOption.Warn,
+                CatL2 = 5,
             });
 
             TestEstimatorCore(trainer, dataView);
@@ -198,8 +203,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TweedieRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = ML.Regression.Trainers.FastTreeTweedie( 
-                new FastTreeTweedieTrainer.Options { 
+            var trainer = ML.Regression.Trainers.FastTreeTweedie(
+                new FastTreeTweedieTrainer.Options
+                {
                     EntropyCoefficient = 0.3,
                     OptimizationAlgorithm = BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent,
                 });
@@ -216,8 +222,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FastForestRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = ML.Regression.Trainers.FastForest( 
-                new FastForestRegression.Options { 
+            var trainer = ML.Regression.Trainers.FastForest(
+                new FastForestRegression.Options
+                {
                     BaggingSize = 2,
                     NumTrees = 10,
                 });
@@ -234,7 +241,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGbmMultiClassEstimator()
         {
             var (pipeline, dataView) = GetMultiClassPipeline();
-            var trainer = new LightGbmMulticlassTrainer(Env, "Label", "Features", advancedSettings: s => { s.LearningRate = 0.4; });
+            var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
             var pipe = pipeline.Append(trainer)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
             TestEstimatorCore(pipe, dataView);
@@ -251,7 +258,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             [VectorType(_columnNumber)]
             public float[] Features;
-            [KeyType(Count =_classNumber)]
+            [KeyType(Count = _classNumber)]
             public uint Label;
             [VectorType(_classNumber)]
             public float[] Score;
@@ -284,8 +291,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext(seed: 0, conc: 1);
             var dataView = mlContext.Data.ReadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, labelColumn: "Label", featureColumn: "Features", numBoostRound: numberOfTrainingIterations,
-                advancedSettings: s => { s.MinDataPerGroup = 1; s.MinDataPerLeaf = 1; s.UseSoftmax = useSoftmax; });
+            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
+            {
+                NumBoostRound = numberOfTrainingIterations,
+                MinDataPerGroup = 1,
+                MinDataPerLeaf = 1,
+                UseSoftmax = useSoftmax
+            });
+
             var gbm = gbmTrainer.Fit(dataView);
             var predicted = gbm.Transform(dataView);
             mlnetPredictions = mlContext.CreateEnumerable<GbmExample>(predicted, false).ToList();
@@ -337,7 +350,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             using (var pch = (mlContext as IProgressChannelProvider).StartProgressChannel("Training LightGBM..."))
             {
                 var host = (mlContext as IHostEnvironment).Register("Training LightGBM...");
-                var gbmNative = WrappedLightGbmTraining.Train(ch, pch, gbmParams, gbmDataSet, numIteration : numberOfTrainingIterations);
+                var gbmNative = WrappedLightGbmTraining.Train(ch, pch, gbmParams, gbmDataSet, numIteration: numberOfTrainingIterations);
 
                 int nativeLength = 0;
                 unsafe
@@ -374,7 +387,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 for (int j = 0; j < _classNumber; ++j)
                 {
                     Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
-                    sum += MathUtils.SigmoidSlow(sigmoidScale* (float)nativeResult1[j + i * _classNumber]);
+                    sum += MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
                 }
                 for (int j = 0; j < _classNumber; ++j)
                 {
@@ -413,6 +426,21 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
 
             Done();
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        public void LightGbmInDifferentCulture()
+        {
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+            Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+            var (pipeline, dataView) = GetMultiClassPipeline();
+            var trainer = ML.MulticlassClassification.Trainers.LightGbm(learningRate: 0.4);
+            var pipe = pipeline.Append(trainer)
+                    .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+            var model = pipe.Fit(dataView);
+            var metrics = ML.MulticlassClassification.Evaluate(model.Transform(dataView));
+            Assert.True(metrics.AccuracyMacro > 0.8);
+            Thread.CurrentThread.CurrentCulture = currentCulture;
         }
     }
 }

@@ -97,6 +97,9 @@ Console.WriteLine("prediction: " + prediction.Prediction);
 ```
 A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
 
+## API Documentation
+
+See the [ML.NET API Reference Documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
 
 ## Samples
 

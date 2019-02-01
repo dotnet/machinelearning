@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -19,7 +20,7 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// This macro entrypoint implements OVA.
     /// </summary>
-    public static class OneVersusAllMacro
+    internal static class OneVersusAllMacro
     {
         public sealed class SubGraphOutput
         {
@@ -134,8 +135,7 @@ namespace Microsoft.ML.EntryPoints
         }
 
         [TlcModule.EntryPoint(Desc = "One-vs-All macro (OVA)",
-            Name = "Models.OneVersusAll",
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name=""OVA""]/*'/>" })]
+            Name = "Models.OneVersusAll")]
         public static CommonOutputs.MacroOutput<Output> OneVersusAll(
             IHostEnvironment env,
             Arguments input,

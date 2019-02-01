@@ -6,12 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(IDataLoader), typeof(CompositeDataLoader), typeof(CompositeDataLoader.Arguments), typeof(SignatureDataLoader),
     "Composite Data Loader", "CompositeDataLoader", "Composite", "PipeData", "Pipe", "PipeDataLoader")]
@@ -28,7 +29,8 @@ namespace Microsoft.ML.Data
     /// The family of <c>Create</c> methods only instantiate <see cref="CompositeDataLoader"/>'s
     /// when there are transforms to keep, otherwise they just return underlying loaders.
     /// </summary>
-    public sealed class CompositeDataLoader : IDataLoader, ITransposeDataView
+    [BestFriend]
+    internal sealed class CompositeDataLoader : IDataLoader, ITransposeDataView
     {
         public sealed class Arguments
         {
@@ -373,7 +375,7 @@ namespace Microsoft.ML.Data
             //     string: args string
 
             int cbFloat = ctx.Reader.ReadInt32();
-            h.CheckDecode(cbFloat == sizeof(Float));
+            h.CheckDecode(cbFloat == sizeof(float));
 
             int cxf = ctx.Reader.ReadInt32();
             h.CheckDecode(cxf >= 0);
@@ -398,6 +400,25 @@ namespace Microsoft.ML.Data
             }
 
             return curView;
+        }
+
+        internal TransformerChain<ITransformer> GetTransformer()
+        {
+            var result = new TransformerChain<ITransformer>();
+            foreach (var transform in _transforms)
+            {
+                if (transform.Transform is RowToRowMapperTransform mapper)
+                {
+                    var transformer = mapper.GetTransformer();
+                    result = result.Append(transformer);
+                }
+                else
+                {
+                    ITransformer transformer = new TransformWrapper(_host, transform.Transform);
+                    result = result.Append(transformer);
+                }
+            }
+            return result;
         }
 
         private CompositeDataLoader(IHost host, TransformEx[] transforms)
@@ -442,7 +463,7 @@ namespace Microsoft.ML.Data
             //     string: args string
 
             int cbFloat = ctx.Reader.ReadInt32();
-            host.CheckDecode(cbFloat == sizeof(Float));
+            host.CheckDecode(cbFloat == sizeof(float));
 
             int cxf = ctx.Reader.ReadInt32();
             host.CheckDecode(cxf >= 0);
@@ -529,7 +550,7 @@ namespace Microsoft.ML.Data
             //     string: tag
             //     string: args string
 
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(transforms.Length);
 
             using (var loaderCtx = new ModelSaveContext(ctx.Repository, Path.Combine(ctx.Directory ?? "", "Loader"), ModelLoadContext.ModelStreamName))

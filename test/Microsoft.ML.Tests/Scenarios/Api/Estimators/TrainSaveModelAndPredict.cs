@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
-            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
+            var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
                 .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                     new SdcaBinaryTrainer.Options { NumThreads = 1 }));

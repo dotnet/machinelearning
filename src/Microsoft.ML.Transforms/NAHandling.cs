@@ -9,14 +9,15 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    public static class NAHandling
+    /// <summary>
+    /// Entry point methods for NA handling.
+    /// </summary>
+    internal static class NAHandling
     {
         [TlcModule.EntryPoint(Name = "Transforms.MissingValuesDropper",
             Desc = MissingValueDroppingTransformer.Summary,
             UserName = MissingValueDroppingTransformer.FriendlyName,
-            ShortName = MissingValueDroppingTransformer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NADrop""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""NADrop""]/*' />" })]
+            ShortName = MissingValueDroppingTransformer.ShortName)]
         public static CommonOutputs.TransformOutput Drop(IHostEnvironment env, MissingValueDroppingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, MissingValueDroppingTransformer.ShortName, input);
@@ -31,9 +32,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.MissingValuesRowDropper",
             Desc = NAFilter.Summary,
             UserName = NAFilter.FriendlyName,
-            ShortName = NAFilter.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""NAFilter""]/*' />",
-                                 @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name=""NAFilter""]/*' />"})]
+            ShortName = NAFilter.ShortName)]
         public static CommonOutputs.TransformOutput Filter(IHostEnvironment env, NAFilter.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, NAFilter.ShortName, input);
@@ -48,9 +47,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.MissingValueHandler",
             Desc = MissingValueHandlingTransformer.Summary,
             UserName = MissingValueHandlingTransformer.FriendlyName,
-            ShortName = MissingValueHandlingTransformer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""NAHandle""]/*' />",
-                                 @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name=""NAHandle""]/*' />" })]
+            ShortName = MissingValueHandlingTransformer.ShortName)]
         public static CommonOutputs.TransformOutput Handle(IHostEnvironment env, MissingValueHandlingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAHandle", input);
@@ -65,9 +62,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.MissingValueIndicator",
             Desc = MissingValueIndicatorTransformer.Summary,
             UserName = MissingValueIndicatorTransformer.FriendlyName,
-            ShortName = MissingValueIndicatorTransformer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NAIndicator""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""NAIndicator""]/*' />"})]
+            ShortName = MissingValueIndicatorTransformer.ShortName)]
         public static CommonOutputs.TransformOutput Indicator(IHostEnvironment env, MissingValueIndicatorTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAIndicator", input);
@@ -82,9 +77,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.MissingValueSubstitutor",
             Desc = MissingValueReplacingTransformer.Summary,
             UserName = MissingValueReplacingTransformer.FriendlyName,
-            ShortName = MissingValueReplacingTransformer.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NAReplace""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""NAReplace""]/*' />"})]
+            ShortName = MissingValueReplacingTransformer.ShortName)]
         public static CommonOutputs.TransformOutput Replace(IHostEnvironment env, MissingValueReplacingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAReplace", input);

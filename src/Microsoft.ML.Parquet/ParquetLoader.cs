@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -18,6 +19,7 @@ using Microsoft.ML.Model;
 using Parquet;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
+using DataViewSchema = Microsoft.Data.DataView.Schema;
 
 [assembly: LoadableClass(ParquetLoader.Summary, typeof(ParquetLoader), typeof(ParquetLoader.Arguments), typeof(SignatureDataLoader),
     ParquetLoader.LoaderName, ParquetLoader.LoaderSignature, ParquetLoader.ShortName)]
@@ -30,7 +32,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Loads a parquet file into an IDataView. Supports basic mapping from Parquet input column data types to framework data types.
     /// </summary>
-    public sealed class ParquetLoader : IDataLoader, IDisposable
+    [BestFriend]
+    internal sealed class ParquetLoader : IDataLoader, IDisposable
     {
         /// <summary>
         /// A Column is a singular representation that consolidates all the related column chunks in the
@@ -310,12 +313,12 @@ namespace Microsoft.ML.Data
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The columns.</param>
         /// <returns>The resulting schema.</returns>
-        private ML.Data.Schema CreateSchema(IExceptionContext ectx, Column[] cols)
+        private Microsoft.Data.DataView.Schema CreateSchema(IExceptionContext ectx, Column[] cols)
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
             var builder = new SchemaBuilder();
-            builder.AddColumns(cols.Select(c => new ML.Data.Schema.DetachedColumn(c.Name, c.ColType, null)));
+            builder.AddColumns(cols.Select(c => new Microsoft.Data.DataView.Schema.DetachedColumn(c.Name, c.ColType, null)));
             return builder.GetSchema();
         }
 
@@ -383,21 +386,21 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle => true;
 
-        public ML.Data.Schema Schema { get; }
+        public DataViewSchema Schema { get; }
 
         public long? GetRowCount()
         {
             return _rowCount;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<ML.Data.Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             return new Cursor(this, predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<ML.Data.Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
@@ -584,7 +587,7 @@ namespace Microsoft.ML.Data
                 return false;
             }
 
-            public override ML.Data.Schema Schema => _loader.Schema;
+            public override Microsoft.Data.DataView.Schema Schema => _loader.Schema;
 
             public override long Batch => 0;
 

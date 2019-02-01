@@ -5,11 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints.JsonUtils;
+using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -768,6 +769,24 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(vals4[0], irisFirstRowValues.Current);
             irisFirstRowValues.MoveNext(); irisFirstRowValues.MoveNext(); // skip col 1
             Assert.Equal(vals4[1], irisFirstRowValues.Current);
+        }
+
+        [Fact]
+        public void TestTextLoaderKeyTypeBackCompat()
+        {
+            // Model generated with the following command on a version of the code previous to the KeyType change that removed Min and Contiguous:
+            // Train data=...\breast-cancer.txt loader =TextLoader{col=Label:R4:0 col=Features:R4:1-9 col=key:U4[0-*]:3} tr=LogisticRegression {} out=model.zip
+            var mlContext = new MLContext();
+            string textLoaderModelPath = GetDataPath("backcompat/textloader-with-key-model.zip");
+            string breastCancerPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+
+            using (FileStream modelfs = File.OpenRead(textLoaderModelPath))
+            using (var rep = RepositoryReader.Open(modelfs, mlContext))
+            {
+                var result = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(breastCancerPath), false);
+                Assert.True(result.Schema.TryGetColumnIndex("key", out int featureIdx));
+                Assert.True(result.Schema[featureIdx].Type is KeyType keyType && keyType.Count == typeof(uint).ToMaxInt());
+            }
         }
     }
 }

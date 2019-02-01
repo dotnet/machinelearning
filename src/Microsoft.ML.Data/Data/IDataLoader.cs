@@ -3,15 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
 {
     /// <summary>
     /// An interface for exposing some number of items that can be opened for reading.
+    /// </summary>
     /// REVIEW: Reconcile this with the functionality exposed by IHostEnvironment. For example,
     /// we could simply replace this with an array of IFileHandle.
-    /// </summary>
+
     public interface IMultiStreamSource
     {
         /// <summary>
@@ -31,32 +33,37 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Opens the indicated item and returns a text stream reader on it.
-        /// REVIEW: Consider making this an extension method.
         /// </summary>
+        /// REVIEW: Consider making this an extension method.
         TextReader OpenTextReader(int index);
     }
 
     /// <summary>
     /// Signature for creating an <see cref="IDataLoader"/>.
     /// </summary>
-    public delegate void SignatureDataLoader(IMultiStreamSource data);
+    [BestFriend]
+    internal delegate void SignatureDataLoader(IMultiStreamSource data);
 
     /// <summary>
     /// Signature for loading an <see cref="IDataLoader"/>.
     /// </summary>
-    public delegate void SignatureLoadDataLoader(ModelLoadContext ctx, IMultiStreamSource data);
+    [BestFriend]
+    internal delegate void SignatureLoadDataLoader(ModelLoadContext ctx, IMultiStreamSource data);
 
     /// <summary>
     /// Interface for a data loader. An <see cref="IDataLoader"/> can save its model information
     /// and is instantiatable from arguments and an <see cref="IMultiStreamSource"/> .
     /// </summary>
-    public interface IDataLoader : IDataView, ICanSaveModel
+    [BestFriend]
+    internal interface IDataLoader : IDataView, ICanSaveModel
     {
     }
 
-    public delegate void SignatureDataSaver();
+    [BestFriend]
+    internal delegate void SignatureDataSaver();
 
-    public interface IDataSaver
+    [BestFriend]
+    internal interface IDataSaver
     {
         /// <summary>
         /// Check if the column can be saved.

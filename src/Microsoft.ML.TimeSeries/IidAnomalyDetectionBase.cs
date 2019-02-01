@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -42,7 +43,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             var colType = inputSchema[col].Type;
             if (colType != NumberType.R4)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, NumberType.R4.ToString(), colType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "float", colType.ToString());
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }

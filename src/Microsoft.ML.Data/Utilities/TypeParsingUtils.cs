@@ -4,6 +4,7 @@
 
 using System;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Transforms.Conversions;
 
@@ -12,7 +13,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Utilities to parse command-line representations of <see cref="IDataView"/> types.
     /// </summary>
-    public static class TypeParsingUtils
+    [BestFriend]
+    internal static class TypeParsingUtils
     {
         /// <summary>
         /// Attempt to parse the string into a data kind and (optionally) a keyCount. This method does not check whether
@@ -96,7 +98,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Parses the string format for a KeyCount, also supports the old KeyRange format for backwards compatibility.
         /// </summary>
-        public static KeyCount Parse(string str)
+        internal static KeyCount Parse(string str)
         {
             Contracts.AssertValue(str);
 
@@ -144,7 +146,7 @@ namespace Microsoft.ML.Data
             return true;
         }
 
-        public bool TryUnparse(StringBuilder sb)
+        internal bool TryUnparse(StringBuilder sb)
         {
             Contracts.AssertValue(sb);
             Contracts.Assert(Count == null || Count > 0);

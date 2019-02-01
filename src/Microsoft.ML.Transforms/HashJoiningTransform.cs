@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -84,7 +85,7 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash", ShortName = "ord")]
             public bool? Ordered;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 var res = new Column();
                 if (res.TryParse(str))
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 if (Join != null || !string.IsNullOrEmpty(CustomSlotMap) || HashBits != null ||
@@ -155,7 +156,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal const string UserName = "Hash Join Transform";
 
-        public const string LoaderSignature = "HashJoinTransform";
+        internal const string LoaderSignature = "HashJoinTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -668,14 +669,12 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
-    public static class HashJoin
+    internal static class HashJoin
     {
         [TlcModule.EntryPoint(Name = "Transforms.HashConverter",
             Desc = HashJoiningTransform.Summary,
             UserName = HashJoiningTransform.UserName,
-            ShortName = HashJoiningTransform.RegistrationName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""HashJoin""]/*' />"})]
+            ShortName = HashJoiningTransform.RegistrationName)]
         public static CommonOutputs.TransformOutput Apply(IHostEnvironment env, HashJoiningTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

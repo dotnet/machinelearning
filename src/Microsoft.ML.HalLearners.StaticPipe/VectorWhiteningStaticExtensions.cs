@@ -51,7 +51,7 @@ namespace Microsoft.ML.HalLearners.StaticPipe
 
                 var infos = new VectorWhiteningTransformer.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new VectorWhiteningTransformer.ColumnInfo(inputNames[((OutPipelineColumn)toOutput[i]).Input], outputNames[toOutput[i]], _kind, _eps, _maxRows, _pcaNum);
+                    infos[i] = new VectorWhiteningTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[((OutPipelineColumn)toOutput[i]).Input], _kind, _eps, _maxRows, _pcaNum);
 
                 return new VectorWhiteningEstimator(env, infos);
             }

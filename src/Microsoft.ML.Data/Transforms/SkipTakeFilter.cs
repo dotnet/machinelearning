@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -29,7 +30,8 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Allows limiting input to a subset of row at an optional offset.  Can be used to implement data paging.
     /// </summary>
-    public sealed class SkipTakeFilter : FilterBase, ITransformTemplate
+    [BestFriend]
+    internal sealed class SkipTakeFilter : FilterBase, ITransformTemplate
     {
         public const string LoaderSignature = "SkipTakeFilter";
         private const string ModelSignature = "SKIPTKFL";

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Transforms;
@@ -229,7 +230,7 @@ namespace Microsoft.ML.Data
 
             // Make a list of column names that Maml outputs as part of the per-instance data view, and then wrap
             // the per-instance data computed by the evaluator in a SelectColumnsTransform.
-            var cols = new List<(string Source, string Name)>();
+            var cols = new List<(string name, string source)>();
             var colsToKeep = new List<string>();
 
             // If perInst is the result of cross-validation and contains a fold Id column, include it.
@@ -240,7 +241,7 @@ namespace Microsoft.ML.Data
             // Maml always outputs a name column, if it doesn't exist add a GenerateNumberTransform.
             if (perInst.Schema.Name?.Name is string nameName)
             {
-                cols.Add((nameName, "Instance"));
+                cols.Add(("Instance", nameName));
                 colsToKeep.Add("Instance");
             }
             else

@@ -4,6 +4,7 @@
 
 using System;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -23,7 +24,8 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Remaps multiclass labels to binary T,F labels, primarily for use with OVA.
     /// </summary>
-    public sealed class LabelIndicatorTransform : OneToOneTransformBase
+    [BestFriend]
+    internal sealed class LabelIndicatorTransform : OneToOneTransformBase
     {
         internal const string Summary = "Remaps labels from multiclass to binary, for OVA.";
         internal const string UserName = "Label Indicator Transform";
@@ -48,7 +50,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "The positive example class for binary classification.", ShortName = "index")]
             public int? ClassIndex;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -58,7 +60,7 @@ namespace Microsoft.ML.Transforms
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);

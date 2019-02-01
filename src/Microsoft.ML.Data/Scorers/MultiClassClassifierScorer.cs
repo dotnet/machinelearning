@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -260,13 +261,10 @@ namespace Microsoft.ML.Data
                 {
                     get
                     {
-                        if (_bindable == null)
-                        {
+                        return _bindable ??
                             Interlocked.CompareExchange(ref _bindable,
-                                new LabelNameBindableMapper(_host, _mapper, _labelNameType, _labelNameGetter, _metadataKind, _canWrap), null);
-                        }
-                        Contracts.AssertValue(_bindable);
-                        return _bindable;
+                                new LabelNameBindableMapper(_host, _mapper, _labelNameType, _labelNameGetter, _metadataKind, _canWrap), null) ??
+                            _bindable;
                     }
                 }
 
@@ -437,7 +435,7 @@ namespace Microsoft.ML.Data
             ValueGetter<VBuffer<T>> getter =
                 (ref VBuffer<T> value) =>
                 {
-                    trainSchema.Label.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref value);
+                    trainSchema.Label.Value.GetKeyValues(ref value);
                 };
 
             return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.SlotNames, CanWrap);

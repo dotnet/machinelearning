@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -75,8 +76,8 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new WordTokenizingEstimator(Env, "text", "words")
-                .Append(new TokenizingByCharactersEstimator(Env, "text", "chars"))
+            var est = new WordTokenizingEstimator(Env,"words", "text")
+                .Append(new TokenizingByCharactersEstimator(Env,"chars", "text"))
                 .Append(new KeyToValueMappingEstimator(Env, "chars"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath).AsDynamic;
 
-            var est = new WordTokenizingEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ',' });
+            var est = new WordTokenizingEstimator(Env, "words", "text", separators: new[] { ' ', '?', '!', '.', ',' });
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
             var savedData = ColumnSelectingTransformer.CreateKeep(Env, outdata, new[] { "words" });
 
@@ -146,9 +147,9 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
             var est = ML.Transforms.Text.NormalizeText("text")
-                .Append(ML.Transforms.Text.TokenizeWords("text", "words"))
-                .Append(ML.Transforms.Text.RemoveDefaultStopWords("words", "NoDefaultStopwords"))
-                .Append(ML.Transforms.Text.RemoveStopWords("words", "NoStopWords", "xbox", "this", "is", "a", "the","THAT","bY"));
+                .Append(ML.Transforms.Text.TokenizeWords("words", "text"))
+                .Append(ML.Transforms.Text.RemoveDefaultStopWords("NoDefaultStopwords", "words"))
+                .Append(ML.Transforms.Text.RemoveStopWords("NoStopWords", "words", "xbox", "this", "is", "a", "the","THAT","bY"));
 
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -213,8 +214,8 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new WordBagEstimator(Env, "text", "bag_of_words").
-                Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash", invertHash: -1));
+            var est = new WordBagEstimator(Env, "bag_of_words", "text").
+                Append(new WordHashBagEstimator(Env, "bag_of_wordshash", "text", invertHash: -1));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
@@ -250,9 +251,9 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordTokenizingEstimator(Env, "text", "text")
-                .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
-                .Append(new NgramExtractingEstimator(Env, "terms", "ngrams"))
-                .Append(new NgramHashingEstimator(Env, "terms", "ngramshash"));
+                .Append(new ValueToKeyMappingEstimator(Env, "terms", "text"))
+                .Append(new NgramExtractingEstimator(Env, "ngrams", "terms"))
+                .Append(new NgramHashingEstimator(Env, "ngramshash", "terms"));
 
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -303,8 +304,8 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new WordBagEstimator(env, "text", "bag_of_words").
-                Append(new LatentDirichletAllocationEstimator(env, "bag_of_words", "topics", 10, numIterations: 10,
+            var est = new WordBagEstimator(env, "bag_of_words", "text").
+                Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, numIterations: 10,
                     resetRandomGenerator: true));
 
             // The following call fails because of the following issue

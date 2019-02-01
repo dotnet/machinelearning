@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -669,14 +670,12 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static partial class GroupingOperations
+    internal static partial class GroupingOperations
     {
         [TlcModule.EntryPoint(Name = "Transforms.Segregator",
             Desc = UngroupTransform.Summary,
             UserName = UngroupTransform.UserName,
-            ShortName = UngroupTransform.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Ungroup""]/*' />",
-                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""Ungroup""]/*' />"})]
+            ShortName = UngroupTransform.ShortName)]
         public static CommonOutputs.TransformOutput Ungroup(IHostEnvironment env, UngroupTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

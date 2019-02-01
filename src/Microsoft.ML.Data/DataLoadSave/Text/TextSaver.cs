@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -18,7 +19,8 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data.IO
 {
-    public sealed class TextSaver : IDataSaver
+    [BestFriend]
+    internal sealed class TextSaver : IDataSaver
     {
         // REVIEW: consider saving a command line in a separate file.
         public sealed class Arguments
