@@ -44,7 +44,10 @@ namespace Microsoft.ML.ImageAnalytics
             IsoPad = 0,
 
             [TGUI(Label = "Isotropic with Cropping")]
-            IsoCrop = 1
+            IsoCrop = 1,
+
+            [TGUI(Label = "Ignore aspect ratio and squeeze/stretch into target dimensions")]
+            Fill = 2
         }
 
         public enum Anchor : byte
@@ -400,7 +403,7 @@ namespace Microsoft.ML.ImageAnalytics
                             destWidth = (int)(sourceWidth * aspect);
                             destHeight = (int)(sourceHeight * aspect);
                         }
-                        else
+                        else if (info.Resizing == ResizingKind.IsoCrop)
                         {
                             if (heightAspect < widthAspect)
                             {
@@ -438,6 +441,12 @@ namespace Microsoft.ML.ImageAnalytics
                             destWidth = (int)(sourceWidth * aspect);
                             destHeight = (int)(sourceHeight * aspect);
                         }
+                        else if (info.Resizing == ResizingKind.Fill)
+                        {
+                            destWidth = info.Width;
+                            destHeight = info.Height;
+                        }
+
                         dst = new Bitmap(info.Width, info.Height, src.PixelFormat);
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
