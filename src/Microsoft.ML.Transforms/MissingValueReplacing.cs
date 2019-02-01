@@ -433,7 +433,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new ColumnInfo[options.Columns.Length];
+            var cols = new MissingValueReplacingEstimator.ColumnInfo[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];

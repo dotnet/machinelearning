@@ -90,8 +90,8 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal MissingValueIndicatorTransformer(IHostEnvironment env, Options args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), GetColumnPairs(args.Columns))
+        internal MissingValueIndicatorTransformer(IHostEnvironment env, Options options)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), GetColumnPairs(options.Columns))
         {
         }
 
@@ -114,8 +114,8 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
-            => new MissingValueIndicatorTransformer(env, args).MakeDataTransform(input);
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
+            => new MissingValueIndicatorTransformer(env, options).MakeDataTransform(input);
 
         // Factory method for SignatureLoadDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
