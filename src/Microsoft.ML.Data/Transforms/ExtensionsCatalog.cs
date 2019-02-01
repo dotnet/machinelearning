@@ -53,7 +53,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ConcatTransform.cs)]
+        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Concatenate.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -70,11 +70,27 @@ namespace Microsoft.ML
             => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnsToDrop);
 
         /// <summary>
-        /// ColumnSelectingEstimator is used to select a list of columns that user wants to drop from a given input.
+        /// ColumnSelectingEstimator is used to select a list of columns that user wants to keep from a given input.
         /// </summary>
+        /// <remarks>
+        /// <format type="text/markdown">
+        /// <see cref="SelectColumns"/> operates on the schema of an input IDataView,
+        /// either dropping unselected columns from the schema or keeping them but hiding them from the user. Keeping columns hidden
+        /// is recommended when it is necessary to understand how the inputs of a pipeline map to outputs of the pipeline. This feature
+        /// is used, for example, in saving models so that the model can be easily debugged at a later time. For more information,
+        /// please refer to [IDataView Design Principles](~/../docs/samples/docs/code/IDataViewDesignPrinciples.md).
+        /// </format>
+        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>
         /// <param name="keepHidden">If true will keep hidden columns and false will remove hidden columns.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/SelectColumns.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
             string[] keepColumns,
             bool keepHidden = ColumnSelectingTransformer.Defaults.KeepHidden)
