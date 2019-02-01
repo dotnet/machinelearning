@@ -136,7 +136,7 @@ namespace Microsoft.ML
             => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
         /// <summary>
-        /// Maps specified keys to specified values
+        /// <see cref="ValueMappingEstimator"/>
         /// </summary>
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
@@ -152,7 +152,6 @@ namespace Microsoft.ML
         ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
         /// ]]></format>
         /// </example>
-
         public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
@@ -161,10 +160,7 @@ namespace Microsoft.ML
             => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
 
         /// <summary>
-        /// Maps the <paramref name="columns.input"/> using the keys in the dictionary to the values of dictionary i.e.
-        /// a value 'x' in the <paramref name="columns.input"/> would be mappped to a value stored in dictionary[x].
-        /// In this case, the <paramref name="lookupMap"/> is used to build up the dictionary where <paramref name="keyColumn"/>
-        /// and <paramref name="valueColumn"/> specify the keys and values of dictionary respectively.
+        /// <see cref="ValueMappingEstimator"/>
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog</param>
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>

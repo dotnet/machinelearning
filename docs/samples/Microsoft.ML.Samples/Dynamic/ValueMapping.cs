@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
         }
 
         /// This example demonstrates the use of the ValueMappingEstimator by mapping string-to-string values. This is useful
-        /// to map strings to a grouping. In this example, the Education data maps to the groups Undergraduate and Postgraduate:
+        /// to map strings to a grouping. In this example, the education data maps to the groups Undergraduate and Postgraduate:
         ///   0-5yrs  -> Undergraduate 
         ///   6-11yrs -> Postgraduate
         ///   12+yrs  -> Postgraduate

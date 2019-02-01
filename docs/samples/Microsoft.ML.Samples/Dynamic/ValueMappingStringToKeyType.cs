@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic
         /// instead of the actual value provides a unique integer representation of the value. When the treatValueAsKeyTypes is true, 
         /// the ValueMappingEstimator will generate a KeyType for each unique value.
         /// 
-        /// In this example, the education data is mapped to a grouping of 'Undergraudate' and 'Postgraduate'. Because KeyTypes are used, the
+        /// In this example, the education data is mapped to a grouping of 'Undergraduate' and 'Postgraduate'. Because KeyTypes are used, the
         /// ValueMappingEstimator will output the KeyType value rather than string value of 'Undergraduate' or 'Postgraduate'.
         /// 
         /// The KeyToValueEstimator is added to the pipeline to convert the KeyType back to the original value. Therefore the output of this example 

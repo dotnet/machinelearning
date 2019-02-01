@@ -21,9 +21,9 @@ namespace Microsoft.ML.Samples.Dynamic
         /// This example demonstrates the use of the ValueMappingEstimator by mapping string-to-array values which allows for mapping string data
         /// to numeric arrays that can then be used as a feature set for a trainer. In this example, we are mapping the education data to
         /// arbitrary integer arrays with the following association:
-        ///     0-5yrs  -> 1,2,3,4
-        ///     6-11yrs -> 5,6,7
-        ///     12+yrs  -> 42, 32
+        ///     0-5yrs  -> 1, 2, 3
+        ///     6-11yrs -> 5, 6, 7
+        ///     12+yrs  -> 42,32,64
         public static void Run()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -35,7 +35,6 @@ namespace Microsoft.ML.Samples.Dynamic
             IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
 
             // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
-
             // Creating a list of keys based on the Education values from the dataset
             var educationKeys = new List<string>()
             {
@@ -47,9 +46,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Sample list of associated array values
             var educationValues = new List<int[]>()
             {
-                new int[] { 1,2,3,4 },
+                new int[] { 1,2,3 },
                 new int[] { 5,6,7 },
-                new int[] { 42, 32 }
+                new int[] { 42,32,64 }
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
@@ -72,10 +71,10 @@ namespace Microsoft.ML.Samples.Dynamic
             //
             // Example of mapping string->array
             // Age     Education   EducationFeature
-            // 26      0 - 5yrs    1,2,3,4
-            // 42      0 - 5yrs    1,2,3,4
-            // 39      12 + yrs    42,32
-            // 34      0 - 5yrs    1,2,3,4
+            // 26      0 - 5yrs    1,2,3
+            // 42      0 - 5yrs    1,2,3
+            // 39      12 + yrs    42,32,64
+            // 34      0 - 5yrs    1,2,3
             // 35      6 - 11yrs   5,6,7
         }
     }
