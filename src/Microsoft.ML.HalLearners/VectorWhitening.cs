@@ -57,8 +57,8 @@ namespace Microsoft.ML.Transforms.Projections
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whitening kind (PCA/ZCA)")]
             public WhiteningKind Kind = Defaults.Kind;
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Transforms.Projections
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
-            var infos = args.Column.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
+            var infos = args.Columns.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
             (var models, var invModels) = TrainVectorWhiteningTransform(env, input, infos);
             return new VectorWhiteningTransformer(env, models, invModels, infos).MakeDataTransform(input);
         }

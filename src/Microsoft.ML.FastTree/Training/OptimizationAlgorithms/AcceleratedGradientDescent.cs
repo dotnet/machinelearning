@@ -5,9 +5,9 @@
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     //Accelerated gradient descent score tracker
-    public class AcceleratedGradientDescent : GradientDescent
+    internal class AcceleratedGradientDescent : GradientDescent
     {
-        public AcceleratedGradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        internal AcceleratedGradientDescent(InternalTreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores, gradientWrapper)
         {
             UseFastTrainingScoresUpdate = false;
@@ -17,7 +17,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return new AgdScoreTracker(name, set, initScores);
         }
 
-        public override RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures)
+        internal override InternalRegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures)
         {
             Contracts.CheckValue(ch, nameof(ch));
             AgdScoreTracker trainingScores = TrainingScores as AgdScoreTracker;
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             trainingScores.YK = null;
 
             //Invoke standard gradient descent on YK rather than XK(Scores)
-            RegressionTree tree = base.TrainingIteration(ch, activeFeatures);
+            InternalRegressionTree tree = base.TrainingIteration(ch, activeFeatures);
 
             //Reverse the XK/YK swap
             trainingScores.YK = trainingScores.XK;
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return tree;
         }
 
-        public override void UpdateScores(ScoreTracker t, RegressionTree tree)
+        internal override void UpdateScores(ScoreTracker t, InternalRegressionTree tree)
         {
             if (t == TrainingScores)
             {

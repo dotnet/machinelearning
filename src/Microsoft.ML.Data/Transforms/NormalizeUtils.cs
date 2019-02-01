@@ -133,10 +133,10 @@ namespace Microsoft.ML.Data
         {
             var schema = input.Data.Schema;
             var columnsToNormalize = new List<NormalizeTransform.AffineColumn>();
-            foreach (var column in input.Column)
+            foreach (var column in input.Columns)
             {
                 if (!schema.TryGetColumnIndex(column.Source, out int col))
-                    throw env.ExceptUserArg(nameof(input.Column), $"Column '{column.Source}' does not exist.");
+                    throw env.ExceptUserArg(nameof(input.Columns), $"Column '{column.Source}' does not exist.");
                 if (!schema[col].IsNormalized())
                     columnsToNormalize.Add(column);
             }
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Data
             }
             else
             {
-                input.Column = columnsToNormalize.ToArray();
+                input.Columns = columnsToNormalize.ToArray();
                 var entryPointNode = EntryPointNode.Create(env, "Transforms.MinMaxNormalizer", input, node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
                 entryPoints.Add(entryPointNode);
             }

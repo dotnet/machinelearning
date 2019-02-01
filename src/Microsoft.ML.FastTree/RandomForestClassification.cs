@@ -48,7 +48,7 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     public sealed class FastForestClassificationModelParameters :
-        TreeEnsembleModelParameters
+        TreeEnsembleModelParametersBasedOnQuantileRegressionTree
     {
         internal const string LoaderSignature = "FastForestBinaryExec";
         internal const string RegistrationName = "FastForestClassificationPredictor";
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public FastForestClassificationModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastForestClassificationModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         { }
 

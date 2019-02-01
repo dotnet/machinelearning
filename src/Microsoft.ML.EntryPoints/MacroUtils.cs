@@ -76,13 +76,13 @@ namespace Microsoft.ML.EntryPoints
         public sealed class ArrayIPredictorModelInput
         {
             [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
-            public PredictorModel[] Model;
+            public PredictorModel[] Models;
         }
 
         public sealed class ArrayIPredictorModelOutput
         {
             [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
-            public PredictorModel[] OutputModel;
+            public PredictorModel[] OutputModels;
         }
 
         [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(PredictorModel), Name = "Data.PredictorModelArrayConverter")]
@@ -90,7 +90,7 @@ namespace Microsoft.ML.EntryPoints
         {
             var result = new ArrayIPredictorModelOutput
             {
-                OutputModel = input.Model
+                OutputModels = input.Models
             };
             return result;
         }
@@ -124,7 +124,7 @@ namespace Microsoft.ML.EntryPoints
             var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
             var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
 
-            var argName = nameof(predictorArrayConverterArgs.Model);
+            var argName = nameof(predictorArrayConverterArgs.Models);
             inputBindingMap.Add(argName, new List<ParameterBinding>());
             for (int i = 0; i < predModelVars.Length; i++)
             {
@@ -134,7 +134,7 @@ namespace Microsoft.ML.EntryPoints
             }
             var outputMap = new Dictionary<string, string>();
             var output = new ArrayVar<PredictorModel>();
-            outputMap.Add(nameof(MacroUtils.ArrayIPredictorModelOutput.OutputModel), outputVarName);
+            outputMap.Add(nameof(MacroUtils.ArrayIPredictorModelOutput.OutputModels), outputVarName);
             var arrayConvertNode = EntryPointNode.Create(env, "Data.PredictorModelArrayConverter", predictorArrayConverterArgs,
                 context, inputBindingMap, inputMap, outputMap);
             subGraphNodes.Add(arrayConvertNode);

@@ -15,7 +15,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// https://www-stat.stanford.edu/~hastie/Papers/glmnet.pdf
     /// </summary>
     /// <remarks>Author was Yasser Ganjisaffar during his internship.</remarks>
-    public class LassoBasedEnsembleCompressor : IEnsembleCompressor<short>
+    internal class LassoBasedEnsembleCompressor : IEnsembleCompressor<short>
     {
         // This module shouldn't consume more than 4GB of memory
         private const long MaxAvailableMemory = 4L * 1024 * 1024 * 1024;
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         private Dataset _trainSet;
         private short[] _labels;
-        private TreeEnsemble _compressedEnsemble;
+        private InternalTreeEnsemble _compressedEnsemble;
         private int[] _sampleObservationIndices;
         private Random _rnd;
 
@@ -457,9 +457,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return fit;
         }
 
-        private TreeEnsemble GetEnsembleFromSolution(LassoFit fit, int solutionIdx, TreeEnsemble originalEnsemble)
+        private InternalTreeEnsemble GetEnsembleFromSolution(LassoFit fit, int solutionIdx, InternalTreeEnsemble originalEnsemble)
         {
-            TreeEnsemble ensemble = new TreeEnsemble();
+            InternalTreeEnsemble ensemble = new InternalTreeEnsemble();
 
             int weightsCount = fit.NumberOfWeights[solutionIdx];
             for (int i = 0; i < weightsCount; i++)
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 double weight = fit.CompressedWeights[solutionIdx][i];
                 if (weight != 0)
                 {
-                    RegressionTree tree = originalEnsemble.GetTreeAt(fit.Indices[i]);
+                    InternalRegressionTree tree = originalEnsemble.GetTreeAt(fit.Indices[i]);
                     tree.Weight = weight;
                     ensemble.AddTree(tree);
                 }
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public bool Compress(IChannel ch, TreeEnsemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression)
+        bool IEnsembleCompressor<short>.Compress(IChannel ch, InternalTreeEnsemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression)
         {
             LoadTargets(trainScores, bestIteration);
 
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return true;
         }
 
-        public TreeEnsemble GetCompressedEnsemble()
+        InternalTreeEnsemble IEnsembleCompressor<short>.GetCompressedEnsemble()
         {
             return _compressedEnsemble;
         }

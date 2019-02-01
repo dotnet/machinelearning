@@ -930,7 +930,7 @@ namespace Microsoft.ML.Data
                             idv.Schema[col].Name.Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
                         {
                             idv = new ChooseColumnsByIndexTransform(Host,
-                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { col } }, idv);
+                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = new[] { col } }, idv);
                             break;
                         }
                     }

@@ -13,7 +13,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     internal static class FastTreeIniFileUtils
     {
         public static string TreeEnsembleToIni(
-            IHost host, TreeEnsemble ensemble, RoleMappedSchema schema, ICalibrator calibrator,
+            IHost host, InternalTreeEnsemble ensemble, RoleMappedSchema schema, ICalibrator calibrator,
             string trainingParams, bool appendFeatureGain, bool includeZeroGainFeatures)
         {
             host.CheckValue(ensemble, nameof(ensemble));

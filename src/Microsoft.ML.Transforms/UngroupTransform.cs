@@ -86,8 +86,8 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to unroll, or 'pivot'", ShortName = "col")]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to unroll, or 'pivot'", Name = "Column", ShortName = "col")]
+            public string[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies how to unroll multiple pivot columns of different size.")]
             public UngroupMode Mode = UngroupMode.Inner;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="mode">Specifies how to unroll multiple pivot columns of different size.</param>
         /// <param name="columns">Columns to unroll, or 'pivot'</param>
         public UngroupTransform(IHostEnvironment env, IDataView input, UngroupMode mode, params string[] columns)
-            : this(env, new Arguments() { Column = columns, Mode = mode }, input)
+            : this(env, new Arguments() { Columns = columns, Mode = mode }, input)
         {
         }
 
@@ -111,11 +111,11 @@ namespace Microsoft.ML.Transforms
             : base(env, LoaderSignature, input)
         {
             Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "There must be at least one pivot column");
-            Host.CheckUserArg(args.Column.Distinct().Count() == args.Column.Length, nameof(args.Column),
+            Host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns), "There must be at least one pivot column");
+            Host.CheckUserArg(args.Columns.Distinct().Count() == args.Columns.Length, nameof(args.Columns),
                 "Duplicate pivot columns are not allowed");
 
-            _ungroupBinding = new UngroupBinding(Host, Source.Schema, args.Mode, args.Column);
+            _ungroupBinding = new UngroupBinding(Host, Source.Schema, args.Mode, args.Columns);
         }
 
         public static UngroupTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -330,12 +330,12 @@ namespace Microsoft.ML.Transforms
                 {
                     var name = pivotColumns[i];
                     // REVIEW: replace Check with CheckUser, once existing CheckUser is renamed to CheckUserArg or something.
-                    ectx.CheckUserArg(!string.IsNullOrEmpty(name), nameof(Arguments.Column), "Column name cannot be empty");
+                    ectx.CheckUserArg(!string.IsNullOrEmpty(name), nameof(Arguments.Columns), "Column name cannot be empty");
                     int col;
                     if (!inputSchema.TryGetColumnIndex(name, out col))
-                        throw ectx.ExceptUserArg(nameof(Arguments.Column), "Pivot column '{0}' is not found", name);
+                        throw ectx.ExceptUserArg(nameof(Arguments.Columns), "Pivot column '{0}' is not found", name);
                     if (!(inputSchema[col].Type is VectorType colType))
-                        throw ectx.ExceptUserArg(nameof(Arguments.Column),
+                        throw ectx.ExceptUserArg(nameof(Arguments.Columns),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, inputSchema[col].Type);
                     infos[i] = new PivotColumnInfo(name, col, colType.Size, colType.ItemType);
                 }

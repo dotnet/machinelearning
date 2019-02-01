@@ -361,8 +361,8 @@ namespace Microsoft.ML.Data
             public char[] Separators = new[] { DefaultArguments.Separator };
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
-                ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Remove trailing whitespace from lines", ShortName = "trim")]
             public bool TrimWhitespace = DefaultArguments.TrimWhitespace;
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public bool IsValid()
             {
-                return Utils.Size(Column) == 0 || Column.All(x => x.IsValid());
+                return Utils.Size(Columns) == 0 || Columns.All(x => x.IsValid());
             }
         }
 
@@ -984,7 +984,7 @@ namespace Microsoft.ML.Data
         private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
         {
             Contracts.AssertValue(separatorChars);
-            var result = new Arguments { Column = columns, HasHeader = hasHeader, Separators = separatorChars};
+            var result = new Arguments { Columns = columns, HasHeader = hasHeader, Separators = separatorChars};
             return result;
         }
 
@@ -1010,7 +1010,7 @@ namespace Microsoft.ML.Data
             if (!string.IsNullOrWhiteSpace(args.HeaderFile))
                 headerFile = new MultiFileSource(args.HeaderFile);
 
-            var cols = args.Column;
+            var cols = args.Columns;
             bool error;
             if (Utils.Size(cols) == 0 && !TryParseSchema(_host, headerFile ?? dataSample, ref args, out cols, out error))
             {
@@ -1188,7 +1188,7 @@ namespace Microsoft.ML.Data
                 if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
                     goto LDone;
 
-                cols = argsNew.Column;
+                cols = argsNew.Columns;
                 if (Utils.Size(cols) == 0)
                     goto LDone;
 
@@ -1379,7 +1379,7 @@ namespace Microsoft.ML.Data
                 AllowQuoting = allowQuotedStrings,
                 AllowSparse = supportSparse,
                 TrimWhitespace = trimWhitespace,
-                Column = columns.ToArray()
+                Columns = columns.ToArray()
             };
 
             return new TextLoader(host, args);

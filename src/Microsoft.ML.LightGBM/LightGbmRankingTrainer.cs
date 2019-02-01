@@ -25,7 +25,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.LightGBM
 {
 
-    public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParameters
+    public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRankerExec";
         internal const string RegistrationName = "LightGBMRankingPredictor";
@@ -51,7 +51,7 @@ namespace Microsoft.ML.LightGBM
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
-        public LightGbmRankingModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal LightGbmRankingModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }

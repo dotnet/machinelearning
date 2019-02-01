@@ -59,8 +59,9 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", Purpose = SpecialPurpose.ColumnName)]
             public string NameColumn = DefaultColumnNames.Name;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'")]
-            public KeyValuePair<string, string>[] CustomColumn;
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+                Name = "CustomColumn")]
+            public KeyValuePair<string, string>[] CustomColumns;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
             public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
@@ -288,7 +289,7 @@ namespace Microsoft.ML.Transforms
 
                 ch.Trace("Binding columns");
 
-                var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, args.CustomColumn);
+                var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, args.CustomColumns);
                 var data = new RoleMappedData(view, label, feature, group, weight, name, customCols);
 
                 var predictor = TrainUtils.Train(host, ch, data, trainer, null,

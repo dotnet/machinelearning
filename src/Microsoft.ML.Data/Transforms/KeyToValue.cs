@@ -60,8 +60,9 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         internal const string LoaderSignature = "KeyToValueTransform";
@@ -107,9 +108,9 @@ namespace Microsoft.ML.Transforms.Conversions
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckNonEmpty(args.Column, nameof(args.Column));
+            env.CheckNonEmpty(args.Columns, nameof(args.Columns));
 
-            var transformer = new KeyToValueMappingTransformer(env, args.Column.Select(c => (c.Name, c.Source ?? c.Name)).ToArray());
+            var transformer = new KeyToValueMappingTransformer(env, args.Columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 

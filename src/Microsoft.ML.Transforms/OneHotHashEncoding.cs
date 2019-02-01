@@ -98,8 +98,8 @@ namespace Microsoft.ML.Transforms.Categorical
         /// </summary>
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:hashBits:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:hashBits:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
@@ -156,10 +156,10 @@ namespace Microsoft.ML.Transforms.Categorical
             var h = env.Register("Categorical");
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
 
             var columns = new List<OneHotHashEncodingEstimator.ColumnInfo>();
-            foreach (var column in args.Column)
+            foreach (var column in args.Columns)
             {
                 var col = new OneHotHashEncodingEstimator.ColumnInfo(
                     column.Name,

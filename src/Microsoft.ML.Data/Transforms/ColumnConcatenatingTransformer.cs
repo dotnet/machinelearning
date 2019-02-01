@@ -107,21 +107,23 @@ namespace Microsoft.ML.Data
 
             public Arguments(string name, params string[] source)
             {
-                Column = new[] { new Column()
+                Columns = new[] { new Column()
                 {
                     Name = name,
                     Source = source
                 }};
             }
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         public sealed class TaggedArguments
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
-            public TaggedColumn[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public TaggedColumn[] Columns;
         }
 
         public sealed class ColumnInfo
@@ -360,12 +362,12 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            env.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
 
-            for (int i = 0; i < args.Column.Length; i++)
-                env.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
+            for (int i = 0; i < args.Columns.Length; i++)
+                env.CheckUserArg(Utils.Size(args.Columns[i].Source) > 0, nameof(args.Columns));
 
-            var cols = args.Column
+            var cols = args.Columns
                 .Select(c => new ColumnInfo(c.Name, c.Source))
                 .ToArray();
             var transformer = new ColumnConcatenatingTransformer(env, cols);
@@ -380,12 +382,12 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            env.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
 
-            for (int i = 0; i < args.Column.Length; i++)
-                env.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
+            for (int i = 0; i < args.Columns.Length; i++)
+                env.CheckUserArg(Utils.Size(args.Columns[i].Source) > 0, nameof(args.Columns));
 
-            var cols = args.Column
+            var cols = args.Columns
                 .Select(c => new ColumnInfo(c.Name, c.Source.Select(kvp => (kvp.Value, kvp.Key != "" ? kvp.Key : null))))
                 .ToArray();
             var transformer = new ColumnConcatenatingTransformer(env, cols);

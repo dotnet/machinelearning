@@ -414,7 +414,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
     }
 
-    public sealed class FastNdcgTestForTrainSet : FastNdcgTest
+    internal sealed class FastNdcgTestForTrainSet : FastNdcgTest
     {
         private readonly ScoreTracker _trainingScores;
         private readonly FastTreeRankingTrainer.LambdaRankObjectiveFunction _rankingObjectiveFunction;

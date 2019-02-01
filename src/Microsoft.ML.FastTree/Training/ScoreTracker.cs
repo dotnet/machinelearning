@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
         //Creates linear combination of scores1 + tree * multiplier
-        public void Initialize(ScoreTracker scores1, RegressionTree tree, DocumentPartitioning partitioning, double multiplier)
+        internal void Initialize(ScoreTracker scores1, InternalRegressionTree tree, DocumentPartitioning partitioning, double multiplier)
         {
             InitScores = null;
             if (Scores == null || Scores.Length != scores1.Scores.Length)
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             SendScoresUpdatedMessage();
         }
 
-        public virtual void AddScores(RegressionTree tree, double multiplier)
+        internal virtual void AddScores(InternalRegressionTree tree, double multiplier)
         {
             tree.AddOutputsToScores(Dataset, Scores, multiplier);
             SendScoresUpdatedMessage();
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         //Use faster method for score update with Partitioning
         // suitable for TrainSet
-        public virtual void AddScores(RegressionTree tree, DocumentPartitioning partitioning, double multiplier)
+        internal virtual void AddScores(InternalRegressionTree tree, DocumentPartitioning partitioning, double multiplier)
         {
             Parallel.For(0, tree.NumLeaves, new ParallelOptions { MaxDegreeOfParallelism = BlockingThreadPool.NumThreads }, (leaf) =>
             {
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return result;
         }
 
-        public override void AddScores(RegressionTree tree, double multiplier)
+        internal override void AddScores(InternalRegressionTree tree, double multiplier)
         {
             _k++;
             double coeff = (_k - 1.0) / (_k + 2.0);
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             SendScoresUpdatedMessage();
         }
 
-        public override void AddScores(RegressionTree tree, DocumentPartitioning partitioning, double multiplier)
+        internal override void AddScores(InternalRegressionTree tree, DocumentPartitioning partitioning, double multiplier)
         {
             _k++;
             double coeff = (_k - 1.0) / (_k + 2.0);

@@ -1378,7 +1378,7 @@ namespace Microsoft.ML.RunTests
             };
             var args = new LatentDirichletAllocationTransformer.Arguments()
             {
-                Column = new[] { col }
+                Columns = new[] { col }
             };
 
             try

@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public abstract class TreeLearner
+    internal abstract class TreeLearner
     {
         public readonly Dataset TrainData;
         public readonly int NumLeaves;
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         public static string TargetWeightsDatasetName { get { return "TargetWeightsDataset"; } }
 
-        public abstract RegressionTree FitTargets(IChannel ch, bool[] activeFeatures, double[] targets);
+        internal abstract InternalRegressionTree FitTargets(IChannel ch, bool[] activeFeatures, double[] targets);
 
         /// <summary>
         /// Get size of reserved memory for the tree learner.
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// <summary>
     /// An exception class for an error which occurs in the midst of learning a tree.
     /// </summary>
-    public class TreeLearnerException : Exception
+    internal class TreeLearnerException : Exception
     {
         public TreeLearnerException(string message) : base(message) { }
     }

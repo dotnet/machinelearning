@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Transformers
             var source = new MultiFileSource(dataPath);
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
-                Column = new[]{
+                Columns = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 9),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
                     new TextLoader.Column("float6", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests.Transformers
             var source = new MultiFileSource(dataPath);
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
-                Column = new[]{
+                Columns = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 9),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
                     new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })

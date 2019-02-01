@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
             base.CheckArgs(ch);
         }
 
-        protected override TreeLearner ConstructTreeLearner(IChannel ch)
+        private protected override TreeLearner ConstructTreeLearner(IChannel ch)
         {
             return new LeastSquaresRegressionTreeLearner(
                 TrainSet, Args.NumLeaves, Args.MinDocumentsInLeafs, Args.EntropyCoefficient,
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 Args.MinDocsPercentageForCategoricalSplit, Args.Bundling, Args.MinDocsForCategoricalSplit, Args.Bias);
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             Contracts.CheckValue(ch, nameof(ch));
             OptimizationAlgorithm optimizationAlgorithm;

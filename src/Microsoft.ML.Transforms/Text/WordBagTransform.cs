@@ -96,8 +96,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Arguments : NgramExtractorTransform.ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         private const string RegistrationName = "WordBagTransform";
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms.Text
             var h = env.Register(RegistrationName);
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns), "Columns must be specified");
 
             // Compose the WordBagTransform from a tokenize transform,
             // followed by a NgramExtractionTransform.
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Transforms.Text
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new WordTokenizingTransformer.ColumnInfo[args.Column.Length];
+            var tokenizeColumns = new WordTokenizingTransformer.ColumnInfo[args.Columns.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Arguments()
@@ -134,19 +134,19 @@ namespace Microsoft.ML.Transforms.Text
                     SkipLength = args.SkipLength,
                     AllLengths = args.AllLengths,
                     Weighting = args.Weighting,
-                    Column = new NgramExtractorTransform.Column[args.Column.Length]
+                    Columns = new NgramExtractorTransform.Column[args.Columns.Length]
                 };
 
-            for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
+            for (int iinfo = 0; iinfo < args.Columns.Length; iinfo++)
             {
-                var column = args.Column[iinfo];
+                var column = args.Columns[iinfo];
                 h.CheckUserArg(!string.IsNullOrWhiteSpace(column.Name), nameof(column.Name));
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
                 tokenizeColumns[iinfo] = new WordTokenizingTransformer.ColumnInfo(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
 
-                extractorArgs.Column[iinfo] =
+                extractorArgs.Columns[iinfo] =
                     new NgramExtractorTransform.Column()
                     {
                         Name = column.Name,
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             IDataView view = input;
-            view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Column, view);
+            view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Columns, view);
             view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
             return NgramExtractorTransform.Create(h, extractorArgs, view);
         }
@@ -256,8 +256,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Arguments : ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
@@ -272,15 +272,15 @@ namespace Microsoft.ML.Transforms.Text
             var h = env.Register(LoaderSignature);
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns), "Columns must be specified");
 
             IDataView view = input;
             var termCols = new List<Column>();
-            var isTermCol = new bool[args.Column.Length];
+            var isTermCol = new bool[args.Columns.Length];
 
-            for (int i = 0; i < args.Column.Length; i++)
+            for (int i = 0; i < args.Columns.Length; i++)
             {
-                var col = args.Column[i];
+                var col = args.Columns[i];
 
                 h.CheckNonWhiteSpace(col.Name, nameof(col.Name));
                 h.CheckNonWhiteSpace(col.Source, nameof(col.Source));
@@ -308,13 +308,13 @@ namespace Microsoft.ML.Transforms.Text
                         new ValueToKeyMappingTransformer.Arguments()
                         {
                             MaxNumTerms = int.MaxValue,
-                            Terms = termLoaderArgs.Terms,
                             Term = termLoaderArgs.Term,
+                            Terms = termLoaderArgs.Terms,
                             DataFile = termLoaderArgs.DataFile,
                             Loader = termLoaderArgs.Loader,
                             TermsColumn = termLoaderArgs.TermsColumn,
                             Sort = termLoaderArgs.Sort,
-                            Column = new ValueToKeyMappingTransformer.Column[termCols.Count]
+                            Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                     if (termLoaderArgs.DropUnknowns)
                         missingDropColumns = new string[termCols.Count];
@@ -325,14 +325,14 @@ namespace Microsoft.ML.Transforms.Text
                         new ValueToKeyMappingTransformer.Arguments()
                         {
                             MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
-                            Column = new ValueToKeyMappingTransformer.Column[termCols.Count]
+                            Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
 
                 for (int iinfo = 0; iinfo < termCols.Count; iinfo++)
                 {
                     var column = termCols[iinfo];
-                    termArgs.Column[iinfo] =
+                    termArgs.Columns[iinfo] =
                         new ValueToKeyMappingTransformer.Column()
                         {
                             Name = column.Name,
@@ -349,10 +349,10 @@ namespace Microsoft.ML.Transforms.Text
                     view = new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()).Transform(view);
             }
 
-            var ngramColumns = new NgramExtractingTransformer.ColumnInfo[args.Column.Length];
-            for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
+            var ngramColumns = new NgramExtractingTransformer.ColumnInfo[args.Columns.Length];
+            for (int iinfo = 0; iinfo < args.Columns.Length; iinfo++)
             {
-                var column = args.Column[iinfo];
+                var column = args.Columns[iinfo];
                 ngramColumns[iinfo] = new NgramExtractingTransformer.ColumnInfo(column.Name,
                     column.NgramLength ?? args.NgramLength,
                     column.SkipLength ?? args.SkipLength,
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Transforms.Text
             h.CheckValue(extractorArgs, nameof(extractorArgs));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(extractorArgs.SkipLength < extractorArgs.NgramLength, nameof(extractorArgs.SkipLength), "Should be less than " + nameof(extractorArgs.NgramLength));
-            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Arguments.Column), "Must be specified");
+            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Arguments.Columns), "Must be specified");
             h.CheckValueOrNull(termLoaderArgs);
 
             var extractorCols = new Column[cols.Length];
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Transforms.Text
 
             var args = new Arguments
             {
-                Column = extractorCols,
+                Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
                 SkipLength = extractorArgs.SkipLength,
                 AllLengths = extractorArgs.AllLengths,
@@ -415,11 +415,11 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class TermLoaderArguments
     {
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-        public string Terms;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+        public string Term;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string[] Term;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Name = "Term", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+        public string[] Terms;
 
         [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string DataFile;
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Transforms.Text
             var concatColumns = new List<ColumnConcatenatingTransformer.ColumnInfo>();
             foreach (var col in columns)
             {
-                env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Arguments.Column));
+                env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Arguments.Columns));
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 var col = columns[iinfo];
-                env.CheckUserArg(col != null, nameof(WordHashBagProducingTransformer.Arguments.Column));
+                env.CheckUserArg(col != null, nameof(WordHashBagProducingTransformer.Arguments.Columns));
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0 &&
                               col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
