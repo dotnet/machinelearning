@@ -28,21 +28,18 @@ namespace Microsoft.ML.Samples.Dynamic
             // 34.0   1.0   0-5yrs      2.0         4.0       2.0      4.0  ...
             // 35.0   1.0   6-11yrs     1.0         3.0       32.0     5.0  ...
 
-            // DropColumns is commonly used to drop unused columns if the dataset is going to be serialized or
-            // written out to a file. It is not actually necessary to drop unused columns before training or
-            // performing transforms, as IDataView's lazy evaluation won't actually materialize those columns.
-            // In the case of serialization, every column in the schema will be written out. If you have columns
-            // that you don't want to save, you can use DropColumns to remove them from the schema.
-            // Here, we drop the Age and Education columns from the dataset.
+            // Drop the Age and Education columns from the dataset.
             var pipeline = mlContext.Transforms.DropColumns("Age", "Education");
 
             // Now we can transform the data and look at the output
-            // Don't forget that this operation doesn't actually evaluate data until we materialize the data below.
+            // Don't forget that this operation doesn't actually operate on data until we perform an action that requires 
+            // the data to be materialized.
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Now let's take a look at what the DropColumns operations did.
-            // We can extract the transformed data as an IEnumerable of SampleInfertDataWithLabelAndValue, the class we define below.
-            // If we try to pull out the Age and Education columns, ML.NET will raise an exception on the first non-existent column. 
+            // We can extract the transformed data as an IEnumerable of SampleInfertDataNonExistentColumns, the class we define below.
+            // When we try to pull out the Age and Education columns, ML.NET will raise an exception on the first non-existent column
+            // that it tries to access. 
             try
             {
                 var failingRowEnumerable = mlContext.CreateEnumerable<SampleInfertDataNonExistentColumns>(transformedData, reuseRowObject: false);
@@ -55,7 +52,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  Age and Education were not available, so an exception was thrown: Could not find  column 'Age'.
             //  Parameter name: Schema
 
-            // And we can write out the rows of the dataset to see that data is still available
+            // And we can write a few columns from the dataset to see that the rest of the data is still available.
             var rowEnumerable = mlContext.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
             Console.WriteLine($"The columns we didn't drop are still available.");
             foreach (var row in rowEnumerable)
