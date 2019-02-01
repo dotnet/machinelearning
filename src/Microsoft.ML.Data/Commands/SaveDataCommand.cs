@@ -134,7 +134,7 @@ namespace Microsoft.ML.Data
                 var keepColumns = Args.Columns
                     .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
                 if (Utils.Size(keepColumns) > 0)
-                    data = ColumnSelectingTransformer.CreateKeep(Host, data, keepColumns);
+                    data = new ColumnSelectingTransformer(Host, keepColumns, null).Transform(data);
             }
 
             IDataSaver saver;

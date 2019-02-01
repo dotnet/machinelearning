@@ -151,7 +151,7 @@ namespace Microsoft.ML.Transforms.Text
             view = NgramHashExtractingTransformer.Create(h, featurizeArgs, view);
 
             // Since we added columns with new names, we need to explicitly drop them before we return the IDataTransform.
-            return ColumnSelectingTransformer.CreateDrop(h, view, tmpColNames.ToArray());
+            return new ColumnSelectingTransformer(h, null, tmpColNames.ToArray()).Transform(view) as IDataTransform;
         }
     }
 
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Transforms.Text
             }
             view = new HashingEstimator(h, hashColumns.ToArray()).Fit(view).Transform(view);
             view = new NgramHashingEstimator(h, ngramHashColumns).Fit(view).Transform(view);
-            return ColumnSelectingTransformer.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray());
+            return new ColumnSelectingTransformer(h, null, tmpColNames.SelectMany(cols => cols).ToArray()).Transform(view) as IDataTransform;
         }
 
         internal static IDataTransform Create(NgramHashExtractorArguments extractorArgs, IHostEnvironment env, IDataView input,

@@ -880,7 +880,7 @@ namespace Microsoft.ML.Data
                 var idv = dv;
                 if (hidden.Count > 0)
                 {
-                    var args = new ChooseColumnsByIndexTransform.Arguments();
+                    var args = new ChooseColumnsByIndexTransform.Options();
                     args.Drop = true;
                     args.Indices = hidden.ToArray();
                     idv = new ChooseColumnsByIndexTransform(env, args, idv);
@@ -910,12 +910,12 @@ namespace Microsoft.ML.Data
 
                         idv = new KeyToValueMappingTransformer(env, keyCol).Transform(idv);
                         var hidden = FindHiddenColumns(idv.Schema, keyCol);
-                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = hidden.ToArray() }, idv);
+                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = hidden.ToArray() }, idv);
                     }
                     foreach (var keyCol in firstDvKeyNoNamesColumns)
                     {
                         var hidden = FindHiddenColumns(idv.Schema, keyCol.Key);
-                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = hidden.ToArray() }, idv);
+                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = hidden.ToArray() }, idv);
                     }
                     return idv;
                 };
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Data
                                  variableSizeVectorColumnName, vectorType);
 
                         // Drop the old column that does not have variable length.
-                        idv = ColumnSelectingTransformer.CreateDrop(env, idv, variableSizeVectorColumnName);
+                        idv = new ColumnSelectingTransformer(env, null, new[] { variableSizeVectorColumnName }).Transform(idv);
                     }
                     return idv;
                 };
@@ -1058,7 +1058,7 @@ namespace Microsoft.ML.Data
             {
                 if (Utils.Size(nonAveragedCols) > 0)
                 {
-                    data = ColumnSelectingTransformer.CreateDrop(env, data, nonAveragedCols.ToArray());
+                    data = new ColumnSelectingTransformer(env, null, nonAveragedCols.ToArray()).Transform(data);
                 }
                 idvList.Add(data);
             }
@@ -1749,7 +1749,7 @@ namespace Microsoft.ML.Data
             var found = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             env.Check(found, "If stratification column exist, data view must also contain a StratVal column");
 
-            data = ColumnSelectingTransformer.CreateDrop(env, data, data.Schema[stratCol].Name, data.Schema[stratVal].Name);
+            data = new ColumnSelectingTransformer(env, null, new[] { data.Schema[stratCol].Name, data.Schema[stratVal].Name }).Transform(data);
             return data;
         }
     }

@@ -459,7 +459,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            view = ColumnSelectingTransformer.CreateDrop(h, view, tempCols.ToArray());
+            view = new ColumnSelectingTransformer(h, null, tempCols.ToArray()).Transform(view);
             return new Transformer(_host, input, view);
         }
 

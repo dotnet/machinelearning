@@ -80,7 +80,7 @@ namespace Microsoft.ML.Tests.Transformers
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 using (var fs = File.Create(outputPath))
                 {
-                    var dataView = ColumnSelectingTransformer.CreateDrop(Env, est.Fit(data).Transform(data), "float0");
+                    var dataView = new ColumnSelectingTransformer(Env, null, new[] { "float0" }).Transform(est.Fit(data).Transform(data));
                     DataSaverUtils.SaveDataView(ch, saver, dataView, fs, keepHidden: true);
                 }
             }
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
                 var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "lpnorm", "gcnorm", "whitened" });
+                savedData = ML.Transforms.SelectColumns("lpnorm", "gcnorm", "whitened").Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
                 var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "whitened1", "whitened2" });
+                savedData = ML.Transforms.SelectColumns("whitened1", "whitened2").Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
                 var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "lpNorm1", "lpNorm2" });
+                savedData = ML.Transforms.SelectColumns("lpNorm1", "lpNorm2").Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
                 var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "gcnNorm1", "gcnNorm2" });
+                savedData = ML.Transforms.SelectColumns("gcnNorm1", "gcnNorm2").Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);

@@ -932,7 +932,7 @@ namespace Microsoft.ML.Data
                             idv.Schema[col].Name.Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
                         {
                             idv = new ChooseColumnsByIndexTransform(Host,
-                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = new[] { col } }, idv);
+                                new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = new[] { col } }, idv);
                             break;
                         }
                     }
@@ -953,14 +953,14 @@ namespace Microsoft.ML.Data
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
             input = new ColumnCopyingTransformer(Host, (string.Format(TopKAccuracyFormat, _outputTopKAcc), MultiClassClassifierEvaluator.TopKAccuracy)).Transform(input);
-            return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy);
+            return new ColumnSelectingTransformer(Host, null, new[] { MultiClassClassifierEvaluator.TopKAccuracy }).Transform(input);
         }
 
         private IDataView DropPerClassColumn(IDataView input)
         {
             if (input.Schema.TryGetColumnIndex(MultiClassClassifierEvaluator.PerClassLogLoss, out int perClassCol))
             {
-                input = ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
+                input = new ColumnSelectingTransformer(Host, null, new[] { MultiClassClassifierEvaluator.PerClassLogLoss }).Transform(input);
             }
             return input;
         }
