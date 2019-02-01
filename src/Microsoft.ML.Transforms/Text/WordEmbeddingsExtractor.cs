@@ -727,11 +727,11 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var parsedData = new ConcurrentBag<(string key, float[] values, long lineNumber)>();
                     int skippedLinesCount = Math.Max(1, _linesToSkip);
-
+                    var invariantCulture = _modelKind != null;
                     Parallel.ForEach(File.ReadLines(_modelFileNameWithPath).Skip(skippedLinesCount), GetParallelOptions(hostEnvironment),
                         (line, parallelState, lineNumber) =>
                         {
-                            (bool isSuccess, string key, float[] values) = LineParser.ParseKeyThenNumbers(line);
+                            (bool isSuccess, string key, float[] values) = LineParser.ParseKeyThenNumbers(line, invariantCulture);
 
                             if (isSuccess)
                                 parsedData.Add((key, values, lineNumber + skippedLinesCount));
@@ -791,37 +791,46 @@ namespace Microsoft.ML.Transforms.Text
         private readonly string _customLookupTable;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="WordEmbeddingsExtractingEstimator"/>
+        /// Extracts word embeddings.
+        /// Output three times more values than dimension of the model specified in <paramref name="modelKind"/>
+        /// First set of values represent minumum encountered values (for each dimension), second set represent average (for each dimension)
+        /// and third one represent maximum encountered values (for each dimension).
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
-        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
+        internal WordEmbeddingsExtractingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
            WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
             : this(env, modelKind, new WordEmbeddingsExtractingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="WordEmbeddingsExtractingEstimator"/>
+        /// Extracts word embeddings.
+        /// Output three times more values than dimension of the model specified in <paramref name="customModelFile"/>
+        /// First set of values represent minumum encountered values (for each dimension), second set represent average (for each dimension)
+        /// and third one represent maximum encountered values (for each dimension).
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
         /// <param name="inputColumnName">Name of the column to transform. </param>
-        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string outputColumnName, string customModelFile, string inputColumnName = null)
+        internal WordEmbeddingsExtractingEstimator(IHostEnvironment env, string outputColumnName, string customModelFile, string inputColumnName = null)
             : this(env, customModelFile, new WordEmbeddingsExtractingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
         /// <summary>
         /// Extracts word embeddings.
+        /// Output three times more values than dimension of the model specified in <paramref name="modelKind"/>
+        /// First set of values represent minumum encountered values (for each dimension), second set represent average (for each dimension)
+        /// and third one represent maximum encountered values (for each dimension).
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
-        public WordEmbeddingsExtractingEstimator(IHostEnvironment env,
+        internal WordEmbeddingsExtractingEstimator(IHostEnvironment env,
             WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
             params WordEmbeddingsExtractingTransformer.ColumnInfo[] columns)
         {
@@ -832,7 +841,7 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns;
         }
 
-        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string customModelFile, params WordEmbeddingsExtractingTransformer.ColumnInfo[] columns)
+        internal WordEmbeddingsExtractingEstimator(IHostEnvironment env, string customModelFile, params WordEmbeddingsExtractingTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(WordEmbeddingsExtractingEstimator));
@@ -861,10 +870,14 @@ namespace Microsoft.ML.Transforms.Text
         public WordEmbeddingsExtractingTransformer Fit(IDataView input)
         {
             bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);
+            WordEmbeddingsExtractingTransformer transformer;
             if (customLookup)
-                return new WordEmbeddingsExtractingTransformer(_host, _customLookupTable, _columns);
+                transformer = new WordEmbeddingsExtractingTransformer(_host, _customLookupTable, _columns);
             else
-                return new WordEmbeddingsExtractingTransformer(_host, _modelKind.Value, _columns);
+                transformer = new WordEmbeddingsExtractingTransformer(_host, _modelKind.Value, _columns);
+            // Validate input schema.
+            transformer.GetOutputSchema(input.Schema);
+            return transformer;
         }
     }
 }
