@@ -29,7 +29,7 @@
         </para>
         <para>
           This transform requires the <a href="https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.TensorFlow">Microsoft.ML.TensorFlow</a> nuget to be installed.
-          The TensorFlowTransform has the following assumptions regarding input, output, processing of data and retraining.
+          The TensorFlowTransform has the following assumptions regarding input, output, processing of data, and retraining.
         </para>
         <list type="number">
           <item>
@@ -43,7 +43,7 @@
             <description>The transform supports scoring only one example at a time. However, retraining can be performed in batches.</description>
           </item>
           <item>
-            <description>Advanced transfer learning/fine tuning scenarios are currently not possible due to lack of support for network/graph manipulation inside the model.</description>
+            <description>Advanced transfer learning/fine tuning scenarios (e.g. adding more layers into the network, changing the shape of inputs, freezing the layers which do not need to be updated during retraining process etc.) are currently not possible due to lack of support for network/graph manipulation inside the model using TensorFlow C-API.</description>
           </item>
           <item>
             <description>The name of input column(s) should match the name of input(s) in TensorFlow model.</description>
@@ -59,9 +59,8 @@
           </item>
         </list>
         <para>
-        The inputs and outputs of a TensorFlow model can be obtained using the <see cref="TensorFlowModelInfo.GetModelSchema()"/> or <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
-          <code>summarize_graph</code> tools.
-        </a>.
+            The inputs and outputs of a TensorFlow model can be obtained using the <see cref="TensorFlowModelInfo.GetModelSchema()"/> or <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
+            <code>summarize_graph</code> tools</a>.
         </para>
       </remarks>
     </member>
