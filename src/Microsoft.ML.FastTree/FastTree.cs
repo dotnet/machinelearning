@@ -17,6 +17,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.FastTree;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -2810,14 +2811,10 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
-        /// <summary>
-        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/> <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.Representation.TreeEnsemble"/>.
-        /// </summary>
-        public ML.FastTree.Representation.TreeEnsemble TrainedTreeCollection { get; }
-
         // The below two properties are necessary for tree Visualizer
         [BestFriend]
-        internal InternalTreeEnsemble TrainedEnsemble => TrainedTreeCollection.UnderlyingTreeEnsemble;
+        internal InternalTreeEnsemble TrainedEnsemble { get; }
+
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
@@ -2871,7 +2868,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // REVIEW: When we make the predictor wrapper, we may want to further "optimize"
             // the trained ensemble to, for instance, resize arrays so that they are of the length
             // the actual number of leaves/nodes, or remove unnecessary arrays, and so forth.
-            TrainedTreeCollection = new ML.FastTree.Representation.TreeEnsemble(trainedEnsemble);
+            TrainedEnsemble = trainedEnsemble;
             InnerArgs = innerArgs;
             NumFeatures = numFeatures;
 
@@ -2899,7 +2896,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
                 categoricalSplits = true;
 
-            TrainedTreeCollection = new ML.FastTree.Representation.TreeEnsemble(new InternalTreeEnsemble(ctx, usingDefaultValues, categoricalSplits));
+            TrainedEnsemble = new InternalTreeEnsemble(ctx, usingDefaultValues, categoricalSplits);
             MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
             InnerArgs = ctx.LoadStringOrNull();
@@ -3378,6 +3375,84 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             public Dictionary<string, object> KeyValues { get; }
+        }
+    }
+
+    /// <summary>
+    /// <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is derived from
+    /// <see cref="TreeEnsembleModelParameters"/> plus a strongly-typed public attribute,
+    /// <see cref="TrainedTreeEnsemble"/>, for exposing trained model's details to users.
+    /// Its function, <see cref="CreateTreeEnsembleFromInternalDataStructure"/>, is
+    /// called to create <see cref="TrainedTreeEnsemble"/> inside <see cref="TreeEnsembleModelParameters"/>.
+    /// Note that the major difference between <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/>
+    /// and <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is the type of
+    /// <see cref="TrainedTreeEnsemble"/>.
+    /// </summary>
+    public abstract class TreeEnsembleModelParametersBasedOnRegressionTree : TreeEnsembleModelParameters
+    {
+        /// <summary>
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// </summary>
+        public RegressionTreeEnsemble TrainedTreeEnsemble { get; }
+
+        [BestFriend]
+        internal TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+            : base(env, name, trainedEnsemble, numFeatures, innerArgs)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        protected TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+            : base(env, name, ctx, ver)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        private RegressionTreeEnsemble CreateTreeEnsembleFromInternalDataStructure()
+        {
+            var trees = TrainedEnsemble.Trees.Select(tree => new RegressionTree(tree));
+            var treeWeights = TrainedEnsemble.Trees.Select(tree => tree.Weight);
+            return new RegressionTreeEnsemble(trees, treeWeights, TrainedEnsemble.Bias);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/> is derived from
+    /// <see cref="TreeEnsembleModelParameters"/> plus a strongly-typed public attribute,
+    /// <see cref="TrainedTreeEnsemble"/>, for exposing trained model's details to users.
+    /// Its function, <see cref="CreateTreeEnsembleFromInternalDataStructure"/>, is
+    /// called to create <see cref="TrainedTreeEnsemble"/> inside <see cref="TreeEnsembleModelParameters"/>.
+    /// Note that the major difference between <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/>
+    /// and <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is the type of
+    /// <see cref="TrainedTreeEnsemble"/>.
+    /// </summary>
+    public abstract class TreeEnsembleModelParametersBasedOnQuantileRegressionTree : TreeEnsembleModelParameters
+    {
+        /// <summary>
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// </summary>
+        public QuantileRegressionTreeEnsemble TrainedTreeEnsemble { get; }
+
+        [BestFriend]
+        internal TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+            : base(env, name, trainedEnsemble, numFeatures, innerArgs)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        protected TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+            : base(env, name, ctx, ver)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        private QuantileRegressionTreeEnsemble CreateTreeEnsembleFromInternalDataStructure()
+        {
+            var trees = TrainedEnsemble.Trees.Select(tree => new QuantileRegressionTree((InternalQuantileRegressionTree)tree));
+            var treeWeights = TrainedEnsemble.Trees.Select(tree => tree.Weight);
+            return new QuantileRegressionTreeEnsemble(trees, treeWeights, TrainedEnsemble.Bias);
         }
     }
 }

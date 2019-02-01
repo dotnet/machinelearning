@@ -267,14 +267,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         {
             var distribution = new float[sampleCount * NumTrees];
 
-            if (((QuantileRegressionTree)_trees[0]).IsWeightedTargets)
+            if (((InternalQuantileRegressionTree)_trees[0]).IsWeightedTargets)
                 weights = new float[sampleCount * NumTrees];
             else
                 weights = null;
 
             for (int h = 0; h < NumTrees; h++)
             {
-                ((QuantileRegressionTree)_trees[h]).LoadSampledLabels(in feat, distribution,
+                ((InternalQuantileRegressionTree)_trees[h]).LoadSampledLabels(in feat, distribution,
                     weights, sampleCount, h * sampleCount);
             }
             return distribution;

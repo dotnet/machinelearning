@@ -48,7 +48,7 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     public sealed class FastForestClassificationModelParameters :
-        TreeEnsembleModelParameters
+        TreeEnsembleModelParametersBasedOnQuantileRegressionTree
     {
         internal const string LoaderSignature = "FastForestBinaryExec";
         internal const string RegistrationName = "FastForestClassificationPredictor";

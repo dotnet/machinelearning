@@ -426,7 +426,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 // could have worked within TLC, so the chance of this happening seems remote.
                 throw Contracts.ExceptNotSupp("Affine regression trees unsupported");
             case TreeType.FastForest:
-                return new QuantileRegressionTree(ctx, usingDefaultValues, categoricalSplits);
+                return new InternalQuantileRegressionTree(ctx, usingDefaultValues, categoricalSplits);
             default:
                 throw Contracts.ExceptDecode();
             }

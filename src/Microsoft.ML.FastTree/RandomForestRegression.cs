@@ -29,7 +29,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class FastForestRegressionModelParameters :
-        TreeEnsembleModelParameters,
+        TreeEnsembleModelParametersBasedOnQuantileRegressionTree,
         IQuantileValueMapper,
         IQuantileRegressionPredictor
     {

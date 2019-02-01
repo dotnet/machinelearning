@@ -1,33 +1,25 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.ML.Trainers.FastTree.Internal;
 
 namespace Microsoft.ML.FastTree
 {
     /// <summary>
-    /// A container class for exposing <see cref="InternalRegressionTree"/>'s attributes to users.
+    /// A container base class for exposing <see cref="InternalRegressionTree"/>'s and
+    /// <see cref="InternalQuantileRegressionTree"/>'s attributes to users.
     /// This class should not be mutable, so it contains a lot of read-only members.
     /// </summary>
-    public class RegressionTree
+    public abstract class RegressionTreeBase
     {
         /// <summary>
-        /// <see cref="RegressionTree"/> is an immutable wrapper over <see cref="_tree"/> for exposing some tree's
+        /// <see cref="RegressionTreeBase"/> is an immutable wrapper over <see cref="_tree"/> for exposing some tree's
         /// attribute to users.
         /// </summary>
         private readonly InternalRegressionTree _tree;
-
-        /// <summary>
-        /// Sample labels from training data. <see cref="_leafSamples"/>[i] stores the labels falling into the
-        /// i-th leaf.
-        /// </summary>
-        private readonly double[][] _leafSamples;
-        /// <summary>
-        /// Sample labels' weights from training data. <see cref="_leafSampleWeights"/>[i] stores the weights for
-        /// labels falling into the i-th leaf. <see cref="_leafSampleWeights"/>[i][j] is the weight of
-        /// <see cref="_leafSamples"/>[i][j].
-        /// </summary>
-        private readonly double[][] _leafSampleWeights;
 
         /// <summary>
         /// See <see cref="LteChild"/>.
@@ -134,6 +126,72 @@ namespace Microsoft.ML.FastTree
         }
 
         /// <summary>
+        /// Number of leaves in the tree. Note that <see cref="NumLeaves"/> does not take non-leaf nodes into account.
+        /// </summary>
+        public int NumLeaves => _tree.NumLeaves;
+
+        /// <summary>
+        /// Number of nodes in the tree. This doesn't include any leaves. For example, a tree with node0->node1,
+        /// node0->leaf3, node1->leaf1, node1->leaf2, <see cref="NumNodes"/> and <see cref="NumLeaves"/> should
+        /// be 2 and 3, respectively.
+        /// </summary>
+        // A visualization of the example mentioned in this doc string.
+        //         node0
+        //         /  \
+        //     node1 leaf3
+        //     /  \
+        // leaf1 leaf2
+        // The index of leaf starts with 1 because interally we use "-1" as the 1st leaf's index, "-2" for the 2nd leaf's index, and so on.
+        public int NumNodes => _tree.NumNodes;
+
+        internal RegressionTreeBase(InternalRegressionTree tree)
+        {
+            _tree = tree;
+
+            _lteChild = ImmutableArray.Create(_tree.LteChild, 0, _tree.NumNodes);
+            _gtChild = ImmutableArray.Create(_tree.GtChild, 0, _tree.NumNodes);
+
+            _numericalSplitFeatureIndexes = ImmutableArray.Create(_tree.SplitFeatures, 0, _tree.NumNodes);
+            _numericalSplitThresholds = ImmutableArray.Create(_tree.RawThresholds, 0, _tree.NumNodes);
+            _categoricalSplitFlags = ImmutableArray.Create(_tree.CategoricalSplit, 0, _tree.NumNodes);
+            _leafValues = ImmutableArray.Create(_tree.LeafValues, 0, _tree.NumLeaves);
+        }
+    }
+
+    /// <summary>
+    /// A container class for exposing <see cref="InternalRegressionTree"/>'s attributes to users.
+    /// This class should not be mutable, so it contains a lot of read-only members. Note that
+    /// <see cref="RegressionTree"/> is identical to <see cref="RegressionTreeBase"/> but in
+    /// another derived class <see cref="QuantileRegressionTree"/> some attributes are added.
+    /// </summary>
+    public sealed class RegressionTree : RegressionTreeBase
+    {
+        internal RegressionTree(InternalRegressionTree tree) : base(tree) { }
+    }
+
+    /// <summary>
+    /// A container class for exposing <see cref="InternalQuantileRegressionTree"/>'s attributes to users.
+    /// This class should not be mutable, so it contains a lot of read-only members. In addition to
+    /// things inherited from <see cref="RegressionTreeBase"/>, we add <see cref="GetLeafSamplesAt(int)"/>
+    /// and <see cref="GetLeafSampleWeightsAt(int)"/> to expose (sub-sampled) training labels falling into
+    /// the leafIndex-th leaf and their weights.
+    /// </summary>
+    public sealed class QuantileRegressionTree : RegressionTreeBase
+    {
+        /// <summary>
+        /// Sample labels from training data. <see cref="_leafSamples"/>[i] stores the labels falling into the
+        /// i-th leaf.
+        /// </summary>
+        private readonly double[][] _leafSamples;
+
+        /// <summary>
+        /// Sample labels' weights from training data. <see cref="_leafSampleWeights"/>[i] stores the weights for
+        /// labels falling into the i-th leaf. <see cref="_leafSampleWeights"/>[i][j] is the weight of
+        /// <see cref="_leafSamples"/>[i][j].
+        /// </summary>
+        private readonly double[][] _leafSampleWeights;
+
+        /// <summary>
         /// Return the training labels falling into the specified leaf.
         /// </summary>
         /// <param name="leafIndex">The index of the specified leaf.</param>
@@ -163,47 +221,9 @@ namespace Microsoft.ML.FastTree
             return _leafSampleWeights[leafIndex];
         }
 
-        /// <summary>
-        /// Number of leaves in the tree. Note that <see cref="NumLeaves"/> does not take non-leaf nodes into account.
-        /// </summary>
-        public int NumLeaves => _tree.NumLeaves;
-
-        /// <summary>
-        /// Number of nodes in the tree. This doesn't include any leaves. For example, a tree with node0->node1,
-        /// node0->leaf3, node1->leaf1, node1->leaf2, <see cref="NumNodes"/> and <see cref="NumLeaves"/> should
-        /// be 2 and 3, respectively.
-        /// </summary>
-        // A visualization of the example mentioned in this doc string.
-        //         node0
-        //         /  \
-        //     node1 leaf3
-        //     /  \
-        // leaf1 leaf2
-        // The index of leaf starts with 1 because interally we use "-1" as the 1st leaf's index, "-2" for the 2nd leaf's index, and so on.
-        public int NumNodes => _tree.NumNodes;
-
-        internal RegressionTree(InternalRegressionTree tree)
+        internal QuantileRegressionTree(InternalQuantileRegressionTree tree) : base(tree)
         {
-            _tree = tree;
-            _leafSamples = null;
-            _leafSampleWeights = null;
-
-            _lteChild = ImmutableArray.Create(_tree.LteChild, 0, _tree.NumNodes);
-            _gtChild = ImmutableArray.Create(_tree.GtChild, 0, _tree.NumNodes);
-
-            _numericalSplitFeatureIndexes = ImmutableArray.Create(_tree.SplitFeatures, 0, _tree.NumNodes);
-            _numericalSplitThresholds = ImmutableArray.Create(_tree.RawThresholds, 0, _tree.NumNodes);
-            _categoricalSplitFlags = ImmutableArray.Create(_tree.CategoricalSplit, 0, _tree.NumNodes);
-            _leafValues = ImmutableArray.Create(_tree.LeafValues, 0, _tree.NumLeaves);
-
-            if (tree is QuantileRegressionTree)
-                ((QuantileRegressionTree)tree).ExtractLeafSamplesAndTheirWeights(out _leafSamples, out _leafSampleWeights);
-            else
-            {
-                _leafSamples = tree.LeafValues.Select(value => new double[] { value }).ToArray();
-                _leafSampleWeights = tree.LeafValues.Select(value => new double[] { 1.0 }).ToArray();
-            }
+            tree.ExtractLeafSamplesAndTheirWeights(out _leafSamples, out _leafSampleWeights);
         }
     }
-
 }

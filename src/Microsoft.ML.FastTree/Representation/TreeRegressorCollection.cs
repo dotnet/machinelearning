@@ -1,44 +1,56 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Trainers.FastTree.Internal;
 
-namespace Microsoft.ML.FastTree.Representation
+namespace Microsoft.ML.FastTree
 {
     /// <summary>
-    /// A list of <see cref="RegressionTree"/>. To compute the output value of a <see cref="TreeEnsemble"/>, we need to compute
-    /// the output values of all trees in <see cref="Trees"/>, scale those values via <see cref="TreeWeights"/>, and finally sum the scaled
-    /// values and <see cref="Bias"/> up.
+    /// A list of <see cref="RegressionTreeBase"/>'s derived class. To compute the output value of a
+    /// <see cref="TreeEnsemble{T}"/>, we need to compute the output values of all trees in <see cref="Trees"/>,
+    /// scale those values via <see cref="TreeWeights"/>, and finally sum the scaled values and <see cref="Bias"/> up.
     /// </summary>
-    public class TreeEnsemble
+    public abstract class TreeEnsemble<T> where T : RegressionTreeBase
     {
-        /// <summary>
-        /// It's a best friend for being accessed from LightGBM.
-        /// </summary>
-        [BestFriend]
-        internal readonly InternalTreeEnsemble UnderlyingTreeEnsemble;
-
         /// <summary>
         /// When doing prediction, this is a value added to the weighted sum of all <see cref="Trees"/>' outputs.
         /// </summary>
         public double Bias { get; }
 
         /// <summary>
-        /// <see cref="TreeWeights"/>[i] is the i-th <see cref="RegressionTree"/>'s weight in this <see cref="TreeEnsemble"/>.
+        /// <see cref="TreeWeights"/>[i] is the i-th <see cref="RegressionTreeBase"/>'s weight in <see cref="Trees"/>.
         /// </summary>
         public IReadOnlyList<double> TreeWeights { get; }
 
         /// <summary>
-        /// <see cref="Trees"/>[i] is the i-th <see cref="RegressionTree"/> in this <see cref="TreeEnsemble"/>.
+        /// <see cref="Trees"/>[i] is the i-th <see cref="RegressionTreeBase"/> in <see cref="Trees"/>.
         /// </summary>
-        public IReadOnlyList<RegressionTree> Trees { get; }
+        public IReadOnlyList<T> Trees { get; }
 
-        internal TreeEnsemble(InternalTreeEnsemble treeEnsemble)
+        internal TreeEnsemble(IEnumerable<T> trees, IEnumerable<double> treeWeights, double bias)
         {
-            UnderlyingTreeEnsemble = treeEnsemble;
-            Bias = treeEnsemble.Bias;
-            TreeWeights = treeEnsemble.Trees.Select(tree => tree.Weight).ToList();
-            Trees = treeEnsemble.Trees.Select(tree => new RegressionTree(tree)).ToList();
+            Bias = bias;
+            TreeWeights = treeWeights.ToList();
+            Trees = trees.ToList();
         }
     }
 
+    public sealed class RegressionTreeEnsemble : TreeEnsemble<RegressionTree>
+    {
+        internal RegressionTreeEnsemble(IEnumerable<RegressionTree> trees, IEnumerable<double> treeWeights, double bias)
+            : base(trees, treeWeights, bias)
+        {
+        }
+    }
+
+    public sealed class QuantileRegressionTreeEnsemble : TreeEnsemble<QuantileRegressionTree>
+    {
+        internal QuantileRegressionTreeEnsemble(IEnumerable<QuantileRegressionTree> trees, IEnumerable<double> treeWeights, double bias)
+            : base(trees, treeWeights, bias)
+        {
+        }
+    }
 }

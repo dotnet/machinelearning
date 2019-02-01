@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -11,7 +9,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    internal class QuantileRegressionTree : InternalRegressionTree
+    internal class InternalQuantileRegressionTree : InternalRegressionTree
     {
         /// <summary>
         /// Holds the labels of sampled instances for this tree. This value can be null when training, for example, random forest (FastForest).
@@ -27,12 +25,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         private const uint VerWithWeights = 0x00010002;
 
-        public QuantileRegressionTree(int maxLeaves)
+        public InternalQuantileRegressionTree(int maxLeaves)
             : base(maxLeaves)
         {
         }
 
-        internal QuantileRegressionTree(ModelLoadContext ctx, bool usingDefaultValue, bool categoricalSplits)
+        internal InternalQuantileRegressionTree(ModelLoadContext ctx, bool usingDefaultValue, bool categoricalSplits)
             : base(ctx, usingDefaultValue, categoricalSplits)
         {
             // *** Binary format ***
@@ -45,7 +43,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
         // REVIEW: Do we need this method? I am seeing in many places in tree code
-        public QuantileRegressionTree(byte[] buffer, ref int position)
+        public InternalQuantileRegressionTree(byte[] buffer, ref int position)
             : base(buffer, ref position)
         {
             _labelsDistribution = buffer.ToDoubleArray(ref position);
@@ -119,9 +117,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                         leafSamples[i][j] = _labelsDistribution[i * sampleCountPerLeaf + j];
                     else
                         // No training label is available, so the i-th leaf's value is used directly. Note that sampleCountPerLeaf must be 1 in this case.
-                        leafSampleWeights[i][j] = LeafValues[i];
+                        leafSamples[i][j] = LeafValues[i];
                     if (_instanceWeights != null)
-                        leafSamples[i][j] = _instanceWeights[i * sampleCountPerLeaf + j];
+                        leafSampleWeights[i][j] = _instanceWeights[i * sampleCountPerLeaf + j];
                     else
                         leafSampleWeights[i][j] = 1.0;
                 }

@@ -44,7 +44,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class FastTreeBinaryModelParameters :
-        TreeEnsembleModelParameters
+        TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeBinaryExec";
         internal const string RegistrationName = "FastTreeBinaryPredictor";

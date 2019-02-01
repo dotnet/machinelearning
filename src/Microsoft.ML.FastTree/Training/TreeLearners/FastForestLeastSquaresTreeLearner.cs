@@ -25,12 +25,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         protected override InternalRegressionTree NewTree()
         {
-            return new QuantileRegressionTree(NumLeaves);
+            return new InternalQuantileRegressionTree(NumLeaves);
         }
 
         public InternalRegressionTree FitTargets(IChannel ch, bool[] activeFeatures, Double[] weightedtargets, Double[] targets, Double[] weights)
         {
-            var tree = (QuantileRegressionTree)FitTargets(ch, activeFeatures, weightedtargets);
+            var tree = (InternalQuantileRegressionTree)FitTargets(ch, activeFeatures, weightedtargets);
             if (tree != null && _quantileEnabled)
             {
                 Double[] distributionWeights = null;

@@ -45,7 +45,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
 
-            var treeCollection = pred.TrainedTreeCollection;
+            var treeCollection = pred.TrainedTreeEnsemble;
             Assert.Equal(0, treeCollection.Bias);
             Assert.Equal(10, treeCollection.Trees.Count);
             Assert.Equal(10, treeCollection.TreeWeights.Count);
@@ -88,14 +88,6 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(5, trees[0].LeafValues.Count);
             for (int i = 0; i < trees[0].LeafValues.Count; ++i)
                 Assert.Equal(expectedLeafValues[i], trees[0].LeafValues[i], 6);
-
-            var sampledLabels = trees[0].GetLeafSamplesAt(0);
-            Assert.Equal(1, sampledLabels.Count);
-            Assert.Equal(40.159015006449692, sampledLabels[0], 6);
-
-            var sampledLabelWeights = trees[0].GetLeafSampleWeightsAt(0);
-            Assert.Equal(1, sampledLabelWeights.Count);
-            Assert.Equal(1, sampledLabelWeights[0], 6);
         }
 
         [Fact]
@@ -135,7 +127,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
 
-            var treeCollection = pred.TrainedTreeCollection;
+            var treeCollection = pred.TrainedTreeEnsemble;
             Assert.Equal(0, treeCollection.Bias);
             Assert.Equal(3, treeCollection.Trees.Count);
             Assert.Equal(3, treeCollection.TreeWeights.Count);
@@ -194,14 +186,6 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(5, trees[0].LeafValues.Count);
             for (int i = 0; i < trees[0].LeafValues.Count; ++i)
                 Assert.Equal(expectedLeafValues[i], trees[0].LeafValues[i], 6);
-
-            var sampledLabels = trees[0].GetLeafSamplesAt(0);
-            Assert.Equal(1, sampledLabels.Count);
-            Assert.Equal(48.456055413607892, sampledLabels[0], 6);
-
-            var sampledLabelWeights = trees[0].GetLeafSampleWeightsAt(0);
-            Assert.Equal(1, sampledLabelWeights.Count);
-            Assert.Equal(1, sampledLabelWeights[0], 6);
         }
     }
 }

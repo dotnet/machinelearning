@@ -271,6 +271,37 @@ namespace Microsoft.ML.SamplesUtils
             return data;
         }
 
+        public class FloatLabelFloatFeatureVectorSample
+        {
+            public float Label;
+
+            [VectorType(_simpleBinaryClassSampleFeatureLength)]
+            public float[] Features;
+        }
+
+        public static  IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount)
+        {
+            var rnd = new Random(0);
+            var data = new List<FloatLabelFloatFeatureVectorSample>();
+            for (int i = 0; i < exampleCount; ++i)
+            {
+                // Initialize an example with a random label and an empty feature vector.
+                var sample = new FloatLabelFloatFeatureVectorSample() { Label = rnd.Next() % 2, Features = new float[_simpleBinaryClassSampleFeatureLength] };
+                // Fill feature vector according the assigned label.
+                for (int j = 0; j < _simpleBinaryClassSampleFeatureLength; ++j)
+                {
+                    var value = (float)rnd.NextDouble();
+                    // Positive class gets larger feature value.
+                    if (sample.Label == 0)
+                        value += 0.2f;
+                    sample.Features[j] = value;
+                }
+
+                data.Add(sample);
+            }
+            return data;
+        }
+
         public class FfmExample
         {
             public bool Label;
