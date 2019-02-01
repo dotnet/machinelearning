@@ -59,8 +59,8 @@ namespace Microsoft.ML.ImageAnalytics
 
         public class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         internal const string Summary = "Convert image into grayscale.";
@@ -100,9 +100,9 @@ namespace Microsoft.ML.ImageAnalytics
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckValue(args.Column, nameof(args.Column));
+            env.CheckValue(args.Columns, nameof(args.Columns));
 
-            return new ImageGrayscaleTransformer(env, args.Column.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
+            return new ImageGrayscaleTransformer(env, args.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(input);
         }
 

@@ -44,7 +44,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class FastTreeBinaryModelParameters :
-        TreeEnsembleModelParameters
+        TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeBinaryExec";
         internal const string RegistrationName = "FastTreeBinaryPredictor";
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        public FastTreeBinaryModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeBinaryModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ParallelTraining);
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
             if (Args.UseLineSearch)
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            public void AdjustTreeOutputs(IChannel ch, RegressionTree tree,
+            public void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree,
                 DocumentPartitioning partitioning, ScoreTracker trainingScores)
             {
                 const double epsilon = 1.4e-45;

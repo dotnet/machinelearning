@@ -197,6 +197,12 @@
           The suffix of &apos;_TransformedText&apos; is added to the original column name to create the output token column. For instance if the input column is &apos;body&apos;,
           the output tokens column is named &apos;body_TransformedText&apos;.</para>
         <para>
+          WordEmbedding produces an output column of floats with size of 3 * dimensionality of model. For example if you use GloVe50D, which itself is 50 dimensional, we will produce 150 features.
+          First 1/3rd of slots would contain minimum values of encountered embeddings, second 1/3rd will contain average values of encountered embeddings
+          and last 1/3rd of slots would contain maximum values of encountered embeddings. The min/max provides a bounding hyper-rectangle for the words in the word embedding space.
+          This can assist for longer phrases where the average of many words drowns out the useful signal and your label is reasonably correlated with a dimension of the embedding space.
+        </para>
+        <para>
           License attributes for pretrained models:
           <list type="bullet">
             <item>

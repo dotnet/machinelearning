@@ -53,8 +53,8 @@ namespace Microsoft.ML.Transforms.Projections
     {
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The norm to use to normalize each sample", ShortName = "norm", SortOrder = 1)]
             public LpNormalizingEstimatorBase.NormalizerKind NormKind = LpNormalizingEstimatorBase.Defaults.NormKind;
@@ -65,8 +65,8 @@ namespace Microsoft.ML.Transforms.Projections
 
         public sealed class GcnArguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public GcnColumn[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public GcnColumn[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Subtract mean from each value before normalizing", SortOrder = 1)]
             public bool SubMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean;
@@ -327,13 +327,13 @@ namespace Microsoft.ML.Transforms.Projections
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new GcnColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new GcnColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     cols[i] = new GcnColumnInfo(
                         item.Name,
                         item.Source ?? item.Name,
@@ -354,13 +354,13 @@ namespace Microsoft.ML.Transforms.Projections
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new LpNormColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new LpNormColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     cols[i] = new LpNormColumnInfo(
                         item.Name,
                         item.Source ?? item.Name,

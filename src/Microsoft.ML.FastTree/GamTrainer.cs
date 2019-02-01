@@ -148,7 +148,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public override TrainerInfo Info { get; }
         private protected virtual bool NeedCalibration => false;
 
-        protected IParallelTraining ParallelTraining;
+        private protected IParallelTraining ParallelTraining;
 
         private protected GamTrainerBase(IHostEnvironment env,
             string name,

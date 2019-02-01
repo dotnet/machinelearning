@@ -53,8 +53,8 @@ namespace Microsoft.ML.Transforms.Text
     {
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 49)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", Name = "Column", ShortName = "col", SortOrder = 49)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "20,40,100,200")]
@@ -874,9 +874,9 @@ namespace Microsoft.ML.Transforms.Text
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckValue(args.Column, nameof(args.Column));
+            env.CheckValue(args.Columns, nameof(args.Columns));
 
-            var cols = args.Column.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
+            var cols = args.Columns.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
             return TrainLdaTransformer(env, input, cols).MakeDataTransform(input);
         }
 

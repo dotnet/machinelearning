@@ -91,8 +91,8 @@ namespace Microsoft.ML.ImageAnalytics
 
         public class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.Required, HelpText = "Resized width of the image", ShortName = "width")]
             public int ImageWidth;
@@ -218,12 +218,12 @@ namespace Microsoft.ML.ImageAnalytics
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
+            env.CheckValue(args.Columns, nameof(args.Columns));
 
-            var cols = new ColumnInfo[args.Column.Length];
+            var cols = new ColumnInfo[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
                 cols[i] = new ColumnInfo(
                     item.Name,
                     item.ImageWidth ?? args.ImageWidth,

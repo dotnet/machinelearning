@@ -35,8 +35,8 @@ namespace Microsoft.ML.Transforms.Projections
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
             public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
@@ -454,14 +454,14 @@ namespace Microsoft.ML.Transforms.Projections
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
 
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     cols[i] = new ColumnInfo(
                         item.Name,
                         item.NewDim ?? args.NewDim,

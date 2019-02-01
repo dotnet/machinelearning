@@ -82,8 +82,9 @@ namespace Microsoft.ML.Transforms.Conversions
         }
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.")]
@@ -217,11 +218,11 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
 
                 cols[i] = new ColumnInfo(
                     item.Name,

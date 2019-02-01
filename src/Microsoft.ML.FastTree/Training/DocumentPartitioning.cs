@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// Constructs partitioning object based on the documents and RegressionTree splits
         /// NOTE: It has been optimized for speed and multiprocs with 10x gain on naive LINQ implementation
         /// </summary>
-        public DocumentPartitioning(RegressionTree tree, Dataset dataset)
+        internal DocumentPartitioning(InternalRegressionTree tree, Dataset dataset)
             : this(dataset.NumDocs, tree.NumLeaves)
         {
             using (Timer.Time(TimerEvent.DocumentPartitioningConstruction))

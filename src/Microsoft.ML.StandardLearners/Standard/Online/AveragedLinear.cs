@@ -11,7 +11,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Learners;
 using Microsoft.ML.Numeric;
-using Float = System.Single;
 
 // TODO: Check if it works properly if Averaged is set to false
 
@@ -22,7 +21,7 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]
         [TlcModule.SweepableDiscreteParam("LearningRate", new object[] { 0.01, 0.1, 0.5, 1.0 })]
-        public Float LearningRate = AveragedDefaultArgs.LearningRate;
+        public float LearningRate = AveragedDefaultArgs.LearningRate;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Decrease learning rate", ShortName = "decreaselr", SortOrder = 50)]
         [TGUI(Label = "Decrease Learning Rate", Description = "Decrease learning rate as iterations progress")]
@@ -38,10 +37,10 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]
         [TlcModule.SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f)]
-        public Float L2RegularizerWeight = AveragedDefaultArgs.L2RegularizerWeight;
+        public float L2RegularizerWeight = AveragedDefaultArgs.L2RegularizerWeight;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Extra weight given to more recent updates", ShortName = "rg")]
-        public Float RecencyGain = 0;
+        public float RecencyGain = 0;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Whether Recency Gain is multiplicative (vs. additive)", ShortName = "rgm")]
         public bool RecencyGainMulti = false;
@@ -50,14 +49,14 @@ namespace Microsoft.ML.Trainers.Online
         public bool Averaged = true;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "The inexactness tolerance for averaging", ShortName = "avgtol")]
-        public Float AveragedTolerance = (Float)1e-2;
+        public float AveragedTolerance = (float)1e-2;
 
         [BestFriend]
         internal class AveragedDefaultArgs : OnlineDefaultArgs
         {
-            public const Float LearningRate = 1;
+            public const float LearningRate = 1;
             public const bool DecreaseLearningRate = false;
-            public const Float L2RegularizerWeight = 0;
+            public const float L2RegularizerWeight = 0;
         }
 
         internal abstract IComponentFactory<IScalarOutputLoss> LossFunctionFactory { get; }
@@ -72,20 +71,20 @@ namespace Microsoft.ML.Trainers.Online
 
         private protected abstract class AveragedTrainStateBase : TrainStateBase
         {
-            protected Float Gain;
+            protected float Gain;
 
             protected int NumNoUpdates;
 
             // For computing averaged weights and bias (if needed)
-            protected VBuffer<Float> TotalWeights;
-            protected Float TotalBias;
-            protected Double NumWeightUpdates;
+            protected VBuffer<float> TotalWeights;
+            protected float TotalBias;
+            protected double NumWeightUpdates;
 
             // The accumulated gradient of loss against gradient for all updates so far in the
             // totalled model, versus those pending in the weight vector that have not yet been
             // added to the total model.
-            protected Double TotalMultipliers;
-            protected Double PendingMultipliers;
+            protected double TotalMultipliers;
+            protected double PendingMultipliers;
 
             protected readonly bool Averaged;
             private readonly long _resetWeightsAfterXExamples;
@@ -120,13 +119,13 @@ namespace Microsoft.ML.Trainers.Online
             /// <summary>
             /// Return the raw margin from the decision hyperplane
             /// </summary>
-            public Float AveragedMargin(in VBuffer<Float> feat)
+            public float AveragedMargin(in VBuffer<float> feat)
             {
                 Contracts.Assert(Averaged);
-                return (TotalBias + VectorUtils.DotProduct(in feat, in TotalWeights)) / (Float)NumWeightUpdates;
+                return (TotalBias + VectorUtils.DotProduct(in feat, in TotalWeights)) / (float)NumWeightUpdates;
             }
 
-            public override Float Margin(in VBuffer<Float> feat)
+            public override float Margin(in VBuffer<float> feat)
                 => Averaged ? AveragedMargin(in feat) : CurrentMargin(in feat);
 
             public override void FinishIteration(IChannel ch)
@@ -149,21 +148,21 @@ namespace Microsoft.ML.Trainers.Online
                     if (_args.ResetWeightsAfterXExamples == 0)
                     {
                         ch.Info("Resetting weights to average weights");
-                        VectorUtils.ScaleInto(in TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
+                        VectorUtils.ScaleInto(in TotalWeights, 1 / (float)NumWeightUpdates, ref Weights);
                         WeightsScale = 1;
-                        Bias = TotalBias / (Float)NumWeightUpdates;
+                        Bias = TotalBias / (float)NumWeightUpdates;
                     }
                 }
 
                 base.FinishIteration(ch);
             }
 
-            public override void ProcessDataInstance(IChannel ch, in VBuffer<Float> feat, Float label, Float weight)
+            public override void ProcessDataInstance(IChannel ch, in VBuffer<float> feat, float label, float weight)
             {
                 base.ProcessDataInstance(ch, in feat, label, weight);
 
                 // compute the update and update if needed
-                Float output = CurrentMargin(in feat);
+                float output = CurrentMargin(in feat);
                 Double loss = _loss.Loss(output, label);
 
                 // REVIEW: Should this be biasUpdate != 0?
@@ -183,10 +182,10 @@ namespace Microsoft.ML.Trainers.Online
                     }
 
                     // Make final adjustments to update parameters.
-                    Float rate = _args.LearningRate;
+                    float rate = _args.LearningRate;
                     if (_args.DecreaseLearningRate)
-                        rate /= MathUtils.Sqrt((Float)NumWeightUpdates + NumNoUpdates + 1);
-                    Float biasUpdate = -rate * _loss.Derivative(output, label);
+                        rate /= MathUtils.Sqrt((float)NumWeightUpdates + NumNoUpdates + 1);
+                    float biasUpdate = -rate * _loss.Derivative(output, label);
 
                     // Perform the update to weights and bias.
                     VectorUtils.AddMult(in feat, biasUpdate / WeightsScale, ref Weights);
@@ -208,9 +207,9 @@ namespace Microsoft.ML.Trainers.Online
                     if (_resetWeightsAfterXExamples > 0 && NumIterExamples % _resetWeightsAfterXExamples == 0)
                     {
                         ch.Info("Resetting weights to average weights");
-                        VectorUtils.ScaleInto(in TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
+                        VectorUtils.ScaleInto(in TotalWeights, 1 / (float)NumWeightUpdates, ref Weights);
                         WeightsScale = 1;
-                        Bias = TotalBias / (Float)NumWeightUpdates;
+                        Bias = TotalBias / (float)NumWeightUpdates;
                     }
                 }
             }
@@ -235,7 +234,7 @@ namespace Microsoft.ML.Trainers.Online
                 // If gains got too big, rescale!
                 if (Gain > 1000)
                 {
-                    const Float scale = (Float)1e-6;
+                    const float scale = (float)1e-6;
                     Gain *= scale;
                     TotalBias *= scale;
                     VectorUtils.ScaleBy(ref TotalWeights, scale);

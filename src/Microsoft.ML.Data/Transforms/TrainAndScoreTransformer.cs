@@ -36,8 +36,8 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.Multiple,
                 HelpText = "Input columns: Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
-                ShortName = "col", SortOrder = 101, Purpose = SpecialPurpose.ColumnSelector)]
-            public KeyValuePair<string, string>[] CustomColumn;
+                Name = "CustomColumn", ShortName = "col", SortOrder = 101, Purpose = SpecialPurpose.ColumnSelector)]
+            public KeyValuePair<string, string>[] CustomColumns;
 
             [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SignatureType = typeof(SignatureDataScorer))]
             public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms
                     nameof(args.FeatureColumn), args.FeatureColumn, DefaultColumnNames.Features);
             string group = TrainUtils.MatchNameOrDefaultOrNull(env, input.Schema,
                 nameof(args.GroupColumn), args.GroupColumn, DefaultColumnNames.GroupId);
-            var customCols = TrainUtils.CheckAndGenerateCustomColumns(env, args.CustomColumn);
+            var customCols = TrainUtils.CheckAndGenerateCustomColumns(env, args.CustomColumns);
 
             return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, trainSchema);
         }
@@ -131,8 +131,8 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.Multiple,
                 HelpText = "Input columns: Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
-                ShortName = "col", SortOrder = 110, Purpose = SpecialPurpose.ColumnSelector)]
-            public KeyValuePair<string, string>[] CustomColumn;
+                Name = "CustomColumn", ShortName = "col", SortOrder = 110, Purpose = SpecialPurpose.ColumnSelector)]
+            public KeyValuePair<string, string>[] CustomColumns;
 
             public void CopyTo(ArgumentsBase other)
             {
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms
                 other.GroupColumn = GroupColumn;
                 other.WeightColumn = WeightColumn;
                 other.NameColumn = NameColumn;
-                other.CustomColumn = CustomColumn;
+                other.CustomColumns = CustomColumns;
             }
         }
 
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms
             using (var ch = host.Start("Train"))
             {
                 ch.Trace("Constructing trainer");
-                var customCols = TrainUtils.CheckAndGenerateCustomColumns(env, args.CustomColumn);
+                var customCols = TrainUtils.CheckAndGenerateCustomColumns(env, args.CustomColumns);
                 string feat;
                 string group;
                 var data = CreateDataFromArgs(ch, input, args, out feat, out group);
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Transforms
                 DefaultColumnNames.Weight);
             var name = TrainUtils.MatchNameOrDefaultOrNull(ectx, schema, nameof(args.NameColumn), args.NameColumn,
                 DefaultColumnNames.Name);
-            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ectx, args.CustomColumn);
+            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ectx, args.CustomColumns);
             return new RoleMappedData(input, label, feat, group, weight, name, customCols);
         }
     }

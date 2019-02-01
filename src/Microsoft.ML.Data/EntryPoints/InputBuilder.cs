@@ -234,7 +234,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                         Contracts.Assert(success);
                         Contracts.AssertValue(varBinding);
 
-                        result.Add(field.Name, new JValue(varBinding.ToJson()));
+                        result.Add(attr.Input.Name ?? field.Name, new JValue(varBinding.ToJson()));
                     }
                     else if (paramBinding is ArrayIndexParameterBinding)
                     {
@@ -249,7 +249,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                             array.Add(new JValue(varBinding.ToJson()));
                         }
 
-                        result.Add(field.Name, array);
+                        result.Add(attr.Input.Name ?? field.Name, array);
                     }
                     else
                     {
@@ -261,7 +261,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                 else if (instanceVal == null && defaultsVal != null)
                 {
                     // Handle null values.
-                    result.Add(field.Name, new JValue(instanceVal));
+                    result.Add(attr.Input.Name ?? field.Name, new JValue(instanceVal));
                 }
                 else if (instanceVal != null && (attr.Input.IsRequired || !instanceVal.Equals(defaultsVal)))
                 {
@@ -275,13 +275,13 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                     }
 
                     if (type == typeof(JArray))
-                        result.Add(field.Name, (JArray)instanceVal);
+                        result.Add(attr.Input.Name ?? field.Name, (JArray)instanceVal);
                     else if (type.IsGenericType &&
                         ((type.GetGenericTypeDefinition() == typeof(Var<>)) ||
                         type.GetGenericTypeDefinition() == typeof(ArrayVar<>) ||
                         type.GetGenericTypeDefinition() == typeof(DictionaryVar<>)))
                     {
-                        result.Add(field.Name, new JValue($"${((IVarSerializationHelper)instanceVal).VarName}"));
+                        result.Add(attr.Input.Name ?? field.Name, new JValue($"${((IVarSerializationHelper)instanceVal).VarName}"));
                     }
                     else if (type == typeof(bool) ||
                         type == typeof(string) ||
@@ -294,12 +294,12 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                         type == typeof(ulong))
                     {
                         // Handle simple types.
-                        result.Add(field.Name, new JValue(instanceVal));
+                        result.Add(attr.Input.Name ?? field.Name, new JValue(instanceVal));
                     }
                     else if (type.IsEnum)
                     {
                         // Handle enums.
-                        result.Add(field.Name, new JValue(instanceVal.ToString()));
+                        result.Add(attr.Input.Name ?? field.Name, new JValue(instanceVal.ToString()));
                     }
                     else if (type.IsArray)
                     {
@@ -326,7 +326,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                             foreach (object item in array)
                                 jarray.Add(builder.GetJsonObject(item, inputBindingMap, inputMap));
                         }
-                        result.Add(field.Name, jarray);
+                        result.Add(attr.Input.Name ?? field.Name, jarray);
                     }
                     else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>) &&
                              type.GetGenericArguments()[0] == typeof(string))
@@ -363,7 +363,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                             };
                             if (instSettings.ToString() != defSettings.ToString())
                                 jcomponent.Add(FieldNames.Settings, instSettings);
-                            result.Add(field.Name, jcomponent);
+                            result.Add(attr.Input.Name ?? field.Name, jcomponent);
                         }
                     }
                     else
@@ -372,7 +372,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
 
                         // Handle structs.
                         var builder = new InputBuilder(_ectx, type, _catalog);
-                        result.Add(field.Name, builder.GetJsonObject(instanceVal, new Dictionary<string, List<ParameterBinding>>(),
+                        result.Add(attr.Input.Name ?? field.Name, builder.GetJsonObject(instanceVal, new Dictionary<string, List<ParameterBinding>>(),
                             new Dictionary<ParameterBinding, VariableBinding>()));
                     }
                 }

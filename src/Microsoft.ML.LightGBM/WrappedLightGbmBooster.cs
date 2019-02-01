@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.ML.Trainers.FastTree.Internal;
 
@@ -111,19 +112,19 @@ namespace Microsoft.ML.LightGBM
                     // The value carried in the trimmed string is not inf, -inf, or nan.
                     // Therefore, double.Parse should be able to generate a valid number from it.
                     // If parsing fails, an exception will be thrown.
-                    values.Add(double.Parse(trimmed));
+                    values.Add(double.Parse(trimmed, CultureInfo.InvariantCulture));
             }
             return values.ToArray();
         }
 
         private static int[] Str2IntArray(string str, char delimiter)
         {
-            return str.Split(delimiter).Select(int.Parse).ToArray();
+            return str.Split(delimiter).Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToArray();
         }
 
         private static UInt32[] Str2UIntArray(string str, char delimiter)
         {
-            return str.Split(delimiter).Select(UInt32.Parse).ToArray();
+            return str.Split(delimiter).Select(x => UInt32.Parse(x, CultureInfo.InvariantCulture)).ToArray();
         }
 
         private static bool GetIsDefaultLeft(UInt32 decisionType)
@@ -163,7 +164,7 @@ namespace Microsoft.ML.LightGBM
         private static bool FindInBitset(UInt32[] bits, int start, int end, int pos)
         {
             int i1 = pos / 32;
-            if (start +  i1 >= end)
+            if (start + i1 >= end)
                 return false;
             int i2 = pos % 32;
             return ((bits[start + i1] >> i2) & 1) > 0;
@@ -185,9 +186,9 @@ namespace Microsoft.ML.LightGBM
             return cats.ToArray();
         }
 
-        public TreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
+        public InternalTreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
         {
-            TreeEnsemble res = new TreeEnsemble();
+            InternalTreeEnsemble res = new InternalTreeEnsemble();
             string modelString = GetModelString();
             string[] lines = modelString.Split('\n');
             int i = 0;
@@ -204,8 +205,8 @@ namespace Microsoft.ML.LightGBM
                         kvPairs[kv[0].Trim()] = kv[1].Trim();
                         ++i;
                     }
-                    int numLeaves = int.Parse(kvPairs["num_leaves"]);
-                    int numCat = int.Parse(kvPairs["num_cat"]);
+                    int numLeaves = int.Parse(kvPairs["num_leaves"], CultureInfo.InvariantCulture);
+                    int numCat = int.Parse(kvPairs["num_cat"], CultureInfo.InvariantCulture);
                     if (numLeaves > 1)
                     {
                         var leftChild = Str2IntArray(kvPairs["left_child"], ' ');
@@ -253,21 +254,21 @@ namespace Microsoft.ML.LightGBM
                                 }
                             }
                         }
-                        RegressionTree tree = RegressionTree.Create(numLeaves, splitFeature, splitGain,
+                        InternalRegressionTree tree = InternalRegressionTree.Create(numLeaves, splitFeature, splitGain,
                             threshold.Select(x => (float)(x)).ToArray(), defaultValue.Select(x => (float)(x)).ToArray(), leftChild, rightChild, leafOutput,
                             categoricalSplitFeatures, categoricalSplit);
                         res.AddTree(tree);
                     }
                     else
                     {
-                        RegressionTree tree = new RegressionTree(2);
+                        InternalRegressionTree tree = new InternalRegressionTree(2);
                         var leafOutput = Str2DoubleArray(kvPairs["leaf_value"], ' ');
                         if (leafOutput[0] != 0)
                         {
                             // Convert Constant tree to Two-leaf tree, avoid being filter by TLC.
                             var categoricalSplitFeatures = new int[1][];
                             var categoricalSplit = new bool[1];
-                            tree = RegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
+                            tree = InternalRegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
                                 new float[] { 0 }, new float[] { 0 }, new int[] { -1 }, new int[] { -2 }, new double[] { leafOutput[0], leafOutput[0] },
                                 categoricalSplitFeatures, categoricalSplit);
                         }

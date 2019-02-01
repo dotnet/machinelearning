@@ -34,7 +34,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return _bins.SizeInBytes() + sizeof(double) * _binUpperBounds.Length;
         }
 
-        public override SufficientStatsBase CreateSufficientStats(bool hasWeights)
+        internal override SufficientStatsBase CreateSufficientStats(bool hasWeights)
         {
             return new SufficientStats(this, hasWeights);
         }

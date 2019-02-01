@@ -18,6 +18,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the columns to transform.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CopyColumns](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CopyColumns.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, string outputColumnName, string inputColumnName)
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
 
@@ -27,6 +34,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog</param>
         /// <param name="columns">The pairs of input and output columns.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CopyColumns](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CopyColumns.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params (string outputColumnName, string inputColumnName)[] columns)
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
@@ -39,7 +53,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ConcatTransform.cs)]
+        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ConcatTransform.cs)]
         /// ]]>
         /// </format>
         /// </example>

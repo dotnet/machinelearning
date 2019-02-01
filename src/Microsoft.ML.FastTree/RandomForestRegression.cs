@@ -29,7 +29,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class FastForestRegressionModelParameters :
-        TreeEnsembleModelParameters,
+        TreeEnsembleModelParametersBasedOnQuantileRegressionTree,
         IQuantileValueMapper,
         IQuantileRegressionPredictor
     {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        public FastForestRegressionModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
+        internal FastForestRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
             _quantileSampleCount = samplesCount;

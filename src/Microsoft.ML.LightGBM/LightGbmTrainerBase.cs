@@ -53,7 +53,7 @@ namespace Microsoft.ML.LightGBM
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
         private protected int FeatureCount;
-        private protected TreeEnsemble TrainedEnsemble;
+        private protected InternalTreeEnsemble TrainedEnsemble;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false, supportValid: true);
         public override TrainerInfo Info => _info;

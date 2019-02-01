@@ -15,10 +15,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    using LeafSplitCandidates = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
-    using SplitInfo = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
+    using LeafSplitCandidates = LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
-    public sealed class FastTreeParallelInterfaceChecker : Microsoft.ML.Trainers.FastTree.IParallelTraining
+    internal sealed class FastTreeParallelInterfaceChecker : Trainers.FastTree.IParallelTraining
     {
         private bool _isInitEnv = false;
         private bool _isInitTreeLearner = false;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.RunTests
             return Utils.CreateArray<bool>(numFeatures, true);
         }
 
-        public double[] GlobalMean(Dataset dataset, RegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas)
+        public double[] GlobalMean(Dataset dataset, InternalRegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas)
         {
             Assert.True(_isInitEnv);
             Assert.True(_isInitTreeLearner);

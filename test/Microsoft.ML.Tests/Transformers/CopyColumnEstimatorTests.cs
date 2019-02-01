@@ -129,7 +129,7 @@ namespace Microsoft.ML.Tests
             var dataView = env.Data.ReadFromEnumerable(data);
             var term = ValueToKeyMappingTransformer.Create(env, new ValueToKeyMappingTransformer.Arguments()
             {
-                Column = new[] { new ValueToKeyMappingTransformer.Column() { Source = "Term", Name = "T" } }
+                Columns = new[] { new ValueToKeyMappingTransformer.Column() { Source = "Term", Name = "T" } }
             }, dataView);
             var est = new ColumnCopyingEstimator(env, "T1", "T");
             var transformer = est.Fit(term);

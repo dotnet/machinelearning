@@ -17,7 +17,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.FastTree;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -56,16 +56,16 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         protected readonly TArgs Args;
         protected readonly bool AllowGC;
-        protected TreeEnsemble TrainedEnsemble;
         protected int FeatureCount;
+        private protected InternalTreeEnsemble TrainedEnsemble;
         private protected RoleMappedData ValidData;
         /// <summary>
         /// If not null, it's a test data set passed in from training context. It will be converted to one element in
         /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/> in <see cref="InitializeTests"/>.
         /// </summary>
         private protected RoleMappedData TestData;
-        protected IParallelTraining ParallelTraining;
-        protected OptimizationAlgorithm OptimizationAlgorithm;
+        private protected IParallelTraining ParallelTraining;
+        private protected OptimizationAlgorithm OptimizationAlgorithm;
         protected Dataset TrainSet;
         protected Dataset ValidSet;
         /// <summary>
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected double[] InitValidScores;
         protected double[][] InitTestScores;
         //protected int Iteration;
-        protected TreeEnsemble Ensemble;
+        private protected InternalTreeEnsemble Ensemble;
 
         protected bool HasValidSet => ValidSet != null;
 
@@ -175,8 +175,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract Test ConstructTestForTrainingData();
 
-        protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
-        protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
+        private protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
+
+        private protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
         protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
 
@@ -488,7 +489,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void InitializeEnsemble()
         {
-            Ensemble = new TreeEnsemble();
+            Ensemble = new InternalTreeEnsemble();
         }
 
         /// <summary>
@@ -793,7 +794,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         // This method is called at the end of each training iteration, with the tree that was learnt on that iteration.
         // Note that this tree can be null if no tree was learnt this iteration.
-        protected virtual void CustomizedTrainingIteration(RegressionTree tree)
+        private protected virtual void CustomizedTrainingIteration(InternalRegressionTree tree)
         {
         }
 
@@ -924,7 +925,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// of features we actually trained on. This can be null in the event that no filtering
         /// occurred.
         /// </summary>
-        /// <seealso cref="TreeEnsemble.RemapFeatures"/>
+        /// <seealso cref="InternalTreeEnsemble.RemapFeatures"/>
         public int[] FeatureMap;
 
         protected readonly IHost Host;
@@ -1377,7 +1378,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     {
                         var convArgs = new LabelConvertTransform.Arguments();
                         var convCol = new LabelConvertTransform.Column() { Name = labelName, Source = labelName };
-                        convArgs.Column = new LabelConvertTransform.Column[] { convCol };
+                        convArgs.Columns = new LabelConvertTransform.Column[] { convCol };
                         data = new LabelConvertTransform(Host, convArgs, data);
                     }
                     // Convert the group column, if one exists.
@@ -2810,9 +2811,10 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
-        //The below two properties are necessary for tree Visualizer
+        // The below two properties are necessary for tree Visualizer
         [BestFriend]
-        internal TreeEnsemble TrainedEnsemble { get; }
+        internal InternalTreeEnsemble TrainedEnsemble { get; }
+
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
@@ -2854,7 +2856,9 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
-        public TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+        /// The following function is used in both FastTree and LightGBM so <see cref="BestFriendAttribute"/> is required.
+        [BestFriend]
+        internal TreeEnsembleModelParameters(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));
@@ -2868,7 +2872,7 @@ namespace Microsoft.ML.Trainers.FastTree
             InnerArgs = innerArgs;
             NumFeatures = numFeatures;
 
-            MaxSplitFeatIdx = FindMaxFeatureIndex(trainedEnsemble);
+            MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
@@ -2892,8 +2896,8 @@ namespace Microsoft.ML.Trainers.FastTree
             if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
                 categoricalSplits = true;
 
-            TrainedEnsemble = new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits);
-            MaxSplitFeatIdx = FindMaxFeatureIndex(TrainedEnsemble);
+            TrainedEnsemble = new InternalTreeEnsemble(ctx, usingDefaultValues, categoricalSplits);
+            MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
             InnerArgs = ctx.LoadStringOrNull();
             if (ctx.Header.ModelVerWritten >= VerNumFeaturesSerialized)
@@ -3195,7 +3199,7 @@ namespace Microsoft.ML.Trainers.FastTree
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
 
             int i = 0;
-            foreach (RegressionTree tree in TrainedEnsemble.Trees)
+            foreach (InternalRegressionTree tree in TrainedEnsemble.Trees)
             {
                 writer.Write("double treeOutput{0}=", i);
                 SaveTreeAsCode(tree, writer, in names);
@@ -3211,13 +3215,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Convert a single tree to code, called recursively
         /// </summary>
-        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, in VBuffer<ReadOnlyMemory<char>> names)
+        private void SaveTreeAsCode(InternalRegressionTree tree, TextWriter writer, in VBuffer<ReadOnlyMemory<char>> names)
         {
             ToCSharp(tree, writer, 0, in names);
         }
 
         // converts a subtree into a C# expression
-        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, in VBuffer<ReadOnlyMemory<char>> names)
+        private void ToCSharp(InternalRegressionTree tree, TextWriter writer, int node, in VBuffer<ReadOnlyMemory<char>> names)
         {
             if (node < 0)
             {
@@ -3257,23 +3261,6 @@ namespace Microsoft.ML.Trainers.FastTree
             foreach (var pair in gainMap)
                 bldr.AddFeature(pair.Key, (Float)(Math.Sqrt(pair.Value) * normFactor));
             bldr.GetResult(ref weights);
-        }
-
-        private static int FindMaxFeatureIndex(TreeEnsemble ensemble)
-        {
-            int ifeatMax = 0;
-            for (int i = 0; i < ensemble.NumTrees; i++)
-            {
-                var tree = ensemble.GetTreeAt(i);
-                for (int n = 0; n < tree.NumNodes; n++)
-                {
-                    int ifeat = tree.SplitFeature(n);
-                    if (ifeat > ifeatMax)
-                        ifeatMax = ifeat;
-                }
-            }
-
-            return ifeatMax;
         }
 
         ITree[] ITreeEnsemble.GetTrees()
@@ -3318,9 +3305,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private sealed class Tree : ITree<VBuffer<Float>>
         {
-            private readonly RegressionTree _regTree;
+            private readonly InternalRegressionTree _regTree;
 
-            public Tree(RegressionTree regTree)
+            public Tree(InternalRegressionTree regTree)
             {
                 _regTree = regTree;
             }
@@ -3388,6 +3375,84 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             public Dictionary<string, object> KeyValues { get; }
+        }
+    }
+
+    /// <summary>
+    /// <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is derived from
+    /// <see cref="TreeEnsembleModelParameters"/> plus a strongly-typed public attribute,
+    /// <see cref="TrainedTreeEnsemble"/>, for exposing trained model's details to users.
+    /// Its function, <see cref="CreateTreeEnsembleFromInternalDataStructure"/>, is
+    /// called to create <see cref="TrainedTreeEnsemble"/> inside <see cref="TreeEnsembleModelParameters"/>.
+    /// Note that the major difference between <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/>
+    /// and <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is the type of
+    /// <see cref="TrainedTreeEnsemble"/>.
+    /// </summary>
+    public abstract class TreeEnsembleModelParametersBasedOnRegressionTree : TreeEnsembleModelParameters
+    {
+        /// <summary>
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// </summary>
+        public RegressionTreeEnsemble TrainedTreeEnsemble { get; }
+
+        [BestFriend]
+        internal TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+            : base(env, name, trainedEnsemble, numFeatures, innerArgs)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        protected TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+            : base(env, name, ctx, ver)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        private RegressionTreeEnsemble CreateTreeEnsembleFromInternalDataStructure()
+        {
+            var trees = TrainedEnsemble.Trees.Select(tree => new RegressionTree(tree));
+            var treeWeights = TrainedEnsemble.Trees.Select(tree => tree.Weight);
+            return new RegressionTreeEnsemble(trees, treeWeights, TrainedEnsemble.Bias);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/> is derived from
+    /// <see cref="TreeEnsembleModelParameters"/> plus a strongly-typed public attribute,
+    /// <see cref="TrainedTreeEnsemble"/>, for exposing trained model's details to users.
+    /// Its function, <see cref="CreateTreeEnsembleFromInternalDataStructure"/>, is
+    /// called to create <see cref="TrainedTreeEnsemble"/> inside <see cref="TreeEnsembleModelParameters"/>.
+    /// Note that the major difference between <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/>
+    /// and <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is the type of
+    /// <see cref="TrainedTreeEnsemble"/>.
+    /// </summary>
+    public abstract class TreeEnsembleModelParametersBasedOnQuantileRegressionTree : TreeEnsembleModelParameters
+    {
+        /// <summary>
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// </summary>
+        public QuantileRegressionTreeEnsemble TrainedTreeEnsemble { get; }
+
+        [BestFriend]
+        internal TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+            : base(env, name, trainedEnsemble, numFeatures, innerArgs)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        protected TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+            : base(env, name, ctx, ver)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        private QuantileRegressionTreeEnsemble CreateTreeEnsembleFromInternalDataStructure()
+        {
+            var trees = TrainedEnsemble.Trees.Select(tree => new QuantileRegressionTree((InternalQuantileRegressionTree)tree));
+            var treeWeights = TrainedEnsemble.Trees.Select(tree => tree.Weight);
+            return new QuantileRegressionTreeEnsemble(trees, treeWeights, TrainedEnsemble.Bias);
         }
     }
 }

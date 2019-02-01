@@ -8,8 +8,8 @@ using Microsoft.ML.Trainers.FastTree.Internal;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    using LeafSplitCandidates = Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
-    using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
+    using LeafSplitCandidates = LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
@@ -20,13 +20,13 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Signature of Parallel trainer.
     /// </summary>
-    public delegate void SignatureParallelTrainer();
+    internal delegate void SignatureParallelTrainer();
 
     /// <summary>
     /// delegate function. This function is implemented in TLC, and called by TLC++. It will find best threshold
     /// from raw histogram data (countByBin, sumTargetsByBin, sumWeightsByBin, numDocsInLeaf, sumTargets, sumWeights)
     /// </summary>
-    public delegate void FindBestThresholdFromRawArrayFun(LeafSplitCandidates leafSplitCandidates, int feature, int flock, int subfeature,
+    internal delegate void FindBestThresholdFromRawArrayFun(LeafSplitCandidates leafSplitCandidates, int feature, int flock, int subfeature,
         int[] countByBin, FloatType[] sumTargetsByBin, FloatType[] sumWeightsByBin,
         int numDocsInLeaf, double sumTargets, double sumWeights, double varianceTargets, out SplitInfo bestSplit);
 
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree
     ///    If data is partitioned by row, it needs to a sync up for these sum result.
     ///    So It needs to call this to get the real output of leaves.
     /// </summary>
-    public interface IParallelTraining
+    internal interface IParallelTraining
     {
         /// <summary>
         /// Initialize the network connection.
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Used for calculating leaf output value.
         /// will return a array this is the mean output of all leaves.
         /// </summary>
-        double[] GlobalMean(Dataset dataset, RegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas);
+        double[] GlobalMean(Dataset dataset, InternalRegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas);
 
         /// <summary>
         /// Get indices of features that should be find bin in local.
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     [TlcModule.ComponentKind("ParallelTraining")]
-    public interface ISupportParallelTraining : IComponentFactory<IParallelTraining>
+    internal interface ISupportParallelTraining : IComponentFactory<IParallelTraining>
     {
     }
 }

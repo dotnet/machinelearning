@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public class RandomForestLeastSquaresTreeLearner : LeastSquaresRegressionTreeLearner
+    internal class RandomForestLeastSquaresTreeLearner : LeastSquaresRegressionTreeLearner
     {
         private int _quantileSampleCount;
         private bool _quantileEnabled;
@@ -23,14 +23,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _quantileEnabled = quantileEnabled;
         }
 
-        protected override RegressionTree NewTree()
+        protected override InternalRegressionTree NewTree()
         {
-            return new QuantileRegressionTree(NumLeaves);
+            return new InternalQuantileRegressionTree(NumLeaves);
         }
 
-        public RegressionTree FitTargets(IChannel ch, bool[] activeFeatures, Double[] weightedtargets, Double[] targets, Double[] weights)
+        public InternalRegressionTree FitTargets(IChannel ch, bool[] activeFeatures, Double[] weightedtargets, Double[] targets, Double[] weights)
         {
-            var tree = (QuantileRegressionTree)FitTargets(ch, activeFeatures, weightedtargets);
+            var tree = (InternalQuantileRegressionTree)FitTargets(ch, activeFeatures, weightedtargets);
             if (tree != null && _quantileEnabled)
             {
                 Double[] distributionWeights = null;

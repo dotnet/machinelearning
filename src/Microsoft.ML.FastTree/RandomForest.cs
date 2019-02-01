@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _quantileEnabled = quantileEnabled;
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             Host.CheckValue(ch, nameof(ch));
             IGradientAdjuster gradientWrapper = MakeGradientWrapper(ch);
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override TreeLearner ConstructTreeLearner(IChannel ch)
+        private protected override TreeLearner ConstructTreeLearner(IChannel ch)
         {
             return new RandomForestLeastSquaresTreeLearner(
                        TrainSet, Args.NumLeaves, Args.MinDocumentsInLeafs, Args.EntropyCoefficient,

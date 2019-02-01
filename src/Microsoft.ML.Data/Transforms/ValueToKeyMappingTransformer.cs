@@ -50,11 +50,11 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
             public int? MaxNumTerms;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Terms;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string Term;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Term;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Name = "Term", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string[] Terms;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').")]
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
                 // to be updated accordingly, or it will break. The only protection we have against this
                 // is unit tests....
-                if (MaxNumTerms != null || !string.IsNullOrEmpty(Terms) || Sort != null || TextKeyValues != null)
+                if (MaxNumTerms != null || !string.IsNullOrEmpty(Term) || Sort != null || TextKeyValues != null)
                     return false;
                 return base.TryUnparseCore(sb);
             }
@@ -113,11 +113,11 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
             public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Terms;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string Term;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Term;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Name = "Term", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string[] Terms;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 110, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string DataFile;
@@ -146,8 +146,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Arguments : ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         internal sealed class ColInfo
@@ -323,11 +323,11 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
-                if ((args.Term != null || !string.IsNullOrEmpty(args.Terms)) &&
+                if ((args.Terms != null || !string.IsNullOrEmpty(args.Term)) &&
                   (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader != null ||
                       !string.IsNullOrWhiteSpace(args.TermsColumn)))
                 {
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     var sortOrder = item.Sort ?? args.Sort;
                     if (!Enum.IsDefined(typeof(SortOrder), sortOrder))
                         throw env.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
@@ -348,9 +348,9 @@ namespace Microsoft.ML.Transforms.Conversions
                         item.Source ?? item.Name,
                         item.MaxNumTerms ?? args.MaxNumTerms,
                         sortOrder,
-                        item.Term,
+                        item.Terms,
                         item.TextKeyValues ?? args.TextKeyValues);
-                    cols[i].Terms = item.Terms ?? args.Terms;
+                    cols[i].Terms = item.Term ?? args.Term;
                 };
                 var keyData = GetKeyDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
                 return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
