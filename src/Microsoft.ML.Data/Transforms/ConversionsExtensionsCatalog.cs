@@ -63,6 +63,12 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="inputColumnName">Name of the column to transform.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[KeyToValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
+        /// ]]></format>
+        /// </example>
         public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, string inputColumnName)
             => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumnName);
 
@@ -72,6 +78,12 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog</param>
         /// <param name="columns">The pairs of input and output columns.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[KeyToValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
+        /// ]]></format>
+        /// </example>
         public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, params (string outputColumnName, string inputColumnName)[] columns)
              => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
@@ -124,7 +136,7 @@ namespace Microsoft.ML
             => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
         /// <summary>
-        /// Maps specified keys to specified values
+        /// <see cref="ValueMappingEstimator"/>
         /// </summary>
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
@@ -133,7 +145,16 @@ namespace Microsoft.ML
         /// cannot contain duplicate keys.</param>
         /// <param name="values">The list of values to pair with the keys for the mapping. This list must be equal to the same length as keys.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns></returns>
+        /// <returns>An instance of the ValueMappingEstimator</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        /// ]]></format>
+        /// </example>
         public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
@@ -142,17 +163,23 @@ namespace Microsoft.ML
             => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
 
         /// <summary>
-        /// Maps the <paramref name="columns.input"/> using the keys in the dictionary to the values of dictionary i.e.
-        /// a value 'x' in the <paramref name="columns.input"/> would be mappped to a value stored in dictionary[x].
-        /// In this case, the <paramref name="lookupMap"/> is used to build up the dictionary where <paramref name="keyColumn"/>
-        /// and <paramref name="valueColumn"/> specify the keys and values of dictionary respectively.
+        /// <see cref="ValueMappingEstimator"/>
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog</param>
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
         /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>
         /// <param name="valueColumn">Name of the value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns></returns>
+        /// <returns>A instance of the ValueMappingEstimator</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        /// ]]></format>
+        /// </example>
         public static ValueMappingEstimator ValueMap(
             this TransformsCatalog.ConversionTransforms catalog,
             IDataView lookupMap, string keyColumn, string valueColumn, params (string outputColumnName, string inputColumnName)[] columns)
