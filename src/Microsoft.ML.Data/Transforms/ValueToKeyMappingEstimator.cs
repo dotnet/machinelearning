@@ -108,7 +108,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         /// <summary>
         /// Trains and returns a <see cref="ValueToKeyMappingTransformer"/>.
-        /// <summary>
+        /// </summary>
         public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _keyData, false);
 
         /// <summary>
