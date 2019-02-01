@@ -172,8 +172,6 @@ namespace Microsoft.ML.Data
             : base(host, model, trainSchema)
         {
             FeatureColumn = featureColumn;
-
-            FeatureColumn = featureColumn;
             if (featureColumn == null)
                 FeatureColumnType = null;
             else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))

@@ -124,7 +124,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ObjectiveImpl(TrainSet, Args);
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
             if (Args.UseLineSearch)
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 _labels = GetDatasetRegressionLabels(trainData);
             }
 
-            public void AdjustTreeOutputs(IChannel ch, RegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores)
+            public void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores)
             {
                 double shrinkage = LearningRate * Shrinkage;
                 for (int l = 0; l < tree.NumLeaves; ++l)
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastTreeRegressionModelParameters : TreeEnsembleModelParameters
+    public sealed class FastTreeRegressionModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeRegressionExec";
         internal const string RegistrationName = "FastTreeRegressionPredictor";
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        public FastTreeRegressionModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }

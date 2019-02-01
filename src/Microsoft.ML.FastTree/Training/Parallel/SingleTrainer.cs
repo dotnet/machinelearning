@@ -8,8 +8,8 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(typeof(Microsoft.ML.Trainers.FastTree.SingleTrainer),
-    null, typeof(Microsoft.ML.Trainers.FastTree.SignatureParallelTrainer), "single")]
+[assembly: LoadableClass(typeof(SingleTrainer),
+    null, typeof(SignatureParallelTrainer), "single")]
 
 [assembly: EntryPointModule(typeof(SingleTrainerFactory))]
 
@@ -19,19 +19,19 @@ namespace Microsoft.ML.Trainers.FastTree
     using LeafSplitCandidates = Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
     using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
 
-    public sealed class SingleTrainer : IParallelTraining
+    internal sealed class SingleTrainer : IParallelTraining
     {
-        public void CacheHistogram(bool isSmallerLeaf, int featureIdx, int subfeature, SufficientStatsBase sufficientStatsBase, bool hasWeights)
+        void IParallelTraining.CacheHistogram(bool isSmallerLeaf, int featureIdx, int subfeature, SufficientStatsBase sufficientStatsBase, bool hasWeights)
         {
             return;
         }
 
-        public bool IsNeedFindLocalBestSplit()
+        bool IParallelTraining.IsNeedFindLocalBestSplit()
         {
             return true;
         }
 
-        public void FindGlobalBestSplit(LeafSplitCandidates smallerChildSplitCandidates,
+        void IParallelTraining.FindGlobalBestSplit(LeafSplitCandidates smallerChildSplitCandidates,
             LeafSplitCandidates largerChildSplitCandidates,
             FindBestThresholdFromRawArrayFun findFunction,
             SplitInfo[] bestSplits)
@@ -39,17 +39,17 @@ namespace Microsoft.ML.Trainers.FastTree
             return;
         }
 
-        public void GetGlobalDataCountInLeaf(int leafIdx, ref int cnt)
+        void IParallelTraining.GetGlobalDataCountInLeaf(int leafIdx, ref int cnt)
         {
             return;
         }
 
-        public bool[] GetLocalBinConstructionFeatures(int numFeatures)
+        bool[] IParallelTraining.GetLocalBinConstructionFeatures(int numFeatures)
         {
             return Utils.CreateArray<bool>(numFeatures, true);
         }
 
-        public double[] GlobalMean(Dataset dataset, RegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas)
+        double[] IParallelTraining.GlobalMean(Dataset dataset, InternalRegressionTree tree, DocumentPartitioning partitioning, double[] weights, bool filterZeroLambdas)
         {
             double[] means = new double[tree.NumLeaves];
             for (int l = 0; l < tree.NumLeaves; ++l)
@@ -59,54 +59,54 @@ namespace Microsoft.ML.Trainers.FastTree
             return means;
         }
 
-        public void PerformGlobalSplit(int leaf, int lteChild, int gtChild, SplitInfo splitInfo)
+        void IParallelTraining.PerformGlobalSplit(int leaf, int lteChild, int gtChild, SplitInfo splitInfo)
         {
             return;
         }
 
-        public void InitIteration(ref bool[] activeFeatures)
+        void IParallelTraining.InitIteration(ref bool[] activeFeatures)
         {
             return;
         }
 
-        public void InitEnvironment()
+        void IParallelTraining.InitEnvironment()
         {
             return;
         }
 
-        public void InitTreeLearner(Dataset trainData, int maxNumLeaves, int maxCatSplitPoints, ref int minDocInLeaf)
+        void IParallelTraining.InitTreeLearner(Dataset trainData, int maxNumLeaves, int maxCatSplitPoints, ref int minDocInLeaf)
         {
             return;
         }
 
-        public void SyncGlobalBoundary(int numFeatures, int maxBin, Double[][] binUpperBounds)
+        void IParallelTraining.SyncGlobalBoundary(int numFeatures, int maxBin, Double[][] binUpperBounds)
         {
             return;
         }
 
-        public void FinalizeEnvironment()
+        void IParallelTraining.FinalizeEnvironment()
         {
             return;
         }
 
-        public void FinalizeTreeLearner()
+        void IParallelTraining.FinalizeTreeLearner()
         {
             return;
         }
 
-        public void FinalizeIteration()
+        void IParallelTraining.FinalizeIteration()
         {
             return;
         }
 
-        public bool IsSkipNonSplittableHistogram()
+        bool IParallelTraining.IsSkipNonSplittableHistogram()
         {
             return true;
         }
     }
 
     [TlcModule.Component(Name = "Single", Desc = "Single node machine learning process.")]
-    public sealed class SingleTrainerFactory : ISupportParallelTraining
+    internal sealed class SingleTrainerFactory : ISupportParallelTraining
     {
         public IParallelTraining CreateComponent(IHostEnvironment env) => new SingleTrainer();
     }

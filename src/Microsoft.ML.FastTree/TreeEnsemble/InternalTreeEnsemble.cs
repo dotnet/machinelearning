@@ -16,26 +16,27 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public class TreeEnsemble
+    [BestFriend]
+    internal class InternalTreeEnsemble
     {
         /// <summary>
-        /// String appended to the text representation of <see cref="TreeEnsemble"/>. This is mainly used in <see cref="ToTreeEnsembleIni"/>.
+        /// String appended to the text representation of <see cref="InternalTreeEnsemble"/>. This is mainly used in <see cref="ToTreeEnsembleIni"/>.
         /// </summary>
         private readonly string _firstInputInitializationContent;
-        private readonly List<RegressionTree> _trees;
+        private readonly List<InternalRegressionTree> _trees;
 
-        public IEnumerable<RegressionTree> Trees => _trees;
+        public IEnumerable<InternalRegressionTree> Trees => _trees;
 
         public double Bias { get; set; }
 
         public int NumTrees => _trees.Count;
 
-        public TreeEnsemble()
+        public InternalTreeEnsemble()
         {
-            _trees = new List<RegressionTree>();
+            _trees = new List<InternalRegressionTree>();
         }
 
-        public TreeEnsemble(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
+        public InternalTreeEnsemble(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
         {
             // REVIEW: Verify the contents of the ensemble, both during building,
             // and during deserialization.
@@ -46,11 +47,11 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             // double: Bias
             // int: Id to InputInitializationContent string, currently ignored
 
-            _trees = new List<RegressionTree>();
+            _trees = new List<InternalRegressionTree>();
             int numTrees = ctx.Reader.ReadInt32();
             Contracts.CheckDecode(numTrees >= 0);
             for (int t = 0; t < numTrees; ++t)
-                AddTree(RegressionTree.Load(ctx, usingDefaultValues, categoricalSplits));
+                AddTree(InternalRegressionTree.Load(ctx, usingDefaultValues, categoricalSplits));
             Bias = ctx.Reader.ReadDouble();
             _firstInputInitializationContent = ctx.LoadStringOrNull();
         }
@@ -65,18 +66,18 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
             BinaryWriter writer = ctx.Writer;
             writer.Write(NumTrees);
-            foreach (RegressionTree tree in Trees)
+            foreach (InternalRegressionTree tree in Trees)
                 tree.Save(ctx);
             writer.Write(Bias);
             ctx.SaveStringOrNull(_firstInputInitializationContent);
         }
 
-        public void AddTree(RegressionTree tree) => _trees.Add(tree);
-        public void AddTreeAt(RegressionTree tree, int index) => _trees.Insert(index, tree);
+        public void AddTree(InternalRegressionTree tree) => _trees.Add(tree);
+        public void AddTreeAt(InternalRegressionTree tree, int index) => _trees.Insert(index, tree);
         public void RemoveTree(int index) => _trees.RemoveAt(index);
         // Note: Removes the range, including the index
         public void RemoveAfter(int index) => _trees.RemoveRange(index, NumTrees - index);
-        public RegressionTree GetTreeAt(int index) => _trees[index];
+        public InternalRegressionTree GetTreeAt(int index) => _trees[index];
 
         /// <summary>
         /// Converts the bin based thresholds to the raw real-valued thresholds.
@@ -266,14 +267,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         {
             var distribution = new float[sampleCount * NumTrees];
 
-            if (((QuantileRegressionTree)_trees[0]).IsWeightedTargets)
+            if (((InternalQuantileRegressionTree)_trees[0]).IsWeightedTargets)
                 weights = new float[sampleCount * NumTrees];
             else
                 weights = null;
 
             for (int h = 0; h < NumTrees; h++)
             {
-                ((QuantileRegressionTree)_trees[h]).LoadSampledLabels(in feat, distribution,
+                ((InternalQuantileRegressionTree)_trees[h]).LoadSampledLabels(in feat, distribution,
                     weights, sampleCount, h * sampleCount);
             }
             return distribution;
@@ -357,9 +358,28 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
             builder.GetResult(ref contribs);
         }
+
+        /// <summary>
+        /// Retrieve the max feature index used across all node's split functions.
+        /// </summary>
+        public int GetMaxFeatureIndex()
+        {
+            int ifeatMax = 0;
+            for (int i = 0; i < NumTrees; i++)
+            {
+                var tree = _trees[i];
+                for (int n = 0; n < tree.NumNodes; n++)
+                {
+                    int ifeat = tree.SplitFeature(n);
+                    if (ifeat > ifeatMax)
+                        ifeatMax = ifeat;
+                }
+            }
+            return ifeatMax;
+        }
     }
 
-    public class FeatureToGainMap : Dictionary<int, double>
+    internal class FeatureToGainMap : Dictionary<int, double>
     {
         public FeatureToGainMap() { }
         // Override default Dictionary to return 0.0 for non-eisting keys
@@ -373,7 +393,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public FeatureToGainMap(IList<RegressionTree> trees, bool normalize)
+        public FeatureToGainMap(IList<InternalRegressionTree> trees, bool normalize)
         {
             if (trees.Count == 0)
                 return;

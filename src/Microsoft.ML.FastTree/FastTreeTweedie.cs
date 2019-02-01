@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ObjectiveImpl(TrainSet, Args);
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
             if (Args.UseLineSearch)
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 _maxClamp = Math.Abs(options.MaxTreeOutput);
             }
 
-            public void AdjustTreeOutputs(IChannel ch, RegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores)
+            public void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores)
             {
                 double shrinkage = LearningRate * Shrinkage;
                 var scores = trainingScores.Scores;
@@ -446,7 +446,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastTreeTweedieModelParameters : TreeEnsembleModelParameters
+    public sealed class FastTreeTweedieModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeTweedieExec";
         internal const string RegistrationName = "FastTreeTweediePredictor";
@@ -470,7 +470,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010003;
 
-        public FastTreeTweedieModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeTweedieModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }

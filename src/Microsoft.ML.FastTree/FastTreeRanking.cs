@@ -190,7 +190,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new LambdaRankObjectiveFunction(TrainSet, TrainSet.Ratings, Args, ParallelTraining);
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
             if (Args.UseLineSearch)
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Trainers.FastTree
             PrintTestGraph(ch);
         }
 
-        protected override void CustomizedTrainingIteration(RegressionTree tree)
+        private protected override void CustomizedTrainingIteration(InternalRegressionTree tree)
         {
             Contracts.AssertValueOrNull(tree);
             if (tree != null && Args.CompressEnsemble)
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Trainers.FastTree
             };
         }
 
-        public sealed class LambdaRankObjectiveFunction : ObjectiveFunctionBase, IStepSearch
+        internal sealed class LambdaRankObjectiveFunction : ObjectiveFunctionBase, IStepSearch
         {
             private readonly short[] _labels;
 
@@ -992,7 +992,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            public void AdjustTreeOutputs(IChannel ch, RegressionTree tree, DocumentPartitioning partitioning,
+            void IStepSearch.AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning,
                                             ScoreTracker trainingScores)
             {
                 const double epsilon = 1.4e-45;
@@ -1105,7 +1105,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastTreeRankingModelParameters : TreeEnsembleModelParameters
+    public sealed class FastTreeRankingModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeRankerExec";
         internal const string RegistrationName = "FastTreeRankingPredictor";
@@ -1131,7 +1131,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        public FastTreeRankingModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeRankingModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }

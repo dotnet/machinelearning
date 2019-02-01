@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
@@ -25,7 +24,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.LightGBM
 {
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
-    public sealed class LightGbmRegressionModelParameters : TreeEnsembleModelParameters
+    public sealed class LightGbmRegressionModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRegressionExec";
         internal const string RegistrationName = "LightGBMRegressionPredictor";
@@ -51,7 +50,7 @@ namespace Microsoft.ML.LightGBM
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public LightGbmRegressionModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        internal LightGbmRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }

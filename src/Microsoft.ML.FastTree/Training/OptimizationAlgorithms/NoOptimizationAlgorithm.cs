@@ -8,11 +8,11 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// This is dummy optimizer. As Random forest does not have any boosting based optimization, this is place holder to be consistent
     /// with other fast tree based applications
     /// </summary>
-    public class RandomForestOptimizer : GradientDescent
+    internal class RandomForestOptimizer : GradientDescent
     {
         private IGradientAdjuster _gradientWrapper;
         // REVIEW: When the FastTree appliation is decoupled with tree learner and boosting logic, this class should be removed.
-        public RandomForestOptimizer(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        internal RandomForestOptimizer(InternalTreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores, gradientWrapper)
         {
             _gradientWrapper = gradientWrapper;
@@ -24,14 +24,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return new ScoreTracker(name, set, initScores);
         }
 
-        public override RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures)
+        internal override InternalRegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures)
         {
             Contracts.CheckValue(ch, nameof(ch));
 
             double[] sampleWeights = null;
             double[] targets = GetGradient(ch);
             double[] weightedTargets = _gradientWrapper.AdjustTargetAndSetWeights(targets, ObjectiveFunction, out sampleWeights);
-            RegressionTree tree = ((RandomForestLeastSquaresTreeLearner)TreeLearner).FitTargets(ch, activeFeatures, weightedTargets,
+            InternalRegressionTree tree = ((RandomForestLeastSquaresTreeLearner)TreeLearner).FitTargets(ch, activeFeatures, weightedTargets,
                 targets, sampleWeights);
 
             if (tree != null)

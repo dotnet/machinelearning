@@ -156,7 +156,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Allows to choose Parallel FastTree Learning Algorithm.
         /// </summary>
         [Argument(ArgumentType.Multiple, HelpText = "Allows to choose Parallel FastTree Learning Algorithm", ShortName = "parag")]
-        public ISupportParallelTraining ParallelTrainer = new SingleTrainerFactory();
+        internal ISupportParallelTraining ParallelTrainer = new SingleTrainerFactory();
 
         /// <summary>
         /// The number of threads to use.
