@@ -58,8 +58,9 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 7)]
             public string StratificationColumn;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
-            public KeyValuePair<string, string>[] CustomColumn;
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+                Name = "CustomColumn", ShortName = "col", SortOrder = 10)]
+            public KeyValuePair<string, string>[] CustomColumns;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k")]
             public int NumFolds = 2;
@@ -73,8 +74,9 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
             public bool? CacheData;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transforms to apply prior to splitting the data into folds", ShortName = "prexf", SignatureType = typeof(SignatureDataTransform))]
-            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] PreTransform;
+            [Argument(ArgumentType.Multiple, HelpText = "Transforms to apply prior to splitting the data into folds",
+                Name = "PreTransform", ShortName = "prexf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] PreTransforms;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
@@ -153,7 +155,7 @@ namespace Microsoft.ML.Data
             IDataLoader loader = CreateRawLoader();
 
             // If the per-instance results are requested and there is no name column, add a GenerateNumberTransform.
-            var preXf = Args.PreTransform;
+            var preXf = Args.PreTransforms;
             if (!string.IsNullOrEmpty(Args.OutputDataFile))
             {
                 string name = TrainUtils.MatchNameOrDefaultOrNull(ch, loader.Schema, nameof(Args.NameColumn), Args.NameColumn, DefaultColumnNames.Name);
@@ -167,7 +169,7 @@ namespace Microsoft.ML.Data
                                     (env, input) =>
                                     {
                                         var args = new GenerateNumberTransform.Arguments();
-                                        args.Column = new[] { new GenerateNumberTransform.Column() { Name = DefaultColumnNames.Name }, };
+                                        args.Columns = new[] { new GenerateNumberTransform.Column() { Name = DefaultColumnNames.Name }, };
                                         args.UseCounter = true;
                                         return new GenerateNumberTransform(env, args, input);
                                     }))
@@ -263,7 +265,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         private RoleMappedData CreateRoleMappedData(IHostEnvironment env, IChannel ch, IDataView data, ITrainer trainer)
         {
-            foreach (var kvp in Args.Transform)
+            foreach (var kvp in Args.Transforms)
                 data = kvp.Value.CreateComponent(env, data);
 
             var schema = data.Schema;
@@ -276,7 +278,7 @@ namespace Microsoft.ML.Data
             TrainUtils.AddNormalizerIfNeeded(env, ch, trainer, ref data, features, Args.NormalizeFeatures);
 
             // Training pipe and examples.
-            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
+            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumns);
 
             return new RoleMappedData(data, label, features, group, weight, name, customCols);
         }
@@ -314,7 +316,7 @@ namespace Microsoft.ML.Data
                 var keyGenArgs = new GenerateNumberTransform.Arguments();
                 var col = new GenerateNumberTransform.Column();
                 col.Name = stratificationColumn;
-                keyGenArgs.Column = new[] { col };
+                keyGenArgs.Columns = new[] { col };
                 output = new GenerateNumberTransform(Host, keyGenArgs, input);
             }
             else

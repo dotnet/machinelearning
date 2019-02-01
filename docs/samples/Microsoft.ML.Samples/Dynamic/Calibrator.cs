@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 Separators = new[] { '\t' },
                 HasHeader = true,
-                Column = new[]
+                Columns = new[]
                     {
                         new TextLoader.Column("Sentiment", DataKind.BL, 0),
                         new TextLoader.Column("SentimentText", DataKind.Text, 1)

@@ -399,7 +399,7 @@ namespace Microsoft.ML.EntryPoints
                             idv.Schema[col].Name.Equals(MetricKinds.ColumnNames.Count))
                         {
                             input.ConfusionMatrix[i] = new ChooseColumnsByIndexTransform(env,
-                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { col } }, idv);
+                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = new[] { col } }, idv);
                             break;
                         }
                     }

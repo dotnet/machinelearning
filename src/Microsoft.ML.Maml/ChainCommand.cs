@@ -21,8 +21,8 @@ namespace Microsoft.ML.Tools
         public sealed class Arguments
         {
 #pragma warning disable 649 // never assigned
-            [Argument(ArgumentType.Multiple, HelpText = "Command", ShortName = "cmd", SignatureType = typeof(SignatureCommand))]
-            public IComponentFactory<ICommand>[] Command;
+            [Argument(ArgumentType.Multiple, HelpText = "Command", Name = "Command", ShortName = "cmd", SignatureType = typeof(SignatureCommand))]
+            public IComponentFactory<ICommand>[] Commands;
 #pragma warning restore 649 // never assigned
         }
 
@@ -49,13 +49,13 @@ namespace Microsoft.ML.Tools
                 int count = 0;
 
                 sw.Start();
-                if (_args.Command != null)
+                if (_args.Commands != null)
                 {
-                    for (int i = 0; i < _args.Command.Length; i++)
+                    for (int i = 0; i < _args.Commands.Length; i++)
                     {
                         using (var chCmd = _host.Start(string.Format(CultureInfo.InvariantCulture, "Command[{0}]", i)))
                         {
-                            var sub = _args.Command[i];
+                            var sub = _args.Commands[i];
 
                             chCmd.Info("=====================================================================================");
                             chCmd.Info("Executing: {0}", sub);

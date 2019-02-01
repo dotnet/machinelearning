@@ -110,7 +110,7 @@ namespace Microsoft.ML.Transforms.Text
             // Create arguments.
             var args = new WordBagBuildingTransformer.Arguments
             {
-                Column = _columns.Select(x => new WordBagBuildingTransformer.Column { Name = x.outputColumnName, Source = x.sourceColumnsNames }).ToArray(),
+                Columns = _columns.Select(x => new WordBagBuildingTransformer.Column { Name = x.outputColumnName, Source = x.sourceColumnsNames }).ToArray(),
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
                 AllLengths = _allLengths,
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms.Text
             // Create arguments.
             var args = new WordHashBagProducingTransformer.Arguments
             {
-                Column = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName  ,Source = x.inputColumnNames}).ToArray(),
+                Columns = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName  ,Source = x.inputColumnNames}).ToArray(),
                 HashBits = _hashBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,

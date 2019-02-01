@@ -47,9 +47,10 @@ namespace Microsoft.ML.Transforms.Conversions
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column",
                 ShortName = "col",
                 SortOrder = 1)]
-            public Column[] Column;
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the values need to be combined for a single hash")]
             public bool Join = Defaults.Join;
@@ -188,16 +189,16 @@ namespace Microsoft.ML.Transforms.Conversions
             string source = null,
              bool join = Defaults.Join,
             int hashBits = Defaults.HashBits)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, Join = join, HashBits = hashBits }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, Join = join, HashBits = hashBits }, input)
         {
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="HashJoin"]/*' />
         public HashJoiningTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, TestColumnType)
+            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Columns, input, TestColumnType)
         {
             Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Host.Assert(Infos.Length == Utils.Size(args.Columns));
 
             if (args.HashBits < NumBitsMin || args.HashBits >= NumBitsLim)
                 throw Host.ExceptUserArg(nameof(args.HashBits), "hashBits should be between {0} and {1} inclusive", NumBitsMin, NumBitsLim - 1);
@@ -205,14 +206,14 @@ namespace Microsoft.ML.Transforms.Conversions
             _exes = new ColumnInfoEx[Infos.Length];
             for (int i = 0; i < Infos.Length; i++)
             {
-                var hashBits = args.Column[i].HashBits ?? args.HashBits;
+                var hashBits = args.Columns[i].HashBits ?? args.HashBits;
                 Host.CheckUserArg(NumBitsMin <= hashBits && hashBits < NumBitsLim, nameof(args.HashBits));
                 _exes[i] = CreateColumnInfoEx(
-                    args.Column[i].Join ?? args.Join,
-                    args.Column[i].CustomSlotMap,
-                    args.Column[i].HashBits ?? args.HashBits,
-                    args.Column[i].Seed ?? args.Seed,
-                    args.Column[i].Ordered ?? args.Ordered,
+                    args.Columns[i].Join ?? args.Join,
+                    args.Columns[i].CustomSlotMap,
+                    args.Columns[i].HashBits ?? args.HashBits,
+                    args.Columns[i].Seed ?? args.Seed,
+                    args.Columns[i].Ordered ?? args.Ordered,
                     Infos[i]);
             }
 

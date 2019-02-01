@@ -882,7 +882,7 @@ namespace Microsoft.ML.Data
                 {
                     var args = new ChooseColumnsByIndexTransform.Arguments();
                     args.Drop = true;
-                    args.Index = hidden.ToArray();
+                    args.Indices = hidden.ToArray();
                     idv = new ChooseColumnsByIndexTransform(env, args, idv);
                 }
                 list.Add(idv);
@@ -910,12 +910,12 @@ namespace Microsoft.ML.Data
 
                         idv = new KeyToValueMappingTransformer(env, keyCol).Transform(idv);
                         var hidden = FindHiddenColumns(idv.Schema, keyCol);
-                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
+                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = hidden.ToArray() }, idv);
                     }
                     foreach (var keyCol in firstDvKeyNoNamesColumns)
                     {
                         var hidden = FindHiddenColumns(idv.Schema, keyCol.Key);
-                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
+                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = hidden.ToArray() }, idv);
                     }
                     return idv;
                 };
@@ -1741,7 +1741,7 @@ namespace Microsoft.ML.Data
             var type = data.Schema[stratCol].Type;
             env.Check(type.GetKeyCount() > 0, "Expected a known count key type stratification column");
             var filterArgs = new NAFilter.Arguments();
-            filterArgs.Column = new[] { MetricKinds.ColumnNames.StratCol };
+            filterArgs.Columns = new[] { MetricKinds.ColumnNames.StratCol };
             filterArgs.Complement = true;
             data = new NAFilter(env, filterArgs, data);
 

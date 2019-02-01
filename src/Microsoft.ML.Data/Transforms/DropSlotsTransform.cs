@@ -39,8 +39,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to drop the slots for", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to drop the slots for",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         public sealed class Column : OneToOneColumn
@@ -309,7 +310,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
-            var columns = args.Column.Select(column => new ColumnInfo(column)).ToArray();
+            var columns = args.Columns.Select(column => new ColumnInfo(column)).ToArray();
             return new SlotsDroppingTransformer(env, columns).MakeDataTransform(input);
         }
 

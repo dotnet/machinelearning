@@ -88,8 +88,9 @@ namespace Microsoft.ML.Transforms
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:seed)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:seed)",
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use an auto-incremented integer starting at zero instead of a random number", ShortName = "cnt")]
             public bool UseCounter = Defaults.UseCounter;
@@ -115,12 +116,12 @@ namespace Microsoft.ML.Transforms
 
             public static Bindings Create(Arguments args, Schema input)
             {
-                var names = new string[args.Column.Length];
-                var useCounter = new bool[args.Column.Length];
-                var states = new TauswortheHybrid.State[args.Column.Length];
-                for (int i = 0; i < args.Column.Length; i++)
+                var names = new string[args.Columns.Length];
+                var useCounter = new bool[args.Columns.Length];
+                var states = new TauswortheHybrid.State[args.Columns.Length];
+                for (int i = 0; i < args.Columns.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     names[i] = item.Name;
                     useCounter[i] = item.UseCounter ?? args.UseCounter;
                     if (!useCounter[i])
@@ -269,7 +270,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="seed">Seed to start random number generator.</param>
         /// <param name="useCounter">Use an auto-incremented integer starting at zero instead of a random number.</param>
         public GenerateNumberTransform(IHostEnvironment env, IDataView input, string name, uint? seed = null, bool useCounter = Defaults.UseCounter)
-            : this(env, new Arguments() { Column = new[] { new Column() { Name = name } }, Seed = seed ?? Defaults.Seed, UseCounter = useCounter }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Name = name } }, Seed = seed ?? Defaults.Seed, UseCounter = useCounter }, input)
         {
         }
 
@@ -280,7 +281,7 @@ namespace Microsoft.ML.Transforms
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            Host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
 
             _bindings = Bindings.Create(args, Source.Schema);
         }

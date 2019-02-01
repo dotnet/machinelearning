@@ -474,9 +474,10 @@ namespace Microsoft.ML.CommandLine
                     Contracts.Check(!field.IsStatic && !field.IsInitOnly && !field.IsLiteral);
                     bool isDefault = attr is DefaultArgumentAttribute;
                     if (isDefault && def != null)
-                        throw Contracts.Except("Duplicate default argument '{0}' vs '{1}'", def.LongName, field.Name);
+                        throw Contracts.Except($"Duplicate default argument '{def.LongName}' vs '{field.Name}'");
 
-                    string name = ArgCase(field.Name);
+                    string name = ArgCase(attr.Name ?? field.Name);
+
                     string[] nicks;
                     // Semantics of ShortName:
                     //    The string provided represents an array of names separated by commas and spaces, once empty entries are removed.
@@ -494,13 +495,13 @@ namespace Microsoft.ML.CommandLine
                     Contracts.Assert(!isDefault || nicks == null);
 
                     if (map.ContainsKey(name.ToLowerInvariant()))
-                        throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", name, type.Name);
+                        throw Contracts.Except($"Duplicate name '{name}' in argument type '{type.Name}'");
                     if (nicks != null)
                     {
                         foreach (var nick in nicks)
                         {
                             if (map.ContainsKey(nick.ToLowerInvariant()))
-                                throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", nick, type.Name);
+                                throw Contracts.Except($"Duplicate name '{nick}' in argument type '{type.Name}'");
                         }
                     }
 

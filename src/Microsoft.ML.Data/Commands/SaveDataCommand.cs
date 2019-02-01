@@ -92,7 +92,7 @@ namespace Microsoft.ML.Data
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Comma separate list of columns to display", ShortName = "cols")]
+            [Argument(ArgumentType.Multiple, HelpText = "Comma separated list of columns to display", ShortName = "cols")]
             public string Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of rows")]

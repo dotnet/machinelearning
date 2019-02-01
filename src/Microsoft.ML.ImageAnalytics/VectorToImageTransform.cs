@@ -83,8 +83,8 @@ namespace Microsoft.ML.ImageAnalytics
 
         public class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use alpha channel", ShortName = "alpha")]
             public bool ContainsAlpha = false;
@@ -248,17 +248,17 @@ namespace Microsoft.ML.ImageAnalytics
 
         // Public constructor corresponding to SignatureDataTransform.
         public VectorToImageTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input,
+            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Columns, input,
                 t => t is VectorType ? null : "Expected VectorType type")
         {
             Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Host.Assert(Infos.Length == Utils.Size(args.Columns));
 
             _exes = new ColInfoEx[Infos.Length];
             _types = new ImageType[Infos.Length];
             for (int i = 0; i < _exes.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
                 _exes[i] = new ColInfoEx(item, args);
                 _types[i] = new ImageType(_exes[i].Height, _exes[i].Width);
             }

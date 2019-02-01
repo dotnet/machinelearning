@@ -85,13 +85,13 @@ namespace Microsoft.ML.Transforms
         // as group keys.
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Columns to group by", ShortName = "g", SortOrder = 1,
+            [Argument(ArgumentType.Multiple, HelpText = "Columns to group by", Name = "GroupKey", ShortName = "g", SortOrder = 1,
                 Purpose = SpecialPurpose.ColumnSelector)]
-            public string[] GroupKey;
+            public string[] GroupKeys;
 
             // The column names remain the same, there's no option to rename the column.
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to group together", ShortName = "col", SortOrder = 2)]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to group together", Name = "Column", ShortName = "col", SortOrder = 2)]
+            public string[] Columns;
         }
 
         private readonly GroupBinding _groupBinding;
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="groupKey">Columns to group by</param>
         /// <param name="columns">Columns to group together</param>
         public GroupTransform(IHostEnvironment env, IDataView input, string groupKey, params string[] columns)
-            : this(env, new Arguments() { GroupKey = new[] { groupKey }, Column = columns }, input)
+            : this(env, new Arguments() { GroupKeys = new[] { groupKey }, Columns = columns }, input)
         {
         }
 
@@ -112,9 +112,9 @@ namespace Microsoft.ML.Transforms
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.GroupKey) > 0, nameof(args.GroupKey), "There must be at least one group key");
+            Host.CheckUserArg(Utils.Size(args.GroupKeys) > 0, nameof(args.GroupKeys), "There must be at least one group key");
 
-            _groupBinding = new GroupBinding(Host, Source.Schema, args.GroupKey, args.Column ?? new string[0]);
+            _groupBinding = new GroupBinding(Host, Source.Schema, args.GroupKeys, args.Columns ?? new string[0]);
         }
 
         public static GroupTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -225,10 +225,10 @@ namespace Microsoft.ML.Transforms
                 _inputSchema = inputSchema;
 
                 _groupColumns = groupColumns;
-                GroupColumnIndexes = GetColumnIds(inputSchema, groupColumns, x => _ectx.ExceptUserArg(nameof(Arguments.GroupKey), x));
+                GroupColumnIndexes = GetColumnIds(inputSchema, groupColumns, x => _ectx.ExceptUserArg(nameof(Arguments.GroupKeys), x));
 
                 _keepColumns = keepColumns;
-                KeepColumnIndexes = GetColumnIds(inputSchema, keepColumns, x => _ectx.ExceptUserArg(nameof(Arguments.Column), x));
+                KeepColumnIndexes = GetColumnIds(inputSchema, keepColumns, x => _ectx.ExceptUserArg(nameof(Arguments.Columns), x));
 
                 // Compute output schema from the specified input schema.
                 OutputSchema = BuildOutputSchema(inputSchema);

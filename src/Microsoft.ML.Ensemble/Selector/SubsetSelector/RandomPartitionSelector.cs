@@ -38,7 +38,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
         {
             string name = Data.Data.Schema.GetTempColumnName();
             var args = new GenerateNumberTransform.Arguments();
-            args.Column = new[] { new GenerateNumberTransform.Column() { Name = name } };
+            args.Columns = new[] { new GenerateNumberTransform.Column() { Name = name } };
             args.Seed = (uint)rand.Next();
             IDataTransform view = new GenerateNumberTransform(Host, args, Data.Data);
 
