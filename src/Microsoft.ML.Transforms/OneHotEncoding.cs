@@ -119,32 +119,32 @@ namespace Microsoft.ML.Transforms.Categorical
 
         internal const string UserName = "Categorical Transform";
 
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("Categorical");
-            h.CheckValue(args, nameof(args));
+            h.CheckValue(options, nameof(options));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
+            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
             var columns = new List<OneHotEncodingEstimator.ColumnInfo>();
-            foreach (var column in args.Columns)
+            foreach (var column in options.Columns)
             {
                 var col = new OneHotEncodingEstimator.ColumnInfo(
                     column.Name,
                     column.Source ?? column.Name,
-                    column.OutputKind ?? args.OutputKind,
-                    column.MaxNumTerms ?? args.MaxNumTerms,
-                    column.Sort ?? args.Sort,
-                    column.Terms ?? args.Terms);
-                col.SetTerms(column.Term ?? args.Term);
+                    column.OutputKind ?? options.OutputKind,
+                    column.MaxNumTerms ?? options.MaxNumTerms,
+                    column.Sort ?? options.Sort,
+                    column.Terms ?? options.Terms);
+                col.SetTerms(column.Term ?? options.Term);
                 columns.Add(col);
             }
             IDataView keyData = null;
-            if (!string.IsNullOrEmpty(args.DataFile))
+            if (!string.IsNullOrEmpty(options.DataFile))
             {
                 using (var ch = h.Start("Load term data"))
-                    keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
+                    keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
                 h.AssertValue(keyData);
             }
             var transformed = new OneHotEncodingEstimator(env, columns.ToArray(), keyData).Fit(input).Transform(input);

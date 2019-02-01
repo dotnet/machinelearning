@@ -6,9 +6,9 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KeyToValue_TermExample
+    public class KeyToValueValueToKeyExample
     {
-        public static void KeyToValue_Term()
+        public static void KeyToValueValueToKey()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var default_pipeline = new WordTokenizingEstimator(ml, "Review")
                 .Append(ml.Transforms.Conversion.MapValueToKey(defaultColumnName, "Review"));
 
-            // Another pipeline, that customizes the advanced settings of the TermEstimator.
+            // Another pipeline, that customizes the advanced settings of the ValueToKeyMappingEstimator.
             // We can change the maxNumTerm to limit how many keys will get generated out of the set of words, 
             // and condition the order in which they get evaluated by changing sort from the default Occurence (order in which they get encountered) 
             // to value/alphabetically.

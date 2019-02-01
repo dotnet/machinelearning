@@ -270,42 +270,42 @@ namespace Microsoft.ML.Transforms.Conversions
 
         [BestFriend]
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = new ValueToKeyMappingEstimator.ColumnInfo[args.Columns.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new ValueToKeyMappingEstimator.ColumnInfo[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
-                if ((args.Terms != null || !string.IsNullOrEmpty(args.Term)) &&
-                  (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader != null ||
-                      !string.IsNullOrWhiteSpace(args.TermsColumn)))
+                if ((options.Terms != null || !string.IsNullOrEmpty(options.Term)) &&
+                  (!string.IsNullOrWhiteSpace(options.DataFile) || options.Loader != null ||
+                      !string.IsNullOrWhiteSpace(options.TermsColumn)))
                 {
                     ch.Warning("Explicit term list specified. Data file arguments will be ignored");
                 }
-                if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), args.Sort))
-                    throw ch.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected", args.Sort);
+                if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), options.Sort))
+                    throw ch.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected", options.Sort);
 
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = args.Columns[i];
-                    var sortOrder = item.Sort ?? args.Sort;
+                    var sortOrder = item.Sort ?? options.Sort;
                     if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), sortOrder))
-                        throw env.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
+                        throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
 
                     cols[i] = new ValueToKeyMappingEstimator.ColumnInfo(
                         item.Name,
                         item.Source ?? item.Name,
-                        item.MaxNumTerms ?? args.MaxNumTerms,
+                        item.MaxNumTerms ?? options.MaxNumTerms,
                         sortOrder,
                         item.Terms,
-                        item.TextKeyValues ?? args.TextKeyValues);
-                    cols[i].Terms = item.Term ?? args.Term;
+                        item.TextKeyValues ?? options.TextKeyValues);
+                    cols[i].Terms = item.Term ?? options.Term;
                 };
-                var keyData = GetKeyDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
+                var keyData = GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
                 return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
             }
         }

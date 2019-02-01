@@ -116,6 +116,13 @@ namespace Microsoft.ML
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingEstimator.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KeyToValueValueToKey.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
@@ -131,6 +138,13 @@ namespace Microsoft.ML
         /// <param name="keyData">The data view containing the terms. If specified, this should be a single column data
         /// view, and the key-values will be taken from taht column. If unspecified, the key-values will be determined
         /// from the input data upon fitting.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KeyToValueValueToKey.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
             ValueToKeyMappingEstimator.ColumnInfo[] columns, IDataView keyData = null)
             => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);

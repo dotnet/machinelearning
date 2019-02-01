@@ -104,14 +104,14 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Factory method for SignatureDataTransform.
         /// </summary>
         [BestFriend]
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
-            env.CheckNonEmpty(args.Columns, nameof(args.Columns));
+            env.CheckNonEmpty(options.Columns, nameof(options.Columns));
 
-            var transformer = new KeyToValueMappingTransformer(env, args.Columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray());
+            var transformer = new KeyToValueMappingTransformer(env, options.Columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 
