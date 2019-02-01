@@ -952,7 +952,7 @@ namespace Microsoft.ML.Transforms.Text
                 cols[i] = (item.Name, item.Source ?? item.Name);
             }
             CustomStopWordsRemovingTransformer transfrom = null;
-            if (Utils.Size(args.Stopword) > 0)
+            if (Utils.Size(args.Stopwords) > 0)
                 transfrom = new CustomStopWordsRemovingTransformer(env, args.Stopwords, cols);
             else
                 transfrom = new CustomStopWordsRemovingTransformer(env, args.Stopword, args.DataFile, args.StopwordsColumn, args.Loader, cols);
