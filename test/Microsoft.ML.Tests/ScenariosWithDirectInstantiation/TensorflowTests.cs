@@ -433,7 +433,7 @@ namespace Microsoft.ML.Scenarios
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("OneHotLabel", "Label")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumn("Features", "Placeholder")))
-                    .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransformer.Options()
+                    .Append(mlContext.Transforms.TensorFlow(new TensorFlowTransformer.Options()
                     {
                         ModelLocation = model_location,
                         InputColumns = new[] { "Features" },
