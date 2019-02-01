@@ -246,7 +246,7 @@ namespace Microsoft.ML.Data
             }
             else
             {
-                var args = new GenerateNumberTransform.Arguments();
+                var args = new GenerateNumberTransform.Options();
                 args.Columns = new[] { new GenerateNumberTransform.Column() { Name = "Instance" } };
                 args.UseCounter = true;
                 idv = new GenerateNumberTransform(Host, args, idv);

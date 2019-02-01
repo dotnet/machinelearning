@@ -392,11 +392,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new KeyToBinaryVectorMappingTransformer.ColumnInfo[toOutput.Length];
+                var infos = new (string outputColumnName, string inputColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToBinaryVectorMappingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input]);
+                    infos[i] = (outputNames[toOutput[i]], inputNames[col.Input]);
                 }
                 return new KeyToBinaryVectorMappingEstimator(env, infos);
             }

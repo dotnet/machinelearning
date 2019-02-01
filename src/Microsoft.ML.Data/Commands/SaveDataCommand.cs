@@ -158,7 +158,7 @@ namespace Microsoft.ML.Data
             // Send the first N lines to console.
             if (Args.Rows > 0)
             {
-                var args = new SkipTakeFilter.TakeArguments() { Count = Args.Rows };
+                var args = new SkipTakeFilter.TakeOptions() { Count = Args.Rows };
                 data = SkipTakeFilter.Create(Host, args, data);
             }
             var textSaver = saver as TextSaver;

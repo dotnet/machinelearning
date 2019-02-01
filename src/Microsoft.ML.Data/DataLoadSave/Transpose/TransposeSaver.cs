@@ -145,7 +145,7 @@ namespace Microsoft.ML.Data.IO
                 new ChooseColumnsByIndexTransform.Options() { Indices = cols }, data);
             // If we want the "dual mode" row-wise and slot-wise file, don't filter out anything.
             if (!_writeRowData)
-                subdata = SkipTakeFilter.Create(_host, new SkipTakeFilter.TakeArguments() { Count = 0 }, subdata);
+                subdata = SkipTakeFilter.Create(_host, new SkipTakeFilter.TakeOptions() { Count = 0 }, subdata);
 
             string msg = _writeRowData ? "row-wise data, schema, and metadata" : "schema and metadata";
             viewAction(msg, subdata);
