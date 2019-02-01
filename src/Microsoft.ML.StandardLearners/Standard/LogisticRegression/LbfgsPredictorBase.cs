@@ -18,7 +18,7 @@ namespace Microsoft.ML.Learners
 {
     public abstract class LbfgsTrainerBase<TArgs, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-      where TModel : IPredictor
+      where TModel : class
       where TArgs : LbfgsTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new ()
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight

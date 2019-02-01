@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
         where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.ArgumentsBase, new()
-        where TPredictor : IPredictorProducing<float>
+        where TPredictor : class
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
         {

@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
     /// 2. An indicator vector for the leaves that the feature vector falls on in the tree ensemble.
     /// 3. An indicator vector for the internal nodes on the paths that the feature vector falls on in the tree ensemble.
     /// </summary>
-    public sealed class TreeEnsembleFeaturizerBindableMapper : ISchemaBindableMapper, ICanSaveModel
+    internal sealed class TreeEnsembleFeaturizerBindableMapper : ISchemaBindableMapper, ICanSaveModel
     {
         public static class OutputColumnNames
         {

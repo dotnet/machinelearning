@@ -13,7 +13,9 @@ using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer) },
@@ -54,7 +56,11 @@ namespace Microsoft.ML.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => new OnlineGradientDescentTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features))
+                        env => {
+                            var trainerEstimator = new OnlineGradientDescentTrainer(env);
+                            return TrainerUtils.MapTrainerEstimatorToTrainer<OnlineGradientDescentTrainer,
+                                LinearRegressionModelParameters, LinearRegressionModelParameters>(env, trainerEstimator);
+                        })
                 };
             }
         }

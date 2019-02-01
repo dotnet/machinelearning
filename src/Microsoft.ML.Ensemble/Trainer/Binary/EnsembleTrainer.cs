@@ -12,7 +12,9 @@ using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -58,7 +60,11 @@ namespace Microsoft.ML.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => new LinearSvmTrainer(env))
+                        env => {
+                            var trainerEstimator = new LinearSvmTrainer(env);
+                            return TrainerUtils.MapTrainerEstimatorToTrainer<LinearSvmTrainer,
+                                LinearBinaryModelParameters, LinearBinaryModelParameters>(env, trainerEstimator);
+                        })
                 };
             }
         }

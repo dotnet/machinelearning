@@ -29,7 +29,7 @@ namespace Microsoft.ML.LightGBM
     /// </summary>
     public abstract class LightGbmTrainerBase<TOutput, TTransformer, TModel> : TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictorProducing<TOutput>
+        where TModel : class
     {
         private sealed class CategoricalMetaData
         {

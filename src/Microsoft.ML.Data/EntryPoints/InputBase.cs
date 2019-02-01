@@ -45,7 +45,7 @@ namespace Microsoft.ML.EntryPoints
     {
         /// <summary>
         /// The data to be used for training. Used only in entry-points, since in the API the expected mechanism is
-        /// that the user iwll use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> or some other train
+        /// that the user will use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> or some other train
         /// method.
         /// </summary>
         [BestFriend]
