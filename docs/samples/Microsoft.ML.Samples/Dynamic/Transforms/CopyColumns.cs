@@ -36,21 +36,21 @@ namespace Microsoft.ML.Samples.Dynamic
             string labelColumnName = "Label";
             var pipeline = mlContext.Transforms.CopyColumns(labelColumnName, "Age") as IEstimator<ITransformer>;
 
-            // You also may want to copy a column to perform some hand featurization
-            // For example, we can make an indicator variable if Parity goes above some threshold
+            // You also may want to copy a column to perform some hand-featurization using built-in transforms or
+            // a CustomMapping transform. For example, we could make an indicator variable if a feature, such as Parity
+            // goes above some threshold. We simply copy the Parity column to a new column, then pass it through a custom function.
             Action<InputRow, OutputRow> mapping = (input, output) =>output.CustomValue = input.CustomValue > 4 ? 1 : 0;
             pipeline = pipeline.Append(mlContext.Transforms.CopyColumns("CustomValue", "Parity"))
                 .Append(mlContext.Transforms.CustomMapping(mapping, null));
 
-            // Now we can transform the data and look at the output
-            // Don't forget that this operation doesn't actually evaluate data until we materialize the data below.
+            // Now we can transform the data and look at the output to confirm the behavior of CopyColumns.
+            // Don't forget that this operation doesn't actually evaluate data until we read the data below.
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
 
-            // Now let's take a look at what these CopyColumns operations did.
-            // We can extract the newly created column as an IEnumerable of SampleInfertDataWithLabelAndValue, the class we define below.
+            // We can extract the newly created column as an IEnumerable of SampleInfertDataTransformed, the class we define below.
             var rowEnumerable = mlContext.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
 
-            // And we can write out the rows of the dataset, looking at the columns of interest
+            // And finally, we can write out the rows of the dataset, looking at the columns of interest.
             Console.WriteLine($"Label, Parity, and CustomValue columns obtained post-transformation.");
             foreach (var row in rowEnumerable)
             {
