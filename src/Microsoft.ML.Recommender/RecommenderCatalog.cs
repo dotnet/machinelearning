@@ -15,22 +15,22 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Trainers and tasks specific to ranking problems.
+        /// Trainers and tasks specific to recommendation problems.
         /// </summary>
         public static RecommendationCatalog Recommendation(this MLContext ctx) => new RecommendationCatalog(ctx);
     }
 
     /// <summary>
-    /// The central catalog for recommendation trainers.
+    /// The central catalog for recommendation trainers and tasks.
     /// </summary>
     public sealed class RecommendationCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// For trainers for performing recommendation.
+        /// The list of trainers for performing recommendation.
         /// </summary>
         public RecommendationTrainers Trainers { get; }
 
-        public RecommendationCatalog(IHostEnvironment env)
+        internal RecommendationCatalog(IHostEnvironment env)
             : base(env, nameof(RecommendationCatalog))
         {
             Trainers = new RecommendationTrainers(this);
