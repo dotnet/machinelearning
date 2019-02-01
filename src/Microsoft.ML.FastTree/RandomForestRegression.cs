@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -313,14 +314,12 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public static partial class FastForest
+    internal static partial class FastForest
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor",
             Desc = FastForestRegression.Summary,
             UserName = FastForestRegression.LoadNameValue,
-            ShortName = FastForestRegression.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
-                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestRegressor""]/*' />"})]
+            ShortName = FastForestRegression.ShortName)]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegression.Options input)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Calibration;
@@ -17,11 +19,17 @@ namespace Microsoft.ML.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITransformInput))]
     public abstract class TransformInputBase
     {
+        /// <summary>
+        /// The input dataset. Used only in entry-point methods, since the normal API mechanism for feeding in a dataset to
+        /// create an <see cref="ITransformer"/> is to use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> method.
+        /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.Required, HelpText = "Input dataset", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, SortOrder = 1)]
-        public IDataView Data;
+        internal IDataView Data;
     }
 
-    public enum CachingOptions
+    [BestFriend]
+    internal enum CachingOptions
     {
         Auto,
         Memory,
@@ -36,10 +44,13 @@ namespace Microsoft.ML.EntryPoints
     public abstract class LearnerInputBase
     {
         /// <summary>
-        /// The data to be used for training.
+        /// The data to be used for training. Used only in entry-points, since in the API the expected mechanism is
+        /// that the user iwll use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> or some other train
+        /// method.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.Required, ShortName = "data", HelpText = "The data to be used for training", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public IDataView TrainingData;
+        internal IDataView TrainingData;
 
         /// <summary>
         /// Column to use for features.
@@ -48,16 +59,20 @@ namespace Microsoft.ML.EntryPoints
         public string FeatureColumn = DefaultColumnNames.Features;
 
         /// <summary>
-        /// Normalize option for the feature column.
+        /// Normalize option for the feature column. Used only in entry-points, since in the API the user is expected to do this themselves.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize option for the feature column", ShortName = "norm", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
+        internal NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
         /// <summary>
-        /// Whether learner should cache input training data.
+        /// Whether learner should cache input training data. Used only in entry-points, since the intended API mechanism
+        /// is that the user will use the <see cref="DataOperationsCatalog.Cache(IDataView, string[])"/> or other method
+        /// like <see cref="EstimatorChain{TLastTransformer}.AppendCacheCheckpoint(IHostEnvironment)"/>.
         /// </summary>
+        [BestFriend]
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether learner should cache input training data", ShortName = "cache", SortOrder = 6, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public CachingOptions Caching = CachingOptions.Auto;
+        internal CachingOptions Caching = CachingOptions.Auto;
     }
 
     /// <summary>
@@ -220,7 +235,8 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// Common input interfaces for TLC components.
     /// </summary>
-    public static class CommonInputs
+    [BestFriend]
+    internal static class CommonInputs
     {
         /// <summary>
         /// Interface that all API transform input classes will implement.

@@ -21,9 +21,26 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
+
+    /// <summary>
+    /// A Fact attribute for Onnx unit tests. Onnxruntime only supported
+    /// on Windows, Linux (Ubuntu 16.04) and 64-bit platforms.
+    /// </summary>
+    public class OnnxFact : FactAttribute
+    {
+        public OnnxFact()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
+                !Environment.Is64BitProcess)
+            {
+                Skip = "Require 64 bit and Windows or Linux (Ubuntu 16.04).";
+            }
+        }
+    }
+
     public class OnnxTransformTests : TestDataPipeBase
     {
-
         private const int inputSize = 150528;
 
         private class TestData
@@ -83,16 +100,11 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        [OnnxFact]
         void TestSimpleCase()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             var modelFile = "squeezenet/00000001/model.onnx";
-
             var samplevector = GetSampleArrayData();
-
             var dataView = ML.Data.ReadFromEnumerable(
                 new TestData[] {
                     new TestData()
@@ -108,7 +120,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = new OnnxScoringEstimator(Env, modelFile, new[] { "data_0" }, new[] { "softmaxout_1" });
+            var pipe = new OnnxScoringEstimator(Env, new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile);
 
             var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
@@ -126,7 +138,8 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        // x86 not supported
+        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))]
         [InlineData(null, false)]
         [InlineData(null, true)]
         void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
@@ -135,7 +148,6 @@ namespace Microsoft.ML.Tests
                 return;
 
             var modelFile = "squeezenet/00000001/model.onnx";
-
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.ReadFromEnumerable(
@@ -148,7 +160,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = new[] { "data_0" };
             var outputNames = new[] { "softmaxout_1" };
-            var est = new OnnxScoringEstimator(Env, modelFile, inputNames, outputNames, gpuDeviceId, fallbackToCpu);
+            var est = new OnnxScoringEstimator(Env, outputNames, inputNames, modelFile, gpuDeviceId, fallbackToCpu);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -187,13 +199,10 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        [OnnxFact]
         public void OnnxStatic()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
-            var modelFile = "squeezenet/00000001/model.onnx";
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
             var env = new MLContext(conc: 1);
             var imageHeight = 224;
@@ -233,23 +242,17 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [OnnxFact]
         void TestCommandLine()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             var env = new MLContext();
-            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx} GpuDeviceId=0 FallbackToCpu=+}" });
+            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
             Assert.Equal(0, x);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [OnnxFact]
         public void OnnxModelScenario()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             var modelFile = "squeezenet/00000001/model.onnx";
             using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
@@ -263,7 +266,7 @@ namespace Microsoft.ML.Tests
                         }
                     });
 
-                var onnx = new OnnxTransformer(env, modelFile, "data_0", "softmaxout_1").Transform(dataView);
+                var onnx = new OnnxTransformer(env, "softmaxout_1", modelFile, "data_0").Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
 
@@ -280,13 +283,10 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [OnnxFact]
         public void OnnxModelMultiInput()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
-            var modelFile = @"twoinput\twoinput.onnx";
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
             using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var samplevector = GetSampleArrayData();
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Tests
                             inb = new float[] {1,2,3,4,5}
                         }
                     });
-                var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }).Transform(dataView);
+                var onnx = new OnnxTransformer(env, new[] { "outa", "outb" }, new[] { "ina", "inb" }, modelFile).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
@@ -323,12 +323,9 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [OnnxFact]
         public void TestUnknownDimensions()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             // model contains -1 in input and output shape dimensions
             // model: input dims = [-1, 3], output argmax dims = [-1]
             var modelFile = @"unknowndimensions/test_unknowndimensions_float.onnx";
@@ -350,4 +347,3 @@ namespace Microsoft.ML.Tests
         }
     }
 }
-

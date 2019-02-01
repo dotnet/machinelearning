@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -43,16 +44,19 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     /// <remarks>
     /// <p>Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
-    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/'>Microsoft.ML.OnnxRuntime.Gpu</a> library.
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library.
     /// </p>
-    /// <p>Models are scored on CPU by default. If GPU execution is needed (optional), install
-    /// <a href='https://developer.nvidia.com/cuda-downloads'>CUDA 10.0 Toolkit</a>
+    /// <p>Models are scored on CPU by default. If GPU execution is needed (optional), use the
+    /// NuGet package available at
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/'>Microsoft.ML.OnnxRuntime.Gpu</a>
+    /// and download
+    /// <a href='https://developer.nvidia.com/cuda-downloads'>CUDA 9.1 Toolkit</a>
     /// and
-    /// <a href='https://developer.nvidia.com/cudnn'>cuDNN</a>
-    /// , and set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
+    /// <a href='https://developer.nvidia.com/cudnn'>cuDNN</a>.
+    ///  Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
     /// </p>
     /// <p>The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.</p>
-    /// <p>OnnxRuntime currently works on Windows 64-bit platforms only. Linux and OSX to be supported soon.</p>
+    /// <p>OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. Mac OS to be supported soon.</p>
     /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
     /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
     /// </remarks>
@@ -69,10 +73,10 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
             public string[] OutputColumns;
 
-            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 10.0.", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "GPU device id to run on (e.g. 0,1,..). Null for CPU. Requires CUDA 9.1.", SortOrder = 3)]
             public int? GpuDeviceId = null;
 
-            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
             public bool FallbackToCpu = false;
         }
 
@@ -174,11 +178,11 @@ namespace Microsoft.ML.Transforms
             }
 
             var modelInfo = Model.ModelInfo;
-            Inputs = (args.InputColumns.Count() == 0 ) ? Model.InputNames.ToArray() : args.InputColumns;
-            Outputs = (args.OutputColumns.Count() == 0 ) ? Model.OutputNames.ToArray() : args.OutputColumns;
+            Inputs = (args.InputColumns.Count() == 0) ? Model.InputNames.ToArray() : args.InputColumns;
+            Outputs = (args.OutputColumns.Count() == 0) ? Model.OutputNames.ToArray() : args.OutputColumns;
             OutputTypes = new ColumnType[Outputs.Length];
             var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
-            for (int i=0; i < Outputs.Length; i++)
+            for (int i = 0; i < Outputs.Length; i++)
             {
                 var idx = Model.OutputNames.IndexOf(Outputs[i]);
                 if (idx < 0)
@@ -218,17 +222,17 @@ namespace Microsoft.ML.Transforms
         /// the model specification. Only 1 output column is generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumn">The name of the input data column. Must match model input name.</param>
-        /// <param name="outputColumn">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        public OnnxTransformer(IHostEnvironment env, string outputColumnName, string modelFile, string inputColumnName = null, int? gpuDeviceId = null, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
                 ModelFile = modelFile,
-                InputColumns = new[] { inputColumn },
-                OutputColumns = new[] { outputColumn },
+                InputColumns = new[] { inputColumnName ?? outputColumnName },
+                OutputColumns = new[] { outputColumnName },
                 GpuDeviceId = gpuDeviceId,
                 FallbackToCpu = fallbackToCpu
             })
@@ -240,17 +244,17 @@ namespace Microsoft.ML.Transforms
         /// all model input names. Only the output columns specified will be generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
+        /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="inputColumnNames">The name of the input data columns. Must match model's input names.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        public OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
                 ModelFile = modelFile,
-                InputColumns = inputColumns,
-                OutputColumns = outputColumns,
+                InputColumns = inputColumnNames,
+                OutputColumns = outputColumnNames,
                 GpuDeviceId = gpuDeviceId,
                 FallbackToCpu = fallbackToCpu
             })
@@ -299,7 +303,7 @@ namespace Microsoft.ML.Transforms
             private readonly System.Type[] _inputOnnxTypes;
 
             public Mapper(OnnxTransformer parent, Schema inputSchema) :
-                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
 
                 _parent = parent;
@@ -309,7 +313,7 @@ namespace Microsoft.ML.Transforms
                 _inputOnnxTypes = new System.Type[_parent.Inputs.Length];
 
                 var model = _parent.Model;
-                for (int i = 0; i <  _parent.Inputs.Length; i++)
+                for (int i = 0; i < _parent.Inputs.Length; i++)
                 {
                     var idx = model.InputNames.IndexOf(_parent.Inputs[i]);
                     if (idx < 0)
@@ -341,7 +345,7 @@ namespace Microsoft.ML.Transforms
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
                     // Compute the total size of the known dimensions of the shape.
-                    int valCount = inputShape.Select(x => (int)x).Where(x => x > 0).Aggregate((x, y) => x * y);
+                    int valCount = inputShape.Where(x => x > 0).Aggregate((x, y) => x * y);
                     // The column length should be divisible by this, so that the other dimensions can be integral.
                     int typeValueCount = type.GetValueCount();
                     if (typeValueCount % valCount != 0)
@@ -427,7 +431,7 @@ namespace Microsoft.ML.Transforms
                     var denseTensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
                     if (denseTensor == null)
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
-                    var editor = VBufferEditor.Create(ref dst, (int) denseTensor.Length);
+                    var editor = VBufferEditor.Create(ref dst, (int)denseTensor.Length);
                     denseTensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };
@@ -522,7 +526,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         public OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new OnnxTransformer(env, modelFile, new string[] { }, new string[] { }, gpuDeviceId, fallbackToCpu))
+            : this(env, new OnnxTransformer(env, new string[] { }, new string[] { }, modelFile, gpuDeviceId, fallbackToCpu))
         {
         }
 
@@ -531,13 +535,13 @@ namespace Microsoft.ML.Transforms
         /// all model input names. Only the output columns specified will be generated.
         /// </summary>
         /// <param name="env">The environment to use.</param>
+        /// <param name="outputColumnNames">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="inputColumnNames">The name of the input data columns. Must match model's input names.</param>
         /// <param name="modelFile">Model file path.</param>
-        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
-        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int? gpuDeviceId = null, bool fallbackToCpu = false)
-           : this(env, new OnnxTransformer(env, modelFile, inputColumns, outputColumns, gpuDeviceId, fallbackToCpu))
+        public OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile,  int? gpuDeviceId = null, bool fallbackToCpu = false)
+           : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu))
         {
         }
 
@@ -558,7 +562,7 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
                 var idx = Transformer.Model.InputNames.IndexOf(input);
@@ -581,4 +585,3 @@ namespace Microsoft.ML.Transforms
         }
     }
 }
-

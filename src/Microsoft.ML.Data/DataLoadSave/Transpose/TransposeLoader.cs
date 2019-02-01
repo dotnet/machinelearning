@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -30,7 +31,8 @@ namespace Microsoft.ML.Data.IO
     /// the master sub-IDV stores the overall schema, and optionally the data in row-wise format.
     /// </summary>
     /// <seealso cref="TransposeSaver"/>
-    public sealed class TransposeLoader : IDataLoader, ITransposeDataView
+    [BestFriend]
+    internal sealed class TransposeLoader : IDataLoader, ITransposeDataView
     {
         public sealed class Arguments
         {

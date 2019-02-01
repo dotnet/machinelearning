@@ -61,10 +61,10 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new IidChangePointEstimator(env,
-                    inputNames[outCol.Input],
                     outputNames[outCol],
                     _confidence,
                     _changeHistoryLength,
+                    inputNames[outCol.Input],
                     _martingale,
                     _eps);
             }
@@ -125,10 +125,10 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new IidSpikeEstimator(env,
-                    inputNames[outCol.Input],
                     outputNames[outCol],
                     _confidence,
                     _pvalueHistoryLength,
+                    inputNames[outCol.Input],
                     _side);
             }
         }
@@ -204,12 +204,12 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new SsaChangePointEstimator(env,
-                    inputNames[outCol.Input],
                     outputNames[outCol],
                     _confidence,
                     _changeHistoryLength,
                     _trainingWindowSize,
                     _seasonalityWindowSize,
+                    inputNames[outCol.Input],
                     _errorFunction,
                     _martingale,
                     _eps);
@@ -286,12 +286,12 @@ namespace Microsoft.ML.StaticPipe
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new SsaSpikeEstimator(env,
-                    inputNames[outCol.Input],
                     outputNames[outCol],
                     _confidence,
                     _pvalueHistoryLength,
                     _trainingWindowSize,
                     _seasonalityWindowSize,
+                    inputNames[outCol.Input],
                     _side,
                     _errorFunction);
             }

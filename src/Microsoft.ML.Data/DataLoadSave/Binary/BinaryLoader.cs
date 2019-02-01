@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
@@ -35,7 +36,8 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Data.IO
 {
-    public sealed class BinaryLoader : IDataLoader, IDisposable
+    [BestFriend]
+    internal sealed class BinaryLoader : IDataLoader, IDisposable
     {
         public sealed class Arguments
         {

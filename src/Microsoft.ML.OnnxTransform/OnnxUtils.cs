@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics.Tensors;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
 using OnnxShape = System.Collections.Generic.List<int>;
@@ -81,11 +82,12 @@ namespace Microsoft.ML.Transforms
         {
             _modelFile = modelFile;
 
-            if (gpuDeviceId.HasValue)
+            if (gpuDeviceId != null)
             {
                 try
                 {
-                    _session = new InferenceSession(modelFile, SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
+                    _session = new InferenceSession(modelFile,
+                        SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
                 }
                 catch (OnnxRuntimeException)
                 {
@@ -245,7 +247,7 @@ namespace Microsoft.ML.Transforms
         {
             if (!_typeToKindMap.ContainsKey(type))
                throw Contracts.ExceptNotSupp("Onnx type not supported", type);
-            return PrimitiveType.FromKind(_typeToKindMap[type]);
+            return ColumnTypeExtensions.PrimitiveTypeFromKind(_typeToKindMap[type]);
         }
     }
 }

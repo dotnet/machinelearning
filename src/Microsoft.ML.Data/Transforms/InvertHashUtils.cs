@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Data
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
                 VBuffer<ReadOnlyMemory<char>> keyValues = default;
-                schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
+                schema[col].GetKeyValues(ref keyValues);
                 ReadOnlyMemory<char> value = default;
 
                 // REVIEW: We could optimize for identity, but it's probably not worthwhile.

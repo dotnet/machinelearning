@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -274,7 +275,7 @@ namespace Microsoft.ML.Trainers.Online
             => new TrainState(ch, numFeatures, predictor, this);
 
         [TlcModule.EntryPoint(Name = "Trainers.LinearSvmBinaryClassifier", Desc = "Train a linear SVM.", UserName = UserNameValue, ShortName = ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainLinearSvm(IHostEnvironment env, Options input)
+        internal static CommonOutputs.BinaryClassificationOutput TrainLinearSvm(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLinearSVM");

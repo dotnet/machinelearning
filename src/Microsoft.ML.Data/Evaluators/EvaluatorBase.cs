@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
@@ -484,9 +486,9 @@ namespace Microsoft.ML.Data
             LabelCol = labelCol;
 
             if (!string.IsNullOrEmpty(LabelCol) && !schema.TryGetColumnIndex(LabelCol, out LabelIndex))
-                throw Host.Except("Did not find the label column '{0}'", LabelCol);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol);
             if (!schema.TryGetColumnIndex(ScoreCol, out ScoreIndex))
-                throw Host.Except("Did not find column '{0}'", ScoreCol);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
         protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  Schema schema)
@@ -500,9 +502,9 @@ namespace Microsoft.ML.Data
             ScoreCol = ctx.LoadNonEmptyString();
             LabelCol = ctx.LoadStringOrNull();
             if (!string.IsNullOrEmpty(LabelCol) && !schema.TryGetColumnIndex(LabelCol, out LabelIndex))
-                throw Host.Except($"Did not find the label column '{LabelCol}'");
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol);
             if (!schema.TryGetColumnIndex(ScoreCol, out ScoreIndex))
-                throw Host.Except($"Did not find column '{ScoreCol}'");
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
         public virtual void Save(ModelSaveContext ctx)
@@ -532,5 +534,10 @@ namespace Microsoft.ML.Data
 
         [BestFriend]
         private protected abstract Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer);
+
+        public ITransformer GetTransformer()
+        {
+            throw Host.ExceptNotSupp();
+        }
     }
 }

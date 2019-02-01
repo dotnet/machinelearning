@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
@@ -211,7 +212,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         protected string InputColumnName;
         protected string OutputColumnName;
 
-        private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName, string outputColumnName,
+        private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string outputColumnName, string inputColumnName,
             Action<TState> initFunction, bool hasBuffer, ColumnType outputColTypeOverride)
         {
             var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
@@ -237,19 +238,19 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// </summary>
         /// <param name="windowSize">The size of buffer used for windowed buffering.</param>
         /// <param name="initialWindowSize">The number of datapoints picked from the beginning of the series for training the transform parameters if needed.</param>
-        /// <param name="inputColumnName">The name of the input column.</param>
         /// <param name="outputColumnName">The name of the dst column.</param>
-        /// <param name="name"></param>
+        /// <param name="inputColumnName">The name of the input column.</param>
+        /// <param name="name">Name of the extending type.</param>
         /// <param name="env">A reference to the environment variable.</param>
         /// <param name="input">A reference to the input data view.</param>
         /// <param name="outputColTypeOverride"></param>
-        private protected SequentialTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
+        private protected SequentialTransformBase(int windowSize, int initialWindowSize, string outputColumnName, string inputColumnName,
             string name, IHostEnvironment env, IDataView input, ColumnType outputColTypeOverride = null)
-            : this(windowSize, initialWindowSize, inputColumnName, outputColumnName, Contracts.CheckRef(env, nameof(env)).Register(name), input, outputColTypeOverride)
+            : this(windowSize, initialWindowSize, outputColumnName, inputColumnName, Contracts.CheckRef(env, nameof(env)).Register(name), input, outputColTypeOverride)
         {
         }
 
-        private protected SequentialTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
+        private protected SequentialTransformBase(int windowSize, int initialWindowSize, string outputColumnName, string inputColumnName,
             IHost host, IDataView input, ColumnType outputColTypeOverride = null)
             : base(host, input)
         {
@@ -266,7 +267,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             InitialWindowSize = initialWindowSize;
             WindowSize = windowSize;
 
-            _transform = CreateLambdaTransform(Host, input, InputColumnName, OutputColumnName, InitFunction, WindowSize > 0, outputColTypeOverride);
+            _transform = CreateLambdaTransform(Host, input, OutputColumnName, InputColumnName, InitFunction, WindowSize > 0, outputColTypeOverride);
         }
 
         private protected SequentialTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name, IDataView input)
@@ -277,7 +278,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // int: _windowSize
             // int: _initialWindowSize
-            // int (string ID): _inputColumnName
+            // int (string ID): _sourceColumnName
             // int (string ID): _outputColumnName
             // ColumnType: _transform.Schema.GetColumnType(0)
 
@@ -298,7 +299,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             BinarySaver bs = new BinarySaver(Host, new BinarySaver.Arguments());
             ColumnType ct = bs.LoadTypeDescriptionOrNull(ctx.Reader.BaseStream);
 
-            _transform = CreateLambdaTransform(Host, input, InputColumnName, OutputColumnName, InitFunction, WindowSize > 0, ct);
+            _transform = CreateLambdaTransform(Host, input, OutputColumnName, InputColumnName, InitFunction, WindowSize > 0, ct);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -310,7 +311,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // int: _windowSize
             // int: _initialWindowSize
-            // int (string ID): _inputColumnName
+            // int (string ID): _sourceColumnName
             // int (string ID): _outputColumnName
             // ColumnType: _transform.Schema.GetColumnType(0)
 
@@ -324,7 +325,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             int colIndex;
             if (!_transform.Schema.TryGetColumnIndex(OutputColumnName, out colIndex))
-                throw Host.Except(String.Format("The column {0} does not exist in the schema.", OutputColumnName));
+                throw Host.ExceptSchemaMismatch(nameof(_transform.Schema), "output", OutputColumnName);
 
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, _transform.Schema[colIndex].Type, out byteWritten);
         }

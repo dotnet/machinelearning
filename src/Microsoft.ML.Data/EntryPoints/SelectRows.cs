@@ -9,7 +9,10 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class SelectRows
+    /// <summary>
+    /// Entry point methods for row filtering and selection.
+    /// </summary>
+    internal static class SelectRows
     {
         [TlcModule.EntryPoint(Name = "Transforms.RowRangeFilter", Desc = RangeFilter.Summary, UserName = RangeFilter.UserName, ShortName = RangeFilter.LoaderSignature)]
         public static CommonOutputs.TransformOutput FilterByRange(IHostEnvironment env, RangeFilter.Arguments input)

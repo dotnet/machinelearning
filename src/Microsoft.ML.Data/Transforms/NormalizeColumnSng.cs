@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.Transforms.Normalizers
     // appropriate changes to the other.
     using TFloat = Single;
 
-    public static partial class AffineNormSerializationUtils
+    internal static partial class AffineNormSerializationUtils
     {
         public static void SaveModel(ModelSaveContext ctx,
             int numFeatures, int[] indices, TFloat[] scales, TFloat[] offsets, bool saveText = false)
@@ -190,7 +191,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public static partial class BinNormSerializationUtils
+    internal static partial class BinNormSerializationUtils
     {
         public static void SaveModel(ModelSaveContext ctx, TFloat[][] binUpperBounds, bool saveText = false)
         {
@@ -261,7 +262,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public static partial class CdfNormSerializationUtils
+    internal static partial class CdfNormSerializationUtils
     {
         public static void SaveModel(ModelSaveContext ctx, bool useLog, TFloat[] mean, TFloat[] stddev)
         {
@@ -409,7 +410,7 @@ namespace Microsoft.ML.Transforms.Normalizers
     /// the number of NaNs and the number of non-zero elements.
     /// Uses the algorithm described here: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
     /// </summary>
-    public sealed class MeanVarSngAggregator
+    internal sealed class MeanVarSngAggregator
     {
         private readonly bool _useLog;
         private readonly Double[] _mean;
@@ -518,7 +519,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public sealed partial class NormalizeTransform
+    internal sealed partial class NormalizeTransform
     {
         internal abstract partial class AffineColumnFunction
         {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -73,7 +74,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key")]
             public KeyCount KeyCount;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -124,7 +125,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
 
@@ -171,7 +172,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             ///  Returns <c>true</c> iff the ranges are disjoint, and each range satisfies 0 &lt;= min &lt;= max.
             /// </summary>
-            public bool IsValid()
+            internal bool IsValid()
             {
                 if (Utils.Size(Source) == 0)
                     return false;
@@ -257,7 +258,7 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force scalar columns to be treated as vectors of length one", ShortName = "vector")]
             public bool ForceVector;
 
-            public static Range Parse(string str)
+            internal static Range Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -313,7 +314,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 char dash = AllOther ? '~' : '-';
@@ -613,7 +614,7 @@ namespace Microsoft.ML.Data
                         {
                             kind = col.Type ?? DataKind.Num;
                             ch.CheckUserArg(Enum.IsDefined(typeof(DataKind), kind), nameof(Column.Type), "Bad item type");
-                            itemType = PrimitiveType.FromKind(kind);
+                            itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
 
                         // This was checked above.
@@ -800,7 +801,7 @@ namespace Microsoft.ML.Data
                         itemType = new KeyType(kind.ToType(), count);
                     }
                     else
-                        itemType = PrimitiveType.FromKind(kind);
+                        itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
 
                     int cseg = ctx.Reader.ReadInt32();
                     Contracts.CheckDecode(cseg > 0);
@@ -907,7 +908,7 @@ namespace Microsoft.ML.Data
         public const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
-        private const uint VersionNoMinCount = 0x00010004;
+        private const uint VersionNoMinCount = 0x0001000C;
 
         private static VersionInfo GetVersionInfo()
         {

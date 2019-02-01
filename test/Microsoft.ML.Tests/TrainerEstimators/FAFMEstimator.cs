@@ -20,13 +20,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = DatasetUtils.GenerateFfmSamples(500);
             var dataView = mlContext.Data.ReadFromEnumerable(data);
 
-            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Arguments();
+            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options();
 
             // Customized the field names.
             ffmArgs.FeatureColumn = nameof(DatasetUtils.FfmExample.Field0); // First field.
             ffmArgs.ExtraFeatureColumns = new[]{ nameof(DatasetUtils.FfmExample.Field1), nameof(DatasetUtils.FfmExample.Field2) };
 
-            var pipeline = new FieldAwareFactorizationMachineTrainer(mlContext, ffmArgs);
+            var pipeline = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(ffmArgs);
 
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
@@ -45,13 +45,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
                     .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
-            var est = new FieldAwareFactorizationMachineTrainer(Env, new[] { "Feature1", "Feature2", "Feature3", "Feature4" }, "Label",
-                advancedSettings: s =>
-                 {
-                     s.Shuffle = false;
-                     s.Iters = 3;
-                     s.LatentDim = 7;
-                 });
+            var ffmArgs = new FieldAwareFactorizationMachineTrainer.Options {
+                FeatureColumn = "Feature1", // Features from the 1st field.
+                ExtraFeatureColumns = new[] { "Feature2", "Feature3",  "Feature4" }, // 2nd field's feature column, 3rd field's feature column, 4th field's feature column.
+                Shuffle = false,
+                Iters = 3,
+                LatentDim = 7,
+            };
+
+            var est = ML.BinaryClassification.Trainers.FieldAwareFactorizationMachine(ffmArgs);
 
             TestEstimatorCore(est, data);
             var model = est.Fit(data);

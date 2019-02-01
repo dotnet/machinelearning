@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
@@ -905,7 +906,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         var info = _infos[_iinfo];
                         T src = default(T);
                         Contracts.Assert(!(info.TypeSrc is VectorType));
-                        input.Schema.TryGetColumnIndex(info.Source, out int colIndex);
+                        input.Schema.TryGetColumnIndex(info.InputColumnName, out int colIndex);
                         _host.Assert(input.IsColumnActive(colIndex));
                         var getSrc = input.GetGetter<T>(colIndex);
                         ValueGetter<uint> retVal =
@@ -926,7 +927,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         ValueMapper<T, uint> map = TypedMap.GetKeyMapper();
                         var info = _infos[_iinfo];
                         // First test whether default maps to default. If so this is sparsity preserving.
-                        input.Schema.TryGetColumnIndex(info.Source, out int colIndex);
+                        input.Schema.TryGetColumnIndex(info.InputColumnName, out int colIndex);
                         _host.Assert(input.IsColumnActive(colIndex));
                         var getSrc = input.GetGetter<VBuffer<T>>(colIndex);
                         VBuffer<T> src = default(VBuffer<T>);
@@ -1085,7 +1086,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (TypedMap.Count == 0)
                         return;
 
-                    _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
+                    _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
                     VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
                         TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
@@ -1109,13 +1110,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     // If we can't convert this type to U4, don't try to pass along the metadata.
                     if (!convInst.TryGetStandardConversion<T, uint>(srcType, dstType, out conv, out identity))
                         return false;
-                    _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
+                    _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
 
                     ValueGetter<VBuffer<TMeta>> getter =
                         (ref VBuffer<TMeta> dst) =>
                         {
                             VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
-                            _schema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref srcMeta);
+                            _schema[srcCol].GetKeyValues(ref srcMeta);
                             _host.Assert(srcMeta.Length == srcType.GetCountAsInt32(_host));
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
@@ -1166,7 +1167,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (TypedMap.Count == 0)
                         return;
 
-                    _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
+                    _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
                     VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
                         TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
@@ -1189,10 +1190,10 @@ namespace Microsoft.ML.Transforms.Conversions
                     // If we can't convert this type to U4, don't try.
                     if (!convInst.TryGetStandardConversion<T, uint>(srcType, dstType, out conv, out identity))
                         return false;
-                    _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
+                    _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
 
                     VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
-                    _schema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref srcMeta);
+                    _schema[srcCol].GetKeyValues(ref srcMeta);
                     if (srcMeta.Length != srcType.GetCountAsInt32(_host))
                         return false;
 

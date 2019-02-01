@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms.Conversions
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
-    public sealed class ValueToKeyMappingEstimator: IEstimator<ValueToKeyMappingTransformer>
+    public sealed class ValueToKeyMappingEstimator : IEstimator<ValueToKeyMappingTransformer>
     {
         public static class Defaults
         {
@@ -19,37 +20,40 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private readonly IHost _host;
         private readonly ValueToKeyMappingTransformer.ColumnInfo[] _columns;
-        private readonly string _file;
-        private readonly string _termsColumn;
-        private readonly IComponentFactory<IMultiStreamSource, IDataLoader> _loaderFactory;
+        private readonly IDataView _keyData;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ValueToKeyMappingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the column to be transformed.</param>
-        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
-           this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
+        public ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
+           this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, maxNumTerms, sort) })
         {
         }
 
-        public ValueToKeyMappingEstimator(IHostEnvironment env, ValueToKeyMappingTransformer.ColumnInfo[] columns,
-            string file = null, string termsColumn = null,
-            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
+        public ValueToKeyMappingEstimator(IHostEnvironment env, ValueToKeyMappingTransformer.ColumnInfo[] columns, IDataView keyData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));
+            _host.CheckNonEmpty(columns, nameof(columns));
+            _host.CheckValueOrNull(keyData);
+            if (keyData != null && keyData.Schema.Count != 1)
+            {
+                throw _host.ExceptParam(nameof(keyData), "If specified, this data view should contain only a single column " +
+                    $"containing the terms to map, but this had {keyData.Schema.Count} columns.");
+
+            }
+
             _columns = columns;
-            _file = file;
-            _termsColumn = termsColumn;
-            _loaderFactory = loaderFactory;
+            _keyData = keyData;
         }
 
-        public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _file, _termsColumn, _loaderFactory);
+        public ValueToKeyMappingTransformer Fit(IDataView input) => new ValueToKeyMappingTransformer(_host, input, _columns, _keyData, false);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -57,11 +61,11 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
                 if (!col.ItemType.IsStandardScalar())
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 SchemaShape metadata;
 
                 // In the event that we are transforming something that is of type key, we will get their type of key value
@@ -77,7 +81,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     metadata = new SchemaShape(new[] { slotMeta, kv });
                 else
                     metadata = new SchemaShape(new[] { kv });
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, NumberType.U4, true, metadata);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, NumberType.U4, true, metadata);
             }
 
             return new SchemaShape(result.Values);

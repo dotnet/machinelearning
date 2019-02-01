@@ -43,7 +43,7 @@ namespace Microsoft.ML.Benchmarks
 
             var data = reader.Read(_dataPath_Digits);
 
-            var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("Features", "FeaturesRFF")
+            var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("FeaturesRFF", "Features")
             .AppendCacheCheckpoint(mlContext)
             .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
             .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))

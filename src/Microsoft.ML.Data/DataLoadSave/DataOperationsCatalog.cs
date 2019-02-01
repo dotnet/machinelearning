@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
@@ -86,7 +87,7 @@ namespace Microsoft.ML
 
             var type = input.Schema[columnName].Type;
             if (type.GetKeyCount() == 0)
-                throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "a known cardinality key", type.ToString());
+                throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "KeyType", type.ToString());
             return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
     }

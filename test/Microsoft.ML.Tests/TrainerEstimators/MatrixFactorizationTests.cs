@@ -33,13 +33,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName + "Renamed"))
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
-            var est = new MatrixFactorizationTrainer(Env, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumnName,
-                advancedSettings: s =>
-                {
-                    s.NumIterations = 3;
-                    s.NumThreads = 1;
-                    s.K = 4;
-                });
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = matrixColumnIndexColumnName,
+                MatrixRowIndexColumnName = matrixRowIndexColumnName,
+                LabelColumnName = labelColumnName,
+                NumIterations = 3,
+                NumThreads = 1, 
+                K = 4,
+            };
+
+            var est = new MatrixFactorizationTrainer(Env, options);
 
             TestEstimatorCore(est, data, invalidInput: invalidData);
 
@@ -64,13 +68,16 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(userColumnName, itemColumnName, labelColumnName,
-                advancedSettings: s =>
-                {
-                    s.NumIterations = 3;
-                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
-                    s.K = 7;
-                });
+            var options = new MatrixFactorizationTrainer.Options {
+                MatrixColumnIndexColumnName = userColumnName,
+                MatrixRowIndexColumnName = itemColumnName,
+                LabelColumnName = labelColumnName,
+                NumIterations = 3,
+                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                K = 7,
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(data);
@@ -182,16 +189,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
-                nameof(MatrixElement.MatrixColumnIndex),
-                nameof(MatrixElement.MatrixRowIndex),
-                nameof(MatrixElement.Value),
-                advancedSettings: s =>
-                {
-                    s.NumIterations = 10;
-                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
-                    s.K = 32;
-                });
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                NumIterations = 10,
+                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                K = 32,
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
@@ -270,17 +279,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
-                nameof(MatrixElementZeroBased.MatrixColumnIndex),
-                nameof(MatrixElementZeroBased.MatrixRowIndex),
-                nameof(MatrixElementZeroBased.Value),
-                advancedSettings: s =>
-                {
-                    s.NumIterations = 100;
-                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
-                    s.K = 32;
-                    s.Eta = 0.5;
-                });
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                NumIterations = 100,
+                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                K = 32,
+                Eta = 0.5,
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
@@ -388,23 +399,22 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
-                nameof(OneClassMatrixElementZeroBased.MatrixColumnIndex),
-                nameof(OneClassMatrixElementZeroBased.MatrixRowIndex),
-                nameof(OneClassMatrixElementZeroBased.Value),
-                advancedSettings: s =>
-                {
-                    s.LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass;
-                    s.NumIterations = 100;
-                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
-                    // Let's test non-default regularization coefficient.
-                    s.Lambda = 0.025;
-                    s.K = 16;
-                    // Importance coefficient of loss function over matrix elements not specified in the input matrix.
-                    s.Alpha = 0.01;
-                    // Desired value for matrix elements not specified in the input matrix.
-                    s.C = 0.15;
-                });
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
+                NumIterations = 100,
+                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                Lambda = 0.025, // Let's test non-default regularization coefficient.
+                K = 16,
+                Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
+                C = 0.15, // Desired value for matrix elements not specified in the input matrix.
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
