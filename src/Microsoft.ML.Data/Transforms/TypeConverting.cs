@@ -53,7 +53,8 @@ namespace Microsoft.ML.Transforms.Conversions
     }
 
     /// <summary>
-    /// ConvertTransform allow to change underlying column type as long as we know how to convert types.
+    /// <see cref="TypeConvertingTransformer"/> converts underlying column types.
+    /// The source and destination column types need to be compatible.
     /// </summary>
     public sealed class TypeConvertingTransformer : OneToOneTransformerBase
     {
@@ -510,11 +511,12 @@ namespace Microsoft.ML.Transforms.Conversions
     }
 
     /// <summary>
-    /// Convert estimator allow you take column and change it type as long as we know how to do conversion between types.
+    /// <see cref="TypeConvertingEstimator"/> converts underlying column types.
+    /// The source and destination column types need to be compatible.
     /// </summary>
     public sealed class TypeConvertingEstimator : TrivialEstimator<TypeConvertingTransformer>
     {
-        public sealed class Defaults
+        internal sealed class Defaults
         {
             public const DataKind DefaultOutputKind = DataKind.R4;
         }
@@ -524,9 +526,21 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>
+            /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// The expected kind of the converted column.
+            /// </summary>
             public readonly DataKind OutputKind;
+            /// <summary>
+            /// New key count, if we work with key type.
+            /// </summary>
             public readonly KeyCount OutputKeyCount;
 
             /// <summary>
@@ -535,12 +549,28 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="outputKind">The expected kind of the converted column.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="outputKeyCount">New key range, if we work with key type.</param>
+            /// <param name="outputKeyCount">New key count, if we work with key type.</param>
             public ColumnInfo(string name, DataKind outputKind, string inputColumnName, KeyCount outputKeyCount = null)
             {
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
                 OutputKind = outputKind;
+                OutputKeyCount = outputKeyCount;
+            }
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="type">The expected kind of the converted column.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="outputKeyCount">New key count, if we work with key type.</param>
+            public ColumnInfo(string name, Type type, string inputColumnName, KeyCount outputKeyCount = null)
+            {
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                if (!type.TryGetDataKind(out OutputKind))
+                    throw Contracts.ExceptUserArg(nameof(type), $"Unsupported type {type}.");
                 OutputKeyCount = outputKeyCount;
             }
         }

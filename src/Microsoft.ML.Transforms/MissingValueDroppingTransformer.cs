@@ -75,6 +75,9 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = "DropNAs";
 
+        /// <summary>
+        /// The names of the input columns of the transformation and the corresponding names for the output columns.
+        /// </summary>
         public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>

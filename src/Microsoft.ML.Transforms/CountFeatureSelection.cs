@@ -46,6 +46,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         internal static string RegistrationName = "CountFeatureSelectionTransform";
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public sealed class ColumnInfo
         {
             public readonly string Name;
@@ -131,7 +134,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="ITransformer"/>.
         /// </summary>
         public ITransformer Fit(IDataView input)
         {

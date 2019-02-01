@@ -31,7 +31,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         internal const string ShortName = "MIFeatureSelection";
         internal static string RegistrationName = "MutualInformationFeatureSelectionTransform";
 
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const string LabelColumn = DefaultColumnNames.Label;
             public const int SlotsInOutput = 1000;
@@ -116,7 +117,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="ITransformer"/>.
         /// </summary>
         public ITransformer Fit(IDataView input)
         {

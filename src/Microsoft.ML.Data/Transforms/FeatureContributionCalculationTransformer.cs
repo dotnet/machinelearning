@@ -99,9 +99,9 @@ namespace Microsoft.ML.Data
         internal const string FriendlyName = "Feature Contribution Calculation";
         internal const string LoaderSignature = "FeatureContribution";
 
-        public readonly int Top;
-        public readonly int Bottom;
-        public readonly bool Normalize;
+        internal readonly int Top;
+        internal readonly int Bottom;
+        internal readonly bool Normalize;
 
         private readonly IFeatureContributionMapper _predictor;
 
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Data
         private readonly string _featureColumn;
         private readonly ICalculateFeatureContribution _predictor;
 
-        public static class Defaults
+        internal static class Defaults
         {
             public const int NumPositiveContributions = 10;
             public const int NumNegativeContributions = 10;
