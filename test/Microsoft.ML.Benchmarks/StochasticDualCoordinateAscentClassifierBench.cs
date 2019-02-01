@@ -110,7 +110,7 @@ namespace Microsoft.ML.Benchmarks
                 args.UseCharExtractor = false;
                 args.UseWordExtractor = false;
             }).Fit(loader).Transform(loader);
-            var trans = new WordEmbeddingsExtractingEstimator(_env, "Features", "WordEmbeddings_TransformedText", 
+            var trans = _env.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
                 WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Fit(text).Transform(text);
             // Train
             var trainer = _env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();

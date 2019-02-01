@@ -10,7 +10,7 @@ namespace Microsoft.ML.Internal.Utilities
     [BestFriend]
     internal static class LineParser
     {
-        public static (bool isSuccess, string key, float[] values) ParseKeyThenNumbers(string line)
+        public static (bool isSuccess, string key, float[] values) ParseKeyThenNumbers(string line, bool invariantCulture)
         {
             if (string.IsNullOrWhiteSpace(line))
                 return (false, null, null);
@@ -28,10 +28,20 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 if (i == valuesToParse.Length || valuesToParse[i] == ' ' || valuesToParse[i] == '\t')
                 {
-                    if (DoubleParser.TryParse(valuesToParse.Slice(toParseStartIndex, i - toParseStartIndex), out float parsed))
-                        values[valueIndex++] = parsed;
+                    if (invariantCulture)
+                    {
+                        if (DoubleParser.TryParse(valuesToParse.Slice(toParseStartIndex, i - toParseStartIndex), out float parsed))
+                            values[valueIndex++] = parsed;
+                        else
+                            return (false, null, null);
+                    }
                     else
-                        return (false, null, null);
+                    {
+                        if (float.TryParse(valuesToParse.Slice(toParseStartIndex, i - toParseStartIndex).ToString(), out float parsed))
+                            values[valueIndex++] = parsed;
+                        else
+                            return (false, null, null);
+                    }
 
                     toParseStartIndex = i + 1;
                 }
