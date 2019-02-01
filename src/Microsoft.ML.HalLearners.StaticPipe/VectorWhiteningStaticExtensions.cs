@@ -49,9 +49,9 @@ namespace Microsoft.ML.HalLearners.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var infos = new VectorWhiteningTransformer.ColumnInfo[toOutput.Length];
+                var infos = new VectorWhiteningEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new VectorWhiteningTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[((OutPipelineColumn)toOutput[i]).Input], _kind, _eps, _maxRows, _pcaNum);
+                    infos[i] = new VectorWhiteningEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[((OutPipelineColumn)toOutput[i]).Input], _kind, _eps, _maxRows, _pcaNum);
 
                 return new VectorWhiteningEstimator(env, infos);
             }
@@ -63,9 +63,9 @@ namespace Microsoft.ML.HalLearners.StaticPipe
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
         public static Vector<float> PcaWhitening(this Vector<float> input,
-            float eps = VectorWhiteningTransformer.Defaults.Eps,
-            int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
-            int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
+            float eps = VectorWhiteningEstimator.Defaults.Eps,
+            int maxRows = VectorWhiteningEstimator.Defaults.MaxRows,
+            int pcaNum = VectorWhiteningEstimator.Defaults.PcaNum)
             => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, pcaNum);
 
         /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
@@ -73,8 +73,8 @@ namespace Microsoft.ML.HalLearners.StaticPipe
         /// <param name="eps">Whitening constant, prevents division by zero.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         public static Vector<float> ZcaWhitening(this Vector<float> input,
-            float eps = VectorWhiteningTransformer.Defaults.Eps,
-            int maxRows = VectorWhiteningTransformer.Defaults.MaxRows)
-            => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, VectorWhiteningTransformer.Defaults.PcaNum);
+            float eps = VectorWhiteningEstimator.Defaults.Eps,
+            int maxRows = VectorWhiteningEstimator.Defaults.MaxRows)
+            => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, VectorWhiteningEstimator.Defaults.PcaNum);
     }
 }

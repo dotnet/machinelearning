@@ -13,7 +13,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(BootstrapSamplingTransformer.Summary, typeof(BootstrapSamplingTransformer), typeof(BootstrapSamplingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(BootstrapSamplingTransformer.Summary, typeof(BootstrapSamplingTransformer), typeof(BootstrapSamplingTransformer.Options), typeof(SignatureDataTransform),
     BootstrapSamplingTransformer.UserName, "BootstrapSampleTransform", "BootstrapSample")]
 
 [assembly: LoadableClass(BootstrapSamplingTransformer.Summary, typeof(BootstrapSamplingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms
             public const int PoolSize = 1000;
         }
 
-        public sealed class Arguments : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether this is the out-of-bag sample, that is, all those rows that are not selected by the transform.",
                 ShortName = "comp")]
@@ -76,16 +76,16 @@ namespace Microsoft.ML.Transforms
         private readonly bool _shuffleInput;
         private readonly int _poolSize;
 
-        public BootstrapSamplingTransformer(IHostEnvironment env, Arguments args, IDataView input)
+        public BootstrapSamplingTransformer(IHostEnvironment env, Options options, IDataView input)
             : base(env, RegistrationName, input)
         {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(args.PoolSize >= 0, nameof(args.PoolSize), "Cannot be negative");
+            Host.CheckValue(options, nameof(options));
+            Host.CheckUserArg(options.PoolSize >= 0, nameof(options.PoolSize), "Cannot be negative");
 
-            _complement = args.Complement;
-            _state = new TauswortheHybrid.State(args.Seed ?? (uint)Host.Rand.Next());
-            _shuffleInput = args.ShuffleInput;
-            _poolSize = args.PoolSize;
+            _complement = options.Complement;
+            _state = new TauswortheHybrid.State(options.Seed ?? (uint)Host.Rand.Next());
+            _shuffleInput = options.ShuffleInput;
+            _poolSize = options.PoolSize;
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms
             uint? seed = null,
             bool shuffleInput = Defaults.ShuffleInput,
             int poolSize = Defaults.PoolSize)
-            : this(env, new Arguments() { Complement = complement, Seed = seed, ShuffleInput = shuffleInput, PoolSize = poolSize }, input)
+            : this(env, new Options() { Complement = complement, Seed = seed, ShuffleInput = shuffleInput, PoolSize = poolSize }, input)
         {
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Transforms
     internal static class BootstrapSample
     {
         [TlcModule.EntryPoint(Name = "Transforms.ApproximateBootstrapSampler", Desc = BootstrapSamplingTransformer.Summary, UserName = BootstrapSamplingTransformer.UserName, ShortName = BootstrapSamplingTransformer.RegistrationName)]
-        public static CommonOutputs.TransformOutput GetSample(IHostEnvironment env, BootstrapSamplingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput GetSample(IHostEnvironment env, BootstrapSamplingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));

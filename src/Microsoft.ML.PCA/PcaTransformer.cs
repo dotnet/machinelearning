@@ -17,7 +17,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Transforms.Projections;
 
-[assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), typeof(PcaTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), typeof(PcaTransformer.Options), typeof(SignatureDataTransform),
     PcaTransformer.UserName, PcaTransformer.LoaderSignature, PcaTransformer.ShortName)]
 
 [assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), null, typeof(SignatureLoadDataTransform),
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaTransformer : OneToOneTransformerBase
     {
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Transforms.Projections
             public int Seed = PrincipalComponentAnalysisEstimator.Defaults.Seed;
         }
 
-        public class Column : OneToOneColumn
+        internal class Column : OneToOneColumn
         {
             [Argument(ArgumentType.Multiple, HelpText = "The name of the weight column", ShortName = "weight")]
             public string WeightColumn;
@@ -93,47 +93,6 @@ namespace Microsoft.ML.Transforms.Projections
                     return false;
                 }
                 return TryUnparseCore(sb);
-            }
-        }
-
-        public sealed class ColumnInfo
-        {
-            public readonly string Name;
-            public readonly string InputColumnName;
-            public readonly string WeightColumn;
-            public readonly int Rank;
-            public readonly int Oversampling;
-            public readonly bool Center;
-            public readonly int? Seed;
-
-            /// <summary>
-            /// Describes how the transformer handles one column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="inputColumnName">Name of column to transform.
-            /// If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="weightColumn">The name of the weight column.</param>
-            /// <param name="rank">The number of components in the PCA.</param>
-            /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
-            /// <param name="center">If enabled, data is centered to be zero mean.</param>
-            /// <param name="seed">The seed for random number generation.</param>
-            public ColumnInfo(string name,
-                              string inputColumnName = null,
-                              string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
-                              int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
-                              int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
-                              bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
-                              int? seed = null)
-            {
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                WeightColumn = weightColumn;
-                Rank = rank;
-                Oversampling = overSampling;
-                Center = center;
-                Seed = seed;
-                Contracts.CheckParam(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
-                Contracts.CheckParam(Rank > 0, nameof(Rank), "Rank must be positive.");
             }
         }
 
@@ -224,7 +183,7 @@ namespace Microsoft.ML.Transforms.Projections
         internal const string UserName = "Principal Component Analysis Transform";
         internal const string ShortName = "Pca";
 
-        public const string LoaderSignature = "PcaTransform";
+        internal const string LoaderSignature = "PcaTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -243,7 +202,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         private const string RegistrationName = "Pca";
 
-        internal PcaTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+        internal PcaTransformer(IHostEnvironment env, IDataView input, PrincipalComponentAnalysisEstimator.ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -287,20 +246,20 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = args.Columns.Select(item => new ColumnInfo(
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = options.Columns.Select(item => new PrincipalComponentAnalysisEstimator.ColumnInfo(
                         item.Name,
                         item.Source,
                         item.WeightColumn,
-                        item.Rank ?? args.Rank,
-                        item.Oversampling ?? args.Oversampling,
-                        item.Center ?? args.Center,
-                        item.Seed ?? args.Seed)).ToArray();
+                        item.Rank ?? options.Rank,
+                        item.Oversampling ?? options.Oversampling,
+                        item.Center ?? options.Center,
+                        item.Seed ?? options.Seed)).ToArray();
             return new PcaTransformer(env, input, cols).MakeDataTransform(input);
         }
 
@@ -333,13 +292,13 @@ namespace Microsoft.ML.Transforms.Projections
             for (int i = 0; i < _transformInfos.Length; i++)
                 _transformInfos[i].Save(ctx);
         }
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(PrincipalComponentAnalysisEstimator.ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        private void Train(ColumnInfo[] columns, TransformInfo[] transformInfos, IDataView trainingData)
+        private void Train(PrincipalComponentAnalysisEstimator.ColumnInfo[] columns, TransformInfo[] transformInfos, IDataView trainingData)
         {
             var y = new float[_numColumns][][];
             var omega = new float[_numColumns][][];
@@ -645,7 +604,7 @@ namespace Microsoft.ML.Transforms.Projections
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName)]
-        internal static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Pca", input);
             var view = PcaTransformer.Create(h, input, input.Data);
@@ -660,8 +619,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
     public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransformer>
     {
-        [BestFriend]
-        internal static class Defaults
+        public static class Defaults
         {
             public const string WeightColumn = null;
             public const int Rank = 20;
@@ -670,8 +628,52 @@ namespace Microsoft.ML.Transforms.Projections
             public const int Seed = 0;
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnInfo
+        {
+            public readonly string Name;
+            public readonly string InputColumnName;
+            public readonly string WeightColumn;
+            public readonly int Rank;
+            public readonly int Oversampling;
+            public readonly bool Center;
+            public readonly int? Seed;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform.
+            /// If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="weightColumn">The name of the weight column.</param>
+            /// <param name="rank">The number of components in the PCA.</param>
+            /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
+            /// <param name="center">If enabled, data is centered to be zero mean.</param>
+            /// <param name="seed">The seed for random number generation.</param>
+            public ColumnInfo(string name,
+                              string inputColumnName = null,
+                              string weightColumn = Defaults.WeightColumn,
+                              int rank = Defaults.Rank,
+                              int overSampling = Defaults.Oversampling,
+                              bool center = Defaults.Center,
+                              int? seed = null)
+            {
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                WeightColumn = weightColumn;
+                Rank = rank;
+                Oversampling = overSampling;
+                Center = center;
+                Seed = seed;
+                Contracts.CheckParam(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
+                Contracts.CheckParam(Rank > 0, nameof(Rank), "Rank must be positive.");
+            }
+        }
+
         private readonly IHost _host;
-        private readonly PcaTransformer.ColumnInfo[] _columns;
+        private readonly ColumnInfo[] _columns;
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
@@ -683,28 +685,35 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public PrincipalComponentAnalysisEstimator(IHostEnvironment env,
+        internal PrincipalComponentAnalysisEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
             string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
             int overSampling = Defaults.Oversampling, bool center = Defaults.Center,
             int? seed = null)
-            : this(env, new PcaTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, weightColumn, rank, overSampling, center, seed))
+            : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, weightColumn, rank, overSampling, center, seed))
         {
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The dataset columns to use, and their specific settings.</param>
-        public PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransformer.ColumnInfo[] columns)
+        internal PrincipalComponentAnalysisEstimator(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(PrincipalComponentAnalysisEstimator));
             _columns = columns;
         }
 
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
         public PcaTransformer Fit(IDataView input) => new PcaTransformer(_host, input, _columns);
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));

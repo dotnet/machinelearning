@@ -15,7 +15,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), typeof(RowShufflingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), typeof(RowShufflingTransformer.Options), typeof(SignatureDataTransform),
     "Shuffle Transform", "ShuffleTransform", "Shuffle", "shuf")]
 
 [assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -30,7 +30,8 @@ namespace Microsoft.ML.Transforms
     /// rows in the input cursor, and then, successively, the output cursor will yield one
     /// of these rows and replace it with another row from the input.
     /// </summary>
-    public sealed class RowShufflingTransformer : RowToRowTransformBase
+    [BestFriend]
+    internal sealed class RowShufflingTransformer : RowToRowTransformBase
     {
         private static class Defaults
         {
@@ -39,7 +40,7 @@ namespace Microsoft.ML.Transforms
             public const bool ForceShuffle = false;
         }
 
-        public sealed class Arguments
+        public sealed class Options
         {
             // REVIEW: A more intelligent heuristic, based on the expected size of the inputs, perhaps?
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
@@ -99,14 +100,14 @@ namespace Microsoft.ML.Transforms
             int poolRows = Defaults.PoolRows,
             bool poolOnly = Defaults.PoolOnly,
             bool forceShuffle = Defaults.ForceShuffle)
-            : this(env, new Arguments() { PoolRows = poolRows, PoolOnly = poolOnly, ForceShuffle = forceShuffle }, input)
+            : this(env, new Options() { PoolRows = poolRows, PoolOnly = poolOnly, ForceShuffle = forceShuffle }, input)
         {
         }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public RowShufflingTransformer(IHostEnvironment env, Arguments args, IDataView input)
+        public RowShufflingTransformer(IHostEnvironment env, Options args, IDataView input)
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));

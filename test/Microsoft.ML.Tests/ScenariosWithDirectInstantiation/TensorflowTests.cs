@@ -527,14 +527,14 @@ namespace Microsoft.ML.Scenarios
                 if (shuffle)
                 {
                     // Shuffle training data set
-                    preprocessedTrainData = new RowShufflingTransformer(mlContext, new RowShufflingTransformer.Arguments()
+                    preprocessedTrainData = new RowShufflingTransformer(mlContext, new RowShufflingTransformer.Options()
                     {
                         ForceShuffle = shuffle,
                         ForceShuffleSeed = shuffleSeed
                     }, trainData);
 
                     // Shuffle test data set
-                    preprocessedTestData = new RowShufflingTransformer(mlContext, new RowShufflingTransformer.Arguments()
+                    preprocessedTestData = new RowShufflingTransformer(mlContext, new RowShufflingTransformer.Options()
                     {
                         ForceShuffle = shuffle,
                         ForceShuffleSeed = shuffleSeed

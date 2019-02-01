@@ -273,8 +273,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new LpNormalizingEstimator(ML, "lpnorm", "features")
-                .Append(new GlobalContrastNormalizingEstimator(ML, "gcnorm", "features"))
+            var est = ML.Transforms.Projection.LpNormalize("lpnorm", "features")
+                .Append(ML.Transforms.Projection.GlobalContrastNormalize("gcnorm", "features"))
                 .Append(new VectorWhiteningEstimator(ML, "whitened", "features"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -369,8 +369,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new LpNormalizingEstimator(ML, "lpNorm1", "features")
-                .Append(new LpNormalizingEstimator(ML, "lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, substractMean: true));
+            var est = ML.Transforms.Projection.LpNormalize("lpNorm1", "features")
+                .Append(ML.Transforms.Projection.LpNormalize("lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, subMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Tests.Transformers
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new LpNormalizingEstimator(ML, "whitened", "features");
+            var pipe = ML.Transforms.Projection.LpNormalize("whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -428,8 +428,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new GlobalContrastNormalizingEstimator(ML, "gcnNorm1", "features")
-                .Append(new GlobalContrastNormalizingEstimator(ML, "gcnNorm2", "features", substractMean: false, useStdDev: true, scale: 3));
+            var est = ML.Transforms.Projection.GlobalContrastNormalize("gcnNorm1", "features")
+                .Append(ML.Transforms.Projection.GlobalContrastNormalize("gcnNorm2", "features", substractMean: false, useStdDev: true, scale: 3));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "gcnNorm.tsv");
@@ -461,7 +461,7 @@ namespace Microsoft.ML.Tests.Transformers
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new GlobalContrastNormalizingEstimator(ML, "whitened", "features");
+            var pipe = ML.Transforms.Projection.GlobalContrastNormalize("whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
