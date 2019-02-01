@@ -713,7 +713,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void ImageResizerTransform_ResizingModeFill()
+        public void ImageResizerTransformResizingModeFill()
         {
             var env = new MLContext();
             var dataFile = GetDataPath("images/fillmode.tsv");
