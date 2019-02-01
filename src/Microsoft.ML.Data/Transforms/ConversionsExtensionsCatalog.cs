@@ -136,7 +136,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="columns">The data columns to map to keys.</param>
         /// <param name="keyData">The data view containing the terms. If specified, this should be a single column data
-        /// view, and the key-values will be taken from taht column. If unspecified, the key-values will be determined
+        /// view, and the key-values will be taken from that column. If unspecified, the key-values will be determined
         /// from the input data upon fitting.</param>
         /// <example>
         /// <format type="text/markdown">
