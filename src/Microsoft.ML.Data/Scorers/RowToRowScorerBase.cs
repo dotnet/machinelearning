@@ -63,10 +63,12 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected abstract void SaveCore(ModelSaveContext ctx);
 
-        /// <summary>
-        /// For the ITransformTemplate implementation.
-        /// </summary>
-        public abstract IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource);
+        private protected abstract IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource);
+
+        IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
+            => ApplyToDataCore(env, newSource);
+        internal IDataView ApplyToData(IHostEnvironment env, IDataView newSource)
+            => ApplyToDataCore(env, newSource);
 
         /// <summary>
         /// Derived classes provide the specific bindings object.

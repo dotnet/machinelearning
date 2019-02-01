@@ -103,7 +103,8 @@ namespace Microsoft.ML.Data
     /// Data transforms need to be able to apply themselves to a different input IDataView.
     /// This interface allows them to implement custom rebinding logic.
     /// </summary>
-    public interface ITransformTemplate : IDataTransform
+    [BestFriend]
+    internal interface ITransformTemplate : IDataTransform
     {
         // REVIEW: re-apply operation should support shallow schema modification,
         // like renaming source and destination columns.
