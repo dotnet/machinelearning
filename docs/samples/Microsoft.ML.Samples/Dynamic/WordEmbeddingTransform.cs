@@ -67,13 +67,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // We also have option to apply custom word embedding models.
             // Let's first create one.
             // Format is following:
-            // First line is ignored and you can use it as header for your file.
-            // Each next line contains word separated either by tab or space, and list of floats also separated by tab or space.
+            // First line is ignored if it is a header for your file.
+            // Each next line contains a single word followed by either a tab or space, and a list of floats also separated by a tab or space.
             // Size of array of floats should be same for whole file.
             var pathToCustomModel = @".\custommodel.txt";
             using (StreamWriter file = new StreamWriter(pathToCustomModel, false))
             {
-                file.WriteLine("This is custom file for 4 words with 3 dimentional vector. First line in this file is ignored");
+
+                file.WriteLine("This is custom file for 4 words with 3 dimensional word embedding vector. This first line in this file does not conform to the '<word> <float> <float> <float>' pattern, and is therefore ignored");
                 file.WriteLine("xbox" + " " + string.Join(" ", 1.0f, 2.0f, 3.0f));
                 file.WriteLine("game" + " " + string.Join(" ", -1.0f, -2.0f, -3.0f));
                 file.WriteLine("dude" + " " + string.Join(" ", -1f, 100.0f, -100f));
