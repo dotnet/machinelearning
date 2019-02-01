@@ -18,17 +18,17 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(ImageResizerTransformer.Summary, typeof(IDataTransform), typeof(ImageResizerTransformer), typeof(ImageResizerTransformer.Arguments),
-    typeof(SignatureDataTransform), ImageResizerTransformer.UserName, "ImageResizerTransform", "ImageResizer")]
+[assembly: LoadableClass(ImageResizingTransformer.Summary, typeof(IDataTransform), typeof(ImageResizingTransformer), typeof(ImageResizingTransformer.Arguments),
+    typeof(SignatureDataTransform), ImageResizingTransformer.UserName, "ImageResizerTransform", "ImageResizer")]
 
-[assembly: LoadableClass(ImageResizerTransformer.Summary, typeof(IDataTransform), typeof(ImageResizerTransformer), null, typeof(SignatureLoadDataTransform),
-    ImageResizerTransformer.UserName, ImageResizerTransformer.LoaderSignature)]
+[assembly: LoadableClass(ImageResizingTransformer.Summary, typeof(IDataTransform), typeof(ImageResizingTransformer), null, typeof(SignatureLoadDataTransform),
+    ImageResizingTransformer.UserName, ImageResizingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(ImageResizerTransformer), null, typeof(SignatureLoadModel),
-    ImageResizerTransformer.UserName, ImageResizerTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(ImageResizingTransformer), null, typeof(SignatureLoadModel),
+    ImageResizingTransformer.UserName, ImageResizingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageResizerTransformer), null, typeof(SignatureLoadRowMapper),
-    ImageResizerTransformer.UserName, ImageResizerTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageResizingTransformer), null, typeof(SignatureLoadRowMapper),
+    ImageResizingTransformer.UserName, ImageResizingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.ImageAnalytics
 {
@@ -36,9 +36,9 @@ namespace Microsoft.ML.ImageAnalytics
     /// <summary>
     /// Transform which takes one or many columns of <see cref="ImageType"/> and resize them to provided height and width.
     /// </summary>
-    public sealed class ImageResizerTransformer : OneToOneTransformerBase
+    public sealed class ImageResizingTransformer : OneToOneTransformerBase
     {
-        public enum ResizingKind : byte
+        internal sealed class Column : OneToOneColumn
         {
             /// <summary>
             /// Isotropic with padding.
@@ -68,7 +68,7 @@ namespace Microsoft.ML.ImageAnalytics
             Center = 4
         }
 
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Width of the resized image", ShortName = "width")]
             public int? ImageWidth;
@@ -77,10 +77,10 @@ namespace Microsoft.ML.ImageAnalytics
             public int? ImageHeight;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Resizing method", ShortName = "scale")]
-            public ResizingKind? Resizing;
+            public ImageResizingEstimator.ResizingKind? Resizing;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Anchor for cropping", ShortName = "anchor")]
-            public Anchor? CropAnchor;
+            public ImageResizingEstimator.Anchor? CropAnchor;
 
             internal static Column Parse(string str)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.ML.ImageAnalytics
             }
         }
 
-        public class Arguments : TransformInputBase
+        internal class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -113,56 +113,15 @@ namespace Microsoft.ML.ImageAnalytics
             public int ImageHeight;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Resizing method", ShortName = "scale")]
-            public ResizingKind Resizing = ResizingKind.IsoCrop;
+            public ImageResizingEstimator.ResizingKind Resizing = ImageResizingEstimator.ResizingKind.IsoCrop;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Anchor for cropping", ShortName = "anchor")]
-            public Anchor CropAnchor = Anchor.Center;
+            public ImageResizingEstimator.Anchor CropAnchor = ImageResizingEstimator.Anchor.Center;
         }
         internal static class Defaults
         {
-            public const ResizingKind Resizing = ResizingKind.IsoCrop;
-            public const Anchor CropAnchor = Anchor.Center;
-        }
-
-        /// <summary>
-        /// Describes how the transformer handles one image resize column pair.
-        /// </summary>
-        public sealed class ColumnInfo
-        {
-            public readonly string Name;
-            public readonly string InputColumnName;
-
-            public readonly int Width;
-            public readonly int Height;
-            public readonly ResizingKind Resizing;
-            public readonly Anchor Anchor;
-            public readonly ColumnType Type;
-
-            /// <summary>
-            /// Describes how the transformer handles one image resize column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="width">Width of resized image.</param>
-            /// <param name="height">Height of resized image.</param>
-            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="resizing">What <see cref="ResizingKind"/> to use.</param>
-            /// <param name="anchor">If <paramref name="resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
-            public ColumnInfo(string name, int width, int height, string inputColumnName = null, ResizingKind resizing = Defaults.Resizing, Anchor anchor = Defaults.CropAnchor)
-            {
-                Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckUserArg(width > 0, nameof(Column.ImageWidth));
-                Contracts.CheckUserArg(height > 0, nameof(Column.ImageHeight));
-                Contracts.CheckUserArg(Enum.IsDefined(typeof(ResizingKind), resizing), nameof(Column.Resizing));
-                Contracts.CheckUserArg(Enum.IsDefined(typeof(Anchor), anchor), nameof(Column.CropAnchor));
-
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                Width = width;
-                Height = height;
-                Resizing = resizing;
-                Anchor = anchor;
-                Type = new ImageType(Height, Width);
-            }
+            public const ImageResizingEstimator.ResizingKind Resizing = ImageResizingEstimator.ResizingKind.IsoCrop;
+            public const ImageResizingEstimator.Anchor CropAnchor = ImageResizingEstimator.Anchor.Center;
         }
 
         internal const string Summary = "Scales an image to specified dimensions using one of the three scale types: isotropic with padding, "
@@ -180,14 +139,17 @@ namespace Microsoft.ML.ImageAnalytics
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(ImageResizerTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(ImageResizingTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImageScaler";
 
-        private readonly ColumnInfo[] _columns;
+        private readonly ImageResizingEstimator.ColumnInfo[] _columns;
 
-        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+        /// <summary>
+        /// The columns passed to this <see cref="ITransformer"/>.
+        /// </summary>
+        public IReadOnlyCollection<ImageResizingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
 
         ///<summary>
         /// Resize image.
@@ -197,11 +159,13 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="imageWidth">Width of resized image.</param>
         /// <param name="imageHeight">Height of resized image.</param>
         /// <param name="inputColumnName">Name of the input column.</param>
-        /// <param name="resizing">What <see cref="ResizingKind"/> to use.</param>
-        /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
-        public ImageResizerTransformer(IHostEnvironment env, string outputColumnName,
-            int imageWidth, int imageHeight, string inputColumnName = null, ResizingKind resizing = ResizingKind.IsoCrop, Anchor cropAnchor = Anchor.Center)
-            : this(env, new ColumnInfo(outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
+        /// <param name="resizing">What <see cref="ImageResizingEstimator.ResizingKind"/> to use.</param>
+        /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ImageResizingEstimator.ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
+        internal ImageResizingTransformer(IHostEnvironment env, string outputColumnName,
+            int imageWidth, int imageHeight, string inputColumnName = null,
+            ImageResizingEstimator.ResizingKind resizing = ImageResizingEstimator.ResizingKind.IsoCrop,
+            ImageResizingEstimator.Anchor cropAnchor = ImageResizingEstimator.Anchor.Center)
+            : this(env, new ImageResizingEstimator.ColumnInfo(outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
         {
         }
 
@@ -210,13 +174,13 @@ namespace Microsoft.ML.ImageAnalytics
         ///</summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of image resizing for each column pair.</param>
-        public ImageResizerTransformer(IHostEnvironment env, params ColumnInfo[] columns)
+        internal ImageResizingTransformer(IHostEnvironment env, params ImageResizingEstimator.ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ImageResizingEstimator.ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -231,11 +195,11 @@ namespace Microsoft.ML.ImageAnalytics
 
             env.CheckValue(args.Columns, nameof(args.Columns));
 
-            var cols = new ColumnInfo[args.Columns.Length];
+            var cols = new ImageResizingEstimator.ColumnInfo[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Columns[i];
-                cols[i] = new ColumnInfo(
+                cols[i] = new ImageResizingEstimator.ColumnInfo(
                     item.Name,
                     item.ImageWidth ?? args.ImageWidth,
                     item.ImageHeight ?? args.ImageHeight,
@@ -244,11 +208,11 @@ namespace Microsoft.ML.ImageAnalytics
                     item.CropAnchor ?? args.CropAnchor);
             }
 
-            return new ImageResizerTransformer(env, cols).MakeDataTransform(input);
+            return new ImageResizingTransformer(env, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static ImageResizerTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ImageResizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -256,10 +220,10 @@ namespace Microsoft.ML.ImageAnalytics
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new ImageResizerTransformer(host, ctx);
+            return new ImageResizingTransformer(host, ctx);
         }
 
-        private ImageResizerTransformer(IHost host, ModelLoadContext ctx)
+        private ImageResizingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             // *** Binary format ***
@@ -271,18 +235,18 @@ namespace Microsoft.ML.ImageAnalytics
             //   byte: scaling kind
             //   byte: anchor
 
-            _columns = new ColumnInfo[ColumnPairs.Length];
+            _columns = new ImageResizingEstimator.ColumnInfo[ColumnPairs.Length];
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
                 int width = ctx.Reader.ReadInt32();
                 Host.CheckDecode(width > 0);
                 int height = ctx.Reader.ReadInt32();
                 Host.CheckDecode(height > 0);
-                var scale = (ResizingKind)ctx.Reader.ReadByte();
-                Host.CheckDecode(Enum.IsDefined(typeof(ResizingKind), scale));
-                var anchor = (Anchor)ctx.Reader.ReadByte();
-                Host.CheckDecode(Enum.IsDefined(typeof(Anchor), anchor));
-                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, width, height, ColumnPairs[i].inputColumnName, scale, anchor);
+                var scale = (ImageResizingEstimator.ResizingKind)ctx.Reader.ReadByte();
+                Host.CheckDecode(Enum.IsDefined(typeof(ImageResizingEstimator.ResizingKind), scale));
+                var anchor = (ImageResizingEstimator.Anchor)ctx.Reader.ReadByte();
+                Host.CheckDecode(Enum.IsDefined(typeof(ImageResizingEstimator.Anchor), anchor));
+                _columns[i] = new ImageResizingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, width, height, ColumnPairs[i].inputColumnName, scale, anchor);
             }
         }
 
@@ -316,9 +280,9 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 ctx.Writer.Write(col.Width);
                 ctx.Writer.Write(col.Height);
-                Contracts.Assert((ResizingKind)(byte)col.Resizing == col.Resizing);
+                Contracts.Assert((ImageResizingEstimator.ResizingKind)(byte)col.Resizing == col.Resizing);
                 ctx.Writer.Write((byte)col.Resizing);
-                Contracts.Assert((Anchor)(byte)col.Anchor == col.Anchor);
+                Contracts.Assert((ImageResizingEstimator.Anchor)(byte)col.Anchor == col.Anchor);
                 ctx.Writer.Write((byte)col.Anchor);
             }
         }
@@ -333,9 +297,9 @@ namespace Microsoft.ML.ImageAnalytics
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ImageResizerTransformer _parent;
+            private readonly ImageResizingTransformer _parent;
 
-            public Mapper(ImageResizerTransformer parent, Schema inputSchema)
+            public Mapper(ImageResizingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -393,7 +357,7 @@ namespace Microsoft.ML.ImageAnalytics
                         widthAspect = (float)info.Width / sourceWidth;
                         heightAspect = (float)info.Height / sourceHeight;
 
-                        if (info.Resizing == ResizingKind.IsoPad)
+                        if (info.Resizing == ImageResizingEstimator.ResizingKind.IsoPad)
                         {
                             widthAspect = (float)info.Width / sourceWidth;
                             heightAspect = (float)info.Height / sourceHeight;
@@ -418,10 +382,10 @@ namespace Microsoft.ML.ImageAnalytics
                                 aspect = widthAspect;
                                 switch (info.Anchor)
                                 {
-                                    case Anchor.Top:
+                                    case ImageResizingEstimator.Anchor.Top:
                                         destY = 0;
                                         break;
-                                    case Anchor.Bottom:
+                                    case ImageResizingEstimator.Anchor.Bottom:
                                         destY = (int)(info.Height - (sourceHeight * aspect));
                                         break;
                                     default:
@@ -434,10 +398,10 @@ namespace Microsoft.ML.ImageAnalytics
                                 aspect = heightAspect;
                                 switch (info.Anchor)
                                 {
-                                    case Anchor.Left:
+                                    case ImageResizingEstimator.Anchor.Left:
                                         destX = 0;
                                         break;
-                                    case Anchor.Right:
+                                    case ImageResizingEstimator.Anchor.Right:
                                         destX = (int)(info.Width - (sourceWidth * aspect));
                                         break;
                                     default:
@@ -473,8 +437,97 @@ namespace Microsoft.ML.ImageAnalytics
     /// <summary>
     /// Estimator which resizes images.
     /// </summary>
-    public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizerTransformer>
+    public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizingTransformer>
     {
+        /// <summary>
+        /// Specifies how to resize the images: by croping them or padding in the direction needed to fill up.
+        /// </summary>
+        public enum ResizingKind : byte
+        {
+            /// <summary>
+            /// Isotropic(uniform) with padding.
+            /// </summary>
+            [TGUI(Label = "Isotropic with Padding")]
+            IsoPad = 0,
+
+            /// <summary>
+            /// Isotropic(uniform) with cropping.
+            /// </summary>
+            [TGUI(Label = "Isotropic with Cropping")]
+            IsoCrop = 1
+        }
+
+        /// <summary>
+        /// Indicates where to anchor for image cropping, for example set to <see cref="Center"/> is going to crop the image on all sides,
+        /// set to <see cref="Bottom"/> is going to crop the image at the top.
+        /// </summary>
+        public enum Anchor : byte
+        {
+            Right = 0,
+            Left = 1,
+            Top = 2,
+            Bottom = 3,
+            Center = 4
+        }
+
+        /// <summary>
+        /// Describes how the transformer handles one image resize column.
+        /// </summary>
+        public sealed class ColumnInfo
+        {
+            /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/></summary>
+            public readonly string Name;
+
+            /// <summary>Name of column to transform.</summary>
+            public readonly string InputColumnName;
+
+            /// <summary>Width to resize the image to.</summary>
+            public readonly int Width;
+
+            /// <summary>Height to resize the image to.</summary>
+            public readonly int Height;
+
+            /// <summary>What <see cref="ResizingKind"/> to use (uniform, or non-uniform).</summary>
+            public readonly ResizingKind Resizing;
+
+            /// <summary>If <see cref="Resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</summary>
+            public readonly Anchor Anchor;
+
+            /// <summary>The type of column, <see cref="ColumnType"/>.</summary>
+            public readonly ColumnType Type;
+
+            /// <summary>
+            /// Describes how the transformer handles one image resize column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="width">Width of resized image.</param>
+            /// <param name="height">Height of resized image.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="resizing">What <see cref="ImageResizingEstimator.ResizingKind"/> to use.</param>
+            /// <param name="anchor">If <paramref name="resizing"/> set to <see cref="ImageResizingEstimator.ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
+            public ColumnInfo(string name,
+                int width,
+                int height,
+                string inputColumnName = null,
+                ResizingKind resizing = ImageResizingTransformer.Defaults.Resizing,
+                Anchor anchor = ImageResizingTransformer.Defaults.CropAnchor)
+            {
+                Contracts.CheckNonEmpty(name, nameof(name));
+                Contracts.CheckUserArg(width > 0, nameof(width));
+                Contracts.CheckUserArg(height > 0, nameof(height));
+                Contracts.CheckUserArg(Enum.IsDefined(typeof(ResizingKind), resizing), nameof(resizing));
+                Contracts.CheckUserArg(Enum.IsDefined(typeof(Anchor), anchor), nameof(anchor));
+
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                Width = width;
+                Height = height;
+                Resizing = resizing;
+                Anchor = anchor;
+                Type = new ImageType(Height, Width);
+            }
+        }
+
         /// <summary>
         /// Estimator which resizes images.
         /// </summary>
@@ -483,16 +536,16 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="imageWidth">Width of resized image.</param>
         /// <param name="imageHeight">Height of resized image.</param>
         /// <param name="inputColumnName">Name of the input column.</param>
-        /// <param name="resizing">What <see cref="ImageResizerTransformer.ResizingKind"/> to use.</param>
-        /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ImageResizerTransformer.ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
-        public ImageResizingEstimator(IHostEnvironment env,
+        /// <param name="resizing">What <see cref="ResizingKind"/> to use.</param>
+        /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
+        internal ImageResizingEstimator(IHostEnvironment env,
             string outputColumnName,
             int imageWidth,
             int imageHeight,
             string inputColumnName = null,
-            ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.Defaults.Resizing,
-            ImageResizerTransformer.Anchor cropAnchor = ImageResizerTransformer.Defaults.CropAnchor)
-            : this(env, new ImageResizerTransformer(env, outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
+            ResizingKind resizing = ImageResizingTransformer.Defaults.Resizing,
+            Anchor cropAnchor = ImageResizingTransformer.Defaults.CropAnchor)
+            : this(env, new ImageResizingTransformer(env, outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor))
         {
         }
 
@@ -501,12 +554,12 @@ namespace Microsoft.ML.ImageAnalytics
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of image resizing for each column pair.</param>
-        public ImageResizingEstimator(IHostEnvironment env, params ImageResizerTransformer.ColumnInfo[] columns)
-            : this(env, new ImageResizerTransformer(env, columns))
+        internal ImageResizingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+            : this(env, new ImageResizingTransformer(env, columns))
         {
         }
 
-        private ImageResizingEstimator(IHostEnvironment env, ImageResizerTransformer transformer)
+        private ImageResizingEstimator(IHostEnvironment env, ImageResizingTransformer transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageResizingEstimator)), transformer)
         {
         }

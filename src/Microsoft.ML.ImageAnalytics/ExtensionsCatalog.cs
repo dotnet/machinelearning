@@ -35,11 +35,14 @@ namespace Microsoft.ML
            => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, columnPairs);
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
-        /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="colors">The color schema as defined in <see cref="ImagePixelExtractorTransformer.ColorBits"/>.</param>
-        /// <param name="interleave"></param>
+        /// <param name="catalog"> The transform's catalog.</param>
+        /// <param name="outputColumnName"> Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName"> Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="colors">The color schema as defined in <see cref="ImagePixelExtractingEstimator.ColorBits"/>.</param>
+        /// <param name="interleave">Wheather to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them separated in the plannar form.</param>
+        /// <param name="scale">Scale color pixel value by this amount.</param>
+        /// <param name="offset">Offset color pixel value by this amount.</param>
+        /// <param name="asFloat">Output the array as float array. If false, output as byte array.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -49,9 +52,11 @@ namespace Microsoft.ML
         public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,
-            ImagePixelExtractorTransformer.ColorBits colors = ImagePixelExtractorTransformer.ColorBits.Rgb,
-            bool interleave = false)
-            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colors, interleave);
+            ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.ColorBits.Rgb,
+            bool interleave = false, float scale = ImagePixelExtractingTransformer.Defaults.Scale,
+            float offset = ImagePixelExtractingTransformer.Defaults.Offset,
+            bool asFloat = ImagePixelExtractingTransformer.Defaults.Convert)
+            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colors, interleave, scale, offset, asFloat);
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
@@ -62,7 +67,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ExtractPixels.cs)]
         /// ]]></format>
         /// </example>
-        public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog, params ImagePixelExtractorTransformer.ColumnInfo[] columns)
+        public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog, params ImagePixelExtractingEstimator.ColumnInfo[] columns)
             => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -82,8 +87,8 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the resulting output column.</param>
         /// <param name="imageWidth">The transformed image width.</param>
         /// <param name="imageHeight">The transformed image height.</param>
-        /// <param name="resizing"> The type of image resizing as specified in <see cref="ImageResizerTransformer.ResizingKind"/>.</param>
-        /// <param name="cropAnchor">Where to place the anchor, to start cropping. Options defined in <see cref="ImageResizerTransformer.Anchor"/></param>
+        /// <param name="resizing"> The type of image resizing as specified in <see cref="ImageResizingEstimator.ResizingKind"/>.</param>
+        /// <param name="cropAnchor">Where to place the anchor, to start cropping. Options defined in <see cref="ImageResizingEstimator.Anchor"/></param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -95,8 +100,8 @@ namespace Microsoft.ML
             int imageWidth,
             int imageHeight,
             string inputColumnName = null,
-            ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.ResizingKind.IsoCrop,
-            ImageResizerTransformer.Anchor cropAnchor = ImageResizerTransformer.Anchor.Center)
+            ImageResizingEstimator.ResizingKind resizing = ImageResizingEstimator.ResizingKind.IsoCrop,
+            ImageResizingEstimator.Anchor cropAnchor = ImageResizingEstimator.Anchor.Center)
         => new ImageResizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, imageWidth, imageHeight, inputColumnName, resizing, cropAnchor);
 
         /// <summary>
@@ -108,7 +113,7 @@ namespace Microsoft.ML
         /// Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
         /// further processing.
         /// The new width and height, as well as other properties of resizing, like type of scaling (uniform, or non-uniform), and whether to pad the image,
-        /// or just crop it can be specidied separately for each column loaded, through the <see cref="ImageResizerTransformer.ColumnInfo"/>.
+        /// or just crop it can be specidied separately for each column loaded, through the <see cref="ImageResizingEstimator.ColumnInfo"/>.
         /// <seealso cref = "ImageEstimatorsCatalog" />
         /// <seealso cref= "ImageLoadingEstimator" />
         /// </remarks >
@@ -120,7 +125,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ResizeImage.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageResizingEstimator Resize(this TransformsCatalog catalog, params ImageResizerTransformer.ColumnInfo[] columns)
+        public static ImageResizingEstimator Resize(this TransformsCatalog catalog, params ImageResizingEstimator.ColumnInfo[] columns)
             => new ImageResizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

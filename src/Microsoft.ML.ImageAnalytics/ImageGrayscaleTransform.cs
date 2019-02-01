@@ -18,7 +18,7 @@ using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(ImageGrayscaleTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscaleTransformer), typeof(ImageGrayscaleTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(ImageGrayscaleTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscaleTransformer), typeof(ImageGrayscaleTransformer.Options), typeof(SignatureDataTransform),
     ImageGrayscaleTransformer.UserName, "ImageGrayscaleTransform", "ImageGrayscale")]
 
 [assembly: LoadableClass(ImageGrayscaleTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscaleTransformer), null, typeof(SignatureLoadDataTransform),
@@ -37,7 +37,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
     public sealed class ImageGrayscaleTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -54,7 +54,7 @@ namespace Microsoft.ML.ImageAnalytics
             }
         }
 
-        public class Arguments : TransformInputBase
+        internal class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -86,13 +86,13 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
         /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
 
-        public ImageGrayscaleTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal ImageGrayscaleTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));

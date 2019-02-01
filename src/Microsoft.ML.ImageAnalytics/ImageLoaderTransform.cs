@@ -18,7 +18,7 @@ using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(ImageLoaderTransformer.Summary, typeof(IDataTransform), typeof(ImageLoaderTransformer), typeof(ImageLoaderTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(ImageLoaderTransformer.Summary, typeof(IDataTransform), typeof(ImageLoaderTransformer), typeof(ImageLoaderTransformer.Options), typeof(SignatureDataTransform),
     ImageLoaderTransformer.UserName, "ImageLoaderTransform", "ImageLoader")]
 
 [assembly: LoadableClass(ImageLoaderTransformer.Summary, typeof(IDataTransform), typeof(ImageLoaderTransformer), null, typeof(SignatureLoadDataTransform),
@@ -30,12 +30,10 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.ImageAnalytics
 {
-    /// <summary>
-    /// Transform which takes one or many columns of type ReadOnlyMemory and loads them as <see cref="ImageType"/>
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ImageLoadingEstimator"]/*' />
     public sealed class ImageLoaderTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -54,7 +52,7 @@ namespace Microsoft.ML.ImageAnalytics
             }
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -77,14 +75,14 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The host environment.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
-        public ImageLoaderTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
+        internal ImageLoaderTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderTransformer)), columns)
         {
             ImageFolder = imageFolder;
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
+        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView data)
         {
             return new ImageLoaderTransformer(env, args.ImageFolder, args.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(data);
@@ -227,12 +225,12 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The host environment.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
-        public ImageLoadingEstimator(IHostEnvironment env, string imageFolder, params (string outputColumnName, string inputColumnName)[] columns)
+        internal ImageLoadingEstimator(IHostEnvironment env, string imageFolder, params (string outputColumnName, string inputColumnName)[] columns)
             : this(env, new ImageLoaderTransformer(env, imageFolder, columns))
         {
         }
 
-        private ImageLoadingEstimator(IHostEnvironment env, ImageLoaderTransformer transformer)
+        internal ImageLoadingEstimator(IHostEnvironment env, ImageLoaderTransformer transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingEstimator)), transformer)
         {
             _imageType = new ImageType();
