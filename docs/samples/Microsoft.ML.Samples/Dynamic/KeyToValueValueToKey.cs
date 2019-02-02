@@ -6,9 +6,9 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KeyToValue_TermExample
+    public class KeyToValueValueToKeyExample
     {
-        public static void KeyToValue_Term()
+        public static void KeyToValueValueToKey()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -32,15 +32,15 @@ namespace Microsoft.ML.Samples.Dynamic
             string defaultColumnName = "DefaultKeys";
             // REVIEW create through the catalog extension
             var default_pipeline = new WordTokenizingEstimator(ml, "Review")
-                .Append(new ValueToKeyMappingEstimator(ml, defaultColumnName, "Review"));
+                .Append(ml.Transforms.Conversion.MapValueToKey(defaultColumnName, "Review"));
 
-            // Another pipeline, that customizes the advanced settings of the TermEstimator.
+            // Another pipeline, that customizes the advanced settings of the ValueToKeyMappingEstimator.
             // We can change the maxNumTerm to limit how many keys will get generated out of the set of words, 
             // and condition the order in which they get evaluated by changing sort from the default Occurence (order in which they get encountered) 
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = new WordTokenizingEstimator(ml, "Review")
-                .Append(new ValueToKeyMappingEstimator(ml,customizedColumnName,  "Review", maxNumTerms: 10, sort: ValueToKeyMappingTransformer.SortOrder.Value));
+                .Append(ml.Transforms.Conversion.MapValueToKey(customizedColumnName, "Review", maxNumKeys: 10, sort: ValueToKeyMappingEstimator.SortOrder.Value));
 
             // The transformed data.
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
             // to convert the keys back to the strings.
-            var pipeline = default_pipeline.Append(new KeyToValueMappingEstimator(ml, defaultColumnName));
+            var pipeline = default_pipeline.Append(ml.Transforms.Conversion.MapKeyToValue(defaultColumnName));
             transformedData_default = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.

@@ -45,7 +45,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
         private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)OneHotEncodingEstimator.Defaults.OutKind;
 
         private readonly struct Config
@@ -115,7 +115,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
                     infos[i] = new OneHotEncodingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
-                        tcol.Config.Max, (ValueToKeyMappingTransformer.SortOrder)tcol.Config.Order);
+                        tcol.Config.Max, (ValueToKeyMappingEstimator.SortOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.

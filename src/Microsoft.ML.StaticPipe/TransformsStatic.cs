@@ -951,7 +951,7 @@ namespace Microsoft.ML.StaticPipe
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
         private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
 
         private readonly struct Config
         {
@@ -1025,13 +1025,13 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new ValueToKeyMappingTransformer.ColumnInfo[toOutput.Length];
+                var infos = new ValueToKeyMappingEstimator.ColumnInfo[toOutput.Length];
                 Action<ValueToKeyMappingTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ITermCol)toOutput[i];
-                    infos[i] = new ValueToKeyMappingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input],
-                        tcol.Config.Max, (ValueToKeyMappingTransformer.SortOrder)tcol.Config.Order);
+                    infos[i] = new ValueToKeyMappingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input],
+                        tcol.Config.Max, (ValueToKeyMappingEstimator.SortOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.

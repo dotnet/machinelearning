@@ -66,7 +66,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = ValueToKeyMappingTransformer.Summary,
             UserName = ValueToKeyMappingTransformer.UserName,
             ShortName = ValueToKeyMappingTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, ValueToKeyMappingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, ValueToKeyMappingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TermTransform", input);
             var xf = ValueToKeyMappingTransformer.Create(h, input, input.Data);

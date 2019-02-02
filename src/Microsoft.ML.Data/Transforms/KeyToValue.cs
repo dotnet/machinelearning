@@ -19,7 +19,7 @@ using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(typeof(IDataTransform), typeof(KeyToValueMappingTransformer), typeof(KeyToValueMappingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(typeof(IDataTransform), typeof(KeyToValueMappingTransformer), typeof(KeyToValueMappingTransformer.Options), typeof(SignatureDataTransform),
     KeyToValueMappingTransformer.UserName, KeyToValueMappingTransformer.LoaderSignature, "KeyToValue", "KeyToVal", "Unterm")]
 
 [assembly: LoadableClass(typeof(IDataTransform), typeof(KeyToValueMappingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Transforms.Conversions
     /// </summary>
     public sealed class KeyToValueMappingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -58,7 +58,8 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        public sealed class Arguments : TransformInputBase
+        [BestFriend]
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
                 Name = "Column", ShortName = "col", SortOrder = 1)]
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes and transforms one column.
         /// </summary>
-        public KeyToValueMappingTransformer(IHostEnvironment env, string columnName)
+        internal KeyToValueMappingTransformer(IHostEnvironment env, string columnName)
             : this(env, (columnName, columnName))
         {
         }
@@ -94,7 +95,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        public KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal KeyToValueMappingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingTransformer)), columns)
         {
         }
@@ -103,14 +104,14 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Factory method for SignatureDataTransform.
         /// </summary>
         [BestFriend]
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
-            env.CheckNonEmpty(args.Columns, nameof(args.Columns));
+            env.CheckNonEmpty(options.Columns, nameof(options.Columns));
 
-            var transformer = new KeyToValueMappingTransformer(env, args.Columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray());
+            var transformer = new KeyToValueMappingTransformer(env, options.Columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 
@@ -506,16 +507,20 @@ namespace Microsoft.ML.Transforms.Conversions
 
     public sealed class KeyToValueMappingEstimator : TrivialEstimator<KeyToValueMappingTransformer>
     {
-        public KeyToValueMappingEstimator(IHostEnvironment env, string columnName)
+        internal KeyToValueMappingEstimator(IHostEnvironment env, string columnName)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columnName))
         {
         }
 
-        public KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal KeyToValueMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columns))
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

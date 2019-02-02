@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tests.Transformers
             var sideData = sideDataBuilder.GetDataView();
 
             // For some reason the column info is on the *transformer*, not the estimator. Already tracked as issue #1760.
-            var ci = new ValueToKeyMappingTransformer.ColumnInfo("CatA", "A");
+            var ci = new ValueToKeyMappingEstimator.ColumnInfo("CatA", "A");
             var pipe = mlContext.Transforms.Conversion.MapValueToKey(new[] { ci }, sideData);
             var output = pipe.Fit(dataView).Transform(dataView);
 
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new MetaClass() { A = 1, B = "A" },
                                new MetaClass() { A = 2, B = "B" }};
-            var pipe = new OneHotEncodingEstimator(Env, new[] {
+            var pipe = ML.Transforms.Categorical.OneHotEncoding(new[] {
                 new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Ind),
                 new OneHotEncodingEstimator.ColumnInfo("CatB", "B", OneHotEncodingTransformer.OutputKind.Key)
             }).Append(new TypeConvertingEstimator(Env, new[] {

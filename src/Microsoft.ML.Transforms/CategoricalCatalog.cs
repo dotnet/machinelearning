@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Categorical;
 
@@ -19,7 +20,6 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="outputKind">The conversion mode.</param>
-        /// <returns></returns>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string outputColumnName,
                 string inputColumnName = null,
@@ -31,10 +31,21 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The column settings.</param>
-        /// <returns></returns>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 params OneHotEncodingEstimator.ColumnInfo[] columns)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+
+        /// <summary>
+        /// Convert several text column into one-hot encoded vectors.
+        /// </summary>
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="columns">The column settings.</param>
+        /// <param name="keyData">Specifies an ordering for the encoding. If specified, this should be a single column data view,
+        /// and the key-values will be taken from that column. If unspecified, the ordering will be determined from the input data upon fitting.</param>
+        public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
+                OneHotEncodingEstimator.ColumnInfo[] columns,
+                IDataView keyData = null)
+            => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
         /// <summary>
         /// Convert a text column into hash-based one-hot encoded vector.
@@ -48,7 +59,6 @@ namespace Microsoft.ML
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="outputKind">The conversion mode.</param>
-        /// <returns></returns>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string outputColumnName,
                 string inputColumnName = null,
@@ -62,7 +72,6 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The column settings.</param>
-        /// <returns></returns>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 params OneHotHashEncodingEstimator.ColumnInfo[] columns)
             => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns);

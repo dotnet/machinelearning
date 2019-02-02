@@ -53,9 +53,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.ReadFromEnumerable(data);
             dataView = new ValueToKeyMappingEstimator(Env, new[]{
-                    new ValueToKeyMappingTransformer.ColumnInfo("TermA", "A"),
-                    new ValueToKeyMappingTransformer.ColumnInfo("TermB", "B"),
-                    new ValueToKeyMappingTransformer.ColumnInfo("TermC", "C", textKeyValues:true)
+                    new ValueToKeyMappingEstimator.ColumnInfo("TermA", "A"),
+                    new ValueToKeyMappingEstimator.ColumnInfo("TermB", "B"),
+                    new ValueToKeyMappingEstimator.ColumnInfo("TermC", "C", textKeyValues:true)
                 }).Fit(dataView).Transform(dataView);
 
             var pipe = new KeyToVectorMappingEstimator(Env, new KeyToVectorMappingTransformer.ColumnInfo("CatA", "TermA", false),
@@ -79,8 +79,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingTransformer.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingTransformer.ColumnInfo("B", "VectorString") })
+                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (
@@ -110,14 +110,14 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.ReadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingTransformer.ColumnInfo("TA", "A", textKeyValues: true),
-                new ValueToKeyMappingTransformer.ColumnInfo("TB", "B"),
-                new ValueToKeyMappingTransformer.ColumnInfo("TC", "C", textKeyValues: true),
-                new ValueToKeyMappingTransformer.ColumnInfo("TD", "D", textKeyValues: true),
-                new ValueToKeyMappingTransformer.ColumnInfo("TE", "E"),
-                new ValueToKeyMappingTransformer.ColumnInfo("TF", "F"),
-                new ValueToKeyMappingTransformer.ColumnInfo("TG", "G"),
-                new ValueToKeyMappingTransformer.ColumnInfo("TH", "H", textKeyValues: true) });
+                new ValueToKeyMappingEstimator.ColumnInfo("TA", "A", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnInfo("TB", "B"),
+                new ValueToKeyMappingEstimator.ColumnInfo("TC", "C", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnInfo("TD", "D", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnInfo("TE", "E"),
+                new ValueToKeyMappingEstimator.ColumnInfo("TF", "F"),
+                new ValueToKeyMappingEstimator.ColumnInfo("TG", "G"),
+                new ValueToKeyMappingEstimator.ColumnInfo("TH", "H", textKeyValues: true) });
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
@@ -215,9 +215,9 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.ReadFromEnumerable(data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
-                    new ValueToKeyMappingTransformer.ColumnInfo("TermA", "A"),
-                    new ValueToKeyMappingTransformer.ColumnInfo("TermB", "B"),
-                    new ValueToKeyMappingTransformer.ColumnInfo("TermC", "C")
+                    new ValueToKeyMappingEstimator.ColumnInfo("TermA", "A"),
+                    new ValueToKeyMappingEstimator.ColumnInfo("TermB", "B"),
+                    new ValueToKeyMappingEstimator.ColumnInfo("TermC", "C")
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);

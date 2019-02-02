@@ -59,7 +59,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The KeyToValueMappingEstimator is added to provide a reverse lookup of the KeyType, converting the KeyType value back
             // to the original value.
             var pipeline = new ValueMappingEstimator<string, string>(mlContext, educationKeys, educationValues, true, ("EducationKeyType", "Education"))
-                              .Append(new KeyToValueMappingEstimator(mlContext, ("EducationCategory", "EducationKeyType")));
+                              .Append(mlContext.Transforms.Conversion.MapKeyToValue(("EducationCategory", "EducationKeyType")));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationKeyType column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
