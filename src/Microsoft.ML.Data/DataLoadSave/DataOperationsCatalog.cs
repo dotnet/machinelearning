@@ -39,6 +39,13 @@ namespace Microsoft.ML
         /// <param name="seed">The random seed. If unspecified random state will be instead derived from the environment.</param>
         /// <param name="shuffleInput">Whether we should attempt to shuffle the source data. By default on, but can be turned off for efficiency.</param>
         /// <param name="poolSize">When shuffling the output, the number of output rows to keep in that pool. Note that shuffling of output is completely distinct from shuffling of input.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[BootstrapSample](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/BootstrapSample.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView BootstrapSample(IDataView input,
             bool complement = BootstrapSamplingTransformer.Defaults.Complement,
             uint? seed = null,
