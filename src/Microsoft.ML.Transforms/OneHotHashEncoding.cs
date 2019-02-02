@@ -16,12 +16,15 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 
-[assembly: LoadableClass(OneHotHashEncoding.Summary, typeof(IDataTransform), typeof(OneHotHashEncoding), typeof(OneHotHashEncoding.Options), typeof(SignatureDataTransform),
-    OneHotHashEncoding.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
+[assembly: LoadableClass(OneHotHashEncodingTransformer.Summary, typeof(IDataTransform), typeof(OneHotHashEncodingTransformer), typeof(OneHotHashEncodingTransformer.Options), typeof(SignatureDataTransform),
+    OneHotHashEncodingTransformer.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
 
 namespace Microsoft.ML.Transforms.Categorical
 {
-    public sealed class OneHotHashEncoding : ITransformer, ICanSaveModel
+    /// <summary>
+    /// Produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.
+    /// </summary>
+    public sealed class OneHotHashEncodingTransformer : ITransformer, ICanSaveModel
     {
         internal sealed class Column : OneToOneColumn
         {
@@ -118,7 +121,7 @@ namespace Microsoft.ML.Transforms.Categorical
         internal const string UserName = "Categorical Hash Transform";
 
         /// <summary>
-        /// A helper method to create <see cref="OneHotHashEncoding"/>.
+        /// A helper method to create <see cref="OneHotHashEncodingTransformer"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -167,31 +170,45 @@ namespace Microsoft.ML.Transforms.Categorical
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        internal OneHotHashEncoding(HashingEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
+        internal OneHotHashEncodingTransformer(HashingEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
         {
             if (keyToVector != null)
                 _transformer = hash.Append(keyToVector).Fit(input);
             else
                 _transformer = new TransformerChain<ITransformer>(hash.Fit(input));
         }
-
+        /// <summary>
+        /// Schema propagation for transformers. Returns the output schema of the data, if
+        /// the input schema is like the one provided.
+        /// </summary>
         public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
 
+        /// <summary>
+        /// Take the data in, make transformations, output the data. Note that <see cref="IDataView"/>
+        /// are lazy, so no actual transformations happen here, just schema validation.
+        /// </summary>
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
         public void Save(ModelSaveContext ctx) => _transformer.Save(ctx);
 
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper"/> should succeed, on an appropriate schema.
+        /// </summary>
         public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
 
+        /// <summary>
+        /// Constructs a row-to-row mapper based on an input schema.
+        /// </summary>
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
     }
 
     /// <summary>
-    /// Estimator which takes set of columns and produce for each column indicator array. Use hashing to determine indicator position.
+    /// Estimator that produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.
     /// </summary>
-    public sealed class OneHotHashEncodingEstimator : IEstimator<OneHotHashEncoding>
+    public sealed class OneHotHashEncodingEstimator : IEstimator<OneHotHashEncodingTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const int HashBits = 16;
             public const uint Seed = 314489979;
@@ -200,6 +217,9 @@ namespace Microsoft.ML.Transforms.Categorical
             public const OneHotEncodingTransformer.OutputKind OutputKind = OneHotEncodingTransformer.OutputKind.Bag;
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public sealed class ColumnInfo
         {
             public readonly HashingEstimator.ColumnInfo HashInfo;
@@ -321,8 +341,8 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="OneHotHashEncodingTransformer"/>.
         /// </summary>
-        public OneHotHashEncoding Fit(IDataView input) => new OneHotHashEncoding(_hash, _toSomething, input);
+        public OneHotHashEncodingTransformer Fit(IDataView input) => new OneHotHashEncodingTransformer(_hash, _toSomething, input);
     }
 }

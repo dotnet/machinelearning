@@ -316,16 +316,16 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
-            Desc = OneHotHashEncoding.Summary,
-            UserName = OneHotHashEncoding.UserName)]
-        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncoding.Options input)
+            Desc = OneHotHashEncodingTransformer.Summary,
+            UserName = OneHotHashEncodingTransformer.UserName)]
+        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncodingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CatTransformDict");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = OneHotHashEncoding.Create(host, input, input.Data);
+            var xf = OneHotHashEncodingTransformer.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 

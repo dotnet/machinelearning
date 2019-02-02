@@ -1106,20 +1106,53 @@ namespace Microsoft.ML.Transforms.Conversions
     }
 
     /// <summary>
-    /// Estimator for <see cref="HashingTransformer"/>
+    /// Estimator for <see cref="HashingTransformer"/> which can hash either single valued columns or vector columns. For vector columns,
+    /// it hashes each slot separately. It can hash either text values or key values.
     /// </summary>
     public sealed class HashingEstimator : IEstimator<HashingTransformer>
     {
         internal const int NumBitsMin = 1;
         internal const int NumBitsLim = 32;
 
+        internal static class Defaults
+        {
+            public const int HashBits = NumBitsLim - 1;
+            public const uint Seed = 314489979;
+            public const bool Ordered = false;
+            public const int InvertHash = 0;
+        }
+
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>
+            /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// Number of bits to hash into. Must be between 1 and 31, inclusive.
+            /// </summary>
             public readonly int HashBits;
+            /// <summary>
+            /// Hashing seed.
+            /// </summary>
             public readonly uint Seed;
+            /// <summary>
+            /// Whether the position of each term should be included in the hash.
+            /// </summary>
             public readonly bool Ordered;
+            /// <summary>
+            /// During hashing we constuct mappings between original values and the produced hash values.
+            /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+            /// <see cref="InvertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+            /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.
+            /// </summary>
             public readonly int InvertHash;
 
             /// <summary>
@@ -1136,10 +1169,10 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
             public ColumnInfo(string name,
                 string inputColumnName = null,
-                int hashBits = HashingEstimator.Defaults.HashBits,
-                uint seed = HashingEstimator.Defaults.Seed,
-                bool ordered = HashingEstimator.Defaults.Ordered,
-                int invertHash = HashingEstimator.Defaults.InvertHash)
+                int hashBits = Defaults.HashBits,
+                uint seed = Defaults.Seed,
+                bool ordered = Defaults.Ordered,
+                int invertHash = Defaults.InvertHash)
             {
                 if (invertHash < -1)
                     throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
@@ -1181,14 +1214,6 @@ namespace Microsoft.ML.Transforms.Conversions
                 ctx.Writer.Write(Seed);
                 ctx.Writer.WriteBoolByte(Ordered);
             }
-        }
-
-        public static class Defaults
-        {
-            public const int HashBits = NumBitsLim - 1;
-            public const uint Seed = 314489979;
-            public const bool Ordered = false;
-            public const int InvertHash = 0;
         }
 
         private readonly IHost _host;
@@ -1234,7 +1259,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="HashingTransformer"/>.
         /// </summary>
         public HashingTransformer Fit(IDataView input) => new HashingTransformer(_host, input, _columns);
 

@@ -33,6 +33,9 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <summary>
+    /// <see cref="ColumnCopyingEstimator"/> copies the input column to another column named as specified in the parameters of the transformation.
+    /// </summary>
     public sealed class ColumnCopyingEstimator : TrivialEstimator<ColumnCopyingTransformer>
     {
         [BestFriend]
@@ -41,6 +44,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
+        [BestFriend]
         internal ColumnCopyingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnCopyingEstimator)), new ColumnCopyingTransformer(env, columns))
         {
@@ -74,6 +78,9 @@ namespace Microsoft.ML.Transforms
         internal const string UserName = "Copy Columns Transform";
         internal const string ShortName = "Copy";
 
+        /// <summary>
+        /// Names of input and ouput column pairs on which the transformation is applied.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
