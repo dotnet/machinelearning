@@ -73,9 +73,13 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!inputSchema.TryFindColumn(inputColumnName, out var originalColumn))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName);
 
-                if ((originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
-                   originalColumn.Kind == SchemaShape.Column.VectorKind.Vector) && Transformer.ValueColumnType is VectorType)
-                    throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", inputColumnName);
+                if (originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
+                   originalColumn.Kind == SchemaShape.Column.VectorKind.Vector)
+                {
+                    if (Transformer.ValueColumnType is VectorType)
+                        throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", inputColumnName);
+                    vectorKind = originalColumn.Kind;
+                }
                 // Create the Value column
                 var col = new SchemaShape.Column(outputColumnName, vectorKind, columnType, isKey, metadataShape);
                 resultDic[outputColumnName] = col;
