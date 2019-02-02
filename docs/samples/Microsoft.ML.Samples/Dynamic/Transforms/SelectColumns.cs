@@ -42,19 +42,19 @@ namespace Microsoft.ML.Samples.Dynamic
             var rowEnumerable = mlContext.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
 
             // And finally, we can write out the rows of the dataset, looking at the columns of interest.
-            Console.WriteLine($"Label and Educations columns obtained post-transformation.");
+            Console.WriteLine($"Age and Educations columns obtained post-transformation.");
             foreach (var row in rowEnumerable)
             {
-                Console.WriteLine($"Label: {row.Age} Education: {row.Education}");
+                Console.WriteLine($"Age: {row.Age} Education: {row.Education}");
             }
 
             // Expected output:
-            //  Label and Education columns obtained post-transformation.
-            //  Label: 26 Education: 0 - 5yrs
-            //  Label: 42 Education: 0 - 5yrs
-            //  Label: 39 Education: 0 - 5yrs
-            //  Label: 34 Education: 0 - 5yrs
-            //  Label: 35 Education: 6 - 11yrs
+            //  Age and Education columns obtained post-transformation.
+            //  Age: 26 Education: 0 - 5yrs
+            //  Age: 42 Education: 0 - 5yrs
+            //  Age: 39 Education: 0 - 5yrs
+            //  Age: 34 Education: 0 - 5yrs
+            //  Age: 35 Education: 6 - 11yrs
         }
 
         private class SampleInfertDataTransformed
