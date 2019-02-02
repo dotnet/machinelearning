@@ -24,7 +24,7 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Transforms.Text
 {
-    public static class WordHashBagProducingTransformer
+    internal static class WordHashBagProducingTransformer
     {
         public sealed class Column : NgramHashExtractingTransformer.ColumnBase
         {
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Transforms.Text
     /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory) into numerical feature vectors
     /// using the hashing trick.
     /// </summary>
-    public static class NgramHashExtractingTransformer
+    internal static class NgramHashExtractingTransformer
     {
         public abstract class ColumnBase : ManyToOneColumn
         {

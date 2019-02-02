@@ -570,7 +570,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         // Temporary: enables SignatureDataTransform factory methods.
-        public new IDataTransform MakeDataTransform(IDataView input)
+        internal new IDataTransform MakeDataTransform(IDataView input)
             => base.MakeDataTransform(input);
 
         private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
