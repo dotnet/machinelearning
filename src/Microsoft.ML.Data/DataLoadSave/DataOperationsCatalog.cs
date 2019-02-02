@@ -25,11 +25,38 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Take an approximate bootstrap sample of <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// This sampler is a streaming version of a bootstrap sampler. Instead of taking the whole dataset into memory and resampling,
+        /// <see cref="BootstrapSample"/> streams through the dataset and uses a Poisson(1) distribution to select rows to add to the sample.
+        /// The <paramref name="complement"/> parameter allows for the creation of a bootstap sample and complementary out-of-bag sample by
+        /// using the same <paramref name="seed"/>.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="complement">Whether this is the out-of-bag sample, that is, all those rows that are not selected by the transform.
+        /// Can be used to create a complementary pair of samples by using the same seed.</param>
+        /// <param name="seed">The random seed. If unspecified random state will be instead derived from the environment.</param>
+        /// <param name="shuffleInput">Whether we should attempt to shuffle the source data. By default on, but can be turned off for efficiency.</param>
+        /// <param name="poolSize">When shuffling the output, the number of output rows to keep in that pool. Note that shuffling of output is completely distinct from shuffling of input.</param>
+        public IDataView BootstrapSample(IDataView input,
+            bool complement = BootstrapSamplingTransformer.Defaults.Complement,
+            uint? seed = null,
+            bool shuffleInput = BootstrapSamplingTransformer.Defaults.ShuffleInput,
+            int poolSize = 1000)
+        {
+            Environment.CheckValue(input, nameof(input));
+            return new BootstrapSamplingTransformer(Environment, input, complement: complement, seed: seed, shuffleInput: shuffleInput, poolSize: poolSize);
+        }
+
+        /// <summary>
         /// Creates a lazy in-memory cache of <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
         /// Caching happens per-column. A column is only cached when it is first accessed.
         /// In addition, <paramref name="columnsToPrefetch"/> are considered 'always needed', so all of them
         /// will be cached whenever any data is requested.
-        /// </summary>
+        /// </remarks>
         /// <param name="input">The data view to cache.</param>
         /// <param name="columnsToPrefetch">The columns that must be cached whenever anything is cached. Empty array or null
         /// is acceptable, it means that all columns are only cached at the first access.</param>
