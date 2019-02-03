@@ -35,7 +35,7 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 Separators = new[] { ',' },
                 HasHeader = true,
-                Column = new[]
+                Columns = new[]
                 {
                     new TextLoader.Column("age", DataKind.R4, 0),
                     new TextLoader.Column("workclass", DataKind.Text, 1),
