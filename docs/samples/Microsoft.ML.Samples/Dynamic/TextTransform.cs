@@ -31,12 +31,12 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
             string customizedColumnName = "CustomizedTextFeatures";
-            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, "SentimentText", s =>
-            {
-                s.KeepPunctuations = false;
-                s.KeepNumbers = false;
-                s.OutputTokens = true;
-                s.TextLanguage = TextFeaturizingEstimator.Language.English; // supports  English, French, German, Dutch, Italian, Spanish, Japanese
+            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, new List<string> { "SentimentText" }, 
+                new TextFeaturizingEstimator.Options { 
+                    KeepPunctuations = false,
+                    KeepNumbers = false,
+                    OutputTokens = true,
+                    TextLanguage = TextFeaturizingEstimator.Language.English, // supports  English, French, German, Dutch, Italian, Spanish, Japanese
             });
 
             // The transformed data for both pipelines.

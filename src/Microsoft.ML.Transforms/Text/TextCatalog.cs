@@ -20,7 +20,6 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="advancedSettings">Advanced transform settings</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -30,10 +29,9 @@ namespace Microsoft.ML
         /// </example>
         public static TextFeaturizingEstimator FeaturizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
-            string inputColumnName = null,
-            Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
+            string inputColumnName = null)
             => new TextFeaturizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, advancedSettings);
+                outputColumnName, inputColumnName);
 
         /// <summary>
         /// Transform several text columns into featurized float array that represents counts of ngrams and char-grams.
@@ -41,13 +39,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
         /// <param name="inputColumnNames">Name of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="advancedSettings">Advanced transform settings</param>
+        /// <param name="options">Advanced transform settings.</param>
         public static TextFeaturizingEstimator FeaturizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             IEnumerable<string> inputColumnNames,
-            Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
+            TextFeaturizingEstimator.Options options)
             => new TextFeaturizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnNames, advancedSettings);
+                outputColumnName, inputColumnNames, options);
 
         /// <summary>
         /// Tokenize incoming text in <paramref name="inputColumnName"/> and output the tokens as <paramref name="outputColumnName"/>.
