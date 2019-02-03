@@ -40,12 +40,21 @@ namespace Microsoft.ML.ImageAnalytics
     {
         public enum ResizingKind : byte
         {
+            /// <summary>
+            /// Isotropic with padding.
+            /// </summary>
             [TGUI(Label = "Isotropic with Padding")]
             IsoPad = 0,
 
+            /// <summary>
+            /// Isotropic with cropping.
+            /// </summary>
             [TGUI(Label = "Isotropic with Cropping")]
             IsoCrop = 1,
 
+            /// <summary>
+            /// Ignore aspect ratio and squeeze/stretch into target dimensions.
+            /// </summary>
             [TGUI(Label = "Ignore aspect ratio and squeeze/stretch into target dimensions")]
             Fill = 2
         }
