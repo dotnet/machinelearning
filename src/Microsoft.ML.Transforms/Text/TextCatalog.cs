@@ -622,7 +622,7 @@ namespace Microsoft.ML
         /// <param name="columns">Describes the parameters of LDA for each column pair.</param>
         public static LatentDirichletAllocationEstimator LatentDirichletAllocation(
             this TransformsCatalog.TextTransforms catalog,
-            params LatentDirichletAllocationTransformer.ColumnInfo[] columns)
+            params LatentDirichletAllocationEstimator.ColumnInfo[] columns)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }
