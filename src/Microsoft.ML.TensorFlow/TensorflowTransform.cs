@@ -37,6 +37,9 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransformer"]/*' />
     public sealed class TensorFlowTransformer : RowToRowTransformerBase
     {
+        /// <summary>
+        /// The settings for the <see cref="TensorFlowTransformer"/>.
+        /// </summary>
         public sealed class Options : TransformInputBase
         {
             /// <summary>
@@ -148,8 +151,8 @@ namespace Microsoft.ML.Transforms
         internal readonly TFShape[] TFInputShapes;
         internal TFGraph Graph => Session.Graph;
 
-        public readonly string[] Inputs;
-        public readonly string[] Outputs;
+        internal readonly string[] Inputs;
+        internal readonly string[] Outputs;
 
         internal static int BatchSize = 1;
         internal const string Summary = "Transforms the data using the TensorFlow model.";
@@ -1077,6 +1080,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// Estimator for the <see cref="TensorFlowTransformer"/>.
+    /// </summary>
     public sealed class TensorFlowEstimator : IEstimator<TensorFlowTransformer>
     {
         private readonly IHost _host;
@@ -1153,7 +1159,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Train and return a <see cref="ITransformer"/>.
+        /// Trains and returns a <see cref="TensorFlowTransformer"/>.
         /// </summary>
         public TensorFlowTransformer Fit(IDataView input)
         {

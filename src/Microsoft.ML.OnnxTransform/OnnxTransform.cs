@@ -88,9 +88,9 @@ namespace Microsoft.ML.Transforms
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
 
-        public readonly string[] Inputs;
-        public readonly string[] Outputs;
-        public readonly ColumnType[] OutputTypes;
+        internal readonly string[] Inputs;
+        internal readonly string[] Outputs;
+        internal readonly ColumnType[] OutputTypes;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// A class implementing the estimator interface of the OnnxTransform.
+    /// A class implementing the estimator interface of the <see cref="OnnxTransformer"/>.
     /// </summary>
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransformer>
     {

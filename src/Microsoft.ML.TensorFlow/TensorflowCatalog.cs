@@ -16,6 +16,26 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
+        /// <param name="inputColumnName"> The name of the model inputs.</param>
+        /// <param name="outputColumnName">The name of the requested model outputs.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlowTransform.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
+            string modelLocation,
+            string outputColumnName,
+            string inputColumnName)
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName }, modelLocation);
+
+        /// <summary>
+        /// Scores a dataset using a pre-traiend TensorFlow model located in <paramref name="modelLocation"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="modelLocation">Location of the TensorFlow model.</param>
         /// <param name="inputColumnNames"> The names of the model inputs.</param>
         /// <param name="outputColumnNames">The names of the requested model outputs.</param>
         /// <example>
@@ -33,6 +53,19 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Scores a dataset using a pre-traiend <a href="https://www.tensorflow.org/">TensorFlow</a> model specified via <paramref name="tensorFlowModel"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
+        /// <param name="inputColumnName"> The name of the model inputs.</param>
+        /// <param name="outputColumnName">The name of the requested model outputs.</param>
+        public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
+            TensorFlowModelInfo tensorFlowModel,
+            string outputColumnName,
+            string inputColumnName)
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName }, tensorFlowModel);
+
+        /// <summary>
+        /// Scores a dataset using a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>

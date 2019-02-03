@@ -40,7 +40,8 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class ColumnSelectingEstimator : TrivialEstimator<ColumnSelectingTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const bool KeepHidden = false;
             public const bool IgnoreMissing = false;

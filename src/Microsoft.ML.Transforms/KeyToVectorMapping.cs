@@ -29,6 +29,9 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Transforms.Conversions
 {
+    /// <summary>
+    ///  Converts the key types back to binary verctors.
+    /// </summary>
     public sealed class KeyToBinaryVectorMappingTransformer : OneToOneTransformerBase
     {
         internal sealed class Options
@@ -421,6 +424,9 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
+    /// <summary>
+    ///  Converts the key types back to binary verctors.
+    /// </summary>
     public sealed class KeyToBinaryVectorMappingEstimator : TrivialEstimator<KeyToBinaryVectorMappingTransformer>
     {
         internal KeyToBinaryVectorMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
