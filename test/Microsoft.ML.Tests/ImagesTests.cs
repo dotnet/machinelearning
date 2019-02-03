@@ -4,6 +4,7 @@
 
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
@@ -709,6 +710,62 @@ namespace Microsoft.ML.Tests
                 }
                 Done();
             }
+        }
+
+        [Fact]
+        public void ImageResizerTransformResizingModeFill()
+        {
+            var env = new MLContext();
+            var dataFile = GetDataPath("images/fillmode.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("ImagePath", DataKind.TX, 0)
+                }
+            }, new MultiFileSource(dataFile));
+
+            const int targetDimension = 50;
+            var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
+                .Append(new ImageResizingEstimator(env, "ImageReal", targetDimension, targetDimension, "ImageReal",
+                    resizing: ImageResizerTransformer.ResizingKind.Fill));
+
+            var rowView = pipe.Preview(data).RowView;
+            Assert.Single(rowView);
+
+            using (var bitmap = (Bitmap) rowView.First().Values.Last().Value)
+            {
+                // these points must be white
+                var topLeft = bitmap.GetPixel(0, 0);
+                var topRight = bitmap.GetPixel(bitmap.Width - 1, 0);
+                var bottomLeft = bitmap.GetPixel(0, bitmap.Height - 1);
+                var bottomRight = bitmap.GetPixel(bitmap.Width - 1, bitmap.Height - 1);
+                var middle = bitmap.GetPixel(bitmap.Width / 2, bitmap.Height / 2);
+
+                // these points must be red
+                var midTop = bitmap.GetPixel(bitmap.Width / 2, bitmap.Height / 3);
+                var midBottom = bitmap.GetPixel(bitmap.Width / 2, bitmap.Height / 3 * 2);
+                var leftMid = bitmap.GetPixel(bitmap.Width / 3, bitmap.Height / 2);
+                var rightMid = bitmap.GetPixel(bitmap.Width / 3 * 2, bitmap.Height / 2);
+
+                // it turns out rounding errors on certain platforms may lead to a test failure
+                // instead of checking for exactly FFFFFF and FF0000 we allow a small interval here to be safe
+                Assert.All(new[] { topLeft, topRight, bottomLeft, bottomRight, middle }, c =>
+                {
+                    Assert.True(c.R >= 250);
+                    Assert.True(c.G >= 250);
+                    Assert.True(c.B >= 250);
+                });
+                Assert.All(new[] { midTop, midBottom, leftMid, rightMid }, c =>
+                {
+                    Assert.True(c.R >= 250);
+                    Assert.True(c.G < 6);
+                    Assert.True(c.B < 6);
+                });
+            }
+
+            Done();
         }
     }
 }
