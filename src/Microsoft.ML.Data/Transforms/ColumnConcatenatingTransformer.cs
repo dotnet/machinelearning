@@ -15,6 +15,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(ColumnConcatenatingTransformer.Summary, typeof(IDataTransform), typeof(ColumnConcatenatingTransformer), typeof(ColumnConcatenatingTransformer.TaggedOptions), typeof(SignatureDataTransform),
@@ -34,7 +35,8 @@ namespace Microsoft.ML.Data
     using PfaType = PfaUtils.Type;
 
     /// <summary>
-    /// Concatenates columns in an <see cref="IDataView"/> together.
+    /// Concatenates columns in an <see cref="IDataView"/> into one single column. Please see <see cref="ColumnConcatenatingEstimator"/> for
+    /// constructing <see cref="ColumnConcatenatingTransformer"/>.
     /// </summary>
     public sealed class ColumnConcatenatingTransformer : RowToRowTransformerBase
     {

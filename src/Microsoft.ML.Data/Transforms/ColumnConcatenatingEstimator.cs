@@ -12,7 +12,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Concatenates columns in an <see cref="IDataView"/> together.
+    /// Concatenates columns in an <see cref="IDataView"/> into one single column. Estimator for the <see cref="ColumnConcatenatingTransformer"/>.
     /// </summary>
     public sealed class ColumnConcatenatingEstimator : IEstimator<ColumnConcatenatingTransformer>
     {
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="outputColumnName">The name of the resulting column.</param>
-        /// <param name="inputColumnNames">The columns to concatenate together.</param>
+        /// <param name="inputColumnNames">The columns to concatenate into one single column.</param>
         internal ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
