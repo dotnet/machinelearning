@@ -19,7 +19,7 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Arguments),
+[assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Options),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
     RandomizedPcaTrainer.UserNameValue,
     RandomizedPcaTrainer.LoadNameValue,
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Trainers.PCA
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
             + "This PCA can be made into Kernel PCA by using Random Fourier Features transform.";
 
-        public class Arguments : UnsupervisedLearnerInputBaseWithWeight
+        public class Options : UnsupervisedLearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40,80")]
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers.PCA
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public RandomizedPcaTrainer(IHostEnvironment env,
+        internal RandomizedPcaTrainer(IHostEnvironment env,
             string features,
             string weights = null,
             int rank = 20,
@@ -103,23 +103,23 @@ namespace Microsoft.ML.Trainers.PCA
 
         }
 
-        internal RandomizedPcaTrainer(IHostEnvironment env, Arguments args)
-            :this(env, args, args.FeatureColumn, args.WeightColumn)
+        internal RandomizedPcaTrainer(IHostEnvironment env, Options options)
+            :this(env, options, options.FeatureColumn, options.WeightColumn)
         {
 
         }
 
-        private RandomizedPcaTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn,
+        private RandomizedPcaTrainer(IHostEnvironment env, Options options, string featureColumn, string weightColumn,
             int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             // if the args are not null, we got here from maml, and the internal ctor.
-            if (args != null)
+            if (options != null)
             {
-                _rank = args.Rank;
-                _center = args.Center;
-                _oversampling = args.Oversampling;
-                _seed = args.Seed ?? Host.Rand.Next();
+                _rank = options.Rank;
+                _center = options.Center;
+                _oversampling = options.Oversampling;
+                _seed = options.Seed ?? Host.Rand.Next();
             }
             else
             {
@@ -347,14 +347,14 @@ namespace Microsoft.ML.Trainers.PCA
             Desc = "Train an PCA Anomaly model.",
             UserName = UserNameValue,
             ShortName = ShortName)]
-        internal static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Arguments input)
+        internal static CommonOutputs.AnomalyDetectionOutput TrainPcaAnomaly(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainPCAAnomaly");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.AnomalyDetectionOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.AnomalyDetectionOutput>(host, input,
                 () => new RandomizedPcaTrainer(host, input),
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
