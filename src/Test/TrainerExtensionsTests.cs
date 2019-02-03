@@ -61,8 +61,7 @@ namespace Microsoft.ML.Auto.Test
             var lightGbmMultiProps = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName.LightGbmMulti, sweepParams);
             var lightGbmRegressionProps = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName.LightGbmRegression, sweepParams);
 
-            var expectedJson = @"
-{
+            var expectedJson = @"{
   ""NumBoostRound"": 20,
   ""LearningRate"": 1,
   ""NumLeaves"": 1,
@@ -97,8 +96,7 @@ namespace Microsoft.ML.Auto.Test
             }
 
             var sdcaBinaryProps = TrainerExtensionUtil.BuildPipelineNodeProps(TrainerName.SdcaBinary, sweepParams);
-            var expectedJson = @"
-{
+            var expectedJson = @"{
   ""L2Const"": 1E-07,
   ""L1Threshold"": 0.0,
   ""ConvergenceTolerance"": 0.01,

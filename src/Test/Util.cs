@@ -4,6 +4,7 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Microsoft.ML.Auto.Test
 {
@@ -11,9 +12,8 @@ namespace Microsoft.ML.Auto.Test
     {
         public static void AssertObjectMatchesJson<T>(string expectedJson, T obj)
         {
-            var actualJson = JsonConvert.SerializeObject(obj);
-            var expectedObj = JsonConvert.DeserializeObject<T>(expectedJson);
-            expectedJson = JsonConvert.SerializeObject(expectedObj);
+            var actualJson = JsonConvert.SerializeObject(obj, 
+                Formatting.Indented, new JsonConverter[] { new StringEnumConverter() });
             Assert.AreEqual(expectedJson, actualJson);
         }
     }

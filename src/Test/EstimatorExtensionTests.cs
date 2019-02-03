@@ -40,7 +40,8 @@ namespace Microsoft.ML.Auto.Test
             var outCols = new string[] { outCol };
             Assert.IsNotNull(ColumnConcatenatingExtension.CreateSuggestedTransform(context, inCols, outCol));
             Assert.IsNotNull(ColumnCopyingExtension.CreateSuggestedTransform(context, inCol, outCol));
-            Assert.IsNotNull(MissingValueIndicatorExtension.CreateSuggestedTransform(context, inCols, outCols));
+            Assert.IsNotNull(MissingValueIndicatingExtension.CreateSuggestedTransform(context, inCols, outCols));
+            Assert.IsNotNull(MissingValueReplacingExtension.CreateSuggestedTransform(context, inCols, outCols));
             Assert.IsNotNull(NormalizingExtension.CreateSuggestedTransform(context, inCol, outCol));
             Assert.IsNotNull(OneHotEncodingExtension.CreateSuggestedTransform(context, inCols, outCols));
             Assert.IsNotNull(OneHotHashEncodingExtension.CreateSuggestedTransform(context, inCols, outCols));

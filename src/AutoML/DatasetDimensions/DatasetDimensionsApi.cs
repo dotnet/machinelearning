@@ -25,15 +25,16 @@ namespace Microsoft.ML.Auto
                 int? cardinality = null;
                 bool? hasMissing = null;
 
-                // if categorical text feature, calc cardinality
-                if(column.Type.ItemType().IsText() && purpose.Purpose == ColumnPurpose.CategoricalFeature)
+                var itemType = column.Type.ItemType();
+
+                // If categorical text feature, calculate cardinality
+                if (itemType.IsText() && purpose.Purpose == ColumnPurpose.CategoricalFeature)
                 {
                     cardinality = DatasetDimensionsUtil.GetTextColumnCardinality(data, i);
                 }
 
-                // if numeric feature, discover missing values
-                // todo: upgrade logic to consider R8?
-                if (column.Type.ItemType() == NumberType.R4)
+                // If numeric feature, discover missing values
+                if (itemType == NumberType.R4)
                 {
                     hasMissing = column.Type.IsVector() ? 
                         DatasetDimensionsUtil.HasMissingNumericVector(data, i) : 

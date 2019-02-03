@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Auto
 {
@@ -138,9 +137,6 @@ namespace Microsoft.ML.Auto
             // The expert work independently of each other, the sequence is irrelevant
             // (it only determines the sequence of resulting transforms).
 
-            // If there's more than one feature column, concat all into Features. If it isn't called 'Features', rename it.
-            yield return new Experts.FeaturesColumnConcatRenameNumericOnly();
-
             // For text labels, convert to categories.
             yield return new Experts.AutoLabel();
 
@@ -226,7 +222,7 @@ namespace Microsoft.ML.Auto
                             continue;
                         }
 
-                        if (column.Dimensions.Cardinality < 100)
+                        if (column.Dimensions.Cardinality != null && column.Dimensions.Cardinality < 100)
                         {
                             foundCat = true;
                             catColumnsNew.Add(column.ColumnName);
@@ -309,73 +305,24 @@ namespace Microsoft.ML.Auto
                     var columnsWithMissing = new List<string>();
                     foreach (var column in columns)
                     {
-                        if (column.Type.ItemType() == NumberType.R4 && column.Purpose == ColumnPurpose.NumericFeature
+                        if (column.Type.ItemType() == NumberType.R4
+                            && column.Purpose == ColumnPurpose.NumericFeature
                             && column.Dimensions.HasMissing == true)
                         {
-                            columnsWithMissing.Add(column.ColumnName);
+                            columnsWithMissing.Add(column.ColumnName);  
                         }
                     }
                     if (columnsWithMissing.Any())
                     {
                         var columnsArr = columnsWithMissing.ToArray();
-                        yield return MissingValueIndicatorExtension.CreateSuggestedTransform(Context, columnsArr, columnsArr);
+                        var indicatorColNames = GetNewColumnNames(columnsArr.Select(c => $"{c}_MissingIndicator"), columns).ToArray();
+                        yield return MissingValueIndicatingExtension.CreateSuggestedTransform(Context, columnsArr, indicatorColNames);
+                        yield return TypeConvertingExtension.CreateSuggestedTransform(Context, indicatorColNames, indicatorColNames);
+                        yield return MissingValueReplacingExtension.CreateSuggestedTransform(Context, columnsArr, columnsArr);
                     }
                 }
             }
-
-            internal class FeaturesColumnConcatRename : TransformInferenceExpertBase
-            {
-                public virtual bool IgnoreColumn(ColumnPurpose purpose)
-                {
-                    if (purpose != ColumnPurpose.TextFeature
-                        && purpose != ColumnPurpose.CategoricalFeature
-                        && purpose != ColumnPurpose.NumericFeature)
-                        return true;
-                    return false;
-                }
-
-                public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
-                {
-                    var selectedColumns = columns.Where(c => !IgnoreColumn(c.Purpose)).ToArray();
-                    var colList = selectedColumns.Select(c => c.ColumnName).ToArray();
-                    bool allColumnsNumeric = selectedColumns.All(c => c.Purpose == ColumnPurpose.NumericFeature && c.Type.ItemType() != BoolType.Instance);
-                    bool allColumnsNonNumeric = selectedColumns.All(c => c.Purpose != ColumnPurpose.NumericFeature);
-
-                    if (colList.Length > 0)
-                    {
-                        // Check if column is named features and already numeric
-                        if (colList.Length == 1 && colList[0] == DefaultColumnNames.Features && allColumnsNumeric)
-                        {
-                            yield break;
-                        }
-                        
-                        if (!allColumnsNumeric && !allColumnsNonNumeric)
-                        {
-                            yield break;
-                        }
-                        
-                        var input = new ColumnConcatenatingEstimator(Context, DefaultColumnNames.Features, colList);
-                        yield return ColumnConcatenatingExtension.CreateSuggestedTransform(Context, colList, DefaultColumnNames.Features);
-                    }
-                }
-            }
-
-            internal sealed class FeaturesColumnConcatRenameIgnoreText : FeaturesColumnConcatRename, ITransformInferenceExpert
-            {
-                public override bool IgnoreColumn(ColumnPurpose purpose)
-                {
-                    return (purpose != ColumnPurpose.CategoricalFeature && purpose != ColumnPurpose.NumericFeature);
-                }
-            }
-
-            internal sealed class FeaturesColumnConcatRenameNumericOnly : FeaturesColumnConcatRename, ITransformInferenceExpert
-            {
-                public override bool IgnoreColumn(ColumnPurpose purpose)
-                {
-                    return (purpose != ColumnPurpose.NumericFeature);
-                }
-            }
-
+            
             internal sealed class NameColumnConcatRename : TransformInferenceExpertBase
             {
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
@@ -443,8 +390,8 @@ namespace Microsoft.ML.Auto
                 suggestedTransforms.AddRange(suggestions);
             }
 
-            var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms);
-            if(finalFeaturesConcatTransform != null)
+            var finalFeaturesConcatTransform = BuildFinalFeaturesConcatTransform(context, suggestedTransforms, intermediateCols);
+            if (finalFeaturesConcatTransform != null)
             {
                 suggestedTransforms.Add(finalFeaturesConcatTransform);
             }
@@ -457,24 +404,70 @@ namespace Microsoft.ML.Auto
         /// Take the output columns from all suggested experts (except for 'Label'), and concatenate them
         /// into one final 'Features' column that a trainer will accept.
         /// </summary>
-        private static SuggestedTransform BuildFinalFeaturesConcatTransform(MLContext context, IEnumerable<SuggestedTransform> suggestedTransforms)
+        private static SuggestedTransform BuildFinalFeaturesConcatTransform(MLContext context, IEnumerable<SuggestedTransform> suggestedTransforms,
+            IEnumerable<IntermediateColumn> intermediateCols)
         {
             // get the output column names from all suggested transforms
-            var outputColNames = new List<string>();
+            var concatColNames = new List<string>();
             foreach (var suggestedTransform in suggestedTransforms)
             {
-                outputColNames.AddRange(suggestedTransform.PipelineNode.OutColumns);
+                concatColNames.AddRange(suggestedTransform.PipelineNode.OutColumns);
+            }
+
+            // include all numeric columns of type R4
+            foreach(var intermediateCol in intermediateCols)
+            {
+                if (intermediateCol.Purpose == ColumnPurpose.NumericFeature &&
+                    intermediateCol.Type == NumberType.R4)
+                {
+                    concatColNames.Add(intermediateCol.ColumnName);
+                }
             }
 
             // remove 'Label' if it was ever a suggested purpose
-            outputColNames.Remove(DefaultColumnNames.Label);
+            concatColNames.Remove(DefaultColumnNames.Label);
+            concatColNames.Remove(DefaultColumnNames.GroupId);
+            concatColNames.Remove(DefaultColumnNames.Name);
 
-            if(!outputColNames.Any())
+            if (!concatColNames.Any() || (concatColNames.Count == 1 && concatColNames[0] == DefaultColumnNames.Features))
             {
                 return null;
             }
 
-            return ColumnConcatenatingExtension.CreateSuggestedTransform(context, outputColNames.ToArray(), DefaultColumnNames.Features);
+            // If Features column exists in original dataset, add it to concatColumnNames
+            if (intermediateCols.Any(c => c.ColumnName == DefaultColumnNames.Features))
+            {
+                concatColNames.Add(DefaultColumnNames.Features);
+            }
+
+            return ColumnConcatenatingExtension.CreateSuggestedTransform(context, concatColNames.Distinct().ToArray(), DefaultColumnNames.Features);
+        }
+
+        private static IEnumerable<string> GetNewColumnNames(IEnumerable<string> desiredColNames, IEnumerable<IntermediateColumn> columns)
+        {
+            var newColNames = new List<string>();
+
+            var existingColNames = new HashSet<string>(columns.Select(c => c.ColumnName));
+            foreach (var desiredColName in desiredColNames)
+            {
+                if (!existingColNames.Contains(desiredColName))
+                {
+                    newColNames.Add(desiredColName);
+                    continue;
+                }
+
+                for(var i = 0; ; i++)
+                {
+                    var newColName = $"{desiredColName}{i}";
+                    if (!existingColNames.Contains(newColName))
+                    {
+                        newColNames.Add(newColName);
+                        break;
+                    }
+                }
+            }
+
+            return newColNames;
         }
     }
 }

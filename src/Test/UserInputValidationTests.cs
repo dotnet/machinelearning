@@ -69,14 +69,6 @@ namespace Microsoft.ML.Auto.Test
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void ValidateAutoFitArgsNullValidData()
-        {
-            UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
-                DatasetUtil.UciAdultLabel, null, null, null);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ValidateAutoFitArgsNullLabel()
         {
             UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),

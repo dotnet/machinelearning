@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    internal class MissingValueIndicatorExtension : IEstimatorExtension
+    internal class MissingValueIndicatingExtension : IEstimatorExtension
     {
         public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
         {
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Auto
 
         public static SuggestedTransform CreateSuggestedTransform(MLContext context, string[] inColumns, string[] outColumns)
         {
-            var pipelineNode = new PipelineNode(EstimatorName.MissingValueIndicator.ToString(),
+            var pipelineNode = new PipelineNode(EstimatorName.MissingValueIndicating.ToString(),
                 PipelineNodeType.Transform, inColumns, outColumns);
             var estimator = CreateInstance(context, inColumns, outColumns);
             return new SuggestedTransform(pipelineNode, estimator);
@@ -75,6 +76,33 @@ namespace Microsoft.ML.Auto
                 pairs[i] = pair;
             }
             return context.Transforms.IndicateMissingValues(pairs);
+        }
+    }
+
+    internal class MissingValueReplacingExtension : IEstimatorExtension
+    {
+        public IEstimator<ITransformer> CreateInstance(MLContext context, PipelineNode pipelineNode)
+        {
+            return CreateInstance(context, pipelineNode.InColumns, pipelineNode.OutColumns);
+        }
+
+        public static SuggestedTransform CreateSuggestedTransform(MLContext context, string[] inColumns, string[] outColumns)
+        {
+            var pipelineNode = new PipelineNode(EstimatorName.MissingValueReplacing.ToString(),
+                PipelineNodeType.Transform, inColumns, outColumns);
+            var estimator = CreateInstance(context, inColumns, outColumns);
+            return new SuggestedTransform(pipelineNode, estimator);
+        }
+
+        private static IEstimator<ITransformer> CreateInstance(MLContext context, string[] inColumns, string[] outColumns)
+        {
+            var pairs = new MissingValueReplacingTransformer.ColumnInfo[inColumns.Length];
+            for (var i = 0; i < inColumns.Length; i++)
+            {
+                var pair = new MissingValueReplacingTransformer.ColumnInfo(inColumns[i], outColumns[i]);
+                pairs[i] = pair;
+            }
+            return context.Transforms.ReplaceMissingValues(pairs);
         }
     }
 

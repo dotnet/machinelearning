@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
@@ -43,14 +44,15 @@ namespace Microsoft.ML.Auto.Test
             var uciAdult = DatasetUtil.GetUciAdultDataView();
             var columns = AutoMlUtils.GetColumnInfoTuples(context, uciAdult, DatasetUtil.UciAdultLabel, null);
 
-            // get next pipeline loop
+            // Get next pipeline loop
             var history = new List<PipelineScore>();
-            var maxIterations = 10;
+            var task = TaskKind.BinaryClassification;
+            var maxIterations = 60;
             for (var i = 0; i < maxIterations; i++)
             {
-                // get next pipeline
-                var pipeline = PipelineSuggester.GetNextPipeline(history, columns, TaskKind.BinaryClassification, maxIterations - i);
-                if(pipeline == null)
+                // Get next pipeline
+                var pipeline = PipelineSuggester.GetNextPipeline(history, columns, task, maxIterations - i);
+                if (pipeline == null)
                 {
                     break;
                 }
@@ -58,8 +60,25 @@ namespace Microsoft.ML.Auto.Test
                 var result = new PipelineScore(pipeline, AutoMlUtils.Random.NextDouble(), true);
                 history.Add(result);
             }
-
+            
             Assert.AreEqual(maxIterations, history.Count);
+
+            // Get all 'Stage 1' and 'Stage 2' runs from Pipeline Suggester
+            var allAvailableTrainers = RecipeInference.AllowedTrainers(context, task, maxIterations);
+            var stage1Runs = history.Take(allAvailableTrainers.Count());
+            var stage2Runs = history.Skip(allAvailableTrainers.Count());
+
+            // Get the trainer names from top 3 Stage 1 runs
+            var topStage1Runs = stage1Runs.OrderByDescending(r => r.Score).Take(3);
+            var topStage1TrainerNames = topStage1Runs.Select(r => r.Pipeline.Nodes.Last().Name);
+
+            // Get unique trainer names from Stage 2 runs
+            var stage2TrainerNames = stage2Runs.Select(r => r.Pipeline.Nodes.Last().Name).Distinct();
+
+            // Assert that are only 3 unique trainers used in stage 2
+            Assert.AreEqual(3, stage2TrainerNames.Count());
+            // Assert that all trainers in stage 2 were the top trainers from stage 1
+            Assert.IsFalse(topStage1TrainerNames.Except(stage2TrainerNames).Any());
         }
     }
 }
