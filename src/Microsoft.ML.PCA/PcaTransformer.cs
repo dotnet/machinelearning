@@ -619,7 +619,8 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
     public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const string WeightColumn = null;
             public const int Rank = 20;
@@ -633,12 +634,34 @@ namespace Microsoft.ML.Transforms.Projections
         /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>
+            /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of column to transform.
+            /// If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// The name of the weight column.
+            /// </summary>
             public readonly string WeightColumn;
+            /// <summary>
+            /// The number of components in the PCA.
+            /// </summary>
             public readonly int Rank;
+            /// <summary>
+            /// Oversampling parameter for randomized PCA training.
+            /// </summary>
             public readonly int Oversampling;
+            /// <summary>
+            /// If enabled, data is centered to be zero mean.
+            /// </summary>
             public readonly bool Center;
+            /// <summary>
+            /// The seed for random number generation.
+            /// </summary>
             public readonly int? Seed;
 
             /// <summary>
@@ -706,7 +729,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="PcaTransformer"/>.
         /// </summary>
         public PcaTransformer Fit(IDataView input) => new PcaTransformer(_host, input, _columns);
 

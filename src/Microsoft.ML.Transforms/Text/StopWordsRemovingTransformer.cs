@@ -809,6 +809,9 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        /// <summary>
+        /// The names of the input output column pairs on which this transformation is applied.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>

@@ -35,9 +35,15 @@ namespace Microsoft.ML.Transforms.Projections
 {
     public enum WhiteningKind
     {
+        /// <summary>
+        /// PCA whitening.
+        /// </summary>
         [TGUI(Label = "PCA whitening")]
         Pca,
 
+        /// <summary>
+        /// ZCA whitening.
+        /// </summary>
         [TGUI(Label = "ZCA whitening")]
         Zca
     }
@@ -186,9 +192,9 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            var infos = args.Columns.Select(colPair => new VectorWhiteningEstimator.ColumnInfo(colPair, args)).ToArray();
+            var infos = options.Columns.Select(colPair => new VectorWhiteningEstimator.ColumnInfo(colPair, options)).ToArray();
             (var models, var invModels) = TrainVectorWhiteningTransform(env, input, infos);
             return new VectorWhiteningTransformer(env, models, invModels, infos).MakeDataTransform(input);
         }
@@ -665,7 +671,8 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
     public sealed class VectorWhiteningEstimator : IEstimator<VectorWhiteningTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const WhiteningKind Kind = WhiteningKind.Zca;
             public const float Eps = 1e-5f;
@@ -679,11 +686,29 @@ namespace Microsoft.ML.Transforms.Projections
         /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>
+            /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// Whitening kind (PCA/ZCA).
+            /// </summary>
             public readonly WhiteningKind Kind;
+            /// <summary>
+            /// Whitening constant, prevents division by zero.
+            /// </summary>
             public readonly float Epsilon;
+            /// <summary>
+            /// Maximum number of rows used to train the transform.
+            /// </summary>
             public readonly int MaxRow;
+            /// <summary>
+            /// In case of PCA whitening, indicates the number of components to retain.
+            /// </summary>
             public readonly int PcaNum;
             internal readonly bool SaveInv;
 
@@ -714,20 +739,20 @@ namespace Microsoft.ML.Transforms.Projections
                 Contracts.CheckUserArg(PcaNum >= 0, nameof(PcaNum));
             }
 
-            internal ColumnInfo(VectorWhiteningTransformer.Column item, VectorWhiteningTransformer.Options args)
+            internal ColumnInfo(VectorWhiteningTransformer.Column item, VectorWhiteningTransformer.Options options)
             {
                 Name = item.Name;
                 Contracts.CheckValue(Name, nameof(Name));
                 InputColumnName = item.Source ?? item.Name;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
-                Kind = item.Kind ?? args.Kind;
+                Kind = item.Kind ?? options.Kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(item.Kind));
-                Epsilon = item.Eps ?? args.Eps;
+                Epsilon = item.Eps ?? options.Eps;
                 Contracts.CheckUserArg(0 <= Epsilon && Epsilon < float.PositiveInfinity, nameof(item.Eps));
-                MaxRow = item.MaxRows ?? args.MaxRows;
+                MaxRow = item.MaxRows ?? options.MaxRows;
                 Contracts.CheckUserArg(MaxRow > 0, nameof(item.MaxRows));
-                SaveInv = item.SaveInverse ?? args.SaveInverse;
-                PcaNum = item.PcaNum ?? args.PcaNum;
+                SaveInv = item.SaveInverse ?? options.SaveInverse;
+                PcaNum = item.PcaNum ?? options.PcaNum;
                 Contracts.CheckUserArg(PcaNum >= 0, nameof(item.PcaNum));
             }
 
@@ -803,6 +828,9 @@ namespace Microsoft.ML.Transforms.Projections
         {
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="VectorWhiteningTransformer"/>.
+        /// </summary>
         public VectorWhiteningTransformer Fit(IDataView input)
         {
             // Build transformation matrices for whitening process, then construct a trained transform.
@@ -811,7 +839,8 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         /// <summary>
-        /// Returns the schema that would be produced by the transformation.
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
         /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

@@ -191,6 +191,9 @@ namespace Microsoft.ML.Transforms.Projections
         // REVIEW: should this be an argument instead?
         private const float MinScale = 1e-8f;
 
+        /// <summary>
+        /// The objects describing how the transformation is applied on the input data.
+        /// </summary>
         public IReadOnlyCollection<LpNormalizingEstimatorBase.ColumnInfoBase> Columns => _columns.AsReadOnly();
         private readonly LpNormalizingEstimatorBase.ColumnInfoBase[] _columns;
 
@@ -660,13 +663,28 @@ namespace Microsoft.ML.Transforms.Projections
         /// </summary>
         public abstract class ColumnInfoBase
         {
+            /// <summary>
+            /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// Subtract mean from each value before normalizing.
+            /// </summary>
             public readonly bool SubtractMean;
+            /// <summary>
+            /// The norm to use to normalize each sample.
+            /// </summary>
             public readonly NormalizerKind NormKind;
+            /// <summary>
+            /// Scale features by this value.
+            /// </summary>
             public readonly float Scale;
 
-            internal ColumnInfoBase(string name, string inputColumnName, bool substractMean, LpNormalizingEstimatorBase.NormalizerKind normalizerKind, float scale)
+            internal ColumnInfoBase(string name, string inputColumnName, bool substractMean, NormalizerKind normalizerKind, float scale)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Contracts.CheckNonWhiteSpace(inputColumnName, nameof(inputColumnName));
@@ -692,14 +710,14 @@ namespace Microsoft.ML.Transforms.Projections
                 // Float: Scale
                 SubtractMean = ctx.Reader.ReadBoolByte();
                 byte normKindVal = ctx.Reader.ReadByte();
-                Contracts.CheckDecode(Enum.IsDefined(typeof(LpNormalizingEstimatorBase.NormalizerKind), normKindVal));
-                NormKind = (LpNormalizingEstimatorBase.NormalizerKind)normKindVal;
+                Contracts.CheckDecode(Enum.IsDefined(typeof(NormalizerKind), normKindVal));
+                NormKind = (NormalizerKind)normKindVal;
                 // Note: In early versions, a bool option (useStd) to whether to normalize by StdDev rather than
                 // L2 norm was used. normKind was added in version=verVectorNormalizerSupported.
                 // normKind was defined in a way such that the serialized boolean (0: use StdDev, 1: use L2) is
                 // still valid.
                 Contracts.CheckDecode(normKindSerialized ||
-                        (NormKind == LpNormalizingEstimatorBase.NormalizerKind.L2Norm || NormKind == LpNormalizingEstimatorBase.NormalizerKind.StdDev));
+                        (NormKind == NormalizerKind.L2Norm || NormKind == NormalizerKind.StdDev));
                 Scale = ctx.Reader.ReadFloat();
                 Contracts.CheckDecode(0 < Scale && Scale < float.PositiveInfinity);
             }
@@ -776,17 +794,17 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <summary>
-    /// Lp Normalizing estimator allow you take columns and normalize them individually by rescaling them to unit norm.
+    /// Lp Normalizing estimator takes columns and normalizes them individually by rescaling them to unit norm.
     /// </summary>
     public sealed class LpNormalizingEstimator : LpNormalizingEstimatorBase
     {
         /// <summary>
-        /// Describes how the transformer handles one LpNorm column pair.
+        /// Describes how the transformer handles one column pair.
         /// </summary>
         public sealed class LpNormColumnInfo : ColumnInfoBase
         {
             /// <summary>
-            /// Describes how the transformer handles one LpNorm column pair.
+            /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
@@ -832,7 +850,7 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <summary>
-    /// Global contrast normalizing estimator allow you take columns and performs global constrast normalization on them.
+    /// Global contrast normalizing estimator takes columns and performs global constrast normalization.
     /// </summary>
     public sealed class GlobalContrastNormalizingEstimator : LpNormalizingEstimatorBase
     {

@@ -31,6 +31,9 @@ using Microsoft.ML.Transforms.Projections;
 
 namespace Microsoft.ML.Transforms.Projections
 {
+    /// <summary>
+    /// Maps vector columns to a random low-dimensional feature space.
+    /// </summary>
     public sealed class RandomFourierFeaturizingTransformer : OneToOneTransformerBase
     {
         internal sealed class Options
@@ -609,23 +612,45 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <summary>
-    /// Estimator which takes set of vector columns and maps its input to a random low-dimensional feature space.
+    /// Maps vector columns to a random low-dimensional feature space.
     /// </summary>
     public sealed class RandomFourierFeaturizingEstimator : IEstimator<RandomFourierFeaturizingTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const int NewDim = 1000;
             public const bool UseSin = false;
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one Gcn column pair.
+        /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>
+            /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of the column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// Which fourier generator to use.
+            /// </summary>
             public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
+            /// <summary>
+            /// The number of random Fourier features to create.
+            /// </summary>
             public readonly int NewDim;
+            /// <summary>
+            /// Create two features for every random Fourier frequency? (one for cos and one for sin).
+            /// </summary>
             public readonly bool UseSin;
+            /// <summary>
+            /// The seed of the random number generator for generating the new features (if unspecified, the global random is used).
+            /// </summary>
             public readonly int? Seed;
 
             /// <summary>
@@ -636,7 +661,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
             /// <param name="inputColumnName">Name of column to transform. </param>
             /// <param name="generator">Which fourier generator to use.</param>
-            /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used.</param>
+            /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used).</param>
             public ColumnInfo(string name, int newDim, bool useSin, string inputColumnName = null, IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
             {
                 Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
@@ -673,7 +698,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         /// <summary>
-        /// Train and return a transformer.
+        /// Trains and returns a <see cref="RandomFourierFeaturizingTransformer"/>.
         /// </summary>
         public RandomFourierFeaturizingTransformer Fit(IDataView input) => new RandomFourierFeaturizingTransformer(_host, input, _columns);
 
