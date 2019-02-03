@@ -90,12 +90,11 @@
     <DownloadFilesFromUrl Items="@(TestFile)"
                          DestinationDir="test/data/external"
                          TreatErrorsAsWarnings="true"/>
-  </Target>
+  </Target>-->
 
   <Target Name="RunTests">
-    <MSBuild Projects="test\run-tests.proj"
-             Targets="RunTests" />
-  </Target> -->
+    <MSBuild Projects="src\test\run-tests.proj" Targets="RunTests" />
+  </Target>
 
   <!-- Override CleanAllProjects from dir.traversal.targets and just remove the full BinDir -->
   <Target Name="CleanAllProjects">

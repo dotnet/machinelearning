@@ -1,0 +1,9 @@
+<Project>
+  <Import Project="..\..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <VSTestLogger>trx</VSTestLogger>
+    <VSTestResultsDirectory>$(OutputPath)</VSTestResultsDirectory>
+  </PropertyGroup>
+
+</Project>
