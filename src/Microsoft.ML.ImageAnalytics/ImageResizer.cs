@@ -36,35 +36,6 @@ namespace Microsoft.ML.ImageAnalytics
     /// <include file='doc.xml' path='doc/members/member[@name="ImageResizingEstimator"]/*' />
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
     {
-        internal sealed class Column : OneToOneColumn
-        {
-            /// <summary>
-            /// Isotropic with padding.
-            /// </summary>
-            [TGUI(Label = "Isotropic with Padding")]
-            IsoPad = 0,
-
-            /// <summary>
-            /// Isotropic with cropping.
-            /// </summary>
-            [TGUI(Label = "Isotropic with Cropping")]
-            IsoCrop = 1,
-
-            /// <summary>
-            /// Ignore aspect ratio and squeeze/stretch into target dimensions.
-            /// </summary>
-            [TGUI(Label = "Ignore aspect ratio and squeeze/stretch into target dimensions")]
-            Fill = 2
-        }
-
-        public enum Anchor : byte
-        {
-            Right = 0,
-            Left = 1,
-            Top = 2,
-            Bottom = 3,
-            Center = 4
-        }
 
         internal sealed class Column : OneToOneColumn
         {
@@ -373,7 +344,7 @@ namespace Microsoft.ML.ImageAnalytics
                             destWidth = (int)(sourceWidth * aspect);
                             destHeight = (int)(sourceHeight * aspect);
                         }
-                        else if (info.Resizing == ResizingKind.IsoCrop)
+                        else if (info.Resizing == ImageResizingEstimator.ResizingKind.IsoCrop)
                         {
                             if (heightAspect < widthAspect)
                             {
@@ -411,7 +382,7 @@ namespace Microsoft.ML.ImageAnalytics
                             destWidth = (int)(sourceWidth * aspect);
                             destHeight = (int)(sourceHeight * aspect);
                         }
-                        else if (info.Resizing == ResizingKind.Fill)
+                        else if (info.Resizing == ImageResizingEstimator.ResizingKind.Fill)
                         {
                             destWidth = info.Width;
                             destHeight = info.Height;
@@ -450,7 +421,13 @@ namespace Microsoft.ML.ImageAnalytics
             /// Isotropic(uniform) with cropping.
             /// </summary>
             [TGUI(Label = "Isotropic with Cropping")]
-            IsoCrop = 1
+            IsoCrop = 1,
+
+            /// <summary>
+            /// Ignore aspect ratio and squeeze/stretch into target dimensions.
+            /// </summary>
+            [TGUI(Label = "Ignore aspect ratio and squeeze/stretch into target dimensions")]
+            Fill = 2
         }
 
         /// <summary>

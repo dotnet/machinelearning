@@ -729,7 +729,7 @@ namespace Microsoft.ML.Tests
             const int targetDimension = 50;
             var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImageReal", "ImagePath"))
                 .Append(new ImageResizingEstimator(env, "ImageReal", targetDimension, targetDimension, "ImageReal",
-                    resizing: ImageResizerTransformer.ResizingKind.Fill));
+                    resizing: ImageResizingEstimator.ResizingKind.Fill));
 
             var rowView = pipe.Preview(data).RowView;
             Assert.Single(rowView);
