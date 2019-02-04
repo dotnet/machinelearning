@@ -267,7 +267,7 @@ namespace Microsoft.ML.ImageAnalytics
 
             base.SaveColumns(ctx);
 
-            foreach (ImagePixelExtractingEstimator.ColumnInfo info in _columns)
+            foreach (var info in _columns)
                 info.Save(ctx);
         }
 
@@ -535,7 +535,7 @@ namespace Microsoft.ML.ImageAnalytics
             public readonly bool AsFloat;
 
             internal readonly byte Planes;
-            public bool Alpha => (Colors & ColorBits.Alpha) != 0;
+            internal bool Alpha => (Colors & ColorBits.Alpha) != 0;
 
             internal bool Red => (Colors & ColorBits.Red) != 0;
             internal bool Green => (Colors & ColorBits.Green) != 0;
@@ -656,7 +656,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Interleave = ctx.Reader.ReadBoolByte();
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 #if DEBUG
@@ -719,6 +719,10 @@ namespace Microsoft.ML.ImageAnalytics
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

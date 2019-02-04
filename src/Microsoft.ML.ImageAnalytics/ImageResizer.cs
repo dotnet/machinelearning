@@ -33,9 +33,7 @@ using Microsoft.ML.Model;
 namespace Microsoft.ML.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
-    /// <summary>
-    /// Transform which takes one or many columns of <see cref="ImageType"/> and resize them to provided height and width.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ImageResizingEstimator"]/*' />
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
@@ -434,9 +432,7 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
-    /// <summary>
-    /// Estimator which resizes images.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ImageResizingEstimator"]/*' />
     public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizingTransformer>
     {
         /// <summary>
@@ -564,6 +560,10 @@ namespace Microsoft.ML.ImageAnalytics
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

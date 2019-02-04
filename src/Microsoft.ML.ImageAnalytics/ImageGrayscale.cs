@@ -78,6 +78,9 @@ namespace Microsoft.ML.ImageAnalytics
 
         private const string RegistrationName = "ImageGrayscale";
 
+        /// <summary>
+        /// The input and output column pairs passed to this <see cref="ITransformer"/>.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
@@ -214,7 +217,6 @@ namespace Microsoft.ML.ImageAnalytics
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
-    [BestFriend]
     public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscaleTransformer>
     {
 
@@ -223,11 +225,16 @@ namespace Microsoft.ML.ImageAnalytics
         /// </summary>
         /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
         /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
+        [BestFriend]
         internal ImageGrayscalingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscalingEstimator)), new ImageGrayscaleTransformer(env, columns))
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

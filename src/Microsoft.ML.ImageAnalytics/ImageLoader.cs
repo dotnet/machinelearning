@@ -65,8 +65,14 @@ namespace Microsoft.ML.ImageAnalytics
         internal const string UserName = "Image Loader Transform";
         internal const string LoaderSignature = "ImageLoaderTransform";
 
+        /// <summary>
+        /// The folder to load the images from.
+        /// </summary>
         public readonly string ImageFolder;
 
+        /// <summary>
+        /// The columns passed to this <see cref="ITransformer"/>.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
@@ -236,6 +242,10 @@ namespace Microsoft.ML.ImageAnalytics
             _imageType = new ImageType();
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
