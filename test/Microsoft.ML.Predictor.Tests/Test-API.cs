@@ -2,20 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Model;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
+namespace Microsoft.ML.Internal.Internallearn.Test
 {
 #if OLD_TESTS // REVIEW: Should any of this be ported?
     using TestLearners = TestLearnersBase;
@@ -73,7 +62,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
 
             ///*********  Loading and making predictions with a previously saved model *******//
             // Note:   there are several alternative ways to construct instances
-            // E.g., see FactoryExampleTest  below that demonstrates named-feature : value pairs.
+            // For example, see FactoryExampleTest  below that demonstrates named-feature : value pairs.
 
             // Load saved model
             IDataModel dataModel;
@@ -176,7 +165,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
 
                 ///*********  Loading and making predictions with a previously saved model *******//
                 // Note:   there are several alternative ways to construct instances
-                // E.g., see FactoryExampleTest  below that demonstrates named-feature : value pairs.
+                // For example, see FactoryExampleTest  below that demonstrates named-feature : value pairs.
 
                 // Load saved model
                 IDataModel dataModel;
@@ -317,7 +306,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
 
             List<Float> originalOutputs = new List<Float>();
             List<Float> originalProbabilities = new List<Float>();
-            var env = new TlcEnvironment(SysRandom.Wrap(RunExperiments.GetRandom(cmd)));
+            var env = new LocalEnvironment(SysRandom.Wrap(RunExperiments.GetRandom(cmd)));
             Instances instances = RunExperiments.CreateTestData(cmd, testDataFilename, dataModel, null, env);
             foreach (Instance instance in instances)
             {

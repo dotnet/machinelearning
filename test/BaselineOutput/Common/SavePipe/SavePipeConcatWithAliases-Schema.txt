@@ -1,0 +1,42 @@
+---- BoundLoader ----
+2 columns:
+  A: R4
+  B: Vec<R4, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'thickness', [1] 'uniform_size', [2] 'uniform_shape', [3] 'adhesion', [4] 'epit_size', [5] 'bare_nuclei', [6] 'bland_chromatin', [7] 'normal_nucleoli', [8] 'mitoses'
+---- RowToRowMapperTransform ----
+3 columns:
+  A: R4
+  B: Vec<R4, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'thickness', [1] 'uniform_size', [2] 'uniform_shape', [3] 'adhesion', [4] 'epit_size', [5] 'bare_nuclei', [6] 'bland_chromatin', [7] 'normal_nucleoli', [8] 'mitoses'
+  All: Vec<R4, 11>
+    Metadata 'SlotNames': Vec<Text, 11>: Length=11, Count=11
+      [0] 'First', [1] 'A', [2] 'Rest.thickness', [3] 'Rest.uniform_size', [4] 'Rest.uniform_shape', [5] 'Rest.adhesion', [6] 'Rest.epit_size', [7] 'Rest.bare_nuclei', [8] 'Rest.bland_chromatin', [9] 'Rest.normal_nucleoli'
+      [10] 'Rest.mitoses'
+---- RowToRowMapperTransform ----
+4 columns:
+  A: R4
+  B: Vec<R4, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'thickness', [1] 'uniform_size', [2] 'uniform_shape', [3] 'adhesion', [4] 'epit_size', [5] 'bare_nuclei', [6] 'bland_chromatin', [7] 'normal_nucleoli', [8] 'mitoses'
+  All: Vec<R4, 11>
+    Metadata 'SlotNames': Vec<Text, 11>: Length=11, Count=11
+      [0] 'First', [1] 'A', [2] 'Rest.thickness', [3] 'Rest.uniform_size', [4] 'Rest.uniform_shape', [5] 'Rest.adhesion', [6] 'Rest.epit_size', [7] 'Rest.bare_nuclei', [8] 'Rest.bland_chromatin', [9] 'Rest.normal_nucleoli'
+      [10] 'Rest.mitoses'
+  All2: Vec<R4, 28>
+    Metadata 'SlotNames': Vec<Text, 28>: Length=28, Count=28
+      [0] 'A', [1] 'B.thickness', [2] 'B.uniform_size', [3] 'B.uniform_shape', [4] 'B.adhesion', [5] 'B.epit_size', [6] 'B.bare_nuclei', [7] 'B.bland_chromatin', [8] 'B.normal_nucleoli', [9] 'B.mitoses'
+      [10] 'thickness', [11] 'uniform_size', [12] 'uniform_shape', [13] 'adhesion', [14] 'epit_size', [15] 'bare_nuclei', [16] 'bland_chromatin', [17] 'normal_nucleoli', [18] 'mitoses', [19] 'Vector.thickness'
+      [20] 'Vector.uniform_size', [21] 'Vector.uniform_shape', [22] 'Vector.adhesion', [23] 'Vector.epit_size', [24] 'Vector.bare_nuclei', [25] 'Vector.bland_chromatin', [26] 'Vector.normal_nucleoli', [27] 'Vector.mitoses'
+---- SelectColumnsDataTransform ----
+2 columns:
+  All: Vec<R4, 11>
+    Metadata 'SlotNames': Vec<Text, 11>: Length=11, Count=11
+      [0] 'First', [1] 'A', [2] 'Rest.thickness', [3] 'Rest.uniform_size', [4] 'Rest.uniform_shape', [5] 'Rest.adhesion', [6] 'Rest.epit_size', [7] 'Rest.bare_nuclei', [8] 'Rest.bland_chromatin', [9] 'Rest.normal_nucleoli'
+      [10] 'Rest.mitoses'
+  All2: Vec<R4, 28>
+    Metadata 'SlotNames': Vec<Text, 28>: Length=28, Count=28
+      [0] 'A', [1] 'B.thickness', [2] 'B.uniform_size', [3] 'B.uniform_shape', [4] 'B.adhesion', [5] 'B.epit_size', [6] 'B.bare_nuclei', [7] 'B.bland_chromatin', [8] 'B.normal_nucleoli', [9] 'B.mitoses'
+      [10] 'thickness', [11] 'uniform_size', [12] 'uniform_shape', [13] 'adhesion', [14] 'epit_size', [15] 'bare_nuclei', [16] 'bland_chromatin', [17] 'normal_nucleoli', [18] 'mitoses', [19] 'Vector.thickness'
+      [20] 'Vector.uniform_size', [21] 'Vector.uniform_shape', [22] 'Vector.adhesion', [23] 'Vector.epit_size', [24] 'Vector.bare_nuclei', [25] 'Vector.bland_chromatin', [26] 'Vector.normal_nucleoli', [27] 'Vector.mitoses'

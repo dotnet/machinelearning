@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.Data
+using Microsoft.Data.DataView;
+
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for creating a cursor on top of another cursor that does not add or remove rows.
@@ -10,66 +12,61 @@ namespace Microsoft.ML.Runtime.Data
     /// It delegates all ICursor functionality except Dispose() to the root cursor.
     /// Dispose is virtual with the default implementation delegating to the input cursor.
     /// </summary>
-    public abstract class SynchronizedCursorBase<TBase> : ICursor
-        where TBase : class, ICursor
+    [BestFriend]
+    internal abstract class SynchronizedCursorBase : RowCursor
     {
         protected readonly IChannel Ch;
 
-        private readonly ICursor _root;
+        /// <summary>
+        /// The synchronized cursor base, as it merely passes through requests for all "positional" calls (including
+        /// <see cref="MoveNext"/>, <see cref="Position"/>, <see cref="Batch"/>, and so forth), offers an opportunity
+        /// for optimization for "wrapping" cursors (which are themselves often <see cref="SynchronizedCursorBase"/>
+        /// implementors) to get this root cursor. But, this can only be done by exposing this root cursor, as we do here.
+        /// Internal code should be quite careful in using this as the potential for misuse is quite high.
+        /// </summary>
+        internal readonly RowCursor Root;
         private bool _disposed;
 
-        protected TBase Input { get; }
+        protected RowCursor Input { get; }
 
-        public long Position => _root.Position;
+        public sealed override long Position => Root.Position;
 
-        public long Batch => _root.Batch;
-
-        public CursorState State => _root.State;
+        public sealed override long Batch => Root.Batch;
 
         /// <summary>
-        /// Convenience property for checking whether the current state is CursorState.Good.
+        /// Convenience property for checking whether the cursor is in a good state where values
+        /// can be retrieved, that is, whenever <see cref="Position"/> is non-negative.
         /// </summary>
-        protected bool IsGood => _root.State == CursorState.Good;
+        protected bool IsGood => Position >= 0;
 
-        protected SynchronizedCursorBase(IChannelProvider provider, TBase input)
+        protected SynchronizedCursorBase(IChannelProvider provider, RowCursor input)
         {
-            Contracts.AssertValue(provider, "provider");
+            Contracts.AssertValue(provider);
             Ch = provider.Start("Cursor");
 
-            Ch.AssertValue(input, "input");
+            Ch.AssertValue(input);
             Input = input;
-            _root = Input.GetRootCursor();
+            // If this thing happens to be itself an instance of this class (which, practically, it will
+            // be in the majority of situations), we can treat the input as likewise being a passthrough,
+            // thereby saving lots of "nested" calls on the stack when doing common operations like movement.
+            Root = Input is SynchronizedCursorBase syncInput ? syncInput.Root : input;
         }
 
-        public virtual void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (!_disposed)
+            if (_disposed)
+                return;
+            if (disposing)
             {
                 Input.Dispose();
-                Ch.Done();
                 Ch.Dispose();
-                _disposed = true;
             }
+            base.Dispose(disposing);
+            _disposed = true;
         }
 
-        public bool MoveNext()
-        {
-            return _root.MoveNext();
-        }
+        public sealed override bool MoveNext() => Root.MoveNext();
 
-        public bool MoveMany(long count)
-        {
-            return _root.MoveMany(count);
-        }
-
-        public ICursor GetRootCursor()
-        {
-            return _root;
-        }
-
-        public ValueGetter<UInt128> GetIdGetter()
-        {
-            return Input.GetIdGetter();
-        }
+        public sealed override ValueGetter<RowId> GetIdGetter() => Input.GetIdGetter();
     }
 }

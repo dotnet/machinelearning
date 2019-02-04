@@ -8,7 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.TextAnalytics
 {
 
     internal static class LdaInterface
@@ -18,66 +18,66 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             public IntPtr Ptr;
         }
 
-        private const string NativeDll = "LdaNative";
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        private const string NativePath = "LdaNative";
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern LdaEngine CreateEngine(int numTopic, int numVocab, float alphaSum, float beta, int numIter,
             int likelihoodInterval, int numThread, int mhstep, int maxDocToken);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void AllocateModelMemory(LdaEngine engine, int numTopic, int numVocab, long tableSize, long aliasTableSize);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void AllocateDataMemory(LdaEngine engine, int docNum, long corpusSize);
 
-        [DllImport(NativeDll, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
         internal static extern void Train(LdaEngine engine, string trainOutput);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void GetModelStat(LdaEngine engine, out long memBlockSize, out long aliasMemBlockSize);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void Test(LdaEngine engine, int numBurninIter, float[] pLogLikelihood);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void CleanData(LdaEngine engine);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void CleanModel(LdaEngine engine);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void DestroyEngine(LdaEngine engine);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void GetWordTopic(LdaEngine engine, int wordId, int[] pTopic, int[] pProb, ref int length);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void SetWordTopic(LdaEngine engine, int wordId, int[] pTopic, int[] pProb, int length);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void SetAlphaSum(LdaEngine engine, float avgDocLength);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern int FeedInData(LdaEngine engine, int[] termId, int[] termFreq, int termNum, int numVocab);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern int FeedInDataDense(LdaEngine engine, int[] termFreq, int termNum, int numVocab);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void GetDocTopic(LdaEngine engine, int docId, int[] pTopic, int[] pProb, ref int numTopicReturn);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void GetTopicSummary(LdaEngine engine, int topicId, int[] pWords, float[] pProb, ref int numTopicReturn);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void TestOneDoc(LdaEngine engine, int[] termId, int[] termFreq, int termNum, int[] pTopics, int[] pProbs, ref int numTopicsMax, int numBurnIter, bool reset);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void TestOneDocDense(LdaEngine engine, int[] termFreq, int termNum, int[] pTopics, int[] pProbs, ref int numTopicsMax, int numBurninIter, bool reset);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void InitializeBeforeTrain(LdaEngine engine);
 
-        [DllImport(NativeDll), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         internal static extern void InitializeBeforeTest(LdaEngine engine);
     }
 
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             LdaInterface.SetAlphaSum(_engine, averageDocLength);
         }
 
-        public int LoadDoc(int[] termID, double[] termVal, int termNum, int numVocab)
+        public int LoadDoc(ReadOnlySpan<int> termID, ReadOnlySpan<double> termVal, int termNum, int numVocab)
         {
             Contracts.Check(numVocab == NumVocab);
             Contracts.Check(termNum > 0);
@@ -189,12 +189,14 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Contracts.Check(termVal.Length >= termNum);
 
             int[] pID = new int[termNum];
-            int[] pVal = termVal.Select(item => (int)item).ToArray();
-            Array.Copy(termID, pID, termNum);
+            int[] pVal = new int[termVal.Length];
+            for (int i = 0; i < termVal.Length; i++)
+                pVal[i] = (int)termVal[i];
+            termID.Slice(0, termNum).CopyTo(pID);
             return LdaInterface.FeedInData(_engine, pID, pVal, termNum, NumVocab);
         }
 
-        public int LoadDocDense(double[] termVal, int termNum, int numVocab)
+        public int LoadDocDense(ReadOnlySpan<double> termVal, int termNum, int numVocab)
         {
             Contracts.Check(numVocab == NumVocab);
             Contracts.Check(termNum > 0);
@@ -202,9 +204,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Contracts.Check(termVal.Length >= termNum);
 
             int[] pID = new int[termNum];
-            int[] pVal = termVal.Select(item => (int)item).ToArray();
+            int[] pVal = new int[termVal.Length];
+            for (int i = 0; i < termVal.Length; i++)
+                pVal[i] = (int)termVal[i];
             return LdaInterface.FeedInDataDense(_engine, pVal, termNum, NumVocab);
-
         }
 
         public List<KeyValuePair<int, float>> GetDocTopicVector(int docID)
@@ -220,7 +223,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     while (currentTopic < _topics[i])
                     {
                         //use a value to smooth the count so that we get dense output on each topic
-                        //the smooth value is usually set to 0.1 
+                        //the smooth value is usually set to 0.1
                         topicRet.Add(new KeyValuePair<int, float>(currentTopic, (float)_alpha));
                         currentTopic++;
                     }
@@ -244,17 +247,19 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             return topicRet;
         }
 
-        public List<KeyValuePair<int, float>> TestDoc(int[] termID, double[] termVal, int termNum, int numBurninIter, bool reset)
+        public List<KeyValuePair<int, float>> TestDoc(ReadOnlySpan<int> termID, ReadOnlySpan<double> termVal, int termNum, int numBurninIter, bool reset)
         {
             Contracts.Check(termNum > 0);
             Contracts.Check(termVal.Length >= termNum);
             Contracts.Check(termID.Length >= termNum);
 
             int[] pID = new int[termNum];
-            int[] pVal = termVal.Select(item => (int)item).ToArray();
+            int[] pVal = new int[termVal.Length];
+            for (int i = 0; i < termVal.Length; i++)
+                pVal[i] = (int)termVal[i];
             int[] pTopic = new int[NumTopic];
             int[] pProb = new int[NumTopic];
-            Array.Copy(termID, pID, termNum);
+            termID.Slice(0, termNum).CopyTo(pID);
 
             int numTopicReturn = NumTopic;
 
@@ -273,12 +278,14 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             return topicRet;
         }
 
-        public List<KeyValuePair<int, float>> TestDocDense(double[] termVal, int termNum, int numBurninIter, bool reset)
+        public List<KeyValuePair<int, float>> TestDocDense(ReadOnlySpan<double> termVal, int termNum, int numBurninIter, bool reset)
         {
             Contracts.Check(termNum > 0);
             Contracts.Check(numBurninIter > 0);
             Contracts.Check(termVal.Length >= termNum);
-            int[] pVal = termVal.Select(item => (int)item).ToArray();
+            int[] pVal = new int[termVal.Length];
+            for (int i = 0; i < termVal.Length; i++)
+                pVal[i] = (int)termVal[i];
             int[] pTopic = new int[NumTopic];
             int[] pProb = new int[NumTopic];
 

@@ -5,11 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(EvaluateTransform.Summary, typeof(IDataTransform), typeof(EvaluateTransform), typeof(EvaluateTransform.Arguments), typeof(SignatureDataTransform),
     "Evaluate Predictor", "Evaluate")]
@@ -17,9 +18,9 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 [assembly: LoadableClass(EvaluateCommand.Summary, typeof(EvaluateCommand), typeof(EvaluateCommand.Arguments), typeof(SignatureCommand),
     "Evaluate Predictor", "Evaluate")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
-    // REVIEW: For simplicity (since this is currently the case), 
+    // REVIEW: For simplicity (since this is currently the case),
     // we assume that all metrics are either numeric, or numeric vectors.
     /// <summary>
     /// This class contains information about an overall metric, namely its name and whether it is a vector
@@ -89,10 +90,11 @@ namespace Microsoft.ML.Runtime.Data
     /// Both take a <see cref="RoleMappedData"/> as input. The <see cref="RoleMappedData"/> is assumed to contain all the column
     /// roles needed for evaluation, including the score column.
     /// </summary>
-    public interface IEvaluator
+    [BestFriend]
+    internal interface IEvaluator
     {
         /// <summary>
-        /// Compute the aggregate metrics. Return a dictionary from the metric kind 
+        /// Compute the aggregate metrics. Return a dictionary from the metric kind
         /// (overal/per-fold/confusion matrix/PR-curves etc.), to a data view containing the metric.
         /// </summary>
         Dictionary<string, IDataView> Evaluate(RoleMappedData data);
@@ -109,12 +111,14 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Signature for creating an IEvaluator.
+    /// Signature for creating an <see cref="IEvaluator"/>.
     /// </summary>
-    public delegate void SignatureEvaluator();
-    public delegate void SignatureMamlEvaluator();
+    [BestFriend]
+    internal delegate void SignatureEvaluator();
+    [BestFriend]
+    internal delegate void SignatureMamlEvaluator();
 
-    public static class EvaluateTransform
+    internal static class EvaluateTransform
     {
         public sealed class Arguments
         {
@@ -127,44 +131,44 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for grouping", ShortName = "group", SortOrder = 5)]
             public string GroupColumn = DefaultColumnNames.GroupId;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
-            public KeyValuePair<string, string>[] CustomColumn;
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+                Name = "CustomColumn", ShortName = "col", SortOrder = 10)]
+            public KeyValuePair<string, string>[] CustomColumns;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval")]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
         }
 
         internal const string Summary = "Runs a previously trained predictor on the data.";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
 
             using (var ch = env.Register("EvaluateTransform").Start("Create Transform"))
             {
                 ch.Trace("Binding columns");
-                ISchema schema = input.Schema;
+                var schema = input.Schema;
                 string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
                     args.LabelColumn, DefaultColumnNames.Label);
                 string group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.GroupColumn),
                     args.GroupColumn, DefaultColumnNames.GroupId);
                 string weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.WeightColumn),
                     args.WeightColumn, DefaultColumnNames.Weight);
-                var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, args.CustomColumn);
+                var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, args.CustomColumns);
 
                 ch.Trace("Creating evaluator");
-                var evalComp = args.Evaluator;
-                if (!evalComp.IsGood())
-                    evalComp = EvaluateUtils.GetEvaluatorType(ch, input.Schema);
+                IMamlEvaluator eval = args.Evaluator?.CreateComponent(env) ??
+                    EvaluateUtils.GetEvaluator(env, input.Schema);
 
-                var eval = evalComp.CreateInstance(env);
                 var data = new RoleMappedData(input, label, null, group, weight, null, customCols);
                 return eval.GetPerInstanceMetrics(data);
             }
         }
     }
 
-    public sealed class EvaluateCommand : DataCommand.ImplBase<EvaluateCommand.Arguments>
+    internal sealed class EvaluateCommand : DataCommand.ImplBase<EvaluateCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -180,11 +184,12 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 6)]
             public string NameColumn = DefaultColumnNames.Name;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
-            public KeyValuePair<string, string>[] CustomColumn;
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+                Name ="CustomColumn", ShortName = "col", SortOrder = 10)]
+            public KeyValuePair<string, string>[] CustomColumns;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval")]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Results summary filename", ShortName = "sf")]
             public string SummaryFilename;
@@ -208,7 +213,6 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start("Evaluate"))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 
@@ -217,10 +221,11 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(ch);
 
             ch.Trace("Creating loader");
-            IDataView view = CreateAndSaveLoader(IO.BinaryLoader.LoadName);
+            IDataView view = CreateAndSaveLoader(
+                (env, source) => new IO.BinaryLoader(env, new IO.BinaryLoader.Arguments(), source));
 
             ch.Trace("Binding columns");
-            ISchema schema = view.Schema;
+            var schema = view.Schema;
             string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
                 Args.LabelColumn, DefaultColumnNames.Label);
             string group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.GroupColumn),
@@ -229,13 +234,12 @@ namespace Microsoft.ML.Runtime.Data
                 Args.WeightColumn, DefaultColumnNames.Weight);
             string name = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.NameColumn),
                 Args.NameColumn, DefaultColumnNames.Name);
-            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
+            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumns);
 
             ch.Trace("Creating evaluator");
-            var evalComp = Args.Evaluator;
-            if (!evalComp.IsGood())
-                evalComp = EvaluateUtils.GetEvaluatorType(ch, view.Schema);
-            var evaluator = evalComp.CreateInstance(Host);
+            var evaluator = Args.Evaluator?.CreateComponent(Host) ??
+                EvaluateUtils.GetEvaluator(Host, view.Schema);
+
             var data = new RoleMappedData(view, label, null, group, weight, name, customCols);
             var metrics = evaluator.Evaluate(data);
             MetricWriter.PrintWarnings(ch, metrics);

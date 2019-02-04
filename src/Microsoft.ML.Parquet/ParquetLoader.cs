@@ -9,14 +9,17 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Parquet;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
+using DataViewSchema = Microsoft.Data.DataView.Schema;
 
 [assembly: LoadableClass(ParquetLoader.Summary, typeof(ParquetLoader), typeof(ParquetLoader.Arguments), typeof(SignatureDataLoader),
     ParquetLoader.LoaderName, ParquetLoader.LoaderSignature, ParquetLoader.ShortName)]
@@ -24,15 +27,16 @@ using Parquet.File.Values.Primitives;
 [assembly: LoadableClass(ParquetLoader.Summary, typeof(ParquetLoader), null, typeof(SignatureLoadDataLoader),
     ParquetLoader.LoaderName, ParquetLoader.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a parquet file into an IDataView. Supports basic mapping from Parquet input column data types to framework data types.
     /// </summary>
-    public sealed class ParquetLoader : IDataLoader, IDisposable
+    [BestFriend]
+    internal sealed class ParquetLoader : IDataLoader, IDisposable
     {
         /// <summary>
-        /// A Column is a singular representation that consolidates all the related column chunks in the 
+        /// A Column is a singular representation that consolidates all the related column chunks in the
         /// Parquet file. Information stored within the Column includes its name, raw type read from Parquet,
         /// its corresponding ColumnType, and index.
         /// Complex columns in Parquet like structs, maps, and lists are flattened into multiple columns.
@@ -88,46 +92,28 @@ namespace Microsoft.ML.Runtime.Data
         internal const string ShortName = "Parquet";
         internal const string ModelSignature = "PARQELDR";
 
+        private const string SchemaCtxName = "Schema.idv";
+
         private readonly IHost _host;
         private readonly Stream _parquetStream;
         private readonly ParquetOptions _parquetOptions;
         private readonly int _columnChunkReadSize;
         private readonly Column[] _columnsLoaded;
-        private readonly DataSet _schemaDataSet;
         private const int _defaultColumnChunkReadSize = 1000000;
 
         private bool _disposed;
+        private long? _rowCount;
 
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: ModelSignature,
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Add Schema to Model Context
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
-        }
-
-        public static ParquetLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            IHost host = env.Register(LoaderName);
-
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            env.CheckValue(files, nameof(files));
-
-            // *** Binary format ***
-            // int: cached chunk size
-            // bool: TreatBigIntegersAsDates flag
-
-            Arguments args = new Arguments
-            {
-                ColumnChunkReadSize = ctx.Reader.ReadInt32(),
-                TreatBigIntegersAsDates = ctx.Reader.ReadBoolean()
-            };
-            return host.Apply("Loading Model",
-                ch => new ParquetLoader(args, host, OpenStream(files)));
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ParquetLoader).Assembly.FullName);
         }
 
         public ParquetLoader(IHostEnvironment env, Arguments args, IMultiStreamSource files)
@@ -165,6 +151,8 @@ namespace Microsoft.ML.Runtime.Data
                     TreatBigIntegersAsDates = args.TreatBigIntegersAsDates
                 };
 
+                DataSet schemaDataSet;
+
                 try
                 {
                     // We only care about the schema so ignore the rows.
@@ -173,7 +161,8 @@ namespace Microsoft.ML.Runtime.Data
                         Count = 0,
                         Offset = 0
                     };
-                    _schemaDataSet = ParquetReader.Read(stream, _parquetOptions, readerOptions);
+                    schemaDataSet = ParquetReader.Read(stream, _parquetOptions, readerOptions);
+                    _rowCount = schemaDataSet.TotalRowCount;
                 }
                 catch (Exception ex)
                 {
@@ -181,9 +170,85 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 _columnChunkReadSize = args.ColumnChunkReadSize;
-                InitColumns(ch, out _columnsLoaded);
+                _columnsLoaded = InitColumns(schemaDataSet);
                 Schema = CreateSchema(_host, _columnsLoaded);
             }
+        }
+
+        private ParquetLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource files)
+        {
+            Contracts.AssertValue(host);
+            _host = host;
+            _host.AssertValue(ctx);
+            _host.AssertValue(files);
+
+            // *** Binary format ***
+            // int: cached chunk size
+            // bool: TreatBigIntegersAsDates flag
+            // Schema of the loader (0x00010002)
+
+            _columnChunkReadSize = ctx.Reader.ReadInt32();
+            bool treatBigIntegersAsDates = ctx.Reader.ReadBoolean();
+
+            if (ctx.Header.ModelVerWritten >= 0x00010002)
+            {
+                // Load the schema
+                byte[] buffer = null;
+                if (!ctx.TryLoadBinaryStream(SchemaCtxName, r => buffer = r.ReadByteArray()))
+                    throw _host.ExceptDecode();
+                var strm = new MemoryStream(buffer, writable: false);
+                var loader = new BinaryLoader(_host, new BinaryLoader.Arguments(), strm);
+                Schema = loader.Schema;
+            }
+
+            // Only load Parquest related data if a file is present. Otherwise, just the Schema is valid.
+            if (files.Count > 0)
+            {
+                _parquetOptions = new ParquetOptions()
+                {
+                    TreatByteArrayAsString = true,
+                    TreatBigIntegersAsDates = treatBigIntegersAsDates
+                };
+
+                _parquetStream = OpenStream(files);
+                DataSet schemaDataSet;
+
+                try
+                {
+                    // We only care about the schema so ignore the rows.
+                    ReaderOptions readerOptions = new ReaderOptions()
+                    {
+                        Count = 0,
+                        Offset = 0
+                    };
+                    schemaDataSet = ParquetReader.Read(_parquetStream, _parquetOptions, readerOptions);
+                    _rowCount = schemaDataSet.TotalRowCount;
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidDataException("Cannot read Parquet file", ex);
+                }
+
+                _columnsLoaded = InitColumns(schemaDataSet);
+                Schema = CreateSchema(_host, _columnsLoaded);
+            }
+            else if (Schema == null)
+            {
+                throw _host.Except("Parquet loader must be created with one file");
+            }
+        }
+
+        public static ParquetLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            IHost host = env.Register(LoaderName);
+
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            env.CheckValue(files, nameof(files));
+
+            return host.Apply("Loading Model",
+                ch => new ParquetLoader(host, ctx, files));
         }
 
         /// <summary>
@@ -191,18 +256,17 @@ namespace Microsoft.ML.Runtime.Data
         /// Composite data fields are flattened; for example, a Map Field in Parquet is flattened into a Key column and a Value
         /// column.
         /// </summary>
-        /// <param name="ch">Communication channel for error reporting.</param>
-        /// <param name="cols">The array of flattened columns instantiated from the parquet file.</param>
-        private void InitColumns(IChannel ch, out Column[] cols)
+        /// <param name="dataSet">The schema data set.</param>
+        /// <returns>The array of flattened columns instantiated from the parquet file.</returns>
+        private Column[] InitColumns(DataSet dataSet)
         {
-            cols = null;
             List<Column> columnsLoaded = new List<Column>();
 
-            foreach (var parquetField in _schemaDataSet.Schema.Fields)
+            foreach (var parquetField in dataSet.Schema.Fields)
             {
                 FlattenFields(parquetField, ref columnsLoaded, false);
             }
-            cols = columnsLoaded.ToArray();
+            return columnsLoaded.ToArray();
         }
 
         private void FlattenFields(Field field, ref List<Column> cols, bool isRepeatable)
@@ -239,7 +303,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                throw new InvalidDataException("Encountered unknown Parquet field type(Currently recognizes data, map, list, and struct).");
+                throw _host.ExceptNotSupp("Encountered unknown Parquet field type(Currently recognizes data, map, list, and struct).");
             }
         }
 
@@ -249,13 +313,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The columns.</param>
         /// <returns>The resulting schema.</returns>
-        private ISchema CreateSchema(IExceptionContext ectx, Column[] cols)
+        private Microsoft.Data.DataView.Schema CreateSchema(IExceptionContext ectx, Column[] cols)
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
-
-            var columnNameTypes = cols.Select((col) => new KeyValuePair<string, ColumnType>(col.Name, col.ColType));
-            return new SimpleSchema(ectx, columnNameTypes.ToArray());
+            var builder = new SchemaBuilder();
+            builder.AddColumns(cols.Select(c => new Microsoft.Data.DataView.Schema.DetachedColumn(c.Name, c.ColType, null)));
+            return builder.GetSchema();
         }
 
         /// <summary>
@@ -298,7 +362,7 @@ namespace Microsoft.ML.Runtime.Data
                 case DataType.Decimal:
                     return NumberType.R8;
                 case DataType.DateTimeOffset:
-                    return DateTimeZoneType.Instance;
+                    return DateTimeOffsetType.Instance;
                 case DataType.Interval:
                     return TimeSpanType.Instance;
                 default:
@@ -322,26 +386,24 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle => true;
 
-        public ISchema Schema { get; }
+        public DataViewSchema Schema { get; }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
-            return _schemaDataSet.TotalRowCount;
+            return _rowCount;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             return new Cursor(this, predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         public void Save(ModelSaveContext ctx)
@@ -353,12 +415,25 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // int: cached chunk size
             // bool: TreatBigIntegersAsDates flag
+            // Schema of the loader
 
             ctx.Writer.Write(_columnChunkReadSize);
             ctx.Writer.Write(_parquetOptions.TreatBigIntegersAsDates);
+
+            // Save the schema
+            var noRows = new EmptyDataView(_host, Schema);
+            var saverArgs = new BinarySaver.Arguments();
+            saverArgs.Silent = true;
+            var saver = new BinarySaver(_host, saverArgs);
+            using (var strm = new MemoryStream())
+            {
+                var allColumns = Enumerable.Range(0, Schema.Count).ToArray();
+                saver.SaveData(strm, noRows, allColumns);
+                ctx.SaveBinaryStream(SchemaCtxName, w => w.WriteByteArray(strm.ToArray()));
+            }
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly ParquetLoader _loader;
             private readonly Stream _fileStream;
@@ -371,19 +446,21 @@ namespace Microsoft.ML.Runtime.Data
             private IEnumerator<int> _dataSetEnumerator;
             private IEnumerator<int> _blockEnumerator;
             private IList[] _columnValues;
-            private IRandom _rand;
+            private Random _rand;
 
-            public Cursor(ParquetLoader parent, Func<int, bool> predicate, IRandom rand)
+            public Cursor(ParquetLoader parent, Func<int, bool> predicate, Random rand)
                : base(parent._host)
             {
                 Ch.AssertValue(predicate);
+                Ch.AssertValue(parent._parquetStream);
+
                 _loader = parent;
                 _fileStream = parent._parquetStream;
                 _parquetConversions = new ParquetConversions(Ch);
                 _rand = rand;
 
                 // Create Getter delegates
-                Utils.BuildSubsetMaps(Schema.ColumnCount, predicate, out _actives, out _colToActivesIndex);
+                Utils.BuildSubsetMaps(Schema.Count, predicate, out _actives, out _colToActivesIndex);
                 _readerOptions = new ReaderOptions
                 {
                     Count = _loader._columnChunkReadSize,
@@ -420,31 +497,31 @@ namespace Microsoft.ML.Runtime.Data
                 switch (parquetType)
                 {
                     case DataType.Boolean:
-                        return CreateGetterDelegateCore<bool?, DvBool>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<bool, bool>(col, _parquetConversions.Conv);
                     case DataType.Byte:
                         return CreateGetterDelegateCore<byte, byte>(col, _parquetConversions.Conv);
                     case DataType.SignedByte:
-                        return CreateGetterDelegateCore<sbyte?, DvInt1>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<sbyte?, sbyte>(col, _parquetConversions.Conv);
                     case DataType.UnsignedByte:
                         return CreateGetterDelegateCore<byte, byte>(col, _parquetConversions.Conv);
                     case DataType.Short:
-                        return CreateGetterDelegateCore<short?, DvInt2>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<short?, short>(col, _parquetConversions.Conv);
                     case DataType.UnsignedShort:
                         return CreateGetterDelegateCore<ushort, ushort>(col, _parquetConversions.Conv);
                     case DataType.Int16:
-                        return CreateGetterDelegateCore<short?, DvInt2>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<short?, short>(col, _parquetConversions.Conv);
                     case DataType.UnsignedInt16:
                         return CreateGetterDelegateCore<ushort, ushort>(col, _parquetConversions.Conv);
                     case DataType.Int32:
-                        return CreateGetterDelegateCore<int?, DvInt4>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<int?, int>(col, _parquetConversions.Conv);
                     case DataType.Int64:
-                        return CreateGetterDelegateCore<long?, DvInt8>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<long?, long>(col, _parquetConversions.Conv);
                     case DataType.Int96:
-                        return CreateGetterDelegateCore<BigInteger, UInt128>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<BigInteger, RowId>(col, _parquetConversions.Conv);
                     case DataType.ByteArray:
                         return CreateGetterDelegateCore<byte[], VBuffer<Byte>>(col, _parquetConversions.Conv);
                     case DataType.String:
-                        return CreateGetterDelegateCore<string, DvText>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<string, ReadOnlyMemory<char>>(col, _parquetConversions.Conv);
                     case DataType.Float:
                         return CreateGetterDelegateCore<float?, Single>(col, _parquetConversions.Conv);
                     case DataType.Double:
@@ -452,11 +529,11 @@ namespace Microsoft.ML.Runtime.Data
                     case DataType.Decimal:
                         return CreateGetterDelegateCore<decimal?, Double>(col, _parquetConversions.Conv);
                     case DataType.DateTimeOffset:
-                        return CreateGetterDelegateCore<DateTimeOffset, DvDateTimeZone>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<DateTimeOffset, DateTimeOffset>(col, _parquetConversions.Conv);
                     case DataType.Interval:
-                        return CreateGetterDelegateCore<Interval, DvTimeSpan>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<Interval, TimeSpan>(col, _parquetConversions.Conv);
                     default:
-                        return CreateGetterDelegateCore<IList, DvText>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<IList, ReadOnlyMemory<char>>(col, _parquetConversions.Conv);
                 }
             }
 
@@ -469,8 +546,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 return (ref TValue value) =>
                 {
+                    Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                     TSource val = (TSource)_columnValues[activeIdx][_curDataSetRow];
-                    valueConverter(ref val, ref value);
+                    valueConverter(in val, ref value);
                 };
             }
             #endregion
@@ -509,11 +587,11 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public ISchema Schema => _loader.Schema;
+            public override Microsoft.Data.DataView.Schema Schema => _loader.Schema;
 
             public override long Batch => 0;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
 
@@ -524,18 +602,18 @@ namespace Microsoft.ML.Runtime.Data
                 return getter;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                   (ref UInt128 val) =>
+                   (ref RowId val) =>
                    {
                        // Unique row id consists of Position of cursor (how many times MoveNext has been called), and position in file
-                       Ch.Check(IsGood, "Cannot call ID getter in current state");
-                       val = new UInt128((ulong)(_readerOptions.Offset + _curDataSetRow), 0);
+                       Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
+                       val = new RowId((ulong)(_readerOptions.Offset + _curDataSetRow), 0);
                    };
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;
@@ -601,40 +679,41 @@ namespace Microsoft.ML.Runtime.Data
                 _ch = channel;
             }
 
-            public void Conv(ref byte[] src, ref VBuffer<Byte> dst) => dst = src != null ? new VBuffer<byte>(src.Length, src) : new VBuffer<byte>(0, new byte[0]);
+            public void Conv(in byte[] src, ref VBuffer<Byte> dst) => dst = src != null ? new VBuffer<byte>(src.Length, src) : new VBuffer<byte>(0, new byte[0]);
 
-            public void Conv(ref sbyte? src, ref DvInt1 dst) => dst = src ?? DvInt1.NA;
+            public void Conv(in sbyte? src, ref sbyte dst) => dst = (sbyte)src;
 
-            public void Conv(ref byte src, ref byte dst) => dst = src;
+            public void Conv(in byte src, ref byte dst) => dst = src;
 
-            public void Conv(ref short? src, ref DvInt2 dst) => dst = src ?? DvInt2.NA;
+            public void Conv(in short? src, ref short dst) => dst = (short)src;
 
-            public void Conv(ref ushort src, ref ushort dst) => dst = src;
+            public void Conv(in ushort src, ref ushort dst) => dst = src;
 
-            public void Conv(ref int? src, ref DvInt4 dst) => dst = src ?? DvInt4.NA;
+            public void Conv(in int? src, ref int dst) => dst = (int)src;
 
-            public void Conv(ref long? src, ref DvInt8 dst) => dst = src ?? DvInt8.NA;
+            public void Conv(in long? src, ref long dst) => dst = (long)src;
 
-            public void Conv(ref float? src, ref Single dst) => dst = src ?? Single.NaN;
+            public void Conv(in float? src, ref Single dst) => dst = src ?? Single.NaN;
 
-            public void Conv(ref double? src, ref Double dst) => dst = src ?? Double.NaN;
+            public void Conv(in double? src, ref Double dst) => dst = src ?? Double.NaN;
 
-            public void Conv(ref decimal? src, ref Double dst) => dst = src != null ? Decimal.ToDouble((decimal)src) : Double.NaN;
+            public void Conv(in decimal? src, ref Double dst) => dst = src != null ? Decimal.ToDouble((decimal)src) : Double.NaN;
 
-            public void Conv(ref string src, ref DvText dst) => dst = new DvText(src);
+            public void Conv(in string src, ref ReadOnlyMemory<char> dst) => dst = src.AsMemory();
 
-            public void Conv(ref bool? src, ref DvBool dst) => dst = src ?? DvBool.NA;
+            //Behavior for NA values is undefined.
+            public void Conv(in bool src, ref bool dst) => dst = src;
 
-            public void Conv(ref DateTimeOffset src, ref DvDateTimeZone dst) => dst = src;
+            public void Conv(in DateTimeOffset src, ref DateTimeOffset dst) => dst = src;
 
-            public void Conv(ref IList src, ref DvText dst) => dst = new DvText(ConvertListToString(src));
+            public void Conv(in IList src, ref ReadOnlyMemory<char> dst) => dst = ConvertListToString(src).AsMemory();
 
             /// <summary>
-            ///  Converts a System.Numerics.BigInteger value to a UInt128 data type value.
+            ///  Converts a System.Numerics.BigInteger value to a RowId data type value.
             /// </summary>
             /// <param name="src">BigInteger value.</param>
-            /// <param name="dst">UInt128 object.</param>
-            public void Conv(ref BigInteger src, ref UInt128 dst)
+            /// <param name="dst">RowId object.</param>
+            public void Conv(in BigInteger src, ref RowId dst)
             {
                 try
                 {
@@ -642,32 +721,23 @@ namespace Microsoft.ML.Runtime.Data
                     Array.Resize(ref arr, 16);
                     ulong lo = BitConverter.ToUInt64(arr, 0);
                     ulong hi = BitConverter.ToUInt64(arr, 8);
-                    dst = new UInt128(lo, hi);
+                    dst = new RowId(lo, hi);
                 }
                 catch (Exception ex)
                 {
-                    _ch.Error("Cannot convert BigInteger to UInt128. Exception : '{0}'", ex.Message);
+                    _ch.Error("Cannot convert BigInteger to RowId. Exception : '{0}'", ex.Message);
                     dst = default;
                 }
             }
 
             /// <summary>
-            /// Converts a Parquet Interval data type value to a DvTimeSpan data type value.
+            /// Converts a Parquet Interval data type value to a TimeSpan data type value.
             /// </summary>
             /// <param name="src">Parquet Interval value (int : months, int : days, int : milliseconds).</param>
-            /// <param name="dst">DvTimeSpan object.</param>
-            public void Conv(ref Interval src, ref DvTimeSpan dst)
+            /// <param name="dst">TimeSpan object.</param>
+            public void Conv(in Interval src, ref TimeSpan dst)
             {
-                try
-                {
-                    dst = new DvTimeSpan(TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis));
-                }
-                catch (Exception ex)
-                {
-                    // Handle TimeSpan OverflowException
-                    _ch.Error("Cannot convert Inteval to DvTimeSpan. Exception : '{0}'", ex.Message);
-                    dst = DvTimeSpan.NA;
-                }
+                dst = TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis);
             }
 
             private string ConvertListToString(IList list)

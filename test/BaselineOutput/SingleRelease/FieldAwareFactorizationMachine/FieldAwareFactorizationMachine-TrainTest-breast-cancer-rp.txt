@@ -1,4 +1,0 @@
-FieldAwareFactorizationMachine
-AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/d	/norm	/shuf	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.982029	0.954612	0.968468	0.899582	0.947939	0.984234	0.228754	75.50818	0.932755	0.980228	5	-	-	FieldAwareFactorizationMachine	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=FieldAwareFactorizationMachine{d=5 shuf- norm-} col[Feature]=DupFeatures norm=No dout=%Output% data=%Data% out=%Output% seed=1 xf=Copy{col=DupFeatures:Features} xf=MinMax{col=Features col=DupFeatures}	/d:5;/norm:-;/shuf:-	
-

@@ -4,20 +4,21 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.SubsetSelector;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(RandomPartitionSelector),typeof(RandomPartitionSelector.Arguments),
-    typeof(SignatureEnsembleDataSelector),RandomPartitionSelector.UserName, RandomPartitionSelector.LoadName)]
+[assembly: LoadableClass(typeof(RandomPartitionSelector), typeof(RandomPartitionSelector.Arguments),
+    typeof(SignatureEnsembleDataSelector), RandomPartitionSelector.UserName, RandomPartitionSelector.LoadName)]
 
 [assembly: EntryPointModule(typeof(RandomPartitionSelector))]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
 {
-    public sealed class RandomPartitionSelector : BaseSubsetSelector<RandomPartitionSelector.Arguments>
+    internal sealed class RandomPartitionSelector : BaseSubsetSelector<RandomPartitionSelector.Arguments>
     {
         public const string UserName = "Random Partition Selector";
         public const string LoadName = "RandomPartitionSelector";
@@ -33,11 +34,11 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         {
         }
 
-        public override IEnumerable<Subset> GetSubsets(Batch batch, IRandom rand)
+        public override IEnumerable<Subset> GetSubsets(Batch batch, Random rand)
         {
             string name = Data.Data.Schema.GetTempColumnName();
             var args = new GenerateNumberTransform.Arguments();
-            args.Column = new[] { new GenerateNumberTransform.Column() { Name = name } };
+            args.Columns = new[] { new GenerateNumberTransform.Column() { Name = name } };
             args.Seed = (uint)rand.Next();
             IDataTransform view = new GenerateNumberTransform(Host, args, Data.Data);
 

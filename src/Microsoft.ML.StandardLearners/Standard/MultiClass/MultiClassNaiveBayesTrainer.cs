@@ -4,14 +4,16 @@
 
 using System;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MultiClassNaiveBayesTrainer.Summary, typeof(MultiClassNaiveBayesTrainer), typeof(MultiClassNaiveBayesTrainer.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -19,58 +21,88 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
     MultiClassNaiveBayesTrainer.LoadName,
     MultiClassNaiveBayesTrainer.ShortName, DocName = "trainer/NaiveBayes.md")]
 
-[assembly: LoadableClass(typeof(MultiClassNaiveBayesPredictor), null, typeof(SignatureLoadModel),
-    "Multi Class Naive Bayes predictor", MultiClassNaiveBayesPredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(MultiClassNaiveBayesModelParameters), null, typeof(SignatureLoadModel),
+    "Multi Class Naive Bayes predictor", MultiClassNaiveBayesModelParameters.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(MultiClassNaiveBayesTrainer), null, typeof(SignatureEntryPointModule), "MultiClassNaiveBayes")]
+[assembly: LoadableClass(typeof(void), typeof(MultiClassNaiveBayesTrainer), null, typeof(SignatureEntryPointModule), MultiClassNaiveBayesTrainer.LoadName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
-    public sealed class MultiClassNaiveBayesTrainer : TrainerBase<RoleMappedData, MultiClassNaiveBayesPredictor>
+    public sealed class MultiClassNaiveBayesTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters>, MultiClassNaiveBayesModelParameters>
     {
         public const string LoadName = "MultiClassNaiveBayes";
         internal const string UserName = "Multiclass Naive Bayes";
         internal const string ShortName = "MNB";
         internal const string Summary = "Trains a multiclass Naive Bayes predictor that supports binary feature values.";
-        internal const string Remarks = @"<remarks>
-<a href ='https://en.wikipedia.org/wiki/Naive_Bayes_classifier'>Naive Bayes</a> is a probabilistic classifier that can be used for multiclass problems. 
-Using Bayes' theorem, the conditional probability for a sample belonging to a class can be calculated based on the sample count for each feature combination groups.
-However, Naive Bayes Classifier is feasible only if the number of features and the values each feature can take is relatively small.
-It also assumes that the features are strictly independent.
-</remarks>";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
         }
 
-        private MultiClassNaiveBayesPredictor _predictor;
-
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public override bool NeedNormalization => false;
+        private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
+        public override TrainerInfo Info => _info;
 
-        public override bool NeedCalibration => false;
-
-        public override bool WantCaching => false;
-
-        public MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
-            : base(env, LoadName)
+        /// <summary>
+        /// Initializes a new instance of <see cref="MultiClassNaiveBayesTrainer"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        public MultiClassNaiveBayesTrainer(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
+                  TrainerUtils.MakeU4ScalarColumn(labelColumn))
         {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
         }
 
-        public override void Train(RoleMappedData data)
+        /// <summary>
+        /// Initializes a new instance of <see cref="MultiClassNaiveBayesTrainer"/>
+        /// </summary>
+        internal MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
+                  TrainerUtils.MakeU4ScalarColumn(args.LabelColumn))
         {
-            Host.CheckValue(data, nameof(data));
-            Host.Check(data.Schema.Label != null, "Missing Label column");
-            Host.Check(data.Schema.Label.Type == NumberType.Float || data.Schema.Label.Type is KeyType,
+            Host.CheckValue(args, nameof(args));
+        }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
+            Contracts.Assert(success);
+
+            var predLabelMetadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, predLabelMetadata)
+            };
+        }
+
+        protected override MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters> MakeTransformer(MultiClassNaiveBayesModelParameters model, Schema trainSchema)
+            => new MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+
+        private protected override MultiClassNaiveBayesModelParameters TrainModelCore(TrainContext context)
+        {
+            Host.CheckValue(context, nameof(context));
+            var data = context.TrainingSet;
+            Host.Check(data.Schema.Label.HasValue, "Missing Label column");
+            var labelCol = data.Schema.Label.Value;
+            Host.Check(labelCol.Type == NumberType.Float || labelCol.Type is KeyType,
                 "Invalid type for Label column, only floats and known-size keys are supported");
 
-            Host.Check(data.Schema.Feature != null, "Missing Feature column");
+            Host.Check(data.Schema.Feature.HasValue, "Missing Feature column");
             int featureCount;
             data.CheckFeatureFloatVector(out featureCount);
             int labelCount = 0;
-            if (data.Schema.Label.Type.IsKey)
-                labelCount = data.Schema.Label.Type.KeyCount;
+            if (labelCol.Type is KeyType labelKeyType)
+                labelCount = labelKeyType.GetCountAsInt32(Host);
 
             int[] labelHistogram = new int[labelCount];
             int[][] featureHistogram = new int[labelCount][];
@@ -99,20 +131,22 @@ It also assumes that the features are strictly independent.
                     labelHistogram[cursor.Label] += 1;
                     labelCount = labelCount < size ? size : labelCount;
 
+                    var featureValues = cursor.Features.GetValues();
                     if (cursor.Features.IsDense)
                     {
-                        for (int i = 0; i < cursor.Features.Count; i += 1)
+                        for (int i = 0; i < featureValues.Length; i += 1)
                         {
-                            if (cursor.Features.Values[i] > 0)
+                            if (featureValues[i] > 0)
                                 featureHistogram[cursor.Label][i] += 1;
                         }
                     }
                     else
                     {
-                        for (int i = 0; i < cursor.Features.Count; i += 1)
+                        var featureIndices = cursor.Features.GetIndices();
+                        for (int i = 0; i < featureValues.Length; i += 1)
                         {
-                            if (cursor.Features.Values[i] > 0)
-                                featureHistogram[cursor.Label][cursor.Features.Indices[i]] += 1;
+                            if (featureValues[i] > 0)
+                                featureHistogram[cursor.Label][featureIndices[i]] += 1;
                         }
                     }
 
@@ -122,18 +156,14 @@ It also assumes that the features are strictly independent.
 
             Array.Resize(ref labelHistogram, labelCount);
             Array.Resize(ref featureHistogram, labelCount);
-            _predictor = new MultiClassNaiveBayesPredictor(Host, labelHistogram, featureHistogram, featureCount);
-        }
-
-        public override MultiClassNaiveBayesPredictor CreatePredictor()
-        {
-            return _predictor;
+            return new MultiClassNaiveBayesModelParameters(Host, labelHistogram, featureHistogram, featureCount);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.NaiveBayesClassifier",
             Desc = "Train a MultiClassNaiveBayesTrainer.",
-            UserName = UserName, ShortName = ShortName)]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
+            UserName = UserName,
+            ShortName = ShortName)]
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainMultiClassNaiveBayes");
@@ -146,12 +176,11 @@ It also assumes that the features are strictly independent.
         }
     }
 
-    public sealed class MultiClassNaiveBayesPredictor :
-        PredictorBase<VBuffer<float>>,
-        IValueMapper,
-        ICanSaveModel
+    public sealed class MultiClassNaiveBayesModelParameters :
+        ModelParametersBase<VBuffer<float>>,
+        IValueMapper
     {
-        public const string LoaderSignature = "MultiClassNaiveBayesPred";
+        internal const string LoaderSignature = "MultiClassNaiveBayesPred";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -159,7 +188,8 @@ It also assumes that the features are strictly independent.
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MultiClassNaiveBayesModelParameters).Assembly.FullName);
         }
 
         private readonly int[] _labelHistogram;
@@ -173,11 +203,52 @@ It also assumes that the features are strictly independent.
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public ColumnType InputType => _inputType;
+        ColumnType IValueMapper.InputType => _inputType;
 
-        public ColumnType OutputType => _outputType;
+        ColumnType IValueMapper.OutputType => _outputType;
 
-        internal MultiClassNaiveBayesPredictor(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
+        /// <summary>
+        /// Copies the label histogram into a buffer.
+        /// </summary>
+        /// <param name="labelHistogram">A possibly reusable array, which will
+        /// be expanded as necessary to accomodate the data.</param>
+        /// <param name="labelCount">Set to the length of the resized array, which is also the number of different labels.</param>
+        public void GetLabelHistogram(ref int[] labelHistogram, out int labelCount)
+        {
+            labelCount = _labelCount;
+            Utils.EnsureSize(ref labelHistogram, _labelCount);
+            Array.Copy(_labelHistogram, labelHistogram, _labelCount);
+        }
+
+        /// <summary>
+        /// Copies the feature histogram into a buffer.
+        /// </summary>
+        /// <param name="featureHistogram">A possibly reusable array, which will
+        /// be expanded as necessary to accomodate the data.</param>
+        /// <param name="labelCount">Set to the first dimension of the resized array,
+        /// which is the number of different labels encountered in training.</param>
+        /// <param name="featureCount">Set to the second dimension of the resized array,
+        /// which is also the number of different feature combinations encountered in training.</param>
+        public void GetFeatureHistogram(ref int[][] featureHistogram, out int labelCount, out int featureCount)
+        {
+            labelCount = _labelCount;
+            featureCount = _featureCount;
+            Utils.EnsureSize(ref featureHistogram, _labelCount);
+            for (int i = 0; i < _labelCount; i++)
+            {
+                Utils.EnsureSize(ref featureHistogram[i], _featureCount);
+                Array.Copy(_featureHistogram[i], featureHistogram[i], _featureCount);
+            }
+        }
+
+        /// <summary>
+        /// Instantiates new model parameters from trained model.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="labelHistogram">The histogram of labels.</param>
+        /// <param name="featureHistogram">The feature histogram.</param>
+        /// <param name="featureCount">The number of features.</param>
+        public MultiClassNaiveBayesModelParameters(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
             : base(env, LoaderSignature)
         {
             Host.AssertValue(labelHistogram);
@@ -194,7 +265,7 @@ It also assumes that the features are strictly independent.
             _outputType = new VectorType(NumberType.R4, _labelCount);
         }
 
-        private MultiClassNaiveBayesPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private MultiClassNaiveBayesModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx)
         {
             // *** Binary format ***
@@ -228,15 +299,15 @@ It also assumes that the features are strictly independent.
             _outputType = new VectorType(NumberType.R4, _labelCount);
         }
 
-        public static MultiClassNaiveBayesPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static MultiClassNaiveBayesModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new MultiClassNaiveBayesPredictor(env, ctx);
+            return new MultiClassNaiveBayesModelParameters(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -247,15 +318,15 @@ It also assumes that the features are strictly independent.
             // int: _featureCount
             // int[_labelCount][_featureCount]: _featureHistogram
             // int[_labelCount]: _absentFeaturesLogProb
-            ctx.Writer.WriteIntArray(_labelHistogram, _labelCount);
+            ctx.Writer.WriteIntArray(_labelHistogram.AsSpan(0, _labelCount));
             ctx.Writer.Write(_featureCount);
             for (int i = 0; i < _labelCount; i += 1)
             {
                 if (_labelHistogram[i] > 0)
-                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i], _featureCount);
+                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i].AsSpan(0, _featureCount));
             }
 
-            ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb, _labelCount);
+            ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb.AsSpan(0, _labelCount));
         }
 
         private static double[] CalculateAbsentFeatureLogProbabilities(int[] labelHistogram, int[][] featureHistogram, int featureCount)
@@ -282,7 +353,7 @@ It also assumes that the features are strictly independent.
             return absentFeaturesLogProb;
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(VBuffer<float>));
@@ -304,10 +375,15 @@ It also assumes that the features are strictly independent.
             absentFeatureLogProb += Math.Log(absentFeatureCount + 1) - Math.Log(labelOccurrenceCount + _labelCount);
         }
 
-        private void Map(ref VBuffer<float> src, ref VBuffer<float> dst)
+        private void Map(in VBuffer<float> src, ref VBuffer<float> dst)
         {
             Host.Check(src.Length == _featureCount, "Invalid number of features passed.");
-            float[] labelScores = (dst.Length >= _labelCount) ? dst.Values : new float[_labelCount];
+
+            var srcValues = src.GetValues();
+            var srcIndices = src.GetIndices();
+
+            var editor = VBufferEditor.Create(ref dst, _labelCount);
+            Span<float> labelScores = editor.Values;
             for (int iLabel = 0; iLabel < _labelCount; iLabel += 1)
             {
                 double labelOccurrenceCount = _labelHistogram[iLabel];
@@ -317,18 +393,18 @@ It also assumes that the features are strictly independent.
                 {
                     if (src.IsDense)
                     {
-                        for (int iFeature = 0; iFeature < src.Count; iFeature += 1)
+                        for (int iFeature = 0; iFeature < srcValues.Length; iFeature += 1)
                         {
                             ComputeLabelProbabilityFromFeature(labelOccurrenceCount, iLabel, iFeature,
-                                src.Values[iFeature], ref logProb, ref absentFeatureLogProb);
+                                srcValues[iFeature], ref logProb, ref absentFeatureLogProb);
                         }
                     }
                     else
                     {
-                        for (int iFeature = 0; iFeature < src.Count; iFeature += 1)
+                        for (int iFeature = 0; iFeature < srcValues.Length; iFeature += 1)
                         {
-                            ComputeLabelProbabilityFromFeature(labelOccurrenceCount, iLabel, src.Indices[iFeature],
-                                src.Values[iFeature], ref logProb, ref absentFeatureLogProb);
+                            ComputeLabelProbabilityFromFeature(labelOccurrenceCount, iLabel, srcIndices[iFeature],
+                                srcValues[iFeature], ref logProb, ref absentFeatureLogProb);
                         }
                     }
                 }
@@ -337,7 +413,7 @@ It also assumes that the features are strictly independent.
                     (float)(logProb + (_absentFeaturesLogProb[iLabel] - absentFeatureLogProb));
             }
 
-            dst = new VBuffer<float>(_labelCount, labelScores, dst.Indices);
+            dst = editor.Commit();
         }
     }
 }

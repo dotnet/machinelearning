@@ -2,20 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
 
 [assembly: LoadableClass(typeof(void), typeof(Cache), null, typeof(SignatureEntryPointModule), "Cache")]
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
-    public static class Cache
+    internal static class Cache
     {
         public enum CachingType
         {
@@ -60,16 +58,18 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     var schema = input.Data.Schema;
 
                     var cols = new List<int>();
-                    for (int i = 0; i < schema.ColumnCount; i++)
+                    for (int i = 0; i < schema.Count; i++)
                     {
-                        var type = schema.GetColumnType(i);
+                        var type = schema[i].Type;
                         if (saver.IsColumnSavable(type))
                             cols.Add(i);
                     }
 
+#pragma warning disable CS0618 // This ought to be addressed. See #1287.
                     // We are not disposing the fileHandle because we want it to stay around for the execution of the graph.
                     // It will be disposed when the environment is disposed.
                     var fileHandle = host.CreateTempFile();
+#pragma warning restore CS0618
 
                     using (var stream = fileHandle.CreateWriteStream())
                         saver.SaveData(stream, input.Data, cols.ToArray());

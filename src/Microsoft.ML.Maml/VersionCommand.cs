@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(VersionCommand.Summary, typeof(VersionCommand), null, typeof(SignatureCommand),
     "Version Command", "Version")]
 
-namespace Microsoft.ML.Runtime.Tools
+namespace Microsoft.ML.Tools
 {
-    public sealed class VersionCommand : ICommand
+    internal sealed class VersionCommand : ICommand
     {
         internal const string Summary = "Prints the TLC version.";
 
@@ -31,7 +31,6 @@ namespace Microsoft.ML.Runtime.Tools
             {
                 string version = typeof(VersionCommand).GetTypeInfo().Assembly.GetName().Version.ToString();
                 ch.Info(version);
-                ch.Done();
             }
         }
     }

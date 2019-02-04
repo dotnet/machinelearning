@@ -6,21 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Normalizers;
 
 [assembly: LoadableClass(TrainCommand.Summary, typeof(TrainCommand), typeof(TrainCommand.Arguments), typeof(SignatureCommand),
     "Train Predictor", "Train")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     using ColumnRole = RoleMappedSchema.ColumnRole;
 
@@ -32,7 +32,8 @@ namespace Microsoft.ML.Runtime.Data
         Yes
     }
 
-    public sealed class TrainCommand : DataCommand.ImplBase<TrainCommand.Arguments>
+    [BestFriend]
+    internal sealed class TrainCommand : DataCommand.ImplBase<TrainCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -53,23 +54,27 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 6)]
             public string NameColumn = DefaultColumnNames.Name;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
-            public KeyValuePair<string, string>[] CustomColumn;
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+                Name = "CustomColumn", ShortName = "col", SortOrder = 10)]
+            public KeyValuePair<string, string>[] CustomColumns;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
             public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr")]
-            public SubComponent<ITrainer, SignatureTrainer> Trainer = new SubComponent<ITrainer, SignatureTrainer>("AveragedPerceptron");
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", SignatureType = typeof(SignatureTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
 
+            [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The test data file", ShortName = "test")]
+            public string TestFile;
+
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
             public bool? CacheData;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>")]
-            public SubComponent<ICalibratorTrainer, SignatureCalibrator> Calibrator = new SubComponent<ICalibratorTrainer, SignatureCalibrator>("PlattCalibration");
+            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
+            public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
             public int MaxCalibrationExamples = 1000000000;
@@ -80,8 +85,7 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Trains a predictor.";
 
-        private readonly ComponentCatalog.LoadableClassInfo _info;
-        private readonly SubComponent<ITrainer, SignatureTrainer> _trainer;
+        private readonly IComponentFactory<ITrainer> _trainer;
 
         private readonly string _labelColumn;
         private readonly string _featureColumn;
@@ -93,7 +97,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, args, nameof(TrainCommand))
         {
             Host.CheckNonWhiteSpace(args.OutputModelFile, nameof(args.OutputModelFile));
-            _info = TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
+            TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
             _trainer = args.Trainer;
 
             _labelColumn = args.LabelColumn;
@@ -109,7 +113,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(command))
             using (var server = InitServer(ch))
             {
-                var settings = CmdParser.GetSettings(ch, Args, new Arguments());
+                var settings = CmdParser.GetSettings(Host, Args, new Arguments());
                 string cmd = string.Format("maml.exe {0} {1}", command, settings);
                 ch.Info(cmd);
 
@@ -119,8 +123,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     RunCore(ch, cmd);
                 }
-
-                ch.Done();
             }
         }
 
@@ -136,7 +138,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(cmd);
 
             ch.Trace("Constructing trainer");
-            ITrainer trainer = _trainer.CreateInstance(Host);
+            ITrainer trainer = _trainer.CreateComponent(Host);
 
             IPredictor inputPredictor = null;
             if (Args.ContinueTrain && !TrainUtils.TryLoadPredictor(ch, Host, Args.InputModelFile, out inputPredictor))
@@ -145,7 +147,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Trace("Constructing data pipeline");
             IDataView view = CreateLoader();
 
-            ISchema schema = view.Schema;
+            var schema = view.Schema;
             var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn), _labelColumn, DefaultColumnNames.Label);
             var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.FeatureColumn), _featureColumn, DefaultColumnNames.Features);
             var group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.GroupColumn), _groupColumn, DefaultColumnNames.GroupId);
@@ -156,14 +158,14 @@ namespace Microsoft.ML.Runtime.Data
 
             ch.Trace("Binding columns");
 
-            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
+            var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumns);
             var data = new RoleMappedData(view, label, feature, group, weight, name, customCols);
 
             // REVIEW: Unify the code that creates validation examples in Train, TrainTest and CV commands.
             RoleMappedData validData = null;
             if (!string.IsNullOrWhiteSpace(Args.ValidationFile))
             {
-                if (!TrainUtils.CanUseValidationData(trainer))
+                if (!trainer.Info.SupportsValidation)
                 {
                     ch.Warning("Ignoring validationFile: Trainer does not accept validation dataset.");
                 }
@@ -176,29 +178,42 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            var predictor = TrainUtils.Train(Host, ch, data, trainer, _info.LoadNames[0], validData,
-                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor);
+            // In addition to the training set, some trainers can accept two extra data sets, validation set and test set,
+            // in training phase. The major difference between validation set and test set is that training process may
+            // indirectly use validation set to improve the model but the learned model should totally independent of test set.
+            // Similar to validation set, the trainer can report the scores computed using test set.
+            RoleMappedData testDataUsedInTrainer = null;
+            if (!string.IsNullOrWhiteSpace(Args.TestFile))
+            {
+                // In contrast to the if-else block for validation above, we do not throw a warning if test file is provided
+                // because this is TrainTest command.
+                if (trainer.Info.SupportsTest)
+                {
+                    ch.Trace("Constructing the test pipeline");
+                    IDataView testPipeUsedInTrainer = CreateRawLoader(dataFile: Args.TestFile);
+                    testPipeUsedInTrainer = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, testPipeUsedInTrainer);
+                    testDataUsedInTrainer = new RoleMappedData(testPipeUsedInTrainer, data.Schema.GetColumnRoleNames());
+                }
+            }
+
+            var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
+                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor, testDataUsedInTrainer);
 
             using (var file = Host.CreateOutputFile(Args.OutputModelFile))
                 TrainUtils.SaveModel(Host, ch, file, predictor, data, cmd);
         }
     }
 
-    public static class TrainUtils
+    [BestFriend]
+    internal static class TrainUtils
     {
-        public static ComponentCatalog.LoadableClassInfo CheckTrainer<TSig>(IExceptionContext ectx, SubComponent<ITrainer, TSig> trainer, string dataFile)
+        public static void CheckTrainer(IExceptionContext ectx, IComponentFactory<ITrainer> trainer, string dataFile)
         {
             Contracts.CheckValueOrNull(ectx);
-            ectx.CheckUserArg(trainer.IsGood(), nameof(TrainCommand.Arguments.Trainer), "A trainer is required.");
+            ectx.CheckValue(trainer, nameof(TrainCommand.Arguments.Trainer), "A trainer is required.");
 
-            var info = ComponentCatalog.GetLoadableClassInfo<TSig>(trainer.Kind);
-            if (info == null)
-                throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.Trainer), "Unknown trainer: '{0}'", trainer.Kind);
-            if (!typeof(ITrainer).IsAssignableFrom(info.Type))
-                throw ectx.Except("Loadable class '{0}' does not implement 'ITrainer'", info.LoadNames[0]);
             if (string.IsNullOrWhiteSpace(dataFile))
                 throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.DataFile), "Data file must be defined.");
-            return info;
         }
 
         /// <summary>
@@ -207,7 +222,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Else, if the user name equals the default name return null.
         /// Else, throw an error.
         /// </summary>
-        public static string MatchNameOrDefaultOrNull(IExceptionContext ectx, ISchema schema, string argName, string userName, string defaultName)
+        public static string MatchNameOrDefaultOrNull(IExceptionContext ectx, Schema schema, string argName, string userName, string defaultName)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));
@@ -222,107 +237,48 @@ namespace Microsoft.ML.Runtime.Data
                 return userName;
             if (userName == defaultName)
                 return null;
-#pragma warning disable TLC_ContractsNameUsesNameof
+#pragma warning disable MSML_ContractsNameUsesNameof
             throw ectx.ExceptUserArg(argName, $"Could not find column '{userName}'");
-#pragma warning restore TLC_ContractsNameUsesNameof
+#pragma warning restore MSML_ContractsNameUsesNameof
         }
 
-        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name,
-            ICalibratorTrainerFactory calibrator, int maxCalibrationExamples)
+        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer,
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples)
         {
-            var caliTrainer = calibrator?.CreateComponent(env);
-            return TrainCore(env, ch, data, trainer, name, null, caliTrainer, maxCalibrationExamples, false);
+            return TrainCore(env, ch, data, trainer, null, calibrator, maxCalibrationExamples, false);
         }
 
-        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
-            SubComponent<ICalibratorTrainer, SignatureCalibrator> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inpPredictor = null)
+        public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null, RoleMappedData testData = null)
         {
-            ICalibratorTrainer caliTrainer = !calibrator.IsGood() ? null : calibrator.CreateInstance(env);
-            return TrainCore(env, ch, data, trainer, name, validData, caliTrainer, maxCalibrationExamples, cacheData, inpPredictor);
+            return TrainCore(env, ch, data, trainer, validData, calibrator, maxCalibrationExamples, cacheData, inputPredictor, testData);
         }
 
-        private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, string name, RoleMappedData validData,
-            ICalibratorTrainer calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inpPredictor = null)
+        private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null, RoleMappedData testData = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
             ch.CheckValue(data, nameof(data));
             ch.CheckValue(trainer, nameof(trainer));
-            ch.CheckNonEmpty(name, nameof(name));
             ch.CheckValueOrNull(validData);
-            ch.CheckValueOrNull(inpPredictor);
+            ch.CheckValueOrNull(inputPredictor);
 
-            var trainerRmd = trainer as ITrainer<RoleMappedData>;
-            if (trainerRmd == null)
-                throw ch.ExceptUserArg(nameof(TrainCommand.Arguments.Trainer), "Trainer '{0}' does not accept known training data type", name);
-
-            Action<IChannel, ITrainer, Action<object>, object, object, object> trainCoreAction = TrainCore;
-            IPredictor predictor;
             AddCacheIfWanted(env, ch, trainer, ref data, cacheData);
             ch.Trace("Training");
             if (validData != null)
                 AddCacheIfWanted(env, ch, trainer, ref validData, cacheData);
 
-            var genericExam = trainCoreAction.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(
-                typeof(RoleMappedData),
-                inpPredictor != null ? inpPredictor.GetType() : typeof(IPredictor));
-            Action<RoleMappedData> trainExam = trainerRmd.Train;
-            genericExam.Invoke(null, new object[] { ch, trainerRmd, trainExam, data, validData, inpPredictor });
-
-            ch.Trace("Constructing predictor");
-            predictor = trainerRmd.CreatePredictor();
-            return CalibratorUtils.TrainCalibratorIfNeeded(env, ch, calibrator, maxCalibrationExamples, trainer, predictor, data);
-        }
-
-        public static bool CanUseValidationData(ITrainer trainer)
-        {
-            Contracts.CheckValue(trainer, nameof(trainer));
-
-            if (trainer is ITrainer<RoleMappedData>)
-                return trainer is IValidatingTrainer<RoleMappedData>;
-
-            return false;
-        }
-
-        private static void TrainCore<TDataSet, TPredictor>(IChannel ch, ITrainer trainer, Action<TDataSet> train, TDataSet data, TDataSet validData = null, TPredictor predictor = null)
-            where TDataSet : class
-            where TPredictor : class
-        {
-            const string inputModelArg = nameof(TrainCommand.Arguments.InputModelFile);
-            if (validData != null)
+            if (inputPredictor != null && !trainer.Info.SupportsIncrementalTraining)
             {
-                if (predictor != null)
-                {
-                    var incValidTrainer = trainer as IIncrementalValidatingTrainer<TDataSet, TPredictor>;
-                    if (incValidTrainer != null)
-                    {
-                        incValidTrainer.Train(data, validData, predictor);
-                        return;
-                    }
-
-                    ch.Warning("Ignoring " + inputModelArg + ": Trainer is not an incremental trainer.");
-                }
-
-                var validTrainer = trainer as IValidatingTrainer<TDataSet>;
-                ch.AssertValue(validTrainer);
-                validTrainer.Train(data, validData);
+                ch.Warning("Ignoring " + nameof(TrainCommand.Arguments.InputModelFile) +
+                    ": Trainer does not support incremental training.");
+                inputPredictor = null;
             }
-            else
-            {
-                if (predictor != null)
-                {
-                    var incTrainer = trainer as IIncrementalTrainer<TDataSet, TPredictor>;
-                    if (incTrainer != null)
-                    {
-                        incTrainer.Train(data, predictor);
-                        return;
-                    }
-
-                    ch.Warning("Ignoring " + inputModelArg + ": Trainer is not an incremental trainer.");
-                }
-
-                train(data);
-            }
+            ch.Assert(validData == null || trainer.Info.SupportsValidation);
+            var predictor = trainer.Train(new TrainContext(data, validData, testData, inputPredictor));
+            var caliTrainer = calibrator?.CreateComponent(env);
+            return CalibratorUtils.TrainCalibratorIfNeeded(env, ch, caliTrainer, maxCalibrationExamples, trainer, predictor, data);
         }
 
         public static bool TryLoadPredictor(IChannel ch, IHostEnvironment env, string inputModelFile, out IPredictor inputPredictor)
@@ -348,7 +304,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Save the model to the output path.
-        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor 
+        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor
         /// and command. It also uses featureColumn, if provided, to extract feature names.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -373,7 +329,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Save the model to the stream.
-        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor 
+        /// The method saves the loader and the transformations of dataPipe and saves optionally predictor
         /// and command. It also uses featureColumn, if provided, to extract feature names.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
@@ -421,7 +377,6 @@ namespace Microsoft.ML.Runtime.Data
 
                     rep.Commit();
                 }
-                ch2.Done();
             }
         }
 
@@ -438,9 +393,8 @@ namespace Microsoft.ML.Runtime.Data
             IDataView pipeStart;
             var xfs = BacktrackPipe(dataPipe, out pipeStart);
 
-            IDataLoader loader;
             Action<ModelSaveContext> saveAction;
-            if (!blankLoader && (loader = pipeStart as IDataLoader) != null)
+            if (!blankLoader && pipeStart is IDataLoader loader)
                 saveAction = loader.Save;
             else
             {
@@ -458,7 +412,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Traces back the .Source chain of the transformation pipe <paramref name="dataPipe"/> up to the moment it no longer can.
-        /// Returns all the transforms of <see cref="IDataView"/> and the first data view (a non-transform). 
+        /// Returns all the transforms of <see cref="IDataView"/> and the first data view (a non-transform).
         /// </summary>
         /// <param name="dataPipe">The transformation pipe to traverse.</param>
         /// <param name="pipeStart">The beginning data view of the transform chain</param>
@@ -471,7 +425,7 @@ namespace Microsoft.ML.Runtime.Data
             while (dataPipe is IDataTransform xf)
             {
                 // REVIEW: a malicious user could construct a loop in the Source chain, that would
-                // cause this method to iterate forever (and throw something when the list overflows). There's 
+                // cause this method to iterate forever (and throw something when the list overflows). There's
                 // no way to insulate from ALL malicious behavior.
                 transforms.Add(xf);
                 dataPipe = xf.Source;
@@ -509,8 +463,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (autoNorm != NormalizeOption.Yes)
                 {
-                    DvBool isNormalized = DvBool.False;
-                    if (trainer.NeedNormalization() != true || schema.IsNormalized(featCol))
+                    if (!trainer.Info.NeedNormalization || schema[featCol].IsNormalized())
                     {
                         ch.Info("Not adding a normalizer.");
                         return false;
@@ -541,8 +494,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertValue(trainer, nameof(trainer));
             ch.AssertValue(data, nameof(data));
 
-            ITrainerEx trainerEx = trainer as ITrainerEx;
-            bool shouldCache = cacheData ?? (!(data.Data is BinaryLoader) && (trainerEx == null || trainerEx.WantCaching));
+            bool shouldCache = cacheData ?? !(data.Data is BinaryLoader) && trainer.Info.WantCaching;
 
             if (shouldCache)
             {
@@ -565,9 +517,9 @@ namespace Microsoft.ML.Runtime.Data
                 return Enumerable.Empty<KeyValuePair<ColumnRole, string>>();
             foreach (var kindName in customColumnArg)
             {
-                ectx.CheckUserArg(!string.IsNullOrWhiteSpace(kindName.Value), nameof(TrainCommand.Arguments.CustomColumn), "Names for columns with custom kind must not be empty");
+                ectx.CheckUserArg(!string.IsNullOrWhiteSpace(kindName.Value), nameof(TrainCommand.Arguments.CustomColumns), "Names for columns with custom kind must not be empty");
                 if (string.IsNullOrWhiteSpace(kindName.Key))
-                    throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.CustomColumn), "Custom column with name '{0}' needs a kind. Use col[<Kind>]={0}", kindName.Value);
+                    throw ectx.ExceptUserArg(nameof(TrainCommand.Arguments.CustomColumns), "Custom column with name '{0}' needs a kind. Use col[<Kind>]={0}", kindName.Value);
             }
             return customColumnArg.Select(kindName => new ColumnRole(kindName.Key).Bind(kindName.Value));
         }

@@ -5,9 +5,9 @@
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Model
+namespace Microsoft.ML.Model
 {
     /// <summary>
     /// This is a convenience context object for loading models from a repository, for
@@ -40,9 +40,18 @@ namespace Microsoft.ML.Runtime.Model
         public readonly string[] Strings;
 
         /// <summary>
+        /// The name of the assembly that the loader lives in.
+        /// </summary>
+        /// <remarks>
+        /// This may be null or empty if one was never written to the model, or is an older model version.
+        /// </remarks>
+        public readonly string LoaderAssemblyName;
+
+        /// <summary>
         /// The main stream's model header.
         /// </summary>
-        public ModelHeader Header;
+        [BestFriend]
+        internal ModelHeader Header;
 
         /// <summary>
         /// The min file position of the main stream.
@@ -62,7 +71,7 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// Create a ModelLoadContext supporting loading from a repository, for implementors of ICanSaveModel.
         /// </summary>
-        public ModelLoadContext(RepositoryReader rep, Repository.Entry ent, string dir)
+        internal ModelLoadContext(RepositoryReader rep, Repository.Entry ent, string dir)
         {
             Contracts.CheckValue(rep, nameof(rep));
             Repository = rep;
@@ -76,7 +85,7 @@ namespace Microsoft.ML.Runtime.Model
             Reader = new BinaryReader(ent.Stream, Encoding.UTF8, leaveOpen: true);
             try
             {
-                ModelHeader.BeginRead(out FpMin, out Header, out Strings, Reader);
+                ModelHeader.BeginRead(out FpMin, out Header, out Strings, out LoaderAssemblyName, Reader);
             }
             catch
             {
@@ -88,7 +97,7 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// Create a ModelLoadContext supporting loading from a single-stream, for implementors of ICanSaveInBinaryFormat.
         /// </summary>
-        public ModelLoadContext(BinaryReader reader, IExceptionContext ectx = null)
+        internal ModelLoadContext(BinaryReader reader, IExceptionContext ectx = null)
         {
             Contracts.AssertValueOrNull(ectx);
             _ectx = ectx;
@@ -97,7 +106,7 @@ namespace Microsoft.ML.Runtime.Model
             Repository = null;
             Directory = null;
             Reader = reader;
-            ModelHeader.BeginRead(out FpMin, out Header, out Strings, Reader);
+            ModelHeader.BeginRead(out FpMin, out Header, out Strings, out LoaderAssemblyName, Reader);
         }
 
         public void CheckAtModel()

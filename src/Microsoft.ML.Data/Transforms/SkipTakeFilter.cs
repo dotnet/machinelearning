@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using System.Collections.Generic;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(SkipTakeFilter.SkipTakeFilterSummary, typeof(SkipTakeFilter), typeof(SkipTakeFilter.Arguments), typeof(SignatureDataTransform),
     SkipTakeFilter.SkipTakeFilterUserName, "SkipTakeFilter", SkipTakeFilter.SkipTakeFilterShortName)]
@@ -22,12 +25,13 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(SkipTakeFilter.SkipTakeFilterSummary, typeof(SkipTakeFilter), null, typeof(SignatureLoadDataTransform),
     "Skip and Take Filter", SkipTakeFilter.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Allows limiting input to a subset of row at an optional offset.  Can be used to implement data paging.
     /// </summary>
-    public sealed class SkipTakeFilter : FilterBase, ITransformTemplate
+    [BestFriend]
+    internal sealed class SkipTakeFilter : FilterBase, ITransformTemplate
     {
         public const string LoaderSignature = "SkipTakeFilter";
         private const string ModelSignature = "SKIPTKFL";
@@ -76,7 +80,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001,          // initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SkipTakeFilter).Assembly.FullName);
         }
 
         private readonly long _skip;
@@ -92,10 +97,8 @@ namespace Microsoft.ML.Runtime.Data
             _take = take;
         }
 
-        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
-        {
-            return new SkipTakeFilter(_skip, _take, env, newSource);
-        }
+        IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
+            => new SkipTakeFilter(_skip, _take, env, newSource);
 
         public static SkipTakeFilter Create(IHostEnvironment env, Arguments args, IDataView input)
         {
@@ -164,14 +167,14 @@ namespace Microsoft.ML.Runtime.Data
         public override bool CanShuffle { get { return false; } }
 
         /// <summary>
-        /// Returns the computed count of rows remaining after skip and take operation.  
+        /// Returns the computed count of rows remaining after skip and take operation.
         /// Returns null if count is unknown.
         /// </summary>
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
             if (_take == 0)
                 return 0;
-            long? count = Source.GetRowCount(lazy);
+            long? count = Source.GetRowCount();
             if (count == null)
                 return null;
 
@@ -185,38 +188,34 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate);
             Host.AssertValueOrNull(rand);
 
-            var input = Source.GetRowCursor(predicate);
-            var activeColumns = Utils.BuildArray(Schema.ColumnCount, predicate);
-            return new RowCursor(Host, input, Schema, activeColumns, _skip, _take);
+            var input = Source.GetRowCursor(columnsNeeded);
+            var activeColumns = Utils.BuildArray(OutputSchema.Count, columnsNeeded);
+            return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
         }
 
-        private sealed class RowCursor : LinkedRowRootCursorBase
+        private sealed class Cursor : LinkedRowRootCursorBase
         {
             private readonly long _skip;
             private readonly long _take;
             private long _rowsTaken;
             private bool _started;
 
-            public override long Batch {
-                // SkipTakeFilter does not support cursor sets, so the batch number can always be zero.
-                get { return 0; }
-            }
+            /// <summary>
+            /// SkipTakeFilter does not support cursor sets, so this can always be zero.
+            /// </summary>
+            public override long Batch => 0;
 
-            public RowCursor(IChannelProvider provider, IRowCursor input, ISchema schema, bool[] active, long skip, long take)
+            public Cursor(IChannelProvider provider, RowCursor input, Schema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
             {
                 Ch.Assert(skip >= 0);
@@ -226,47 +225,43 @@ namespace Microsoft.ML.Runtime.Data
                 _take = take;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return Input.GetIdGetter();
             }
 
             protected override bool MoveNextCore()
             {
-                return MoveManyCore(1);
-            }
-
-            protected override bool MoveManyCore(long count)
-            {
-                Ch.Assert(count > 0);
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
-                // Exit if count + _rowsTaken will overflow.
-                // Exit if we already have taken enough rows.
-                if (count > _take - _rowsTaken)
+                // Exit if 1 + _rowsTaken will overflow, or if we already have taken enough rows.
+                if (1 > _take - _rowsTaken)
                 {
                     _rowsTaken = _take;
                     return false;
                 }
 
-                _rowsTaken += count;
+                ++_rowsTaken;
 
                 if (!_started)
                 {
                     _started = true;
 
-                    // Exit if count + _skip will overflow.
-                    if (count > long.MaxValue - _skip)
+                    // Exit if 1 + _skip will overflow.
+                    if (1 > long.MaxValue - _skip)
                     {
                         _rowsTaken = _take;
                         return false;
                     }
 
-                    return Root.MoveMany(_skip + count);
+                    // Move foward _skip + 1 rows to get to the "first" row of the input.
+                    for (long i = 0; i <= _skip; ++i)
+                    {
+                        if (!Root.MoveNext())
+                            return false;
+                    }
+                    return true;
                 }
 
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                return Root.MoveMany(count);
+                return Root.MoveNext();
             }
         }
     }

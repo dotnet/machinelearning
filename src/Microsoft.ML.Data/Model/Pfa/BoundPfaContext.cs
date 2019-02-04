@@ -4,10 +4,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.Model.Pfa
+namespace Microsoft.ML.Model.Pfa
 {
     using T = PfaUtils.Type;
 
@@ -20,7 +21,8 @@ namespace Microsoft.ML.Runtime.Model.Pfa
     /// has facilities to remember what column name in <see cref="IDataView"/> maps to
     /// what token in the PFA being built up.
     /// </summary>
-    public sealed class BoundPfaContext
+    [BestFriend]
+    internal sealed class BoundPfaContext
     {
         /// <summary>
         /// The internal PFA context, for an escape hatch.
@@ -33,14 +35,14 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         /// </summary>
         private readonly Dictionary<string, string> _nameToVarName;
         /// <summary>
-        /// This contains a map of those names in 
+        /// This contains a map of those names in
         /// </summary>
         private readonly HashSet<string> _unavailable;
 
         private readonly bool _allowSet;
         private readonly IHost _host;
 
-        public BoundPfaContext(IHostEnvironment env, ISchema inputSchema, HashSet<string> toDrop, bool allowSet)
+        public BoundPfaContext(IHostEnvironment env, Schema inputSchema, HashSet<string> toDrop, bool allowSet)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(BoundPfaContext));
@@ -54,18 +56,18 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             SetInput(inputSchema, toDrop);
         }
 
-        private void SetInput(ISchema schema, HashSet<string> toDrop)
+        private void SetInput(Schema schema, HashSet<string> toDrop)
         {
             var recordType = new JObject();
             recordType["type"] = "record";
             recordType["name"] = "DataInput";
             var fields = new JArray();
             var fieldNames = new HashSet<string>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                if (schema.IsHidden(c))
+                if (schema[c].IsHidden)
                     continue;
-                string name = schema.GetColumnName(c);
+                string name = schema[c].Name;
                 if (toDrop.Contains(name))
                     continue;
                 JToken pfaType = PfaTypeOrNullForColumn(schema, c);
@@ -102,7 +104,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         /// <param name="toOutput">The columns to output</param>
         /// <returns>Returns a complete PFA program, where the output will correspond to the subset
         /// of columns from <paramref name="schema"/>.</returns>
-        public JObject Finalize(ISchema schema, params string[] toOutput)
+        public JObject Finalize(Schema schema, params string[] toOutput)
         {
             _host.CheckValue(schema, nameof(schema));
             _host.CheckValue(toOutput, nameof(toOutput));
@@ -160,12 +162,12 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             return Pfa.Finalize();
         }
 
-        private JToken PfaTypeOrNullForColumn(ISchema schema, int col)
+        private JToken PfaTypeOrNullForColumn(Schema schema, int col)
         {
             _host.AssertValue(schema);
-            _host.Assert(0 <= col && col < schema.ColumnCount);
+            _host.Assert(0 <= col && col < schema.Count);
 
-            ColumnType type = schema.GetColumnType(col);
+            ColumnType type = schema[col].Type;
             return T.PfaTypeOrNullForColumnType(type);
         }
 

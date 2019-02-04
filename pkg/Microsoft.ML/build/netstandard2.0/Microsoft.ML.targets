@@ -13,10 +13,10 @@
     the PlatformTarget is empty, and you don't know until runtime (i.e. which dotnet.exe)
     what processor architecture will be used.
     -->
-    <Error Condition="'$(PlatformTarget)' != 'x64' AND
+    <Error Condition="('$(PlatformTarget)' != 'x64' AND '$(PlatformTarget)' != 'x86') AND
                       ('$(OutputType)' == 'Exe' OR '$(OutputType)'=='WinExe') AND
                       !('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(PlatformTarget)' == '')"
-           Text="Microsoft.ML currently supports 'x64' processor architectures. Please ensure your application is targeting 'x64'." />
+           Text="Microsoft.ML currently supports 'x64' and 'x86' processor architectures. Please ensure your application is targeting 'x64' or 'x86'." />
   </Target>
   
 </Project>

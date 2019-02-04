@@ -4,9 +4,9 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
-    public abstract class SummaryStatisticsBase
+    internal abstract class SummaryStatisticsBase
     {
         // Sum of squared difference from the current mean.
         protected double M2;
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Accumulates one more value, optionally weighted.
         /// This accumulation procedure is based on the following,
         /// with adjustments as appropriate for weighted instances:
-        /// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        /// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
         /// </summary>
         /// <param name="v">The value</param>
         /// <param name="w">The weight given to this value</param>
@@ -152,7 +152,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
     }
 
-    public sealed class SummaryStatisticsUpToSecondOrderMoments : SummaryStatisticsBase
+    [BestFriend]
+    internal sealed class SummaryStatisticsUpToSecondOrderMoments : SummaryStatisticsBase
     {
         /// <summary>
         /// A convenient way to combine the observations of two Stats objects
@@ -174,10 +175,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// A class for one-pass accumulation of weighted summary statistics, up
     /// to the fourth moment. The accumulative algorithms used here may be
     /// reviewed at
-    /// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    /// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     /// All quantities are weighted, except for <c>RawCount</c>.
     /// </summary>
-    public sealed class SummaryStatistics : SummaryStatisticsBase
+    [BestFriend]
+    internal sealed class SummaryStatistics : SummaryStatisticsBase
     {
         // Sum of cubed difference from the current mean.
         private double _m3;
@@ -311,7 +313,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Accumulates one more value, optionally weighted.
         /// This accumulation procedure is based on the following,
         /// with adjustments as appropriate for weighted instances:
-        /// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        /// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
         /// </summary>
         /// <param name="v">The value</param>
         /// <param name="w">The weight given to this value</param>

@@ -4,21 +4,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
-using System.Reflection;
 using System.Text;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
-    /// This class defines attributes to annotate module inputs, outputs, entry points etc. when defining 
+    /// This class defines attributes to annotate module inputs, outputs, entry points etc. when defining
     /// the module interface.
     /// </summary>
-    public static class TlcModule
+    [BestFriend]
+    internal static class TlcModule
     {
         /// <summary>
         /// An attribute used to annotate the component.
@@ -71,7 +69,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             /// <summary>
             /// This should indicate a name of an embedded resource that contains detailed documents
-            /// for the component, e.g., markdown document with the .md extension. The embedded resource
+            /// for the component, for example, markdown document with the .md extension. The embedded resource
             /// is assumed to be in the same assembly as the class on which this attribute is ascribed.
             /// </summary>
             public string DocName { get; set; }
@@ -124,7 +122,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public string Desc { get; set; }
 
             /// <summary>
-            /// The rank order of the output. Because .NET reflection returns members in an unspecfied order, this 
+            /// The rank order of the output. Because .NET reflection returns members in an unspecfied order, this
             /// is the only way to ensure consistency.
             /// </summary>
             public Double SortOrder { get; set; }
@@ -527,11 +525,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// Short name of the Entry Point
             /// </summary>
             public string ShortName { get; set; }
-
-            /// <summary>
-            /// The path to the XML documentation on the CSharpAPI component
-            /// </summary>
-            public string[] XmlInclude { get; set; }
         }
 
         /// <summary>
@@ -544,11 +537,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             Unknown = 0,
             /// <summary>
-            /// Integer, including long. 
+            /// Integer, including long.
             /// </summary>
             Int,
             /// <summary>
-            /// Unsigned integer, including ulong. 
+            /// Unsigned integer, including ulong.
             /// </summary>
             UInt,
             /// <summary>
@@ -576,11 +569,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             FileHandle,
             /// <summary>
-            /// A transform model, represented by an <see cref="ITransformModel"/>.
+            /// A transform model, represented by an <see cref="EntryPoints.TransformModel"/>.
             /// </summary>
             TransformModel,
             /// <summary>
-            /// A predictor model, represented by an <see cref="IPredictorModel"/>.
+            /// A predictor model, represented by an <see cref="EntryPoints.PredictorModel"/>.
             /// </summary>
             PredictorModel,
             /// <summary>
@@ -588,11 +581,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             Enum,
             /// <summary>
-            /// An array (0 or more values of the same type, accessible by index). 
+            /// An array (0 or more values of the same type, accessible by index).
             /// </summary>
             Array,
             /// <summary>
-            /// A dictionary (0 or more values of the same type, identified by a unique string key). 
+            /// A dictionary (0 or more values of the same type, identified by a unique string key).
             /// The underlying C# representation is <see cref="System.Collections.Generic.Dictionary{TKey, TValue}"/>
             /// </summary>
             Dictionary,
@@ -601,11 +594,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// optionally, a set of parameters, unique to each component. Example: "BinaryClassifierEvaluator{threshold=0.5}".
             /// The C# representation is <see cref="IComponentFactory"/>.
             /// </summary>
-            Component,
-            /// <summary>
-            /// An C# object that represents state, such as <see cref="IMlState"/>. 
-            /// </summary>
-            State
+            Component
         }
 
         public static DataKind GetDataType(Type type)
@@ -631,9 +620,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return DataKind.Float;
             if (typeof(IDataView).IsAssignableFrom(type))
                 return DataKind.DataView;
-            if (typeof(ITransformModel).IsAssignableFrom(type))
+            if (typeof(TransformModel).IsAssignableFrom(type))
                 return DataKind.TransformModel;
-            if (typeof(IPredictorModel).IsAssignableFrom(type))
+            if (typeof(PredictorModel).IsAssignableFrom(type))
                 return DataKind.PredictorModel;
             if (typeof(IFileHandle).IsAssignableFrom(type))
                 return DataKind.FileHandle;
@@ -648,8 +637,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
             if (typeof(IComponentFactory).IsAssignableFrom(type))
                 return DataKind.Component;
-            if (typeof(IMlState).IsAssignableFrom(type))
-                return DataKind.State;
 
             return DataKind.Unknown;
         }
@@ -672,7 +659,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public abstract object GetValue();
 
-        protected Optional(bool isExplicit)
+        private protected Optional(bool isExplicit)
         {
             IsExplicit = isExplicit;
         }
@@ -682,8 +669,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// This is a 'maybe' class that is able to differentiate the cases when the value is set 'explicitly', or 'implicitly'.
     /// The idea is that if the default value is specified by the user, in some cases it needs to be treated differently
     /// than if it's auto-filled.
-    /// 
-    /// An example is the weight column: the default behavior is to use 'Weight' column if it's present. But if the user explicitly sets 
+    ///
+    /// An example is the weight column: the default behavior is to use 'Weight' column if it's present. But if the user explicitly sets
     /// the weight column to be 'Weight', we need to actually enforce the presence of the column.
     /// </summary>
     /// <typeparam name="T">The type of the value</typeparam>
@@ -719,7 +706,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         /// <summary>
-        /// The implicit conversion from <typeparamref name="T"/>. 
+        /// The implicit conversion from <typeparamref name="T"/>.
         /// This will assume that the parameter is set 'explicitly'.
         /// </summary>
         public static implicit operator Optional<T>(T value)

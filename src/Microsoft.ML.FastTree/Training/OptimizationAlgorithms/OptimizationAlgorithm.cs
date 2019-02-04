@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     //An interface that can be implemnted on
     public interface IFastTrainingScoresUpdate
@@ -13,7 +13,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         ScoreTracker GetUpdatedTrainingScores();
     }
 
-    public abstract class OptimizationAlgorithm
+    internal abstract class OptimizationAlgorithm
     {
         //TODO: We should move Partitioning to OptimizationAlgorithm
         public TreeLearner TreeLearner;
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public delegate void PreScoreUpdateHandler(IChannel ch);
         public PreScoreUpdateHandler PreScoreUpdateEvent;
 
-        public Ensemble Ensemble;
+        public InternalTreeEnsemble Ensemble;
 
         public ScoreTracker TrainingScores;
         public List<ScoreTracker> TrackedScores;
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public Random DropoutRng;
         public bool UseFastTrainingScoresUpdate;
 
-        public OptimizationAlgorithm(Ensemble ensemble, Dataset trainData, double[] initTrainScores)
+        public OptimizationAlgorithm(InternalTreeEnsemble ensemble, Dataset trainData, double[] initTrainScores)
         {
             Ensemble = ensemble;
             TrainingScores = ConstructScoreTracker("train", trainData, initTrainScores);
@@ -52,10 +52,9 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             TrackedScores[0] = TrainingScores;
         }
 
-        public abstract RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures);
-        //Regularize a regression tree with smoothing paramter alpha
+        internal abstract InternalRegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures);
 
-        public virtual void UpdateAllScores(IChannel ch, RegressionTree tree)
+        internal virtual void UpdateAllScores(IChannel ch, InternalRegressionTree tree)
         {
             if (PreScoreUpdateEvent != null)
                 PreScoreUpdateEvent(ch);
@@ -66,7 +65,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
 
-        public virtual void UpdateScores(ScoreTracker t, RegressionTree tree)
+        internal virtual void UpdateScores(ScoreTracker t, InternalRegressionTree tree)
         {
             if (t == TrainingScores)
             {
@@ -95,7 +94,10 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         protected abstract ScoreTracker ConstructScoreTracker(string name, Dataset set, double[] initScores);
 
-        protected virtual void SmoothTree(RegressionTree tree, double smoothing)
+        /// <summary>
+        /// Regularize a regression tree with smoothing paramter alpha.
+        /// </summary>
+        protected virtual void SmoothTree(InternalRegressionTree tree, double smoothing)
         {
             if (smoothing == 0.0)
                 return;

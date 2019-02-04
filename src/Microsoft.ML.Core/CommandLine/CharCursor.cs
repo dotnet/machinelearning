@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
-    public sealed class CharCursor
+    internal sealed class CharCursor
     {
         private readonly string _text;
         private readonly int _ichLim;

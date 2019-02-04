@@ -2,61 +2,38 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.Training
+namespace Microsoft.ML.Training
 {
-    public abstract class TrainerBase : ITrainer, ITrainerEx
+    public abstract class TrainerBase<TPredictor> : ITrainer<TPredictor>
+        where TPredictor : IPredictor
     {
-        public const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
+        /// <summary>
+        /// A standard string to use in errors or warnings by subclasses, to communicate the idea that no valid
+        /// instances were able to be found.
+        /// </summary>
+        protected const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
 
-        protected readonly IHost Host;
+        protected IHost Host { get; }
 
         public string Name { get; }
         public abstract PredictionKind PredictionKind { get; }
-        public abstract bool NeedNormalization { get; }
-        public abstract bool NeedCalibration { get; }
-        public abstract bool WantCaching { get; }
+        public abstract TrainerInfo Info { get; }
 
-        protected TrainerBase(IHostEnvironment env, string name)
+        [BestFriend]
+        private protected TrainerBase(IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
-            Contracts.CheckNonEmpty(name, nameof(name));
+            env.CheckNonEmpty(name, nameof(name));
 
             Name = name;
             Host = env.Register(name);
         }
 
-        IPredictor ITrainer.CreatePredictor()
-        {
-            return CreatePredictorCore();
-        }
+        IPredictor ITrainer.Train(TrainContext context) => Train(context);
 
-        protected abstract IPredictor CreatePredictorCore();
-    }
+        TPredictor ITrainer<TPredictor>.Train(TrainContext context) => Train(context);
 
-    public abstract class TrainerBase<TPredictor> : TrainerBase
-        where TPredictor : IPredictor
-    {
-        protected TrainerBase(IHostEnvironment env, string name)
-            : base(env, name)
-        {
-        }
-
-        public abstract TPredictor CreatePredictor();
-
-        protected sealed override IPredictor CreatePredictorCore()
-        {
-            return CreatePredictor();
-        }
-    }
-
-    public abstract class TrainerBase<TDataSet, TPredictor> : TrainerBase<TPredictor>, ITrainer<TDataSet, TPredictor>
-        where TPredictor : IPredictor
-    {
-        protected TrainerBase(IHostEnvironment env, string name)
-            : base(env, name)
-        {
-        }
-
-        public abstract void Train(TDataSet data);
+        [BestFriend]
+        private protected abstract TPredictor Train(TrainContext context);
     }
 }

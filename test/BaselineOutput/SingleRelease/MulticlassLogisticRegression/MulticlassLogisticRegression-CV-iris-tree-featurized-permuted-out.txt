@@ -1,0 +1,112 @@
+maml.exe CV tr=MulticlassLogisticRegression{l1=0.001 l2=0.1 ot=1e-3 nt=1} threads=- norm=No dout=%Output% loader=Text{col=Label:U4[0-2]:0 col=Features:1-*} data=%Data% seed=1 xf=TreeFeat{lps=2 trainer=ftr{iter=3}} xf=copy{col=Features:Leaves}
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 71 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 16380 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Beginning optimization
+num vars: 45
+improvement criterion: Mean Improvement
+L1 regularization selected 44 of 45 weights.
+Not training a calibrator because it is not needed.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 79 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 17472 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Beginning optimization
+num vars: 48
+improvement criterion: Mean Improvement
+L1 regularization selected 48 of 48 weights.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    21 |     0 |     0 | 1.0000
+        1 ||     0 |    25 |     5 | 0.8333
+        2 ||     0 |     1 |    27 | 0.9643
+          ||========================
+Precision ||1.0000 |0.9615 |0.8438 |
+Accuracy(micro-avg): 0.924051
+Accuracy(macro-avg): 0.932540
+Log-loss:           0.201590
+Log-loss reduction: 81.463253
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    29 |     0 |     0 | 1.0000
+        1 ||     0 |    19 |     1 | 0.9500
+        2 ||     0 |     1 |    21 | 0.9545
+          ||========================
+Precision ||1.0000 |0.9500 |0.9545 |
+Accuracy(micro-avg): 0.971831
+Accuracy(macro-avg): 0.968182
+Log-loss:           0.101915
+Log-loss reduction: 90.612517
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.947941 (0.0239)
+Accuracy(macro-avg): 0.950361 (0.0178)
+Log-loss:           0.151753 (0.0498)
+Log-loss reduction: 86.037885 (4.5746)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree data preparation' started.
+[1] 'FastTree data preparation' finished in %Time%.
+[2] 'FastTree in-memory bins initialization' started.
+[2] 'FastTree in-memory bins initialization' finished in %Time%.
+[3] 'FastTree feature conversion' started.
+[3] 'FastTree feature conversion' finished in %Time%.
+[4] 'FastTree training' started.
+[4] 'FastTree training' finished in %Time%.
+[5] 'LBFGS data prep' started.
+[5] 'LBFGS data prep' finished in %Time%.
+[6] 'LBFGS Optimizer' started.
+[6] (%Time%)	0 iterations	Loss: 1.0986123085022
+[6] (%Time%)	1 iterations	Loss: 0.556313633918762	Improvement: 0.5423
+[6] (%Time%)	2 iterations	Loss: 0.151027098298073	Improvement: 0.4327
+[6] (%Time%)	3 iterations	Loss: 0.0993023291230202	Improvement: 0.1424
+[6] (%Time%)	4 iterations	Loss: 0.0695240423083305	Improvement: 0.05761
+[6] (%Time%)	5 iterations	Loss: 0.0572926141321659	Improvement: 0.02354
+[6] (%Time%)	6 iterations	Loss: 0.0536528006196022	Improvement: 0.008612
+[6] (%Time%)	7 iterations	Loss: 0.0518658980727196	Improvement: 0.003493
+[6] (%Time%)	8 iterations	Loss: 0.0517856702208519	Improvement: 0.0009333
+[6] 'LBFGS Optimizer' finished in %Time%.
+[7] 'FastTree data preparation #2' started.
+[7] 'FastTree data preparation #2' finished in %Time%.
+[8] 'FastTree in-memory bins initialization #2' started.
+[8] 'FastTree in-memory bins initialization #2' finished in %Time%.
+[9] 'FastTree feature conversion #2' started.
+[9] 'FastTree feature conversion #2' finished in %Time%.
+[10] 'FastTree training #2' started.
+[10] 'FastTree training #2' finished in %Time%.
+[11] 'LBFGS data prep #2' started.
+[11] 'LBFGS data prep #2' finished in %Time%.
+[12] 'LBFGS Optimizer #2' started.
+[12] (%Time%)	0 iterations	Loss: 1.0986123085022
+[12] (%Time%)	1 iterations	Loss: 0.588071405887604	Improvement: 0.5105
+[12] (%Time%)	2 iterations	Loss: 0.210458397865295	Improvement: 0.4042
+[12] (%Time%)	3 iterations	Loss: 0.143802016973495	Improvement: 0.147
+[12] (%Time%)	4 iterations	Loss: 0.109668917953968	Improvement: 0.06202
+[12] (%Time%)	5 iterations	Loss: 0.0927119106054306	Improvement: 0.02819
+[12] (%Time%)	6 iterations	Loss: 0.0866884738206863	Improvement: 0.01156
+[12] (%Time%)	7 iterations	Loss: 0.0849770903587341	Improvement: 0.004173
+[12] (%Time%)	8 iterations	Loss: 0.0845689475536346	Improvement: 0.001349
+[12] (%Time%)	9 iterations	Loss: 0.0844891592860222	Improvement: 0.0003972
+[12] 'LBFGS Optimizer #2' finished in %Time%.

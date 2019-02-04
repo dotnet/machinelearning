@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -12,7 +10,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// A fixed-length circular array. Items are added at the end. If the array is full, adding
     ///  an item will result in discarding the least recently added item.
     /// </summary>
-    public sealed class FixedSizeQueue<T>
+    [BestFriend]
+    internal sealed class FixedSizeQueue<T>
     {
         private readonly T[] _array;
         private int _startIndex;
@@ -135,5 +134,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             _count = 0;
             AssertValid();
         }
+
+        public FixedSizeQueue<T> Clone()
+        {
+            var q = new FixedSizeQueue<T>(Capacity);
+            for (int index = 0; index < Count; index++)
+                q.AddLast(this[index]);
+
+            return q;
+        }
+
     }
 }

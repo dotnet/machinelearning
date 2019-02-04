@@ -3,13 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Internal.CpuMath.Core;
 
-namespace Microsoft.ML.Runtime.Internal.CpuMath
+namespace Microsoft.ML.Internal.CpuMath
 {
     /// <summary>
     /// Probability Functions.
     /// </summary>
-    public sealed class ProbabilityFunctions
+    [BestFriend]
+    internal sealed class ProbabilityFunctions
     {
         /// <summary>
         /// The approximate complimentary error function (i.e., 1-erf).
@@ -117,6 +119,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <returns>One intepretation is, the value at which the standard normal CDF evaluates to p.</returns>
         public static double Probit(double p)
         {
+            Contracts.CheckParam(0 <= p && p <= 1, nameof(p), "Input probability should be in range 0 to 1.");
+
             double q = p - 0.5;
             double r = 0.0;
             if (Math.Abs(q) <= 0.425)
@@ -132,8 +136,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     r = p;
                 else
                     r = 1 - p;
-
-                Contracts.CheckParam(r >= 0, nameof(p), "Illegal input value");
 
                 r = Math.Sqrt(-Math.Log(r));
                 double retval = 0.0;

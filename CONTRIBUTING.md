@@ -16,7 +16,7 @@ If you are new to GitHub [here](https://help.github.com/categories/collaborating
 
 As a first time contributor, you will be invited to sign the Contributor License Agreement (CLA). Please follow the instructions of the dotnet foundation bot reviewer on your PR to sign the agreement indicating that you have appropriate rights to your contribution.
 
-Your pull request needs to reference a filed issue. Please fill in the template that is populated for the pull request. Only pull requests adressing small typos can have no issues associated with them.
+Your pull request needs to reference a filed issue. Please fill in the template that is populated for the pull request. Only pull requests addressing small typos can have no issues associated with them.
 
 An ML.NET team member will be assigned to your pull request once the continuous integration checks have passed successfully.
 

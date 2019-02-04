@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,25 +10,32 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.TreePredictor;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.FastTree;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Training;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.TreePredictor;
 using Newtonsoft.Json.Linq;
+using Float = System.Single;
 
 // All of these reviews apply in general to fast tree and random forest implementations.
 //REVIEW: Decouple train method in Application.cs to have boosting and random forest logic seperate.
 //REVIEW: Do we need to keep all the fast tree based testers?
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     public delegate void SignatureTreeEnsembleTrainer();
 
@@ -43,23 +48,35 @@ namespace Microsoft.ML.Runtime.FastTree
         public static readonly object TrainLock = new object();
     }
 
-    public abstract class FastTreeTrainerBase<TArgs, TPredictor> :
-        TrainerBase<RoleMappedData, TPredictor>,
-        IValidatingTrainer<RoleMappedData>
+    public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
+        TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
-        where TPredictor : IPredictorProducing<Float>
+        where TModel : IPredictorProducing<Float>
     {
         protected readonly TArgs Args;
         protected readonly bool AllowGC;
-        protected Ensemble TrainedEnsemble;
         protected int FeatureCount;
-        protected RoleMappedData ValidData;
-        protected IParallelTraining ParallelTraining;
-        protected OptimizationAlgorithm OptimizationAlgorithm;
+        private protected InternalTreeEnsemble TrainedEnsemble;
+        private protected RoleMappedData ValidData;
+        /// <summary>
+        /// If not null, it's a test data set passed in from training context. It will be converted to one element in
+        /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/> in <see cref="InitializeTests"/>.
+        /// </summary>
+        private protected RoleMappedData TestData;
+        private protected IParallelTraining ParallelTraining;
+        private protected OptimizationAlgorithm OptimizationAlgorithm;
         protected Dataset TrainSet;
         protected Dataset ValidSet;
+        /// <summary>
+        /// Data sets used to evaluate the prediction scores produced the trained model during the triaining process.
+        /// </summary>
         protected Dataset[] TestSets;
         protected int[] FeatureMap;
+        /// <summary>
+        /// In the training process, <see cref="TrainSet"/>, <see cref="ValidSet"/>, <see cref="TestSets"/> would be
+        /// converted into <see cref="Tests"/> for efficient model evaluation.
+        /// </summary>
         protected List<Test> Tests;
         protected TestHistory PruningTest;
         protected int[] CategoricalFeatures;
@@ -72,7 +89,7 @@ namespace Microsoft.ML.Runtime.FastTree
         protected double[] InitValidScores;
         protected double[][] InitTestScores;
         //protected int Iteration;
-        protected Ensemble Ensemble;
+        private protected InternalTreeEnsemble Ensemble;
 
         protected bool HasValidSet => ValidSet != null;
 
@@ -82,36 +99,74 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected string InnerArgs => CmdParser.GetSettings(Host, Args, new TArgs());
 
-        public override bool NeedNormalization => false;
-
-        public override bool WantCaching => false;
+        public override TrainerInfo Info { get; }
 
         public bool HasCategoricalFeatures => Utils.Size(CategoricalFeatures) > 0;
 
-        protected internal FastTreeTrainerBase(IHostEnvironment env, TArgs args)
-            : base(env, RegisterName)
+        private protected virtual bool NeedCalibration => false;
+
+        /// <summary>
+        /// Constructor to use when instantiating the classes deriving from here through the API.
+        /// </summary>
+        private protected FastTreeTrainerBase(IHostEnvironment env,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            string groupIdColumn,
+            int numLeaves,
+            int numTrees,
+            int minDatapointsInLeaves)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
+        {
+            Args = new TArgs();
+
+            // set up the directly provided values
+            // override with the directly provided values.
+            Args.NumLeaves = numLeaves;
+            Args.NumTrees = numTrees;
+            Args.MinDocumentsInLeafs = minDatapointsInLeaves;
+
+            Args.LabelColumn = label.Name;
+            Args.FeatureColumn = featureColumn;
+
+            if (weightColumn != null)
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
+
+            if (groupIdColumn != null)
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
+
+            // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
+            // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
+            // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
+            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true, supportTest: true);
+            // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
+            // with memory consumption more than 5GB, GC get stuck in infinite loop.
+            // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
+            // mechanism to detect that we are running in Scope.
+            AllowGC = true;
+
+            Initialize(env);
+        }
+
+        /// <summary>
+        /// Constructor that is used when invoking the classes deriving from this, through maml.
+        /// </summary>
+        private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
-            int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-            {
-                using (var ch = Host.Start("FastTreeTrainerBase"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                    ch.Done();
-                }
-            }
-            ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
-            ParallelTraining.InitEnvironment();
+            // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
+            // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
+            // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
+            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true, supportTest: true);
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
-            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from TlcEnvironment.
-            AllowGC = (env is HostEnvironmentBase<TlcEnvironment>);
-            Tests = new List<Test>();
+            // with memory consumption more than 5GB, GC get stuck in infinite loop.
+            // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
+            // mechanism to detect that we are running in Scope.
+            AllowGC = true;
 
-            InitializeThreads(numThreads);
+            Initialize(env);
         }
 
         protected abstract void PrepareLabels(IChannel ch);
@@ -120,28 +175,40 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected abstract Test ConstructTestForTrainingData();
 
-        protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
-        protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
+        private protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
+
+        private protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
         protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
-
-        public void Train(RoleMappedData trainData, RoleMappedData validationData)
-        {
-            // REVIEW: Idiotic. This should be reversed... the other train method should
-            // be put in here, rather than having this "hidden argument" through an instance field.
-            ValidData = validationData;
-            Train(trainData);
-        }
 
         protected virtual Float GetMaxLabel()
         {
             return Float.PositiveInfinity;
         }
 
-        protected void ConvertData(RoleMappedData trainData)
+        private void Initialize(IHostEnvironment env)
         {
-            trainData.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
-            MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureIndex, out CategoricalFeatures);
+            int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
+            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
+            {
+                using (var ch = Host.Start("FastTreeTrainerBase"))
+                {
+                    numThreads = Host.ConcurrencyFactor;
+                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
+                        + "setting of the environment. Using {0} training threads instead.", numThreads);
+                }
+            }
+            ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
+            ParallelTraining.InitEnvironment();
+
+            Tests = new List<Test>();
+
+            InitializeThreads(numThreads);
+        }
+
+        private protected void ConvertData(RoleMappedData trainData)
+        {
+            MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Value.Index, out CategoricalFeatures);
             var useTranspose = UseTranspose(Args.DiskTranspose, trainData) && (ValidData == null || UseTranspose(Args.DiskTranspose, ValidData));
             var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocumentsInLeafs, GetMaxLabel());
 
@@ -149,18 +216,20 @@ namespace Microsoft.ML.Runtime.FastTree
             FeatureMap = instanceConverter.FeatureMap;
             if (ValidData != null)
                 ValidSet = instanceConverter.GetCompatibleDataset(ValidData, PredictionKind, CategoricalFeatures, Args.CategoricalSplit);
+            if (TestData != null)
+                TestSets = new[] { instanceConverter.GetCompatibleDataset(TestData, PredictionKind, CategoricalFeatures, Args.CategoricalSplit) };
         }
 
         private bool UseTranspose(bool? useTranspose, RoleMappedData data)
         {
             Host.AssertValue(data);
-            Host.AssertValue(data.Schema.Feature);
+            Host.Assert(data.Schema.Feature.HasValue);
 
             if (useTranspose.HasValue)
                 return useTranspose.Value;
 
-            ITransposeDataView td = data.Data as ITransposeDataView;
-            return td != null && td.TransposeSchema.GetSlotType(data.Schema.Feature.Index) != null;
+            var itdv = data.Data as ITransposeDataView;
+            return itdv?.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
         protected void TrainCore(IChannel ch)
@@ -181,8 +250,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     Train(ch);
                 if (Args.ExecutionTimes)
                     PrintExecutionTimes(ch);
-                ch.Done();
-
                 TrainedEnsemble = Ensemble;
                 if (FeatureMap != null)
                     TrainedEnsemble.RemapFeatures(FeatureMap);
@@ -195,10 +262,7 @@ namespace Microsoft.ML.Runtime.FastTree
             bestIteration = Ensemble.NumTrees;
             return false;
         }
-        protected virtual int GetBestIteration(IChannel ch)
-        {
-            return Ensemble.NumTrees;
-        }
+        protected virtual int GetBestIteration(IChannel ch) => Ensemble.NumTrees;
 
         protected virtual void InitializeThreads(int numThreads)
         {
@@ -258,10 +322,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// it to print specific test graph header.
         /// </summary>
         /// <returns> string representation of test graph header </returns>
-        protected virtual string GetTestGraphHeader()
-        {
-            return string.Empty;
-        }
+        protected virtual string GetTestGraphHeader() => string.Empty;
 
         /// <summary>
         /// A virtual method that is used to print a single line of test graph.
@@ -269,10 +330,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// it to print a specific line of test graph after a new iteration is finished.
         /// </summary>
         /// <returns> string representation of a line of test graph </returns>
-        protected virtual string GetTestGraphLine()
-        {
-            return string.Empty;
-        }
+        protected virtual string GetTestGraphLine() => string.Empty;
 
         /// <summary>
         /// A virtual method that is used to compute test results after each iteration is finished.
@@ -431,7 +489,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         private void InitializeEnsemble()
         {
-            Ensemble = new Ensemble();
+            Ensemble = new InternalTreeEnsemble();
         }
 
         /// <summary>
@@ -736,7 +794,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         // This method is called at the end of each training iteration, with the tree that was learnt on that iteration.
         // Note that this tree can be null if no tree was learnt this iteration.
-        protected virtual void CustomizedTrainingIteration(RegressionTree tree)
+        private protected virtual void CustomizedTrainingIteration(InternalRegressionTree tree)
         {
         }
 
@@ -770,7 +828,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             Contracts.AssertValue(ch);
             ch.Trace("Host = {0}", Environment.MachineName);
-            ch.Trace("CommandLine = {0}", CmdParser.GetSettings(ch, Args, new TArgs()));
+            ch.Trace("CommandLine = {0}", CmdParser.GetSettings(Host, Args, new TArgs()));
             ch.Trace("GCSettings.IsServerGC = {0}", System.Runtime.GCSettings.IsServerGC);
             ch.Trace("{0}", Args);
         }
@@ -867,7 +925,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// of features we actually trained on. This can be null in the event that no filtering
         /// occurred.
         /// </summary>
-        /// <seealso cref="Ensemble.RemapFeatures"/>
+        /// <seealso cref="InternalTreeEnsemble.RemapFeatures"/>
         public int[] FeatureMap;
 
         protected readonly IHost Host;
@@ -887,11 +945,11 @@ namespace Microsoft.ML.Runtime.FastTree
             Contracts.AssertValue(host, "host");
             Host = host;
             Host.CheckValue(data, nameof(data));
-            data.CheckFeatureFloatVector();
+            data.CheckFeatureFloatVector(out int featLen);
             data.CheckOptFloatWeight();
             data.CheckOptGroup();
 
-            NumFeatures = data.Schema.Feature.Type.VectorSize;
+            NumFeatures = featLen;
             if (binUpperBounds != null)
             {
                 Host.AssertValue(binUpperBounds);
@@ -922,7 +980,6 @@ namespace Microsoft.ML.Runtime.FastTree
                         parallelTraining, categoricalFeatureIndices, categoricalSplit);
                 else
                     conv = new DiskImpl(data, host, maxBins, maxLabel, kind, parallelTraining, categoricalFeatureIndices, categoricalSplit);
-                ch.Done();
             }
             return conv;
         }
@@ -939,29 +996,12 @@ namespace Microsoft.ML.Runtime.FastTree
                     conv = new MemImpl(data, host, binUpperBounds, maxLabel, noFlocks, kind, categoricalFeatureIndices, categoricalSplit);
                 else
                     conv = new DiskImpl(data, host, binUpperBounds, maxLabel, kind, categoricalFeatureIndices, categoricalSplit);
-                ch.Done();
             }
             return conv;
         }
 
-        protected void GetFeatureNames(RoleMappedData data, ref VBuffer<DvText> names)
-        {
-            // The existing implementations will have verified this by the time this utility
-            // function is called.
-            Host.AssertValue(data);
-            var feat = data.Schema.Feature;
-            Host.AssertValue(feat);
-            Host.Assert(feat.Type.ValueCount > 0);
-
-            var sch = data.Schema.Schema;
-            if (sch.HasSlotNames(feat.Index, feat.Type.ValueCount))
-                sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref names);
-            else
-                names = new VBuffer<DvText>(feat.Type.ValueCount, 0, names.Values, names.Indices);
-        }
-
 #if !CORECLR
-        protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<DvText> content)
+        protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> content)
         {
             // The existing implementations will have verified this by the time this utility
             // function is called.
@@ -973,7 +1013,7 @@ namespace Microsoft.ML.Runtime.FastTree
             var sch = data.Schema.Schema;
             var type = sch.GetMetadataTypeOrNull(BingBinLoader.IniContentMetadataKind, feat.Index);
             if (type == null || type.VectorSize != feat.Type.ValueCount || !type.IsVector || !type.ItemType.IsText)
-                content = new VBuffer<DvText>(feat.Type.ValueCount, 0, content.Values, content.Indices);
+                content = new VBuffer<ReadOnlyMemory<char>>(feat.Type.ValueCount, 0, content.Values, content.Indices);
             else
                 sch.GetMetadata(BingBinLoader.IniContentMetadataKind, feat.Index, ref content);
         }
@@ -988,29 +1028,27 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="values">The values for one particular feature value across all examples</param>
         /// <param name="maxBins">The maximum number of bins to find</param>
         /// <param name="minDocsPerLeaf"></param>
-        /// <param name="distinctValues">The working array of distinct values, a temporary buffer that should be called
-        /// to multiple invocations of this method, but not meant to be useful to the caller. This method will reallocate
-        /// the array to a new size if necessary. Passing in null at first is acceptable.</param>
-        /// <param name="distinctCounts">Similar working array, but for distinct counts</param>
         /// <param name="upperBounds">The bin upper bounds, maximum length will be <paramref name="maxBins"/></param>
         /// <returns>Whether finding the bins was successful or not. It will be unsuccessful iff <paramref name="values"/>
         /// has any missing values. In that event, the out parameters will be left as null.</returns>
-        protected static bool CalculateBins(BinFinder binFinder, ref VBuffer<double> values, int maxBins, int minDocsPerLeaf,
-            ref double[] distinctValues, ref int[] distinctCounts, out double[] upperBounds)
+        protected static bool CalculateBins(BinFinder binFinder, in VBuffer<double> values, int maxBins, int minDocsPerLeaf,
+            out double[] upperBounds)
         {
-            return binFinder.FindBins(ref values, maxBins, minDocsPerLeaf, out upperBounds);
+            return binFinder.FindBins(in values, maxBins, minDocsPerLeaf, out upperBounds);
         }
 
-        private static IEnumerable<KeyValuePair<int, int>> NonZeroBinnedValuesForSparse(VBuffer<double> values, Double[] binUpperBounds)
+        private static IEnumerable<KeyValuePair<int, int>> NonZeroBinnedValuesForSparse(ReadOnlySpan<double> values, ReadOnlySpan<int> indices, Double[] binUpperBounds)
         {
-            Contracts.Assert(!values.IsDense);
+            Contracts.Assert(values.Length == indices.Length);
             Contracts.Assert(Algorithms.FindFirstGE(binUpperBounds, 0) == 0);
-            for (int i = 0; i < values.Count; ++i)
+            var result = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < values.Length; ++i)
             {
-                int ge = Algorithms.FindFirstGE(binUpperBounds, values.Values[i]);
+                int ge = Algorithms.FindFirstGE(binUpperBounds, values[i]);
                 if (ge != 0)
-                    yield return new KeyValuePair<int, int>(values.Indices[i], ge);
+                    result.Add(new KeyValuePair<int, int>(indices[i], ge));
             }
+            return result;
         }
 
         private FeatureFlockBase CreateOneHotFlock(IChannel ch,
@@ -1027,12 +1065,12 @@ namespace Microsoft.ML.Runtime.FastTree
                 int fi = features[0];
                 var values = instanceList[fi];
                 values.CopyTo(NumExamples, ref temp);
-                return CreateSingletonFlock(ch, ref temp, binnedValues, BinUpperBounds[fi]);
+                return CreateSingletonFlock(ch, in temp, binnedValues, BinUpperBounds[fi]);
             }
             // Multiple, one hot.
             int[] hotFeatureStarts = new int[features.Count + 1];
             // The position 0 is reserved as the "cold" position for all features in the slot.
-            // This corresponds to all features being in their first bin (e.g., cold). So the
+            // This corresponds to all features being in their first bin (for example, cold). So the
             // first feature's "hotness" starts at 1. HOWEVER, for the purpose of defining the
             // bins, we start with this array computed off by one. Once we define the bins, we
             // will correct it.
@@ -1108,7 +1146,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // Multiple, one hot.
             int[] hotFeatureStarts = new int[features.Count + 1];
             // The position 0 is reserved as the "cold" position for all features in the slot.
-            // This corresponds to all features being in their first bin (e.g., cold). So the
+            // This corresponds to all features being in their first bin (for example, cold). So the
             // first feature's "hotness" starts at 1. HOWEVER, for the purpose of defining the
             // bins, we start with this array computed off by one. Once we define the bins, we
             // will correct it.
@@ -1148,7 +1186,7 @@ namespace Microsoft.ML.Runtime.FastTree
 #endif
                 Double[] bub = BinUpperBounds[fi];
                 ch.Assert(bub.Length == 2);
-                //REVIEW: leaving out check for the value to reduced memory consuption and going with 
+                //REVIEW: leaving out check for the value to reduced memory consuption and going with
                 //leap of faith based on what the user told.
                 binnedValues[i] = hotFeatureStarts[subfeature] + 1;
                 hotCount++;
@@ -1180,7 +1218,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="binnedValues">A working array of length equal to the length of the input feature vector</param>
         /// <param name="binUpperBounds">The upper bounds of the binning of this feature.</param>
         /// <returns>A derived binned derived feature vector.</returns>
-        protected static SingletonFeatureFlock CreateSingletonFlock(IChannel ch, ref VBuffer<double> values, int[] binnedValues,
+        protected static SingletonFeatureFlock CreateSingletonFlock(IChannel ch, in VBuffer<double> values, int[] binnedValues,
             Double[] binUpperBounds)
         {
             Contracts.AssertValue(ch);
@@ -1197,14 +1235,15 @@ namespace Microsoft.ML.Runtime.FastTree
 
             IntArray bins = null;
 
+            var valuesValues = values.GetValues();
             var numBitsNeeded = IntArray.NumBitsNeeded(binUpperBounds.Length);
             if (numBitsNeeded == IntArrayBits.Bits0)
                 bins = new Dense0BitIntArray(values.Length);
-            else if (!values.IsDense && zeroBin == 0 && values.Count < (1 - sparsifyThreshold) * values.Length)
+            else if (!values.IsDense && zeroBin == 0 && valuesValues.Length < (1 - sparsifyThreshold) * values.Length)
             {
                 // Special code to go straight from our own sparse format to a sparse IntArray.
                 // Note: requires zeroBin to be 0 because that's what's assumed in FastTree code
-                var nonZeroValues = NonZeroBinnedValuesForSparse(values, binUpperBounds);
+                var nonZeroValues = NonZeroBinnedValuesForSparse(valuesValues, values.GetIndices(), binUpperBounds);
                 bins = new DeltaSparseIntArray(values.Length, numBitsNeeded, nonZeroValues);
             }
             else
@@ -1220,23 +1259,23 @@ namespace Microsoft.ML.Runtime.FastTree
                     }
                     else
                         Array.Clear(binnedValues, 0, values.Length);
-                    for (int i = 0; i < values.Count; ++i)
+                    var valuesIndices = values.GetIndices();
+                    for (int i = 0; i < valuesValues.Length; ++i)
                     {
-                        if ((binnedValues[values.Indices[i]] = Algorithms.FindFirstGE(binUpperBounds, values.Values[i])) == 0)
+                        if ((binnedValues[valuesIndices[i]] = Algorithms.FindFirstGE(binUpperBounds, valuesValues[i])) == 0)
                             firstBinCount++;
                     }
                     if (zeroBin == 0)
-                        firstBinCount += values.Length - values.Count;
+                        firstBinCount += values.Length - valuesValues.Length;
                 }
                 else
                 {
-                    Double[] denseValues = values.Values;
-                    for (int i = 0; i < values.Length; i++)
+                    for (int i = 0; i < valuesValues.Length; i++)
                     {
-                        if (denseValues[i] == 0)
+                        if (valuesValues[i] == 0)
                             binnedValues[i] = zeroBin;
                         else
-                            binnedValues[i] = Algorithms.FindFirstGE(binUpperBounds, denseValues[i]);
+                            binnedValues[i] = Algorithms.FindFirstGE(binUpperBounds, valuesValues[i]);
                         if (binnedValues[i] == 0)
                             firstBinCount++;
                     }
@@ -1277,14 +1316,15 @@ namespace Microsoft.ML.Runtime.FastTree
                 return _dataset;
             }
 
-            private static int AddColumnIfNeeded(ColumnInfo info, List<int> toTranspose)
+            private static int AddColumnIfNeeded(Schema.Column? info, List<int> toTranspose)
             {
-                if (info == null)
+                if (!info.HasValue)
                     return -1;
                 // It is entirely possible that a single column could have two roles,
                 // and so be added twice, but this case is handled by the transposer.
-                toTranspose.Add(info.Index);
-                return info.Index;
+                var idx = info.Value.Index;
+                toTranspose.Add(idx);
+                return idx;
             }
 
             private ValueMapper<VBuffer<T1>, VBuffer<T2>> GetCopier<T1, T2>(ColumnType itemType1, ColumnType itemType2)
@@ -1293,36 +1333,31 @@ namespace Microsoft.ML.Runtime.FastTree
                 if (identity)
                 {
                     ValueMapper<VBuffer<T1>, VBuffer<T1>> identityResult =
-                        (ref VBuffer<T1> src, ref VBuffer<T1> dst) => src.CopyTo(ref dst);
+                        (in VBuffer<T1> src, ref VBuffer<T1> dst) => src.CopyTo(ref dst);
                     return (ValueMapper<VBuffer<T1>, VBuffer<T2>>)(object)identityResult;
                 }
                 return
-                    (ref VBuffer<T1> src, ref VBuffer<T2> dst) =>
+                    (in VBuffer<T1> src, ref VBuffer<T2> dst) =>
                     {
-                        var indices = dst.Indices;
-                        var values = dst.Values;
-                        if (src.Count > 0)
+                        var srcValues = src.GetValues();
+                        var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+                        if (srcValues.Length > 0)
                         {
                             if (!src.IsDense)
                             {
-                                Utils.EnsureSize(ref indices, src.Count);
-                                Array.Copy(src.Indices, indices, src.Count);
+                                src.GetIndices().CopyTo(editor.Indices);
                             }
-                            Utils.EnsureSize(ref values, src.Count);
-                            for (int i = 0; i < src.Count; ++i)
-                                conv(ref src.Values[i], ref values[i]);
+                            for (int i = 0; i < srcValues.Length; ++i)
+                                conv(in srcValues[i], ref editor.Values[i]);
                         }
-                        dst = new VBuffer<T2>(src.Length, src.Count, values, indices);
+                        dst = editor.Commit();
                     };
             }
 
             private Dataset Construct(RoleMappedData examples, ref int numExamples, int maxBins, IParallelTraining parallelTraining)
             {
                 Host.AssertValue(examples);
-                Host.AssertValue(examples.Schema.Feature);
-                Host.AssertValueOrNull(examples.Schema.Label);
-                Host.AssertValueOrNull(examples.Schema.Group);
-                Host.AssertValueOrNull(examples.Schema.Weight);
+                Host.Assert(examples.Schema.Feature.HasValue);
 
                 if (parallelTraining == null)
                     Host.AssertValue(BinUpperBounds);
@@ -1343,21 +1378,12 @@ namespace Microsoft.ML.Runtime.FastTree
                     {
                         var convArgs = new LabelConvertTransform.Arguments();
                         var convCol = new LabelConvertTransform.Column() { Name = labelName, Source = labelName };
-                        convArgs.Column = new LabelConvertTransform.Column[] { convCol };
+                        convArgs.Columns = new LabelConvertTransform.Column[] { convCol };
                         data = new LabelConvertTransform(Host, convArgs, data);
                     }
                     // Convert the group column, if one exists.
-                    if (examples.Schema.Group != null)
-                    {
-                        var convArgs = new ConvertTransform.Arguments();
-                        var convCol = new ConvertTransform.Column
-                        {
-                            ResultType = DataKind.U8
-                        };
-                        convCol.Name = convCol.Source = examples.Schema.Group.Name;
-                        convArgs.Column = new ConvertTransform.Column[] { convCol };
-                        data = new ConvertTransform(Host, convArgs, data);
-                    }
+                    if (examples.Schema.Group?.Name is string groupName)
+                        data = new TypeConvertingTransformer(Host, new TypeConvertingTransformer.ColumnInfo(groupName, DataKind.U8, groupName)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
@@ -1381,11 +1407,11 @@ namespace Microsoft.ML.Runtime.FastTree
                         BinFinder finder = new BinFinder();
                         FeaturesToContentMap fmap = new FeaturesToContentMap(examples.Schema);
 
-                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<Float>(trans.TransposeSchema.GetSlotType(featIdx));
+                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<Float>(((ITransposeDataView)trans).GetSlotType(featIdx));
                         // There is no good mechanism to filter out rows with missing feature values on transposed data.
                         // So, we instead perform one featurization pass which, if successful, will remain one pass but,
                         // if we ever encounter missing values will become a "detect missing features" pass, which will
-                        // in turn inform a necessary featurization pass secondary 
+                        // in turn inform a necessary featurization pass secondary
                         SlotDropper slotDropper = null;
                         bool[] localConstructBinFeatures = Utils.CreateArray<bool>(NumFeatures, true);
 
@@ -1405,14 +1431,12 @@ namespace Microsoft.ML.Runtime.FastTree
 
                                     // Perhaps we should change the binning to just work over singles.
                                     VBuffer<double> doubleTemp = default(VBuffer<double>);
-                                    double[] distinctValues = null;
-                                    int[] distinctCounts = null;
                                     var copier = GetCopier<Float, Double>(NumberType.Float, NumberType.R8);
                                     int iFeature = 0;
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
                                     while (cursor.MoveNext())
                                     {
-                                        iFeature = checked((int)cursor.Position);
+                                        iFeature = cursor.SlotIndex;
                                         if (!localConstructBinFeatures[iFeature])
                                             continue;
 
@@ -1428,13 +1452,12 @@ namespace Microsoft.ML.Runtime.FastTree
                                             ch.Assert(maxBins > 0);
                                             finder = finder ?? new BinFinder();
                                             // Must copy over, as bin calculation is potentially destructive.
-                                            copier(ref temp, ref doubleTemp);
-                                            hasMissing = !CalculateBins(finder, ref doubleTemp, maxBins, 0,
-                                                ref distinctValues, ref distinctCounts,
+                                            copier(in temp, ref doubleTemp);
+                                            hasMissing = !CalculateBins(finder, in doubleTemp, maxBins, 0,
                                                 out BinUpperBounds[iFeature]);
                                         }
                                         else
-                                            hasMissing = hasMissingPred(ref temp);
+                                            hasMissing = hasMissingPred(in temp);
 
                                         if (hasMissing)
                                         {
@@ -1508,15 +1531,17 @@ namespace Microsoft.ML.Runtime.FastTree
                                                 Double firstBin = bup[0];
                                                 GetFeatureValues(catCursor, iFeatureLocal, catGetter, ref temp, ref doubleTemp, copier);
                                                 bool add = false;
-                                                for (int index = 0; index < doubleTemp.Count; ++index)
+                                                var doubleTempValues = doubleTemp.GetValues();
+                                                var doubleTempIndices = doubleTemp.GetIndices();
+                                                for (int index = 0; index < doubleTempValues.Length; ++index)
                                                 {
-                                                    if (doubleTemp.Values[index] <= firstBin)
+                                                    if (doubleTempValues[index] <= firstBin)
                                                         continue;
 
-                                                    int iindex = doubleTemp.IsDense ? index : doubleTemp.Indices[index];
+                                                    int iindex = doubleTemp.IsDense ? index : doubleTempIndices[index];
                                                     int last = lastOn[iindex];
 
-                                                    if (doubleTemp.Values[index] != 1 || (last != -1 && last >= iFeature))
+                                                    if (doubleTempValues[index] != 1 || (last != -1 && last >= iFeature))
                                                     {
                                                         catRangeIndex += 2;
                                                         pending.Clear();
@@ -1554,7 +1579,7 @@ namespace Microsoft.ML.Runtime.FastTree
                                             if (upperBounds.Length == 1)
                                                 continue; //trivial feature, skip it.
 
-                                            flocks.Add(CreateSingletonFlock(ch, ref doubleTemp, binnedValues, upperBounds));
+                                            flocks.Add(CreateSingletonFlock(ch, in doubleTemp, binnedValues, upperBounds));
                                         }
                                     }
                                 }
@@ -1568,7 +1593,7 @@ namespace Microsoft.ML.Runtime.FastTree
                                         if (upperBounds.Length == 1)
                                             continue; //trivial feature, skip it.
 
-                                        flocks.Add(CreateSingletonFlock(ch, ref doubleTemp, binnedValues, upperBounds));
+                                        flocks.Add(CreateSingletonFlock(ch, in doubleTemp, binnedValues, upperBounds));
                                     }
                                 }
 
@@ -1588,10 +1613,12 @@ namespace Microsoft.ML.Runtime.FastTree
                             trans.GetSingleSlotValue<Float>(labelIdx, ref temp);
                             slotDropper?.DropSlots(ref temp, ref temp);
 
-                            for (int i = 0; i < temp.Count; ++i)
+                            var tempValues = temp.GetValues();
+                            var tempIndices = temp.GetIndices();
+                            for (int i = 0; i < tempValues.Length; ++i)
                             {
-                                int ii = temp.IsDense ? i : temp.Indices[i];
-                                var label = temp.Values[i];
+                                int ii = temp.IsDense ? i : tempIndices[i];
+                                var label = tempValues[i];
                                 if (UsingMaxLabel && !(0 <= label && label <= MaxLabel))
                                     throw Host.Except("Found invalid label {0}. Value should be between 0 and {1}, inclusive.", label, MaxLabel);
                                 ratings[ii] = (short)label;
@@ -1610,12 +1637,12 @@ namespace Microsoft.ML.Runtime.FastTree
                             trans.GetSingleSlotValue<ulong>(groupIdx, ref groupIds);
                             slotDropper?.DropSlots(ref groupIds, ref groupIds);
 
-                            ConstructBoundariesAndQueryIds(ref groupIds, out boundaries, out qids);
+                            ConstructBoundariesAndQueryIds(in groupIds, out boundaries, out qids);
                         }
                         else
                         {
                             if (groupIdx >= 0)
-                                ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", examples.Schema.Group.Name);
+                                ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", examples.Schema.Group.Value.Name);
                             const int queryChunkSize = 100;
                             qids = new ulong[(numExamples - 1) / queryChunkSize + 1];
                             boundaries = new int[qids.Length + 1];
@@ -1634,27 +1661,26 @@ namespace Microsoft.ML.Runtime.FastTree
                         Host.Assert(features.All(f => f != null));
                         result = new Dataset(skeleton, features);
                     }
-                    ch.Done();
                 }
                 return result;
             }
 
-            private void GetFeatureValues(ISlotCursor cursor, int iFeature, ValueGetter<VBuffer<float>> getter,
+            private void GetFeatureValues(SlotCursor cursor, int iFeature, ValueGetter<VBuffer<float>> getter,
                 ref VBuffer<float> temp, ref VBuffer<double> doubleTemp, ValueMapper<VBuffer<float>, VBuffer<double>> copier)
             {
                 while (cursor.MoveNext())
                 {
 
-                    Contracts.Assert(iFeature >= checked((int)cursor.Position));
+                    Contracts.Assert(iFeature >= cursor.SlotIndex);
 
-                    if (iFeature == checked((int)cursor.Position))
+                    if (iFeature == cursor.SlotIndex)
                         break;
                 }
 
-                Contracts.Assert(cursor.Position == iFeature);
+                Contracts.Assert(cursor.SlotIndex == iFeature);
 
                 getter(ref temp);
-                copier(ref temp, ref doubleTemp);
+                copier(in temp, ref doubleTemp);
             }
 
             private static ValueGetter<VBuffer<T>> SubsetGetter<T>(ValueGetter<VBuffer<T>> getter, SlotDropper slotDropper)
@@ -1666,16 +1692,16 @@ namespace Microsoft.ML.Runtime.FastTree
             }
 
             /// <summary>
-            /// Returns a slot dropper object that has ranges of slots to be dropped, 
+            /// Returns a slot dropper object that has ranges of slots to be dropped,
             /// based on an examination of the feature values.
             /// </summary>
-            private static SlotDropper ConstructDropSlotRanges(ISlotCursor cursor,
+            private static SlotDropper ConstructDropSlotRanges(SlotCursor cursor,
                 ValueGetter<VBuffer<float>> getter, ref VBuffer<float> temp)
             {
                 // The iteration here is slightly differently from a usual cursor iteration. Here, temp
                 // already holds the value of the cursor's current position, and we don't really want
                 // to re-fetch it, and the cursor is necessarily advanced.
-                Contracts.Assert(cursor.State == CursorState.Good);
+                Contracts.Assert(cursor.SlotIndex >= 0);
                 BitArray rowHasMissing = new BitArray(temp.Length);
                 for (; ; )
                 {
@@ -1711,7 +1737,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 return new SlotDropper(temp.Length, minSlots.ToArray(), maxSlots.ToArray());
             }
 
-            private static void ConstructBoundariesAndQueryIds(ref VBuffer<ulong> groupIds, out int[] boundariesArray, out ulong[] qidsArray)
+            private static void ConstructBoundariesAndQueryIds(in VBuffer<ulong> groupIds, out int[] boundariesArray, out ulong[] qidsArray)
             {
                 List<ulong> qids = new List<ulong>();
                 List<int> boundaries = new List<int>();
@@ -1813,23 +1839,29 @@ namespace Microsoft.ML.Runtime.FastTree
                     ch.Info("Changing data from row-wise to column-wise");
 
                     long pos = 0;
-                    double rowCountDbl = (double?)_data.Data.GetRowCount(lazy: true) ?? Double.NaN;
+                    double rowCountDbl = (double?)_data.Data.GetRowCount() ?? Double.NaN;
                     pch.SetHeader(new ProgressHeader("examples"),
                         e => e.SetProgress(0, pos, rowCountDbl));
                     // REVIEW: Should we ignore rows with bad label, weight, or group? The previous code seemed to let
                     // them through (but filtered out bad features).
-                    CursOpt curOptions = CursOpt.Label | CursOpt.Features | CursOpt.Weight;
+                    CursOpt curOptions = CursOpt.Label | CursOpt.Features;
                     bool hasGroup = false;
                     if (PredictionKind == PredictionKind.Ranking)
                     {
-                        curOptions |= CursOpt.Group;
                         hasGroup = _data.Schema.Group != null;
+
+                        if(hasGroup)
+                            curOptions |= CursOpt.Group;
                     }
                     else
                     {
                         if (_data.Schema.Group != null)
-                            ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", _data.Schema.Group.Name);
+                            ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", _data.Schema.Group.Value.Name);
                     }
+
+                    if (_data.Schema.Weight.HasValue)
+                        curOptions |= CursOpt.Weight;
+
                     using (var cursor = new FloatLabelCursor(_data, curOptions))
                     {
                         ulong groupPrev = 0;
@@ -1873,7 +1905,7 @@ namespace Microsoft.ML.Runtime.FastTree
                             if (_weights != null)
                                 _weights.Add(cursor.Weight);
                             _targetsList.Add((short)cursor.Label);
-                            featureValues += cursor.Features.Count;
+                            featureValues += cursor.Features.GetValues().Length;
 
                             if (featureValues > featureValuesWarnThreshold && !featureValuesWarned)
                             {
@@ -1887,11 +1919,10 @@ namespace Microsoft.ML.Runtime.FastTree
                         missingInstances = cursor.BadFeaturesRowCount;
                     }
 
-                    ch.Check(totalInstances > 0, TrainerBase.NoTrainingInstancesMessage);
+                    ch.Check(totalInstances > 0, "All instances skipped due to missing features.");
 
                     if (missingInstances > 0)
                         ch.Warning("Skipped {0} instances with missing features during training", missingInstances);
-                    ch.Done();
                 }
             }
 
@@ -1904,8 +1935,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     BinFinder binFinder = new BinFinder();
                     VBuffer<double> temp = default(VBuffer<double>);
                     int len = _numExamples;
-                    double[] distinctValues = null;
-                    int[] distinctCounts = null;
                     bool[] localConstructBinFeatures = parallelTraining.GetLocalBinConstructionFeatures(NumFeatures);
                     int iFeature = 0;
                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, NumFeatures));
@@ -1919,13 +1948,11 @@ namespace Microsoft.ML.Runtime.FastTree
                         // REVIEW: In principle we could also put the min docs per leaf information
                         // into here, and collapse bins somehow as we determine the bins, so that "trivial"
                         // bins on the head or tail of the bin distribution are never actually considered.
-                        CalculateBins(binFinder, ref temp, maxBins, _minDocsPerLeaf,
-                            ref distinctValues, ref distinctCounts,
+                        CalculateBins(binFinder, in temp, maxBins, _minDocsPerLeaf,
                             out double[] binUpperBounds);
                         BinUpperBounds[iFeature] = binUpperBounds;
                     }
                     parallelTraining.SyncGlobalBoundary(NumFeatures, maxBins, BinUpperBounds);
-                    ch.Done();
                 }
             }
 
@@ -1936,7 +1963,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 {
                     FeatureFlockBase[] flocks = CreateFlocks(ch, pch).ToArray();
                     ch.Trace("{0} features stored in {1} flocks.", NumFeatures, flocks.Length);
-                    ch.Done();
                     return new Dataset(CreateDatasetSkeleton(), flocks);
                 }
             }
@@ -2082,7 +2108,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         var values = _instanceList[iFeature];
                         _instanceList[iFeature] = null;
                         values.CopyTo(NumExamples, ref temp);
-                        yield return CreateSingletonFlock(ch, ref temp, binnedValues, bup);
+                        yield return CreateSingletonFlock(ch, in temp, binnedValues, bup);
                     }
                     yield break;
                 }
@@ -2203,7 +2229,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 int limMade = startFeatureIndex;
                 int countBins = 1; // Count of bins we'll need to represent. Starts at 1, accumulates "hot" features.
                 // Tracking for n-hot flocks.
-                long countHotRows = 0; // The count of hot "rows" 
+                long countHotRows = 0; // The count of hot "rows"
                 long hotNThreshold = (long)(0.1 * NumExamples);
                 bool canBeOneHot = true;
 
@@ -2239,7 +2265,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     {
                         // It can happen that a flock could be created with more than Utils.ArrayMaxSize
                         // bins, in the case where we bin over a training dataset with many features with
-                        // many bins (e.g., 1 million features with 10k bins each), and then in a subsequent
+                        // many bins (for example, 1 million features with 10k bins each), and then in a subsequent
                         // validation dataset we have these features suddenly become one-hot. Practically
                         // this will never happen, of course, but it is still possible. If this ever happens,
                         // we create the flock before this becomes an issue.
@@ -2509,8 +2535,7 @@ namespace Microsoft.ML.Runtime.FastTree
             public void CopyTo(int length, ref VBuffer<Double> dst)
             {
                 Contracts.Assert(0 <= length);
-                int[] indices = dst.Indices;
-                Double[] values = dst.Values;
+                VBufferEditor<double> editor;
                 if (!_isSparse)
                 {
                     Contracts.Assert(_dense.Count <= length);
@@ -2518,29 +2543,28 @@ namespace Microsoft.ML.Runtime.FastTree
                         Sparsify();
                     else
                     {
-                        Utils.EnsureSize(ref values, length, keepOld: false);
+                        editor = VBufferEditor.Create(ref dst, length);
                         if (_dense.Count < length)
                         {
-                            _dense.CopyTo(values, 0);
-                            Array.Clear(values, _dense.Count, length - _dense.Count);
+                            _dense.CopyTo(editor.Values);
+                            editor.Values.Slice(_dense.Count, length - _dense.Count).Clear();
                         }
                         else
-                            _dense.CopyTo(0, values, 0, length);
-                        dst = new VBuffer<Double>(length, values, indices);
+                            _dense.CopyTo(editor.Values, length);
+                        dst = editor.Commit();
                         return;
                     }
                 }
                 int count = _sparse.Count;
                 Contracts.Assert(count <= length);
-                Utils.EnsureSize(ref indices, count);
-                Utils.EnsureSize(ref values, count);
+                editor = VBufferEditor.Create(ref dst, length, count);
                 for (int i = 0; i < _sparse.Count; ++i)
                 {
-                    indices[i] = _sparse[i].Key;
-                    values[i] = _sparse[i].Value;
+                    editor.Indices[i] = _sparse[i].Key;
+                    editor.Values[i] = _sparse[i].Value;
                 }
-                Contracts.Assert(Utils.IsIncreasing(0, indices, count, length));
-                dst = new VBuffer<Double>(length, count, values, indices);
+                Contracts.Assert(Utils.IsIncreasing(0, editor.Indices, count, length));
+                dst = editor.Commit();
             }
 
             /// <summary>
@@ -2622,7 +2646,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 // Parallel to the subsequence of _values in min to lim, indicates the index where
                 // we should start to look for the next value, if the corresponding value list in
                 // _values is sparse. If the corresponding value list is dense the entry at this
-                // position is not used. 
+                // position is not used.
                 private readonly int[] _perFeaturePosition;
                 private readonly int[] _featureIndices;
 #if DEBUG
@@ -2637,7 +2661,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 /// <param name="featureIndex">A feature index, which indexes not the global feature indices,
                 /// but the index into the subset of features specified at the constructor time</param>
                 /// <param name="rowIndex">The row index to access, which must be non-decreasing, and must
-                /// indeed be actually increasing for access on the same feature (e.g., if you have two features,
+                /// indeed be actually increasing for access on the same feature (for example, if you have two features,
                 /// it is OK to access <c>[1, 5]</c>, then <c>[0, 5]</c>, but once this is done you cannot
                 /// access the same feature at the same position.</param>
                 /// <returns></returns>
@@ -2757,7 +2781,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 Dataset d = convData.GetDataset();
                 BinUpperBounds = convData.BinUpperBounds;
                 FeatureMap = convData.FeatureMap;
-                ch.Done();
                 return d;
             }
         }
@@ -2772,30 +2795,32 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
-    public abstract class FastTreePredictionWrapper :
-        PredictorBase<Float>,
+    public abstract class TreeEnsembleModelParameters :
+        ModelParametersBase<Float>,
         IValueMapper,
         ICanSaveInTextFormat,
         ICanSaveInIniFormat,
         ICanSaveInSourceCode,
-        ICanSaveModel,
         ICanSaveSummary,
         ICanGetSummaryInKeyValuePairs,
         ITreeEnsemble,
         IPredictorWithFeatureWeights<Float>,
-        IWhatTheFeatureValueMapper,
+        IFeatureContributionMapper,
+        ICalculateFeatureContribution,
         ICanGetSummaryAsIRow,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
-        //The below two properties are necessary for tree Visualizer
-        public Ensemble TrainedEnsemble { get; }
-        public int NumTrees => TrainedEnsemble.NumTrees;
+        // The below two properties are necessary for tree Visualizer
+        [BestFriend]
+        internal InternalTreeEnsemble TrainedEnsemble { get; }
+
+        int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
         protected readonly string InnerArgs;
 
-        // The total number of features used in training (takes the value of zero if the 
+        // The total number of features used in training (takes the value of zero if the
         // written version of the loaded model is less than VerNumFeaturesSerialized)
         protected readonly int NumFeatures;
 
@@ -2808,12 +2833,32 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected abstract uint VerCategoricalSplitSerialized { get; }
 
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
-        public bool CanSavePfa => true;
-        public bool CanSaveOnnx => true;
+        protected internal readonly ColumnType InputType;
+        ColumnType IValueMapper.InputType => InputType;
 
-        protected internal FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
+        protected readonly ColumnType OutputType;
+        ColumnType IValueMapper.OutputType => OutputType;
+
+        bool ICanSavePfa.CanSavePfa => true;
+
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+
+        /// <summary>
+        /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
+        /// The calculation of feature contribution essentially consists in determining which splits in the tree have the most impact
+        /// on the final score and assigning the value of the impact to the features determining the split. More precisely, the contribution of a feature
+        /// is equal to the change in score produced by exploring the opposite sub-tree every time a decision node for the given feature is encountered.
+        /// Consider a simple case with a single decision tree that has a decision node for the binary feature F1. Given an example that has feature F1
+        /// equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to the feature F1 being equal to false
+        /// while keeping the other features constant. The contribution of feature F1 for the given example is the difference between the original score
+        /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
+        /// many decision trees.
+        /// </summary>
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
+
+        /// The following function is used in both FastTree and LightGBM so <see cref="BestFriendAttribute"/> is required.
+        [BestFriend]
+        internal TreeEnsembleModelParameters(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));
@@ -2827,13 +2872,14 @@ namespace Microsoft.ML.Runtime.FastTree
             InnerArgs = innerArgs;
             NumFeatures = numFeatures;
 
-            MaxSplitFeatIdx = FindMaxFeatureIndex(trainedEnsemble);
+            MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
+            OutputType = NumberType.Float;
         }
 
-        protected FastTreePredictionWrapper(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+        protected TreeEnsembleModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
             : base(env, name, ctx)
         {
             // *** Binary format ***
@@ -2850,8 +2896,8 @@ namespace Microsoft.ML.Runtime.FastTree
             if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
                 categoricalSplits = true;
 
-            TrainedEnsemble = new Ensemble(ctx, usingDefaultValues, categoricalSplits);
-            MaxSplitFeatIdx = FindMaxFeatureIndex(TrainedEnsemble);
+            TrainedEnsemble = new InternalTreeEnsemble(ctx, usingDefaultValues, categoricalSplits);
+            MaxSplitFeatIdx = TrainedEnsemble.GetMaxFeatureIndex();
 
             InnerArgs = ctx.LoadStringOrNull();
             if (ctx.Header.ModelVerWritten >= VerNumFeaturesSerialized)
@@ -2868,9 +2914,11 @@ namespace Microsoft.ML.Runtime.FastTree
             // tricks.
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
+            OutputType = NumberType.Float;
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 
@@ -2885,7 +2933,7 @@ namespace Microsoft.ML.Runtime.FastTree
             ctx.Writer.Write(NumFeatures);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
             Host.Check(typeof(TOut) == typeof(Float));
@@ -2894,17 +2942,18 @@ namespace Microsoft.ML.Runtime.FastTree
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        protected virtual void Map(ref VBuffer<Float> src, ref Float dst)
+        protected virtual void Map(in VBuffer<Float> src, ref Float dst)
         {
-            if (InputType.VectorSize > 0)
-                Host.Check(src.Length == InputType.VectorSize);
+            int inputVectorSize = InputType.GetVectorSize();
+            if (inputVectorSize > 0)
+                Host.Check(src.Length == inputVectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            dst = (Float)TrainedEnsemble.GetOutput(ref src);
+            dst = (Float)TrainedEnsemble.GetOutput(in src);
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        ValueMapper<TSrc, VBuffer<Float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             Host.Check(typeof(TSrc) == typeof(VBuffer<Float>));
             Host.Check(typeof(TDst) == typeof(VBuffer<Float>));
@@ -2913,28 +2962,29 @@ namespace Microsoft.ML.Runtime.FastTree
 
             BufferBuilder<Float> builder = null;
             ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+                (in VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
-                    WhatTheFeatureMap(ref src, ref dst, ref builder);
+                    FeatureContributionMap(in src, ref dst, ref builder);
                     Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
         }
 
-        private void WhatTheFeatureMap(ref VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
+        private void FeatureContributionMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
         {
-            if (InputType.VectorSize > 0)
-                Host.Check(src.Length == InputType.VectorSize);
+            int inputVectorSize = InputType.GetVectorSize();
+            if (inputVectorSize > 0)
+                Host.Check(src.Length == inputVectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            TrainedEnsemble.GetFeatureContributions(ref src, ref dst, ref builder);
+            TrainedEnsemble.GetFeatureContributions(in src, ref dst, ref builder);
         }
 
         /// <summary>
         /// write out a C# representation of the ensemble
         /// </summary>
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValueOrNull(schema);
             SaveEnsembleAsCode(writer, schema);
@@ -2943,55 +2993,25 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
-            SaveAsIni(writer, schema);
+            ((ICanSaveInIniFormat)this).SaveAsIni(writer, schema);
         }
 
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
+        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.CheckValue(writer, nameof(writer));
-            Host.CheckValue(schema, nameof(schema));
-            Host.CheckValueOrNull(calibrator);
-            string ensembleIni = TrainedEnsemble.ToTreeEnsembleIni(new FeaturesToContentMap(schema),
+            var ensembleIni = FastTreeIniFileUtils.TreeEnsembleToIni(Host, TrainedEnsemble, schema, calibrator,
                 InnerArgs, appendFeatureGain: true, includeZeroGainFeatures: false);
-            ensembleIni = AddCalibrationToIni(ensembleIni, calibrator);
             writer.WriteLine(ensembleIni);
         }
 
-        /// <summary>
-        /// Get the calibration summary in INI format
-        /// </summary>
-        private string AddCalibrationToIni(string ini, ICalibrator calibrator)
-        {
-            Host.AssertValue(ini);
-            Host.AssertValueOrNull(calibrator);
-
-            if (calibrator == null)
-                return ini;
-
-            if (calibrator is PlattCalibrator)
-            {
-                string calibratorEvaluatorIni = IniFileUtils.GetCalibratorEvaluatorIni(ini, calibrator as PlattCalibrator);
-                return IniFileUtils.AddEvaluator(ini, calibratorEvaluatorIni);
-            }
-            else
-            {
-                StringBuilder newSection = new StringBuilder();
-                newSection.AppendLine();
-                newSection.AppendLine();
-                newSection.AppendLine("[TLCCalibration]");
-                newSection.AppendLine("Type=" + calibrator.GetType().Name);
-                return ini + newSection;
-            }
-        }
-
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -3005,13 +3025,13 @@ namespace Microsoft.ML.Runtime.FastTree
             [Description("BRANCH_LT")]
             BranchLT,
             [Description("BRANCH_GTE")]
-            BranchGTE,
+            BranchGte,
             [Description("BRANCH_GT")]
             BranchGT,
             [Description("BRANCH_EQ")]
-            BranchEQ,
+            BranchEq,
             [Description("BRANCH_LT")]
-            BranchNEQ,
+            BranchNeq,
             [Description("LEAF")]
             Leaf
         };
@@ -3040,7 +3060,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Max
         }
 
-        public virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -3075,7 +3095,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     nodesValues.Add(tree.RawThresholds[nodeIndex]);
                     nodesTrueNodeIds.Add(tree.LteChild[nodeIndex] < 0 ? ~tree.LteChild[nodeIndex] + tree.NumNodes : tree.LteChild[nodeIndex]);
                     nodesFalseNodeIds.Add(tree.GtChild[nodeIndex] < 0 ? ~tree.GtChild[nodeIndex] + tree.NumNodes : tree.GtChild[nodeIndex]);
-                    if (tree._defaultValueForMissing?[nodeIndex] <= tree.RawThresholds[nodeIndex])
+                    if (tree.DefaultValueForMissing?[nodeIndex] <= tree.RawThresholds[nodeIndex])
                         missingValueTracksTrue.Add(true);
                     else
                         missingValueTracksTrue.Add(false);
@@ -3127,12 +3147,12 @@ namespace Microsoft.ML.Runtime.FastTree
             return true;
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine();
             writer.WriteLine("Per-feature gain summary for the boosted tree ensemble:");
 
-            foreach (var pair in GetSummaryInKeyValuePairs(schema))
+            foreach (var pair in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
             {
                 Host.Assert(pair.Value is Double);
                 writer.WriteLine("\t{0}\t{1}", pair.Key, (Double)pair.Value);
@@ -3143,7 +3163,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             var gainMap = new FeatureToGainMap(TrainedEnsemble.Trees.ToList(), normalize: true);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
             var ordered = gainMap.OrderByDescending(pair => pair.Value);
             Double max = ordered.FirstOrDefault().Value;
@@ -3158,7 +3178,7 @@ namespace Microsoft.ML.Runtime.FastTree
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
 
@@ -3175,14 +3195,14 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             Host.AssertValueOrNull(schema);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
 
             int i = 0;
-            foreach (RegressionTree tree in TrainedEnsemble.Trees)
+            foreach (InternalRegressionTree tree in TrainedEnsemble.Trees)
             {
                 writer.Write("double treeOutput{0}=", i);
-                SaveTreeAsCode(tree, writer, ref names);
+                SaveTreeAsCode(tree, writer, in names);
                 writer.Write(";\n");
                 i++;
             }
@@ -3195,13 +3215,13 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Convert a single tree to code, called recursively
         /// </summary>
-        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, ref VBuffer<DvText> names)
+        private void SaveTreeAsCode(InternalRegressionTree tree, TextWriter writer, in VBuffer<ReadOnlyMemory<char>> names)
         {
-            ToCSharp(tree, writer, 0, ref names);
+            ToCSharp(tree, writer, 0, in names);
         }
 
         // converts a subtree into a C# expression
-        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, ref VBuffer<DvText> names)
+        private void ToCSharp(InternalRegressionTree tree, TextWriter writer, int node, in VBuffer<ReadOnlyMemory<char>> names)
         {
             if (node < 0)
             {
@@ -3215,9 +3235,9 @@ namespace Microsoft.ML.Runtime.FastTree
                     name = $"f{tree.SplitFeature(node)}";
 
                 writer.Write("(({0} > {1}) ? ", name, FloatUtils.ToRoundTripString(tree.RawThreshold(node)));
-                ToCSharp(tree, writer, tree.GetGtChildForNode(node), ref names);
+                ToCSharp(tree, writer, tree.GetGtChildForNode(node), in names);
                 writer.Write(" : ");
-                ToCSharp(tree, writer, tree.GetLteChildForNode(node), ref names);
+                ToCSharp(tree, writer, tree.GetLteChildForNode(node), in names);
                 writer.Write(")");
             }
         }
@@ -3230,7 +3250,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // If there are no trees or no splits, there are no gains.
             if (gainMap.Count == 0)
             {
-                weights = new VBuffer<Float>(numFeatures, 0, weights.Values, weights.Indices);
+                VBufferUtils.Resize(ref weights, numFeatures, 0);
                 return;
             }
 
@@ -3243,24 +3263,7 @@ namespace Microsoft.ML.Runtime.FastTree
             bldr.GetResult(ref weights);
         }
 
-        private static int FindMaxFeatureIndex(Ensemble ensemble)
-        {
-            int ifeatMax = 0;
-            for (int i = 0; i < ensemble.NumTrees; i++)
-            {
-                var tree = ensemble.GetTreeAt(i);
-                for (int n = 0; n < tree.NumNodes; n++)
-                {
-                    int ifeat = tree.SplitFeature(n);
-                    if (ifeat > ifeatMax)
-                        ifeatMax = ifeat;
-                }
-            }
-
-            return ifeatMax;
-        }
-
-        public ITree[] GetTrees()
+        ITree[] ITreeEnsemble.GetTrees()
         {
             return TrainedEnsemble.Trees.Select(k => new Tree(k)).ToArray();
         }
@@ -3271,38 +3274,40 @@ namespace Microsoft.ML.Runtime.FastTree
         }
 
         /// <summary>
-        /// Returns the leaf node in the requested tree for the given feature vector, and populates 'path' with the list of 
-        /// internal nodes in the path from the root to that leaf. If 'path' is null a new list is initialized. All elements 
+        /// Returns the leaf node in the requested tree for the given feature vector, and populates 'path' with the list of
+        /// internal nodes in the path from the root to that leaf. If 'path' is null a new list is initialized. All elements
         /// in 'path' are cleared before filling in the current path nodes.
         /// </summary>
-        public int GetLeaf(int treeId, ref VBuffer<Float> features, ref List<int> path)
+        public int GetLeaf(int treeId, in VBuffer<Float> features, ref List<int> path)
         {
-            return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(ref features, ref path);
+            return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(in features, ref path);
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, NumFeatures), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
+            var metaBuilder = new MetadataBuilder();
+            metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
-            GetFeatureWeights(ref weights);
-            return RowColumnUtils.GetRow(null, RowColumnUtils.GetColumn("Gains", new VectorType(NumberType.R4, NumFeatures), ref weights, slotNamesRow));
+            ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
+            var builder = new MetadataBuilder();
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberType.R4, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
+
+            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }
 
         private sealed class Tree : ITree<VBuffer<Float>>
         {
-            private readonly RegressionTree _regTree;
+            private readonly InternalRegressionTree _regTree;
 
-            public Tree(RegressionTree regTree)
+            public Tree(InternalRegressionTree regTree)
             {
                 _regTree = regTree;
             }
@@ -3315,9 +3320,9 @@ namespace Microsoft.ML.Runtime.FastTree
 
             public int NumLeaves => _regTree.NumLeaves;
 
-            public int GetLeaf(ref VBuffer<Float> feat)
+            public int GetLeaf(in VBuffer<Float> feat)
             {
-                return _regTree.GetLeaf(ref feat);
+                return _regTree.GetLeaf(in feat);
             }
 
             public INode GetNode(int nodeId, bool isLeaf, IEnumerable<string> featuresNames = null)
@@ -3364,14 +3369,90 @@ namespace Microsoft.ML.Runtime.FastTree
 
         private sealed class TreeNode : INode
         {
-            private readonly Dictionary<string, object> _keyValues;
-
             public TreeNode(Dictionary<string, object> keyValues)
             {
-                _keyValues = keyValues;
+                KeyValues = keyValues;
             }
 
-            public Dictionary<string, object> KeyValues { get { return _keyValues; } }
+            public Dictionary<string, object> KeyValues { get; }
+        }
+    }
+
+    /// <summary>
+    /// <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is derived from
+    /// <see cref="TreeEnsembleModelParameters"/> plus a strongly-typed public attribute,
+    /// <see cref="TrainedTreeEnsemble"/>, for exposing trained model's details to users.
+    /// Its function, <see cref="CreateTreeEnsembleFromInternalDataStructure"/>, is
+    /// called to create <see cref="TrainedTreeEnsemble"/> inside <see cref="TreeEnsembleModelParameters"/>.
+    /// Note that the major difference between <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/>
+    /// and <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is the type of
+    /// <see cref="TrainedTreeEnsemble"/>.
+    /// </summary>
+    public abstract class TreeEnsembleModelParametersBasedOnRegressionTree : TreeEnsembleModelParameters
+    {
+        /// <summary>
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// </summary>
+        public RegressionTreeEnsemble TrainedTreeEnsemble { get; }
+
+        [BestFriend]
+        internal TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+            : base(env, name, trainedEnsemble, numFeatures, innerArgs)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        protected TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+            : base(env, name, ctx, ver)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        private RegressionTreeEnsemble CreateTreeEnsembleFromInternalDataStructure()
+        {
+            var trees = TrainedEnsemble.Trees.Select(tree => new RegressionTree(tree));
+            var treeWeights = TrainedEnsemble.Trees.Select(tree => tree.Weight);
+            return new RegressionTreeEnsemble(trees, treeWeights, TrainedEnsemble.Bias);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/> is derived from
+    /// <see cref="TreeEnsembleModelParameters"/> plus a strongly-typed public attribute,
+    /// <see cref="TrainedTreeEnsemble"/>, for exposing trained model's details to users.
+    /// Its function, <see cref="CreateTreeEnsembleFromInternalDataStructure"/>, is
+    /// called to create <see cref="TrainedTreeEnsemble"/> inside <see cref="TreeEnsembleModelParameters"/>.
+    /// Note that the major difference between <see cref="TreeEnsembleModelParametersBasedOnQuantileRegressionTree"/>
+    /// and <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is the type of
+    /// <see cref="TrainedTreeEnsemble"/>.
+    /// </summary>
+    public abstract class TreeEnsembleModelParametersBasedOnQuantileRegressionTree : TreeEnsembleModelParameters
+    {
+        /// <summary>
+        /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
+        /// <see cref="InternalTreeEnsemble"/> in <see cref="ML.FastTree.TreeEnsemble{T}"/>.
+        /// </summary>
+        public QuantileRegressionTreeEnsemble TrainedTreeEnsemble { get; }
+
+        [BestFriend]
+        internal TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+            : base(env, name, trainedEnsemble, numFeatures, innerArgs)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        protected TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+            : base(env, name, ctx, ver)
+        {
+            TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
+        }
+
+        private QuantileRegressionTreeEnsemble CreateTreeEnsembleFromInternalDataStructure()
+        {
+            var trees = TrainedEnsemble.Trees.Select(tree => new QuantileRegressionTree((InternalQuantileRegressionTree)tree));
+            var treeWeights = TrainedEnsemble.Trees.Select(tree => tree.Weight);
+            return new QuantileRegressionTreeEnsemble(trees, treeWeights, TrainedEnsemble.Bias);
         }
     }
 }

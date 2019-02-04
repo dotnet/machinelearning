@@ -5,15 +5,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Training;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
-    public abstract class BaseDiverseSelector<TOutput, TDiversityMetric> : SubModelDataSelector<TOutput>
+    internal abstract class BaseDiverseSelector<TOutput, TDiversityMetric> : SubModelDataSelector<TOutput>
         where TDiversityMetric : class, IDiversityMeasure<TOutput>
     {
         public abstract class DiverseSelectorArguments : ArgumentsBase
@@ -23,7 +22,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         private readonly IComponentFactory<IDiversityMeasure<TOutput>> _diversityMetricType;
         private ConcurrentDictionary<FeatureSubsetModel<IPredictorProducing<TOutput>>, TOutput[]> _predictions;
 
-        protected internal BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name,
+        private protected BaseDiverseSelector(IHostEnvironment env, DiverseSelectorArguments args, string name,
             IComponentFactory<IDiversityMeasure<TOutput>> diversityMetricType)
             : base(args, env, name)
         {
@@ -53,7 +52,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                 while (cursor.MoveNext())
                 {
                     Utils.EnsureSize(ref preds, count + 1);
-                    map(ref cursor.Features, ref preds[count]);
+                    map(in cursor.Features, ref preds[count]);
                     count++;
                 }
             }

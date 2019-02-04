@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(Median), null, typeof(SignatureCombiner), Median.UserName, Median.LoadName)]
 [assembly: LoadableClass(typeof(Median), null, typeof(SignatureLoadModel), Median.UserName, Median.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
+namespace Microsoft.ML.Ensemble.OutputCombiners
 {
     /// <summary>
     /// Generic interface for combining outputs of multiple models
@@ -30,7 +30,8 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(Median).Assembly.FullName);
         }
 
         public Median(IHostEnvironment env)

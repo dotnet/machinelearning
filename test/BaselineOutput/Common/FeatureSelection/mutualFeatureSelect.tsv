@@ -1,0 +1,14 @@
+#@ TextLoader{
+#@   sep=tab
+#@   col=Label:U4[3]:0
+#@   col=ScalarFloat:R4:1
+#@   col=VectorFloat:R4:2-5
+#@   col=VectorDouble:R8:6-10
+#@   col=FeatureSelect:R4:11-11
+#@   col=out1:R4:12-13
+#@   col=out2:R8:14-14
+#@ }
+0	1	5	1	1	1	1	2	1	3	1	1	1	1	0
+0	10	5	4	4	5	5	7	10	3	2	4	4	4	0
+0	2	3	1	1	1	1	2	2	3	1	1	1	1	0
+0	4	6	8	8	1	1	3	4	3	7	8	8	8	0

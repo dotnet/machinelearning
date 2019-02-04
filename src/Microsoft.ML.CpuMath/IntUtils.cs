@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML.Internal.CpuMath.Core;
 
-namespace Microsoft.ML.Runtime.Internal.CpuMath
+namespace Microsoft.ML.Internal.CpuMath
 {
-    public static class IntUtils
+    [BestFriend]
+    internal static class IntUtils
     {
         /// <summary>
         /// Add src to the 128 bits contained in dst. Ignores overflow, that is, the addition is done modulo 2^128.
@@ -84,7 +85,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             return Div64Core(lo, hi, den, out rem);
         }
 
-        // REVIEW: on Linux, the hardware divide-by-zero exception is not translated into 
+        // REVIEW: on Linux, the hardware divide-by-zero exception is not translated into
         // a managed exception properly by CoreCLR so the process will crash. This is a temporary fix
         // until CoreCLR addresses this issue.
         [DllImport(Thunk.NativePath, CharSet = CharSet.Unicode, EntryPoint = "Div64"), SuppressUnmanagedCodeSecurity]

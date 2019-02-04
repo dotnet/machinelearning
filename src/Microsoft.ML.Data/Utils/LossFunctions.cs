@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Float = System.Single;
 
 [assembly: LoadableClass(LogLoss.Summary, typeof(LogLoss), null, typeof(SignatureClassificationLoss),
     "Log Loss", "LogLoss", "Logistic", "CrossEntropy")]
@@ -39,7 +38,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 [assembly: EntryPointModule(typeof(SquaredLossFactory))]
 [assembly: EntryPointModule(typeof(TweedieLoss.Arguments))]
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// The loss function may know the close-form solution to the optimal dual update
@@ -124,9 +123,9 @@ namespace Microsoft.ML.Runtime
             return 1 / Math.Max(1, (Float)0.25 + scaledFeaturesNormSquared);
         }
 
-        // REVIEW: this dual update uses a different log loss formulation, 
+        // REVIEW: this dual update uses a different log loss formulation,
         //although the two are equivalents if the labels are restricted to 0 and 1
-        //Need to update so that it can handle probability label and true to the 
+        //Need to update so that it can handle probability label and true to the
         //definition, which is a smooth loss function
         public Float DualUpdate(Float output, Float label, Float dual, Float invariant, int maxNumThreads)
         {
@@ -166,7 +165,7 @@ namespace Microsoft.ML.Runtime
         public sealed class Arguments : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Margin value", ShortName = "marg")]
-            public Float Margin = 1;
+            public Float Margin = Defaults.Margin;
 
             public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env) => new HingeLoss(this);
 
@@ -177,9 +176,19 @@ namespace Microsoft.ML.Runtime
         private const Float Threshold = 0.5f;
         private readonly Float _margin;
 
-        public HingeLoss(Arguments args)
+        internal HingeLoss(Arguments args)
         {
             _margin = args.Margin;
+        }
+
+        private static class Defaults
+        {
+            public const float Margin = 1;
+        }
+
+        public HingeLoss(float margin = Defaults.Margin)
+            : this(new Arguments() { Margin = margin })
+        {
         }
 
         public Double Loss(Float output, Float label)
@@ -228,7 +237,7 @@ namespace Microsoft.ML.Runtime
         public sealed class Arguments : ISupportSdcaClassificationLossFactory, ISupportClassificationLossFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing constant", ShortName = "smooth")]
-            public Float SmoothingConst = 1;
+            public Float SmoothingConst = Defaults.SmoothingConst;
 
             public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env) => new SmoothedHingeLoss(env, this);
 
@@ -242,12 +251,26 @@ namespace Microsoft.ML.Runtime
         private readonly Double _halfSmoothConst;
         private readonly Double _doubleSmoothConst;
 
-        public SmoothedHingeLoss(IHostEnvironment env, Arguments args)
+        private static class Defaults
         {
-            Contracts.Check(args.SmoothingConst >= 0, "smooth constant must be non-negative");
-            _smoothConst = args.SmoothingConst;
+            public const float SmoothingConst = 1;
+        }
+
+        /// <summary>
+        /// Constructor for smoothed hinge losee.
+        /// </summary>
+        /// <param name="smoothingConstant">The smoothing constant.</param>
+        public SmoothedHingeLoss(float smoothingConstant = Defaults.SmoothingConst)
+        {
+            Contracts.CheckParam(smoothingConstant >= 0, nameof(smoothingConstant), "Must be non-negative.");
+            _smoothConst = smoothingConstant;
             _halfSmoothConst = _smoothConst / 2;
             _doubleSmoothConst = _smoothConst * 2;
+        }
+
+        private SmoothedHingeLoss(IHostEnvironment env, Arguments args)
+            : this(args.SmoothingConst)
+        {
         }
 
         public Double Loss(Float output, Float label)
@@ -435,6 +458,19 @@ namespace Microsoft.ML.Runtime
         {
             Contracts.CheckUserArg(1 <= args.Index && args.Index <= 2, nameof(args.Index), "Must be in the range [1, 2]");
             _index = args.Index;
+            _index1 = 1 - _index;
+            _index2 = 2 - _index;
+        }
+
+        /// <summary>
+        /// Constructor for Tweedie loss.
+        /// </summary>
+        /// <param name="index">Index parameter for the Tweedie distribution, in the range [1, 2].
+        /// 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.</param>
+        public TweedieLoss(double index = 1.5)
+        {
+            Contracts.CheckParam(1 <= index && index <= 2, nameof(index), "Must be in the range [1, 2]");
+            _index = index;
             _index1 = 1 - _index;
             _index2 = 2 - _index;
         }

@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
-using Float = System.Single;
-
 using System;
 using System.Threading;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     // REVIEW: Need better names for these and possibly a distinct namespace. These are too
     // specialized to have such prominent fully qualified names.
@@ -19,16 +16,16 @@ namespace Microsoft.ML.Runtime.Data
         public abstract void Combine(ref T dst, T src);
     }
 
-    public sealed class TextCombiner : Combiner<DvText>
+    public sealed class TextCombiner : Combiner<ReadOnlyMemory<char>>
     {
-        private volatile static TextCombiner _instance;
+        private static volatile TextCombiner _instance;
         public static TextCombiner Instance
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new TextCombiner(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new TextCombiner(), null) ??
+                    _instance;
             }
         }
 
@@ -36,8 +33,8 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public override bool IsDefault(DvText value) { return value.Length == 0; }
-        public override void Combine(ref DvText dst, DvText src)
+        public override bool IsDefault(ReadOnlyMemory<char> value) { return value.Length == 0; }
+        public override void Combine(ref ReadOnlyMemory<char> dst, ReadOnlyMemory<char> src)
         {
             Contracts.Check(IsDefault(dst));
             dst = src;
@@ -46,14 +43,14 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class FloatAdder : Combiner<Float>
     {
-        private volatile static FloatAdder _instance;
+        private static volatile FloatAdder _instance;
         public static FloatAdder Instance
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new FloatAdder(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new FloatAdder(), null) ??
+                    _instance;
             }
         }
 
@@ -67,7 +64,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class R4Adder : Combiner<Single>
     {
-        private volatile static R4Adder _instance;
+        private static volatile R4Adder _instance;
         public static R4Adder Instance
         {
             get
@@ -88,14 +85,14 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class R8Adder : Combiner<Double>
     {
-        private volatile static R8Adder _instance;
+        private static volatile R8Adder _instance;
         public static R8Adder Instance
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new R8Adder(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new R8Adder(), null) ??
+                    _instance;
             }
         }
 
@@ -110,14 +107,14 @@ namespace Microsoft.ML.Runtime.Data
     // REVIEW: Delete this!
     public sealed class U4Adder : Combiner<uint>
     {
-        private volatile static U4Adder _instance;
+        private static volatile U4Adder _instance;
         public static U4Adder Instance
         {
             get
             {
-                if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new U4Adder(), null);
-                return _instance;
+                return _instance ??
+                    Interlocked.CompareExchange(ref _instance, new U4Adder(), null) ??
+                    _instance;
             }
         }
 

@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System.Runtime.InteropServices;
-
 using System.Security;
+using Microsoft.ML.Internal.CpuMath;
 
-namespace Microsoft.ML.Runtime.FactorizationMachine
+namespace Microsoft.ML.FactorizationMachine
 {
-    internal unsafe static class FieldAwareFactorizationMachineInterface
+    internal static unsafe class FieldAwareFactorizationMachineInterface
     {
         internal const string NativePath = "FactorizationMachineNative";
         public const int CbAlign = 16;
@@ -22,7 +20,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return a.CbAlign == CbAlign;
         }
 
-        private unsafe static float* Ptr(AlignedArray a, float* p)
+        private static unsafe float* Ptr(AlignedArray a, float* p)
         {
             Contracts.AssertValue(a);
             float* q = p + a.GetBase((long)p);

@@ -2,27 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Training;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(typeof(MulticlassLogisticRegression), typeof(MulticlassLogisticRegression.Arguments),
+[assembly: LoadableClass(typeof(MulticlassLogisticRegression), typeof(MulticlassLogisticRegression.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     MulticlassLogisticRegression.UserNameValue,
     MulticlassLogisticRegression.LoadNameValue,
@@ -30,21 +31,22 @@ using Newtonsoft.Json.Linq;
     MulticlassLogisticRegression.ShortName,
     "multilr")]
 
-[assembly: LoadableClass(typeof(MulticlassLogisticRegressionPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(MulticlassLogisticRegressionModelParameters), null, typeof(SignatureLoadModel),
     "Multiclass LR Executor",
-    MulticlassLogisticRegressionPredictor.LoaderSignature)]
+    MulticlassLogisticRegressionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Learners
 {
-    /// <include file = './doc.xml' path='docs/members/member[@name="LBFGS"]/*' />
-    /// <include file = './doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
-    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<VBuffer<Float>, MulticlassLogisticRegressionPredictor>
+    /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
+    /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
+    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Options,
+        MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Options : ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
@@ -56,29 +58,60 @@ namespace Microsoft.ML.Runtime.Learners
         // These label names are used for model saving in place of class number
         // to make the model summary more user friendly. These names are populated
         // in the CheckLabel() method.
-        // It could be null, if the label type is not a key type, or there is 
+        // It could be null, if the label type is not a key type, or there is
         // missing label name for some class.
         private string[] _labelNames;
 
-        // The prior distribution of data. 
+        // The prior distribution of data.
         // This array is of length equal to the number of classes.
         // After training, it stores the total weights of training examples in each class.
         private Double[] _prior;
 
         private LinearModelStatistics _stats;
 
-        protected override int ClassCount { get { return _numClasses; } }
+        protected override int ClassCount => _numClasses;
 
-        public MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue, Contracts.CheckRef(args, nameof(args)).ShowTrainingStats)
+        /// <summary>
+        /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weights">The name for the example weight column.</param>
+        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
+        /// <param name="l1Weight">Weight of L1 regularizer term.</param>
+        /// <param name="l2Weight">Weight of L2 regularizer term.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
+        internal MulticlassLogisticRegression(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weights = null,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
+            : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+
+            ShowTrainingStats = Args.ShowTrainingStats;
         }
 
-        public override bool NeedCalibration { get { return false; } }
+        /// <summary>
+        /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
+        /// </summary>
+        internal MulticlassLogisticRegression(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
+        {
+            ShowTrainingStats = Args.ShowTrainingStats;
+        }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.MultiClassClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        protected override void CheckLabel(RoleMappedData data)
+        private protected override void CheckLabel(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             // REVIEW: For floating point labels, this will make a pass over the data.
@@ -90,23 +123,20 @@ namespace Microsoft.ML.Runtime.Learners
             _prior = new Double[_numClasses];
 
             // Try to get the label key values metedata.
-            var schema = data.Data.Schema;
-            var labelIdx = data.Schema.Label.Index;
-            var labelMetadataType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelIdx);
-            if (labelMetadataType == null || !labelMetadataType.IsKnownSizeVector || !labelMetadataType.ItemType.IsText ||
-                labelMetadataType.VectorSize != _numClasses)
+            var labelCol = data.Schema.Label.Value;
+            var labelMetadataType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            if (!(labelMetadataType is VectorType vecType && vecType.ItemType == TextType.Instance && vecType.Size == _numClasses))
             {
                 _labelNames = null;
                 return;
             }
+            VBuffer<ReadOnlyMemory<char>> labelNames = default;
+            labelCol.GetKeyValues(ref labelNames);
 
-            VBuffer<DvText> labelNames = default(VBuffer<DvText>);
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelIdx, ref labelNames);
-
-            // If label names is not dense or contain NA or default value, then it follows that 
+            // If label names is not dense or contain NA or default value, then it follows that
             // at least one class does not have a valid name for its label. If the label names we
             // try to get from the metadata are not unique, we may also not use them in model summary.
-            // In both cases we set _labelNames to null and use the "Class_n", where n is the class number 
+            // In both cases we set _labelNames to null and use the "Class_n", where n is the class number
             // for model summary saving instead.
             if (!labelNames.IsDense)
             {
@@ -115,14 +145,14 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             _labelNames = new string[_numClasses];
-            DvText[] values = labelNames.Values;
+            ReadOnlySpan<ReadOnlyMemory<char>> values = labelNames.GetValues();
 
             // This hashset is used to verify the uniqueness of label names.
             HashSet<string> labelNamesSet = new HashSet<string>();
             for (int i = 0; i < _numClasses; i++)
             {
-                DvText value = values[i];
-                if (value.IsEmpty || value.IsNA)
+                ReadOnlyMemory<char> value = values[i];
+                if (value.IsEmpty)
                 {
                     _labelNames = null;
                     break;
@@ -144,66 +174,67 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         //Override default termination criterion MeanRelativeImprovementCriterion with
-        protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
-            out VBuffer<Float> init, out ITerminationCriterion terminationCriterion)
+        private protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
+            out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
         {
             var opt = base.InitializeOptimizer(ch, cursorFactory, out init, out terminationCriterion);
 
             // MeanImprovementCriterion:
             //   Terminates when the geometrically-weighted average improvement falls below the tolerance
-            terminationCriterion = new MeanImprovementCriterion(OptTol, (Float)0.25, MaxIterations);
+            terminationCriterion = new MeanImprovementCriterion(OptTol, 0.25f, MaxIterations);
 
             return opt;
         }
 
-        protected override Float AccumulateOneGradient(ref VBuffer<Float> feat, Float label, Float weight,
-            ref VBuffer<Float> x, ref VBuffer<Float> grad, ref Float[] scores)
+        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+            in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scores)
         {
             if (Utils.Size(scores) < _numClasses)
-                scores = new Float[_numClasses];
+                scores = new float[_numClasses];
 
-            Float bias = 0;
+            float bias = 0;
             for (int c = 0, start = _numClasses; c < _numClasses; c++, start += NumFeatures)
             {
                 x.GetItemOrDefault(c, ref bias);
-                scores[c] = bias + VectorUtils.DotProductWithOffset(ref x, start, ref feat);
+                scores[c] = bias + VectorUtils.DotProductWithOffset(in x, start, in feat);
             }
 
-            Float logZ = MathUtils.SoftMax(scores, _numClasses);
-            Float datumLoss = logZ;
+            float logZ = MathUtils.SoftMax(scores.AsSpan(0, _numClasses));
+            float datumLoss = logZ;
 
             int lab = (int)label;
             Contracts.Assert(0 <= lab && lab < _numClasses);
             for (int c = 0, start = _numClasses; c < _numClasses; c++, start += NumFeatures)
             {
-                Float probLabel = lab == c ? 1 : 0;
+                float probLabel = lab == c ? 1 : 0;
                 datumLoss -= probLabel * scores[c];
 
-                Float modelProb = MathUtils.ExpSlow(scores[c] - logZ);
-                Float mult = weight * (modelProb - probLabel);
-                VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, start);
+                float modelProb = MathUtils.ExpSlow(scores[c] - logZ);
+                float mult = weight * (modelProb - probLabel);
+                VectorUtils.AddMultWithOffset(in feat, mult, ref grad, start);
                 // Due to the call to EnsureBiases, we know this region is dense.
-                Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-                grad.Values[c] += mult;
+                var editor = VBufferEditor.CreateFromBuffer(ref grad);
+                Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+                editor.Values[c] += mult;
             }
 
             Contracts.Check(FloatUtils.IsFinite(datumLoss), "Data contain bad values.");
             return weight * datumLoss;
         }
 
-        protected override VBuffer<Float> InitializeWeightsFromPredictor(MulticlassLogisticRegressionPredictor srcPredictor)
+        protected override VBuffer<float> InitializeWeightsFromPredictor(MulticlassLogisticRegressionModelParameters srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
-            Contracts.Assert(srcPredictor.InputType.VectorSize > 0);
+            Contracts.Assert(srcPredictor.InputType.GetVectorSize() > 0);
 
             // REVIEW: Support initializing the weights of a superset of features.
-            if (srcPredictor.InputType.VectorSize != NumFeatures)
+            if (srcPredictor.InputType.GetVectorSize() != NumFeatures)
                 throw Contracts.Except("The input training data must have the same features used to train the input predictor.");
 
-            return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.BiasesEnumerable());
+            return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.GetBiases());
         }
 
-        public override MulticlassLogisticRegressionPredictor CreatePredictor()
+        protected override MulticlassLogisticRegressionModelParameters CreatePredictor()
         {
             if (_numClasses < 1)
                 throw Contracts.Except("Cannot create a multiclass predictor with {0} classes", _numClasses);
@@ -212,14 +243,13 @@ namespace Microsoft.ML.Runtime.Learners
                 using (var ch = Host.Start("Creating Predictor"))
                 {
                     ch.Warning("Training resulted in a one class predictor");
-                    ch.Done();
                 }
             }
 
-            return new MulticlassLogisticRegressionPredictor(Host, ref CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
+            return new MulticlassLogisticRegressionModelParameters(Host, in CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, Float loss, int numParams)
+        private protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(cursorFactory);
@@ -232,13 +262,13 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Info("Model trained with {0} training examples.", NumGoodRows);
             // Compute deviance: start with loss function.
-            Float deviance = (Float)(2 * loss * WeightSum);
+            float deviance = (float)(2 * loss * WeightSum);
 
             if (L2Weight > 0)
             {
                 // Need to subtract L2 regularization loss.
                 // The bias term is not regularized.
-                var regLoss = VectorUtils.NormSquared(CurrentWeights.Values, BiasCount, CurrentWeights.Length - BiasCount) * L2Weight;
+                var regLoss = VectorUtils.NormSquared(CurrentWeights.GetValues().Slice(BiasCount)) * L2Weight;
                 deviance -= regLoss;
             }
 
@@ -247,22 +277,22 @@ namespace Microsoft.ML.Runtime.Learners
                 // Need to subtract L1 regularization loss.
                 // The bias term is not regularized.
                 Double regLoss = 0;
-                VBufferUtils.ForEachDefined(ref CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
-                deviance -= (Float)regLoss * L1Weight * 2;
+                VBufferUtils.ForEachDefined(in CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
+                deviance -= (float)regLoss * L1Weight * 2;
             }
 
             ch.Info("Residual Deviance: \t{0}", deviance);
 
-            // Compute null deviance, i.e., the deviance of null hypothesis. 
+            // Compute null deviance, i.e., the deviance of null hypothesis.
             // Cap the prior positive rate at 1e-15.
-            Float nullDeviance = 0;
+            float nullDeviance = 0;
             for (int iLabel = 0; iLabel < _numClasses; iLabel++)
             {
                 Contracts.Assert(_prior[iLabel] >= 0);
                 if (_prior[iLabel] == 0)
                     continue;
 
-                nullDeviance -= (Float)(2 * _prior[iLabel] * Math.Log(_prior[iLabel] / WeightSum));
+                nullDeviance -= (float)(2 * _prior[iLabel] * Math.Log(_prior[iLabel] / WeightSum));
             }
             ch.Info("Null Deviance:    \t{0}", nullDeviance);
 
@@ -273,20 +303,39 @@ namespace Microsoft.ML.Runtime.Learners
             _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
         }
 
-        protected override void ProcessPriorDistribution(Float label, Float weight)
+        protected override void ProcessPriorDistribution(float label, float weight)
         {
             int iLabel = (int)label;
             Contracts.Assert(0 <= iLabel && iLabel < _numClasses);
             _prior[iLabel] += weight;
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
+            Contracts.Assert(success);
+
+            var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
+            };
+        }
+
+        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, Schema trainSchema)
+            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+
+        public MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 
-    public sealed class MulticlassLogisticRegressionPredictor :
-        PredictorBase<VBuffer<Float>>,
+    public sealed class MulticlassLogisticRegressionModelParameters :
+        ModelParametersBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
-        ICanSaveModel,
         ICanSaveSummary,
         ICanGetSummaryInKeyValuePairs,
         ICanGetSummaryAsIDataView,
@@ -294,8 +343,8 @@ namespace Microsoft.ML.Runtime.Learners
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
-        public const string LoaderSignature = "MultiClassLRExec";
-        public const string RegistrationName = "MulticlassLogisticRegressionPredictor";
+        internal const string LoaderSignature = "MultiClassLRExec";
+        internal const string RegistrationName = "MulticlassLogisticRegressionPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -306,7 +355,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00010003, // Added model stats
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MulticlassLogisticRegressionModelParameters).Assembly.FullName);
         }
 
         private const string ModelStatsSubModelFilename = "ModelStats";
@@ -317,8 +367,8 @@ namespace Microsoft.ML.Runtime.Learners
         // The label names used to write model summary. Either null or of length _numClasses.
         private readonly string[] _labelNames;
 
-        private readonly Float[] _biases;
-        private readonly VBuffer<Float>[] _weights;
+        private readonly float[] _biases;
+        private readonly VBuffer<float>[] _weights;
         private readonly LinearModelStatistics _stats;
 
         // This stores the _weights matrix in dense format for performance.
@@ -327,15 +377,18 @@ namespace Microsoft.ML.Runtime.Learners
         // When the _weights matrix is dense to begin with, then _weights == _weightsDense at all times after construction.
         // When _weights is sparse, then this remains null until we see the first sparse instance,
         // at which point it is initialized.
-        private volatile VBuffer<Float>[] _weightsDense;
+        private volatile VBuffer<float>[] _weightsDense;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        public ColumnType InputType { get; }
-        public ColumnType OutputType { get; }
-        public bool CanSavePfa => true;
-        public bool CanSaveOnnx => true;
+        internal readonly ColumnType InputType;
+        internal readonly ColumnType OutputType;
+        ColumnType IValueMapper.InputType => InputType;
+        ColumnType IValueMapper.OutputType => OutputType;
 
-        internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, ref VBuffer<Float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        bool ICanSavePfa.CanSavePfa => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+
+        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
         {
             Contracts.Assert(weights.Length == numClasses + numClasses * numFeatures);
@@ -348,17 +401,17 @@ namespace Microsoft.ML.Runtime.Learners
             // (i.e.: in "row major", if we encode each weight vector as a row of a matrix)
             Contracts.Assert(weights.Length == _numClasses + _numClasses * _numFeatures);
 
-            _biases = new Float[_numClasses];
+            _biases = new float[_numClasses];
             for (int i = 0; i < _biases.Length; i++)
                 weights.GetItemOrDefault(i, ref _biases[i]);
-            _weights = new VBuffer<Float>[_numClasses];
+            _weights = new VBuffer<float>[_numClasses];
             for (int i = 0; i < _weights.Length; i++)
                 weights.CopyTo(ref _weights[i], _numClasses + i * _numFeatures, _numFeatures);
             if (_weights.All(v => v.IsDense))
                 _weightsDense = _weights;
 
-            InputType = new VectorType(NumberType.Float, _numFeatures);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            InputType = new VectorType(NumberType.R4, _numFeatures);
+            OutputType = new VectorType(NumberType.R4, _numClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -368,29 +421,29 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionPredictor"/> class. 
+        /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionModelParameters"/> class.
         /// This constructor is called by <see cref="SdcaMultiClassTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="weights">The array of weights vectors. It should contain <paramref name="numClasses"/> weights.</param>
         /// <param name="bias">The array of biases. It should contain contain <paramref name="numClasses"/> weights.</param>
         /// <param name="numClasses">The number of classes for multi-class classification. Must be at least 2.</param>
-        /// <param name="numFeatures">The logical length of the feature vector.</param>
+        /// <param name="numFeatures">The length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
-        public MulticlassLogisticRegressionPredictor(IHostEnvironment env, VBuffer<Float>[] weights, Float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        public MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
         {
             Contracts.CheckValue(weights, nameof(weights));
             Contracts.CheckValue(bias, nameof(bias));
-            Contracts.Check(numClasses >= 2, "numClasses must be at least 2.");
+            Contracts.CheckParam(numClasses >= 2, nameof(numClasses), "Must be at least 2.");
             _numClasses = numClasses;
-            Contracts.Check(numFeatures >= 1, "numFeatures must be positive.");
+            Contracts.CheckParam(numFeatures >= 1, nameof(numFeatures), "Must be positive.");
             _numFeatures = numFeatures;
             Contracts.Check(Utils.Size(weights) == _numClasses);
             Contracts.Check(Utils.Size(bias) == _numClasses);
-            _weights = new VBuffer<Float>[_numClasses];
-            _biases = new Float[_numClasses];
+            _weights = new VBuffer<float>[_numClasses];
+            _biases = new float[_numClasses];
             for (int iClass = 0; iClass < _numClasses; iClass++)
             {
                 Contracts.Assert(weights[iClass].Length == _numFeatures);
@@ -401,8 +454,8 @@ namespace Microsoft.ML.Runtime.Learners
             if (_weights.All(v => v.IsDense))
                 _weightsDense = _weights;
 
-            InputType = new VectorType(NumberType.Float, _numFeatures);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            InputType = new VectorType(NumberType.R4, _numFeatures);
+            OutputType = new VectorType(NumberType.R4, _numClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -411,21 +464,21 @@ namespace Microsoft.ML.Runtime.Learners
             _stats = stats;
         }
 
-        private MulticlassLogisticRegressionPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private MulticlassLogisticRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
             // int: number of features
             // int: number of classes = number of biases
-            // Float[]: biases
+            // float[]: biases
             // (weight matrix, in CSR if sparse)
-            // (see http://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
+            // (see https://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
             // int: number of row start indices (_numClasses + 1 if sparse, 0 if dense)
             // int[]: row start indices
             // int: total number of column indices (0 if dense)
             // int[]: column index of each non-zero weight
             // int: total number of non-zero weights  (same as number of column indices if sparse, num of classes * num of features if dense)
-            // Float[]: non-zero weights
+            // float[]: non-zero weights
             // int[]: Id of label names (optional, in a separate stream)
             // LinearModelStatistics: model statistics (optional, in a separate stream)
 
@@ -446,11 +499,11 @@ namespace Microsoft.ML.Runtime.Learners
                 Host.CheckDecode(numIndices == 0);
                 int numWeights = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numWeights == _numClasses * _numFeatures);
-                _weights = new VBuffer<Float>[_numClasses];
+                _weights = new VBuffer<float>[_numClasses];
                 for (int i = 0; i < _weights.Length; i++)
                 {
                     var w = ctx.Reader.ReadFloatArray(_numFeatures);
-                    _weights[i] = new VBuffer<Float>(_numFeatures, w);
+                    _weights[i] = new VBuffer<float>(_numFeatures, w);
                 }
                 _weightsDense = _weights;
             }
@@ -460,7 +513,7 @@ namespace Microsoft.ML.Runtime.Learners
                 Host.CheckDecode(numStarts == _numClasses + 1);
                 int[] starts = ctx.Reader.ReadIntArray(numStarts);
                 Host.CheckDecode(starts[0] == 0);
-                Host.CheckDecode(Utils.IsSorted(starts));
+                Host.CheckDecode(Utils.IsMonotonicallyIncreasing(starts));
 
                 int numIndices = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numIndices == starts[starts.Length - 1]);
@@ -475,45 +528,35 @@ namespace Microsoft.ML.Runtime.Learners
                 int numValues = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numValues == numIndices);
 
-                _weights = new VBuffer<Float>[_numClasses];
+                _weights = new VBuffer<float>[_numClasses];
                 for (int i = 0; i < _weights.Length; i++)
                 {
-                    Float[] values = ctx.Reader.ReadFloatArray(starts[i + 1] - starts[i]);
-                    _weights[i] = new VBuffer<Float>(_numFeatures, Utils.Size(values), values, indices[i]);
+                    float[] values = ctx.Reader.ReadFloatArray(starts[i + 1] - starts[i]);
+                    _weights[i] = new VBuffer<float>(_numFeatures, Utils.Size(values), values, indices[i]);
                 }
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
-            InputType = new VectorType(NumberType.Float, _numFeatures);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            InputType = new VectorType(NumberType.R4, _numFeatures);
+            OutputType = new VectorType(NumberType.R4, _numClasses);
 
-            // REVIEW: Should not save the label names duplicately with the predictor again. 
+            // REVIEW: Should not save the label names duplicately with the predictor again.
             // Get it from the label column schema metadata instead.
             string[] labelNames = null;
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
                 _labelNames = labelNames;
 
-            string statsDir = Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename);
-            using (var statsEntry = ctx.Repository.OpenEntryOrNull(statsDir, ModelLoadContext.ModelStreamName))
-            {
-                if (statsEntry == null)
-                    _stats = null;
-                else
-                {
-                    using (var statsCtx = new ModelLoadContext(ctx.Repository, statsEntry, statsDir))
-                        _stats = LinearModelStatistics.Create(Host, statsCtx);
-                }
-            }
+            ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
-        public static MulticlassLogisticRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static MulticlassLogisticRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new MulticlassLogisticRegressionPredictor(env, ctx);
+            return new MulticlassLogisticRegressionModelParameters(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -527,22 +570,22 @@ namespace Microsoft.ML.Runtime.Learners
             // *** Binary format ***
             // int: number of features
             // int: number of classes = number of biases
-            // Float[]: biases
+            // float[]: biases
             // (weight matrix, in CSR if sparse)
-            // (see http://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
+            // (see https://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
             // int: number of row start indices (_numClasses + 1 if sparse, 0 if dense)
             // int[]: row start indices
             // int: total number of column indices (0 if dense)
             // int[]: column index of each non-zero weight
             // int: total number of non-zero weights  (same as number of column indices if sparse, num of classes * num of features if dense)
-            // Float[]: non-zero weights
+            // float[]: non-zero weights
             // bool: whether label names are present
             // int[]: Id of label names (optional, in a separate stream)
             // LinearModelStatistics: model statistics (optional, in a separate stream)
 
             ctx.Writer.Write(_numFeatures);
             ctx.Writer.Write(_numClasses);
-            ctx.Writer.WriteFloatsNoCount(_biases, _numClasses);
+            ctx.Writer.WriteSinglesNoCount(_biases.AsSpan(0, _numClasses));
             // _weights == _weighsDense means we checked that all vectors in _weights
             // are actually dense, and so we assigned the same object, or it came dense
             // from deserialization.
@@ -554,7 +597,7 @@ namespace Microsoft.ML.Runtime.Learners
                 foreach (var fv in _weights)
                 {
                     Host.Assert(fv.Length == _numFeatures);
-                    ctx.Writer.WriteFloatsNoCount(fv.Values, _numFeatures);
+                    ctx.Writer.WriteSinglesNoCount(fv.GetValues());
                 }
             }
             else
@@ -574,7 +617,7 @@ namespace Microsoft.ML.Runtime.Learners
                     // This is actually a bug waiting to happen: sparse/dense vectors
                     // can have different dot products even if they are logically the
                     // same vector.
-                    numIndices += NonZeroCount(ref _weights[i]);
+                    numIndices += NonZeroCount(in _weights[i]);
                     ctx.Writer.Write(numIndices);
                 }
 
@@ -584,11 +627,12 @@ namespace Microsoft.ML.Runtime.Learners
                     int count = 0;
                     foreach (var fw in _weights)
                     {
+                        var fwValues = fw.GetValues();
                         if (fw.IsDense)
                         {
-                            for (int i = 0; i < fw.Length; i++)
+                            for (int i = 0; i < fwValues.Length; i++)
                             {
-                                if (fw.Values[i] != 0)
+                                if (fwValues[i] != 0)
                                 {
                                     ctx.Writer.Write(i);
                                     count++;
@@ -597,8 +641,9 @@ namespace Microsoft.ML.Runtime.Learners
                         }
                         else
                         {
-                            ctx.Writer.WriteIntsNoCount(fw.Indices, fw.Count);
-                            count += fw.Count;
+                            var fwIndices = fw.GetIndices();
+                            ctx.Writer.WriteIntsNoCount(fwIndices);
+                            count += fwIndices.Length;
                         }
                     }
                     Host.Assert(count == numIndices);
@@ -610,21 +655,22 @@ namespace Microsoft.ML.Runtime.Learners
                     int count = 0;
                     foreach (var fw in _weights)
                     {
+                        var fwValues = fw.GetValues();
                         if (fw.IsDense)
                         {
-                            for (int i = 0; i < fw.Length; i++)
+                            for (int i = 0; i < fwValues.Length; i++)
                             {
-                                if (fw.Values[i] != 0)
+                                if (fwValues[i] != 0)
                                 {
-                                    ctx.Writer.Write(fw.Values[i]);
+                                    ctx.Writer.Write(fwValues[i]);
                                     count++;
                                 }
                             }
                         }
                         else
                         {
-                            ctx.Writer.WriteFloatsNoCount(fw.Values, fw.Count);
-                            count += fw.Count;
+                            ctx.Writer.WriteSinglesNoCount(fwValues);
+                            count += fwValues.Length;
                         }
                     }
                     Host.Assert(count == numIndices);
@@ -637,64 +683,53 @@ namespace Microsoft.ML.Runtime.Learners
 
             Contracts.AssertValueOrNull(_stats);
             if (_stats != null)
-            {
-                using (var statsCtx = new ModelSaveContext(ctx.Repository,
-                    Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename), ModelLoadContext.ModelStreamName))
-                {
-                    _stats.Save(statsCtx);
-                    statsCtx.Done();
-                }
-            }
+                ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
         // REVIEW: Destroy.
-        private static int NonZeroCount(ref VBuffer<Float> vector)
+        private static int NonZeroCount(in VBuffer<float> vector)
         {
-            if (!vector.IsDense)
-                return vector.Count;
             int count = 0;
-            for (int i = 0; i < vector.Length; i++)
+            var values = vector.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (vector.Values[i] != 0)
+                if (values[i] != 0)
                     count++;
             }
             return count;
         }
 
-        public ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>()
+        ValueMapper<TSrc, TDst> IValueMapper.GetMapper<TSrc, TDst>()
         {
-            Host.Check(typeof(TSrc) == typeof(VBuffer<Float>), "Invalid source type in GetMapper");
-            Host.Check(typeof(TDst) == typeof(VBuffer<Float>), "Invalid destination type in GetMapper");
+            Host.Check(typeof(TSrc) == typeof(VBuffer<float>), "Invalid source type in GetMapper");
+            Host.Check(typeof(TDst) == typeof(VBuffer<float>), "Invalid destination type in GetMapper");
 
-            ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+            ValueMapper<VBuffer<float>, VBuffer<float>> del =
+                (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     Host.Check(src.Length == _numFeatures);
 
-                    var values = dst.Values;
-                    PredictCore(ref src, ref values);
-                    dst = new VBuffer<Float>(_numClasses, values, dst.Indices);
+                    PredictCore(in src, ref dst);
                 };
             return (ValueMapper<TSrc, TDst>)(Delegate)del;
         }
 
-        private void PredictCore(ref VBuffer<Float> src, ref Float[] dst)
+        private void PredictCore(in VBuffer<float> src, ref VBuffer<float> dst)
         {
             Host.Check(src.Length == _numFeatures, "src length should equal the number of features");
             var weights = _weights;
             if (!src.IsDense)
                 weights = DensifyWeights();
 
-            if (Utils.Size(dst) < _numClasses)
-                dst = new Float[_numClasses];
-
+            var editor = VBufferEditor.Create(ref dst, _numClasses);
             for (int i = 0; i < _biases.Length; i++)
-                dst[i] = _biases[i] + VectorUtils.DotProduct(ref weights[i], ref src);
+                editor.Values[i] = _biases[i] + VectorUtils.DotProduct(in weights[i], in src);
 
-            Calibrate(dst);
+            Calibrate(editor.Values);
+            dst = editor.Commit();
         }
 
-        private VBuffer<Float>[] DensifyWeights()
+        private VBuffer<float>[] DensifyWeights()
         {
             if (_weightsDense == null)
             {
@@ -702,7 +737,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     if (_weightsDense == null)
                     {
-                        var weightsDense = new VBuffer<Float>[_numClasses];
+                        var weightsDense = new VBuffer<float>[_numClasses];
                         for (int i = 0; i < _weights.Length; i++)
                         {
                             // Haven't yet created dense version of the weights.
@@ -721,13 +756,13 @@ namespace Microsoft.ML.Runtime.Learners
             return _weightsDense;
         }
 
-        private void Calibrate(Float[] dst)
+        private void Calibrate(Span<float> dst)
         {
-            Host.Assert(Utils.Size(dst) >= _numClasses);
+            Host.Assert(dst.Length >= _numClasses);
 
             // scores are in log-space; convert and fix underflow/overflow
             // TODO:   re-normalize probabilities to account for underflow/overflow?
-            Float softmax = MathUtils.SoftMax(dst, _numClasses);
+            float softmax = MathUtils.SoftMax(dst.Slice(0, _numClasses));
             for (int i = 0; i < _numClasses; ++i)
                 dst[i] = MathUtils.ExpSlow(dst[i] - softmax);
         }
@@ -735,28 +770,28 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Output the text model to a given writer
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
-            writer.WriteLine("MulticlassLogisticRegression bias and non-zero weights");
+            writer.WriteLine(nameof(MulticlassLogisticRegression) + " bias and non-zero weights");
 
-            foreach (var namedValues in GetSummaryInKeyValuePairs(schema))
+            foreach (var namedValues in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
             {
-                Host.Assert(namedValues.Value is Float);
-                writer.WriteLine("\t{0}\t{1}", namedValues.Key, (Float)namedValues.Value);
+                Host.Assert(namedValues.Value is float);
+                writer.WriteLine("\t{0}\t{1}", namedValues.Key, (float)namedValues.Value);
             }
 
             if (_stats != null)
-                _stats.SaveText(writer, null, schema, 20);
+                _stats.SaveText(writer, null, schema.Feature.Value, 20);
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             Host.CheckValueOrNull(schema);
 
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref names);
             for (int classNumber = 0; classNumber < _biases.Length; classNumber++)
             {
@@ -778,7 +813,7 @@ namespace Microsoft.ML.Runtime.Learners
                     var name = names.GetItemOrDefault(index);
 
                     results.Add(new KeyValuePair<string, object>(
-                        string.Format("{0}+{1}", GetLabelName(classNumber), DvText.Identical(name, DvText.Empty) ? $"f{index}" : name.ToString()),
+                        string.Format("{0}+{1}", GetLabelName(classNumber), name.IsEmpty ? $"f{index}" : name.ToString()),
                         value
                     ));
                 }
@@ -790,7 +825,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Output the text model to a given writer
         /// </summary>
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
@@ -798,23 +833,23 @@ namespace Microsoft.ML.Runtime.Learners
             for (int i = 0; i < _biases.Length; i++)
             {
                 LinearPredictorUtils.SaveAsCode(writer,
-                    ref _weights[i],
+                    in _weights[i],
                     _biases[i],
                     schema,
                     "score[" + i.ToString() + "]");
             }
 
-            writer.WriteLine(string.Format("var softmax = MathUtils.SoftMax(scores, {0});", _numClasses));
+            writer.WriteLine(string.Format("var softmax = MathUtils.SoftMax(scores.AsSpan(0, {0}));", _numClasses));
             for (int c = 0; c < _biases.Length; c++)
                 writer.WriteLine("output[{0}] = Math.Exp(scores[{0}] - softmax);", c);
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
-            SaveAsText(writer, schema);
+            ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -841,18 +876,18 @@ namespace Microsoft.ML.Runtime.Learners
             return PfaUtils.Call("m.link.softmax", PfaUtils.Call("model.reg.linear", input, cellRef));
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
             string opType = "LinearClassifier";
             var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
-            // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
-            node.AddAttribute("post_transform", 0);
+            // Selection of logit or probit output transform. enum {'NONE', 'SOFTMAX', 'LOGISTIC', 'SOFTMAX_ZERO', 'PROBIT}
+            node.AddAttribute("post_transform", "NONE");
             node.AddAttribute("multi_class", true);
             node.AddAttribute("coefficients", _weights.SelectMany(w => w.DenseValues()));
             node.AddAttribute("intercepts", _biases);
-            node.AddAttribute("classlabels_strings", _labelNames);
+            node.AddAttribute("classlabels_ints", Enumerable.Range(0, _numClasses).Select(x => (long)x));
             return true;
         }
 
@@ -863,7 +898,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// be expanded as necessary to accomodate the data.</param>
         /// <param name="numClasses">Set to the rank, which is also the logical length
         /// of <paramref name="weights"/>.</param>
-        public void GetWeights(ref VBuffer<Float>[] weights, out int numClasses)
+        public void GetWeights(ref VBuffer<float>[] weights, out int numClasses)
         {
             numClasses = _numClasses;
             Utils.EnsureSize(ref weights, _numClasses, _numClasses);
@@ -871,7 +906,7 @@ namespace Microsoft.ML.Runtime.Learners
                 _weights[i].CopyTo(ref weights[i]);
         }
 
-        internal IEnumerable<Float> DenseWeightsEnumerable()
+        internal IEnumerable<float> DenseWeightsEnumerable()
         {
             Contracts.Assert(_weights.Length == _biases.Length);
 
@@ -884,7 +919,10 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        internal IEnumerable<Float> BiasesEnumerable()
+        /// <summary>
+        /// Gets the biases for the logistic regression predictor.
+        /// </summary>
+        public IEnumerable<float> GetBiases()
         {
             return _biases;
         }
@@ -925,12 +963,12 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public IDataView GetSummaryDataView(RoleMappedSchema schema)
+        IDataView ICanGetSummaryAsIDataView.GetSummaryDataView(RoleMappedSchema schema)
         {
             var bldr = new ArrayDataViewBuilder(Host);
 
-            ValueGetter<VBuffer<DvText>> getSlotNames =
-                (ref VBuffer<DvText> dst) =>
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref dst);
 
             // Add the bias and the weight columns.
@@ -940,20 +978,19 @@ namespace Microsoft.ML.Runtime.Learners
             return bldr.GetDataView();
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }
 
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;
 
-            var cols = new List<IColumn>();
-            var names = default(VBuffer<DvText>);
-            _stats.AddStatsColumns(cols, null, schema, ref names);
-            return RowColumnUtils.GetRow(null, cols.ToArray());
+            VBuffer<ReadOnlyMemory<char>> names = default;
+            var meta = _stats.MakeStatisticsMetadata(null, schema, in names);
+            return MetadataUtils.MetadataAsRow(meta);
         }
     }
 
@@ -965,17 +1002,15 @@ namespace Microsoft.ML.Runtime.Learners
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
             Desc = Summary,
             UserName = MulticlassLogisticRegression.UserNameValue,
-            ShortName = MulticlassLogisticRegression.ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/member[@name=""LBFGS""]/*' />",
-                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='docs/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Arguments input)
+            ShortName = MulticlassLogisticRegression.ShortName)]
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRMultiClass");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<MulticlassLogisticRegression.Arguments, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<MulticlassLogisticRegression.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new MulticlassLogisticRegression(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));

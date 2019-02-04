@@ -5,8 +5,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
@@ -168,11 +169,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
             max = 0;
             bits = TransitionCost;
-            //IEnumerator<int> ienum = ivalues.GetEnumerator();
-            //while (ienum.MoveNext())
             for (int i = 0; i < ivalues.Length; ++i)
             {
-                //uint val = (uint)ienum.Current;
                 uint val = (uint)ivalues[i];
                 if (val > max)
                     max = val;
@@ -431,7 +429,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
 
-        public unsafe static void SegmentFindOptimalPath7(uint[] array, int len, out long bits, out int transitions)
+        public static unsafe void SegmentFindOptimalPath7(uint[] array, int len, out long bits, out int transitions)
         {
             long b = 0;
             int t = 0;
@@ -444,7 +442,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             transitions = t;
         }
 
-        public unsafe static void SegmentFindOptimalPath15(uint[] array, int len, out long bits, out int transitions)
+        public static unsafe void SegmentFindOptimalPath15(uint[] array, int len, out long bits, out int transitions)
         {
             long b = 0;
             int t = 0;
@@ -457,7 +455,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             transitions = t;
         }
 
-        public unsafe static void SegmentFindOptimalPath21(uint[] array, int len, out long bits, out int transitions)
+        public static unsafe void SegmentFindOptimalPath21(uint[] array, int len, out long bits, out int transitions)
         {
             long b = 0;
             int t = 0;
@@ -470,7 +468,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             transitions = t;
         }
 
-        public unsafe static void SegmentFindOptimalCost15(uint[] array, int len, out long bits)
+        public static unsafe void SegmentFindOptimalCost15(uint[] array, int len, out long bits)
         {
             long b = 0;
             fixed (uint* pArray = array)
@@ -481,7 +479,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             bits = b;
         }
 
-        public unsafe static void SegmentFindOptimalCost31(uint[] array, int len, out long bits)
+        public static unsafe void SegmentFindOptimalCost31(uint[] array, int len, out long bits)
         {
             long b = 0;
             fixed (uint* pArray = array)
@@ -491,32 +489,32 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
             bits = b;
         }
-
+        internal const string NativePath = "FastTreeNative";
 #pragma warning disable TLC_GeneralName // Externs follow their own rules.
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        private unsafe static extern void C_SegmentFindOptimalPath21(uint* valv, int valc, long* pBits, int* pTransitions);
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+        private static extern unsafe void C_SegmentFindOptimalPath21(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        private unsafe static extern void C_SegmentFindOptimalPath15(uint* valv, int valc, long* pBits, int* pTransitions);
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+        private static extern unsafe void C_SegmentFindOptimalPath15(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        private unsafe static extern void C_SegmentFindOptimalPath7(uint* valv, int valc, long* pBits, int* pTransitions);
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+        private static extern unsafe void C_SegmentFindOptimalPath7(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        private unsafe static extern void C_SegmentFindOptimalCost15(uint* valv, int valc, long* pBits);
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+        private static extern unsafe void C_SegmentFindOptimalCost15(uint* valv, int valc, long* pBits);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        private unsafe static extern void C_SegmentFindOptimalCost31(uint* valv, int valc, long* pBits);
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+        private static extern unsafe void C_SegmentFindOptimalCost31(uint* valv, int valc, long* pBits);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
-        private unsafe static extern int C_SumupSegment_float(
+        [DllImport(NativePath)]
+        private static extern unsafe int C_SumupSegment_float(
             uint* pData, byte* pSegType, int* pSegLength, int* pIndices,
             float* pSampleOutputs, double* pSampleOutputWeights,
             float* pSumTargetsByBin, double* pSumWeightsByBin,
             int* pCountByBin, int totalCount, double totalSampleOutputs);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
-        private unsafe static extern int C_SumupSegment_double(
+        [DllImport(NativePath)]
+        private static extern unsafe int C_SumupSegment_double(
             uint* pData, byte* pSegType, int* pSegLength, int* pIndices,
             double* pSampleOutputs, double* pSampleOutputWeights,
             double* pSumTargetsByBin, double* pSumWeightsByBin,

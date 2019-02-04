@@ -6,37 +6,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms.FeatureSelection;
 
-[assembly: LoadableClass(CountFeatureSelectionTransform.Summary, typeof(IDataTransform), typeof(CountFeatureSelectionTransform), typeof(CountFeatureSelectionTransform.Arguments), typeof(SignatureDataTransform),
-    CountFeatureSelectionTransform.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
+[assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
+    CountFeatureSelectingEstimator.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.FeatureSelection
 {
-    /// <summary>
-    /// Selects the slots for which the count of non-default values is greater than a threshold.
-    /// Uses a set of aggregators to count the number of non-default values for each slot and
-    /// instantiates a DropSlots transform to actually drop the slots.
-    /// </summary>
-    public static class CountFeatureSelectionTransform
+    /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+    public sealed class CountFeatureSelectingEstimator : IEstimator<ITransformer>
     {
-        public const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";
-        public const string UserName = "Count Feature Selection Transform";
+        internal const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";
+        internal const string UserName = "Count Feature Selection Transform";
 
-        private static class Defaults
+        private readonly IHost _host;
+        private readonly ColumnInfo[] _columns;
+
+        [BestFriend]
+        internal static class Defaults
         {
             public const long Count = 1;
         }
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", ShortName = "col", SortOrder = 1)]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public string[] Columns;
 
             [Argument(ArgumentType.Required, HelpText = "If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved", ShortName = "c", SortOrder = 1)]
             public long Count = Defaults.Count;
@@ -44,106 +46,179 @@ namespace Microsoft.ML.Runtime.Data
 
         internal static string RegistrationName = "CountFeatureSelectionTransform";
 
-        /// <summary>
-        /// A helper method to create CountFeatureSelection transform for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        /// <param name="columns">Columns to use for feature selection.</param>
-        /// <returns></returns>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, long count = Defaults.Count, params string[] columns)
+        public sealed class ColumnInfo
         {
-            var args = new Arguments()
+            public readonly string Name;
+            public readonly string InputColumnName;
+            public readonly long MinCount;
+
+            /// <summary>
+            /// Describes the parameters of the feature selection process for a column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="minCount">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+            public ColumnInfo(string name, string inputColumnName = null, long minCount = Defaults.Count)
             {
-                Column = columns,
-                Count = count
-            };
-            return Create(env, args, input);
+                Name = name;
+                Contracts.CheckValue(Name, nameof(Name));
+
+                InputColumnName = inputColumnName ?? name;
+                Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
+                MinCount = minCount;
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">Describes the parameters of the feature selection process for each column pair.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CountFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public CountFeatureSelectingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(RegistrationName);
+            _host.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
+
+            _columns = columns;
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <param name="env">The environment to use.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="minCount">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CountFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public CountFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, long minCount = Defaults.Count)
+            : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, minCount))
+        {
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.ToDictionary(x => x.Name);
+            foreach (var colPair in _columns)
+            {
+                if (!inputSchema.TryFindColumn(colPair.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.InputColumnName);
+                if (!CountFeatureSelectionUtils.IsValidColumnType(col.ItemType))
+                    throw _host.ExceptUserArg(nameof(inputSchema), "Column '{0}' does not have compatible type. Expected types are float, double or string.", colPair.InputColumnName);
+                var metadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(slotMeta);
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var categoricalSlotMeta))
+                    metadata.Add(categoricalSlotMeta);
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                result[colPair.Name] = new SchemaShape.Column(colPair.Name, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
+            }
+            return new SchemaShape(result.Values);
+        }
+
+        public ITransformer Fit(IDataView input)
+        {
+            _host.CheckValue(input, nameof(input));
+
+            int[] colSizes;
+            var scores = CountFeatureSelectionUtils.Train(_host, input, _columns.Select(column => column.InputColumnName).ToArray(), out colSizes);
+            var size = _columns.Length;
+
+            using (var ch = _host.Start("Dropping Slots"))
+            {
+                // If no slots should be dropped from a column, use copy column to generate the corresponding output column.
+                SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns;
+                (string outputColumnName, string inputColumnName)[] copyColumnsPairs;
+                CreateDropAndCopyColumns(_columns, size, scores, out int[] selectedCount, out dropSlotsColumns, out copyColumnsPairs);
+
+                for (int i = 0; i < selectedCount.Length; i++)
+                    ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], _columns[i].InputColumnName);
+                ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
+
+                if (dropSlotsColumns.Length <= 0)
+                    return new ColumnCopyingTransformer(_host, copyColumnsPairs);
+                else if (copyColumnsPairs.Length <= 0)
+                    return new SlotsDroppingTransformer(_host, dropSlotsColumns);
+
+                var transformerChain = new TransformerChain<SlotsDroppingTransformer>(
+                    new ITransformer[] {
+                        new ColumnCopyingTransformer(_host, copyColumnsPairs),
+                        new SlotsDroppingTransformer(_host, dropSlotsColumns)
+                    });
+                return transformerChain;
+            }
         }
 
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(args, nameof(args));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
             host.CheckUserArg(args.Count > 0, nameof(args.Count));
 
-            int[] colSizes;
-            var scores = CountFeatureSelectionUtils.Train(host, input, args.Column, out colSizes);
-            var size = args.Column.Length;
+            var columnInfos = args.Columns.Select(inColName => new ColumnInfo(inColName, minCount: args.Count)).ToArray();
 
-            using (var ch = host.Start("Dropping Slots"))
-            {
-                int[] selectedCount;
-                var columns = CreateDropSlotsColumns(args, size, scores, out selectedCount);
-
-                if (columns.Count <= 0)
-                {
-                    ch.Info("No features are being dropped.");
-                    return NopTransform.CreateIfNeeded(host, input);
-                }
-
-                for (int i = 0; i < selectedCount.Length; i++)
-                    ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], args.Column[i]);
-                ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
-
-                var dsArgs = new DropSlotsTransform.Arguments();
-                dsArgs.Column = columns.ToArray();
-                ch.Done();
-                return new DropSlotsTransform(host, dsArgs, input);
-            }
+            return new CountFeatureSelectingEstimator(env, columnInfos).Fit(input).Transform(input) as IDataTransform;
         }
 
-        private static List<DropSlotsTransform.Column> CreateDropSlotsColumns(Arguments args, int size, long[][] scores, out int[] selectedCount)
+        private static void CreateDropAndCopyColumns(ColumnInfo[] columnInfos, int size, long[][] scores,
+            out int[] selectedCount, out SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns, out (string outputColumnName, string inputColumnName)[] copyColumnsPairs)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
-            Contracts.AssertValue(args);
-            Contracts.Assert(Utils.Size(args.Column) == size);
+            Contracts.AssertValue(columnInfos);
+            Contracts.Assert(Utils.Size(columnInfos) == size);
 
             selectedCount = new int[scores.Length];
-            var columns = new List<DropSlotsTransform.Column>();
+            var dropSlotsCols = new List<SlotsDroppingTransformer.ColumnInfo>();
+            var copyCols = new List<(string outputColumnName, string inputColumnName)>();
             for (int i = 0; i < size; i++)
             {
-                var col = new DropSlotsTransform.Column();
-                col.Source = args.Column[i];
-                var slots = new List<DropSlotsTransform.Range>();
+                var slots = new List<(int min, int? max)>();
                 var score = scores[i];
                 selectedCount[i] = 0;
                 for (int j = 0; j < score.Length; j++)
                 {
-                    if (score[j] < args.Count)
+                    if (score[j] < columnInfos[i].MinCount)
                     {
                         // Adjacent slots are combined into a single range.
-                        var range = new DropSlotsTransform.Range();
-                        range.Min = j;
-                        while (j < score.Length && score[j] < args.Count)
+                        int min = j;
+                        while (j < score.Length && score[j] < columnInfos[i].MinCount)
                             j++;
-                        range.Max = j - 1;
-                        slots.Add(range);
+                        int max = j - 1;
+                        slots.Add((min, max));
                         if (j < score.Length)
                             selectedCount[i]++;
                     }
                     else
                         selectedCount[i]++;
                 }
-                if (slots.Count > 0)
-                {
-                    col.Slots = slots.ToArray();
-                    columns.Add(col);
-                }
+                if (slots.Count <= 0)
+                    copyCols.Add((columnInfos[i].Name, columnInfos[i].InputColumnName));
+                else
+                    dropSlotsCols.Add(new SlotsDroppingTransformer.ColumnInfo(columnInfos[i].Name, columnInfos[i].InputColumnName, slots.ToArray()));
             }
-            return columns;
+            dropSlotsColumns = dropSlotsCols.ToArray();
+            copyColumnsPairs = copyCols.ToArray();
         }
     }
 
-    public static class CountFeatureSelectionUtils
+    internal static class CountFeatureSelectionUtils
     {
         /// <summary>
         /// Returns the feature selection scores for each slot of each column.
@@ -161,7 +236,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeInput = new bool[schema.ColumnCount];
+            var activeCols = new List<Schema.Column>();
             var colSrcs = new int[size];
             var colTypes = new ColumnType[size];
             colSizes = new int[size];
@@ -170,30 +245,30 @@ namespace Microsoft.ML.Runtime.Data
                 int colSrc;
                 var colName = columns[i];
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectionTransform.Arguments.Column), "Source column '{0}' not found", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Columns), "Source column '{0}' not found", colName);
 
-                var colType = schema.GetColumnType(colSrc);
-                if (colType.IsVector && !colType.IsKnownSizeVector)
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectionTransform.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
+                var colType = schema[colSrc].Type;
+                if (colType is VectorType vectorType && !vectorType.IsKnownSize)
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Columns), "Variable length column '{0}' is not allowed", colName);
 
-                activeInput[colSrc] = true;
+                activeCols.Add(schema[colSrc]);
                 colSrcs[i] = colSrc;
                 colTypes[i] = colType;
-                colSizes[i] = colType.ValueCount;
+                colSizes[i] = colType.GetValueCount();
             }
 
             var aggregators = new CountAggregator[size];
             long rowCur = 0;
-            double rowCount = input.GetRowCount(true) ?? double.NaN;
+            double rowCount = input.GetRowCount() ?? double.NaN;
             using (var pch = env.StartProgressChannel("Aggregating counts"))
-            using (var cursor = input.GetRowCursor(col => activeInput[col]))
+            using (var cursor = input.GetRowCursor(activeCols))
             {
                 var header = new ProgressHeader(new[] { "rows" });
                 pch.SetHeader(header, e => { e.SetProgress(0, rowCur, rowCount); });
                 for (int i = 0; i < size; i++)
                 {
-                    if (colTypes[i].IsVector)
-                        aggregators[i] = GetVecAggregator(cursor, colTypes[i], colSrcs[i]);
+                    if (colTypes[i] is VectorType vectorType)
+                        aggregators[i] = GetVecAggregator(cursor, vectorType, colSrcs[i]);
                     else
                         aggregators[i] = GetOneAggregator(cursor, colTypes[i], colSrcs[i]);
                 }
@@ -209,28 +284,29 @@ namespace Microsoft.ML.Runtime.Data
             return aggregators.Select(a => a.Count).ToArray();
         }
 
-        private static CountAggregator GetOneAggregator(IRow row, ColumnType colType, int colSrc)
+        public static bool IsValidColumnType(ColumnType type)
+            => type == NumberType.R4 || type == NumberType.R8 || type is TextType;
+
+        private static CountAggregator GetOneAggregator(Row row, ColumnType colType, int colSrc)
         {
-            Func<IRow, ColumnType, int, CountAggregator> del = GetOneAggregator<int>;
+            Func<Row, ColumnType, int, CountAggregator> del = GetOneAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetOneAggregator<T>(IRow row, ColumnType colType, int colSrc)
-            where T : IEquatable<T>
+        private static CountAggregator GetOneAggregator<T>(Row row, ColumnType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
         }
 
-        private static CountAggregator GetVecAggregator(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetVecAggregator(Row row, VectorType colType, int colSrc)
         {
-            Func<IRow, ColumnType, int, CountAggregator> del = GetVecAggregator<int>;
+            Func<Row, VectorType, int, CountAggregator> del = GetVecAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetVecAggregator<T>(IRow row, ColumnType colType, int colSrc)
-            where T : IEquatable<T>
+        private static CountAggregator GetVecAggregator<T>(Row row, VectorType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
         }
@@ -242,17 +318,16 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private sealed class CountAggregator<T> : CountAggregator, IColumnAggregator<VBuffer<T>>
-            where T : IEquatable<T>
         {
             private readonly long[] _count;
             private readonly Action _fillBuffer;
-            private readonly RefPredicate<T> _isDefault;
-            private readonly RefPredicate<T> _isMissing;
+            private readonly InPredicate<T> _isDefault;
+            private readonly InPredicate<T> _isMissing;
             private VBuffer<T> _buffer;
 
             public CountAggregator(ColumnType type, ValueGetter<T> getter)
             {
-                Contracts.Assert(type.IsPrimitive);
+                Contracts.Assert(type is PrimitiveType);
                 _count = new long[1];
                 _buffer = new VBuffer<T>(1, new T[1]);
                 var t = default(T);
@@ -260,20 +335,22 @@ namespace Microsoft.ML.Runtime.Data
                     () =>
                     {
                         getter(ref t);
-                        _buffer.Values[0] = t;
+                        VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = t;
                     };
-                _isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(type);
-                _isMissing = Conversions.Instance.GetIsNAPredicate<T>(type);
+                _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
+                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
+                    _isMissing = (in T value) => false;
             }
 
-            public CountAggregator(ColumnType type, ValueGetter<VBuffer<T>> getter)
+            public CountAggregator(VectorType type, ValueGetter<VBuffer<T>> getter)
             {
-                Contracts.Assert(type.IsKnownSizeVector);
-                var size = type.ValueCount;
+                Contracts.Assert(type.IsKnownSize);
+                var size = type.Size;
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
-                _isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                _isMissing = Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+                _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
+                    _isMissing = (in T value) => false;
             }
 
             public override long[] Count
@@ -284,10 +361,10 @@ namespace Microsoft.ML.Runtime.Data
             public override void ProcessValue()
             {
                 _fillBuffer();
-                ProcessValue(ref _buffer);
+                ProcessValue(in _buffer);
             }
 
-            public void ProcessValue(ref VBuffer<T> value)
+            public void ProcessValue(in VBuffer<T> value)
             {
                 var size = _count.Length;
                 Contracts.Check(value.Length == size);
@@ -295,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var kvp in value.Items())
                 {
                     var val = kvp.Value;
-                    if (!_isDefault(ref val) && !_isMissing(ref val))
+                    if (!_isDefault(in val) && !_isMissing(in val))
                         _count[kvp.Key]++;
                 }
             }

@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(IDataLoader), typeof(CompositeDataLoader), typeof(CompositeDataLoader.Arguments), typeof(SignatureDataLoader),
     "Composite Data Loader", "CompositeDataLoader", "Composite", "PipeData", "Pipe", "PipeDataLoader")]
@@ -21,7 +20,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(typeof(IDataLoader), typeof(CompositeDataLoader), null, typeof(SignatureLoadDataLoader),
     "Pipe DataL Loader", CompositeDataLoader.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A data loader that wraps an underlying loader plus a sequence of transforms.
@@ -30,18 +29,19 @@ namespace Microsoft.ML.Runtime.Data
     /// The family of <c>Create</c> methods only instantiate <see cref="CompositeDataLoader"/>'s
     /// when there are transforms to keep, otherwise they just return underlying loaders.
     /// </summary>
-    public sealed class CompositeDataLoader : IDataLoader, ITransposeDataView
+    [BestFriend]
+    internal sealed class CompositeDataLoader : IDataLoader, ITransposeDataView
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader")]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "The data loader", ShortName = "loader", SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transform", ShortName = "xf")]
-            public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] Transform;
+            [Argument(ArgumentType.Multiple, HelpText = "Transform", Name = "Transform", ShortName = "xf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transforms;
         }
 
-        private struct TransformEx
+        private readonly struct TransformEx
         {
             public readonly string Tag;
             public readonly string ArgsString;
@@ -72,7 +72,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Added transform tags and args strings
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CompositeDataLoader).Assembly.FullName);
         }
 
         // The composition of loader plus transforms in order.
@@ -98,11 +99,11 @@ namespace Microsoft.ML.Runtime.Data
             var h = env.Register(RegistrationName);
 
             h.CheckValue(args, nameof(args));
-            h.CheckUserArg(args.Loader.IsGood(), nameof(args.Loader));
+            h.CheckValue(args.Loader, nameof(args.Loader));
             h.CheckValue(files, nameof(files));
 
-            var loader = args.Loader.CreateInstance(h, files);
-            return CreateCore(h, loader, args.Transform);
+            var loader = args.Loader.CreateComponent(h, files);
+            return CreateCore(h, loader, args.Transforms);
         }
 
         /// <summary>
@@ -111,7 +112,7 @@ namespace Microsoft.ML.Runtime.Data
         /// If there are no transforms, the <paramref name="srcLoader"/> is returned.
         /// </summary>
         public static IDataLoader Create(IHostEnvironment env, IDataLoader srcLoader,
-            params KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] transformArgs)
+            params KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] transformArgs)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -122,7 +123,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static IDataLoader CreateCore(IHost host, IDataLoader srcLoader,
-            KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] transformArgs)
+            KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] transformArgs)
         {
             Contracts.AssertValue(host, "host");
             host.AssertValue(srcLoader, "srcLoader");
@@ -131,8 +132,15 @@ namespace Microsoft.ML.Runtime.Data
             if (Utils.Size(transformArgs) == 0)
                 return srcLoader;
 
+            string GetTagData(IComponentFactory<IDataView, IDataTransform> factory)
+            {
+                // When coming from the command line, preserve the string arguments.
+                // For other factories, we aren't able to get the string.
+                return (factory as ICommandLineComponentFactory)?.ToString();
+            }
+
             var tagData = transformArgs
-                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()))
+                .Select(x => new KeyValuePair<string, string>(x.Key, GetTagData(x.Value)))
                 .ToArray();
 
             // Warn if tags coincide with ones already present in the loader.
@@ -146,13 +154,11 @@ namespace Microsoft.ML.Runtime.Data
                         if (!string.IsNullOrEmpty(pair.Key) && composite._transforms.Any(x => x.Tag == pair.Key))
                             ch.Warning("The transform with tag '{0}' already exists in the chain", pair.Key);
                     }
-
-                    ch.Done();
                 }
             }
 
             return ApplyTransformsCore(host, srcLoader, tagData,
-                (prov, index, data) => transformArgs[index].Value.CreateInstance(prov, data));
+                (env, index, data) => transformArgs[index].Value.CreateComponent(env, data));
         }
 
         /// <summary>
@@ -258,8 +264,6 @@ namespace Microsoft.ML.Runtime.Data
 
                     view = newDataView;
                 }
-
-                ch.Done();
             }
 
             return view == srcView ? srcLoader : new CompositeDataLoader(host, exes.ToArray());
@@ -305,9 +309,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Now the transforms.
                 h.Assert(!(loader is CompositeDataLoader));
-                var result = LoadTransforms(ctx, loader, h, x => true);
-                ch.Done();
-                return result;
+                return LoadTransforms(ctx, loader, h, x => true);
             }
         }
 
@@ -357,7 +359,6 @@ namespace Microsoft.ML.Runtime.Data
                 using (var ch = h.Start("ModelCheck"))
                 {
                     ch.Info("The data model doesn't contain transforms.");
-                    ch.Done();
                 }
                 return srcView;
             }
@@ -374,7 +375,7 @@ namespace Microsoft.ML.Runtime.Data
             //     string: args string
 
             int cbFloat = ctx.Reader.ReadInt32();
-            h.CheckDecode(cbFloat == sizeof(Float));
+            h.CheckDecode(cbFloat == sizeof(float));
 
             int cxf = ctx.Reader.ReadInt32();
             h.CheckDecode(cxf >= 0);
@@ -401,6 +402,25 @@ namespace Microsoft.ML.Runtime.Data
             return curView;
         }
 
+        internal TransformerChain<ITransformer> GetTransformer()
+        {
+            var result = new TransformerChain<ITransformer>();
+            foreach (var transform in _transforms)
+            {
+                if (transform.Transform is RowToRowMapperTransform mapper)
+                {
+                    var transformer = mapper.GetTransformer();
+                    result = result.Append(transformer);
+                }
+                else
+                {
+                    ITransformer transformer = new TransformWrapper(_host, transform.Transform);
+                    result = result.Append(transformer);
+                }
+            }
+            return result;
+        }
+
         private CompositeDataLoader(IHost host, TransformEx[] transforms)
         {
             Contracts.AssertValue(host, "host");
@@ -409,8 +429,6 @@ namespace Microsoft.ML.Runtime.Data
 
             View = transforms[transforms.Length - 1].Transform;
             _tview = View as ITransposeDataView;
-            TransposeSchema = _tview?.TransposeSchema ?? new TransposerUtils.SimpleTransposeSchema(View.Schema);
-
             var srcLoader = transforms[0].Transform.Source as IDataLoader;
 
 #if DEBUG
@@ -445,7 +463,7 @@ namespace Microsoft.ML.Runtime.Data
             //     string: args string
 
             int cbFloat = ctx.Reader.ReadInt32();
-            host.CheckDecode(cbFloat == sizeof(Float));
+            host.CheckDecode(cbFloat == sizeof(float));
 
             int cxf = ctx.Reader.ReadInt32();
             host.CheckDecode(cxf >= 0);
@@ -532,7 +550,7 @@ namespace Microsoft.ML.Runtime.Data
             //     string: tag
             //     string: args string
 
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(transforms.Length);
 
             using (var loaderCtx = new ModelSaveContext(ctx.Repository, Path.Combine(ctx.Directory ?? "", "Loader"), ModelLoadContext.ModelStreamName))
@@ -557,39 +575,40 @@ namespace Microsoft.ML.Runtime.Data
             return string.Format("xf{0:00}", index);
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
-            return View.GetRowCount(lazy);
+            return View.GetRowCount();
         }
 
         public bool CanShuffle => View.CanShuffle;
 
-        public ISchema Schema => View.Schema;
+        public Schema Schema => View.Schema;
 
-        public ITransposeSchema TransposeSchema { get; }
-
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return View.GetRowCursor(predicate, rand);
+            _host.AssertValue(columnsNeeded);
+
+            return View.GetRowCursor(columnsNeeded, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return View.GetRowCursorSet(out consolidator, predicate, n, rand);
+            _host.AssertValue(columnsNeeded);
+
+            return View.GetRowCursorSet(columnsNeeded, n, rand);
         }
 
-        public ISlotCursor GetSlotCursor(int col)
+        VectorType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);
+
+        SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {
-            _host.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
-            if (TransposeSchema?.GetSlotType(col) == null)
+            _host.CheckParam(0 <= col && col < Schema.Count, nameof(col));
+            if (_tview?.GetSlotType(col) == null)
             {
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
-                    Schema.GetColumnName(col));
+                    Schema[col].Name);
             }
             _host.AssertValue(_tview);
             return _tview.GetSlotCursor(col);

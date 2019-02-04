@@ -1,0 +1,69 @@
+maml.exe TrainTest test=%Data% tr=MulticlassLogisticRegression{l1=0.001 l2=0.1 ot=1e-3 nt=1} norm=No dout=%Output% loader=Text{col=Label:U4[0-2]:0 col=Features:1-*} data=%Data% out=%Output% seed=1 xf=TreeFeat{lps=0 trainer=ftr{iter=3}} xf=copy{col=Features:Leaves}
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 150 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 20436 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Beginning optimization
+num vars: 72
+improvement criterion: Mean Improvement
+L1 regularization selected 72 of 72 weights.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    49 |     1 | 0.9800
+        2 ||     0 |     2 |    48 | 0.9600
+          ||========================
+Precision ||1.0000 |0.9608 |0.9796 |
+Accuracy(micro-avg): 0.980000
+Accuracy(macro-avg): 0.980000
+Log-loss:           0.048652
+Log-loss reduction: 95.571483
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.980000 (0.0000)
+Accuracy(macro-avg): 0.980000 (0.0000)
+Log-loss:           0.048652 (0.0000)
+Log-loss reduction: 95.571483 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree data preparation' started.
+[1] 'FastTree data preparation' finished in %Time%.
+[2] 'FastTree in-memory bins initialization' started.
+[2] 'FastTree in-memory bins initialization' finished in %Time%.
+[3] 'FastTree feature conversion' started.
+[3] 'FastTree feature conversion' finished in %Time%.
+[4] 'FastTree training' started.
+[4] 'FastTree training' finished in %Time%.
+[5] 'LBFGS data prep' started.
+[5] 'LBFGS data prep' finished in %Time%.
+[6] 'LBFGS Optimizer' started.
+[6] (%Time%)	0 iterations	Loss: 1.0986123085022
+[6] (%Time%)	1 iterations	Loss: 0.62896740436554	Improvement: 0.4696
+[6] (%Time%)	2 iterations	Loss: 0.213765218853951	Improvement: 0.4261
+[6] (%Time%)	3 iterations	Loss: 0.144495338201523	Improvement: 0.1542
+[6] (%Time%)	4 iterations	Loss: 0.106832779943943	Improvement: 0.06646
+[6] (%Time%)	5 iterations	Loss: 0.0936193987727165	Improvement: 0.02649
+[6] (%Time%)	6 iterations	Loss: 0.083323560655117	Improvement: 0.01434
+[6] (%Time%)	7 iterations	Loss: 0.0787383615970612	Improvement: 0.007024
+[6] (%Time%)	8 iterations	Loss: 0.0768212750554085	Improvement: 0.003194
+[6] (%Time%)	9 iterations	Loss: 0.0741848275065422	Improvement: 0.002776
+[6] (%Time%)	10 iterations	Loss: 0.0730299279093742	Improvement: 0.00156
+[6] (%Time%)	11 iterations	Loss: 0.0716971307992935	Improvement: 0.00139
+[6] (%Time%)	12 iterations	Loss: 0.0708837881684303	Improvement: 0.0009574
+[6] 'LBFGS Optimizer' finished in %Time%.
+[7] 'Saving model' started.
+[7] 'Saving model' finished in %Time%.

@@ -5,21 +5,23 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// Common signature type with no extra parameters.
     /// </summary>
-    public delegate void SignatureDefault();
+    [BestFriend]
+    internal delegate void SignatureDefault();
 
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    public sealed class LoadableClassAttribute : LoadableClassAttributeBase
+    [BestFriend]
+    internal sealed class LoadableClassAttribute : LoadableClassAttributeBase
     {
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
-        /// host enviroment, such as TLC
+        /// host environment, such as TLC
         /// </summary>
         /// <param name="instType">The class type that is loadable</param>
         /// <param name="argType">The argument type that the constructor takes (may be null)</param>
@@ -33,7 +35,7 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
-        /// host enviroment, such as TLC
+        /// host environment, such as TLC
         /// </summary>
         /// <param name="instType">The class type that is loadable</param>
         /// <param name="loaderType">The class type that contains the construction method</param>
@@ -58,7 +60,7 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
-        /// host enviroment, such as TLC
+        /// host environment, such as TLC
         /// </summary>
         /// <param name="summary">The description summary of the class type</param>
         /// <param name="instType">The class type that is loadable</param>
@@ -73,7 +75,7 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
-        /// host enviroment, such as TLC
+        /// host environment, such as TLC
         /// </summary>
         /// <param name="summary">The description summary of the class type</param>
         /// <param name="instType">The class type that is loadable</param>
@@ -98,7 +100,7 @@ namespace Microsoft.ML.Runtime
         }
     }
 
-    public abstract class LoadableClassAttributeBase : Attribute
+    internal abstract class LoadableClassAttributeBase : Attribute
     {
         // Note: these properties have private setters to make attribute parsing easier - the values
         // are all guaranteed to be in the ConstructorArguments of the CustomAttributeData

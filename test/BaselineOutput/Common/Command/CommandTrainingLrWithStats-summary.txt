@@ -1,0 +1,15 @@
+Linear Binary Classification Predictor non-zero weights
+
+(Bias)	-4.426744
+education-num	2.102877
+age	1.920366
+hours-per-week	1.882183
+capital-gain	1.671043
+capital-loss	0.9767318
+fnlwgt	0.3191842
+
+*** MODEL STATISTICS SUMMARY ***   
+Count of training examples:	500
+Residual Deviance:         	458.9709
+Null Deviance:             	539.2764
+AIC:                       	472.9709

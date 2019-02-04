@@ -118,7 +118,7 @@ public partial class HousePricePrediction
   that decision.
 
 * The model should be immutable. We'll offer a conversion API to go from the
-  model to the building block for training, e.g. `ToPipeline()`.
+  model to the building block for training, for example, `ToPipeline()`.
 
 * The persisted `model.zip` has no notion of .NET types. It only has schema
   information. Strong typing requires the developer to specify the types when

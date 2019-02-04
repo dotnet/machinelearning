@@ -44,7 +44,7 @@ inclusive and `Length` exclusive.
 Regarding the generic type parameter `T`, the only real assumption made about
 this type is that assignment (that is, using `=`) is sufficient to create an
 *independent* copy of that item. All representation types of the [primitive
-types](IDataViewTypeSystem.md#standard-column-types) have this property (e.g.,
+types](IDataViewTypeSystem.md#standard-column-types) have this property (for example,
 `DvText`, `DvInt4`, `Single`, `Double`, etc.), but for example, `VBuffer<>`
 itself does not have this property. So, no `VBuffer` of `VBuffer`s for you.
 
@@ -224,17 +224,17 @@ ML.NET's runtime code has a number of utilities for operating over `VBuffer`s
 that we have written to be generally useful. We will not treat on these in
 detail here, but:
 
-* `Microsoft.ML.Runtime.Data.VBuffer<T>` itself contains a few methods for
+* `Microsoft.ML.Data.VBuffer<T>` itself contains a few methods for
   accessing and iterating over its values.
 
-* `Microsoft.ML.Runtime.Internal.Utilities.VBufferUtils` contains utilities
+* `Microsoft.ML.Internal.Utilities.VBufferUtils` contains utilities
   mainly for non-numeric manipulation of `VBuffer`s.
 
-* `Microsoft.ML.Runtime.Numeric.VectorUtils` contains math operations
+* `Microsoft.ML.Numeric.VectorUtils` contains math operations
   over `VBuffer<float>` and `float[]`, like computing norms, dot-products, and
   whatnot.
 
-* `Microsoft.ML.Runtime.Data.BufferBuilder<T>` is an abstract class whose
+* `Microsoft.ML.Data.BufferBuilder<T>` is an abstract class whose
   concrete implementations are used throughout ML.NET to build up `VBuffer<T>`
   instances. Note that if one *can* simply build a `VBuffer` oneself easily
   and do not need the niceties provided by the buffer builder, you should
@@ -257,7 +257,7 @@ In terms of accessing anything in `Values` or `Indices`, remember, treat
 arrays.
 
 If you write code that results in two distinct `VBuffer`s sharing references
-to their internal arrays, (e.g., there are two `VBuffer`s `a` and `b`, with
+to their internal arrays, (for example, there are two `VBuffer`s `a` and `b`, with
 `a.Indices == b.Indices` with `a.Indices != null`, or `a.Values == b.Values`
 with `a.Values != null`) then you've almost certainly done something wrong.
 

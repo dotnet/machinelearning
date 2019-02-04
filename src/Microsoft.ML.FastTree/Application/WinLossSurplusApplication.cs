@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using Microsoft.ML.Runtime.CommandLine;
-
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if OLD_DATALOAD
     public class WinLossSurplusCommandLineArgs : TrainingCommandLineArgs
@@ -120,7 +115,6 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
             double inverseMaxDCG = _inverseMaxDCGT[query];
 
-            //int[] permutation = (threadIndex < 0 ? new int[numDocuments] : _permutationBuffers[threadIndex]);
             int[] permutation = _permutationBuffers[threadIndex];
 
             short[] labels = Labels;

@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>2003;$(NoWarn)</NoWarn>
+    <PublicSign>false</PublicSign>
+    <SourceLink></SourceLink>
+    <PlatformTarget>$(TargetArchitecture)</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="SmokeTests.fs" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <!-- More projects are referenced than are currently tested. Future updates to -->
+    <!-- these tests will test more of the surface area from F#, so leaving these references -->
+    <!-- here for now. -->
+    <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FactorizationMachineNative" />
+  </ItemGroup>
+
+</Project>

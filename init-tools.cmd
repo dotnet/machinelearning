@@ -2,21 +2,22 @@
 setlocal
 
 set INIT_TOOLS_LOG=%~dp0init-tools.log
-if [%PACKAGES_DIR%]==[] set PACKAGES_DIR=%~dp0packages\
+if [%PACKAGES_DIR%]==[] set PACKAGES_DIR=%~dp0packages
 if [%TOOLRUNTIME_DIR%]==[] set TOOLRUNTIME_DIR=%~dp0Tools
 set DOTNET_PATH=%TOOLRUNTIME_DIR%\dotnetcli\
 if [%DOTNET_CMD%]==[] set DOTNET_CMD=%DOTNET_PATH%dotnet.exe
 if [%BUILDTOOLS_SOURCE%]==[] set BUILDTOOLS_SOURCE=https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json
 set /P BUILDTOOLS_VERSION=< "%~dp0BuildToolsVersion.txt"
-set BUILD_TOOLS_PATH=%PACKAGES_DIR%Microsoft.DotNet.BuildTools\%BUILDTOOLS_VERSION%\lib\
+set BUILD_TOOLS_PATH=%PACKAGES_DIR%\Microsoft.DotNet.BuildTools\%BUILDTOOLS_VERSION%\lib
 set INIT_TOOLS_RESTORE_PROJECT=%~dp0init-tools.msbuild
 set BUILD_TOOLS_SEMAPHORE_DIR=%TOOLRUNTIME_DIR%\%BUILDTOOLS_VERSION%
 set BUILD_TOOLS_SEMAPHORE=%BUILD_TOOLS_SEMAPHORE_DIR%\init-tools.completed
+set ARCH=x64
 
 :: if force option is specified then clean the tool runtime and build tools package directory to force it to get recreated
 if [%1]==[force] (
   if exist "%TOOLRUNTIME_DIR%" rmdir /S /Q "%TOOLRUNTIME_DIR%"
-  if exist "%PACKAGES_DIR%Microsoft.DotNet.BuildTools" rmdir /S /Q "%PACKAGES_DIR%Microsoft.DotNet.BuildTools"
+  if exist "%PACKAGES_DIR%\Microsoft.DotNet.BuildTools" rmdir /S /Q "%PACKAGES_DIR%\Microsoft.DotNet.BuildTools"
 )
 
 :: If semaphore exists do nothing
@@ -26,8 +27,6 @@ if exist "%BUILD_TOOLS_SEMAPHORE%" (
 )
 
 if exist "%TOOLRUNTIME_DIR%" rmdir /S /Q "%TOOLRUNTIME_DIR%"
-
-if NOT exist "%BUILD_TOOLS_SEMAPHORE_DIR%" mkdir "%BUILD_TOOLS_SEMAPHORE_DIR%"
 
 if exist "%DotNetBuildToolsDir%" (
   echo Using tools from '%DotNetBuildToolsDir%'.
@@ -39,6 +38,7 @@ if exist "%DotNetBuildToolsDir%" (
   )
 
   echo Done initializing tools.
+  if NOT exist "%BUILD_TOOLS_SEMAPHORE_DIR%" mkdir "%BUILD_TOOLS_SEMAPHORE_DIR%"
   echo Using tools from '%DotNetBuildToolsDir%'. > "%BUILD_TOOLS_SEMAPHORE%"
   exit /b 0
 )
@@ -46,11 +46,21 @@ if exist "%DotNetBuildToolsDir%" (
 echo Running %0 > "%INIT_TOOLS_LOG%"
 
 set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.txt"
+
+:Arg_Loop
+if [%1] == [] goto :ArchSet
+if /i [%1] == [x86]         ( set ARCH=x86)
+if /i [%1] == [-Debug-Intrinsics] ( set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.netcoreapp.latest.txt")
+if /i [%1] == [-Release-Intrinsics] ( set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.netcoreapp.latest.txt")
+shift
+goto :Arg_Loop
+
+:ArchSet
 if exist "%DOTNET_CMD%" goto :afterdotnetrestore
 
 echo Installing dotnet cli...
 if NOT exist "%DOTNET_PATH%" mkdir "%DOTNET_PATH%"
-set DOTNET_ZIP_NAME=dotnet-sdk-%DOTNET_VERSION%-win-x64.zip
+set DOTNET_ZIP_NAME=dotnet-sdk-%DOTNET_VERSION%-win-%ARCH%.zip
 set DOTNET_REMOTE_PATH=https://dotnetcli.azureedge.net/dotnet/Sdk/%DOTNET_VERSION%/%DOTNET_ZIP_NAME%
 set DOTNET_LOCAL_PATH=%DOTNET_PATH%%DOTNET_ZIP_NAME%
 echo Installing '%DOTNET_REMOTE_PATH%' to '%DOTNET_LOCAL_PATH%' >> "%INIT_TOOLS_LOG%"
@@ -64,19 +74,18 @@ if NOT exist "%DOTNET_LOCAL_PATH%" (
 
 if exist "%BUILD_TOOLS_PATH%" goto :afterbuildtoolsrestore
 echo Restoring BuildTools version %BUILDTOOLS_VERSION%...
-echo Running: "%DOTNET_CMD%" restore "%INIT_TOOLS_RESTORE_PROJECT%" --no-cache --packages %PACKAGES_DIR% --source "%BUILDTOOLS_SOURCE%" /p:BuildToolsPackageVersion=%BUILDTOOLS_VERSION% >> "%INIT_TOOLS_LOG%"
-call "%DOTNET_CMD%" restore "%INIT_TOOLS_RESTORE_PROJECT%" --no-cache --packages %PACKAGES_DIR% --source "%BUILDTOOLS_SOURCE%" /p:BuildToolsPackageVersion=%BUILDTOOLS_VERSION% >> "%INIT_TOOLS_LOG%"
-if NOT exist "%BUILD_TOOLS_PATH%init-tools.cmd" (
+echo Running: "%DOTNET_CMD%" restore "%INIT_TOOLS_RESTORE_PROJECT%" --no-cache --packages "%PACKAGES_DIR%" --source "%BUILDTOOLS_SOURCE%" /p:BuildToolsPackageVersion=%BUILDTOOLS_VERSION% /p:ToolsDir=%TOOLRUNTIME_DIR% >> "%INIT_TOOLS_LOG%"
+call "%DOTNET_CMD%" restore "%INIT_TOOLS_RESTORE_PROJECT%" --no-cache --packages "%PACKAGES_DIR%" --source "%BUILDTOOLS_SOURCE%" /p:BuildToolsPackageVersion=%BUILDTOOLS_VERSION% /p:ToolsDir=%TOOLRUNTIME_DIR% >> "%INIT_TOOLS_LOG%"
+if NOT exist "%BUILD_TOOLS_PATH%\init-tools.cmd" (
   echo ERROR: Could not restore build tools correctly. 1>&2
   goto :error
 )
 
 :afterbuildtoolsrestore
 
-
 echo Initializing BuildTools...
-echo Running: "%BUILD_TOOLS_PATH%init-tools.cmd" "%~dp0" "%DOTNET_CMD%" "%TOOLRUNTIME_DIR%" >> "%INIT_TOOLS_LOG%"
-call "%BUILD_TOOLS_PATH%init-tools.cmd" "%~dp0" "%DOTNET_CMD%" "%TOOLRUNTIME_DIR%" >> "%INIT_TOOLS_LOG%"
+echo Running: "%BUILD_TOOLS_PATH%\init-tools.cmd" "%~dp0" "%DOTNET_CMD%" "%TOOLRUNTIME_DIR%" "%PACKAGES_DIR%" >> "%INIT_TOOLS_LOG%"
+call "%BUILD_TOOLS_PATH%\init-tools.cmd" "%~dp0" "%DOTNET_CMD%" "%TOOLRUNTIME_DIR%" "%PACKAGES_DIR%" >> "%INIT_TOOLS_LOG%"
 set INIT_TOOLS_ERRORLEVEL=%ERRORLEVEL%
 if not [%INIT_TOOLS_ERRORLEVEL%]==[0] (
   echo ERROR: An error occured when trying to initialize the tools. 1>&2
@@ -85,6 +94,7 @@ if not [%INIT_TOOLS_ERRORLEVEL%]==[0] (
 
 :: Create semaphore file
 echo Done initializing tools.
+if NOT exist "%BUILD_TOOLS_SEMAPHORE_DIR%" mkdir "%BUILD_TOOLS_SEMAPHORE_DIR%"
 echo Init-Tools.cmd completed for BuildTools Version: %BUILDTOOLS_VERSION% > "%BUILD_TOOLS_SEMAPHORE%"
 exit /b 0
 

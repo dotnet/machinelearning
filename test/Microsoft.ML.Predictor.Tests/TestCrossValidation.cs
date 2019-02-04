@@ -2,15 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
 
-using System;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.CommandLine;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
-    using TestLearners = TestLearnersBase;
 
 #if OLD_TESTS // REVIEW: Do these add any value?
     public class TestCrossValidation : BaseTestPredictorsOld

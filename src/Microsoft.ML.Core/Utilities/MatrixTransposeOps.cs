@@ -7,9 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
-    public static class MatrixTransposeOps
+    [BestFriend]
+    internal static class MatrixTransposeOps
     {
         private const int _block = 32;
 

@@ -5,15 +5,15 @@
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Model
+namespace Microsoft.ML.Model
 {
     /// <summary>
     /// This is a convenience context object for saving models to a repository, for
-    /// implementors of ICanSaveModel. It is not mandated but designed to reduce the
+    /// implementors of <see cref="ICanSaveModel"/>. It is not mandated but designed to reduce the
     /// amount of boiler plate code. It can also be used when saving to a single stream,
-    /// for implementors of ICanSaveInBinaryFormat.
+    /// for implementors of <see cref="ICanSaveInBinaryFormat"/>.
     /// </summary>
     public sealed partial class ModelSaveContext : IDisposable
     {
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Model
         public readonly RepositoryWriter Repository;
 
         /// <summary>
-        /// When in repository mode, this is the direcory we're reading from. Null means the root
+        /// When in repository mode, this is the directory we're reading from. Null means the root
         /// of the repository. It is always null in single-stream mode.
         /// </summary>
         public readonly string Directory;
@@ -37,12 +37,14 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// The strings that will be saved in the main stream's string table.
         /// </summary>
-        public readonly NormStr.Pool Strings;
+        [BestFriend]
+        internal readonly NormStr.Pool Strings;
 
         /// <summary>
         /// The main stream's model header.
         /// </summary>
-        public ModelHeader Header;
+        [BestFriend]
+        internal ModelHeader Header;
 
         /// <summary>
         /// The min file position of the main stream.
@@ -60,14 +62,19 @@ namespace Microsoft.ML.Runtime.Model
         private readonly IExceptionContext _ectx;
 
         /// <summary>
+        /// The assembly name where the loader resides.
+        /// </summary>
+        private string _loaderAssemblyName;
+
+        /// <summary>
         /// Returns whether this context is in repository mode (true) or single-stream mode (false).
         /// </summary>
         public bool InRepository { get { return Repository != null; } }
 
         /// <summary>
-        /// Create a ModelSaveContext supporting saving to a repository, for implementors of ICanSaveModel.
+        /// Create a <see cref="ModelSaveContext"/> supporting saving to a repository, for implementors of <see cref="ICanSaveModel"/>.
         /// </summary>
-        public ModelSaveContext(RepositoryWriter rep, string dir, string name)
+        internal ModelSaveContext(RepositoryWriter rep, string dir, string name)
         {
             Contracts.CheckValue(rep, nameof(rep));
             Repository = rep;
@@ -101,9 +108,9 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// Create a ModelSaveContext supporting saving to a single-stream, for implementors of ICanSaveInBinaryFormat.
+        /// Create a <see cref="ModelSaveContext"/> supporting saving to a single-stream, for implementors of <see cref="ICanSaveInBinaryFormat"/>.
         /// </summary>
-        public ModelSaveContext(BinaryWriter writer, IExceptionContext ectx = null)
+        internal ModelSaveContext(BinaryWriter writer, IExceptionContext ectx = null)
         {
             Contracts.AssertValueOrNull(ectx);
             _ectx = ectx;
@@ -125,12 +132,13 @@ namespace Microsoft.ML.Runtime.Model
 
         /// <summary>
         /// Set the version information in the main stream's header. This should be called before
-        /// Done is called.
+        /// <see cref="Done"/> is called.
         /// </summary>
         /// <param name="ver"></param>
         public void SetVersionInfo(VersionInfo ver)
         {
             ModelHeader.SetVersionInfo(ref Header, ver);
+            _loaderAssemblyName = ver.LoaderAssemblyName;
         }
 
         public void SaveTextStream(string name, Action<TextWriter> action)
@@ -185,6 +193,11 @@ namespace Microsoft.ML.Runtime.Model
             Writer.Write(Strings.Add(str).Id);
         }
 
+        public void SaveString(ReadOnlyMemory<char> str)
+        {
+            Writer.Write(Strings.Add(str).Id);
+        }
+
         /// <summary>
         /// Puts a string into the context pool, and writes the integer code of the string ID
         /// to the write stream.
@@ -195,14 +208,19 @@ namespace Microsoft.ML.Runtime.Model
             Writer.Write(Strings.Add(str).Id);
         }
 
+        public void SaveNonEmptyString(ReadOnlyMemory<Char> str)
+        {
+            Writer.Write(Strings.Add(str).Id);
+        }
+
         /// <summary>
         /// Commit the save operation. This completes writing of the main stream. When in repository
-        /// mode, it disposes the Writer (but not the repository).
+        /// mode, it disposes <see cref="Writer"/> (but not <see cref="Repository"/>).
         /// </summary>
         public void Done()
         {
             _ectx.Check(Header.ModelSignature != 0, "ModelSignature not specified!");
-            ModelHeader.EndWrite(Writer, FpMin, ref Header, Strings);
+            ModelHeader.EndWrite(Writer, FpMin, ref Header, Strings, _loaderAssemblyName);
             Dispose();
         }
 

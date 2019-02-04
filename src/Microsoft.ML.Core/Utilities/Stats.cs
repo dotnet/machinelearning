@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Float = System.Single;
 
-using System;
-
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
     /// A class containing common statistical functions
     /// </summary>
-    public static class Stats
+    [BestFriend]
+    internal static class Stats
     {
         /// <summary>
         /// Returns a number uniformly sampled from 0...(rangeSize-1)
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="rangeSize">Size of range to sample from, between 0 and int.MaxValue^2</param>
         /// <param name="rand">Random number generator</param>
         /// <returns>Sampled value</returns>
-        public static long SampleLong(long rangeSize, IRandom rand)
+        public static long SampleLong(long rangeSize, Random rand)
         {
             Contracts.CheckParam(rangeSize > 0, nameof(rangeSize), "rangeSize must be positive.");
 
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="rand">A Random to use for the sampling</param>
         /// <returns>a sample</returns>
         /// <remarks>uses Joseph L. Leva's algorithm from "A fast normal random number generator", 1992</remarks>
-        public static double SampleFromGaussian(IRandom rand)
+        public static double SampleFromGaussian(Random rand)
         {
             double u;
             double v;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="r">The random number generator to use</param>
         /// <returns>Sample from gamma distribution</returns>
         /// <remarks>Uses Marsaglia and Tsang's fast algorithm</remarks>
-        public static double SampleFromGamma(IRandom r, double alpha)
+        public static double SampleFromGamma(Random r, double alpha)
         {
             Contracts.CheckParam(alpha > 0, nameof(alpha), "alpha must be positive");
 
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="alpha1">first parameter</param>
         /// <param name="alpha2">second parameter</param>
         /// <returns>Sample from distribution</returns>
-        public static double SampleFromBeta(IRandom rand, double alpha1, double alpha2)
+        public static double SampleFromBeta(Random rand, double alpha1, double alpha2)
         {
             double gamma1 = SampleFromGamma(rand, alpha1);
             double gamma2 = SampleFromGamma(rand, alpha2);
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="rand">Random generator to use</param>
         /// <param name="alphas">array of parameters</param>
         /// <param name="result">array in which to store resulting sample</param>
-        public static void SampleFromDirichlet(IRandom rand, double[] alphas, double[] result)
+        public static void SampleFromDirichlet(Random rand, double[] alphas, double[] result)
         {
             Contracts.Check(alphas.Length == result.Length,
                 "Dirichlet parameters must have the same dimensionality as sample space.");
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        public static int SampleFromPoisson(IRandom rand, double lambda)
+        public static int SampleFromPoisson(Random rand, double lambda)
         {
             if (lambda < 5)
             {
@@ -199,8 +199,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         // Mean refers to the mu parameter. Scale refers to the b parameter.
-        // http://en.wikipedia.org/wiki/Laplace_distribution
-        public static Float SampleFromLaplacian(IRandom rand, Float mean, Float scale)
+        // https://en.wikipedia.org/wiki/Laplace_distribution
+        public static Float SampleFromLaplacian(Random rand, Float mean, Float scale)
         {
             Float u = rand.NextSingle();
             u = u - 0.5f;
@@ -215,11 +215,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         /// <summary>
         /// Sample from a standard Cauchy distribution:
-        /// http://en.wikipedia.org/wiki/Lorentzian_function
+        /// https://en.wikipedia.org/wiki/Lorentzian_function
         /// </summary>
         /// <param name="rand"></param>
         /// <returns></returns>
-        public static Float SampleFromCauchy(IRandom rand)
+        public static Float SampleFromCauchy(Random rand)
         {
             return (Float)Math.Tan(Math.PI * (rand.NextSingle() - 0.5));
         }
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="p">Parameter p of binomial</param>
         /// <returns></returns>
         /// <remarks>Should be robust for all values of n, p</remarks>
-        public static int SampleFromBinomial(IRandom r, int n, double p)
+        public static int SampleFromBinomial(Random r, int n, double p)
         {
             return BinoRand.Next(r, n, p);
         }
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
             }
 
-            public static int Next(IRandom rand, int n, double p)
+            public static int Next(Random rand, int n, double p)
             {
                 int x;
                 double pin = Math.Min(p, 1 - p);
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // For small n
             // Inverse transformation algorithm
             // Described in Kachitvichyanukul and Schmeiser: "Binomial Random Variate Generation"
-            private static int InvTransform(int n, double p, IRandom rn)
+            private static int InvTransform(int n, double p, Random rn)
             {
                 int x = 0;
                 double u = rn.NextDouble();
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // For large n
             // Algorithm from W. Hormann: "The Generation of Binomial Random Variables"
             // This is algorithm BTRD
-            private static int GenerateLarge(int n, double p, IRandom rn)
+            private static int GenerateLarge(int n, double p, Random rn)
             {
                 double np = n * p;
                 double q = 1 - p;

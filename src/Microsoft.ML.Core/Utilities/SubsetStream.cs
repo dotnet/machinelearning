@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
     /// Returns a "view" stream, which appears to be a possibly truncated
@@ -22,7 +22,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// subset stream, the underlying stream will always remain open and
     /// undisposed.
     /// </summary>
-    public sealed class SubsetStream : Stream
+    [BestFriend]
+    internal sealed class SubsetStream : Stream
     {
         private readonly Stream _stream;
         // The position of the stream.

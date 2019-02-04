@@ -6,9 +6,9 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
-    public static partial class Utils
+    internal static partial class Utils
     {
         /// <summary>
         /// Environment variable containing optional resources path.
@@ -21,14 +21,16 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             get
             {
-                if (_dllDir == null)
+                string result = _dllDir;
+                if (result == null)
                 {
                     string path = typeof(Utils).Assembly.Location;
                     string directory = Path.GetDirectoryName(path);
                     Interlocked.CompareExchange(ref _dllDir, directory, null);
+                    result = _dllDir;
                 }
 
-                return _dllDir;
+                return result;
             }
         }
 
@@ -36,19 +38,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Attempts to find a file that is expected to be distributed with a TLC component. Searches
         /// in the following order:
         /// 1. In the customSearchDir directory, if it is provided.
-        /// 2. In the custom search directory specified by the 
+        /// 2. In the custom search directory specified by the
         ///    <seealso cref="CustomSearchDirEnvVariable"/> environment variable.
         /// 3. In the root folder of the provided assembly.
         /// 4. In the folder of this assembly.
         /// In each case it searches the file in the directory provided and combined with folderPrefix.
-        /// 
+        ///
         /// If any of these locations contain the file, a full local path will be returned, otherwise this
         /// method will return null.
         /// </summary>
         /// <param name="fileName">File name to find</param>
         /// <param name="folderPrefix">folder prefix, relative to the current or customSearchDir</param>
         /// <param name="customSearchDir">
-        /// Custom directory to search for resources. 
+        /// Custom directory to search for resources.
         /// If null, the path specified in the environment variable <seealso cref="CustomSearchDirEnvVariable"/>
         /// will be used.
         /// </param>

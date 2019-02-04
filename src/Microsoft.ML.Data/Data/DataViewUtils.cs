@@ -9,10 +9,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using System.Threading.Tasks;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public static class DataViewUtils
     {
@@ -21,7 +23,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Use tag to independently create multiple temporary, unique column
         /// names for a single transform.
         /// </summary>
-        public static string GetTempColumnName(this ISchema schema, string tag = null)
+        public static string GetTempColumnName(this Schema schema, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
 
@@ -45,7 +47,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Use tag to independently create multiple temporary, unique column
         /// names for a single transform.
         /// </summary>
-        public static string[] GetTempColumnNames(this ISchema schema, int n, string tag = null)
+        public static string[] GetTempColumnNames(this Schema schema, int n, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(n > 0, "n");
@@ -54,7 +56,7 @@ namespace Microsoft.ML.Runtime.Data
             int j = 0;
             for (int i = 0; i < n; i++)
             {
-                for (;;)
+                for (; ; )
                 {
                     string name = string.IsNullOrWhiteSpace(tag) ?
                         string.Format("temp_{0:000}", j) :
@@ -77,11 +79,11 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static long ComputeRowCount(IDataView view)
         {
-            long? countNullable = view.GetRowCount(lazy: false);
+            long? countNullable = view.GetRowCount();
             if (countNullable != null)
                 return countNullable.Value;
             long count = 0;
-            using (var cursor = view.GetRowCursor(col => false))
+            using (var cursor = view.GetRowCursor())
             {
                 while (cursor.MoveNext())
                     count++;
@@ -113,30 +115,34 @@ namespace Microsoft.ML.Runtime.Data
         /// Try to create a cursor set from upstream and consolidate it here. The host determines
         /// the target cardinality of the cursor set.
         /// </summary>
-        public static bool TryCreateConsolidatingCursor(out IRowCursor curs,
-            IDataView view, Func<int, bool> predicate, IHost host, IRandom rand)
+        public static bool TryCreateConsolidatingCursor(out RowCursor curs,
+            IDataView view, IEnumerable<Schema.Column> columnsNeeded, IHost host, Random rand)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
-            host.CheckValue(predicate, nameof(predicate));
 
             int cthd = GetThreadCount(host);
             host.Assert(cthd > 0);
-            if (cthd == 1 || !AllCachable(view.Schema, predicate))
+            if (cthd == 1 || !AllCacheable(columnsNeeded))
             {
                 curs = null;
                 return false;
             }
 
-            IRowCursorConsolidator consolidator;
-            var inputs = view.GetRowCursorSet(out consolidator, predicate, cthd, rand);
+            var inputs = view.GetRowCursorSet(columnsNeeded, cthd, rand);
             host.Check(Utils.Size(inputs) > 0);
-            host.Check(inputs.Length == 1 || consolidator != null);
 
             if (inputs.Length == 1)
                 curs = inputs[0];
             else
-                curs = consolidator.CreateCursor(host, inputs);
+            {
+                // We have a somewhat arbitrary batch size of about 64 for buffering results from the
+                // intermediate cursors, since that at least empirically for most datasets seems to
+                // strike a nice balance between a size large enough to benefit from parallelism but
+                // small enough so as to not be too onerous to keep in memory.
+                const int batchSize = 64;
+                curs = DataViewUtils.ConsolidateGeneric(host, inputs, batchSize);
+            }
             return true;
         }
 
@@ -145,19 +151,17 @@ namespace Microsoft.ML.Runtime.Data
         /// cardinality. If not all the active columns are cachable, this will only
         /// produce the given input cursor.
         /// </summary>
-        public static IRowCursor[] CreateSplitCursors(out IRowCursorConsolidator consolidator,
-            IChannelProvider provider, IRowCursor input, int num)
+        public static RowCursor[] CreateSplitCursors(IChannelProvider provider, RowCursor input, int num)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(input, nameof(input));
 
-            consolidator = null;
             if (num <= 1)
-                return new IRowCursor[1] { input };
+                return new RowCursor[1] { input };
 
             // If any active columns are not cachable, we can't split.
-            if (!AllCachable(input.Schema, input.IsColumnActive))
-                return new IRowCursor[1] { input };
+            if (!AllCacheable(input.Schema, input.IsColumnActive))
+                return new RowCursor[1] { input };
 
             // REVIEW: Should we limit the cardinality to some reasonable size?
 
@@ -167,24 +171,24 @@ namespace Microsoft.ML.Runtime.Data
 
             // REVIEW: Keep the utility method here, move this splitter stuff
             // to some other file.
-            return Splitter.Split(out consolidator, provider, input.Schema, input, num);
+            return Splitter.Split(provider, input.Schema, input, num);
         }
 
         /// <summary>
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCachable(ISchema schema, Func<int, bool> predicate)
+        public static bool AllCacheable(Schema schema, Func<int, bool> predicate)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(predicate, nameof(predicate));
 
-            for (int col = 0; col < schema.ColumnCount; col++)
+            for (int col = 0; col < schema.Count; col++)
             {
                 if (!predicate(col))
                     continue;
-                var type = schema.GetColumnType(col);
-                if (!IsCachable(type))
+                var type = schema[col].Type;
+                if (!IsCacheable(type))
                     return false;
             }
 
@@ -192,19 +196,35 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Return whether all the active columns, as determined by the predicate, are
+        /// cachable - either primitive types or vector types.
+        /// </summary>
+        public static bool AllCacheable(IEnumerable<Schema.Column> columnsNeeded)
+        {
+            Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
+
+            if (columnsNeeded == null)
+                return false;
+
+            foreach (var col in columnsNeeded)
+                if (!IsCacheable(col.Type))
+                    return false;
+
+            return true;
+        }
+
+        /// <summary>
         /// Determine whether the given type is cachable - either a primitive type or a vector type.
         /// </summary>
-        public static bool IsCachable(this ColumnType type)
-        {
-            return type != null && (type.IsPrimitive || type.IsVector);
-        }
+        public static bool IsCacheable(this ColumnType type)
+            => type != null && (type is PrimitiveType || type is VectorType);
 
         /// <summary>
         /// Tests whether the cursors are mutually compatible for consolidation,
         /// that is, they all are non-null, have the same schemas, and the same
         /// set of columns are active.
         /// </summary>
-        public static bool SameSchemaAndActivity(IRowCursor[] cursors)
+        public static bool SameSchemaAndActivity(RowCursor[] cursors)
         {
             // There must be something to actually consolidate.
             if (Utils.Size(cursors) == 0)
@@ -222,7 +242,7 @@ namespace Microsoft.ML.Runtime.Data
                     return false;
             }
             // All cursors must have the same columns active.
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 bool active = firstCursor.IsColumnActive(c);
                 for (int i = 1; i < cursors.Length; ++i)
@@ -238,7 +258,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Given a parallel cursor set, this consolidates them into a single cursor. The batchSize
         /// is a hint used for efficiency.
         /// </summary>
-        public static IRowCursor ConsolidateGeneric(IChannelProvider provider, IRowCursor[] inputs, int batchSize)
+        public static RowCursor ConsolidateGeneric(IChannelProvider provider, RowCursor[] inputs, int batchSize)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckNonEmpty(inputs, nameof(inputs));
@@ -248,7 +268,7 @@ namespace Microsoft.ML.Runtime.Data
                 return inputs[0];
 
             object[] pools = null;
-            return Splitter.Consolidator.Consolidate(provider, inputs, batchSize, ref pools);
+            return Splitter.Consolidate(provider, inputs, batchSize, ref pools);
         }
 
         /// <summary>
@@ -264,7 +284,7 @@ namespace Microsoft.ML.Runtime.Data
         /// thusfar, and inserted into a blocking collection. The output cursor or cursors likewise
         /// have a set of "out pipe" instances, one per each of the active columns, through which
         /// successive batches are presented for consumption by the user of the output cursors. Of
-        /// course, both split and consolidate have many details from which they differ, e.g., the
+        /// course, both split and consolidate have many details from which they differ, for example, the
         /// consolidator must accept batches as they come and reconcile them among multiple inputs,
         /// while the splitter is more free.
         ///
@@ -274,9 +294,8 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class Splitter
         {
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
             private readonly object[] _cachePools;
-            private object[] _consolidateCachePools;
 
             /// <summary>
             /// Pipes, in addition to column values, will also communicate extra information
@@ -286,235 +305,214 @@ namespace Microsoft.ML.Runtime.Data
             private enum ExtraIndex
             {
                 Id,
-#pragma warning disable TLC_GeneralName // Allow for this private enum.
+#pragma warning disable MSML_GeneralName // Allow for this private enum.
                 _Lim
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
             }
 
-            private Splitter(ISchema schema)
+            private Splitter(Schema schema)
             {
                 Contracts.AssertValue(schema);
                 _schema = schema;
-                _cachePools = new object[_schema.ColumnCount + (int)ExtraIndex._Lim];
+                _cachePools = new object[_schema.Count + (int)ExtraIndex._Lim];
             }
 
-            public sealed class Consolidator : IRowCursorConsolidator
+            public static RowCursor Consolidate(IChannelProvider provider, RowCursor[] inputs, int batchSize, ref object[] ourPools)
             {
-                private readonly Splitter _splitter;
-
-                public Consolidator(Splitter splitter)
+                Contracts.AssertValue(provider);
+                using (var ch = provider.Start("Consolidate"))
                 {
-                    Contracts.AssertValue(splitter);
-                    _splitter = splitter;
+                    return ConsolidateCore(provider, inputs, ref ourPools, ch);
                 }
+            }
 
-                public IRowCursor CreateCursor(IChannelProvider provider, IRowCursor[] inputs)
+            private static RowCursor ConsolidateCore(IChannelProvider provider, RowCursor[] inputs, ref object[] ourPools, IChannel ch)
+            {
+                ch.CheckNonEmpty(inputs, nameof(inputs));
+                if (inputs.Length == 1)
+                    return inputs[0];
+                ch.CheckParam(SameSchemaAndActivity(inputs), nameof(inputs), "Inputs not compatible for consolidation");
+
+                RowCursor cursor = inputs[0];
+                var schema = cursor.Schema;
+                ch.CheckParam(AllCacheable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
+
+                int[] activeToCol;
+                int[] colToActive;
+                Utils.BuildSubsetMaps(schema.Count, cursor.IsColumnActive, out activeToCol, out colToActive);
+
+                // Because the schema of the consolidator is not necessary fixed, we are merely
+                // opportunistic about buffer sharing, from cursoring to cursoring. If we can do
+                // it easily, great, if not, no big deal.
+                if (Utils.Size(ourPools) != schema.Count)
+                    ourPools = new object[schema.Count + (int)ExtraIndex._Lim];
+                // Create the out pipes.
+                OutPipe[] outPipes = new OutPipe[activeToCol.Length + (int)ExtraIndex._Lim];
+                for (int i = 0; i < activeToCol.Length; ++i)
                 {
-                    return Consolidate(provider, inputs, 128, ref _splitter._consolidateCachePools);
+                    int c = activeToCol[i];
+                    ColumnType type = schema[c].Type;
+                    var pool = GetPool(type, ourPools, c);
+                    outPipes[i] = OutPipe.Create(type, pool);
                 }
+                int idIdx = activeToCol.Length + (int)ExtraIndex.Id;
+                outPipes[idIdx] = OutPipe.Create(NumberType.UG, GetPool(NumberType.UG, ourPools, idIdx));
 
-                public static IRowCursor Consolidate(IChannelProvider provider, IRowCursor[] inputs, int batchSize, ref object[] ourPools)
+                // Create the structures to synchronize between the workers and the consumer.
+                const int toConsumeBound = 4;
+                var toConsume = new BlockingCollection<Batch>(toConsumeBound);
+                var batchColumnPool = new MadeObjectPool<BatchColumn[]>(() => new BatchColumn[outPipes.Length]);
+                Task[] workers = new Task[inputs.Length];
+                MinWaiter waiter = new MinWaiter(workers.Length);
+                bool done = false;
+
+                for (int t = 0; t < workers.Length; ++t)
                 {
-                    Contracts.AssertValue(provider);
-                    using (var ch = provider.Start("Consolidate"))
+                    var localCursor = inputs[t];
+                    ch.Assert(localCursor.Position < 0);
+                    // Note that these all take ownership of their respective cursors,
+                    // so they all handle their disposal internal to the thread.
+                    workers[t] = Utils.RunOnBackgroundThread(() =>
                     {
-                        var cursor = ConsolidateCore(provider, inputs, ref ourPools, ch);
-                        ch.Done();
-                        return cursor;
-                    }
-                }
-
-                private static IRowCursor ConsolidateCore(IChannelProvider provider, IRowCursor[] inputs, ref object[] ourPools, IChannel ch)
-                {
-                    ch.CheckNonEmpty(inputs, nameof(inputs));
-                    if (inputs.Length == 1)
-                        return inputs[0];
-                    ch.CheckParam(SameSchemaAndActivity(inputs), nameof(inputs), "Inputs not compatible for consolidation");
-
-                    IRowCursor cursor = inputs[0];
-                    ISchema schema = cursor.Schema;
-                    ch.CheckParam(AllCachable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
-
-                    int[] activeToCol;
-                    int[] colToActive;
-                    Utils.BuildSubsetMaps(schema.ColumnCount, cursor.IsColumnActive, out activeToCol, out colToActive);
-
-                    // Because the schema of the consolidator is not necessary fixed, we are merely
-                    // opportunistic about buffer sharing, from cursoring to cursoring. If we can do
-                    // it easily, great, if not, no big deal.
-                    if (Utils.Size(ourPools) != schema.ColumnCount)
-                        ourPools = new object[schema.ColumnCount + (int)ExtraIndex._Lim];
-                    // Create the out pipes.
-                    OutPipe[] outPipes = new OutPipe[activeToCol.Length + (int)ExtraIndex._Lim];
-                    for (int i = 0; i < activeToCol.Length; ++i)
-                    {
-                        int c = activeToCol[i];
-                        ColumnType type = schema.GetColumnType(c);
-                        var pool = GetPool(type, ourPools, c);
-                        outPipes[i] = OutPipe.Create(type, pool);
-                    }
-                    int idIdx = activeToCol.Length + (int)ExtraIndex.Id;
-                    outPipes[idIdx] = OutPipe.Create(NumberType.UG, GetPool(NumberType.UG, ourPools, idIdx));
-
-                    // Create the structures to synchronize between the workers and the consumer.
-                    const int toConsumeBound = 4;
-                    var toConsume = new BlockingCollection<Batch>(toConsumeBound);
-                    var batchColumnPool = new MadeObjectPool<BatchColumn[]>(() => new BatchColumn[outPipes.Length]);
-                    Thread[] workers = new Thread[inputs.Length];
-                    MinWaiter waiter = new MinWaiter(workers.Length);
-                    bool done = false;
-
-                    for (int t = 0; t < workers.Length; ++t)
-                    {
-                        var localCursor = inputs[t];
-                        ch.Assert(localCursor.State == CursorState.NotStarted);
-                        // Note that these all take ownership of their respective cursors,
-                        // so they all handle their disposal internal to the thread.
-                        workers[t] = Utils.CreateBackgroundThread(() =>
-                        {
                             // This will be the last batch sent in the finally. If iteration procedes without
                             // error, it will remain null, and be sent as a sentinel. If iteration results in
                             // an exception that we catch, the exception catching block will set this to an
                             // exception bearing block, and that will be passed along as the last block instead.
                             Batch lastBatch = null;
-                            try
+                        try
+                        {
+                            using (localCursor)
                             {
-                                using (localCursor)
-                                {
-                                    InPipe[] inPipes = new InPipe[outPipes.Length];
-                                    for (int i = 0; i < activeToCol.Length; ++i)
-                                        inPipes[i] = outPipes[i].CreateInPipe(RowCursorUtils.GetGetterAsDelegate(localCursor, activeToCol[i]));
-                                    inPipes[idIdx] = outPipes[idIdx].CreateInPipe(localCursor.GetIdGetter());
+                                InPipe[] inPipes = new InPipe[outPipes.Length];
+                                for (int i = 0; i < activeToCol.Length; ++i)
+                                    inPipes[i] = outPipes[i].CreateInPipe(RowCursorUtils.GetGetterAsDelegate(localCursor, activeToCol[i]));
+                                inPipes[idIdx] = outPipes[idIdx].CreateInPipe(localCursor.GetIdGetter());
 
-                                    long oldBatch = 0;
-                                    int count = 0;
+                                long oldBatch = 0;
+                                int count = 0;
                                     // This event is used to synchronize ourselves using a MinWaiter
                                     // so that we add batches to the consumer queue at the appropriate time.
                                     ManualResetEventSlim waiterEvent = null;
 
-                                    Action pushBatch = () =>
+                                Action pushBatch = () =>
+                                {
+                                    if (count > 0)
                                     {
-                                        if (count > 0)
-                                        {
-                                            var batchColumns = batchColumnPool.Get();
-                                            for (int i = 0; i < inPipes.Length; ++i)
-                                                batchColumns[i] = inPipes[i].GetBatchColumnAndReset();
+                                        var batchColumns = batchColumnPool.Get();
+                                        for (int i = 0; i < inPipes.Length; ++i)
+                                            batchColumns[i] = inPipes[i].GetBatchColumnAndReset();
                                             // REVIEW: Is it worth not allocating new Batch object for each batch?
                                             var batch = new Batch(batchColumnPool, batchColumns, count, oldBatch);
-                                            count = 0;
+                                        count = 0;
                                             // The waiter event should never be null since this is only
                                             // called after a point where waiter.Register has been called.
                                             ch.AssertValue(waiterEvent);
-                                            waiterEvent.Wait();
-                                            waiterEvent = null;
-                                            toConsume.Add(batch);
-                                        }
-                                    };
+                                        waiterEvent.Wait();
+                                        waiterEvent = null;
+                                        toConsume.Add(batch);
+                                    }
+                                };
                                     // Handle the first one separately, then go into the main loop.
                                     if (localCursor.MoveNext() && !done)
-                                    {
-                                        oldBatch = localCursor.Batch;
-                                        foreach (var pipe in inPipes)
-                                            pipe.Fill();
-                                        count++;
+                                {
+                                    oldBatch = localCursor.Batch;
+                                    foreach (var pipe in inPipes)
+                                        pipe.Fill();
+                                    count++;
                                         // Register with the min waiter that we want to wait on this batch number.
                                         waiterEvent = waiter.Register(oldBatch);
 
-                                        while (localCursor.MoveNext() && !done)
+                                    while (localCursor.MoveNext() && !done)
+                                    {
+                                        if (oldBatch != localCursor.Batch)
                                         {
-                                            if (oldBatch != localCursor.Batch)
-                                            {
-                                                ch.Assert(count == 0 || localCursor.Batch > oldBatch);
-                                                pushBatch();
-                                                oldBatch = localCursor.Batch;
-                                                waiterEvent = waiter.Register(oldBatch);
-                                            }
-                                            foreach (var pipe in inPipes)
-                                                pipe.Fill();
-                                            count++;
+                                            ch.Assert(count == 0 || localCursor.Batch > oldBatch);
+                                            pushBatch();
+                                            oldBatch = localCursor.Batch;
+                                            waiterEvent = waiter.Register(oldBatch);
                                         }
-                                        pushBatch();
+                                        foreach (var pipe in inPipes)
+                                            pipe.Fill();
+                                        count++;
                                     }
+                                    pushBatch();
                                 }
                             }
-                            catch (Exception ex)
-                            {
+                        }
+                        catch (Exception ex)
+                        {
                                 // Whoops, we won't be sending null as the sentinel now.
                                 lastBatch = new Batch(ex);
-                                toConsume.Add(new Batch(ex));
-                            }
-                            finally
+                            toConsume.Add(new Batch(ex));
+                        }
+                        finally
+                        {
+                            if (waiter.Retire() == 0)
                             {
-                                if (waiter.Retire() == 0)
+                                if (lastBatch == null)
                                 {
-                                    if (lastBatch == null)
-                                    {
                                         // If it wasn't null, this already sent along an exception bearing batch, in which
                                         // case sending the sentinel is unnecessary and unhelpful.
                                         toConsume.Add(null);
-                                    }
-                                    toConsume.CompleteAdding();
                                 }
+                                toConsume.CompleteAdding();
                             }
-                        });
-                        workers[t].Start();
-                    }
-
-                    Action quitAction = () =>
-                    {
-                        done = true;
-                        var myOutPipes = outPipes;
-                        foreach (var batch in toConsume.GetConsumingEnumerable())
-                        {
-                            if (batch == null)
-                                continue;
-                            batch.SetAll(myOutPipes);
-                            foreach (var outPipe in myOutPipes)
-                                outPipe.Unset();
                         }
-                        foreach (Thread thread in workers)
-                            thread.Join();
-                    };
-
-                    return new Cursor(provider, schema, activeToCol, colToActive, outPipes, toConsume, quitAction);
+                    });
                 }
 
-                private static object GetPool(ColumnType type, object[] pools, int poolIdx)
+                Action quitAction = () =>
                 {
-                    Func<object[], int, object> func = GetPoolCore<int>;
-                    var method = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
-                    return method.Invoke(null, new object[] { pools, poolIdx });
-                }
+                    done = true;
+                    var myOutPipes = outPipes;
+                    foreach (var batch in toConsume.GetConsumingEnumerable())
+                    {
+                        if (batch == null)
+                            continue;
+                        batch.SetAll(myOutPipes);
+                        foreach (var outPipe in myOutPipes)
+                            outPipe.Unset();
+                    }
+                    Task.WaitAll(workers);
+                };
 
-                private static MadeObjectPool<T[]> GetPoolCore<T>(object[] pools, int poolIdx)
-                {
-                    var pool = pools[poolIdx] as MadeObjectPool<T[]>;
-                    if (pool == null)
-                        pools[poolIdx] = pool = new MadeObjectPool<T[]>(() => null);
-                    return pool;
-                }
+                return new Cursor(provider, schema, activeToCol, colToActive, outPipes, toConsume, quitAction);
             }
 
-            public static IRowCursor[] Split(out IRowCursorConsolidator consolidator, IChannelProvider provider, ISchema schema, IRowCursor input, int cthd)
+            private static object GetPool(ColumnType type, object[] pools, int poolIdx)
+            {
+                Func<object[], int, object> func = GetPoolCore<int>;
+                var method = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
+                return method.Invoke(null, new object[] { pools, poolIdx });
+            }
+
+            private static MadeObjectPool<T[]> GetPoolCore<T>(object[] pools, int poolIdx)
+            {
+                var pool = pools[poolIdx] as MadeObjectPool<T[]>;
+                if (pool == null)
+                    pools[poolIdx] = pool = new MadeObjectPool<T[]>(() => null);
+                return pool;
+            }
+
+            public static RowCursor[] Split(IChannelProvider provider, Schema schema, RowCursor input, int cthd)
             {
                 Contracts.AssertValue(provider, "provider");
 
                 var splitter = new Splitter(schema);
                 using (var ch = provider.Start("CursorSplitter"))
                 {
-                    var result = splitter.SplitCore(out consolidator, provider, input, cthd);
-                    ch.Done();
+                    var result = splitter.SplitCore(provider, input, cthd);
                     return result;
                 }
             }
 
-            private IRowCursor[] SplitCore(out IRowCursorConsolidator consolidator, IChannelProvider ch, IRowCursor input, int cthd)
+            private RowCursor[] SplitCore(IChannelProvider ch, RowCursor input, int cthd)
             {
                 Contracts.AssertValue(ch);
                 ch.AssertValue(input);
                 ch.Assert(input.Schema == _schema);
                 ch.Assert(cthd >= 2);
-                ch.Assert(AllCachable(_schema, input.IsColumnActive));
+                ch.Assert(AllCacheable(_schema, input.IsColumnActive));
 
                 // REVIEW: Should the following be configurable?
                 // How would we even expose these sorts of parameters to a user?
@@ -524,9 +522,9 @@ namespace Microsoft.ML.Runtime.Data
                 // Create the mappings between active column index, and column index.
                 int[] activeToCol;
                 int[] colToActive;
-                Utils.BuildSubsetMaps(_schema.ColumnCount, input.IsColumnActive, out activeToCol, out colToActive);
+                Utils.BuildSubsetMaps(_schema.Count, input.IsColumnActive, out activeToCol, out colToActive);
 
-                Func<IRowCursor, int, InPipe> createFunc = CreateInPipe<int>;
+                Func<RowCursor, int, InPipe> createFunc = CreateInPipe<int>;
                 var inGenMethod = createFunc.GetMethodInfo().GetGenericMethodDefinition();
                 object[] arguments = new object[] { input, 0 };
                 // Only one set of in-pipes, one per column, as well as for extra side information.
@@ -539,11 +537,11 @@ namespace Microsoft.ML.Runtime.Data
                 // For each column, create the InPipe, and all OutPipes per output cursor.
                 for (int c = 0; c < activeToCol.Length; ++c)
                 {
-                    ch.Assert(0 <= activeToCol[c] && activeToCol[c] < _schema.ColumnCount);
+                    ch.Assert(0 <= activeToCol[c] && activeToCol[c] < _schema.Count);
                     ch.Assert(c == 0 || activeToCol[c - 1] < activeToCol[c]);
                     ch.Assert(input.IsColumnActive(activeToCol[c]));
-                    var type = input.Schema.GetColumnType(activeToCol[c]);
-                    ch.Assert(type.IsCachable());
+                    var type = input.Schema[activeToCol[c]].Type;
+                    ch.Assert(type.IsCacheable());
                     arguments[1] = activeToCol[c];
                     var inPipe = inPipes[c] =
                         (InPipe)inGenMethod.MakeGenericMethod(type.RawType).Invoke(this, arguments);
@@ -564,7 +562,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Set up and start the thread that consumes the input, and utilizes the InPipe
                 // instances to compose the Batch objects. The thread takes ownership of the
                 // cursor, and so handles its disposal.
-                Thread thread = Utils.CreateBackgroundThread(
+                Task thread = Utils.RunOnBackgroundThread(
                     () =>
                     {
                         Batch lastBatch = null;
@@ -611,7 +609,6 @@ namespace Microsoft.ML.Runtime.Data
                             toConsume.CompleteAdding();
                         }
                     });
-                thread.Start();
 
                 Action quitAction = () =>
                 {
@@ -632,34 +629,33 @@ namespace Microsoft.ML.Runtime.Data
                             foreach (var outPipe in myOutPipes)
                                 outPipe.Unset();
                         }
-                        thread.Join();
+                        thread.Wait();
                     }
                 };
 
                 var cursors = new Cursor[cthd];
                 for (int i = 0; i < cthd; ++i)
                     cursors[i] = new Cursor(ch, _schema, activeToCol, colToActive, outPipes[i], toConsume, quitAction);
-                consolidator = new Consolidator(this);
                 return cursors;
             }
 
             /// <summary>
             /// An in pipe creator intended to be used from the splitter only.
             /// </summary>
-            private InPipe CreateInPipe<T>(IRow input, int col)
+            private InPipe CreateInPipe<T>(Row input, int col)
             {
                 Contracts.AssertValue(input);
-                Contracts.Assert(0 <= col && col < _schema.ColumnCount);
+                Contracts.Assert(0 <= col && col < _schema.Count);
                 return CreateInPipeCore(col, input.GetGetter<T>(col));
             }
 
             /// <summary>
             /// An in pipe creator intended to be used from the splitter only.
             /// </summary>
-            private InPipe CreateIdInPipe(IRow input)
+            private InPipe CreateIdInPipe(Row input)
             {
                 Contracts.AssertValue(input);
-                return CreateInPipeCore(_schema.ColumnCount + (int)ExtraIndex.Id, input.GetIdGetter());
+                return CreateInPipeCore(_schema.Count + (int)ExtraIndex.Id, input.GetIdGetter());
             }
 
             private InPipe CreateInPipeCore<T>(int poolIdx, ValueGetter<T> getter)
@@ -851,7 +847,7 @@ namespace Microsoft.ML.Runtime.Data
 
             /// <summary>
             /// This helps a cursor present the results of a <see cref="BatchColumn"/>. Practically its role
-            /// really is to just provide a stable delegate for the <see cref="IRow.GetGetter{T}(int)"/>.
+            /// really is to just provide a stable delegate for the <see cref="Row.GetGetter{T}(int)"/>.
             /// There is one of these created per column, per output cursor, i.e., in splitting
             /// there are <c>n</c> of these created per column, and when consolidating only one of these
             /// is created per column.
@@ -873,11 +869,11 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.AssertValue(pool);
 
                     Type pipeType;
-                    if (type.IsVector)
-                        pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
+                    if (type is VectorType vectorType)
+                        pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                     else
                     {
-                        Contracts.Assert(type.IsPrimitive);
+                        Contracts.Assert(type is PrimitiveType);
                         pipeType = typeof(ImplOne<>).MakeGenericType(type.RawType);
                     }
                     var constructor = pipeType.GetConstructor(new Type[] { typeof(object) });
@@ -1001,14 +997,14 @@ namespace Microsoft.ML.Runtime.Data
             /// <see cref="Batch"/> objects from the input blocking collection, and yields the
             /// values stored therein through the help of <see cref="OutPipe"/> objects.
             /// </summary>
-            private sealed class Cursor : RootCursorBase, IRowCursor
+            private sealed class Cursor : RootCursorBase
             {
-                private readonly ISchema _schema;
+                private readonly Schema _schema;
                 private readonly int[] _activeToCol;
                 private readonly int[] _colToActive;
                 private readonly OutPipe[] _pipes;
                 private readonly Delegate[] _getters;
-                private readonly ValueGetter<UInt128> _idGetter;
+                private readonly ValueGetter<RowId> _idGetter;
                 private readonly BlockingCollection<Batch> _batchInputs;
                 private readonly Action _quitAction;
 
@@ -1016,15 +1012,9 @@ namespace Microsoft.ML.Runtime.Data
                 private long _batch;
                 private bool _disposed;
 
-                public ISchema Schema
-                {
-                    get { return _schema; }
-                }
+                public override Schema Schema => _schema;
 
-                public override long Batch
-                {
-                    get { return _batch; }
-                }
+                public override long Batch => _batch;
 
                 /// <summary>
                 /// Constructs one of the split cursors.
@@ -1037,7 +1027,7 @@ namespace Microsoft.ML.Runtime.Data
                 /// <param name="pipes">The output pipes, one per channel of information</param>
                 /// <param name="batchInputs"></param>
                 /// <param name="quitAction"></param>
-                public Cursor(IChannelProvider provider, ISchema schema, int[] activeToCol, int[] colToActive,
+                public Cursor(IChannelProvider provider, Schema schema, int[] activeToCol, int[] colToActive,
                     OutPipe[] pipes, BlockingCollection<Batch> batchInputs, Action quitAction)
                     : base(provider)
                 {
@@ -1047,7 +1037,7 @@ namespace Microsoft.ML.Runtime.Data
                     Ch.AssertValue(pipes);
                     Ch.AssertValue(batchInputs);
                     Ch.AssertValueOrNull(quitAction);
-                    Ch.Assert(colToActive.Length == schema.ColumnCount);
+                    Ch.Assert(colToActive.Length == schema.Count);
                     Ch.Assert(activeToCol.Length + (int)ExtraIndex._Lim == pipes.Length);
                     Ch.Assert(pipes.All(p => p != null));
                     // Could also confirm the inverse mappiness of activeToCol/colToActive, but that seems like a bit much.
@@ -1058,33 +1048,31 @@ namespace Microsoft.ML.Runtime.Data
                     _getters = new Delegate[pipes.Length];
                     for (int i = 0; i < activeToCol.Length; ++i)
                         _getters[i] = _pipes[i].GetGetter();
-                    _idGetter = (ValueGetter<UInt128>)_pipes[activeToCol.Length + (int)ExtraIndex.Id].GetGetter();
+                    _idGetter = (ValueGetter<RowId>)_pipes[activeToCol.Length + (int)ExtraIndex.Id].GetGetter();
                     _batchInputs = batchInputs;
                     _batch = -1;
                     _quitAction = quitAction;
                 }
 
-                public override void Dispose()
+                protected override void Dispose(bool disposing)
                 {
-                    if (!_disposed)
+                    if (_disposed)
+                        return;
+                    if (disposing)
                     {
                         foreach (var pipe in _pipes)
                             pipe.Unset();
-                        _disposed = true;
-                        if (_quitAction != null)
-                            _quitAction();
+                        _quitAction?.Invoke();
                     }
-                    base.Dispose();
+                    _disposed = true;
+                    base.Dispose(disposing);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
-                {
-                    return _idGetter;
-                }
+                public override ValueGetter<RowId> GetIdGetter() => _idGetter;
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(!_disposed && State != CursorState.Done);
+                    Ch.Assert(!_disposed);
                     if (--_remaining > 0)
                     {
                         // We are still consuming the current output pipes.
@@ -1119,13 +1107,13 @@ namespace Microsoft.ML.Runtime.Data
                     return true;
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.CheckParam(0 <= col && col < _colToActive.Length, nameof(col));
                     return _colToActive[col] >= 0;
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
                     var getter = _getters[_colToActive[col]] as ValueGetter<TValue>;
@@ -1141,12 +1129,12 @@ namespace Microsoft.ML.Runtime.Data
         /// at the cost of being totally synchronous, that is, there is no parallel benefit from
         /// having split the input cursors.
         /// </summary>
-        internal sealed class SynchronousConsolidatingCursor : RootCursorBase, IRowCursor
+        internal sealed class SynchronousConsolidatingCursor : RootCursorBase
         {
-            private readonly IRowCursor[] _cursors;
+            private readonly RowCursor[] _cursors;
             private readonly Delegate[] _getters;
 
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
             private readonly Heap<CursorStats> _mins;
             private readonly int[] _activeToCol;
             private readonly int[] _colToActive;
@@ -1157,10 +1145,10 @@ namespace Microsoft.ML.Runtime.Data
             // Index into _cursors array pointing to the current cursor, or -1 if this cursor is not in Good state.
             private int _icursor;
             // If this cursor is in Good state then this should equal _cursors[_icursor], else null.
-            private IRowCursor _currentCursor;
+            private RowCursor _currentCursor;
             private bool _disposed;
 
-            private struct CursorStats
+            private readonly struct CursorStats
             {
                 public readonly long Batch;
                 public readonly int CursorIdx;
@@ -1176,16 +1164,16 @@ namespace Microsoft.ML.Runtime.Data
             // input batch as our own batch. Should we suppress it?
             public override long Batch { get { return _batch; } }
 
-            public ISchema Schema { get { return _schema; } }
+            public override Schema Schema => _schema;
 
-            public SynchronousConsolidatingCursor(IChannelProvider provider, IRowCursor[] cursors)
+            public SynchronousConsolidatingCursor(IChannelProvider provider, RowCursor[] cursors)
                 : base(provider)
             {
                 Ch.CheckNonEmpty(cursors, nameof(cursors));
                 _cursors = cursors;
                 _schema = _cursors[0].Schema;
 
-                Utils.BuildSubsetMaps(_schema.ColumnCount, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
+                Utils.BuildSubsetMaps(_schema.Count, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
 
                 Func<int, Delegate> func = CreateGetter<int>;
                 _methInfo = func.GetMethodInfo().GetGenericMethodDefinition();
@@ -1204,18 +1192,19 @@ namespace Microsoft.ML.Runtime.Data
             {
                 for (int i = 0; i < _cursors.Length; ++i)
                 {
-                    IRowCursor cursor = _cursors[i];
-                    Ch.Assert(cursor.State == CursorState.NotStarted);
+                    RowCursor cursor = _cursors[i];
+                    Ch.Assert(cursor.Position < 0);
                     if (cursor.MoveNext())
                         _mins.Add(new CursorStats(cursor.Batch, i));
                 }
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    _disposed = true;
                     _batch = -1;
                     _icursor = -1;
                     _currentCursor = null;
@@ -1223,45 +1212,46 @@ namespace Microsoft.ML.Runtime.Data
                     foreach (var cursor in _cursors)
                         cursor.Dispose();
                 }
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
-                ValueGetter<UInt128>[] idGetters = new ValueGetter<UInt128>[_cursors.Length];
+                ValueGetter<RowId>[] idGetters = new ValueGetter<RowId>[_cursors.Length];
                 for (int i = 0; i < _cursors.Length; ++i)
                     idGetters[i] = _cursors[i].GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
-                        Ch.Check(_icursor >= 0, "Cannot call ID getter in current state");
+                        Ch.Check(_icursor >= 0, RowCursorUtils.FetchValueStateError);
                         idGetters[_icursor](ref val);
                     };
             }
 
             private Delegate CreateGetter(int col)
             {
-                var methInfo = _methInfo.MakeGenericMethod(Schema.GetColumnType(col).RawType);
+                var methInfo = _methInfo.MakeGenericMethod(Schema[col].Type.RawType);
                 return (Delegate)methInfo.Invoke(this, new object[] { col });
             }
 
             private Delegate CreateGetter<T>(int col)
             {
                 ValueGetter<T>[] getters = new ValueGetter<T>[_cursors.Length];
-                var type = Schema.GetColumnType(col);
+                var type = Schema[col].Type;
                 for (int i = 0; i < _cursors.Length; ++i)
                 {
                     var cursor = _cursors[i];
                     Ch.AssertValue(cursor);
-                    Ch.Assert(col < cursor.Schema.ColumnCount);
+                    Ch.Assert(col < cursor.Schema.Count);
                     Ch.Assert(cursor.IsColumnActive(col));
-                    Ch.Assert(type.Equals(cursor.Schema.GetColumnType(col)));
+                    Ch.Assert(type.Equals(cursor.Schema[col].Type));
                     getters[i] = _cursors[i].GetGetter<T>(col);
                 }
                 ValueGetter<T> mine =
                     (ref T value) =>
                     {
-                        Ch.Check(_icursor >= 0, "Cannot get value as the cursor is not in a good state");
+                        Ch.Check(_icursor >= 0, RowCursorUtils.FetchValueStateError);
                         getters[_icursor](ref value);
                     };
                 return mine;
@@ -1269,8 +1259,8 @@ namespace Microsoft.ML.Runtime.Data
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(!_disposed && State != CursorState.Done);
-                if (State == CursorState.Good && _currentCursor.MoveNext())
+                Ch.Assert(!_disposed);
+                if (Position >= 0 && _currentCursor.MoveNext())
                 {
                     // If we're still in this batch, no need to do anything, yet.
                     if (_currentCursor.Batch == _batch)
@@ -1288,7 +1278,7 @@ namespace Microsoft.ML.Runtime.Data
                 // some batch with some cursors with more rows. Because we only know the
                 // batch ID once we've moved into a row, we do not need to, at this time.
                 var stats = _mins.Pop();
-                Ch.Assert(State == CursorState.NotStarted || stats.Batch > _batch);
+                Ch.Assert(Position < 0 || stats.Batch > _batch);
                 _icursor = stats.CursorIdx;
                 _currentCursor = _cursors[stats.CursorIdx];
                 _batch = _currentCursor.Batch;
@@ -1296,13 +1286,13 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActive.Length, nameof(col));
                 return _colToActive[col] >= 0;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
                 var getter = _getters[_colToActive[col]] as ValueGetter<TValue>;
@@ -1312,25 +1302,25 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static ValueGetter<DvText>[] PopulateGetterArray(IRowCursor cursor, List<int> colIndices)
+        public static ValueGetter<ReadOnlyMemory<char>>[] PopulateGetterArray(RowCursor cursor, List<int> colIndices)
         {
             var n = colIndices.Count;
-            var getters = new ValueGetter<DvText>[n];
+            var getters = new ValueGetter<ReadOnlyMemory<char>>[n];
 
             for (int i = 0; i < n; i++)
             {
-                ValueGetter<DvText> getter;
+                ValueGetter<ReadOnlyMemory<char>> getter;
                 var srcColIndex = colIndices[i];
 
-                var colType = cursor.Schema.GetColumnType(srcColIndex);
-                if (colType.IsVector)
+                var colType = cursor.Schema[srcColIndex].Type;
+                if (colType is VectorType vectorType)
                 {
-                    getter = Utils.MarshalInvoke(GetVectorFlatteningGetter<int>, colType.ItemType.RawType,
-                        cursor, srcColIndex, colType.ItemType);
+                    getter = Utils.MarshalInvoke(GetVectorFlatteningGetter<int>, vectorType.ItemType.RawType,
+                        cursor, srcColIndex, vectorType.ItemType);
                 }
                 else
                 {
-                    getter = Utils.MarshalInvoke(GetSingleValueGetter<int>, colType.ItemType.RawType,
+                    getter = Utils.MarshalInvoke(GetSingleValueGetter<int>, colType.RawType,
                         cursor, srcColIndex, colType);
                 }
 
@@ -1340,7 +1330,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public static ValueGetter<DvText> GetSingleValueGetter<T>(IRow cursor, int i, ColumnType colType)
+        public static ValueGetter<ReadOnlyMemory<char>> GetSingleValueGetter<T>(Row cursor, int i, ColumnType colType)
         {
             var floatGetter = cursor.GetGetter<T>(i);
             T v = default(T);
@@ -1348,7 +1338,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!Conversions.Instance.TryGetStringConversion<T>(colType, out conversion))
             {
                 var error = $"Cannot display {colType}";
-                conversion = (ref T src, ref StringBuilder builder) =>
+                conversion = (in T src, ref StringBuilder builder) =>
                 {
                     if (builder == null)
                         builder = new StringBuilder();
@@ -1359,18 +1349,18 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             StringBuilder dst = null;
-            ValueGetter<DvText> getter =
-                (ref DvText value) =>
+            ValueGetter<ReadOnlyMemory<char>> getter =
+                (ref ReadOnlyMemory<char> value) =>
                 {
                     floatGetter(ref v);
-                    conversion(ref v, ref dst);
+                    conversion(in v, ref dst);
                     string text = dst.ToString();
-                    value = new DvText(text);
+                    value = text.AsMemory();
                 };
             return getter;
         }
 
-        public static ValueGetter<DvText> GetVectorFlatteningGetter<T>(IRow cursor, int colIndex, ColumnType colType)
+        public static ValueGetter<ReadOnlyMemory<char>> GetVectorFlatteningGetter<T>(Row cursor, int colIndex, ColumnType colType)
         {
             var vecGetter = cursor.GetGetter<VBuffer<T>>(colIndex);
             var vbuf = default(VBuffer<T>);
@@ -1378,8 +1368,8 @@ namespace Microsoft.ML.Runtime.Data
             ValueMapper<T, StringBuilder> conversion;
             Conversions.Instance.TryGetStringConversion<T>(colType, out conversion);
             StringBuilder dst = null;
-            ValueGetter<DvText> getter =
-                (ref DvText value) =>
+            ValueGetter<ReadOnlyMemory<char>> getter =
+                (ref ReadOnlyMemory<char> value) =>
                 {
                     vecGetter(ref vbuf);
 
@@ -1390,10 +1380,10 @@ namespace Microsoft.ML.Runtime.Data
                             x =>
                             {
                                 var v = x.Value;
-                                conversion(ref v, ref dst);
+                                conversion(in v, ref dst);
                                 return dst.ToString();
                             }));
-                    value = new DvText(string.Format("<{0}{1}>", stringRep, suffix));
+                    value = string.Format("<{0}{1}>", stringRep, suffix).AsMemory();
                 };
             return getter;
         }

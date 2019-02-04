@@ -5,20 +5,22 @@
 #pragma warning disable 649 // field is never assigned
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Xunit.Abstractions;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public sealed class CmdLine : BaseTestBaseline
     {
-        private const string ResourcePrefix = "Microsoft.ML.Runtime.RunTests.CmdLine.";
+        private const string ResourcePrefix = "Microsoft.ML.RunTests.CmdLine.";
 
         public CmdLine(ITestOutputHelper helper)
             : base(helper)
@@ -79,8 +81,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     new ArgsSingle<string>(), new ArgsSingle<string>() { value = "3" },
                 };
 
-            Action<IndentingTextWriter> init = null;
-            Action<IndentingTextWriter, string> action = null;
+            Action<IndentedTextWriter> init = null;
+            Action<IndentedTextWriter, string> action = null;
             foreach (var def in defaults)
             {
                 init += def.CallInit;
@@ -93,9 +95,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Called at the beginning of a test - it dumps the usage of the Arguments class(es).
         /// </summary>
-        private static void Init(IndentingTextWriter wrt, object defaults)
+        private static void Init(IndentedTextWriter wrt, object defaults)
         {
-            var env = new TlcEnvironment(seed: 42);
+            var env = new MLContext(seed: 42);
             wrt.WriteLine("Usage:");
             wrt.WriteLine(CmdParser.ArgumentsUsage(env, defaults.GetType(), defaults, false, 200));
         }
@@ -103,9 +105,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Process a script to be parsed (from the input resource).
         /// </summary>
-        private static void Process(IndentingTextWriter wrt, string text, ArgsBase defaults)
+        private static void Process(IndentedTextWriter wrt, string text, ArgsBase defaults)
         {
-            var env = new TlcEnvironment(seed: 42);
+            var env = new MLContext(seed: 42);
             using (wrt.Nest())
             {
                 var args1 = defaults.Clone();
@@ -136,7 +138,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private abstract class ArgsBase
         {
-            public void CallInit(IndentingTextWriter wrt)
+            public void CallInit(IndentedTextWriter wrt)
             {
                 Init(wrt, this);
             }
@@ -144,7 +146,7 @@ namespace Microsoft.ML.Runtime.RunTests
             /// <summary>
             /// Call the Process method passing "this" as the defaults.
             /// </summary>
-            public void CallProcess(IndentingTextWriter wrt, string text)
+            public void CallProcess(IndentedTextWriter wrt, string text)
             {
                 Process(wrt, text, this);
             }
@@ -192,14 +194,17 @@ namespace Microsoft.ML.Runtime.RunTests
             [Argument(ArgumentType.AtMostOnce)]
             public string text = "";
 
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent sub = new SubComponent("Xyz", "Abc");
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataSaver))]
+            public IComponentFactory<IDataSaver> sub = (IComponentFactory<IDataSaver>)CmdParser.CreateComponentFactory(
+                typeof(IComponentFactory<IDataSaver>),
+                typeof(SignatureDataSaver), 
+                "Text");
 
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent[] subArray = null;
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataSaver))]
+            public IComponentFactory<IDataSaver>[] subArray = null;
 
-            [Argument(ArgumentType.Multiple)]
-            public KeyValuePair<string, SubComponent>[] subTaggedArray = null;
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataSaver))]
+            public KeyValuePair<string, IComponentFactory<IDataSaver>>[] subTaggedArray = null;
 
             [Argument(ArgumentType.Multiple)]
             public Nested[] nest;
@@ -228,20 +233,23 @@ namespace Microsoft.ML.Runtime.RunTests
                 return sb.ToString();
             }
 
-            private static void AppendSubArray(StringBuilder sb, SubComponent[] subComponents)
+            private static void AppendSubArray(StringBuilder sb, IComponentFactory[] subComponents)
             {
                 if (subComponents == null)
                     return;
-                foreach (var sc in subComponents)
-                    sb.AppendFormat(" subArray={0}{1}", sc.Kind, string.Join("", sc.Settings));
+                foreach (var sc in subComponents.Cast<ICommandLineComponentFactory>())
+                    sb.AppendFormat(" subArray={0}{1}", sc.Name, sc.GetSettingsString());
             }
 
-            private static void AppendSubTaggedArray(StringBuilder sb, KeyValuePair<string, SubComponent>[] pairs)
+            private static void AppendSubTaggedArray<T>(StringBuilder sb, KeyValuePair<string, IComponentFactory<T>>[] pairs)
             {
                 if (pairs == null)
                     return;
                 foreach (var pair in pairs)
-                    sb.AppendFormat(" subTaggedArray{1}={0}{2}", pair.Value.Kind, pair.Key == "" ? "" : "[" + pair.Key + "]", string.Join("", pair.Value.Settings));
+                {
+                    var value = (ICommandLineComponentFactory)pair.Value;
+                    sb.AppendFormat(" subTaggedArray{1}={0}{2}", value.Name, pair.Key == "" ? "" : "[" + pair.Key + "]", value.GetSettingsString());
+                }
             }
 
             private static void AppendArray<T>(StringBuilder sb, T[] arr)
@@ -328,8 +336,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         // Run the test. The init delegate is called once at the beginning of the test.
         // The action delegate is called on script in the input resource.
-        private void Run(string dir, string name, Action<IndentingTextWriter> init,
-            Action<IndentingTextWriter, string> action)
+        private void Run(string dir, string name, Action<IndentedTextWriter> init,
+            Action<IndentedTextWriter, string> action)
         {
             string text = GetResText(InResName(name));
 
@@ -338,7 +346,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             using (var writer = File.CreateText(outPath))
             {
-                var wrt = IndentingTextWriter.Wrap(writer);
+                var wrt = new IndentedTextWriter(writer, "  ");
 
                 init(wrt);
 

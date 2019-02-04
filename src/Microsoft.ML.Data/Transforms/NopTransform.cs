@@ -3,25 +3,31 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Model;
+using System.Collections.Generic;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(NopTransform.Summary, typeof(NopTransform), null, typeof(SignatureLoadDataTransform),
     "", NopTransform.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(NopTransform), null, typeof(SignatureEntryPointModule), "NopTransform")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A transform that does nothing.
     /// </summary>
-    public sealed class NopTransform : IDataTransform, IRowToRowMapper
+    [BestFriend]
+    internal sealed class NopTransform : IDataTransform, IRowToRowMapper
     {
-        private readonly IDataView _input;
         private readonly IHost _host;
+
+        public IDataView Source { get; }
+
+        Schema IRowToRowMapper.InputSchema => Source.Schema;
 
         /// <summary>
         /// Creates a NopTransform if the input is not an IDataTransform.
@@ -40,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
-            _input = input;
+            Source = input;
             _host = env.Register(RegistrationName);
         }
 
@@ -55,7 +61,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NopTransform).Assembly.FullName);
         }
 
         internal static string RegistrationName = "NopTransform";
@@ -67,7 +74,7 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new NopTransform(h, ctx,  input));
+            return h.Apply("Loading Model", ch => new NopTransform(h, ctx, input));
         }
 
         private NopTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -75,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(host, "host");
             host.CheckValue(input, nameof(input));
 
-            _input = input;
+            Source = input;
             _host = host;
 
             // *** Binary format ***
@@ -92,44 +99,40 @@ namespace Microsoft.ML.Runtime.Data
             // Nothing :)
         }
 
-        public bool CanShuffle
+        public bool CanShuffle => Source.CanShuffle;
+
+        /// <summary>
+        /// Explicit implementation prevents Schema from being accessed from derived classes.
+        /// It's our first step to separate data produced by transform from transform.
+        /// </summary>
+        Schema IDataView.Schema => OutputSchema;
+
+        /// <summary>
+        /// Shape information of the produced output. Note that the input and the output of this transform (and their types) are identical.
+        /// </summary>
+        public Schema OutputSchema => Source.Schema;
+
+        public long? GetRowCount()
         {
-            get { return _input.CanShuffle; }
+            return Source.GetRowCount();
         }
 
-        public ISchema Schema
-        {
-            get { return _input.Schema; }
-        }
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            => Source.GetRowCursor(columnsNeeded, rand);
 
-        public long? GetRowCount(bool lazy = true)
-        {
-            return _input.GetRowCount(lazy);
-        }
-
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
-        {
-            return _input.GetRowCursor(predicate, rand);
-        }
-
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
-        {
-            return _input.GetRowCursorSet(out consolidator, predicate, n, rand);
-        }
-
-        public IDataView Source
-        {
-            get { return _input; }
-        }
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => Source.GetRowCursorSet(columnsNeeded, n, rand);
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
             return predicate;
         }
 
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
-            disposer = null;
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValue(active, nameof(active));
+            Contracts.CheckParam(input.Schema == Source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
             return input;
         }
 
@@ -146,7 +149,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = CreateIfNeeded(host, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

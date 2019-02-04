@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Sweeper;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(LongValueGenerator), typeof(LongParamArguments), typeof(SignatureSweeperParameter),
     "Long parameter", "lp")]
@@ -22,7 +20,7 @@ using Microsoft.ML.Runtime.Sweeper;
 [assembly: LoadableClass(typeof(DiscreteValueGenerator), typeof(DiscreteParamArguments), typeof(SignatureSweeperParameter),
     "Discrete parameter", "dp")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     public delegate void SignatureSweeperParameter();
 
@@ -513,7 +511,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         /// Generic parameter parser. Currently hand-hacked to auto-detect type.
         ///
         /// Generic form:   Name:Values
-        /// e.g.:    lr:0.05-0.4
+        /// for example,    lr:0.05-0.4
         ///          lambda:0.1-1000@log10
         ///          nl:2-64@log2
         ///          norm:-,+
@@ -556,7 +554,7 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
 
             // Extract the minimum, and the maximum value of the list of suggested sweeps.
-            // Positive lookahead splitting at the '-' character. 
+            // Positive lookahead splitting at the '-' character.
             // It is used for the Float and Long param types.
             // Example format: "0.02-0.1;steps:5".
             string[] minMaxRegex = Regex.Split(paramValue, "(?<=[^eE])-");
@@ -588,7 +586,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                         }
                         if (option.StartsWith("steps"))
                         {
-                            numSteps = Int32.Parse(option.Substring(option.IndexOf(':') + 1));
+                            numSteps = int.Parse(option.Substring(option.IndexOf(':') + 1));
                             optionsSpecified[1] = true;
                         }
                         if (option.StartsWith("inc"))
@@ -613,15 +611,15 @@ namespace Microsoft.ML.Runtime.Sweeper
             if (paramType == typeof(UInt16)
                 || paramType == typeof(UInt32)
                 || paramType == typeof(UInt64)
-                || paramType == typeof(Int16)
-                || paramType == typeof(Int32)
-                || paramType == typeof(Int64))
+                || paramType == typeof(short)
+                || paramType == typeof(int)
+                || paramType == typeof(long))
             {
                 long min;
                 long max;
                 if (!long.TryParse(minStr, out min) || !long.TryParse(maxStr, out max))
                     return false;
-                var generatorArgs = new Microsoft.ML.Runtime.Sweeper.LongParamArguments();
+                var generatorArgs = new Microsoft.ML.Sweeper.LongParamArguments();
                 generatorArgs.Name = paramName;
                 generatorArgs.Min = min;
                 generatorArgs.Max = max;

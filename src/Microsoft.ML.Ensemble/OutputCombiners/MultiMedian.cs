@@ -3,18 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(MultiMedian), typeof(MultiMedian.Arguments), typeof(SignatureCombiner),
     Median.UserName, MultiMedian.LoadName)]
 [assembly: LoadableClass(typeof(MultiMedian), null, typeof(SignatureLoadModel), Median.UserName, MultiMedian.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
+namespace Microsoft.ML.Ensemble.OutputCombiners
 {
     /// <summary>
     /// Generic interface for combining outputs of multiple models
@@ -31,7 +31,8 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MultiMedian).Assembly.FullName);
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Median.UserName)]
@@ -80,9 +81,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                         return;
                     }
 
-                    var values = dst.Values;
-                    if (Utils.Size(values) < len)
-                        values = new Single[len];
+                    var editor = VBufferEditor.Create(ref dst, len);
 
                     int count = src.Length;
                     if (Utils.Size(raw) < count)
@@ -91,11 +90,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                     {
                         for (int j = 0; j < count; j++)
                             raw[j] = i < src[j].Length ? src[j].GetItemOrDefault(i) : 0;
-                        values[i] = MathUtils.GetMedianInPlace(raw, count);
+                        editor.Values[i] = MathUtils.GetMedianInPlace(raw, count);
                     }
 
                     // Set the output to values.
-                    dst = new VBuffer<Single>(len, values, dst.Indices);
+                    dst = editor.Commit();
                 };
         }
     }

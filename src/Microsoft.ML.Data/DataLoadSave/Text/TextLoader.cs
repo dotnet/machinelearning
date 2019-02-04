@@ -2,31 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Float = System.Single;
 
-[assembly: LoadableClass(TextLoader.Summary, typeof(TextLoader), typeof(TextLoader.Arguments), typeof(SignatureDataLoader),
+[assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), typeof(TextLoader.Arguments), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
 
-[assembly: LoadableClass(TextLoader.Summary, typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
+[assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
     "Text Loader", TextLoader.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to IDataView columns.
-    /// Should accept any file that TlcTextInstances accepts.
     /// </summary>
-    public sealed partial class TextLoader : IDataLoader
+    public sealed partial class TextLoader : IDataReader<IMultiStreamSource>, ICanSaveModel
     {
         /// <example>
         /// Scalar column of <seealso cref="DataKind"/> I4 sourced from 2nd column
@@ -34,12 +35,33 @@ namespace Microsoft.ML.Runtime.Data
         ///
         /// Vector column of <seealso cref="DataKind"/> I4 that contains values from columns 1, 3 to 10
         ///     col=ColumnName:I4:1,3-10
-        ///     
+        ///
         /// Key range column of KeyType with underlying storage type U4 that contains values from columns 1, 3 to 10, that can go from 1 to 100 (0 reserved for out of range)
-        ///     col=ColumnName:U4[1-100]:1,3-10
+        ///     col=ColumnName:U4[100]:1,3-10
         /// </example>
         public sealed class Column
         {
+            public Column() { }
+
+            public Column(string name, DataKind? type, int index)
+               : this(name, type, new[] { new Range(index) }) { }
+
+            public Column(string name, DataKind? type, int minIndex, int maxIndex)
+                : this(name, type, new[] { new Range(minIndex, maxIndex) })
+            {
+            }
+
+            public Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
+            {
+                Contracts.CheckValue(name, nameof(name));
+                Contracts.CheckValue(source, nameof(source));
+
+                Name = name;
+                Type = type;
+                Source = source;
+                KeyCount = keyCount;
+            }
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
             public string Name;
 
@@ -50,9 +72,9 @@ namespace Microsoft.ML.Runtime.Data
             public Range[] Source;
 
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key")]
-            public KeyRange KeyRange;
+            public KeyCount KeyCount;
 
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -77,9 +99,9 @@ namespace Microsoft.ML.Runtime.Data
                 if (rgstr.Length == 3)
                 {
                     DataKind kind;
-                    if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyRange))
+                    if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyCount))
                         return false;
-                    Type = kind == default(DataKind) ? default(DataKind?) : kind;
+                    Type = kind == default ? default(DataKind?) : kind;
                 }
 
                 return TryParseSource(rgstr[istr++]);
@@ -103,7 +125,7 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
 
@@ -117,14 +139,14 @@ namespace Microsoft.ML.Runtime.Data
                 int ich = sb.Length;
                 sb.Append(Name);
                 sb.Append(':');
-                if (Type != null || KeyRange != null)
+                if (Type != null || KeyCount != null)
                 {
                     if (Type != null)
                         sb.Append(Type.Value.GetString());
-                    if (KeyRange != null)
+                    if (KeyCount != null)
                     {
                         sb.Append('[');
-                        if (!KeyRange.TryUnparse(sb))
+                        if (!KeyCount.TryUnparse(sb))
                         {
                             sb.Length = ich;
                             return false;
@@ -150,7 +172,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             ///  Returns <c>true</c> iff the ranges are disjoint, and each range satisfies 0 &lt;= min &lt;= max.
             /// </summary>
-            public bool IsValid()
+            internal bool IsValid()
             {
                 if (Utils.Size(Source) == 0)
                     return false;
@@ -179,6 +201,39 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Range
         {
+            public Range() { }
+
+            /// <summary>
+            /// A range representing a single value. Will result in a scalar column.
+            /// </summary>
+            /// <param name="index">The index of the field of the text file to read.</param>
+            public Range(int index)
+            {
+                Contracts.CheckParam(index >= 0, nameof(index), "Must be non-negative");
+                Min = index;
+                Max = index;
+            }
+
+            /// <summary>
+            /// A range representing a set of values. Will result in a vector column.
+            /// </summary>
+            /// <param name="min">The minimum inclusive index of the column.</param>
+            /// <param name="max">The maximum-inclusive index of the column. If <c>null</c>
+            /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
+            /// of the lines, and read till the end.</param>
+            public Range(int min, int? max)
+            {
+                Contracts.CheckParam(min >= 0, nameof(min), "Must be non-negative");
+                Contracts.CheckParam(!(max < min), nameof(max), "If specified, must be greater than or equal to " + nameof(min));
+
+                Min = min;
+                Max = max;
+                // Note that without the following being set, in the case where there is a single range
+                // where Min == Max, the result will not be a vector valued but a scalar column.
+                ForceVector = true;
+                AutoEnd = max == null;
+            }
+
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
             public int Min;
 
@@ -203,7 +258,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force scalar columns to be treated as vectors of length one", ShortName = "vector")]
             public bool ForceVector;
 
-            public static Range Parse(string str)
+            internal static Range Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -259,7 +314,7 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 char dash = AllOther ? '~' : '-';
@@ -288,10 +343,10 @@ namespace Microsoft.ML.Runtime.Data
                     " missing value and an empty value is denoted by \"\". When false, consecutive separators" +
                     " denote an empty value.",
                 ShortName = "quote")]
-            public bool AllowQuoting = true;
+            public bool AllowQuoting = DefaultArguments.AllowQuoting;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the input may include sparse representations", ShortName = "sparse")]
-            public bool AllowSparse = true;
+            public bool AllowSparse = DefaultArguments.AllowSparse;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of source columns in the text data. Default is that sparse rows contain their size information.",
@@ -299,17 +354,18 @@ namespace Microsoft.ML.Runtime.Data
             public int? InputSize;
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
-            public string Separator = "tab";
+            // this is internal as it only serves the command line interface
+            internal string Separator = DefaultArguments.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
-            public char[] SeparatorChars = new[] { '\t' };
+            public char[] Separators = new[] { DefaultArguments.Separator };
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
-                ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Remove trailing whitespace from lines", ShortName = "trim")]
-            public bool TrimWhitespace;
+            public bool TrimWhitespace = DefaultArguments.TrimWhitespace;
 
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
@@ -320,7 +376,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public bool IsValid()
             {
-                return Utils.Size(Column) == 0 || Column.All(x => x.IsValid());
+                return Utils.Size(Columns) == 0 || Columns.All(x => x.IsValid());
             }
         }
 
@@ -337,11 +393,20 @@ namespace Microsoft.ML.Runtime.Data
             public long? MaxRows;
         }
 
+        internal static class DefaultArguments
+        {
+            internal const bool AllowQuoting = true;
+            internal const bool AllowSparse = true;
+            internal const char Separator = '\t';
+            internal const bool HasHeader = false;
+            internal const bool TrimWhitespace = false;
+        }
+
         /// <summary>
         /// Used as an input column range.
         /// A variable length segment (extending to the end of the input line) is represented by Lim == SrcLim.
         /// </summary>
-        private struct Segment
+        internal struct Segment
         {
             public int Min;
             public int Lim;
@@ -376,7 +441,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Information for an output column.
         /// </summary>
-        private sealed class ColInfo
+        internal sealed class ColInfo
         {
             public readonly string Name;
             // REVIEW: Fix this for keys.
@@ -397,7 +462,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(isegVar >= -1);
 
                 Name = name;
-                Kind = colType.ItemType.RawKind;
+                Kind = colType.GetItemType().GetRawKind();
                 Contracts.Assert(Kind != 0);
                 ColType = colType;
                 Segments = segs;
@@ -456,27 +521,30 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class Bindings : ISchema
+        private sealed class Bindings
         {
+            /// <summary>
+            /// <see cref="Infos"/>[i] stores the i-th column's name and type. Columns are loaded from the input text file.
+            /// </summary>
             public readonly ColInfo[] Infos;
-            public readonly Dictionary<string, int> NameToInfoIndex;
-            private readonly VBuffer<DvText>[] _slotNames;
-            // Empty iff either header+ not set in args, or if no header present, or upon load
-            // there was no header stored in the model.
-            private readonly DvText _header;
+            /// <summary>
+            /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="MetadataUtils.Kinds.SlotNames"/>
+            /// in <see cref="Schema.Metadata"/>.
+            /// </summary>
+            private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
+            /// <summary>
+            /// Empty if <see cref="ArgumentsCore.HasHeader"/> is <see langword="false"/>, no header presents, or upon load
+            /// there was no header stored in the model.
+            /// </summary>
+            private readonly ReadOnlyMemory<char> _header;
 
-            private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>> _getSlotNames;
+            public Schema OutputSchema { get; }
 
-            private Bindings()
-            {
-                _getSlotNames = GetSlotNames;
-            }
-
-            public Bindings(TextLoader parent, Column[] cols, IMultiStreamSource headerFile)
-                : this()
+            public Bindings(TextLoader parent, Column[] cols, IMultiStreamSource headerFile, IMultiStreamSource dataSample)
             {
                 Contracts.AssertNonEmpty(cols);
                 Contracts.AssertValueOrNull(headerFile);
+                Contracts.AssertValueOrNull(dataSample);
 
                 using (var ch = parent._host.Start("Binding"))
                 {
@@ -494,13 +562,13 @@ namespace Microsoft.ML.Runtime.Data
 
                     int inputSize = parent._inputSize;
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
-                    List<DvText> lines = null;
+                    List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
                         Cursor.GetSomeLines(headerFile, 1, ref lines);
                     if (needInputSize && inputSize == 0)
-                        Cursor.GetSomeLines(parent._files, 100, ref lines);
+                        Cursor.GetSomeLines(dataSample, 100, ref lines);
                     else if (headerFile == null && parent.HasHeader)
-                        Cursor.GetSomeLines(parent._files, 1, ref lines);
+                        Cursor.GetSomeLines(dataSample, 1, ref lines);
 
                     if (needInputSize && inputSize == 0)
                     {
@@ -523,27 +591,30 @@ namespace Microsoft.ML.Runtime.Data
                     int isegOther = -1;
 
                     Infos = new ColInfo[cols.Length];
-                    NameToInfoIndex = new Dictionary<string, int>(Infos.Length);
+
+                    // This dictionary is used only for detecting duplicated column names specified by user.
+                    var nameToInfoIndex = new Dictionary<string, int>(Infos.Length);
+
                     for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
                     {
                         var col = cols[iinfo];
 
                         ch.CheckNonWhiteSpace(col.Name, nameof(col.Name));
                         string name = col.Name.Trim();
-                        if (iinfo == NameToInfoIndex.Count && NameToInfoIndex.ContainsKey(name))
+                        if (iinfo == nameToInfoIndex.Count && nameToInfoIndex.ContainsKey(name))
                             ch.Info("Duplicate name(s) specified - later columns will hide earlier ones");
 
                         PrimitiveType itemType;
                         DataKind kind;
-                        if (col.KeyRange != null)
+                        if (col.KeyCount != null)
                         {
-                            itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyRange);
+                            itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyCount);
                         }
                         else
                         {
                             kind = col.Type ?? DataKind.Num;
                             ch.CheckUserArg(Enum.IsDefined(typeof(DataKind), kind), nameof(Column.Type), "Bad item type");
-                            itemType = PrimitiveType.FromKind(kind);
+                            itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
 
                         // This was checked above.
@@ -554,7 +625,7 @@ namespace Microsoft.ML.Runtime.Data
                         {
                             var range = col.Source[i];
 
-                            // Check for remaining range, raise flag. 
+                            // Check for remaining range, raise flag.
                             if (range.AllOther)
                             {
                                 ch.CheckUserArg(iinfoOther < 0, nameof(Range.AllOther), "At most one all other range can be specified");
@@ -602,10 +673,10 @@ namespace Microsoft.ML.Runtime.Data
                         if (iinfoOther != iinfo)
                             Infos[iinfo] = ColInfo.Create(name, itemType, segs, true);
 
-                        NameToInfoIndex[name] = iinfo;
+                        nameToInfoIndex[name] = iinfo;
                     }
 
-                    // Note that segsOther[isegOther] is not a real segment to be included. 
+                    // Note that segsOther[isegOther] is not a real segment to be included.
                     // It only persists segment information such as Min, Max, autoEnd, variableEnd for later processing.
                     // Process all other range.
                     if (iinfoOther >= 0)
@@ -641,7 +712,7 @@ namespace Microsoft.ML.Runtime.Data
 
                             foreach (var seg in segsAll)
                             {
-                                // At this step, all indices less than min is contained in some segment, either in 
+                                // At this step, all indices less than min is contained in some segment, either in
                                 // segsAll or segsNew.
                                 ch.Assert(min < lim);
                                 if (min < seg.Min)
@@ -660,19 +731,17 @@ namespace Microsoft.ML.Runtime.Data
                         Infos[iinfoOther] = ColInfo.Create(cols[iinfoOther].Name.Trim(), typeOther, segsNew.ToArray(), true);
                     }
 
-                    _slotNames = new VBuffer<DvText>[Infos.Length];
+                    _slotNames = new VBuffer<ReadOnlyMemory<char>>[Infos.Length];
                     if ((parent.HasHeader || headerFile != null) && Utils.Size(lines) > 0)
                         _header = lines[0];
 
-                    if (_header.HasChars)
+                    if (!_header.IsEmpty)
                         Parser.ParseSlotNames(parent, _header, Infos, _slotNames);
-
-                    ch.Done();
                 }
+                OutputSchema = ComputeOutputSchema();
             }
 
             public Bindings(ModelLoadContext ctx, TextLoader parent)
-                : this()
             {
                 Contracts.AssertValue(ctx);
 
@@ -683,9 +752,7 @@ namespace Microsoft.ML.Runtime.Data
                 //   byte: DataKind
                 //   byte: bool of whether this is a key type
                 //   for a key type:
-                //     byte: contiguous key range
-                //     ulong: min for key range
-                //     int: count for key range
+                //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
                 //     int: min
@@ -694,7 +761,9 @@ namespace Microsoft.ML.Runtime.Data
                 int cinfo = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(cinfo > 0);
                 Infos = new ColInfo[cinfo];
-                NameToInfoIndex = new Dictionary<string, int>(Infos.Length);
+
+                // This dictionary is used only for detecting duplicated column names specified by user.
+                var nameToInfoIndex = new Dictionary<string, int>(Infos.Length);
 
                 for (int iinfo = 0; iinfo < cinfo; iinfo++)
                 {
@@ -706,23 +775,33 @@ namespace Microsoft.ML.Runtime.Data
                     bool isKey = ctx.Reader.ReadBoolByte();
                     if (isKey)
                     {
-                        Contracts.CheckDecode(KeyType.IsValidDataKind(kind));
+                        ulong count;
+                        Contracts.CheckDecode(KeyType.IsValidDataType(kind.ToType()));
 
-                        bool isContig = ctx.Reader.ReadBoolByte();
-                        ulong min = ctx.Reader.ReadUInt64();
-                        Contracts.CheckDecode(min >= 0);
-                        int count = ctx.Reader.ReadInt32();
-                        if (count == 0)
-                            itemType = new KeyType(kind, min, 0, isContig);
+                        // Special treatment for versions that had Min and Contiguous fields in KeyType.
+                        if (ctx.Header.ModelVerWritten < VersionNoMinCount)
+                        {
+                            bool isContig = ctx.Reader.ReadBoolByte();
+                            // We no longer support non contiguous values and non zero Min for KeyType.
+                            Contracts.CheckDecode(isContig);
+                            ulong min = ctx.Reader.ReadUInt64();
+                            Contracts.CheckDecode(min == 0);
+                            int cnt = ctx.Reader.ReadInt32();
+                            Contracts.CheckDecode(cnt >= 0);
+                            count = (ulong)cnt;
+                            // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
+                            if (count == 0)
+                                count = kind.ToMaxInt();
+                        }
                         else
                         {
-                            Contracts.CheckDecode(isContig);
-                            Contracts.CheckDecode(2 <= count && (ulong)count <= kind.ToMaxInt());
-                            itemType = new KeyType(kind, min, count);
+                            count = ctx.Reader.ReadUInt64();
+                            Contracts.CheckDecode(0 < count);
                         }
+                        itemType = new KeyType(kind.ToType(), count);
                     }
                     else
-                        itemType = PrimitiveType.FromKind(kind);
+                        itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
 
                     int cseg = ctx.Reader.ReadInt32();
                     Contracts.CheckDecode(cseg > 0);
@@ -742,26 +821,17 @@ namespace Microsoft.ML.Runtime.Data
                     // of multiple variable segments (since those segments will overlap and overlapping
                     // segments are illegal).
                     Infos[iinfo] = ColInfo.Create(name, itemType, segs, false);
-                    NameToInfoIndex[name] = iinfo;
+                    nameToInfoIndex[name] = iinfo;
                 }
 
-                _slotNames = new VBuffer<DvText>[Infos.Length];
-                List<DvText> lines = null;
-                // If the loader has a header in the data file, try reading a new header.
-                if (parent.HasHeader)
-                    Cursor.GetSomeLines(parent._files, 2, ref lines);
-                // If there were no lines in the new file source, or if there is a header from a different source (a header file or a string
-                // argument), try reading the header from the serialized text stream.
-                if (Utils.Size(lines) == 0)
-                {
-                    // REVIEW: Not sure if should prefer this, or if parent._files is empty?
-                    string result = null;
-                    ctx.TryLoadTextStream("Header.txt", reader => result = reader.ReadLine());
-                    if (!string.IsNullOrEmpty(result))
-                        Utils.Add(ref lines, new DvText(result));
-                }
-                if (Utils.Size(lines) > 0)
-                    Parser.ParseSlotNames(parent, _header = lines[0], Infos, _slotNames);
+                _slotNames = new VBuffer<ReadOnlyMemory<char>>[Infos.Length];
+
+                string result = null;
+                ctx.TryLoadTextStream("Header.txt", reader => result = reader.ReadLine());
+                if (!string.IsNullOrEmpty(result))
+                    Parser.ParseSlotNames(parent, _header = result.AsMemory(), Infos, _slotNames);
+
+                OutputSchema = ComputeOutputSchema();
             }
 
             public void Save(ModelSaveContext ctx)
@@ -775,9 +845,7 @@ namespace Microsoft.ML.Runtime.Data
                 //   byte: DataKind
                 //   byte: bool of whether this is a key type
                 //   for a key type:
-                //     byte: contiguous key range
-                //     ulong: min for key range
-                //     int: count for key range
+                //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
                 //     int: min
@@ -788,17 +856,13 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var info = Infos[iinfo];
                     ctx.SaveNonEmptyString(info.Name);
-                    var type = info.ColType.ItemType;
-                    Contracts.Assert((DataKind)(byte)type.RawKind == type.RawKind);
-                    ctx.Writer.Write((byte)type.RawKind);
-                    ctx.Writer.WriteBoolByte(type.IsKey);
-                    if (type.IsKey)
-                    {
-                        var key = type.AsKey;
-                        ctx.Writer.WriteBoolByte(key.Contiguous);
-                        ctx.Writer.Write(key.Min);
+                    var type = info.ColType.GetItemType();
+                    DataKind rawKind = type.GetRawKind();
+                    Contracts.Assert((DataKind)(byte)rawKind == rawKind);
+                    ctx.Writer.Write((byte)rawKind);
+                    ctx.Writer.WriteBoolByte(type is KeyType);
+                    if (type is KeyType key)
                         ctx.Writer.Write(key.Count);
-                    }
                     ctx.Writer.Write(info.Segments.Length);
                     foreach (var seg in info.Segments)
                     {
@@ -809,90 +873,33 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 // Save header in an easily human inspectable separate entry.
-                if (_header.HasChars)
+                if (!_header.IsEmpty)
                     ctx.SaveTextStream("Header.txt", writer => writer.WriteLine(_header.ToString()));
             }
 
-            public int ColumnCount
+            private Schema ComputeOutputSchema()
             {
-                get { return Infos.Length; }
-            }
+                var schemaBuilder = new SchemaBuilder();
 
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                Contracts.CheckValueOrNull(name);
-                return NameToInfoIndex.TryGetValue(name, out col);
-            }
-
-            public string GetColumnName(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < Infos.Length, nameof(col));
-                return Infos[col].Name;
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < Infos.Length, nameof(col));
-                return Infos[col].ColType;
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                var names = _slotNames[col];
-                if (names.Length > 0)
+                // Iterate through all loaded columns. The index i indicates the i-th column loaded.
+                for (int i = 0; i < Infos.Length; ++i)
                 {
-                    Contracts.Assert(Infos[col].ColType.VectorSize == names.Length);
-                    yield return MetadataUtils.GetSlotNamesPair(names.Length);
+                    var info = Infos[i];
+                    // Retrieve the only possible metadata of this class.
+                    var names = _slotNames[i];
+                    if (names.Length > 0)
+                    {
+                        // Slot names present! Let's add them.
+                        var metadataBuilder = new MetadataBuilder();
+                        metadataBuilder.AddSlotNames(names.Length, (ref VBuffer<ReadOnlyMemory<char>> value) => names.CopyTo(ref value));
+                        schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.GetMetadata());
+                    }
+                    else
+                        // Slot names is empty.
+                        schemaBuilder.AddColumn(info.Name, info.ColType);
                 }
-            }
 
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                switch (kind)
-                {
-                case MetadataUtils.Kinds.SlotNames:
-                    var names = _slotNames[col];
-                    if (names.Length == 0)
-                        return null;
-                    Contracts.Assert(Infos[col].ColType.VectorSize == names.Length);
-                    return MetadataUtils.GetNamesType(names.Length);
-
-                default:
-                    return null;
-                }
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                switch (kind)
-                {
-                case MetadataUtils.Kinds.SlotNames:
-                    _getSlotNames.Marshal(col, ref value);
-                    return;
-
-                default:
-                    throw MetadataUtils.ExceptGetMetadata();
-                }
-            }
-
-            private void GetSlotNames(int col, ref VBuffer<DvText> dst)
-            {
-                Contracts.Assert(0 <= col && col < ColumnCount);
-
-                var names = _slotNames[col];
-                if (names.Length == 0)
-                    throw MetadataUtils.ExceptGetMetadata();
-
-                Contracts.Assert(Infos[col].ColType.VectorSize == names.Length);
-                names.CopyTo(ref dst);
+                return schemaBuilder.GetSchema();
             }
         }
 
@@ -901,6 +908,7 @@ namespace Microsoft.ML.Runtime.Data
         public const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
+        private const uint VersionNoMinCount = 0x0001000C;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -916,10 +924,12 @@ namespace Microsoft.ML.Runtime.Data
                 //verWrittenCur: 0x00010008, // Added maxRows
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
-                verWrittenCur: 0x0001000B, // Header now retained if used and present
+                //verWrittenCur: 0x0001000B, // Header now retained if used and present
+                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TextLoader).Assembly.FullName);
         }
 
         /// <summary>
@@ -948,7 +958,6 @@ namespace Microsoft.ML.Runtime.Data
         private readonly char[] _separators;
         private readonly Bindings _bindings;
 
-        private readonly IMultiStreamSource _files;
         private readonly Parser _parser;
 
         private bool HasHeader
@@ -959,23 +968,51 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private const string RegistrationName = "TextLoader";
 
-        public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource files)
+        /// <summary>
+        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
+        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        public TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
+            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }), dataSample)
         {
+        }
+
+        private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
+        {
+            Contracts.AssertValue(separatorChars);
+            var result = new Arguments { Columns = columns, HasHeader = hasHeader, Separators = separatorChars};
+            return result;
+        }
+
+        /// <summary>
+        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="args">Defines the settings of the load operation.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        public TextLoader(IHostEnvironment env, Arguments args = null, IMultiStreamSource dataSample = null)
+        {
+            args = args ?? new Arguments();
+
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-
             _host.CheckValue(args, nameof(args));
-            _host.CheckValue(files, nameof(files));
+            _host.CheckValueOrNull(dataSample);
 
-            _files = files;
+            if (dataSample == null)
+                dataSample = new MultiFileSource(null);
 
             IMultiStreamSource headerFile = null;
             if (!string.IsNullOrWhiteSpace(args.HeaderFile))
                 headerFile = new MultiFileSource(args.HeaderFile);
 
-            var cols = args.Column;
+            var cols = args.Columns;
             bool error;
-            if (Utils.Size(cols) == 0 && !TryParseSchema(_host, headerFile ?? _files, ref args, out cols, out error))
+            if (Utils.Size(cols) == 0 && !TryParseSchema(_host, headerFile ?? dataSample, ref args, out cols, out error))
             {
                 if (error)
                     throw _host.Except("TextLoader options embedded in the file are invalid");
@@ -1013,13 +1050,13 @@ namespace Microsoft.ML.Runtime.Data
 
             _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
 
-            //Default arg.Separator is tab and default args.SeparatorChars is also a '\t'.
-            //At a time only one default can be different and whichever is different that will 
+            //Default arg.Separator is tab and default args.Separators is also a '\t'.
+            //At a time only one default can be different and whichever is different that will
             //be used.
-            if (args.SeparatorChars.Length > 1 || args.SeparatorChars[0] != '\t')
+            if (args.Separators.Length > 1 || args.Separators[0] != '\t')
             {
                 var separators = new HashSet<char>();
-                foreach (char c in args.SeparatorChars)
+                foreach (char c in args.Separators)
                     separators.Add(NormalizeSeparator(c.ToString()));
 
                 _separators = separators.ToArray();
@@ -1048,7 +1085,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            _bindings = new Bindings(this, cols, headerFile);
+            _bindings = new Bindings(this, cols, headerFile, dataSample);
             _parser = new Parser(this);
         }
 
@@ -1056,31 +1093,31 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (sep)
             {
-            case "space":
-            case " ":
-                return ' ';
-            case "tab":
-            case "\t":
-                return '\t';
-            case "comma":
-            case ",":
-                return ',';
-            case "colon":
-            case ":":
-                _host.CheckUserArg((_flags & Options.AllowSparse) == 0, nameof(Arguments.Separator),
-                    "When the separator is colon, turn off allowSparse");
-                return ':';
-            case "semicolon":
-            case ";":
-                return ';';
-            case "bar":
-            case "|":
-                return '|';
-            default:
-                char ch = sep[0];
-                if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
-                    throw _host.ExceptUserArg(nameof(Arguments.Separator), "Illegal separator: '{0}'", sep);
-                return sep[0];
+                case "space":
+                case " ":
+                    return ' ';
+                case "tab":
+                case "\t":
+                    return '\t';
+                case "comma":
+                case ",":
+                    return ',';
+                case "colon":
+                case ":":
+                    _host.CheckUserArg((_flags & Options.AllowSparse) == 0, nameof(Arguments.Separator),
+                        "When the separator is colon, turn off allowSparse");
+                    return ':';
+                case "semicolon":
+                case ";":
+                    return ';';
+                case "bar":
+                case "|":
+                    return '|';
+                default:
+                    char ch = sep[0];
+                    if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
+                        throw _host.ExceptUserArg(nameof(Arguments.Separator), "Illegal separator: '{0}'", sep);
+                    return sep[0];
             }
         }
 
@@ -1089,8 +1126,8 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class LoaderHolder
         {
 #pragma warning disable 649 // never assigned
-            [Argument(ArgumentType.Multiple)]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IDataLoader> Loader;
 #pragma warning restore 649 // never assigned
         }
 
@@ -1110,7 +1147,7 @@ namespace Microsoft.ML.Runtime.Data
             // Get settings just for core arguments, not everything.
             string tmp = CmdParser.GetSettings(host, args, new ArgumentsCore());
 
-            // Try to get the schema information from the file. 
+            // Try to get the schema information from the file.
             string str = Cursor.GetEmbeddedArgs(files);
             if (string.IsNullOrWhiteSpace(str))
                 return false;
@@ -1131,31 +1168,34 @@ namespace Microsoft.ML.Runtime.Data
                 LoaderHolder h = new LoaderHolder();
                 if (!CmdParser.ParseArguments(host, "loader = " + str, h, msg => ch.Error(msg)))
                     goto LDone;
-                if (h.Loader == null || string.IsNullOrWhiteSpace(h.Loader.Kind))
+
+                ch.Assert(h.Loader == null || h.Loader is ICommandLineComponentFactory);
+                var loader = h.Loader as ICommandLineComponentFactory;
+
+                if (loader == null || string.IsNullOrWhiteSpace(loader.Name))
                     goto LDone;
 
                 // Make sure the loader binds to us.
-                var info = ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(h.Loader.Kind);
-                if (info.Type != typeof(TextLoader) || info.ArgType != typeof(Arguments))
+                var info = host.ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
+                if (info.Type != typeof(IDataLoader) || info.ArgType != typeof(Arguments))
                     goto LDone;
 
                 var argsNew = new Arguments();
                 // Copy the non-core arguments to the new args (we already know that all the core arguments are default).
-                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(ch, args, new Arguments()), argsNew);
+                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(host, args, new Arguments()), argsNew);
                 ch.Assert(parsed);
                 // Copy the core arguments to the new args.
-                if (!CmdParser.ParseArguments(host, h.Loader.SubComponentSettings, argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
+                if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
                     goto LDone;
 
-                cols = argsNew.Column;
+                cols = argsNew.Columns;
                 if (Utils.Size(cols) == 0)
                     goto LDone;
 
                 error = false;
                 args = argsNew;
 
-                LDone:
-                ch.Done();
+            LDone:
                 return !error;
             }
         }
@@ -1175,14 +1215,12 @@ namespace Microsoft.ML.Runtime.Data
             return found && !error && args.IsValid();
         }
 
-        private TextLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource files)
+        private TextLoader(IHost host, ModelLoadContext ctx)
         {
             Contracts.AssertValue(host, "host");
             host.AssertValue(ctx);
-            host.AssertValue(files);
 
             _host = host;
-            _files = files;
 
             // REVIEW: Should we serialize this? It really isn't part of the data model.
             _useThreads = true;
@@ -1222,17 +1260,28 @@ namespace Microsoft.ML.Runtime.Data
             _parser = new Parser(this);
         }
 
-        public static TextLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        internal static TextLoader Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(RegistrationName);
 
             h.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            h.CheckValue(files, nameof(files));
 
-            return h.Apply("Loading Model", ch => new TextLoader(h, ctx, files));
+            return h.Apply("Loading Model", ch => new TextLoader(h, ctx));
         }
+
+        // These are legacy constructors needed for ComponentCatalog.
+        internal static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+            => (IDataLoader)Create(env, ctx).Read(files);
+        internal static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
+            => (IDataLoader)new TextLoader(env, args, files).Read(files);
+
+        /// <summary>
+        /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
+        /// </summary>
+        internal static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
+            => new TextLoader(env, args, fileSource).Read(fileSource);
 
         public void Save(ModelSaveContext ctx)
         {
@@ -1259,33 +1308,123 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public Schema GetOutputSchema() => _bindings.OutputSchema;
+
+        public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
+
+        public IDataView Read(string path) => Read(new MultiFileSource(path));
+
+        public IDataView Read(params string[] path) => Read(new MultiFileSource(path));
+
+        internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
+           bool hasHeader = DefaultArguments.HasHeader,
+           char separator = DefaultArguments.Separator,
+           bool allowQuotedStrings = DefaultArguments.AllowQuoting,
+           bool supportSparse = DefaultArguments.AllowSparse,
+           bool trimWhitespace = DefaultArguments.TrimWhitespace)
         {
-            // We don't know how many rows there are.
-            // REVIEW: Should we try to support RowCount?
-            return null;
+            var userType = typeof(TInput);
+
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            var propertyInfos =
+                userType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
+
+            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            var columns = new List<Column>();
+
+            for (int index = 0; index < memberInfos.Length; index++)
+            {
+                var memberInfo = memberInfos[index];
+                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
+
+                host.Assert(mappingAttr != null, $"Field or property {memberInfo.Name} is missing the {nameof(LoadColumnAttribute)} attribute");
+
+                var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+
+                var column = new Column();
+                column.Name = mappingAttrName?.Name ?? memberInfo.Name;
+                column.Source = mappingAttr.Sources.ToArray();
+                DataKind dk;
+                switch (memberInfo)
+                {
+                    case FieldInfo field:
+                        if (!DataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+
+                        break;
+
+                    case PropertyInfo property:
+                        if (!DataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                        break;
+
+                    default:
+                        Contracts.Assert(false);
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                }
+
+                column.Type = dk;
+
+                columns.Add(column);
+            }
+
+            Arguments args = new Arguments
+            {
+                HasHeader = hasHeader,
+                Separators = new[] { separator },
+                AllowQuoting = allowQuotedStrings,
+                AllowSparse = supportSparse,
+                TrimWhitespace = trimWhitespace,
+                Columns = columns.ToArray()
+            };
+
+            return new TextLoader(host, args);
         }
 
-        // REVIEW: Should we try to support shuffling?
-        public bool CanShuffle => false;
-
-        public ISchema Schema => _bindings;
-
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        private sealed class BoundLoader : IDataLoader
         {
-            _host.CheckValue(predicate, nameof(predicate));
-            _host.CheckValueOrNull(rand);
-            var active = Utils.BuildArray(_bindings.ColumnCount, predicate);
-            return Cursor.Create(this, active);
-        }
+            private readonly TextLoader _reader;
+            private readonly IHost _host;
+            private readonly IMultiStreamSource _files;
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
-        {
-            _host.CheckValue(predicate, nameof(predicate));
-            _host.CheckValueOrNull(rand);
-            var active = Utils.BuildArray(_bindings.ColumnCount, predicate);
-            return Cursor.CreateSet(out consolidator, this, active, n);
+            public BoundLoader(TextLoader reader, IMultiStreamSource files)
+            {
+                _reader = reader;
+                _host = reader._host.Register(nameof(BoundLoader));
+                _files = files;
+            }
+
+            public long? GetRowCount()
+            {
+                // We don't know how many rows there are.
+                // REVIEW: Should we try to support RowCount?
+                return null;
+            }
+
+            // REVIEW: Should we try to support shuffling?
+            public bool CanShuffle => false;
+
+            public Schema Schema => _reader._bindings.OutputSchema;
+
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            {
+                _host.CheckValueOrNull(rand);
+                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
+                return Cursor.Create(_reader, _files, active);
+            }
+
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            {
+                _host.CheckValueOrNull(rand);
+                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
+                return Cursor.CreateSet(_reader, _files, active, n);
+            }
+
+            public void Save(ModelSaveContext ctx) => _reader.Save(ctx);
         }
     }
 }

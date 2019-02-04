@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
-#pragma warning disable TLC_GeneralName // This structure should be deprecated anyway.
+#pragma warning disable MSML_GeneralName // This structure should be deprecated anyway.
     // REVIEW: Get rid of this. Everything should be in the ArgumentAttribute (or a class
     // derived from ArgumentAttribute).
     [AttributeUsage(AttributeTargets.Field)]
     public class TGUIAttribute : Attribute
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
     {
         // Display parameters
         public string Label { get; set; }
@@ -32,7 +31,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         public bool NoSweep { get; set; }
 
         //Settings are automatically populated for fields that are classes.
-        //The below is an extension of the framework to add settings for 
+        //The below is an extension of the framework to add settings for
         //boolean type fields.
         public bool ShowSettingsForCheckbox { get; set; }
         public object Settings { get; set; }

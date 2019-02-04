@@ -1,132 +1,6 @@
-﻿//////////////////////////////////////////////////////////////////////////////
-//    Command Line Argument Parser
-//    ----------------------------
-//    Usage
-//    -----
-//
-//    Parsing command line arguments to a console application is a common problem.
-//    This library handles the common task of reading arguments from a command line
-//    and filling in the values in a type.
-//
-//    To use this library, define a class whose fields represent the data that your
-//    application wants to receive from arguments on the command line. Then call
-//    CommandLine.ParseArguments() to fill the object with the data
-//    from the command line. Each field in the class defines a command line argument.
-//    The type of the field is used to validate the data read from the command line.
-//    The name of the field defines the name of the command line option.
-//
-//    The parser can handle fields of the following types:
-//
-//    - string
-//    - int
-//    - uint
-//    - bool
-//    - enum
-//    - array of the above type
-//
-//    For example, suppose you want to read in the argument list for wc (word count).
-//    wc takes three optional boolean arguments: -l, -w, and -c and a list of files.
-//
-//    You could parse these arguments using the following code:
-//
-//    class WCArguments
-//    {
-//        public bool lines;
-//        public bool words;
-//        public bool chars;
-//        public string[] files;
-//    }
-//
-//    class WC
-//    {
-//        static void Main(string[] args)
-//        {
-//            if (CommandLine.ParseArgumentsWithUsage(args, parsedArgs))
-//            {
-//            //     insert application code here
-//            }
-//        }
-//    }
-//
-//    So you could call this aplication with the following command line to count
-//    lines in the foo and bar files:
-//
-//        wc.exe /lines /files:foo /files:bar
-//
-//    The program will display the following usage message when bad command line
-//    arguments are used:
-//
-//        wc.exe -x
-//
-//    Unrecognized command line argument '-x'
-//        /lines[+|-]                         short form /l
-//        /words[+|-]                         short form /w
-//        /chars[+|-]                         short form /c
-//        /files=<string>                     short form /f
-//        @<file>                             Read response file for more options
-//
-//    That was pretty easy. However, you realy want to omit the "/files:" for the
-//    list of files. The details of field parsing can be controled using custom
-//    attributes. The attributes which control parsing behaviour are:
-//
-//    ArgumentAttribute
-//        - controls short name, long name, required, allow duplicates, default value
-//        and help text
-//    DefaultArgumentAttribute
-//        - allows omition of the "/name".
-//        - This attribute is allowed on only one field in the argument class.
-//
-//    So for the wc.exe program we want this:
-//
-//    using System;
-//    using Utilities;
-//
-//    class WCArguments
-//    {
-//        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of lines in the input text.")]
-//        public bool lines;
-//        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of words in the input text.")]
-//        public bool words;
-//        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of chars in the input text.")]
-//        public bool chars;
-//        [DefaultArgument(ArgumentType.MultipleUnique, HelpText="Input files to count.")]
-//        public string[] files;
-//    }
-//
-//    class WC
-//    {
-//        static void Main(string[] args)
-//        {
-//            WCArguments parsedArgs = new WCArguments();
-//            if (CommandLine.ParseArgumentsWithUsage(args, parsedArgs))
-//            {
-//            //     insert application code here
-//            }
-//        }
-//    }
-//
-//
-//
-//    So now we have the command line we want:
-//
-//        wc.exe /lines foo bar
-//
-//    This will set lines to true and will set files to an array containing the
-//    strings "foo" and "bar".
-//
-//    The new usage message becomes:
-//
-//        wc.exe -x
-//
-//    Unrecognized command line argument '-x'
-//    /lines[+|-]  Count number of lines in the input text. (short form /l)
-//    /words[+|-]  Count number of words in the input text. (short form /w)
-//    /chars[+|-]  Count number of chars in the input text. (short form /c)
-//    @<file>      Read response file for more options
-//    <files>      Input files to count. (short form /f)
-//
-//    If you want more control over how error messages are reported, how /help is
-//    dealt with, etc you can instantiate the CommandLine.Parser class.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -135,110 +9,20 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
-    /// <summary>
-    /// Used to control parsing of command line arguments.
-    /// </summary>
-    [Flags]
-    public enum ArgumentType
-    {
-        /// <summary>
-        /// Indicates that this field is required. An error will be displayed
-        /// if it is not present when parsing arguments.
-        /// </summary>
-        Required = 0x01,
-
-        /// <summary>
-        /// Only valid in conjunction with Multiple.
-        /// Duplicate values will result in an error.
-        /// </summary>
-        Unique = 0x02,
-
-        /// <summary>
-        /// Inidicates that the argument may be specified more than once.
-        /// Only valid if the argument is a collection
-        /// </summary>
-        Multiple = 0x04,
-
-        /// <summary>
-        /// The default type for non-collection arguments.
-        /// The argument is not required, but an error will be reported if it is specified more than once.
-        /// </summary>
-        AtMostOnce = 0x00,
-
-        /// <summary>
-        /// For non-collection arguments, when the argument is specified more than
-        /// once no error is reported and the value of the argument is the last
-        /// value which occurs in the argument list.
-        /// </summary>
-        LastOccurenceWins = Multiple,
-
-        /// <summary>
-        /// The default type for collection arguments.
-        /// The argument is permitted to occur multiple times, but duplicate
-        /// values will cause an error to be reported.
-        /// </summary>
-        MultipleUnique = Multiple | Unique,
-    }
-
-    /// <summary>
-    /// Indicates that this argument is the default argument.
-    /// '/' or '-' prefix only the argument value is specified.
-    /// The ShortName property should not be set for DefaultArgumentAttribute
-    /// instances. The LongName property is used for usage text only and
-    /// does not affect the usage of the argument.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class DefaultArgumentAttribute : ArgumentAttribute
-    {
-        /// <summary>
-        /// Indicates that this argument is the default argument.
-        /// </summary>
-        /// <param name="type"> Specifies the error checking to be done on the argument. </param>
-        public DefaultArgumentAttribute(ArgumentType type)
-            : base(type)
-        {
-        }
-    }
-
-    /// <summary>
-    /// On an enum value - indicates that the value should not be shown in help or UI.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class HideEnumValueAttribute : Attribute
-    {
-        public HideEnumValueAttribute()
-        {
-        }
-    }
-
-    /// <summary>
-    /// On an enum value - specifies the display name.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class EnumValueDisplayAttribute : Attribute
-    {
-        public readonly string Name;
-
-        public EnumValueDisplayAttribute(string name)
-        {
-            Name = name;
-        }
-    }
 
     /// <summary>
     /// A delegate used in error reporting.
     /// </summary>
-    public delegate void ErrorReporter(string message);
+    internal delegate void ErrorReporter(string message);
 
     [Flags]
-    public enum SettingsFlags
+    [BestFriend]
+    internal enum SettingsFlags
     {
         None = 0x00,
 
@@ -248,6 +32,149 @@ namespace Microsoft.ML.Runtime.CommandLine
 
         Default = ShortNames | NoSlashes
     }
+
+    /// <summary>
+    /// An IComponentFactory that is used in the command line.
+    ///
+    /// This allows components to be created by name, signature type, and a settings string.
+    /// </summary>
+    [BestFriend]
+    internal interface ICommandLineComponentFactory : IComponentFactory
+    {
+        Type SignatureType { get; }
+        string Name { get; }
+        string GetSettingsString();
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    //    Command Line Argument Parser
+    //    ----------------------------
+    //    Usage
+    //    -----
+    //
+    //    Parsing command line arguments to a console application is a common problem.
+    //    This library handles the common task of reading arguments from a command line
+    //    and filling in the values in a type.
+    //
+    //    To use this library, define a class whose fields represent the data that your
+    //    application wants to receive from arguments on the command line. Then call
+    //    CommandLine.ParseArguments() to fill the object with the data
+    //    from the command line. Each field in the class defines a command line argument.
+    //    The type of the field is used to validate the data read from the command line.
+    //    The name of the field defines the name of the command line option.
+    //
+    //    The parser can handle fields of the following types:
+    //
+    //    - string
+    //    - int
+    //    - uint
+    //    - bool
+    //    - enum
+    //    - array of the above type
+    //
+    //    For example, suppose you want to read in the argument list for wc (word count).
+    //    wc takes three optional boolean arguments: -l, -w, and -c and a list of files.
+    //
+    //    You could parse these arguments using the following code:
+    //
+    //    class WCArguments
+    //    {
+    //        public bool lines;
+    //        public bool words;
+    //        public bool chars;
+    //        public string[] files;
+    //    }
+    //
+    //    class WC
+    //    {
+    //        static void Main(string[] args)
+    //        {
+    //            if (CommandLine.ParseArgumentsWithUsage(args, parsedArgs))
+    //            {
+    //            //     insert application code here
+    //            }
+    //        }
+    //    }
+    //
+    //    So you could call this aplication with the following command line to count
+    //    lines in the foo and bar files:
+    //
+    //        wc.exe /lines /files:foo /files:bar
+    //
+    //    The program will display the following usage message when bad command line
+    //    arguments are used:
+    //
+    //        wc.exe -x
+    //
+    //    Unrecognized command line argument '-x'
+    //        /lines[+|-]                         short form /l
+    //        /words[+|-]                         short form /w
+    //        /chars[+|-]                         short form /c
+    //        /files=<string>                     short form /f
+    //        @<file>                             Read response file for more options
+    //
+    //    That was pretty easy. However, you realy want to omit the "/files:" for the
+    //    list of files. The details of field parsing can be controled using custom
+    //    attributes. The attributes which control parsing behaviour are:
+    //
+    //    ArgumentAttribute
+    //        - controls short name, long name, required, allow duplicates, default value
+    //        and help text
+    //    DefaultArgumentAttribute
+    //        - allows omition of the "/name".
+    //        - This attribute is allowed on only one field in the argument class.
+    //
+    //    So for the wc.exe program we want this:
+    //
+    //    using System;
+    //    using Utilities;
+    //
+    //    class WCArguments
+    //    {
+    //        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of lines in the input text.")]
+    //        public bool lines;
+    //        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of words in the input text.")]
+    //        public bool words;
+    //        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of chars in the input text.")]
+    //        public bool chars;
+    //        [DefaultArgument(ArgumentType.MultipleUnique, HelpText="Input files to count.")]
+    //        public string[] files;
+    //    }
+    //
+    //    class WC
+    //    {
+    //        static void Main(string[] args)
+    //        {
+    //            WCArguments parsedArgs = new WCArguments();
+    //            if (CommandLine.ParseArgumentsWithUsage(args, parsedArgs))
+    //            {
+    //            //     insert application code here
+    //            }
+    //        }
+    //    }
+    //
+    //
+    //
+    //    So now we have the command line we want:
+    //
+    //        wc.exe /lines foo bar
+    //
+    //    This will set lines to true and will set files to an array containing the
+    //    strings "foo" and "bar".
+    //
+    //    The new usage message becomes:
+    //
+    //        wc.exe -x
+    //
+    //    Unrecognized command line argument '-x'
+    //    /lines[+|-]  Count number of lines in the input text. (short form /l)
+    //    /words[+|-]  Count number of words in the input text. (short form /w)
+    //    /chars[+|-]  Count number of chars in the input text. (short form /c)
+    //    @<file>      Read response file for more options
+    //    <files>      Input files to count. (short form /f)
+    //
+    //    If you want more control over how error messages are reported, how /help is
+    //    dealt with, etc you can instantiate the CommandLine.Parser class.
 
     /// <summary>
     /// Parser for command line arguments.
@@ -273,13 +200,12 @@ namespace Microsoft.ML.Runtime.CommandLine
     /// Arguments which are array types are collection arguments. Collection
     /// arguments can be specified multiple times.
     /// </summary>
-    public sealed class CmdParser
+    [BestFriend]
+    internal sealed class CmdParser
     {
         private const int SpaceBeforeParam = 2;
         private readonly ErrorReporter _reporter;
         private readonly IHost _host;
-        // REVIEW: _catalog should be part of environment and can be get through _host.
-        private Lazy<ModuleCatalog> _catalog;
 
         /// <summary>
         /// Parses a command line. This assumes that the exe name has been stripped off.
@@ -402,7 +328,7 @@ namespace Microsoft.ML.Runtime.CommandLine
         }
 
         // REVIEW: Add a method for cloning arguments, instead of going to text and back.
-        public static string GetSettings(IExceptionContext ectx, object values, object defaults, SettingsFlags flags = SettingsFlags.Default)
+        public static string GetSettings(IHostEnvironment env, object values, object defaults, SettingsFlags flags = SettingsFlags.Default)
         {
             Type t1 = values.GetType();
             Type t2 = defaults.GetType();
@@ -418,7 +344,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 return null;
 
             var info = GetArgumentInfo(t, defaults);
-            return GetSettingsCore(ectx, info, values, flags);
+            return GetSettingsCore(env, info, values, flags);
         }
 
         public static IEnumerable<KeyValuePair<string, string>> GetSettingPairs(IHostEnvironment env, object values, object defaults, SettingsFlags flags = SettingsFlags.None)
@@ -491,74 +417,9 @@ namespace Microsoft.ML.Runtime.CommandLine
             return parser.GetUsageString(env, info, showRsp, columns);
         }
 
-#if CORECLR
-        /// <summary>
-        /// Fix the window width for the Core build to remove the kernel32.dll dependency. 
-        /// </summary>
-        /// <returns></returns>
-        public static int GetConsoleWindowWidth()
-        {
-            return 120;
-        }
-#else
-        private const int StdOutputHandle = -11;
-
-        private struct Coord
-        {
-            internal Int16 X;
-            internal Int16 Y;
-        }
-
-        private struct SmallRect
-        {
-            internal Int16 Left;
-            internal Int16 Top;
-            internal Int16 Right;
-            internal Int16 Bottom;
-        }
-
-        private struct ConsoleScreenBufferInfo
-        {
-            internal Coord DwSize;
-            internal Coord DwCursorPosition;
-            internal Int16 WAttributes;
-            internal SmallRect SrWindow;
-            internal Coord DwMaximumWindowSize;
-        }
-
-        [DllImport("kernel32.dll", EntryPoint = "GetStdHandle", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
-        private static extern int GetStdHandle(int nStdHandle);
-
-        [DllImport("kernel32.dll", EntryPoint = "GetConsoleScreenBufferInfo", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
-        private static extern int GetConsoleScreenBufferInfo(int hConsoleOutput, ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
-
-        /// <summary>
-        /// Returns the number of columns in the current console window
-        /// </summary>
-        /// <returns>Returns the number of columns in the current console window</returns>
-        public static int GetConsoleWindowWidth()
-        {
-            int screenWidth;
-            ConsoleScreenBufferInfo csbi = new ConsoleScreenBufferInfo();
-            // Just to remove the warning messages...
-            csbi.DwCursorPosition.X = 0;
-            csbi.DwCursorPosition.Y = 0;
-            csbi.SrWindow.Bottom = 0;
-            csbi.SrWindow.Top = 0;
-            csbi.SrWindow.Left = 0;
-            csbi.SrWindow.Right = 0;
-
-            int rc;
-            rc = GetConsoleScreenBufferInfo(GetStdHandle(StdOutputHandle), ref csbi);
-            screenWidth = csbi.DwSize.X;
-            return screenWidth;
-        }
-#endif
-
         private CmdParser(IHostEnvironment env)
         {
             _host = env.Register("CmdParser");
-            _catalog = new Lazy<ModuleCatalog>(() => ModuleCatalog.CreateInstance(_host));
             _reporter = Console.Error.WriteLine;
         }
 
@@ -566,7 +427,6 @@ namespace Microsoft.ML.Runtime.CommandLine
         {
             Contracts.AssertValueOrNull(reporter);
             _host = env.Register("CmdParser");
-            _catalog = new Lazy<ModuleCatalog>(() => ModuleCatalog.CreateInstance(_host));
             _reporter = reporter;
         }
 
@@ -606,7 +466,7 @@ namespace Microsoft.ML.Runtime.CommandLine
             var map = new Dictionary<string, Argument>();
             Argument def = null;
 
-            foreach (FieldInfo field in type.GetFields())
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 ArgumentAttribute attr = GetAttribute(field);
                 if (attr != null)
@@ -614,13 +474,14 @@ namespace Microsoft.ML.Runtime.CommandLine
                     Contracts.Check(!field.IsStatic && !field.IsInitOnly && !field.IsLiteral);
                     bool isDefault = attr is DefaultArgumentAttribute;
                     if (isDefault && def != null)
-                        throw Contracts.Except("Duplicate default argument '{0}' vs '{1}'", def.LongName, field.Name);
+                        throw Contracts.Except($"Duplicate default argument '{def.LongName}' vs '{field.Name}'");
 
-                    string name = ArgCase(field.Name);
+                    string name = ArgCase(attr.Name ?? field.Name);
+
                     string[] nicks;
                     // Semantics of ShortName:
                     //    The string provided represents an array of names separated by commas and spaces, once empty entries are removed.
-                    //    'null' or a singleton array with containing only the long field name means "use the default short name", 
+                    //    'null' or a singleton array with containing only the long field name means "use the default short name",
                     //    and is represented by the null 'nicks' array.
                     //    'String.Empty' or a string containing only spaces and commas means "no short name", and is represented by an empty 'nicks' array.
                     if (attr.ShortName == null)
@@ -634,13 +495,13 @@ namespace Microsoft.ML.Runtime.CommandLine
                     Contracts.Assert(!isDefault || nicks == null);
 
                     if (map.ContainsKey(name.ToLowerInvariant()))
-                        throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", name, type.Name);
+                        throw Contracts.Except($"Duplicate name '{name}' in argument type '{type.Name}'");
                     if (nicks != null)
                     {
                         foreach (var nick in nicks)
                         {
                             if (map.ContainsKey(nick.ToLowerInvariant()))
-                                throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", nick, type.Name);
+                                throw Contracts.Except($"Duplicate name '{nick}' in argument type '{type.Name}'");
                         }
                     }
 
@@ -675,16 +536,10 @@ namespace Microsoft.ML.Runtime.CommandLine
 
         private static ArgumentAttribute GetAttribute(FieldInfo field)
         {
-            var attrs = field.GetCustomAttributes(typeof(ArgumentAttribute), false).ToArray();
-            if (attrs.Length == 1)
-            {
-                var argumentAttribute = (ArgumentAttribute)attrs[0];
-                if (argumentAttribute.Visibility == ArgumentAttribute.VisibilityType.EntryPointsOnly)
-                    return null;
-                return argumentAttribute;
-            }
-            Contracts.Assert(attrs.Length == 0);
-            return null;
+            var argumentAttribute = field.GetCustomAttribute<ArgumentAttribute>(false);
+            if (argumentAttribute?.Visibility == ArgumentAttribute.VisibilityType.EntryPointsOnly)
+                return null;
+            return argumentAttribute;
         }
 
         private void ReportUnrecognizedArgument(string argument)
@@ -794,10 +649,11 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                 if (arg.IsComponentFactory)
                 {
-                    ModuleCatalog.ComponentInfo component;
+                    ComponentCatalog.ComponentInfo component;
                     if (IsCurlyGroup(value) && value.Length == 2)
                         arg.Field.SetValue(destination, null);
-                    else if (_catalog.Value.TryFindComponentCaseInsensitive(arg.Field.FieldType, value, out component))
+                    else if (!arg.IsCollection &&
+                        _host.ComponentCatalog.TryFindComponentCaseInsensitive(arg.Field.FieldType, value, out component))
                     {
                         var activator = Activator.CreateInstance(component.ArgumentType);
                         if (!IsCurlyGroup(value) && i + 1 < strs.Length && IsCurlyGroup(strs[i + 1]))
@@ -810,17 +666,10 @@ namespace Microsoft.ML.Runtime.CommandLine
                     }
                     else
                     {
-                        Report("Error: Failed to find component with name '{0}' for option '{1}'", value, arg.LongName);
-                        hadError |= true;
+                        hadError |= !arg.SetValue(this, ref values[arg.Index], value, tag, destination);
+                        if (!IsCurlyGroup(value) && i + 1 < strs.Length && IsCurlyGroup(strs[i + 1]))
+                            hadError |= !arg.SetValue(this, ref values[arg.Index], strs[++i], "", destination);
                     }
-                    continue;
-                }
-
-                if (arg.IsSubComponentItemType)
-                {
-                    hadError |= !arg.SetValue(this, ref values[arg.Index], value, tag, destination);
-                    if (!IsCurlyGroup(value) && i + 1 < strs.Length && IsCurlyGroup(strs[i + 1]))
-                        hadError |= !arg.SetValue(this, ref values[arg.Index], strs[++i], "", destination);
                     continue;
                 }
 
@@ -920,20 +769,20 @@ namespace Microsoft.ML.Runtime.CommandLine
             return !hadError;
         }
 
-        private static string GetSettingsCore(IExceptionContext ectx, ArgumentInfo info, object values, SettingsFlags flags)
+        private static string GetSettingsCore(IHostEnvironment env, ArgumentInfo info, object values, SettingsFlags flags)
         {
             StringBuilder sb = new StringBuilder();
 
             if (info.ArgDef != null)
             {
                 var val = info.ArgDef.GetValue(values);
-                info.ArgDef.AppendSetting(ectx, sb, val, flags);
+                info.ArgDef.AppendSetting(env, sb, val, flags);
             }
 
             foreach (Argument arg in info.Args)
             {
                 var val = arg.GetValue(values);
-                arg.AppendSetting(ectx, sb, val, flags);
+                arg.AppendSetting(env, sb, val, flags);
             }
 
             return sb.ToString();
@@ -944,7 +793,7 @@ namespace Microsoft.ML.Runtime.CommandLine
         /// It deals with custom "unparse" functionality, as well as quoting. It also appends to a StringBuilder
         /// instead of returning a string.
         /// </summary>
-        private static void AppendCustomItem(IExceptionContext ectx, ArgumentInfo info, object values, SettingsFlags flags, StringBuilder sb)
+        private static void AppendCustomItem(IHostEnvironment env, ArgumentInfo info, object values, SettingsFlags flags, StringBuilder sb)
         {
             int ich = sb.Length;
             // We always call unparse, even when NoUnparse is specified, since Unparse can "cleanse", which
@@ -960,13 +809,13 @@ namespace Microsoft.ML.Runtime.CommandLine
             if (info.ArgDef != null)
             {
                 var val = info.ArgDef.GetValue(values);
-                info.ArgDef.AppendSetting(ectx, sb, val, flags);
+                info.ArgDef.AppendSetting(env, sb, val, flags);
             }
 
             foreach (Argument arg in info.Args)
             {
                 var val = arg.GetValue(values);
-                arg.AppendSetting(ectx, sb, val, flags);
+                arg.AppendSetting(env, sb, val, flags);
             }
 
             string str = sb.ToString(ich, sb.Length - ich);
@@ -974,19 +823,19 @@ namespace Microsoft.ML.Runtime.CommandLine
             CmdQuoter.QuoteValue(str, sb, force: true);
         }
 
-        private IEnumerable<KeyValuePair<string, string>> GetSettingPairsCore(IExceptionContext ectx, ArgumentInfo info, object values, SettingsFlags flags)
+        private IEnumerable<KeyValuePair<string, string>> GetSettingPairsCore(IHostEnvironment env, ArgumentInfo info, object values, SettingsFlags flags)
         {
             StringBuilder buffer = new StringBuilder();
             foreach (Argument arg in info.Args)
             {
                 string key = arg.GetKey(flags);
                 object value = arg.GetValue(values);
-                foreach (string val in arg.GetSettingStrings(ectx, value, buffer))
+                foreach (string val in arg.GetSettingStrings(env, value, buffer))
                     yield return new KeyValuePair<string, string>(key, val);
             }
         }
 
-        private struct ArgumentHelpStrings
+        private readonly struct ArgumentHelpStrings
         {
             public readonly string Syntax;
             public readonly string Help;
@@ -1001,13 +850,13 @@ namespace Microsoft.ML.Runtime.CommandLine
         /// <summary>
         /// A user friendly usage string describing the command line argument syntax.
         /// </summary>
-        private string GetUsageString(IExceptionContext ectx, ArgumentInfo info, bool showRsp = true, int? columns = null)
+        private string GetUsageString(IHostEnvironment env, ArgumentInfo info, bool showRsp = true, int? columns = null)
         {
-            int screenWidth = columns ?? GetConsoleWindowWidth();
+            int screenWidth = columns ?? Console.BufferWidth;
             if (screenWidth <= 0)
                 screenWidth = 80;
 
-            ArgumentHelpStrings[] strings = GetAllHelpStrings(ectx, info, showRsp);
+            ArgumentHelpStrings[] strings = GetAllHelpStrings(env, info, showRsp);
 
             int maxParamLen = 0;
             foreach (ArgumentHelpStrings helpString in strings)
@@ -1097,17 +946,17 @@ namespace Microsoft.ML.Runtime.CommandLine
             currentColumn = 0;
         }
 
-        private static ArgumentHelpStrings[] GetAllHelpStrings(IExceptionContext ectx, ArgumentInfo info, bool showRsp)
+        private ArgumentHelpStrings[] GetAllHelpStrings(IHostEnvironment env, ArgumentInfo info, bool showRsp)
         {
             List<ArgumentHelpStrings> strings = new List<ArgumentHelpStrings>();
 
             if (info.ArgDef != null)
-                strings.Add(GetHelpStrings(ectx, info.ArgDef));
+                strings.Add(GetHelpStrings(env, info.ArgDef));
 
             foreach (Argument arg in info.Args)
             {
                 if (!arg.IsHidden)
-                    strings.Add(GetHelpStrings(ectx, arg));
+                    strings.Add(GetHelpStrings(env, arg));
             }
 
             if (showRsp)
@@ -1116,9 +965,9 @@ namespace Microsoft.ML.Runtime.CommandLine
             return strings.ToArray();
         }
 
-        private static ArgumentHelpStrings GetHelpStrings(IExceptionContext ectx, Argument arg)
+        private ArgumentHelpStrings GetHelpStrings(IHostEnvironment env, Argument arg)
         {
-            return new ArgumentHelpStrings(arg.GetSyntaxHelp(), arg.GetFullHelpText(ectx));
+            return new ArgumentHelpStrings(arg.GetSyntaxHelp(), arg.GetFullHelpText(env));
         }
 
         private bool LexFileArguments(string fileName, out string[] arguments)
@@ -1283,6 +1132,41 @@ namespace Microsoft.ML.Runtime.CommandLine
                 typeBase.IsEnum;
         }
 
+        /// <summary>
+        /// Creates an ICommandLineComponentFactory given the factory type, signature type,
+        /// and a command line string.
+        /// </summary>
+        public static ICommandLineComponentFactory CreateComponentFactory(
+            Type factoryType,
+            Type signatureType,
+            string settings)
+        {
+            ParseComponentStrings(settings, out string name, out string args);
+
+            string[] argsArray = string.IsNullOrEmpty(args) ? Array.Empty<string>() : new string[] { args };
+
+            return ComponentFactoryFactory.CreateComponentFactory(factoryType, signatureType, name, argsArray);
+        }
+
+        private static void ParseComponentStrings(string str, out string kind, out string args)
+        {
+            kind = args = null;
+            if (string.IsNullOrWhiteSpace(str))
+                return;
+            str = str.Trim();
+            int ich = str.IndexOf('{');
+            if (ich < 0)
+            {
+                kind = str;
+                return;
+            }
+            if (ich == 0 || str[str.Length - 1] != '}')
+                throw Contracts.Except("Invalid Component string: mismatched braces, or empty component name.");
+
+            kind = str.Substring(0, ich);
+            args = CmdLexer.UnquoteValue(str.Substring(ich));
+        }
+
         private sealed class ArgValue
         {
             public readonly string FirstValue;
@@ -1346,7 +1230,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                 public bool IsDefault { get { return _arg.IsDefault; } }
                 public bool IsHidden { get { return _arg.IsHidden; } }
                 public bool IsCollection { get { return _arg.IsCollection; } }
-                public bool IsSubComponentItemType { get { return _arg.IsSubComponentItemType; } }
                 public bool IsTaggedCollection { get { return _arg.IsTaggedCollection; } }
                 // Used for help and composing settings strings.
                 public object DefaultValue { get { return _arg.DefaultValue; } }
@@ -1437,12 +1320,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                         bldr.Append(']');
                         return bldr.ToString();
                     }
-                    else if (type.IsGenericEx(typeof(SubComponent<,>)))
-                    {
-                        var genArgs = type.GetGenericTypeArgumentsEx();
-                        Contracts.Assert(Utils.Size(genArgs) == 2);
-                        return $"{ComponentCatalog.SignatureToString(genArgs[1])} ⇒ {genArgs[0].Name}";
-                    }
                     else
                         return type.Name;
                 }
@@ -1483,8 +1360,8 @@ namespace Microsoft.ML.Runtime.CommandLine
             private static MethodInfo GetParseMethod(Type type)
             {
                 Contracts.AssertValue(type);
-                var meth = type.GetMethod("Parse", new[] { typeof(string) });
-                if (meth != null && meth.IsStatic && meth.IsPublic && meth.ReturnType == type)
+                var meth = type.GetMethod("Parse", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, binder: null, new[] { typeof(string) }, null);
+                if (meth != null && meth.IsStatic && !meth.IsPrivate && meth.ReturnType == type)
                     return meth;
                 return null;
             }
@@ -1492,8 +1369,8 @@ namespace Microsoft.ML.Runtime.CommandLine
             private static MethodInfo GetUnparseMethod(Type type)
             {
                 Contracts.AssertValue(type);
-                var meth = type.GetMethod("TryUnparse", new[] { typeof(StringBuilder) });
-                if (meth != null && !meth.IsStatic && meth.IsPublic && meth.ReturnType == typeof(bool))
+                var meth = type.GetMethod("TryUnparse", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, binder: null, new[] { typeof(StringBuilder) }, null);
+                if (meth != null && !meth.IsPrivate && meth.ReturnType == typeof(bool))
                     return meth;
                 return null;
             }
@@ -1525,12 +1402,13 @@ namespace Microsoft.ML.Runtime.CommandLine
             public readonly bool IsDefault;
             public readonly bool IsHidden;
             public readonly bool IsCollection;
-            public readonly bool IsSubComponentItemType;
             public readonly bool IsTaggedCollection;
             public readonly bool IsComponentFactory;
 
             // Used for help and composing settings strings.
             public readonly object DefaultValue;
+
+            private readonly Type _signatureType;
 
             // For custom types.
             private readonly ArgumentInfo _infoCustom;
@@ -1559,6 +1437,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 IsDefault = attr is DefaultArgumentAttribute;
                 Contracts.Assert(!IsDefault || Utils.Size(ShortNames) == 0);
                 IsHidden = attr.Hide;
+                _signatureType = attr.SignatureType;
 
                 if (field.FieldType.IsArray)
                 {
@@ -1577,9 +1456,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 if (defaults != null && !IsRequired)
                     DefaultValue = field.GetValue(defaults);
 
-                if (typeof(SubComponent).IsAssignableFrom(ItemValueType))
-                    IsSubComponentItemType = true;
-                else if (typeof(IComponentFactory).IsAssignableFrom(ItemValueType))
+                if (typeof(IComponentFactory).IsAssignableFrom(ItemValueType))
                     IsComponentFactory = true;
                 else if (!IsValidItemType(ItemValueType))
                 {
@@ -1606,7 +1483,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
 
                 Contracts.Check(!IsCollection || AllowMultiple, "Collection arguments must allow multiple");
-                Contracts.Check(!IsSingleSubComponent || AllowMultiple, "SubComponent arguments must allow multiple");
                 Contracts.Check(!Unique || IsCollection, "Unique only applicable to collection arguments");
             }
 
@@ -1629,7 +1505,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 {
                     // Make sure all collections have a non-null.
                     // REVIEW: Should we really do this? Or should all code be able to handle null arrays?
-                    // Should we also set null strings to ""? SubComponent?
+                    // Should we also set null strings to ""?
                     if (IsCollection && Field.GetValue(destination) == null)
                         Field.SetValue(destination, Array.CreateInstance(ItemType, 0));
                     return ReportMissingRequiredArgument(owner, val);
@@ -1637,10 +1513,11 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                 var values = val.Values;
                 bool error = false;
-                if (IsSingleSubComponent)
+                if (IsSingleComponentFactory)
                 {
-                    bool haveKind = false;
-                    var com = SubComponent.Create(ItemType);
+                    bool haveName = false;
+                    string name = null;
+                    string[] settings = null;
                     for (int i = 0; i < Utils.Size(values);)
                     {
                         string str = (string)values[i].Value;
@@ -1649,38 +1526,65 @@ namespace Microsoft.ML.Runtime.CommandLine
                             i++;
                             continue;
                         }
-                        if (haveKind)
+                        if (haveName)
                         {
                             owner.Report("Duplicate component kind for argument {0}", LongName);
                             error = true;
                         }
-                        com.Kind = str;
-                        haveKind = true;
+                        name = str;
+                        haveName = true;
                         values.RemoveAt(i);
                     }
 
                     if (Utils.Size(values) > 0)
-                        com.Settings = values.Select(x => (string)x.Value).ToArray();
+                        settings = values.Select(x => (string)x.Value).ToArray();
 
-                    Field.SetValue(destination, com);
+                    Contracts.Check(_signatureType != null, "ComponentFactory Arguments need a SignatureType set.");
+                    if (ComponentFactoryFactory.TryCreateComponentFactory(
+                        ItemType,
+                        _signatureType,
+                        name,
+                        settings,
+                        out ICommandLineComponentFactory factory))
+                    {
+                        Field.SetValue(destination, factory);
+                    }
+                    else
+                    {
+                        owner.Report("There was an error creating the ComponentFactory. Ensure '{0}' is configured correctly.", LongName);
+                        error = true;
+                    }
                 }
-                else if (IsMultiSubComponent)
+                else if (IsMultiComponentFactory)
                 {
-                    // REVIEW: the kind should not be separated from settings: everything related 
+                    // REVIEW: the kind should not be separated from settings: everything related
                     // to one item should go into one value, not multiple values
                     if (IsTaggedCollection)
                     {
-                        // Tagged collection of SubComponents
-                        var comList = new List<KeyValuePair<string, SubComponent>>();
+                        // Tagged collection of IComponentFactory
+                        var comList = new List<KeyValuePair<string, IComponentFactory>>();
 
                         for (int i = 0; i < Utils.Size(values);)
                         {
-                            var com = SubComponent.Create(ItemValueType);
                             string tag = values[i].Key;
-                            com.Kind = (string)values[i++].Value;
+                            string name = (string)values[i++].Value;
+                            string[] settings = null;
                             if (i < values.Count && IsCurlyGroup((string)values[i].Value) && string.IsNullOrEmpty(values[i].Key))
-                                com.Settings = new string[] { (string)values[i++].Value };
-                            comList.Add(new KeyValuePair<string, SubComponent>(tag, com));
+                                settings = new string[] { (string)values[i++].Value };
+                            if (ComponentFactoryFactory.TryCreateComponentFactory(
+                                ItemValueType,
+                                _signatureType,
+                                name,
+                                settings,
+                                out ICommandLineComponentFactory factory))
+                            {
+                                comList.Add(new KeyValuePair<string, IComponentFactory>(tag, factory));
+                            }
+                            else
+                            {
+                                owner.Report("There was an error creating the ComponentFactory. Ensure '{0}' is configured correctly.", LongName);
+                                error = true;
+                            }
                         }
 
                         var arr = Array.CreateInstance(ItemType, comList.Count);
@@ -1694,15 +1598,28 @@ namespace Microsoft.ML.Runtime.CommandLine
                     }
                     else
                     {
-                        // Collection of SubComponents
-                        var comList = new List<SubComponent>();
+                        // Collection of IComponentFactory
+                        var comList = new List<IComponentFactory>();
                         for (int i = 0; i < Utils.Size(values);)
                         {
-                            var com = SubComponent.Create(ItemValueType);
-                            com.Kind = (string)values[i++].Value;
+                            string name = (string)values[i++].Value;
+                            string[] settings = null;
                             if (i < values.Count && IsCurlyGroup((string)values[i].Value))
-                                com.Settings = new string[] { (string)values[i++].Value };
-                            comList.Add(com);
+                                settings = new string[] { (string)values[i++].Value };
+                            if (ComponentFactoryFactory.TryCreateComponentFactory(
+                                ItemValueType,
+                                _signatureType,
+                                name,
+                                settings,
+                                out ICommandLineComponentFactory factory))
+                            {
+                                comList.Add(factory);
+                            }
+                            else
+                            {
+                                owner.Report("There was an error creating the ComponentFactory. Ensure '{0}' is configured correctly.", LongName);
+                                error = true;
+                            }
                         }
 
                         var arr = Array.CreateInstance(ItemValueType, comList.Count);
@@ -1784,7 +1701,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     }
                     val.Values.Add(new KeyValuePair<string, object>(tag, newValue));
                 }
-                else if (IsSingleSubComponent)
+                else if (IsComponentFactory)
                 {
                     Contracts.Assert(newValue is string || newValue == null);
                     Contracts.Assert((string)newValue != "");
@@ -1827,14 +1744,12 @@ namespace Microsoft.ML.Runtime.CommandLine
                         return true;
                     if (type == typeof(string))
                         return true;
-                    if (IsSubComponentItemType)
-                        return true;
 
                     ReportBadArgumentValue(owner, data);
                     return false;
                 }
 
-                if (IsSubComponentItemType)
+                if (IsComponentFactory)
                 {
                     value = data;
                     return true;
@@ -1986,7 +1901,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 return false;
             }
 
-            private void AppendHelpValue(IExceptionContext ectx, StringBuilder builder, object value)
+            private void AppendHelpValue(IHostEnvironment env, StringBuilder builder, object value)
             {
                 if (value == null)
                     builder.Append("{}");
@@ -1998,19 +1913,19 @@ namespace Microsoft.ML.Runtime.CommandLine
                     foreach (object o in (System.Array)value)
                     {
                         builder.Append(pre);
-                        AppendHelpValue(ectx, builder, o);
+                        AppendHelpValue(env, builder, o);
                         pre = ", ";
                     }
                 }
                 else if (value is IComponentFactory)
                 {
                     string name;
-                    var catalog = ModuleCatalog.CreateInstance(ectx);
+                    var catalog = env.ComponentCatalog;
                     var type = value.GetType();
                     bool success = catalog.TryGetComponentShortName(type, out name);
                     Contracts.Assert(success);
 
-                    var settings = GetSettings(ectx, value, Activator.CreateInstance(type));
+                    var settings = GetSettings(env, value, Activator.CreateInstance(type));
                     builder.Append(name);
                     if (!string.IsNullOrWhiteSpace(settings))
                     {
@@ -2027,7 +1942,7 @@ namespace Microsoft.ML.Runtime.CommandLine
             }
 
             // If value differs from the default, appends the setting to sb.
-            public void AppendSetting(IExceptionContext ectx, StringBuilder sb, object value, SettingsFlags flags)
+            public void AppendSetting(IHostEnvironment env, StringBuilder sb, object value, SettingsFlags flags)
             {
                 object def = DefaultValue;
                 if (!IsCollection)
@@ -2035,13 +1950,13 @@ namespace Microsoft.ML.Runtime.CommandLine
                     if (value == null)
                     {
                         if (def != null || IsRequired)
-                            AppendSettingCore(ectx, sb, "", flags);
+                            AppendSettingCore(env, sb, "", flags);
                     }
                     else if (def == null || !value.Equals(def))
                     {
                         var buffer = new StringBuilder();
-                        if (!(value is IComponentFactory) || (GetString(ectx, value, buffer) != GetString(ectx, def, buffer)))
-                            AppendSettingCore(ectx, sb, value, flags);
+                        if (!(value is IComponentFactory) || (GetString(env, value, buffer) != GetString(env, def, buffer)))
+                            AppendSettingCore(env, sb, value, flags);
                     }
                     return;
                 }
@@ -2068,10 +1983,10 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
 
                 foreach (object x in vals)
-                    AppendSettingCore(ectx, sb, x, flags);
+                    AppendSettingCore(env, sb, x, flags);
             }
 
-            private void AppendSettingCore(IExceptionContext ectx, StringBuilder sb, object value, SettingsFlags flags)
+            private void AppendSettingCore(IHostEnvironment env, StringBuilder sb, object value, SettingsFlags flags)
             {
                 if (sb.Length > 0)
                     sb.Append(" ");
@@ -2092,11 +2007,11 @@ namespace Microsoft.ML.Runtime.CommandLine
                 else if (value is bool)
                     sb.Append((bool)value ? "+" : "-");
                 else if (IsCustomItemType)
-                    AppendCustomItem(ectx, _infoCustom, value, flags, sb);
+                    AppendCustomItem(env, _infoCustom, value, flags, sb);
                 else if (IsComponentFactory)
                 {
                     var buffer = new StringBuilder();
-                    sb.Append(GetString(ectx, value, buffer));
+                    sb.Append(GetString(env, value, buffer));
                 }
                 else
                     sb.Append(value.ToString());
@@ -2121,7 +2036,7 @@ namespace Microsoft.ML.Runtime.CommandLine
 
             // If value differs from the default, return the string representation of 'value',
             // or an IEnumerable of string representations if 'value' is an array.
-            public IEnumerable<string> GetSettingStrings(IExceptionContext ectx, object value, StringBuilder buffer)
+            public IEnumerable<string> GetSettingStrings(IHostEnvironment env, object value, StringBuilder buffer)
             {
                 object def = DefaultValue;
 
@@ -2130,12 +2045,12 @@ namespace Microsoft.ML.Runtime.CommandLine
                     if (value == null)
                     {
                         if (def != null || IsRequired)
-                            yield return GetString(ectx, value, buffer);
+                            yield return GetString(env, value, buffer);
                     }
                     else if (def == null || !value.Equals(def))
                     {
-                        if (!(value is IComponentFactory) || (GetString(ectx, value, buffer) != GetString(ectx, def, buffer)))
-                            yield return GetString(ectx, value, buffer);
+                        if (!(value is IComponentFactory) || (GetString(env, value, buffer) != GetString(env, def, buffer)))
+                            yield return GetString(env, value, buffer);
                     }
                     yield break;
                 }
@@ -2163,10 +2078,10 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
 
                 foreach (object x in vals)
-                    yield return GetString(ectx, x, buffer);
+                    yield return GetString(env, x, buffer);
             }
 
-            private string GetString(IExceptionContext ectx, object value, StringBuilder buffer)
+            private string GetString(IHostEnvironment env, object value, StringBuilder buffer)
             {
                 if (value == null)
                     return "{}";
@@ -2184,27 +2099,28 @@ namespace Microsoft.ML.Runtime.CommandLine
                 if (value is IComponentFactory)
                 {
                     string name;
-                    var catalog = ModuleCatalog.CreateInstance(ectx);
+                    var catalog = env.ComponentCatalog;
                     var type = value.GetType();
-                    bool success = catalog.TryGetComponentShortName(type, out name);
-                    Contracts.Assert(success);
-
-                    var settings = GetSettings(ectx, value, Activator.CreateInstance(type));
-                    buffer.Clear();
-                    buffer.Append(name);
-                    if (!string.IsNullOrWhiteSpace(settings))
+                    bool isModuleComponent = catalog.TryGetComponentShortName(type, out name);
+                    if (isModuleComponent)
                     {
-                        StringBuilder sb = new StringBuilder();
-                        CmdQuoter.QuoteValue(settings, sb, true);
-                        buffer.Append(sb);
+                        var settings = GetSettings(env, value, Activator.CreateInstance(type));
+                        buffer.Clear();
+                        buffer.Append(name);
+                        if (!string.IsNullOrWhiteSpace(settings))
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            CmdQuoter.QuoteValue(settings, sb, true);
+                            buffer.Append(sb);
+                        }
+                        return buffer.ToString();
                     }
-                    return buffer.ToString();
                 }
 
                 return value.ToString();
             }
 
-            public string GetFullHelpText(IExceptionContext ectx)
+            public string GetFullHelpText(IHostEnvironment env)
             {
                 if (IsHidden)
                     return null;
@@ -2231,7 +2147,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     if (builder.Length > 0)
                         builder.Append(" ");
                     builder.Append("Default value:'");
-                    AppendHelpValue(ectx, builder, DefaultValue);
+                    AppendHelpValue(env, builder, DefaultValue);
                     builder.Append('\'');
                 }
                 if (Utils.Size(ShortNames) != 0)
@@ -2295,8 +2211,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                         bldr.Append("=<guid>");
                     else if (type == typeof(System.DateTime))
                         bldr.Append("=<datetime>");
-                    else if (IsSubComponentItemType)
-                        bldr.Append("=<name>{<options>}");
                     else if (IsComponentFactory)
                         bldr.Append("=<name>{<options>}");
                     else if (IsCustomItemType)
@@ -2336,16 +2250,190 @@ namespace Microsoft.ML.Runtime.CommandLine
                 get { return 0 != (Kind & ArgumentType.Unique); }
             }
 
-            public bool IsSingleSubComponent {
-                get { return IsSubComponentItemType && !Field.FieldType.IsArray; }
+            public bool IsSingleComponentFactory
+            {
+                get { return IsComponentFactory && !Field.FieldType.IsArray; }
             }
 
-            public bool IsMultiSubComponent {
-                get { return IsSubComponentItemType && Field.FieldType.IsArray; }
+            public bool IsMultiComponentFactory
+            {
+                get { return IsComponentFactory && Field.FieldType.IsArray; }
             }
 
             public bool IsCustomItemType {
                 get { return _infoCustom != null; }
+            }
+        }
+
+        /// <summary>
+        /// A factory class for creating IComponentFactory instances.
+        /// </summary>
+        private static class ComponentFactoryFactory
+        {
+            public static ICommandLineComponentFactory CreateComponentFactory(
+                Type factoryType,
+                Type signatureType,
+                string name,
+                string[] settings)
+            {
+                if (!TryCreateComponentFactory(factoryType, signatureType, name, settings, out ICommandLineComponentFactory factory))
+                {
+                    throw Contracts.ExceptNotImpl("ComponentFactoryFactory can only create IComponentFactory<> types with 4 or less type args.");
+                }
+
+                return factory;
+            }
+
+            public static bool TryCreateComponentFactory(
+                Type factoryType,
+                Type signatureType,
+                string name,
+                string[] settings,
+                out ICommandLineComponentFactory factory)
+            {
+
+                if (factoryType == null ||
+                    !typeof(IComponentFactory).IsAssignableFrom(factoryType) ||
+                    !factoryType.IsGenericType)
+                {
+                    factory = null;
+                    return false;
+                }
+
+                Type componentFactoryType;
+                switch (factoryType.GenericTypeArguments.Length)
+                {
+                    case 1: componentFactoryType = typeof(ComponentFactory<>); break;
+                    case 2: componentFactoryType = typeof(ComponentFactory<,>); break;
+                    case 3: componentFactoryType = typeof(ComponentFactory<,,>); break;
+                    case 4: componentFactoryType = typeof(ComponentFactory<,,,>); break;
+                    default:
+                        factory = null;
+                        return false;
+                }
+
+                factory = (ICommandLineComponentFactory)Activator.CreateInstance(
+                    componentFactoryType.MakeGenericType(factoryType.GenericTypeArguments),
+                    signatureType,
+                    name,
+                    settings);
+                return true;
+            }
+
+            private abstract class ComponentFactory : ICommandLineComponentFactory
+            {
+                public Type SignatureType { get; }
+                public string Name { get; }
+                private string[] Settings { get; }
+
+                protected ComponentFactory(Type signatureType, string name, string[] settings)
+                {
+                    SignatureType = signatureType;
+                    Name = name;
+
+                    if (settings == null || (settings.Length == 1 && string.IsNullOrEmpty(settings[0])))
+                    {
+                        settings = Array.Empty<string>();
+                    }
+                    Settings = settings;
+                }
+
+                public string GetSettingsString()
+                {
+                    return CombineSettings(Settings);
+                }
+
+                public override string ToString()
+                {
+                    if (string.IsNullOrEmpty(Name) && Settings.Length == 0)
+                        return "{}";
+
+                    if (Settings.Length == 0)
+                        return Name;
+
+                    string str = CombineSettings(Settings);
+                    StringBuilder sb = new StringBuilder();
+                    CmdQuoter.QuoteValue(str, sb, true);
+                    return Name + sb.ToString();
+                }
+            }
+
+            private class ComponentFactory<TComponent> : ComponentFactory, IComponentFactory<TComponent>
+                where TComponent : class
+            {
+                public ComponentFactory(Type signatureType, string name, string[] settings)
+                    : base(signatureType, name, settings)
+                {
+                }
+
+                public TComponent CreateComponent(IHostEnvironment env)
+                {
+                    return ComponentCatalog.CreateInstance<TComponent>(
+                        env,
+                        SignatureType,
+                        Name,
+                        GetSettingsString());
+                }
+            }
+
+            private class ComponentFactory<TArg1, TComponent> : ComponentFactory, IComponentFactory<TArg1, TComponent>
+                where TComponent : class
+            {
+                public ComponentFactory(Type signatureType, string name, string[] settings)
+                    : base(signatureType, name, settings)
+                {
+                }
+
+                public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1)
+                {
+                    return ComponentCatalog.CreateInstance<TComponent>(
+                        env,
+                        SignatureType,
+                        Name,
+                        GetSettingsString(),
+                        argument1);
+                }
+            }
+
+            private class ComponentFactory<TArg1, TArg2, TComponent> : ComponentFactory, IComponentFactory<TArg1, TArg2, TComponent>
+                where TComponent : class
+            {
+                public ComponentFactory(Type signatureType, string name, string[] settings)
+                    : base(signatureType, name, settings)
+                {
+                }
+
+                public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2)
+                {
+                    return ComponentCatalog.CreateInstance<TComponent>(
+                        env,
+                        SignatureType,
+                        Name,
+                        GetSettingsString(),
+                        argument1,
+                        argument2);
+                }
+            }
+
+            private class ComponentFactory<TArg1, TArg2, TArg3, TComponent> : ComponentFactory, IComponentFactory<TArg1, TArg2, TArg3, TComponent>
+                where TComponent : class
+            {
+                public ComponentFactory(Type signatureType, string name, string[] settings)
+                    : base(signatureType, name, settings)
+                {
+                }
+
+                public TComponent CreateComponent(IHostEnvironment env, TArg1 argument1, TArg2 argument2, TArg3 argument3)
+                {
+                    return ComponentCatalog.CreateInstance<TComponent>(
+                        env,
+                        SignatureType,
+                        Name,
+                        GetSettingsString(),
+                        argument1,
+                        argument2,
+                        argument3);
+                }
             }
         }
     }

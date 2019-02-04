@@ -4,23 +4,22 @@
 
 using System.IO;
 using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Tools;
-
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 // REVIEW: Fix these namespaces.
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(SavePredictorCommand.Summary, typeof(SavePredictorCommand), typeof(SavePredictorCommand.Arguments), typeof(SignatureCommand),
     "Save Predictor As", "SavePredictorAs", "SavePredictor", "SaveAs", "SaveModel")]
 
-namespace Microsoft.ML.Runtime.Tools
+namespace Microsoft.ML.Tools
 {
-    public sealed class SavePredictorCommand : ICommand
+    internal sealed class SavePredictorCommand : ICommand
     {
         public sealed class Arguments
         {
@@ -114,7 +113,8 @@ namespace Microsoft.ML.Runtime.Tools
         }
     }
 
-    public static class SavePredictorUtils
+    [BestFriend]
+    internal static class SavePredictorUtils
     {
         public static void SavePredictor(IHostEnvironment env, Stream modelStream, Stream binaryModelStream = null, Stream summaryModelStream = null,
             Stream textModelStream = null, Stream iniModelStream = null, Stream codeModelStream = null)

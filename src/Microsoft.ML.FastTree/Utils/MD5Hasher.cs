@@ -5,9 +5,9 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public struct MD5Hash
     {

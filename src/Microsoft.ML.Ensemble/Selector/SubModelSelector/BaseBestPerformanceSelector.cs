@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.CommandLine;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
-    public abstract class BaseBestPerformanceSelector<TOutput> : SubModelDataSelector<TOutput>
+    internal abstract class BaseBestPerformanceSelector<TOutput> : SubModelDataSelector<TOutput>
     {
         protected abstract string MetricName { get; }
 
@@ -38,9 +38,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                 if (modelCountToBeSelected == 0)
                     modelCountToBeSelected = 1;
 
-                var retval = sortedModels.Where(m => m != null).Take(modelCountToBeSelected).ToList();
-                ch.Done();
-                return retval;
+                return sortedModels.Where(m => m != null).Take(modelCountToBeSelected).ToList();
             }
         }
 

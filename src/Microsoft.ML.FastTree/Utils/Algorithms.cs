@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public static class Algorithms
     {

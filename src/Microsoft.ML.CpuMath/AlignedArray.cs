@@ -3,26 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Internal.CpuMath.Core;
 
-namespace Microsoft.ML.Runtime.Internal.CpuMath
+namespace Microsoft.ML.Internal.CpuMath
 {
-    using Float = System.Single;
-
     /// <summary>
-    /// This implements a logical array of Floats that is automatically aligned for SSE/AVX operations.
+    /// This implements a logical array of floats that is automatically aligned for SSE/AVX operations.
     /// To pin and force alignment, call the GetPin method, typically wrapped in a using (since it
     /// returns a Pin struct that is IDisposable). From the pin, you can get the IntPtr to pass to
     /// native code.
-    /// 
-    /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
+    ///
+    /// The ctor takes an alignment value, which must be a power of two at least sizeof(float).
     /// </summary>
-    public sealed class AlignedArray
+    [BestFriend]
+    internal sealed class AlignedArray
     {
         // Items includes "head" items filled with NaN, followed by _size entries, followed by "tail"
         // items, also filled with NaN. Note that _size * sizeof(Float) is divisible by _cbAlign.
         // It is illegal to access any slot outsize [_base, _base + _size). This is internal so clients
         // can easily pin it.
-        internal Float[] Items;
+        public float[] Items;
 
         private readonly int _size; // Must be divisible by (_cbAlign / sizeof(Float)).
         private readonly int _cbAlign; // The alignment in bytes, a power of two, divisible by sizeof(Float).
@@ -38,29 +38,29 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             Contracts.Assert(0 < size);
             // cbAlign should be a power of two.
-            Contracts.Assert(sizeof(Float) <= cbAlign);
+            Contracts.Assert(sizeof(float) <= cbAlign);
             Contracts.Assert((cbAlign & (cbAlign - 1)) == 0);
             // cbAlign / sizeof(Float) should divide size.
-            Contracts.Assert((size * sizeof(Float)) % cbAlign == 0);
+            Contracts.Assert((size * sizeof(float)) % cbAlign == 0);
 
-            Items = new Float[size + cbAlign / sizeof(Float)];
+            Items = new float[size + cbAlign / sizeof(float)];
             _size = size;
             _cbAlign = cbAlign;
             _lock = new object();
         }
 
-        internal unsafe int GetBase(long addr)
+        public unsafe int GetBase(long addr)
         {
 #if DEBUG
-            fixed (Float* pv = Items)
-                Contracts.Assert((Float*)addr == pv);
+            fixed (float* pv = Items)
+                Contracts.Assert((float*)addr == pv);
 #endif
 
             int cbLow = (int)(addr & (_cbAlign - 1));
             int ibMin = cbLow == 0 ? 0 : _cbAlign - cbLow;
-            Contracts.Assert(ibMin % sizeof(Float) == 0);
+            Contracts.Assert(ibMin % sizeof(float) == 0);
 
-            int ifltMin = ibMin / sizeof(Float);
+            int ifltMin = ibMin / sizeof(float);
             if (ifltMin == _base)
                 return _base;
 
@@ -69,9 +69,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             // Anything outsize [_base, _base + _size) should not be accessed, so
             // set them to NaN, for debug validation.
             for (int i = 0; i < _base; i++)
-                Items[i] = Float.NaN;
+                Items[i] = float.NaN;
             for (int i = _base + _size; i < Items.Length; i++)
-                Items[i] = Float.NaN;
+                Items[i] = float.NaN;
 #endif
             return _base;
         }
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public int CbAlign { get { return _cbAlign; } }
 
-        public Float this[int index]
+        public float this[int index]
         {
             get
             {
@@ -108,45 +108,40 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public void CopyTo(Float[] dst, int index, int count)
+        public void CopyTo(Span<float> dst, int index, int count)
         {
             Contracts.Assert(0 <= count && count <= _size);
             Contracts.Assert(dst != null);
             Contracts.Assert(0 <= index && index <= dst.Length - count);
-            Array.Copy(Items, _base, dst, index, count);
+            Items.AsSpan(_base, count).CopyTo(dst.Slice(index));
         }
 
-        public void CopyTo(int start, Float[] dst, int index, int count)
+        public void CopyTo(int start, Span<float> dst, int index, int count)
         {
             Contracts.Assert(0 <= count);
             Contracts.Assert(0 <= start && start <= _size - count);
             Contracts.Assert(dst != null);
             Contracts.Assert(0 <= index && index <= dst.Length - count);
-            Array.Copy(Items, start + _base, dst, index, count);
+            Items.AsSpan(start + _base, count).CopyTo(dst.Slice(index));
         }
 
-        public void CopyFrom(Float[] src, int index, int count)
+        public void CopyFrom(ReadOnlySpan<float> src)
         {
-            Contracts.Assert(0 <= count && count <= _size);
-            Contracts.Assert(src != null);
-            Contracts.Assert(0 <= index && index <= src.Length - count);
-            Array.Copy(src, index, Items, _base, count);
+            Contracts.Assert(src.Length <= _size);
+            src.CopyTo(Items.AsSpan(_base));
         }
 
-        public void CopyFrom(int start, Float[] src, int index, int count)
+        public void CopyFrom(int start, ReadOnlySpan<float> src)
         {
-            Contracts.Assert(0 <= count);
-            Contracts.Assert(0 <= start && start <= _size - count);
-            Contracts.Assert(src != null);
-            Contracts.Assert(0 <= index && index <= src.Length - count);
-            Array.Copy(src, index, Items, start + _base, count);
+            Contracts.Assert(0 <= start && start <= _size - src.Length);
+            src.CopyTo(Items.AsSpan(start + _base));
         }
 
         // Copies values from a sparse vector.
         // valuesSrc contains only the non-zero entries. Those are copied into their logical positions in the dense array.
         // rgposSrc contains the logical positions + offset of the non-zero entries in the dense array.
         // rgposSrc runs parallel to the valuesSrc array.
-        public void CopyFrom(int[] rgposSrc, Float[] valuesSrc, int posMin, int iposMin, int iposLim, bool zeroItems)
+        public void CopyFrom(ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> valuesSrc, int posMin, int iposMin, int iposLim, bool zeroItems)
         {
             Contracts.Assert(rgposSrc != null);
             Contracts.Assert(valuesSrc != null);
@@ -205,7 +200,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // REVIEW: This is hackish and slightly dangerous. Perhaps we should wrap this in an
         // IDisposable that "locks" this, prohibiting GetBase from being called, while the buffer
         // is "checked out".
-        public void GetRawBuffer(out Float[] items, out int offset)
+        public void GetRawBuffer(out float[] items, out int offset)
         {
             items = Items;
             offset = _base;

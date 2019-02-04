@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     /// <summary>
     /// This class defines a psuedorandom function, mapping a number to
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         public PseudorandomFunction(Random rand)
         {
-            _data = _periodics.Select(x => Enumerable.Range(0, x).Select(y => rand.Next(-1, Int32.MaxValue) + 1).ToArray()).ToArray();
+            _data = _periodics.Select(x => Enumerable.Range(0, x).Select(y => rand.Next(-1, int.MaxValue) + 1).ToArray()).ToArray();
         }
 
         public int Apply(ulong seed)

@@ -2,29 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.Data
+using Microsoft.Data.DataView;
+
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for creating a cursor of rows that filters out some input rows.
     /// </summary>
-    public abstract class LinkedRowFilterCursorBase : LinkedRowRootCursorBase
+    [BestFriend]
+    internal abstract class LinkedRowFilterCursorBase : LinkedRowRootCursorBase
     {
         public override long Batch => Input.Batch;
 
-        protected LinkedRowFilterCursorBase(IChannelProvider provider, IRowCursor input, ISchema schema, bool[] active)
+        protected LinkedRowFilterCursorBase(IChannelProvider provider, RowCursor input, Schema schema, bool[] active)
             : base(provider, input, schema, active)
         {
         }
 
-        public override ValueGetter<UInt128> GetIdGetter()
+        public override ValueGetter<RowId> GetIdGetter()
         {
             return Input.GetIdGetter();
         }
 
         protected override bool MoveNextCore()
         {
-            Ch.Assert(State != CursorState.Done);
-
             while (Root.MoveNext())
             {
                 if (Accept())

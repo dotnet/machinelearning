@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System.Threading.Tasks;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     /// <summary>
     /// A dataset of features.
@@ -387,7 +387,11 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// <returns>Row forward indexer</returns>
         public RowForwardIndexer GetFeatureBinRowwiseIndexer(bool[] activeFeatures = null)
         {
-            return new RowForwardIndexer(this, activeFeatures);
+            Contracts.Assert(activeFeatures == null || activeFeatures.Length >= NumFeatures);
+            var truncatedActiveFeatures = Enumerable.Repeat(true, NumFeatures).ToArray();
+            if (activeFeatures != null)
+                Array.Copy(activeFeatures, 0, truncatedActiveFeatures, 0, NumFeatures);
+            return new RowForwardIndexer(this, truncatedActiveFeatures);
         }
 
         public struct DatasetSkeletonQueryDocData
@@ -609,7 +613,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     for (int i = 0; i < numParts; ++i)
                     {
                         cumulative += fraction[i];
-                        thresh[i] = (int)(cumulative * Int32.MaxValue);
+                        thresh[i] = (int)(cumulative * int.MaxValue);
                         if (fraction[i] == 0.0)
                             thresh[i]--;
                     }
@@ -911,7 +915,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             private readonly Dataset _dataset;
             private readonly FeatureFlockBase.FlockForwardIndexerBase[] _flockIndexers;
 
-            public struct Row
+            public readonly struct Row
             {
                 private readonly RowForwardIndexer _indexer;
                 private readonly int _rowIndex;

@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// <summary>
     /// Trains regression trees.
     /// </summary>
-    public class LeastSquaresRegressionTreeLearner : TreeLearner
+    internal class LeastSquaresRegressionTreeLearner : TreeLearner, ILeafSplitStatisticsCalculator
     {
         // parameters
         protected readonly int MinDocsInLeaf;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// <param name="gainConfidenceLevel">Only consider a gain if its likelihood versus a random
         /// choice gain is above a certain value (so 0.95 would mean restricting to gains that have less
         /// than a 0.05 change of being generated randomly through choice of a random split).</param>
-        /// <param name="maxCategoricalGroupsPerNode">Maximum categorical split points to consider when splitting on a 
+        /// <param name="maxCategoricalGroupsPerNode">Maximum categorical split points to consider when splitting on a
         /// categorical feature.</param>
         /// <param name="maxCategoricalSplitPointPerNode"></param>
         /// <param name="bsrMaxTreeOutput">-1 if best step ranking is to be disabled, otherwise it
@@ -187,12 +187,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             largerCandidates = new LeafSplitCandidates(data);
         }
 
-        protected virtual RegressionTree NewTree()
+        protected virtual InternalRegressionTree NewTree()
         {
-            return new RegressionTree(NumLeaves);
+            return new InternalRegressionTree(NumLeaves);
         }
 
-        protected virtual void MakeDummyRootSplit(RegressionTree tree, double rootTarget, double[] targets)
+        protected virtual void MakeDummyRootSplit(InternalRegressionTree tree, double rootTarget, double[] targets)
         {
             // Pick a random feature and split on it:
             SplitInfo newRootSplitInfo = new SplitInfo();
@@ -213,13 +213,13 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// Learns a new tree for the current outputs
         /// </summary>
         /// <returns>A regression tree</returns>
-        public sealed override RegressionTree FitTargets(IChannel ch, bool[] activeFeatures, double[] targets)
+        internal sealed override InternalRegressionTree FitTargets(IChannel ch, bool[] activeFeatures, double[] targets)
         {
             int maxLeaves = base.NumLeaves;
             using (Timer.Time(TimerEvent.TreeLearnerGetTree))
             {
                 // create a new tree
-                RegressionTree tree = NewTree();
+                InternalRegressionTree tree = NewTree();
                 // Not use weak reference here to avoid the change of activeFeatures in the ParallelInterface.
                 tree.ActiveFeatures = (bool[])activeFeatures.Clone();
 
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
 
-        protected virtual void PerformSplit(RegressionTree tree, int bestLeaf, double[] targets, out int lteChild, out int gtChild)
+        protected virtual void PerformSplit(InternalRegressionTree tree, int bestLeaf, double[] targets, out int lteChild, out int gtChild)
         {
             SplitInfo bestSplitInfo = BestSplitInfoPerLeaf[bestLeaf];
 
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// Contains the memory data structures required for finding the best threshold for a given
         /// feature at a given leaf.
         /// </summary>
-        public sealed class LeafSplitCandidates
+        internal sealed class LeafSplitCandidates
         {
             private int _leafIndex;
             private int _numDocsInLeaf;
@@ -1201,5 +1201,12 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     return -1;
             }
         }
+    }
+
+    internal interface ILeafSplitStatisticsCalculator
+    {
+        double CalculateSplittedLeafOutput(int count, double sumTargets, double sumWeights);
+
+        double GetLeafSplitGain(int count, double sumTargets, double sumWeights);
     }
 }

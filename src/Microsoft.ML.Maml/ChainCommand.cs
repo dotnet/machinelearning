@@ -3,26 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Globalization;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(ChainCommand.Summary, typeof(ChainCommand), typeof(ChainCommand.Arguments), typeof(SignatureCommand),
     "Chain Command", "Chain")]
 
-namespace Microsoft.ML.Runtime.Tools
+namespace Microsoft.ML.Tools
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public sealed class ChainCommand : ICommand
+    [BestFriend]
+    internal sealed class ChainCommand : ICommand
     {
         public sealed class Arguments
         {
 #pragma warning disable 649 // never assigned
-            [Argument(ArgumentType.Multiple, HelpText = "Command", ShortName = "cmd")]
-            public SubComponent<ICommand, SignatureCommand>[] Command;
+            [Argument(ArgumentType.Multiple, HelpText = "Command", Name = "Command", ShortName = "cmd", SignatureType = typeof(SignatureCommand))]
+            public IComponentFactory<ICommand>[] Commands;
 #pragma warning restore 649 // never assigned
         }
 
@@ -49,25 +49,23 @@ namespace Microsoft.ML.Runtime.Tools
                 int count = 0;
 
                 sw.Start();
-                if (_args.Command != null)
+                if (_args.Commands != null)
                 {
-                    for (int i = 0; i < _args.Command.Length; i++)
+                    for (int i = 0; i < _args.Commands.Length; i++)
                     {
                         using (var chCmd = _host.Start(string.Format(CultureInfo.InvariantCulture, "Command[{0}]", i)))
                         {
-                            var sub = _args.Command[i];
+                            var sub = _args.Commands[i];
 
                             chCmd.Info("=====================================================================================");
                             chCmd.Info("Executing: {0}", sub);
                             chCmd.Info("=====================================================================================");
 
-                            var cmd = sub.CreateInstance(_host);
+                            var cmd = sub.CreateComponent(_host);
                             cmd.Run();
                             count++;
 
                             chCmd.Info(" ");
-
-                            chCmd.Done();
                         }
                     }
                 }
@@ -76,8 +74,6 @@ namespace Microsoft.ML.Runtime.Tools
                 ch.Info("=====================================================================================");
                 ch.Info("Executed {0} commands in {1}", count, sw.Elapsed);
                 ch.Info("=====================================================================================");
-
-                ch.Done();
             }
         }
     }

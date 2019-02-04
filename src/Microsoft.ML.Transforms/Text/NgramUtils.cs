@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.ML.Internal.Utilities;
 using Float = System.Single;
 
-using System;
-using Microsoft.ML.Runtime.Internal.Utilities;
-
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This delegate represents a function that gets an ngram as input, and outputs the id of
@@ -68,17 +67,18 @@ namespace Microsoft.ML.Runtime.Data
             _queue.Clear();
         }
 
-        public bool AddNgrams(ref VBuffer<uint> src, int icol, uint keyMax)
+        public bool AddNgrams(in VBuffer<uint> src, int icol, uint keyMax)
         {
             Contracts.Assert(icol >= 0);
             Contracts.Assert(keyMax > 0);
 
+            var srcValues = src.GetValues();
             uint curKey = 0;
             if (src.IsDense)
             {
                 for (int i = 0; i < src.Length; i++)
                 {
-                    curKey = src.Values[i];
+                    curKey = srcValues[i];
                     if (curKey > keyMax)
                         curKey = 0;
 
@@ -92,13 +92,14 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 var queueSize = _queue.Capacity;
+                var srcIndices = src.GetIndices();
 
                 int iindex = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
-                    if (iindex < src.Count && i == src.Indices[iindex])
+                    if (iindex < srcIndices.Length && i == srcIndices[iindex])
                     {
-                        curKey = src.Values[iindex];
+                        curKey = srcValues[iindex];
                         if (curKey > keyMax)
                             curKey = 0;
                         iindex++;
@@ -134,7 +135,7 @@ namespace Microsoft.ML.Runtime.Data
             _bldr.GetResult(ref dst);
         }
 
-        // Returns false if there is no need to process more ngrams. 
+        // Returns false if there is no need to process more ngrams.
         private bool ProcessNgrams(int icol)
         {
             Contracts.Assert(_queue.Count > 0);
@@ -171,8 +172,8 @@ namespace Microsoft.ML.Runtime.Data
             return true;
         }
 
-        // Uses DFS. When called with i and skips, it assumes that the 
-        // first i terms in the _ngram array are already populated using "skips" skips, 
+        // Uses DFS. When called with i and skips, it assumes that the
+        // first i terms in the _ngram array are already populated using "skips" skips,
         // and it adds the (i+1)st term. It then recursively calls ProcessSkipNgrams
         // to add the next term.
         private bool ProcessSkipNgrams(int icol, int i, int skips)
@@ -198,6 +199,15 @@ namespace Microsoft.ML.Runtime.Data
                     return false;
             }
             return more;
+        }
+    }
+
+    internal static class NgramUtils
+    {
+        public static bool IsValidNgramRawType(Type rawType)
+        {
+            // Can only accept key types that can be converted to U4 (uint).
+            return rawType != typeof(ulong);
         }
     }
 }

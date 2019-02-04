@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<docs>
+<doc>
   <members>
    
     <member name="PoissonRegression">
@@ -12,6 +12,17 @@
         Assuming that the dependent variable follows a Poisson distribution, the parameters of the regressor can be estimated by maximizing the likelihood of the obtained observations.
       </remarks>
     </member>
+    <example name="PoissonRegression">
+      <example>
+        <code language="csharp">
+          new PoissonRegressor
+          {
+            MaxIterations = 100,
+            L2Weight = 0.6f
+          }
+        </code>
+      </example>
+    </example>
    
   </members>
-</docs>
+</doc>

@@ -4,23 +4,23 @@
 
 [ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.
 
-ML.NET allows .NET developers to develop their own models and infuse custom ML into their applications without prior expertise in developing or tuning machine learning models, all in .NET.
+ML.NET allows .NET developers to develop their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models.
 
-ML.NET was originally developed in Microsoft Research and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
+ML.NET was originally developed in Microsoft Research, and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
-With this first preview release ML.NET enables ML tasks like classification (e.g. support text classification, sentiment analysis) and regression (e.g. price-prediction). 
+ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis) and regression (for example, price-prediction).
 
-Along with these ML capabilities this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
+Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
 
 ## Installation
 
 [![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
 
-ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
+ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow, LightGBM, and ONNX related functionality.
 
-The current release is 0.3. Check out the [release notes](docs/release-notes/0.3/release-0.3.md).
+The current release is 0.9. Check out the [release notes](docs/release-notes/0.9/release-0.9.md) to see what's new.
 
-First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
+First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework 4.6.1 or later, but 4.7.2 or later is recommended.
 
 Once you have an app, you can install the ML.NET NuGet package from the .NET Core CLI using:
 ```
@@ -32,9 +32,9 @@ or from the NuGet package manager:
 Install-Package Microsoft.ML
 ```
 
-Or alternatively you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
+Or alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
-Daily NuGet builds of the project are also available in our MyGet feed:
+Daily NuGet builds of the project are also available in our [MyGet](https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML) feed:
 
 > [https://dotnet.myget.org/F/dotnet-core/api/v3/index.json](https://dotnet.myget.org/F/dotnet-core/api/v3/index.json)
 
@@ -42,11 +42,15 @@ Daily NuGet builds of the project are also available in our MyGet feed:
 
 To build ML.NET from source please visit our [developers guide](docs/project-docs/developer-guide.md).
 
-|    | x64 Debug | x64 Release |
+[![codecov](https://codecov.io/gh/dotnet/machinelearning/branch/master/graph/badge.svg?flag=production)](https://codecov.io/gh/dotnet/machinelearning)
+
+|    | Debug | Release |
 |:---|----------------:|------------------:|
-|**Linux**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/linux_release/lastCompletedBuild)|
-|**macOS**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/osx10.13_release/lastCompletedBuild)|
-|**Windows**|[![x64-debug](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_debug/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_debug/lastCompletedBuild)|[![x64-release](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_release/badge/icon)](https://ci2.dot.net/job/dotnet_machinelearning/job/master/job/windows_nt_release/lastCompletedBuild)|
+|**Linux**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Linux&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Linux&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**macOS**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=macOS&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=macOS&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**Windows x64**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**Windows x86**|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86&configuration=Build_Debug)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86&configuration=Build_Release)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|
+|**Core 3.0**|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=core30&configuration=Build_Debug_Intrinsics)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=core30&configuration=Build_Release_Intrinsics)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|
 
 ## Contributing
 
@@ -56,34 +60,47 @@ We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md
 
 Please join our community on Gitter [![Join the chat at https://gitter.im/dotnet/mlnet](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/mlnet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community.
+This project has adopted the code of conduct defined by the [Contributor Covenant](https://contributor-covenant.org/) to clarify expected behavior in our community.
 For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
 ## Examples
 
-Here's an example of code to train a model to predict sentiment from text samples. 
-(You can see the complete sample [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
+Here's an example of code to train a model to predict sentiment from text samples.
 
 ```C#
-var pipeline = new LearningPipeline();
-pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>(separator: ','));
-pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
-pipeline.Add(new FastTreeBinaryClassifier());
-var model = pipeline.Train<SentimentData, SentimentPrediction>();
+var mlContext = new MLContext();
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+        {
+        Column = new[] {
+            new TextLoader.Column("SentimentText", DataKind.Text, 1),
+            new TextLoader.Column("Label", DataKind.Bool, 0),
+        },
+        HasHeader = true,
+        Separator = ","
+});
+var data = reader.Read(dataPath);
+var learningPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+        .Append(mlContext.BinaryClassification.Trainers.FastTree());
+var model = learningPipeline.Fit(data);
+
 ```
 
 Now from the model we can make inferences (predictions):
 
 ```C#
-SentimentData data = new SentimentData
+var predictionEngine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(mlContext);
+var prediction = predictionEngine.Predict(new SentimentData
 {
     SentimentText = "Today is a great day!"
-};
-
-SentimentPrediction prediction = model.Predict(data);
-
-Console.WriteLine("prediction: " + prediction.Sentiment);
+});
+Console.WriteLine("prediction: " + prediction.Prediction);
 ```
+A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
+
+## API Documentation
+
+See the [ML.NET API Reference Documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
+
 ## Samples
 
 We have a [repo of samples](https://github.com/dotnet/machinelearning-samples) that you can look at.
@@ -94,7 +111,7 @@ ML.NET is licensed under the [MIT license](LICENSE).
 
 ## .NET Foundation
 
-ML.NET is a [.NET Foundation](http://www.dotnetfoundation.org/projects) project.
+ML.NET is a [.NET Foundation](https://www.dotnetfoundation.org/projects) project.
 
 There are many .NET related projects on GitHub.
 

@@ -1,0 +1,1 @@
+﻿The tests in this directory are for testing the internal code analyzer (that is, the implementation of ML.NET itself), as opposed to general analyzer that ships with the library.

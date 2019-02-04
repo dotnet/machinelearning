@@ -4,8 +4,9 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.DataView;
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     /// <summary>
     /// A value codec encapsulates implementations capable of writing and reading data of some
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data.IO
     /// on the appropriate <c>ColumnType</c>, then opens multiple writers to write blocks of data
     /// to some stream. The idea is that each writer or reader is called on some "managable chunk"
     /// of data.
-    /// 
+    ///
     /// Codecs should be thread safe, though the readers and writers they spawn do not need to
     /// be thread safe.
     /// </summary>
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <param name="stream">Stream on which we open reader.</param>
         /// <param name="items">The number of items expected to be encoded in the block
         /// starting from the current position of the stream. Implementors should, if
-        /// possible, throw if it seems if the block contains a different number of 
+        /// possible, throw if it seems if the block contains a different number of
         /// elements.</param>
         IValueReader<T> OpenReader(Stream stream, int items);
     }
@@ -89,7 +90,7 @@ namespace Microsoft.ML.Runtime.Data.IO
     /// be spawned from an <seealso cref="IValueCodec"/>, its write methods called some
     /// number of times to write to the stream, and then <c>Commit</c> will be called when
     /// all values have been written, the stream now being at the end of the written block.
-    /// 
+    ///
     /// The intended usage of the value writers is that blocks are composed of some small
     /// number of values (perhaps a few thousand), the idea being that a block is something
     /// that should easily fit in main memory, both for reading and writing. Some writers
@@ -100,13 +101,13 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <summary>
         /// Writes a single value to the writer.
         /// </summary>
-        void Write(ref T value);
+        void Write(in T value);
 
         /// <summary>
-        /// Writes an array of values. This should be equivalent to writing each element
+        /// Writes a span of values. This should be equivalent to writing each element
         /// singly, though possibly more efficient than such a naive implementation.
         /// </summary>
-        void Write(T[] values, int index, int count);
+        void Write(ReadOnlySpan<T> values);
     }
 
     /// <summary>

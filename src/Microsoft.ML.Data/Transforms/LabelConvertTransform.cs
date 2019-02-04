@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
+using Float = System.Single;
 
 [assembly: LoadableClass(LabelConvertTransform.Summary, typeof(LabelConvertTransform), typeof(LabelConvertTransform.Arguments), typeof(SignatureDataTransform),
     "", "LabelConvert", "LabelConvertTransform")]
@@ -19,13 +20,13 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(LabelConvertTransform.Summary, typeof(LabelConvertTransform), null, typeof(SignatureLoadDataTransform),
     "Label Convert Transform", LabelConvertTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     public sealed class LabelConvertTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {
-            public static Column Parse(string str)
+            internal static Column Parse(string str)
             {
                 Contracts.AssertNonEmpty(str);
 
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             }
 
-            public bool TryUnparse(StringBuilder sb)
+            internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
                 return TryUnparseCore(sb);
@@ -44,8 +45,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col")]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
+                Name = "Column", ShortName = "col")]
+            public Column[] Columns;
         }
 
         internal const string Summary = "Convert a label column into a standard floating point representation.";
@@ -58,29 +60,31 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial.
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LabelConvertTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "LabelConvert";
         private VectorType _slotType;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="LabelConvertTransform"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
-        public LabelConvertTransform(IHostEnvironment env, IDataView input, string name, string source = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+        /// <param name="outputColumnName">Name of the output column.</param>
+        /// <param name="inputColumnName">Name of the input column.  If this is null '<paramref name="outputColumnName"/>' will be used.</param>
+        public LabelConvertTransform(IHostEnvironment env, IDataView input, string outputColumnName, string inputColumnName = null)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Source = inputColumnName ?? outputColumnName, Name = outputColumnName } } }, input)
         {
         }
 
         public LabelConvertTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, RowCursorUtils.TestGetLabelGetter)
+            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Columns, input, RowCursorUtils.TestGetLabelGetter)
         {
             Contracts.AssertNonEmpty(Infos);
-            Contracts.Assert(Infos.Length == Utils.Size(args.Column));
+            Contracts.Assert(Infos.Length == Utils.Size(args.Columns));
+            Metadata.Seal();
         }
 
         private LabelConvertTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -91,6 +95,8 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // <prefix handled in static Create method>
             // <base>
+
+            Metadata.Seal();
         }
 
         public static LabelConvertTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -161,7 +167,7 @@ namespace Microsoft.ML.Runtime.Data
             return kind != MetadataUtils.Kinds.KeyValues;
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
         {
             Contracts.AssertValueOrNull(ch);
             Contracts.AssertValue(input);
@@ -169,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
 
             disposer = null;
             int col = Infos[iinfo].Source;
-            var typeSrc = input.Schema.GetColumnType(col);
+            var typeSrc = input.Schema[col].Type;
             Contracts.Assert(RowCursorUtils.TestGetLabelGetter(typeSrc) == null);
             return RowCursorUtils.GetLabelGetter(input, col);
         }
@@ -186,34 +192,35 @@ namespace Microsoft.ML.Runtime.Data
             return _slotType;
         }
 
-        protected override ISlotCursor GetSlotCursorCore(int iinfo)
+        [BestFriend]
+        internal override SlotCursor GetSlotCursorCore(int iinfo)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             Host.AssertValue(Infos[iinfo].SlotTypeSrc);
 
-            ISlotCursor cursor = InputTranspose.GetSlotCursor(Infos[iinfo].Source);
-            return new SlotCursor(Host, cursor, GetSlotTypeCore(iinfo));
+            var cursor = InputTranspose.GetSlotCursor(Infos[iinfo].Source);
+            return new SlotCursorImpl(Host, cursor, GetSlotTypeCore(iinfo));
         }
 
-        private sealed class SlotCursor : SynchronizedCursorBase<ISlotCursor>, ISlotCursor
+        private sealed class SlotCursorImpl : SlotCursor.SynchronizedSlotCursor
         {
             private readonly Delegate _getter;
             private readonly VectorType _type;
 
-            public SlotCursor(IChannelProvider provider, ISlotCursor cursor, VectorType typeDst)
+            public SlotCursorImpl(IChannelProvider provider, SlotCursor cursor, VectorType typeDst)
                 : base(provider, cursor)
             {
                 Ch.AssertValue(typeDst);
-                _getter = RowCursorUtils.GetLabelGetter(Input);
+                _getter = RowCursorUtils.GetLabelGetter(cursor);
                 _type = typeDst;
             }
 
-            public VectorType GetSlotType()
+            public override VectorType GetSlotType()
             {
                 return _type;
             }
 
-            public ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
+            public override ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
             {
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)

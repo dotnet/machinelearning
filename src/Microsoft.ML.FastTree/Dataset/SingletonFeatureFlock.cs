@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     /// <summary>
     /// The singleton feature flock is the simplest possible sort of flock, that is, a flock
@@ -36,7 +34,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             return _bins.SizeInBytes() + sizeof(double) * _binUpperBounds.Length;
         }
 
-        public override SufficientStatsBase CreateSufficientStats(bool hasWeights)
+        internal override SufficientStatsBase CreateSufficientStats(bool hasWeights)
         {
             return new SufficientStats(this, hasWeights);
         }

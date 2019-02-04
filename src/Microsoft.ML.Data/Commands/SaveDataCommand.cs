@@ -3,15 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(SaveDataCommand.Summary, typeof(SaveDataCommand), typeof(SaveDataCommand.Arguments), typeof(SignatureCommand),
     "Save Data", "SaveData", "save")]
@@ -19,14 +21,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 [assembly: LoadableClass(ShowDataCommand.Summary, typeof(ShowDataCommand), typeof(ShowDataCommand.Arguments), typeof(SignatureCommand),
     "Show Data", "ShowData", "show")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
-    public sealed class SaveDataCommand : DataCommand.ImplBase<SaveDataCommand.Arguments>
+    internal sealed class SaveDataCommand : DataCommand.ImplBase<SaveDataCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "The data saver to use", NullName = "<Auto>")]
-            public SubComponent<IDataSaver, SignatureDataSaver> Saver;
+            [Argument(ArgumentType.Multiple, HelpText = "The data saver to use", NullName = "<Auto>", SignatureType = typeof(SignatureDataSaver))]
+            public IComponentFactory<IDataSaver> Saver;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "File to save the data", ShortName = "dout")]
             public string OutputDataFile;
@@ -50,22 +52,35 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(command))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 
         private void RunCore(IChannel ch)
         {
             Host.AssertValue(ch, "ch");
-            var sub = Args.Saver;
-            if (!sub.IsGood())
+            IDataSaver saver;
+            if (Args.Saver == null)
             {
                 var ext = Path.GetExtension(Args.OutputDataFile);
                 var isBinary = string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase);
                 var isTranspose = string.Equals(ext, ".tdv", StringComparison.OrdinalIgnoreCase);
-                sub = new SubComponent<IDataSaver, SignatureDataSaver>(isBinary ? "BinarySaver" : isTranspose ? "TransposeSaver" : "TextSaver");
+                if (isBinary)
+                {
+                    saver = new BinarySaver(Host, new BinarySaver.Arguments());
+                }
+                else if (isTranspose)
+                {
+                    saver = new TransposeSaver(Host, new TransposeSaver.Arguments());
+                }
+                else
+                {
+                    saver = new TextSaver(Host, new TextSaver.Arguments());
+                }
             }
-            var saver = sub.CreateInstance(Host);
+            else
+            {
+                saver = Args.Saver.CreateComponent(Host);
+            }
 
             IDataLoader loader = CreateAndSaveLoader();
             using (var file = Host.CreateOutputFile(Args.OutputDataFile))
@@ -73,11 +88,11 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class ShowDataCommand : DataCommand.ImplBase<ShowDataCommand.Arguments>
+    internal sealed class ShowDataCommand : DataCommand.ImplBase<ShowDataCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Comma separate list of columns to display", ShortName = "cols")]
+            [Argument(ArgumentType.Multiple, HelpText = "Comma separated list of columns to display", ShortName = "cols")]
             public string Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of rows")]
@@ -89,8 +104,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force dense format")]
             public bool Dense;
 
-            [Argument(ArgumentType.Multiple, HelpText = "The data saver to use", NullName = "<Auto>")]
-            public SubComponent<IDataSaver, SignatureDataSaver> Saver;
+            [Argument(ArgumentType.Multiple, HelpText = "The data saver to use", NullName = "<Auto>", SignatureType = typeof(SignatureDataSaver))]
+            public IComponentFactory<IDataSaver> Saver;
         }
 
         internal const string Summary = "Given input data, a loader, and possibly transforms, display a sample of the data file.";
@@ -106,7 +121,6 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(command))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 
@@ -117,28 +131,27 @@ namespace Microsoft.ML.Runtime.Data
 
             if (!string.IsNullOrWhiteSpace(Args.Columns))
             {
-                var args = new ChooseColumnsTransform.Arguments();
-                args.Column = Args.Columns
-                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => new ChooseColumnsTransform.Column() { Name = s }).ToArray();
-                if (Utils.Size(args.Column) > 0)
-                    data = new ChooseColumnsTransform(Host, args, data);
+                var keepColumns = Args.Columns
+                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+                if (Utils.Size(keepColumns) > 0)
+                    data = ColumnSelectingTransformer.CreateKeep(Host, data, keepColumns);
             }
 
             IDataSaver saver;
-            if (Args.Saver.IsGood())
-                saver = Args.Saver.CreateInstance(Host);
+            if (Args.Saver != null)
+                saver = Args.Saver.CreateComponent(Host);
             else
                 saver = new TextSaver(Host, new TextSaver.Arguments() { Dense = Args.Dense });
             var cols = new List<int>();
-            for (int i = 0; i < data.Schema.ColumnCount; i++)
+            for (int i = 0; i < data.Schema.Count; i++)
             {
-                if (!Args.KeepHidden && data.Schema.IsHidden(i))
+                if (!Args.KeepHidden && data.Schema[i].IsHidden)
                     continue;
-                var type = data.Schema.GetColumnType(i);
+                var type = data.Schema[i].Type;
                 if (saver.IsColumnSavable(type))
                     cols.Add(i);
                 else
-                    ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", data.Schema.GetColumnName(i));
+                    ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", data.Schema[i].Name);
             }
             Host.NotSensitive().Check(cols.Count > 0, "No valid columns to save");
 
@@ -169,7 +182,8 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public static class DataSaverUtils
+    [BestFriend]
+    internal static class DataSaverUtils
     {
         public static void SaveDataView(IChannel ch, IDataSaver saver, IDataView view, IFileHandle file, bool keepHidden = false)
         {
@@ -191,15 +205,15 @@ namespace Microsoft.ML.Runtime.Data
             ch.CheckValue(stream, nameof(stream));
 
             var cols = new List<int>();
-            for (int i = 0; i < view.Schema.ColumnCount; i++)
+            for (int i = 0; i < view.Schema.Count; i++)
             {
-                if (!keepHidden && view.Schema.IsHidden(i))
+                if (!keepHidden && view.Schema[i].IsHidden)
                     continue;
-                var type = view.Schema.GetColumnType(i);
+                var type = view.Schema[i].Type;
                 if (saver.IsColumnSavable(type))
                     cols.Add(i);
                 else
-                    ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", view.Schema.GetColumnName(i));
+                    ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", view.Schema[i].Name);
             }
 
             ch.Check(cols.Count > 0, "No valid columns to save");

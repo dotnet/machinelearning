@@ -4,9 +4,9 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Model
+namespace Microsoft.ML.Model
 {
-    public static class ModelUtils
+    internal static class ModelUtils
     {
         private static string ArgCase(string name)
         {

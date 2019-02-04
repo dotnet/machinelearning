@@ -6,7 +6,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // REVIEW: May want to add an IEnumerable<KeyValuePair<int, TItem>>.
 
@@ -17,7 +17,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// Also implements memory efficient sorting.
     /// Note: Supports adding and looking up of items but does not support removal of items.
     /// </summary>
-    public sealed class HashArray<TItem>
+    [BestFriend]
+    internal sealed class HashArray<TItem>
         // REVIEW: May want to not consider not making TItem have to be IComparable but instead
         // could support user specified sort order.
         where TItem : IEquatable<TItem>, IComparable<TItem>
@@ -227,23 +228,22 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Copies all items to the passed in array. Requires the passed in array to be at least the
+        /// Copies all items to the passed in span. Requires the passed in span to be at least the
         /// same length as Count.
         /// </summary>
-        public void CopyTo(TItem[] array)
+        public void CopyTo(Span<TItem> destination)
         {
-            Contracts.Check(array != null);
-            Contracts.Check(array.Length >= _ct);
+            Contracts.Check(destination.Length >= _ct);
 
             for (int i = 0; i < _ct; i++)
-                array[i] = _entries[i].Value;
+                destination[i] = _entries[i].Value;
         }
 
         private static class HashHelpers
         {
             // Note: This HashHelpers class was adapted from the BCL code base.
 
-            // This is the maximum prime smaller than Array.MaxArrayLength 
+            // This is the maximum prime smaller than Array.MaxArrayLength
             public const int MaxPrimeArrayLength = 0x7FEFFFFD;
 
             // Table of prime numbers to use as hash table sizes.
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 return min + 1;
             }
 
-            // Returns size of hashtable to grow to. 
+            // Returns size of hashtable to grow to.
             public static int ExpandPrime(int oldSize)
             {
                 int newSize = 2 * oldSize;

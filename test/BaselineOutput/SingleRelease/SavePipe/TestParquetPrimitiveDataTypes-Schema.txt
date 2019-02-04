@@ -1,0 +1,10 @@
+---- ParquetLoader ----
+8 columns:
+  sbyte: I1
+  short: I2
+  int: I4
+  long: I8
+  bool: Bool
+  DateTimeOffset: DateTimeZone
+  Interval: TimeSpan
+  string: Text

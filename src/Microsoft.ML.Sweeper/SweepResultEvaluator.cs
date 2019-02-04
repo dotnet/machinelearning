@@ -5,17 +5,15 @@
 using System;
 using System.Text;
 using Microsoft.ML;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Sweeper;
-
-using ResultProcessor = Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Sweeper;
+using ResultProcessor = Microsoft.ML.Internal.Internallearn.ResultProcessor;
 
 [assembly: LoadableClass(typeof(InternalSweepResultEvaluator), typeof(InternalSweepResultEvaluator.Arguments), typeof(SignatureSweepResultEvaluator),
     "TLC Sweep Result Evaluator", "TlcEvaluator", "Tlc")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     public class InternalSweepResultEvaluator : ISweepResultEvaluator<string>
     {
@@ -42,7 +40,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         {
             StringBuilder sb = new StringBuilder();
 
-            var evaluators = ComponentCatalog.GetAllDerivedClasses(typeof(IMamlEvaluator), typeof(SignatureMamlEvaluator));
+            var evaluators = _host.ComponentCatalog.GetAllDerivedClasses(typeof(IMamlEvaluator), typeof(SignatureMamlEvaluator));
             foreach (var evalInfo in evaluators)
             {
                 var args = evalInfo.CreateArguments();

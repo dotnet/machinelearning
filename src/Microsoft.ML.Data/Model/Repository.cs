@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Model
+namespace Microsoft.ML.Model
 {
     /// <summary>
     /// Signature for a repository based model loader. This is the dual of ICanSaveModel.
@@ -24,9 +24,11 @@ namespace Microsoft.ML.Runtime.Model
     }
 
     /// <summary>
-    /// For saving to a single stream.
+    /// For saving to a single stream. Note that this interface is mostly deprecated in favor of
+    /// saving more comprehensive and composable "model" objects, via <see cref="ICanSaveModel"/>.
     /// </summary>
-    public interface ICanSaveInBinaryFormat
+    [BestFriend]
+    internal interface ICanSaveInBinaryFormat
     {
         void SaveAsBinary(BinaryWriter writer);
     }
@@ -226,12 +228,12 @@ namespace Microsoft.ML.Runtime.Model
         /// When we load those entries into our look-up dictionary, we normalize them to always use
         /// backward slashes.
         /// </summary>
-        protected static string NormalizeForArchiveEntry(string path) => path?.Replace('/', '\\');
+        protected static string NormalizeForArchiveEntry(string path) => path?.Replace('/', Path.DirectorySeparatorChar);
 
         /// <summary>
         /// When building paths to our local file system, we want to force both forward and backward slashes
         /// to the system directory separator character. We do this for cases where we either used Windows-specific
-        /// path building logic, or concatenated filesystem paths with zip archive entries on Linux. 
+        /// path building logic, or concatenated filesystem paths with zip archive entries on Linux.
         /// </summary>
         private static string NormalizeForFileSystem(string path) =>
             path?.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
@@ -497,25 +499,38 @@ namespace Microsoft.ML.Runtime.Model
             string pathAbs;
             string pathLower = pathEnt.ToLowerInvariant();
             if (PathMap.TryGetValue(pathLower, out pathAbs))
-                stream = new FileStream(pathAbs, FileMode.Open, FileAccess.Read);
-            else if (!_entries.TryGetValue(pathEnt, out entry))
-                return null;
-            else if (pathTemp != null)
             {
-                // Extract to a temporary file.
-                Directory.CreateDirectory(Path.GetDirectoryName(pathTemp));
-                entry.ExtractToFile(pathTemp);
-                PathMap.Add(pathLower, pathTemp);
-                stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read);
+                stream = new FileStream(pathAbs, FileMode.Open, FileAccess.Read);
             }
             else
             {
-                // Extract to a memory stream.
-                ExceptionContext.CheckDecode(entry.Length < int.MaxValue, "Repository stream too large to read into memory");
-                stream = new MemoryStream((int)entry.Length);
-                using (var src = entry.Open())
-                    src.CopyTo(stream);
-                stream.Position = 0;
+                if (!_entries.TryGetValue(pathEnt, out entry))
+                {
+                    //Read old zip file that use backslash in filename
+                    var pathEntTmp = pathEnt.Replace("/","\\");
+                    if (!_entries.TryGetValue(pathEntTmp, out entry))
+                    {
+                        return null;
+                    }
+                }
+
+                if (pathTemp != null)
+                {
+                    // Extract to a temporary file.
+                    Directory.CreateDirectory(Path.GetDirectoryName(pathTemp));
+                    entry.ExtractToFile(pathTemp);
+                    PathMap.Add(pathLower, pathTemp);
+                    stream = new FileStream(pathTemp, FileMode.Open, FileAccess.Read);
+                }
+                else
+                {
+                    // Extract to a memory stream.
+                    ExceptionContext.CheckDecode(entry.Length < int.MaxValue, "Repository stream too large to read into memory");
+                    stream = new MemoryStream((int)entry.Length);
+                    using (var src = entry.Open())
+                        src.CopyTo(stream);
+                    stream.Position = 0;
+                }
             }
 
             return AddEntry(pathEnt, stream);

@@ -4,17 +4,17 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Sweeper;
 
 [assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeper),
     "Random Grid Sweeper", "RandomGridSweeper", "RandomGrid")]
 [assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeperFromParameterList),
     "Random Grid Sweeper", "RandomGridSweeperParamList", "RandomGridpl")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     /// <summary>
     /// Signature for the GUI loaders of sweepers.
@@ -28,8 +28,8 @@ namespace Microsoft.ML.Runtime.Sweeper
     {
         public class ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Swept parameters", ShortName = "p")]
-            public SubComponent<IValueGenerator, SignatureSweeperParameter>[] SweptParameters;
+            [Argument(ArgumentType.Multiple, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of tries to generate distinct parameter sets.", ShortName = "r")]
             public int Retries = 10;
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.Sweeper
 
             _args = args;
 
-            SweepParameters = args.SweptParameters.Select(p => p.CreateInstance(Host)).ToArray();
+            SweepParameters = args.SweptParameters.Select(p => p.CreateComponent(Host)).ToArray();
         }
 
         protected SweeperBase(ArgumentsBase args, IHostEnvironment env, IValueGenerator[] sweepParameters, string name)

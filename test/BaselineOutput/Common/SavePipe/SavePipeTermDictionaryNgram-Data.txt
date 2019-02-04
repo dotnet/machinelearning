@@ -1,0 +1,8 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Features:R4:0-20
+#@ }
+*	*|*	*|fred	fred	fred|mcgriff	mcgriff	mcgriff|*	*|padres	padres	padres|*	*|free	free	free|agent	agent	*|erythromycin	erythromycin	erythromycin|*	*|treating	treating	treating|pneumonia	pneumonia
+7	4	1	1	1	1	1	1	1	1	1	1	1	1	0	0	0	0	0	0	0
+4	2	0	0	0	0	0	0	0	0	0	0	0	0	1	1	1	1	1	1	1

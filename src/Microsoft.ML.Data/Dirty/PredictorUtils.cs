@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
-    public static class PredictorUtils
+    [BestFriend]
+    internal static class PredictorUtils
     {
         /// <summary>
-        /// Save the model summary
+        /// Save the model summary.
         /// </summary>
         public static void SaveSummary(IChannel ch, IPredictor predictor, RoleMappedSchema schema, TextWriter writer)
         {
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         }
 
         /// <summary>
-        /// Save the model in binary format (if it can save itself)
+        /// Save the model in binary format (if it can save itself).
         /// </summary>
         public static void SaveBinary(IChannel ch, IPredictor predictor, BinaryWriter writer)
         {

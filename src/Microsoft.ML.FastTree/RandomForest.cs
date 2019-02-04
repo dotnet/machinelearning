@@ -2,25 +2,47 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
+using System;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Trainers.FastTree.Internal;
 
-using Microsoft.ML.Runtime.FastTree.Internal;
-
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
-    public abstract class RandomForestTrainerBase<TArgs, TPredictor> : FastTreeTrainerBase<TArgs, TPredictor>
+    public abstract class RandomForestTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
         where TArgs : FastForestArgumentsBase, new()
-        where TPredictor : IPredictorProducing<Float>
+        where TModel : IPredictorProducing<float>
+        where TTransformer: ISingleFeaturePredictionTransformer<TModel>
     {
         private readonly bool _quantileEnabled;
 
-        protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, bool quantileEnabled = false)
-            : base(env, args)
+        /// <summary>
+        /// Constructor invoked by the maml code-path.
+        /// </summary>
+        protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, bool quantileEnabled = false)
+            : base(env, args, label)
         {
             _quantileEnabled = quantileEnabled;
         }
 
-        protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
+        /// <summary>
+        /// Constructor invoked by the API code-path.
+        /// </summary>
+        protected RandomForestTrainerBase(IHostEnvironment env,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            string groupIdColumn,
+            int numLeaves,
+            int numTrees,
+            int minDatapointsInLeaves,
+            double learningRate,
+            bool quantileEnabled = false)
+            : base(env, label, featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
+        {
+            _quantileEnabled = quantileEnabled;
+        }
+
+        private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             Host.CheckValue(ch, nameof(ch));
             IGradientAdjuster gradientWrapper = MakeGradientWrapper(ch);
@@ -41,7 +63,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
         }
 
-        protected override TreeLearner ConstructTreeLearner(IChannel ch)
+        private protected override TreeLearner ConstructTreeLearner(IChannel ch)
         {
             return new RandomForestLeastSquaresTreeLearner(
                        TrainSet, Args.NumLeaves, Args.MinDocumentsInLeafs, Args.EntropyCoefficient,

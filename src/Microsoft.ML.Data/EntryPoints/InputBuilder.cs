@@ -6,21 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints.JsonUtils
 {
     /// <summary>
-    /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing 
-    /// required values. The values can be set from their JSON representation (during the graph parsing stage), as well as directly 
+    /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing
+    /// required values. The values can be set from their JSON representation (during the graph parsing stage), as well as directly
     /// (in the process of graph execution).
     /// </summary>
     public sealed class InputBuilder
     {
-        private struct Attributes
+        private readonly struct Attributes
         {
             public readonly ArgumentAttribute Input;
             public readonly TlcModule.RangeAttribute Range;
@@ -43,9 +43,9 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         private readonly FieldInfo[] _fields;
         private readonly bool[] _wasSet;
         private readonly Attributes[] _attrs;
-        private readonly ModuleCatalog _catalog;
+        private readonly ComponentCatalog _catalog;
 
-        public InputBuilder(IExceptionContext ectx, Type inputType, ModuleCatalog catalog)
+        public InputBuilder(IExceptionContext ectx, Type inputType, ComponentCatalog catalog)
         {
             Contracts.CheckValue(ectx, nameof(ectx));
             _ectx = ectx;
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             var fields = new List<FieldInfo>();
             var attrs = new List<Attributes>();
 
-            foreach (var fieldInfo in _type.GetFields())
+            foreach (var fieldInfo in _type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var attr = (ArgumentAttribute)fieldInfo.GetCustomAttributes(typeof(ArgumentAttribute), false).FirstOrDefault();
                 if (attr == null || attr.Visibility == ArgumentAttribute.VisibilityType.CmdLineOnly)
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                         Contracts.Assert(success);
                         Contracts.AssertValue(varBinding);
 
-                        result.Add(field.Name, new JValue(varBinding.ToJson()));
+                        result.Add(attr.Input.Name ?? field.Name, new JValue(varBinding.ToJson()));
                     }
                     else if (paramBinding is ArrayIndexParameterBinding)
                     {
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                             array.Add(new JValue(varBinding.ToJson()));
                         }
 
-                        result.Add(field.Name, array);
+                        result.Add(attr.Input.Name ?? field.Name, array);
                     }
                     else
                     {
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 else if (instanceVal == null && defaultsVal != null)
                 {
                     // Handle null values.
-                    result.Add(field.Name, new JValue(instanceVal));
+                    result.Add(attr.Input.Name ?? field.Name, new JValue(instanceVal));
                 }
                 else if (instanceVal != null && (attr.Input.IsRequired || !instanceVal.Equals(defaultsVal)))
                 {
@@ -275,13 +275,13 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     }
 
                     if (type == typeof(JArray))
-                        result.Add(field.Name, (JArray)instanceVal);
+                        result.Add(attr.Input.Name ?? field.Name, (JArray)instanceVal);
                     else if (type.IsGenericType &&
                         ((type.GetGenericTypeDefinition() == typeof(Var<>)) ||
                         type.GetGenericTypeDefinition() == typeof(ArrayVar<>) ||
                         type.GetGenericTypeDefinition() == typeof(DictionaryVar<>)))
                     {
-                        result.Add(field.Name, new JValue($"${((IVarSerializationHelper)instanceVal).VarName}"));
+                        result.Add(attr.Input.Name ?? field.Name, new JValue($"${((IVarSerializationHelper)instanceVal).VarName}"));
                     }
                     else if (type == typeof(bool) ||
                         type == typeof(string) ||
@@ -294,12 +294,12 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                         type == typeof(ulong))
                     {
                         // Handle simple types.
-                        result.Add(field.Name, new JValue(instanceVal));
+                        result.Add(attr.Input.Name ?? field.Name, new JValue(instanceVal));
                     }
                     else if (type.IsEnum)
                     {
                         // Handle enums.
-                        result.Add(field.Name, new JValue(instanceVal.ToString()));
+                        result.Add(attr.Input.Name ?? field.Name, new JValue(instanceVal.ToString()));
                     }
                     else if (type.IsArray)
                     {
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                             foreach (object item in array)
                                 jarray.Add(builder.GetJsonObject(item, inputBindingMap, inputMap));
                         }
-                        result.Add(field.Name, jarray);
+                        result.Add(attr.Input.Name ?? field.Name, jarray);
                     }
                     else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>) &&
                              type.GetGenericArguments()[0] == typeof(string))
@@ -337,12 +337,12 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     else if (typeof(IComponentFactory).IsAssignableFrom(type))
                     {
                         // Handle component factories.
-                        bool success = _catalog.TryFindComponent(type, out ModuleCatalog.ComponentInfo instanceInfo);
+                        bool success = _catalog.TryFindComponent(type, out ComponentCatalog.ComponentInfo instanceInfo);
                         Contracts.Assert(success);
                         var builder = new InputBuilder(_ectx, type, _catalog);
                         var instSettings = builder.GetJsonObject(instanceVal, inputBindingMap, inputMap);
 
-                        ModuleCatalog.ComponentInfo defaultInfo = null;
+                        ComponentCatalog.ComponentInfo defaultInfo = null;
                         JObject defSettings = new JObject();
                         if (defaultsVal != null)
                         {
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                             };
                             if (instSettings.ToString() != defSettings.ToString())
                                 jcomponent.Add(FieldNames.Settings, instSettings);
-                            result.Add(field.Name, jcomponent);
+                            result.Add(attr.Input.Name ?? field.Name, jcomponent);
                         }
                     }
                     else
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
 
                         // Handle structs.
                         var builder = new InputBuilder(_ectx, type, _catalog);
-                        result.Add(field.Name, builder.GetJsonObject(instanceVal, new Dictionary<string, List<ParameterBinding>>(),
+                        result.Add(attr.Input.Name ?? field.Name, builder.GetJsonObject(instanceVal, new Dictionary<string, List<ParameterBinding>>(),
                             new Dictionary<ParameterBinding, VariableBinding>()));
                     }
                 }
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return optObj.IsExplicit;
         }
 
-        private static object ParseJsonValue(IExceptionContext ectx, Type type, Attributes attributes, JToken value, ModuleCatalog catalog)
+        private static object ParseJsonValue(IExceptionContext ectx, Type type, Attributes attributes, JToken value, ComponentCatalog catalog)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(type);
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     case TlcModule.DataKind.Array:
                         var ja = value as JArray;
                         ectx.Check(ja != null, "Expected array value");
-                        Func<IExceptionContext, JArray, Attributes, ModuleCatalog, object> makeArray = MakeArray<int>;
+                        Func<IExceptionContext, JArray, Attributes, ComponentCatalog, object> makeArray = MakeArray<int>;
                         return Utils.MarshalInvoke(makeArray, type.GetElementType(), ectx, ja, attributes, catalog);
                     case TlcModule.DataKind.Int:
                         if (type == typeof(long))
@@ -470,7 +470,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                         throw ectx.ExceptNotSupp();
                     case TlcModule.DataKind.Dictionary:
                         ectx.Check(value is JObject, "Expected object value");
-                        Func<IExceptionContext, JObject, Attributes, ModuleCatalog, object> makeDict = MakeDictionary<int>;
+                        Func<IExceptionContext, JObject, Attributes, ComponentCatalog, object> makeDict = MakeDictionary<int>;
                         return Utils.MarshalInvoke(makeDict, type.GetGenericArguments()[1], ectx, (JObject)value, attributes, catalog);
                     case TlcModule.DataKind.Component:
                         var jo = value as JObject;
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         }
 
         /// <summary>
-        /// Ensures that the given value can be assigned to an entry point field with 
+        /// Ensures that the given value can be assigned to an entry point field with
         /// type <paramref name="type"/>. This method will wrap the value in the option
         /// type if needed and throw an exception if the value isn't assignable.
         /// </summary>
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return value;
         }
 
-        private static IComponentFactory GetComponentJson(IExceptionContext ectx, Type signatureType, string name, JObject settings, ModuleCatalog catalog)
+        private static IComponentFactory GetComponentJson(IExceptionContext ectx, Type signatureType, string name, JObject settings, ComponentCatalog catalog)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(signatureType);
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             if (!catalog.TryGetComponentKind(signatureType, out string kind))
                 throw ectx.Except($"Component type '{signatureType}' is not a valid signature type.");
 
-            if (!catalog.TryFindComponent(kind, name, out ModuleCatalog.ComponentInfo component))
+            if (!catalog.TryFindComponent(kind, name, out ComponentCatalog.ComponentInfo component))
             {
                 var available = catalog.GetAllComponents(kind).Select(x => $"'{x.Name}'");
                 throw ectx.Except($"Component '{name}' of kind '{kind}' is not found. Available components are: {string.Join(", ", available)}");
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return inputBuilder.GetInstance() as IComponentFactory;
         }
 
-        private static object MakeArray<T>(IExceptionContext ectx, JArray jArray, Attributes attributes, ModuleCatalog catalog)
+        private static object MakeArray<T>(IExceptionContext ectx, JArray jArray, Attributes attributes, ComponentCatalog catalog)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(jArray);
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return array;
         }
 
-        private static object MakeDictionary<T>(IExceptionContext ectx, JObject jDict, Attributes attributes, ModuleCatalog catalog)
+        private static object MakeDictionary<T>(IExceptionContext ectx, JObject jDict, Attributes attributes, ComponentCatalog catalog)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(jDict);
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class Deprecated
         {
-            public new static string ToString() => "Deprecated";
+            public static new string ToString() => "Deprecated";
             public const string Message = "Message";
         }
 
@@ -800,7 +800,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableLongParam
         {
-            public new static string ToString() => "SweepRange";
+            public static new string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Max = "Max";
             public const string Min = "Min";
@@ -814,7 +814,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableFloatParam
         {
-            public new static string ToString() => "SweepRange";
+            public static new string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Max = "Max";
             public const string Min = "Min";
@@ -828,14 +828,14 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         public static class SweepableDiscreteParam
         {
-            public new static string ToString() => "SweepRange";
+            public static new string ToString() => "SweepRange";
             public const string RangeType = "RangeType";
             public const string Options = "Values";
         }
 
         public static class PipelineSweeperSupportedMetrics
         {
-            public new static string ToString() => "SupportedMetric";
+            public static new string ToString() => "SupportedMetric";
             public const string Auc = BinaryClassifierEvaluator.Auc;
             public const string AccuracyMicro = Data.MultiClassClassifierEvaluator.AccuracyMicro;
             public const string AccuracyMacro = MultiClassClassifierEvaluator.AccuracyMacro;

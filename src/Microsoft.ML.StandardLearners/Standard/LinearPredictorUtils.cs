@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Utilities;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Learners
 {
     /// <summary>
     /// Helper methods for linear predictors
@@ -29,19 +28,19 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// print the linear model as code
         /// </summary>
-        public static void SaveAsCode(TextWriter writer, ref VBuffer<Float> weights, Float bias,
+        public static void SaveAsCode(TextWriter writer, in VBuffer<Float> weights, Float bias,
             RoleMappedSchema schema, string codeVariable = "output")
         {
             Contracts.CheckValue(writer, nameof(writer));
             Contracts.CheckValueOrNull(schema);
 
-            var featureNames = default(VBuffer<DvText>);
+            var featureNames = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref featureNames);
 
             int numNonZeroWeights = 0;
             writer.Write(codeVariable);
             writer.Write(" = ");
-            VBufferUtils.ForEachDefined(ref weights,
+            VBufferUtils.ForEachDefined(in weights,
                 (idx, value) =>
                 {
                     if (Math.Abs(value - 0) >= Epsilon)
@@ -51,7 +50,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                         writer.Write(FloatUtils.ToRoundTripString(value));
                         writer.Write("*");
-                        if (featureNames.Count > 0)
+                        if (featureNames.GetValues().Length > 0)
                             writer.Write(FeatureNameAsCode(featureNames.GetItemOrDefault(idx).ToString(), idx));
                         else
                             writer.Write("f_" + idx);
@@ -94,7 +93,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Build a Bing TreeEnsemble .ini representation of the given predictor
         /// </summary>
-        public static string LinearModelAsIni(ref VBuffer<Float> weights, Float bias, IPredictor predictor = null,
+        public static string LinearModelAsIni(in VBuffer<Float> weights, Float bias, IPredictor predictor = null,
             RoleMappedSchema schema = null, PlattCalibrator calibrator = null)
         {
             // TODO: Might need to consider a max line length for the Weights list, requiring us to split it up into
@@ -103,12 +102,12 @@ namespace Microsoft.ML.Runtime.Learners
             StringBuilder aggregatedNodesBuilder = new StringBuilder("Nodes=");
             StringBuilder weightsBuilder = new StringBuilder("Weights=");
 
-            var featureNames = default(VBuffer<DvText>);
+            var featureNames = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref featureNames);
 
             int numNonZeroWeights = 0;
             const string weightsSep = "\t";
-            VBufferUtils.ForEachDefined(ref weights,
+            VBufferUtils.ForEachDefined(in weights,
                 (idx, value) =>
                 {
                     if (Math.Abs(value - 0) >= Epsilon)
@@ -118,7 +117,7 @@ namespace Microsoft.ML.Runtime.Learners
                         var name = featureNames.GetItemOrDefault(idx);
 
                         inputBuilder.AppendLine("[Input:" + numNonZeroWeights + "]");
-                        inputBuilder.AppendLine("Name=" + (featureNames.Count == 0 ? "Feature_" + idx : DvText.Identical(name, DvText.Empty) ? $"f{idx}" : name.ToString()));
+                        inputBuilder.AppendLine("Name=" + (featureNames.GetValues().Length == 0 ? "Feature_" + idx : name.IsEmpty ? $"f{idx}" : name.ToString()));
                         inputBuilder.AppendLine("Transform=linear");
                         inputBuilder.AppendLine("Slope=1");
                         inputBuilder.AppendLine("Intercept=0");
@@ -176,7 +175,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Output the weights of a linear model to a given writer
         /// </summary>
         public static string LinearModelAsText(
-            string userName, string loadName, string settings, ref VBuffer<Float> weights, Float bias,
+            string userName, string loadName, string settings, in VBuffer<Float> weights, Float bias,
             RoleMappedSchema schema = null, PlattCalibrator calibrator = null)
         {
             // Review: added a text description for each calibrator (not only Platt), would be nice to add to this method.
@@ -195,7 +194,7 @@ namespace Microsoft.ML.Runtime.Learners
             b.AppendLine();
 
             List<KeyValuePair<string, object>> weightValues = new List<KeyValuePair<string, object>>();
-            SaveLinearModelWeightsInKeyValuePairs(ref weights, bias, schema, weightValues);
+            SaveLinearModelWeightsInKeyValuePairs(in weights, bias, schema, weightValues);
             foreach (var weightValue in weightValues)
             {
                 Contracts.Assert(weightValue.Value is Float);
@@ -206,7 +205,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public static IEnumerable<KeyValuePair<string, Single>> GetSortedLinearModelFeatureNamesAndWeights(Single bias,
-            ref VBuffer<Single> weights, ref VBuffer<DvText> names)
+            in VBuffer<Single> weights, in VBuffer<ReadOnlyMemory<char>> names)
         {
             var orderedWeights = weights.Items()
                 .Where(weight => Math.Abs(weight.Value) >= Epsilon)
@@ -217,8 +216,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 int index = weight.Key;
                 var name = names.GetItemOrDefault(index);
-                list.Add(new KeyValuePair<string, Single>(
-                    DvText.Identical(name, DvText.Empty) ? $"f{index}" : name.ToString(), weight.Value));
+                list.Add(new KeyValuePair<string, Single>(name.IsEmpty ? $"f{index}" : name.ToString(), weight.Value));
             }
 
             return list;
@@ -228,12 +226,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// Output the weights of a linear model to key value pairs.
         /// </summary>
         public static void SaveLinearModelWeightsInKeyValuePairs(
-            ref VBuffer<Float> weights, Float bias, RoleMappedSchema schema, List<KeyValuePair<string, object>> results)
+            in VBuffer<Float> weights, Float bias, RoleMappedSchema schema, List<KeyValuePair<string, object>> results)
         {
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref names);
 
-            var pairs = GetSortedLinearModelFeatureNamesAndWeights(bias, ref weights, ref names);
+            var pairs = GetSortedLinearModelFeatureNamesAndWeights(bias, in weights, in names);
 
             foreach (var kvp in pairs)
                 results.Add(new KeyValuePair<string, object>(kvp.Key, kvp.Value));

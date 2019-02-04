@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Numeric;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Numeric;
 
-namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
+namespace Microsoft.ML.Ensemble.OutputCombiners
 {
     public abstract class BaseMultiAverager : BaseMultiCombiner
     {
@@ -35,21 +35,18 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 return;
             }
 
-            var values = dst.Values;
-            if (Utils.Size(values) < len)
-                values = new Single[len];
-            else
-                Array.Clear(values, 0, len);
-
+            var editor = VBufferEditor.Create(ref dst, len);
+            if (!editor.CreatedNewValues)
+                editor.Values.Clear();
             // Set the output to values.
-            dst = new VBuffer<Single>(len, values, dst.Indices);
+            dst = editor.Commit();
 
             Single weightTotal;
             if (weights == null)
             {
                 weightTotal = src.Length;
                 for (int i = 0; i < src.Length; i++)
-                    VectorUtils.Add(ref src[i], ref dst);
+                    VectorUtils.Add(in src[i], ref dst);
             }
             else
             {
@@ -58,7 +55,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 {
                     var w = weights[i];
                     weightTotal += w;
-                    VectorUtils.AddMult(ref src[i], w, ref dst);
+                    VectorUtils.AddMult(in src[i], w, ref dst);
                 }
             }
 

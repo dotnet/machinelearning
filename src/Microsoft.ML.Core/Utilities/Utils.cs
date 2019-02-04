@@ -2,21 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.Data.DataView;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
 
-    public static partial class Utils
+    [BestFriend]
+    internal static partial class Utils
     {
         // Maximum size of one-dimensional array.
         // See: https://msdn.microsoft.com/en-us/library/hh285054(v=vs.110).aspx
@@ -181,15 +182,22 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Assumes input is sorted and finds value using BinarySearch.
-        /// If value is not found, returns the logical index of 'value' in the sorted list i.e index of the first element greater than value.
-        /// In case of duplicates it returns the index of the first one.
-        /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
+        /// Copies the values from src to dst.
         /// </summary>
-        public static int FindIndexSorted(this int[] input, int value)
+        /// <remarks>
+        /// This can be removed once we have the APIs from https://github.com/dotnet/corefx/issues/33006.
+        /// </remarks>
+        public static void CopyTo<T>(this List<T> src, Span<T> dst, int? count = null)
         {
-            Contracts.AssertValue(input);
-            return FindIndexSorted(input, 0, input.Length, value);
+            Contracts.Assert(src != null);
+            Contracts.Assert(!count.HasValue || (0 <= count && count <= src.Count));
+            Contracts.Assert(src.Count <= dst.Length);
+
+            count = count ?? src.Count;
+            for (int i = 0; i < count; i++)
+            {
+                dst[i] = src[i];
+            }
         }
 
         /// <summary>
@@ -210,10 +218,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this Single[] input, Single value)
+        public static int FindIndexSorted(this IList<float> input, float value)
         {
             Contracts.AssertValue(input);
-            return FindIndexSorted(input, 0, input.Length, value);
+            return FindIndexSorted(input, 0, input.Count, value);
         }
 
         /// <summary>
@@ -240,6 +248,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
+        /// Akin to <c>FindIndexSorted</c>, except stores the found index in the output
+        /// <c>index</c> parameter, and returns whether that index is a valid index
+        /// pointing to a value equal to the input parameter <c>value</c>.
+        /// </summary>
+        public static bool TryFindIndexSorted(ReadOnlySpan<int> input, int min, int lim, int value, out int index)
+        {
+            index = FindIndexSorted(input, min, lim, value);
+            return index < lim && input[index] == value;
+        }
+
+        /// <summary>
         /// Assumes input is sorted and finds value using BinarySearch.
         /// If value is not found, returns the logical index of 'value' in the sorted list i.e index of the first element greater than value.
         /// In case of duplicates it returns the index of the first one.
@@ -247,8 +266,18 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static int FindIndexSorted(this int[] input, int min, int lim, int value)
         {
-            Contracts.AssertValueOrNull(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= Utils.Size(input));
+            return FindIndexSorted(input.AsSpan(), min, lim, value);
+        }
+
+        /// <summary>
+        /// Assumes input is sorted and finds value using BinarySearch.
+        /// If value is not found, returns the logical index of 'value' in the sorted list i.e index of the first element greater than value.
+        /// In case of duplicates it returns the index of the first one.
+        /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
+        /// </summary>
+        public static int FindIndexSorted(this ReadOnlySpan<int> input, int min, int lim, int value)
+        {
+            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
 
             int minCur = min;
             int limCur = lim;
@@ -313,11 +342,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this Single[] input, int min, int lim, Single value)
+        public static int FindIndexSorted(this IList<float> input, int min, int lim, float value)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
-            Contracts.Assert(!Single.IsNaN(value));
+            Contracts.Assert(0 <= min & min <= lim & lim <= input.Count);
+            Contracts.Assert(!float.IsNaN(value));
 
             int minCur = min;
             int limCur = lim;
@@ -325,7 +354,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
                 Contracts.Assert(minCur <= mid & mid < limCur);
-                Contracts.Assert(!Single.IsNaN(input[mid]));
+                Contracts.Assert(!float.IsNaN(input[mid]));
 
                 if (input[mid] >= value)
                     limCur = mid;
@@ -455,9 +484,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return res;
         }
 
-        public static void FillIdentity(int[] a, int lim)
+        public static void FillIdentity(Span<int> a, int lim)
         {
-            Contracts.AssertValue(a);
             Contracts.Assert(0 <= lim & lim <= a.Length);
 
             for (int i = 0; i < lim; ++i)
@@ -502,57 +530,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.Assert(size >= 0);
 
             var res = GetIdentityPermutation(size);
-            Shuffle(rand, res);
+            Shuffle<int>(rand, res);
             return res;
         }
 
-        public static int[] GetRandomPermutation(IRandom rand, int size)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.Assert(size >= 0);
-
-            var res = GetIdentityPermutation(size);
-            Shuffle(rand, res);
-            return res;
-        }
-
-        public static void Shuffle<T>(IRandom rand, T[] rgv)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-
-            Shuffle(rand, rgv, 0, rgv.Length);
-        }
-
-        public static void Shuffle<T>(Random rand, T[] rgv)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-
-            Shuffle(rand, rgv, 0, rgv.Length);
-        }
-
-        public static void Shuffle<T>(IRandom rand, T[] rgv, int min, int lim)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-            Contracts.Check(0 <= min & min <= lim & lim <= rgv.Length);
-
-            for (int iv = min; iv < lim; iv++)
-                Swap(ref rgv[iv], ref rgv[iv + rand.Next(lim - iv)]);
-        }
-
-        public static void Shuffle<T>(Random rand, T[] rgv, int min, int lim)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-            Contracts.Check(0 <= min & min <= lim & lim <= rgv.Length);
-
-            for (int iv = min; iv < lim; iv++)
-                Swap(ref rgv[iv], ref rgv[iv + rand.Next(lim - iv)]);
-        }
-
-        public static bool AreEqual(Single[] arr1, Single[] arr2)
+        public static bool AreEqual(float[] arr1, float[] arr2)
         {
             if (arr1 == arr2)
                 return true;
@@ -569,7 +551,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return true;
         }
 
-        public static bool AreEqual(Double[] arr1, Double[] arr2)
+        public static bool AreEqual(double[] arr1, double[] arr2)
         {
             if (arr1 == arr2)
                 return true;
@@ -584,6 +566,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     return false;
             }
             return true;
+        }
+
+        public static void Shuffle<T>(Random rand, Span<T> rgv)
+        {
+            Contracts.AssertValue(rand);
+
+            for (int iv = 0; iv < rgv.Length; iv++)
+                Swap(ref rgv[iv], ref rgv[iv + rand.Next(rgv.Length - iv)]);
         }
 
         public static bool AreEqual(int[] arr1, int[] arr2)
@@ -625,37 +615,80 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return Regex.Replace(value, "[^A-Za-z0-9]", "");
         }
 
-        public static bool IsSorted(Float[] values)
+        /// <summary>
+        /// Checks that an input IList is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise. ILists containing NaN values
+        /// are considered to be not monotonically increasing.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
-            for (int i = 1; i < values.Length; i++)
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
-                if (!(values[i] >= prev))
+                var currentValue = values[i];
+                // Inverted check for NaNs
+                if (!(currentValue >= previousValue))
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
             }
 
             return true;
         }
 
-        public static bool IsSorted(int[] values)
+        /// <summary>
+        /// Checks that an input array is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<int> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
-            for (int i = 1; i < values.Length; i++)
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
-                if (values[i] < prev)
+                var currentValue = values[i];
+                if (currentValue < previousValue)
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks that an input array is monotonically increasing.
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing (if each element is greater
+        /// than or equal to previous elements); false otherwise. Arrays containing NaN values
+        /// are considered to be not monotonically increasing.</returns>
+        public static bool IsMonotonicallyIncreasing(IList<double> values)
+        {
+            if (Utils.Size(values) <= 1)
+                return true;
+
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
+            {
+                var currentValue = values[i];
+                // Inverted check for NaNs
+                if (!(currentValue >= previousValue))
+                    return false;
+
+                previousValue = currentValue;
             }
 
             return true;
@@ -666,9 +699,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// and between an inclusive lower and exclusive upper bound for
         /// the first and last items, respectively.
         /// </summary>
-        public static bool IsIncreasing(int min, int[] values, int lim)
+        public static bool IsIncreasing(int min, ReadOnlySpan<int> values, int lim)
         {
-            if (Utils.Size(values) < 1)
+            if (values.Length < 1)
                 return true;
 
             var prev = values[0];
@@ -688,9 +721,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// is sorted and unique, and between an inclusive lower and exclusive
         /// upper bound for the first and last items, respectively.
         /// </summary>
-        public static bool IsIncreasing(int min, int[] values, int len, int lim)
+        public static bool IsIncreasing(int min, ReadOnlySpan<int> values, int len, int lim)
         {
-            Contracts.Check(Utils.Size(values) >= len);
+            Contracts.Check(values.Length >= len);
             if (len < 1)
                 return true;
 
@@ -715,6 +748,20 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             var result = new T[length];
             for (int i = 0; i < length; i++)
                 result[i] = value;
+            return result;
+        }
+
+        public static bool[] BuildArray(int length, IEnumerable<Schema.Column> columnsNeeded)
+        {
+            Contracts.CheckParam(length >= 0, nameof(length));
+
+            var result = new bool[length];
+            foreach (var col in columnsNeeded)
+            {
+                if(col.Index < result.Length)
+                    result[col.Index] = true;
+            }
+
             return result;
         }
 
@@ -760,6 +807,40 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 invMap[c] = mapList.Count;
                 mapList.Add(c);
             }
+            map = mapList.ToArray();
+        }
+
+        /// <summary>
+        /// Given the columns needed, over a range of values defined by a limit calculate
+        /// first the values for which the column is present was true, and second an inverse
+        /// map.
+        /// </summary>
+        /// <param name="lim">Indicates the exclusive upper bound on the tested values</param>
+        /// <param name="columnsNeeded">The set of columns the calling component operates on.</param>
+        /// <param name="map">An ascending array of values from 0 inclusive
+        /// to <paramref name="lim"/> exclusive, holding all values for which
+        /// <paramref name="columnsNeeded"/> are present.
+        /// (The respective index appears in the <paramref name="columnsNeeded"/> collection).</param>
+        /// <param name="invMap">Forms an inverse mapping of <paramref name="map"/>,
+        /// so that <c><paramref name="invMap"/>[<paramref name="map"/>[i]] == i</c>,
+        /// and for other entries not appearing in <paramref name="map"/>,
+        /// <c><paramref name="invMap"/>[i] == -1</c></param>
+        public static void BuildSubsetMaps(int lim, IEnumerable<Schema.Column> columnsNeeded, out int[] map, out int[] invMap)
+        {
+            Contracts.CheckParam(lim >= 0, nameof(lim));
+            Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
+
+            // REVIEW: Better names?
+            List<int> mapList = new List<int>();
+            invMap = invMap = Enumerable.Repeat(-1, lim).ToArray<int>();
+
+            foreach (var col in columnsNeeded)
+            {
+                Contracts.Check(col.Index < lim);
+                invMap[col.Index] = mapList.Count;
+                mapList.Add(col.Index);
+            }
+
             map = mapList.ToArray();
         }
 
@@ -846,12 +927,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </param>
         /// <returns>The new size, that is no less than <paramref name="min"/> and no more that <paramref name="max"/>.</returns>
         public static int EnsureSize<T>(ref T[] array, int min, int max, bool keepOld = true)
+            => EnsureSize(ref array, min, max, keepOld, out bool _);
+
+        public static int EnsureSize<T>(ref T[] array, int min, int max, bool keepOld, out bool resized)
         {
             Contracts.CheckParam(min <= max, nameof(max), "min must not exceed max");
             // This code adapted from the private method EnsureCapacity code of List<T>.
             int size = Utils.Size(array);
             if (size >= min)
+            {
+                resized = false;
                 return size;
+            }
+
             int newSize = size == 0 ? 4 : size * 2;
             // This constant taken from the internal code of system\array.cs of mscorlib.
             if ((uint)newSize > max)
@@ -862,6 +950,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 Array.Resize(ref array, newSize);
             else
                 array = new T[newSize];
+
+            resized = true;
             return newSize;
         }
 
@@ -898,7 +988,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// but whose code depends on some sort of generic type parameter. This utility method exists to make
         /// this common pattern more convenient, and also safer so that the arguments, if any, can be type
         /// checked at compile time instead of at runtime.
-        /// 
+        ///
         /// Because it is strongly typed, this can only be applied to methods whose return type
         /// is known at compile time, that is, that do not depend on the type parameter of the method itself.
         /// </summary>
@@ -1049,6 +1139,33 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             meth.Invoke(act.Target, new object[] { arg1 });
         }
 
+        /// <summary>
+        /// A two-argument version of <see cref="MarshalActionInvoke(Action, Type)"/>.
+        /// </summary>
+        public static void MarshalActionInvoke<TArg1, TArg2>(Action<TArg1, TArg2> act, Type genArg, TArg1 arg1, TArg2 arg2)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
+            meth.Invoke(act.Target, new object[] { arg1, arg2 });
+        }
+
+        /// <summary>
+        /// A three-argument version of <see cref="MarshalActionInvoke(Action, Type)"/>.
+        /// </summary>
+        public static void MarshalActionInvoke<TArg1, TArg2, TArg3>(Action<TArg1, TArg2, TArg3> act, Type genArg, TArg1 arg1, TArg2 arg2, TArg3 arg3)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
+            meth.Invoke(act.Target, new object[] { arg1, arg2, arg3 });
+        }
+
+        /// <summary>
+        /// A four-argument version of <see cref="MarshalActionInvoke(Action, Type)"/>.
+        /// </summary>
+        public static void MarshalActionInvoke<TArg1, TArg2, TArg3, TArg4>(Action<TArg1, TArg2, TArg3, TArg4> act, Type genArg, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
+            meth.Invoke(act.Target, new object[] { arg1, arg2, arg3, arg4 });
+        }
+
         public static string GetDescription(this Enum value)
         {
             Type type = value.GetType();
@@ -1068,6 +1185,31 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
             }
             return null;
+        }
+
+        public static int Count<TSource>(this ReadOnlySpan<TSource> source, Func<TSource, bool> predicate)
+        {
+            Contracts.CheckValue(predicate, nameof(predicate));
+
+            int result = 0;
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (predicate(source[i]))
+                    result++;
+            }
+            return result;
+        }
+
+        public static bool All<TSource>(this ReadOnlySpan<TSource> source, Func<TSource, bool> predicate)
+        {
+            Contracts.CheckValue(predicate, nameof(predicate));
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (!predicate(source[i]))
+                    return false;
+            }
+            return true;
         }
     }
 }

@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree.Internal;
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
     /// <summary>
     /// Wrapper of Booster object of LightGBM.
@@ -72,20 +73,21 @@ namespace Microsoft.ML.Runtime.LightGBM
             return res[0];
         }
 
-        private unsafe string GetModelString()
+        [BestFriend]
+        internal unsafe string GetModelString()
         {
             int bufLen = 2 << 15;
             byte[] buffer = new byte[bufLen];
             int size = 0;
             fixed (byte* ptr = buffer)
-                LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterSaveModelToString(Handle, BestIteration, bufLen, ref size, ptr));
+                LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterSaveModelToString(Handle, 0, BestIteration, bufLen, ref size, ptr));
             // If buffer size is not enough, reallocate buffer and get again.
             if (size > bufLen)
             {
                 bufLen = size;
                 buffer = new byte[bufLen];
                 fixed (byte* ptr = buffer)
-                    LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterSaveModelToString(Handle, BestIteration, bufLen, ref size, ptr));
+                    LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.BoosterSaveModelToString(Handle, 0, BestIteration, bufLen, ref size, ptr));
             }
             byte[] content = new byte[size];
             Array.Copy(buffer, content, size);
@@ -95,20 +97,34 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         private static double[] Str2DoubleArray(string str, char delimiter)
         {
-            return str.Split(delimiter).Select(
-                x => { double t; double.TryParse(x, out t); return t; }
-            ).ToArray();
+            var values = new List<double>();
+            foreach (var token in str.Split(delimiter))
+            {
+                var trimmed = token.Trim();
 
+                if (trimmed.Equals("inf", StringComparison.OrdinalIgnoreCase))
+                    values.Add(double.PositiveInfinity);
+                else if (trimmed.Equals("-inf", StringComparison.OrdinalIgnoreCase))
+                    values.Add(double.NegativeInfinity);
+                else if (trimmed.Contains("nan"))
+                    values.Add(double.NaN);
+                else
+                    // The value carried in the trimmed string is not inf, -inf, or nan.
+                    // Therefore, double.Parse should be able to generate a valid number from it.
+                    // If parsing fails, an exception will be thrown.
+                    values.Add(double.Parse(trimmed, CultureInfo.InvariantCulture));
+            }
+            return values.ToArray();
         }
 
         private static int[] Str2IntArray(string str, char delimiter)
         {
-            return str.Split(delimiter).Select(int.Parse).ToArray();
+            return str.Split(delimiter).Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToArray();
         }
 
         private static UInt32[] Str2UIntArray(string str, char delimiter)
         {
-            return str.Split(delimiter).Select(UInt32.Parse).ToArray();
+            return str.Split(delimiter).Select(x => UInt32.Parse(x, CultureInfo.InvariantCulture)).ToArray();
         }
 
         private static bool GetIsDefaultLeft(UInt32 decisionType)
@@ -148,7 +164,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         private static bool FindInBitset(UInt32[] bits, int start, int end, int pos)
         {
             int i1 = pos / 32;
-            if (start +  i1 >= end)
+            if (start + i1 >= end)
                 return false;
             int i2 = pos % 32;
             return ((bits[start + i1] >> i2) & 1) > 0;
@@ -170,9 +186,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             return cats.ToArray();
         }
 
-        public FastTree.Internal.Ensemble GetModel(int[] categoricalFeatureBoudaries)
+        public InternalTreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
         {
-            FastTree.Internal.Ensemble res = new FastTree.Internal.Ensemble();
+            InternalTreeEnsemble res = new InternalTreeEnsemble();
             string modelString = GetModelString();
             string[] lines = modelString.Split('\n');
             int i = 0;
@@ -189,8 +205,8 @@ namespace Microsoft.ML.Runtime.LightGBM
                         kvPairs[kv[0].Trim()] = kv[1].Trim();
                         ++i;
                     }
-                    int numLeaves = int.Parse(kvPairs["num_leaves"]);
-                    int numCat = int.Parse(kvPairs["num_cat"]);
+                    int numLeaves = int.Parse(kvPairs["num_leaves"], CultureInfo.InvariantCulture);
+                    int numCat = int.Parse(kvPairs["num_cat"], CultureInfo.InvariantCulture);
                     if (numLeaves > 1)
                     {
                         var leftChild = Str2IntArray(kvPairs["left_child"], ' ');
@@ -238,21 +254,21 @@ namespace Microsoft.ML.Runtime.LightGBM
                                 }
                             }
                         }
-                        RegressionTree tree = RegressionTree.Create(numLeaves, splitFeature, splitGain,
+                        InternalRegressionTree tree = InternalRegressionTree.Create(numLeaves, splitFeature, splitGain,
                             threshold.Select(x => (float)(x)).ToArray(), defaultValue.Select(x => (float)(x)).ToArray(), leftChild, rightChild, leafOutput,
                             categoricalSplitFeatures, categoricalSplit);
                         res.AddTree(tree);
                     }
                     else
                     {
-                        RegressionTree tree = new RegressionTree(2);
+                        InternalRegressionTree tree = new InternalRegressionTree(2);
                         var leafOutput = Str2DoubleArray(kvPairs["leaf_value"], ' ');
                         if (leafOutput[0] != 0)
                         {
                             // Convert Constant tree to Two-leaf tree, avoid being filter by TLC.
                             var categoricalSplitFeatures = new int[1][];
                             var categoricalSplit = new bool[1];
-                            tree = RegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
+                            tree = InternalRegressionTree.Create(2, new int[] { 0 }, new double[] { 0 },
                                 new float[] { 0 }, new float[] { 0 }, new int[] { -1 }, new int[] { -2 }, new double[] { leafOutput[0], leafOutput[0] },
                                 categoricalSplitFeatures, categoricalSplit);
                         }

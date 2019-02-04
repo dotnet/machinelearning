@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
 // We want the conditional code in this file to always be available to
 // client assemblies that might be DEBUG versions. That is, if someone uses
 // the release build of this assembly to build a DEBUG version of their code,
@@ -16,10 +14,10 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 
-#if PRIVATE_CONTRACTS
-namespace Microsoft.ML.Runtime.Internal
+#if CPUMATH_INFRASTRUCTURE
+namespace Microsoft.ML.Internal.CpuMath.Core
 #else
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 #endif
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
@@ -31,7 +29,7 @@ namespace Microsoft.ML.Runtime
     /// totally replace the exception, etc. It is not legal to return null from
     /// Process (unless null was passed in, which really shouldn't happen).
     /// </summary>
-#if PRIVATE_CONTRACTS
+#if CPUMATH_INFRASTRUCTURE
     internal interface IExceptionContext
 #else
     public interface IExceptionContext
@@ -46,7 +44,7 @@ namespace Microsoft.ML.Runtime
         string ContextDescription { get; }
     }
 
-#if PRIVATE_CONTRACTS
+#if CPUMATH_INFRASTRUCTURE
     [Flags]
     internal enum MessageSensitivity
     {
@@ -55,11 +53,8 @@ namespace Microsoft.ML.Runtime
     }
 #endif
 
-#if PRIVATE_CONTRACTS
+    [BestFriend]
     internal static partial class Contracts
-#else
-    public static partial class Contracts
-#endif
     {
         public const string IsMarkedKey = "ML_IsMarked";
         public const string SensitivityKey = "ML_Sensitivity";
@@ -157,7 +152,7 @@ namespace Microsoft.ML.Runtime
             return (ex.Data[SensitivityKey] as MessageSensitivity?) ?? MessageSensitivity.Unknown;
         }
 
-#if !PRIVATE_CONTRACTS
+#if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// This is an internal convenience implementation of an exception context to make marking
         /// exceptions with a specific sensitivity flag a bit less onorous. The alternative to a scheme
@@ -167,7 +162,7 @@ namespace Microsoft.ML.Runtime
         /// there will be performance implications. There shouldn't be, since checks rarely happen in
         /// tight loops.
         /// </summary>
-        private struct SensitiveExceptionContext : IExceptionContext
+        private readonly struct SensitiveExceptionContext : IExceptionContext
         {
             /// <summary>
             /// We will run this instances <see cref="IExceptionContext.Process{TException}(TException)"/> first.
@@ -284,9 +279,9 @@ namespace Microsoft.ML.Runtime
         /// For signalling bad user input.
         /// </summary>
         public static Exception ExceptUserArg(string name)
-            =>Process(new ArgumentOutOfRangeException(name));
+            => Process(new ArgumentOutOfRangeException(name));
         public static Exception ExceptUserArg(this IExceptionContext ctx, string name)
-            =>Process(new ArgumentOutOfRangeException(name), ctx);
+            => Process(new ArgumentOutOfRangeException(name), ctx);
         public static Exception ExceptUserArg(string name, string msg)
             => Process(new ArgumentOutOfRangeException(name, msg));
         public static Exception ExceptUserArg(this IExceptionContext ctx, string name, string msg)
@@ -448,6 +443,25 @@ namespace Microsoft.ML.Runtime
         public static Exception ExceptNotSupp(this IExceptionContext ctx, string msg, params object[] args)
             => Process(new NotSupportedException(GetMsg(msg, args)), ctx);
 
+        /// <summary>
+        /// For signalling schema validation issues.
+        /// </summary>
+        public static Exception ExceptSchemaMismatch(string paramName, string columnRole, string columnName)
+            => Process(new ArgumentOutOfRangeException(paramName, MakeSchemaMismatchMsg(columnRole, columnName)));
+        public static Exception ExceptSchemaMismatch(this IExceptionContext ctx, string paramName, string columnRole, string columnName)
+            => Process(new ArgumentOutOfRangeException(paramName, MakeSchemaMismatchMsg(columnRole, columnName)), ctx);
+        public static Exception ExceptSchemaMismatch(string paramName, string columnRole, string columnName, string expectedType, string actualType)
+            => Process(new ArgumentOutOfRangeException(paramName, MakeSchemaMismatchMsg(columnRole, columnName, expectedType, actualType)));
+        public static Exception ExceptSchemaMismatch(this IExceptionContext ctx, string paramName, string columnRole, string columnName, string expectedType, string actualType)
+            => Process(new ArgumentOutOfRangeException(paramName, MakeSchemaMismatchMsg(columnRole, columnName, expectedType, actualType)), ctx);
+
+        private static string MakeSchemaMismatchMsg(string columnRole, string columnName, string expectedType = null, string actualType = null)
+        {
+            if (actualType == null)
+                return $"Could not find {columnRole} column '{columnName}'";
+            return $"Schema mismatch for {columnRole} column '{columnName}': expected {expectedType}, got {actualType}";
+        }
+
         // Check - these check a condition and if it fails, throw the corresponding exception.
         // NOTE: The ordering of arguments to these is standardized to be:
         // * boolean condition
@@ -548,6 +562,13 @@ namespace Microsoft.ML.Runtime
         {
             if (object.ReferenceEquals(val, null))
                 throw ExceptValue(ctx, paramName);
+            return val;
+        }
+
+        public static T CheckRef<T>(this IExceptionContext ctx, T val, string paramName, string msg) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                throw ExceptValue(ctx, paramName, msg);
             return val;
         }
 
@@ -717,7 +738,7 @@ namespace Microsoft.ML.Runtime
                 throw ExceptIO(ctx, msg);
         }
 
-#if !PRIVATE_CONTRACTS
+#if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// Check state of the host and throw exception if host marked to stop all exection.
         /// </summary>
@@ -727,6 +748,7 @@ namespace Microsoft.ML.Runtime
                 throw Process(new OperationCanceledException("Operation was cancelled."), env);
         }
 #endif
+
         /// <summary>
         /// This documents that the parameter can legally be null.
         /// </summary>
@@ -734,6 +756,10 @@ namespace Microsoft.ML.Runtime
         public static void CheckValueOrNull<T>(T val) where T : class
         {
         }
+
+        /// <summary>
+        /// This documents that the parameter can legally be null.
+        /// </summary>
         [Conditional("INVARIANT_CHECKS")]
         public static void CheckValueOrNull<T>(this IExceptionContext ctx, T val) where T : class
         {
@@ -741,7 +767,7 @@ namespace Microsoft.ML.Runtime
 
         // Assert
 
-#region Private assert handling
+        #region Private assert handling
 
         private static void DbgFailCore(string msg, IExceptionContext ctx = null)
         {
@@ -800,7 +826,7 @@ namespace Microsoft.ML.Runtime
             DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-empty assertion failure: {0}", msg), ctx);
         }
 
-#endregion Private assert handling
+        #endregion Private assert handling
 
         [Conditional("DEBUG")]
         public static void Assert(bool f)
@@ -917,6 +943,19 @@ namespace Microsoft.ML.Runtime
         {
             if (string.IsNullOrWhiteSpace(s))
                 DbgFailEmpty(ctx, msg);
+        }
+
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty<T>(ReadOnlySpan<T> args)
+        {
+            if (args.IsEmpty)
+                DbgFail();
+        }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty<T>(Span<T> args)
+        {
+            if (args.IsEmpty)
+                DbgFail();
         }
 
         [Conditional("DEBUG")]

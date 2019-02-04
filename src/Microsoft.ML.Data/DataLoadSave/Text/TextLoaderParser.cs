@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,28 +9,29 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
-    public sealed partial class TextLoader : IDataLoader
+    public sealed partial class TextLoader
     {
         /// <summary>
         /// This type exists to provide efficient delegates for creating a ColumnValue specific to a DataKind.
         /// </summary>
         private sealed class ValueCreatorCache
         {
-            private volatile static ValueCreatorCache _instance;
+            private static volatile ValueCreatorCache _instance;
             public static ValueCreatorCache Instance
             {
                 get
                 {
-                    if (_instance == null)
-                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null);
-                    return _instance;
+                    return _instance ??
+                        Interlocked.CompareExchange(ref _instance, new ValueCreatorCache(), null) ??
+                        _instance;
                 }
             }
 
@@ -58,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
                 _creatorsVec = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
                 for (var kind = DataKindExtensions.KindMin; kind < DataKindExtensions.KindLim; kind++)
                 {
-                    var type = PrimitiveType.FromKind(kind);
+                    var type = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                     _creatorsOne[kind.ToIndex()] = GetCreatorOneCore(type);
                     _creatorsVec[kind.ToIndex()] = GetCreatorVecCore(type);
                 }
@@ -72,10 +69,10 @@ namespace Microsoft.ML.Runtime.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorOneCore<T>(PrimitiveType type)
             {
-                Contracts.Assert(type.IsStandardScalar || type.IsKey);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(typeof(T) == type.RawType);
-                var fn = _conv.GetParseConversion<T>(type);
-                return rows => new PrimitivePipe<T>(rows, fn);
+                var fn = _conv.GetTryParseConversion<T>(type);
+                return rows => new PrimitivePipe<T>(rows, type, fn);
             }
 
             private Func<RowSet, ColumnPipe> GetCreatorVecCore(PrimitiveType type)
@@ -86,10 +83,10 @@ namespace Microsoft.ML.Runtime.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorVecCore<T>(PrimitiveType type)
             {
-                Contracts.Assert(type.IsStandardScalar || type.IsKey);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(typeof(T) == type.RawType);
-                var fn = _conv.GetParseConversion<T>(type);
-                return rows => new VectorPipe<T>(rows, fn);
+                var fn = _conv.GetTryParseConversion<T>(type);
+                return rows => new VectorPipe<T>(rows, type, fn);
             }
 
             public Func<RowSet, ColumnPipe> GetCreatorOne(KeyType key)
@@ -137,9 +134,9 @@ namespace Microsoft.ML.Runtime.Data
             private volatile int _cref;
 
             // Total number of rows, number of unparsable values, number of format errors.
-            private /*volatile*/ long _rowCount;
-            private /*volatile*/ long _badCount;
-            private /*volatile*/ long _fmtCount;
+            private long _rowCount;
+            private long _badCount;
+            private long _fmtCount;
 
             public ParseStats(IChannelProvider provider, int cref, long maxShow = MaxShow)
             {
@@ -163,7 +160,6 @@ namespace Microsoft.ML.Runtime.Data
                         _ch.Info("Processed {0} rows with {1} bad values and {2} format errors",
                             _rowCount, _badCount, _fmtCount);
                     }
-                    _ch.Done();
                     _ch.Dispose();
                 }
             }
@@ -219,6 +215,8 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly RowSet Rows;
 
+            public abstract bool HasNA { get; }
+
             protected ColumnPipe(RowSet rows)
             {
                 Contracts.AssertValue(rows);
@@ -228,7 +226,7 @@ namespace Microsoft.ML.Runtime.Data
             public abstract void Reset(int irow, int size);
 
             // Passed by-ref for effeciency, not so it can be modified.
-            public abstract bool Consume(int irow, int index, ref DvText text);
+            public abstract bool Consume(int irow, int index, ref ReadOnlyMemory<char> text);
 
             public abstract Delegate GetGetter();
         }
@@ -240,12 +238,16 @@ namespace Microsoft.ML.Runtime.Data
             // Has length Rows.Count, so indexed by irow.
             private TResult[] _values;
 
-            public PrimitivePipe(RowSet rows, TryParseMapper<TResult> conv)
+            public override bool HasNA { get; }
+
+            public PrimitivePipe(RowSet rows, PrimitiveType type, TryParseMapper<TResult> conv)
                 : base(rows)
             {
                 Contracts.AssertValue(conv);
+                Contracts.Assert(typeof(TResult) == type.RawType);
                 _conv = conv;
                 _values = new TResult[Rows.Count];
+                HasNA = Conversions.Instance.TryGetIsNAPredicate(type, out var del);
             }
 
             public override void Reset(int irow, int size)
@@ -255,11 +257,11 @@ namespace Microsoft.ML.Runtime.Data
                 _values[irow] = default(TResult);
             }
 
-            public override bool Consume(int irow, int index, ref DvText text)
+            public override bool Consume(int irow, int index, ref ReadOnlyMemory<char> text)
             {
                 Contracts.Assert(0 <= irow && irow < _values.Length);
                 Contracts.Assert(index == 0);
-                return _conv(ref text, out _values[irow]);
+                return _conv(in text, out _values[irow]);
             }
 
             public void Get(ref TResult value)
@@ -279,6 +281,8 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class VectorPipe<TItem> : ColumnPipe
         {
             private readonly TryParseMapper<TItem> _conv;
+
+            public override bool HasNA { get; }
 
             private class VectorValue
             {
@@ -332,13 +336,13 @@ namespace Microsoft.ML.Runtime.Data
                     AssertValid();
                 }
 
-                public bool Consume(int index, ref DvText text)
+                public bool Consume(int index, ref ReadOnlyMemory<char> text)
                 {
                     AssertValid();
                     Contracts.Assert(_indexPrev < index & index < _size);
 
                     TItem tmp = default(TItem);
-                    bool f = _conv(ref text, out tmp);
+                    bool f = _conv(in text, out tmp);
                     if (_count < _size)
                     {
                         if (_count < _size / 2)
@@ -394,42 +398,38 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     AssertValid();
 
-                    var values = dst.Values;
-                    var indices = dst.Indices;
-
                     if (_count == 0)
                     {
-                        dst = new VBuffer<TItem>(_size, 0, values, indices);
+                        VBufferUtils.Resize(ref dst, _size, 0);
                         return;
                     }
 
-                    if (Utils.Size(values) < _count)
-                        values = new TItem[_count];
-                    Array.Copy(_values, values, _count);
+                    var editor = VBufferEditor.Create(ref dst, _size, _count);
+                    _values.AsSpan(0, _count).CopyTo(editor.Values);
                     if (_count == _size)
                     {
-                        dst = new VBuffer<TItem>(_size, values, indices);
+                        dst = editor.Commit();
                         return;
                     }
 
-                    if (Utils.Size(indices) < _count)
-                        indices = new int[_count];
-                    Array.Copy(_indices, indices, _count);
-                    dst = new VBuffer<TItem>(_size, _count, values, indices);
+                    _indices.AsSpan(0, _count).CopyTo(editor.Indices);
+                    dst = editor.Commit();
                 }
             }
 
             // Has length Rows.Count, so indexed by irow.
             private VectorValue[] _values;
 
-            public VectorPipe(RowSet rows, TryParseMapper<TItem> conv)
+            public VectorPipe(RowSet rows, PrimitiveType type, TryParseMapper<TItem> conv)
                 : base(rows)
             {
                 Contracts.AssertValue(conv);
+                Contracts.Assert(typeof(TItem) == type.RawType);
                 _conv = conv;
                 _values = new VectorValue[Rows.Count];
                 for (int i = 0; i < _values.Length; i++)
                     _values[i] = new VectorValue(this);
+                HasNA = Conversions.Instance.TryGetIsNAPredicate(type, out var del);
             }
 
             public override void Reset(int irow, int size)
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Runtime.Data
                 _values[irow].Reset(size);
             }
 
-            public override bool Consume(int irow, int index, ref DvText text)
+            public override bool Consume(int irow, int index, ref ReadOnlyMemory<char> text)
             {
                 Contracts.Assert(0 <= irow && irow < _values.Length);
                 return _values[irow].Consume(index, ref text);
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// The current text for the entire line (all fields), and possibly more.
             /// </summary>
-            public readonly string TextBuf;
+            public ReadOnlyMemory<char> TextBuf;
 
             /// <summary>
             /// The min position in <see cref="TextBuf"/> to consider (all fields).
@@ -531,7 +531,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// The (unquoted) text of the field.
             /// </summary>
-            public DvText Span;
+            public ReadOnlyMemory<char> Span;
 
             /// <summary>
             /// Whether there was a quoting error in the field.
@@ -558,16 +558,17 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Initializes the ScanInfo.
             /// </summary>
-            public ScanInfo(ref DvText text, string path, long line)
+            public ScanInfo(ref ReadOnlyMemory<char> text, string path, long line)
                 : this()
             {
-                Contracts.Assert(!text.IsNA);
                 Contracts.AssertValueOrNull(path);
                 Contracts.Assert(line >= 0);
 
                 Path = path;
                 Line = line;
-                TextBuf = text.GetRawUnderlyingBufferInfo(out IchMinBuf, out IchLimBuf);
+                TextBuf = text;
+                IchMinBuf = 0;
+                IchLimBuf = text.Length;
                 IchMinNext = IchMinBuf;
             }
         }
@@ -584,13 +585,13 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Source indices and associated text (parallel arrays).
                 public int[] Indices;
-                public DvText[] Spans;
+                public ReadOnlyMemory<char>[] Spans;
 
                 public FieldSet()
                 {
                     // Always allocate/size Columns after Spans so even if exceptions are thrown we
                     // are guaranteed that Spans.Length >= Columns.Length.
-                    Spans = new DvText[8];
+                    Spans = new ReadOnlyMemory<char>[8];
                     Indices = new int[8];
                 }
 
@@ -659,21 +660,25 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var info = _infos[i];
 
-                    if (info.ColType.ItemType.IsKey)
+                    if (info.ColType is KeyType keyType)
                     {
-                        if (!info.ColType.IsVector)
-                            _creator[i] = cache.GetCreatorOne(info.ColType.AsKey);
-                        else
-                            _creator[i] = cache.GetCreatorVec(info.ColType.ItemType.AsKey);
+                        _creator[i] = cache.GetCreatorOne(keyType);
                         continue;
                     }
 
-                    DataKind kind = info.ColType.ItemType.RawKind;
-                    Contracts.Assert(kind != 0);
-                    var map = info.ColType.IsVector ? mapVec : mapOne;
+                    VectorType vectorType = info.ColType as VectorType;
+                    if (vectorType?.ItemType is KeyType vectorKeyType)
+                    {
+                        _creator[i] = cache.GetCreatorVec(vectorKeyType);
+                        continue;
+                    }
+
+                    ColumnType itemType = vectorType?.ItemType ?? info.ColType;
+                    Contracts.Assert(itemType is KeyType || itemType.IsStandardScalar());
+                    var map = vectorType != null ? mapVec : mapOne;
                     if (!map.TryGetValue(info.Kind, out _creator[i]))
                     {
-                        var fn = info.ColType.IsVector ?
+                        var fn = vectorType != null ?
                             cache.GetCreatorVec(info.Kind) :
                             cache.GetCreatorOne(info.Kind);
                         map.Add(info.Kind, fn);
@@ -687,7 +692,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(_inputSize >= 0);
             }
 
-            public static void GetInputSize(TextLoader parent, List<DvText> lines, out int minSize, out int maxSize)
+            public static void GetInputSize(TextLoader parent, List<ReadOnlyMemory<char>> lines, out int minSize, out int maxSize)
             {
                 Contracts.AssertNonEmpty(lines);
                 Contracts.Assert(parent._inputSize == 0, "Why is this being called when inputSize is known?");
@@ -700,12 +705,12 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     foreach (var line in lines)
                     {
-                        var text = (parent._flags & Options.TrimWhitespace) != 0 ? line.TrimEndWhiteSpace() : line;
-                        if (!text.HasChars)
+                        var text = (parent._flags & Options.TrimWhitespace) != 0 ? ReadOnlyMemoryUtils.TrimEndWhiteSpace(line) : line;
+                        if (text.IsEmpty)
                             continue;
 
                         // REVIEW: This is doing more work than we need, but makes sure we're consistent....
-                        int srcLim = impl.GatherFields(text);
+                        int srcLim = impl.GatherFields(text, text.Span);
                         // Don't need the fields, just srcLim.
                         impl.Fields.Clear();
 
@@ -724,9 +729,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public static void ParseSlotNames(TextLoader parent, DvText textHeader, ColInfo[] infos, VBuffer<DvText>[] slotNames)
+            public static void ParseSlotNames(TextLoader parent, ReadOnlyMemory<char> textHeader, ColInfo[] infos, VBuffer<ReadOnlyMemory<char>>[] slotNames)
             {
-                Contracts.Assert(textHeader.HasChars);
+                Contracts.Assert(!textHeader.IsEmpty);
                 Contracts.Assert(infos.Length == slotNames.Length);
 
                 var sb = new StringBuilder();
@@ -734,7 +739,7 @@ namespace Microsoft.ML.Runtime.Data
                 var impl = new HelperImpl(stats, parent._flags, parent._separators, parent._inputSize, int.MaxValue);
                 try
                 {
-                    impl.GatherFields(textHeader);
+                    impl.GatherFields(textHeader, textHeader.Span);
                 }
                 finally
                 {
@@ -742,11 +747,11 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 var header = impl.Fields;
-                var bldr = BufferBuilder<DvText>.CreateDefault();
+                var bldr = BufferBuilder<ReadOnlyMemory<char>>.CreateDefault();
                 for (int iinfo = 0; iinfo < infos.Length; iinfo++)
                 {
                     var info = infos[iinfo];
-                    if (!info.ColType.IsKnownSizeVector)
+                    if (!info.ColType.IsKnownSizeVector())
                         continue;
                     bldr.Reset(info.SizeBase, false);
                     int ivDst = 0;
@@ -771,7 +776,7 @@ namespace Microsoft.ML.Runtime.Data
                             {
                                 var srcCur = header.Indices[isrc];
                                 Contracts.Assert(min <= srcCur & srcCur < lim);
-                                bldr.AddFeature(indexBase + srcCur, header.Spans[isrc].TrimWhiteSpace());
+                                bldr.AddFeature(indexBase + srcCur, ReadOnlyMemoryUtils.TrimWhiteSpace(header.Spans[isrc]));
                             }
                         }
                         ivDst += sizeSeg;
@@ -795,6 +800,24 @@ namespace Microsoft.ML.Runtime.Data
                 return rows;
             }
 
+            /// <summary>
+            /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with trailing whitespace trimmed.
+            /// </summary>
+            private ReadOnlyMemory<char> TrimEndWhiteSpace(ReadOnlyMemory<char> memory, ReadOnlySpan<char> span)
+            {
+                if (memory.IsEmpty)
+                    return memory;
+
+                int ichLim = memory.Length;
+                if (!char.IsWhiteSpace(span[ichLim - 1]))
+                    return memory;
+
+                while (0 < ichLim && char.IsWhiteSpace(span[ichLim - 1]))
+                    ichLim--;
+
+                return memory.Slice(0, ichLim);
+            }
+
             public void ParseRow(RowSet rows, int irow, Helper helper, bool[] active, string path, long line, string text)
             {
                 Contracts.AssertValue(rows);
@@ -803,13 +826,14 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(active == null | Utils.Size(active) == _infos.Length);
 
                 var impl = (HelperImpl)helper;
-                DvText lineSpan = new DvText(text);
+                var lineSpan = text.AsMemory();
+                var span = lineSpan.Span;
                 if ((_flags & Options.TrimWhitespace) != 0)
-                    lineSpan = lineSpan.TrimEndWhiteSpace();
+                    lineSpan = TrimEndWhiteSpace(lineSpan, span);
                 try
                 {
                     // Parse the spans into items, ensuring that sparse don't precede non-sparse.
-                    int srcLim = impl.GatherFields(lineSpan, path, line);
+                    int srcLim = impl.GatherFields(lineSpan, span, path, line);
                     impl.Fields.AssertValid();
 
                     // REVIEW: When should we report inconsistency?
@@ -855,7 +879,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly StringBuilder _sb;
 
                 // Result of a blank field - either Missing or Empty, depending on _quoting.
-                private readonly DvText _blank;
+                private readonly ReadOnlyMemory<char> _blank;
 
                 public readonly FieldSet Fields;
 
@@ -878,7 +902,7 @@ namespace Microsoft.ML.Runtime.Data
                     _quoting = (flags & Options.AllowQuoting) != 0;
                     _sparse = (flags & Options.AllowSparse) != 0;
                     _sb = new StringBuilder();
-                    _blank = _quoting ? DvText.NA : DvText.Empty;
+                    _blank = ReadOnlyMemory<char>.Empty;
                     Fields = new FieldSet();
                 }
 
@@ -902,7 +926,7 @@ namespace Microsoft.ML.Runtime.Data
                 /// Process the line of text into fields, stored in the Fields field. Ensures that sparse
                 /// don't precede non-sparse. Returns the lim of the src columns.
                 /// </summary>
-                public int GatherFields(DvText lineSpan, string path = null, long line = 0)
+                public int GatherFields(ReadOnlyMemory<char> lineSpan, ReadOnlySpan<char> span, string path = null, long line = 0)
                 {
                     Fields.AssertEmpty();
 
@@ -915,7 +939,7 @@ namespace Microsoft.ML.Runtime.Data
                         for (; ; )
                         {
                             Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
-                            bool more = FetchNextField(ref scan);
+                            bool more = FetchNextField(ref scan, span);
                             Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
                             Contracts.Assert(scan.Index == -1);
 
@@ -946,7 +970,7 @@ namespace Microsoft.ML.Runtime.Data
                     for (; ; )
                     {
                         Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
-                        bool more = FetchNextField(ref scan);
+                        bool more = FetchNextField(ref scan, span);
                         Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
                         Contracts.Assert(scan.Index >= -1);
 
@@ -992,16 +1016,24 @@ namespace Microsoft.ML.Runtime.Data
                                 }
                                 var spanT = Fields.Spans[Fields.Count - 1];
 
-                                // Note that Convert produces NA if the text is unparsable.
-                                DvInt4 csrc = default(DvInt4);
-                                Conversion.Conversions.Instance.Convert(ref spanT, ref csrc);
-                                csrcSparse = csrc.RawValue;
-                                if (csrcSparse <= 0)
+                                // Note that Convert throws exception the text is unparsable.
+                                int csrc = default;
+                                try
+                                {
+                                    Conversions.Instance.Convert(in spanT, ref csrc);
+                                }
+                                catch
+                                {
+                                    Contracts.Assert(csrc == default);
+                                }
+
+                                if (csrc <= 0)
                                 {
                                     _stats.LogBadFmt(ref scan, "Bad dimensionality or ambiguous sparse item. Use sparse=- for non-sparse file, and/or quote the value.");
                                     break;
                                 }
 
+                                csrcSparse = csrc;
                                 srcLimFixed = Fields.Indices[--Fields.Count];
                                 if (csrcSparse >= SrcLim - srcLimFixed)
                                     csrcSparse = SrcLim - srcLimFixed - 1;
@@ -1065,18 +1097,17 @@ namespace Microsoft.ML.Runtime.Data
                     return inputSize;
                 }
 
-                private bool FetchNextField(ref ScanInfo scan)
+                private bool FetchNextField(ref ScanInfo scan, ReadOnlySpan<char> span)
                 {
                     Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
 
                     var text = scan.TextBuf;
                     int ichLim = scan.IchLimBuf;
                     int ichCur = scan.IchMinNext;
-
                     if (!_sepContainsSpace)
                     {
                         // Ignore leading spaces
-                        while (ichCur < ichLim && text[ichCur] == ' ')
+                        while (ichCur < ichLim && span[ichCur] == ' ')
                             ichCur++;
                     }
 
@@ -1093,29 +1124,29 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     int ichMinRaw = ichCur;
-                    if (_sparse && (uint)(text[ichCur] - '0') <= 9)
+                    if (_sparse && (uint)(span[ichCur] - '0') <= 9)
                     {
                         // See if it is sparse. Avoid overflow by limiting the index to 9 digits.
                         // REVIEW: This limits the src index to a billion. Is this acceptable?
                         int ichEnd = Math.Min(ichLim, ichCur + 9);
                         int ichCol = ichCur + 1;
                         Contracts.Assert(ichCol <= ichEnd);
-                        while (ichCol < ichEnd && (uint)(text[ichCol] - '0') <= 9)
+                        while (ichCol < ichEnd && (uint)(span[ichCol] - '0') <= 9)
                             ichCol++;
 
-                        if (ichCol < ichLim && text[ichCol] == ':')
+                        if (ichCol < ichLim && span[ichCol] == ':')
                         {
                             // It is sparse. Compute the index.
                             int ind = 0;
                             for (int ich = ichCur; ich < ichCol; ich++)
-                                ind = ind * 10 + (text[ich] - '0');
+                                ind = ind * 10 + (span[ich] - '0');
                             ichCur = ichCol + 1;
                             scan.Index = ind;
 
                             // Skip spaces again.
                             if (!_sepContainsSpace)
                             {
-                                while (ichCur < ichLim && text[ichCur] == ' ')
+                                while (ichCur < ichLim && span[ichCur] == ' ')
                                     ichCur++;
                             }
 
@@ -1129,7 +1160,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     Contracts.Assert(ichCur < ichLim);
-                    if (text[ichCur] == '"' && _quoting)
+                    if (span[ichCur] == '"' && _quoting)
                     {
                         // Quoted case.
                         ichCur++;
@@ -1144,13 +1175,13 @@ namespace Microsoft.ML.Runtime.Data
                                 scan.QuotingError = true;
                                 break;
                             }
-                            if (text[ichCur] == '"')
+                            if (span[ichCur] == '"')
                             {
                                 if (ichCur > ichRun)
-                                    _sb.Append(text, ichRun, ichCur - ichRun);
+                                    _sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
                                 if (++ichCur >= ichLim)
                                     break;
-                                if (text[ichCur] != '"')
+                                if (span[ichCur] != '"')
                                     break;
                                 ichRun = ichCur;
                             }
@@ -1159,7 +1190,7 @@ namespace Microsoft.ML.Runtime.Data
                         // Ignore any spaces between here and the next separator. Anything else is a formatting "error".
                         for (; ichCur < ichLim; ichCur++)
                         {
-                            if (text[ichCur] == ' ')
+                            if (span[ichCur] == ' ')
                             {
                                 // End the loop if space is a sep, otherwise ignore this space.
                                 if (_sepContainsSpace)
@@ -1168,18 +1199,16 @@ namespace Microsoft.ML.Runtime.Data
                             else
                             {
                                 // End the loop if this nonspace char is a sep, otherwise it is an error.
-                                if (IsSep(text[ichCur]))
+                                if (IsSep(span[ichCur]))
                                     break;
                                 scan.QuotingError = true;
                             }
                         }
 
-                        if (scan.QuotingError)
-                            scan.Span = DvText.NA;
-                        else if (_sb.Length == 0)
-                            scan.Span = DvText.Empty;
+                        if (scan.QuotingError || _sb.Length == 0)
+                            scan.Span = String.Empty.AsMemory();
                         else
-                            scan.Span = new DvText(_sb.ToString());
+                            scan.Span = _sb.ToString().AsMemory();
                     }
                     else
                     {
@@ -1193,7 +1222,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (_sep0 == text[ichCur])
+                                if (_sep0 == span[ichCur])
                                     break;
                             }
                         }
@@ -1204,7 +1233,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (_sep0 == text[ichCur] || _sep1 == text[ichCur])
+                                if (_sep0 == span[ichCur] || _sep1 == span[ichCur])
                                     break;
                             }
                         }
@@ -1215,7 +1244,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (IsSep(text[ichCur]))
+                                if (IsSep(span[ichCur]))
                                     break;
                             }
                         }
@@ -1223,7 +1252,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (ichMin >= ichCur)
                             scan.Span = _blank;
                         else
-                            scan.Span = new DvText(text, ichMin, ichCur);
+                            scan.Span = text.Slice(ichMin, ichCur - ichMin);
                     }
 
                     scan.IchLim = ichCur;
@@ -1233,7 +1262,7 @@ namespace Microsoft.ML.Runtime.Data
                         return false;
                     }
 
-                    Contracts.Assert(_seps.Contains(text[ichCur]));
+                    Contracts.Assert(_seps.Contains(span[ichCur]));
                     scan.IchMinNext = ichCur + 1;
                     return true;
                 }
@@ -1254,7 +1283,7 @@ namespace Microsoft.ML.Runtime.Data
                     var v = rows.Pipes[iinfo];
                     Contracts.Assert(v != null);
 
-                    if (!info.ColType.IsVector)
+                    if (!(info.ColType is VectorType))
                         ProcessOne(fields, info, v, irow, line);
                     else
                         ProcessVec(srcLim, fields, info, v, irow, line);
@@ -1264,7 +1293,7 @@ namespace Microsoft.ML.Runtime.Data
             private void ProcessVec(int srcLim, FieldSet fields, ColInfo info, ColumnPipe v, int irow, long line)
             {
                 Contracts.Assert(srcLim >= 0);
-                Contracts.Assert(info.ColType.IsVector);
+                Contracts.Assert(info.ColType is VectorType);
                 Contracts.Assert(info.SizeBase > 0 || info.IsegVariable >= 0);
 
                 int sizeVar = 0;
@@ -1306,7 +1335,11 @@ namespace Microsoft.ML.Runtime.Data
                             var srcCur = fields.Indices[isrc];
                             Contracts.Assert(min <= srcCur & srcCur < lim);
                             if (!v.Consume(irow, indexBase + srcCur, ref fields.Spans[isrc]))
+                            {
+                                if (!v.HasNA)
+                                    throw Contracts.Except($"Could not parse value {fields.Spans[isrc]} in slot {indexBase + srcCur} of column {info.Name} in line {line}");
                                 v.Rows.Stats.LogBadValue(line, info.Name, indexBase + srcCur);
+                            }
                         }
                     }
                     ivDst += sizeSeg;
@@ -1316,7 +1349,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private void ProcessOne(FieldSet vs, ColInfo info, ColumnPipe v, int irow, long line)
             {
-                Contracts.Assert(!info.ColType.IsVector);
+                Contracts.Assert(!(info.ColType is VectorType));
                 Contracts.Assert(Utils.Size(info.Segments) == 1);
                 Contracts.Assert(info.Segments[0].Lim == info.Segments[0].Min + 1);
 
@@ -1325,7 +1358,11 @@ namespace Microsoft.ML.Runtime.Data
                 if (isrc < vs.Count && vs.Indices[isrc] == src)
                 {
                     if (!v.Consume(irow, 0, ref vs.Spans[isrc]))
+                    {
+                        if (!v.HasNA)
+                            throw Contracts.Except($"Could not parse value {vs.Spans[isrc]} in line {line}, column {info.Name}");
                         v.Rows.Stats.LogBadValue(line, info.Name);
+                    }
                 }
                 else
                     v.Reset(irow, 0);

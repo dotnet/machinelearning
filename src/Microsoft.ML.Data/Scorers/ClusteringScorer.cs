@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Numeric;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Numeric;
 using Newtonsoft.Json.Linq;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(ClusteringScorer), typeof(ClusteringScorer.Arguments), typeof(SignatureDataScorer),
     "Clustering Scorer", "ClusteringScorer", MetadataUtils.Const.ScoreColumnKind.Clustering)]
@@ -19,7 +19,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(typeof(ClusteringScorer), null, typeof(SignatureLoadDataTransform),
     "Clustering Scorer", ClusteringScorer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class ClusteringScorer : PredictedLabelScorerBase
     {
@@ -37,12 +37,14 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010003, // ISchemaBindableMapper update
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ClusteringScorer).Assembly.FullName);
         }
 
         private const string RegistrationName = "ClusteringScore";
 
-        public ClusteringScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        [BestFriend]
+        internal ClusteringScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
             : base(args, env, data, mapper, trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.Clustering,
                 MetadataUtils.Const.ScoreValueKind.Score, OutputTypeMatches, GetPredColType)
         {
@@ -71,7 +73,7 @@ namespace Microsoft.ML.Runtime.Data
             return h.Apply("Loading Model", ch => new ClusteringScorer(h, ctx, input));
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -82,7 +84,7 @@ namespace Microsoft.ML.Runtime.Data
             base.SaveCore(ctx);
         }
 
-        public override IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)
         {
             Contracts.CheckValue(env, nameof(env));
             Contracts.CheckValue(newSource, nameof(newSource));
@@ -90,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
             return new ClusteringScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
         {
             Contracts.AssertValue(output);
             Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
@@ -100,14 +102,15 @@ namespace Microsoft.ML.Runtime.Data
 
             long cachedPosition = -1;
             VBuffer<Float> score = default(VBuffer<Float>);
-            int scoreLength = Bindings.PredColType.KeyCount;
+            int keyCount = Bindings.PredColType is KeyType key ? key.GetCountAsInt32(Host) : 0;
+            int scoreLength = keyCount;
 
             ValueGetter<uint> predFn =
                 (ref uint dst) =>
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     Contracts.Check(score.Length == scoreLength);
-                    int index = VectorUtils.ArgMin(ref score);
+                    int index = VectorUtils.ArgMin(in score);
                     if (index < 0)
                         dst = 0;
                     else
@@ -125,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
             return predFn;
         }
 
-        protected override JToken PredictedLabelPfa(string[] mapperOutputs)
+        private protected override JToken PredictedLabelPfa(string[] mapperOutputs)
         {
             Contracts.Assert(Utils.Size(mapperOutputs) == 1);
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
@@ -133,12 +136,14 @@ namespace Microsoft.ML.Runtime.Data
 
         private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
         {
-            return new KeyType(DataKind.U4, 0, scoreType.VectorSize);
+            return new KeyType(typeof(uint), scoreType.GetVectorSize());
         }
 
         private static bool OutputTypeMatches(ColumnType scoreType)
         {
-            return scoreType.IsKnownSizeVector && scoreType.ItemType == NumberType.Float;
+            return scoreType is VectorType vectorType
+                && vectorType.IsKnownSize
+                && vectorType.ItemType == NumberType.Float;
         }
     }
 }

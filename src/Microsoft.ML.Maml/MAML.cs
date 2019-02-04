@@ -9,19 +9,18 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 
 #if CORECLR
-using Microsoft.ML.Runtime.Internal.Utilities;
 #endif
 
 #if !CORECLR
 using System.Configuration;
 #endif
 
-namespace Microsoft.ML.Runtime.Tools
+namespace Microsoft.ML.Tools
 {
     public static class Maml
     {
@@ -55,7 +54,12 @@ namespace Microsoft.ML.Runtime.Tools
 
         private static int MainWithProgress(string args)
         {
+            string currentDirectory = Path.GetDirectoryName(typeof(Maml).Module.FullyQualifiedName);
+
             using (var env = CreateEnvironment())
+#pragma warning disable CS0618 // This is the command line project, so the usage here is OK.
+            using (AssemblyLoadingUtils.CreateAssemblyRegistrar(env, currentDirectory))
+#pragma warning restore CS0618
             using (var progressCancel = new CancellationTokenSource())
             {
                 var progressTrackerTask = Task.Run(() => TrackProgress(env, progressCancel.Token));
@@ -76,7 +80,7 @@ namespace Microsoft.ML.Runtime.Tools
 
         private static bool ShouldAlwaysPrintStacktrace() => false;
 
-        private static TlcEnvironment CreateEnvironment()
+        private static ConsoleEnvironment CreateEnvironment()
         {
             string sensitivityString = null;
             MessageSensitivity sensitivity = MessageSensitivity.All;
@@ -90,7 +94,7 @@ namespace Microsoft.ML.Runtime.Tools
                     sensitivity = MessageSensitivity.All;
                 }
             }
-            return new TlcEnvironment(sensitivity: sensitivity);
+            return new ConsoleEnvironment(sensitivity: sensitivity);
         }
 
         /// <summary>
@@ -104,7 +108,7 @@ namespace Microsoft.ML.Runtime.Tools
         /// so we always write . If set to true though, this executable will also print stack traces from the
         /// marked exceptions as well.</param>
         /// <returns></returns>
-        internal static int MainCore(TlcEnvironment env, string args, bool alwaysPrintStacktrace)
+        internal static int MainCore(IHostEnvironment env, string args, bool alwaysPrintStacktrace)
         {
             // REVIEW: How should extra dlls, tracking, etc be handled? Should the args objects for
             // all commands derive from a common base?
@@ -122,9 +126,7 @@ namespace Microsoft.ML.Runtime.Tools
                         return -1;
                     }
 
-                    var cmdDef = new SubComponent<ICommand, SignatureCommand>(kind, settings);
-
-                    if (!ComponentCatalog.TryCreateInstance(mainHost, out ICommand cmd, cmdDef))
+                    if (!ComponentCatalog.TryCreateInstance<ICommand, SignatureCommand>(mainHost, out ICommand cmd, kind, settings))
                     {
                         // Telemetry: Log
                         telemetryPipe.Send(TelemetryMessage.CreateCommand("UnknownCommand", settings));
@@ -209,12 +211,11 @@ namespace Microsoft.ML.Runtime.Tools
                 finally
                 {
                 }
-                telemetryPipe.Done();
                 return result;
             }
         }
 
-        private static void TrackProgress(TlcEnvironment env, CancellationToken ct)
+        private static void TrackProgress(ConsoleEnvironment env, CancellationToken ct)
         {
             try
             {
@@ -294,7 +295,7 @@ namespace Microsoft.ML.Runtime.Tools
                     writer.WriteLine("Exception context:");
                 }
 
-                if (TlcEnvironment.ComponentHistoryKey.Equals(kvp.Key))
+                if (ConsoleEnvironment.ComponentHistoryKey.Equals(kvp.Key))
                 {
                     if (kvp.Value is string[] createdComponents)
                     {

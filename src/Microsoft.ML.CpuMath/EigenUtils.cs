@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Internal.CpuMath.Core;
 using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Internal.CpuMath
+namespace Microsoft.ML.Internal.CpuMath
 {
+    [BestFriend]
     // REVIEW: improve perf with SSE and Multithreading
-    public static class EigenUtils
+    internal static class EigenUtils
     {
         //Compute the Eigen-decomposition of a symmetric matrix
         // REVIEW: use matrix/vector operations, not Array Math

@@ -14,7 +14,7 @@
 #ifdef _WIN32
 #include <intrin.h>
 
-#define EXPORT_API(ret) extern "C" __declspec(dllexport) ret __stdcall
+#define EXPORT_API(ret) extern "C" __declspec(dllexport) ret
 #else
 #include "UnixSal.h"
 

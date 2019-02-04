@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
-    public sealed class CmdLexer
+    [BestFriend]
+    internal sealed class CmdLexer
     {
         private CharCursor _curs;
 
@@ -303,7 +302,8 @@ namespace Microsoft.ML.Runtime.CommandLine
         }
     }
 
-    public sealed class CmdQuoter
+    [BestFriend]
+    internal sealed class CmdQuoter
     {
         private readonly string _str;
         private StringBuilder _sb;

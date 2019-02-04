@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     /// <summary>
     /// This structure is utilized by both the binary loader and binary saver to hold
     /// information on the location of blocks written to an .IDV binary file.
     /// </summary>
-    internal struct BlockLookup
+    internal readonly struct BlockLookup
     {
         /// <summary>The offset of the block into the file.</summary>
         public readonly long BlockOffset;

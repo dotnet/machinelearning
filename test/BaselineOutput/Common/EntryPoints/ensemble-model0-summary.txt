@@ -1,0 +1,8 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Bias:R4:0
+#@   col=Weights:R4:1-17
+#@ }
+Bias	Features.thickness	Features.uniform_size	Features.uniform_shape	Features.adhesion	Features.epit_size	Features.bare_nuclei	Features.bland_chromatin	Features.normal_nucleoli	Cat.1	Cat.5	Cat.4	Cat.3	Cat.2	Cat.7	Cat.10	Cat.8	Cat.6
+-5.120674	2.353567	1.78653753	1.9442488	1.38072	1.0831089	2.43588924	1.61141682	1.34575915	-0.7715381	0	0	0	0	0	0	0	0

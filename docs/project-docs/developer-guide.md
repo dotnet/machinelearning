@@ -25,6 +25,12 @@ build -?
 
 **Examples**
 
+- Initialize the repo to make build possible (if the build fails because it can't find `mf.cpp` then perhaps you missed this step)
+
+```
+git submodule update --init
+```
+
 - Building in release mode for platform x64
 ```
 build.cmd -Release -TargetArchitecture:x64
@@ -32,7 +38,8 @@ build.cmd -Release -TargetArchitecture:x64
 
 - Building the src and then building and running the tests
 ```
-build.cmd -RunTests
+build.cmd
+build.cmd -runTests
 ```
 
 ### Building individual projects
@@ -58,3 +65,4 @@ One can build in Debug or Release mode from the root by doing `build.cmd -Releas
 ### Building other Architectures
 
 We only support 64-bit binaries right now.
+

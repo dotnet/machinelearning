@@ -6,9 +6,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
-    public sealed class ObjectPool<T> : ObjectPoolBase<T> where T : class, new()
+    [BestFriend]
+    internal sealed class ObjectPool<T> : ObjectPoolBase<T> where T : class, new()
     {
         protected override T Create()
         {
@@ -16,7 +17,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
     }
 
-    public sealed class MadeObjectPool<T> : ObjectPoolBase<T>
+    [BestFriend]
+    internal sealed class MadeObjectPool<T> : ObjectPoolBase<T>
     {
         private readonly Func<T> _maker;
 
@@ -31,7 +33,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
     }
 
-    public abstract class ObjectPoolBase<T>
+    internal abstract class ObjectPoolBase<T>
     {
         private readonly ConcurrentBag<T> _pool;
         private int _numCreated;
@@ -39,7 +41,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public int Count => _pool.Count;
         public int NumCreated { get { return _numCreated; } }
 
-        protected internal ObjectPoolBase()
+        private protected ObjectPoolBase()
         {
             _pool = new ConcurrentBag<T>();
         }

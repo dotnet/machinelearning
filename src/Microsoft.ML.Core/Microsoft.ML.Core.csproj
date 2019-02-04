@@ -5,10 +5,15 @@
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORECLR</DefineConstants>
+    <RootNamespace>Microsoft.ML</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <ProjectReference Include="..\Microsoft.Data.DataView\Microsoft.Data.DataView.csproj" />
+    
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 
 </Project>

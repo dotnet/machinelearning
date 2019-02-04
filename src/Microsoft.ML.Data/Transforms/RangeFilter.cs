@@ -2,17 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
+using Float = System.Single;
 
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Arguments), typeof(SignatureDataTransform),
     RangeFilter.UserName, "RangeFilter")]
@@ -20,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), null, typeof(SignatureLoadDataTransform),
     RangeFilter.UserName, RangeFilter.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     // REVIEW: Should we support filtering on multiple columns/vector typed columns?
     /// <summary>
@@ -28,7 +30,8 @@ namespace Microsoft.ML.Runtime.Data
     /// Keeps the values that are in the specified min/max range. NaNs are always filtered out.
     /// If the input is a Key type, the min/max are considered percentages of the number of values.
     /// </summary>
-    public sealed class RangeFilter : FilterBase
+    [BestFriend]
+    internal sealed class RangeFilter : FilterBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -64,7 +67,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(RangeFilter).Assembly.FullName);
         }
 
         private const string RegistrationName = "RangeFilter";
@@ -78,15 +82,16 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool _includeMax;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="RangeFilter"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="column">Name of the input column.</param>
-        /// <param name="minimum">Minimum value (0 to 1 for key types).</param>
-        /// <param name="maximum">Maximum value (0 to 1 for key types).</param>
-        public RangeFilter(IHostEnvironment env, IDataView input, string column, Double? minimum = null, Double? maximum = null)
-            : this(env, new Arguments() { Column = column, Min = minimum, Max = maximum }, input)
+        /// <param name="lowerBound">Minimum value (0 to 1 for key types).</param>
+        /// <param name="upperBound">Maximum value (0 to 1 for key types).</param>
+        /// <param name="includeUpperBound">Whether to include the upper bound.</param>
+        public RangeFilter(IHostEnvironment env, IDataView input, string column, Double lowerBound, Double upperBound, bool includeUpperBound)
+            : this(env, new Arguments() { Column = column, Min = lowerBound, Max = upperBound, IncludeMax = includeUpperBound }, input)
         {
         }
 
@@ -101,10 +106,10 @@ namespace Microsoft.ML.Runtime.Data
 
             using (var ch = Host.Start("Checking parameters"))
             {
-                _type = schema.GetColumnType(_index);
+                _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
                     throw ch.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible type", args.Column);
-                if (_type.IsKey)
+                if (_type is KeyType)
                 {
                     if (args.Min < 0)
                     {
@@ -125,8 +130,7 @@ namespace Microsoft.ML.Runtime.Data
                     throw ch.ExceptUserArg(nameof(args.Min), "min must be less than or equal to max");
                 _complement = args.Complement;
                 _includeMin = args.IncludeMin;
-                _includeMax = args.IncludeMax ?? (args.Max == null || (_type.IsKey && _max >= 1));
-                ch.Done();
+                _includeMax = args.IncludeMax ?? (args.Max == null || (_type is KeyType && _max >= 1));
             }
         }
 
@@ -148,11 +152,11 @@ namespace Microsoft.ML.Runtime.Data
             var column = ctx.LoadNonEmptyString();
             var schema = Source.Schema;
             if (!schema.TryGetColumnIndex(column, out _index))
-                throw Host.Except("column", "Source column '{0}' not found", column);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column);
 
-            _type = schema.GetColumnType(_index);
-            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.KeyCount == 0)
-                throw Host.Except("column", "Column '{0}' does not have compatible type", column);
+            _type = schema[_index].Type;
+            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.GetKeyCount() == 0)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "float, double or KeyType", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
             _max = ctx.Reader.ReadDouble();
@@ -184,11 +188,11 @@ namespace Microsoft.ML.Runtime.Data
             // int: id of column name
             // double: min
             // double: max
-            // byte: complement 
-            // byte: includeMin 
-            // byte: includeMax 
+            // byte: complement
+            // byte: includeMin
+            // byte: includeMax
             ctx.Writer.Write(sizeof(Float));
-            ctx.SaveNonEmptyString(Source.Schema.GetColumnName(_index));
+            ctx.SaveNonEmptyString(Source.Schema[_index].Name);
             Host.Assert(_min < _max);
             ctx.Writer.Write(_min);
             ctx.Writer.Write(_max);
@@ -204,50 +208,52 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var input = Source.GetRowCursor(inputPred, rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+
+            var input = Source.GetRowCursor(inputCols, rand);
             return CreateCursorCore(input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
+
             Host.CheckValueOrNull(rand);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = CreateCursorCore(inputs[i], active);
             return cursors;
         }
 
-        private IRowCursor CreateCursorCore(IRowCursor input, bool[] active)
+        private RowCursor CreateCursorCore(RowCursor input, bool[] active)
         {
             if (_type == NumberType.R4)
                 return new SingleRowCursor(this, input, active);
             if (_type == NumberType.R8)
                 return new DoubleRowCursor(this, input, active);
-            Host.Assert(_type.IsKey);
+            Host.Assert(_type is KeyType);
             return RowCursorBase.CreateKeyRowCursor(this, input, active);
         }
 
         private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
         {
             Host.AssertValue(predicate);
-            active = new bool[Source.Schema.ColumnCount];
-            bool[] activeInput = new bool[Source.Schema.ColumnCount];
+            active = new bool[Source.Schema.Count];
+            bool[] activeInput = new bool[Source.Schema.Count];
             for (int i = 0; i < active.Length; i++)
                 activeInput[i] = active[i] = predicate(i);
             activeInput[_index] = true;
@@ -258,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             ectx.CheckValue(type, nameof(type));
 
-            return type == NumberType.R4 || type == NumberType.R8 || type.KeyCount > 0;
+            return type == NumberType.R4 || type == NumberType.R8 || type.GetKeyCount() > 0;
         }
 
         private abstract class RowCursorBase : LinkedRowFilterCursorBase
@@ -268,8 +274,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Double _min;
             private readonly Double _max;
 
-            protected RowCursorBase(RangeFilter parent, IRowCursor input, bool[] active)
-                : base(parent.Host, input, parent.Schema, active)
+            protected RowCursorBase(RangeFilter parent, RowCursor input, bool[] active)
+                : base(parent.Host, input, parent.OutputSchema, active)
             {
                 Parent = parent;
                 _min = Parent._min;
@@ -307,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount);
+                Ch.Check(0 <= col && col < Schema.Count);
                 Ch.Check(IsColumnActive(col));
 
                 if (col != Parent._index)
@@ -319,17 +325,17 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public static IRowCursor CreateKeyRowCursor(RangeFilter filter, IRowCursor input, bool[] active)
+            public static RowCursor CreateKeyRowCursor(RangeFilter filter, RowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type.IsKey);
-                Func<RangeFilter, IRowCursor, bool[], IRowCursor> del = CreateKeyRowCursor<int>;
+                Contracts.Assert(filter._type is KeyType);
+                Func<RangeFilter, RowCursor, bool[], RowCursor> del = CreateKeyRowCursor<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(filter._type.RawType);
-                return (IRowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
+                return (RowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
             }
 
-            private static IRowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, IRowCursor input, bool[] active)
+            private static RowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, RowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type.IsKey);
+                Contracts.Assert(filter._type is KeyType);
                 return new KeyRowCursor<TSrc>(filter, input, active);
             }
         }
@@ -340,7 +346,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ValueGetter<Single> _getter;
             private Single _value;
 
-            public SingleRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public SingleRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type == NumberType.R4);
@@ -348,7 +354,7 @@ namespace Microsoft.ML.Runtime.Data
                 _getter =
                     (ref Single value) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         value = _value;
                     };
             }
@@ -373,7 +379,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ValueGetter<Double> _getter;
             private Double _value;
 
-            public DoubleRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public DoubleRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type == NumberType.R8);
@@ -381,7 +387,7 @@ namespace Microsoft.ML.Runtime.Data
                 _getter =
                     (ref Double value) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         value = _value;
                     };
             }
@@ -406,39 +412,39 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ValueGetter<T> _getter;
             private T _value;
             private readonly ValueMapper<T, ulong> _conv;
-            private readonly int _count;
+            private readonly ulong _count;
 
-            public KeyRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
-                Ch.Assert(Parent._type.KeyCount > 0);
-                _count = Parent._type.KeyCount;
+                Ch.Assert(Parent._type.GetKeyCount() > 0);
+                _count = Parent._type.GetKeyCount();
                 _srcGetter = Input.GetGetter<T>(Parent._index);
                 _getter =
                     (ref T dst) =>
                     {
-                        Ch.Check(IsGood);
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         dst = _value;
                     };
                 bool identity;
-                _conv = Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
+                _conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
             }
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type.IsKey);
+                Ch.Assert(Parent._type is KeyType);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type.IsKey);
+                Ch.Assert(Parent._type is KeyType);
                 _srcGetter(ref _value);
                 ulong value = 0;
-                _conv(ref _value, ref value);
-                if (value == 0 || value > (ulong)_count)
+                _conv(in _value, ref value);
+                if (value == 0 || value > _count)
                     return false;
-                if (!CheckBounds(((Double)(uint)value - 0.5) / _count))
+                if (!CheckBounds(((uint)value - 0.5) / _count))
                     return false;
                 return true;
             }

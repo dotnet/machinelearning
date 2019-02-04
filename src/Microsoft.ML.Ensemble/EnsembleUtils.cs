@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     internal static class EnsembleUtils
     {
@@ -18,96 +18,85 @@ namespace Microsoft.ML.Runtime.Ensemble
         {
             Contracts.AssertValue(host);
             Contracts.AssertValue(data);
-            Contracts.Assert(data.Schema.Feature != null);
+            Contracts.Assert(data.Schema.Feature.HasValue);
             Contracts.AssertValue(features);
+            var featCol = data.Schema.Feature.Value;
 
-            var type = data.Schema.Feature.Type;
-            Contracts.Assert(features.Length == type.VectorSize);
+            var type = featCol.Type;
+            var typeVectorSize = type.GetVectorSize();
+            Contracts.Assert(features.Length == typeVectorSize);
             int card = Utils.GetCardinality(features);
-            if (card == type.VectorSize)
+            if (card == typeVectorSize)
                 return data;
 
             // REVIEW: This doesn't preserve metadata on the features column. Should it?
-            var name = data.Schema.Feature.Name;
+            var name = featCol.Name;
             var view = LambdaColumnMapper.Create(
                 host, "FeatureSelector", data.Data, name, name, type, type,
-                (ref VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(ref src, features, card, ref dst));
+                (in VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(in src, features, card, ref dst));
 
             var res = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
             return res;
         }
 
         /// <summary>
-        /// Fill dst with values selected from src if the indices of the src values are set in includedIndices, 
+        /// Fill dst with values selected from src if the indices of the src values are set in includedIndices,
         /// otherwise assign default(T). The length of dst will be equal to src.Length.
         /// </summary>
-        public static void SelectFeatures<T>(ref VBuffer<T> src, BitArray includedIndices, int cardinality, ref VBuffer<T> dst)
+        public static void SelectFeatures<T>(in VBuffer<T> src, BitArray includedIndices, int cardinality, ref VBuffer<T> dst)
         {
             Contracts.Assert(Utils.Size(includedIndices) == src.Length);
             Contracts.Assert(cardinality == Utils.GetCardinality(includedIndices));
             Contracts.Assert(cardinality < src.Length);
 
-            var values = dst.Values;
-            var indices = dst.Indices;
-
+            var srcValues = src.GetValues();
             if (src.IsDense)
             {
                 if (cardinality >= src.Length / 2)
                 {
                     T defaultValue = default;
-                    if (Utils.Size(values) < src.Length)
-                        values = new T[src.Length];
-                    for (int i = 0; i < src.Length; i++)
-                        values[i] = !includedIndices[i] ? defaultValue : src.Values[i];
-                    dst = new VBuffer<T>(src.Length, values, indices);
+                    var editor = VBufferEditor.Create(ref dst, src.Length);
+                    for (int i = 0; i < srcValues.Length; i++)
+                        editor.Values[i] = !includedIndices[i] ? defaultValue : srcValues[i];
+                    dst = editor.Commit();
                 }
                 else
                 {
-                    if (Utils.Size(values) < cardinality)
-                        values = new T[cardinality];
-                    if (Utils.Size(indices) < cardinality)
-                        indices = new int[cardinality];
+                    var editor = VBufferEditor.Create(ref dst, src.Length, cardinality);
 
                     int count = 0;
-                    for (int i = 0; i < src.Length; i++)
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
                         if (includedIndices[i])
                         {
                             Contracts.Assert(count < cardinality);
-                            values[count] = src.Values[i];
-                            indices[count] = i;
+                            editor.Values[count] = srcValues[i];
+                            editor.Indices[count] = i;
                             count++;
                         }
                     }
 
                     Contracts.Assert(count == cardinality);
-                    dst = new VBuffer<T>(src.Length, count, values, indices);
+                    dst = editor.Commit();
                 }
             }
             else
             {
-                int valuesSize = Utils.Size(values);
-                int indicesSize = Utils.Size(indices);
-                if (valuesSize < src.Count || indicesSize < src.Count)
-                {
-                    if (valuesSize < cardinality)
-                        values = new T[cardinality];
-                    if (indicesSize < cardinality)
-                        indices = new int[cardinality];
-                }
+                var editor = VBufferEditor.Create(ref dst, src.Length, cardinality);
 
                 int count = 0;
-                for (int i = 0; i < src.Count; i++)
+                var srcIndices = src.GetIndices();
+                for (int i = 0; i < srcValues.Length; i++)
                 {
-                    if (includedIndices[src.Indices[i]])
+                    if (includedIndices[srcIndices[i]])
                     {
-                        values[count] = src.Values[i];
-                        indices[count] = src.Indices[i];
+                        editor.Values[count] = srcValues[i];
+                        editor.Indices[count] = srcIndices[i];
                         count++;
                     }
                 }
 
-                dst = new VBuffer<T>(src.Length, count, values, indices);
+                dst = editor.CommitTruncated(count);
             }
         }
     }

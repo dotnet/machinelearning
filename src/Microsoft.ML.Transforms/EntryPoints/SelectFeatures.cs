@@ -2,37 +2,44 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(typeof(void), typeof(SelectFeatures), null, typeof(SignatureEntryPointModule), "SelectFeatures")]
-namespace Microsoft.ML.Runtime.EntryPoints
+
+namespace Microsoft.ML.Transforms
 {
-    public static class SelectFeatures
+    internal static class SelectFeatures
     {
-        [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount", Desc = CountFeatureSelectionTransform.Summary, UserName = CountFeatureSelectionTransform.UserName)]
-        public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectionTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount",
+            Desc = CountFeatureSelectingEstimator.Summary,
+            UserName = CountFeatureSelectingEstimator.UserName)]
+        public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectingEstimator.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CountSelect");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = CountFeatureSelectionTransform.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            var xf = CountFeatureSelectingEstimator.Create(host, input, input.Data);
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByMutualInformation", Desc = MutualInformationFeatureSelectionTransform.Summary, UserName = MutualInformationFeatureSelectionTransform.UserName, ShortName = MutualInformationFeatureSelectionTransform.ShortName)]
-        public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectionTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByMutualInformation",
+            Desc = MutualInformationFeatureSelectingEstimator.Summary,
+            UserName = MutualInformationFeatureSelectingEstimator.UserName,
+            ShortName = MutualInformationFeatureSelectingEstimator.ShortName)]
+        public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectingEstimator.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("MutualInformationSelect");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = MutualInformationFeatureSelectionTransform.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            var xf = MutualInformationFeatureSelectingEstimator.Create(host, input, input.Data);
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

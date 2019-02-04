@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// Constructs partitioning object based on the documents and RegressionTree splits
         /// NOTE: It has been optimized for speed and multiprocs with 10x gain on naive LINQ implementation
         /// </summary>
-        public DocumentPartitioning(RegressionTree tree, Dataset dataset)
+        internal DocumentPartitioning(InternalRegressionTree tree, Dataset dataset)
             : this(dataset.NumDocs, tree.NumLeaves)
         {
             using (Timer.Time(TimerEvent.DocumentPartitioningConstruction))
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// <param name="leaf">the leaf being split</param>
         /// <param name="indexer"></param>
         /// <param name="threshold">the threshold</param>
-        /// <param name="gtChildIndex">Index of child node that contains documents whose split 
+        /// <param name="gtChildIndex">Index of child node that contains documents whose split
         /// feature value is greater than the split threshold</param>
         public unsafe void Split(int leaf, IIntArrayForwardIndexer indexer, UInt32 threshold, int gtChildIndex)
         {
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// <param name="leaf">the leaf being split</param>
         /// <param name="bins">Split feature flock's bin</param>
         /// <param name="categoricalIndices">Catgeorical feature indices</param>
-        /// <param name="gtChildIndex">Index of child node that contains documents whose split 
+        /// <param name="gtChildIndex">Index of child node that contains documents whose split
         /// feature value is greater than the split threshold</param>
         public unsafe void Split(int leaf, IntArray bins, HashSet<int> categoricalIndices, int gtChildIndex)
         {

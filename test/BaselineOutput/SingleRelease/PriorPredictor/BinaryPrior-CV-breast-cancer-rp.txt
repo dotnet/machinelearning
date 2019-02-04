@@ -1,0 +1,4 @@
+PriorPredictor
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.5	0.656163	0	0	0.656163	1	0.935104	-0.958964	NaN	0.418968	PriorPredictor	%Data%		%Output%	99	0	0	maml.exe CV tr=PriorPredictor threads=- dout=%Output% data=%Data% seed=1		
+

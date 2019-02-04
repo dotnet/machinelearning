@@ -3,18 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 // REVIEW: As soon as we stop writing sizeof(Float), or when we retire the double builds, we can remove this.
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
+using Float = System.Single;
 
 [assembly: LoadableClass(NAFilter.Summary, typeof(NAFilter), typeof(NAFilter.Arguments), typeof(SignatureDataTransform),
     NAFilter.FriendlyName, NAFilter.ShortName, "MissingValueFilter", "MissingFilter")]
@@ -24,9 +25,11 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(NAFilter.Summary, typeof(NAFilter), null, typeof(SignatureLoadDataTransform),
     NAFilter.FriendlyName, NAFilter.LoaderSignature, "MissingFeatureFilter")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
-    public sealed class NAFilter : FilterBase
+    /// <include file='doc.xml' path='doc/members/member[@name="NAFilter"]'/>
+    [BestFriend]
+    internal sealed class NAFilter : FilterBase
     {
         private static class Defaults
         {
@@ -35,8 +38,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column", ShortName = "col", SortOrder = 1)]
-            public string[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public string[] Columns;
 
             [Argument(ArgumentType.Multiple, HelpText = "If true, keep only rows that contain NA values, and filter the rest.")]
             public bool Complement = Defaults.Complement;
@@ -69,7 +72,8 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature,
                 // This is an older name and can be removed once we don't care about old code
                 // being able to load this.
-                loaderSignatureAlt: "MissingFeatureFilter");
+                loaderSignatureAlt: "MissingFeatureFilter",
+                loaderAssemblyName: typeof(NAFilter).Assembly.FullName);
         }
 
         private readonly ColInfo[] _infos;
@@ -78,14 +82,14 @@ namespace Microsoft.ML.Runtime.Data
         private const string RegistrationName = "MissingValueFilter";
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="NAFilter"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="complement">If true, keep only rows that contain NA values, and filter the rest.</param>
         /// <param name="columns">Name of the columns. Only these columns will be used to filter rows having 'NA' values.</param>
         public NAFilter(IHostEnvironment env, IDataView input, bool complement = Defaults.Complement, params string[] columns)
-            : this(env, new Arguments() { Column = columns, Complement = complement }, input)
+            : this(env, new Arguments() { Columns = columns, Complement = complement }, input)
         {
         }
 
@@ -94,25 +98,25 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(args, nameof(args));
             Host.CheckValue(input, nameof(input));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            Host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
             Host.CheckValue(env, nameof(env));
 
-            _infos = new ColInfo[args.Column.Length];
+            _infos = new ColInfo[args.Columns.Length];
             _srcIndexToInfoIndex = new Dictionary<int, int>(_infos.Length);
             _complement = args.Complement;
             var schema = Source.Schema;
             for (int i = 0; i < _infos.Length; i++)
             {
-                string src = args.Column[i];
+                string src = args.Columns[i];
                 int index;
                 if (!schema.TryGetColumnIndex(src, out index))
-                    throw Host.ExceptUserArg(nameof(args.Column), "Source column '{0}' not found", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), "Source column '{0}' not found", src);
                 if (_srcIndexToInfoIndex.ContainsKey(index))
-                    throw Host.ExceptUserArg(nameof(args.Column), "Source column '{0}' specified multiple times", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), "Source column '{0}' specified multiple times", src);
 
-                var type = schema.GetColumnType(index);
+                var type = schema[index].Type;
                 if (!TestType(type))
-                    throw Host.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible numeric type", src);
+                    throw Host.ExceptUserArg(nameof(args.Columns), $"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);
@@ -142,13 +146,13 @@ namespace Microsoft.ML.Runtime.Data
                 string src = ctx.LoadNonEmptyString();
                 int index;
                 if (!schema.TryGetColumnIndex(src, out index))
-                    throw Host.Except("Source column '{0}' not found", src);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "source", src);
                 if (_srcIndexToInfoIndex.ContainsKey(index))
                     throw Host.Except("Source column '{0}' specified multiple times", src);
 
-                var type = schema.GetColumnType(index);
+                var type = schema[index].Type;
                 if (!TestType(type))
-                    throw Host.Except("Column '{0}' does not have compatible numeric type", src);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "source", src, "scalar or vector of float, double or KeyType", type.ToString());
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);
@@ -179,39 +183,19 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(_infos.Length > 0);
             ctx.Writer.Write(_infos.Length);
             foreach (var info in _infos)
-                ctx.SaveNonEmptyString(Source.Schema.GetColumnName(info.Index));
+                ctx.SaveNonEmptyString(Source.Schema[info.Index].Name);
         }
 
         private static bool TestType(ColumnType type)
         {
             Contracts.AssertValue(type);
 
-            var itemType = type.ItemType;
-            if (itemType.IsNumber)
-            {
-                switch (itemType.RawKind)
-                {
-                case DataKind.I1:
-                case DataKind.I2:
-                case DataKind.I4:
-                case DataKind.I8:
-                case DataKind.R4:
-                case DataKind.R8:
-                    return true;
-                }
-                return false;
-            }
-            if (itemType.IsText)
+            var itemType = (type as VectorType)?.ItemType ?? type;
+            if (itemType == NumberType.R4)
                 return true;
-            if (itemType.IsBool)
+            if (itemType == NumberType.R8)
                 return true;
-            if (itemType.IsKey)
-                return true;
-            if (itemType.IsTimeSpan)
-                return true;
-            if (itemType.IsDateTime)
-                return true;
-            if (itemType.IsDateTimeZone)
+            if (itemType is KeyType)
                 return true;
             return false;
         }
@@ -223,40 +207,41 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(this, input, active);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols, rand);
+            return new Cursor(this, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(this, inputs[i], active);
+                cursors[i] = new Cursor(this, inputs[i], active);
             return cursors;
         }
 
         private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
         {
             Host.AssertValue(predicate);
-            active = new bool[Source.Schema.ColumnCount];
-            bool[] activeInput = new bool[Source.Schema.ColumnCount];
+            active = new bool[Source.Schema.Count];
+            bool[] activeInput = new bool[Source.Schema.Count];
             for (int i = 0; i < active.Length; i++)
                 activeInput[i] = active[i] = predicate(i);
             for (int i = 0; i < _infos.Length; i++)
@@ -264,13 +249,13 @@ namespace Microsoft.ML.Runtime.Data
             return col => activeInput[col];
         }
 
-        private sealed class RowCursor : LinkedRowFilterCursorBase
+        private sealed class Cursor : LinkedRowFilterCursorBase
         {
             private abstract class Value
             {
-                protected readonly RowCursor Cursor;
+                protected readonly Cursor Cursor;
 
-                protected Value(RowCursor cursor)
+                protected Value(Cursor cursor)
                 {
                     Contracts.AssertValue(cursor);
                     Cursor = cursor;
@@ -280,56 +265,56 @@ namespace Microsoft.ML.Runtime.Data
 
                 public abstract Delegate GetGetter();
 
-                public static Value Create(RowCursor cursor, ColInfo info)
+                public static Value Create(Cursor cursor, ColInfo info)
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
 
                     MethodInfo meth;
-                    if (!info.Type.IsVector)
+                    if (info.Type is VectorType vecType)
                     {
-                        Func<RowCursor, ColInfo, ValueOne<int>> d = CreateOne<int>;
-                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Type.RawType);
+                        Func<Cursor, ColInfo, ValueVec<int>> d = CreateVec<int>;
+                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vecType.ItemType.RawType);
                     }
                     else
                     {
-                        Func<RowCursor, ColInfo, ValueVec<int>> d = CreateVec<int>;
-                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Type.ItemType.RawType);
+                        Func<Cursor, ColInfo, ValueOne<int>> d = CreateOne<int>;
+                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Type.RawType);
                     }
                     return (Value)meth.Invoke(null, new object[] { cursor, info });
                 }
 
-                private static ValueOne<T> CreateOne<T>(RowCursor cursor, ColInfo info)
+                private static ValueOne<T> CreateOne<T>(Cursor cursor, ColInfo info)
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
-                    Contracts.Assert(!info.Type.IsVector);
+                    Contracts.Assert(!(info.Type is VectorType));
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<T>(info.Index);
-                    var hasBad = Conversions.Instance.GetIsNAPredicate<T>(info.Type);
+                    var hasBad = Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(info.Type);
                     return new ValueOne<T>(cursor, getSrc, hasBad);
                 }
 
-                private static ValueVec<T> CreateVec<T>(RowCursor cursor, ColInfo info)
+                private static ValueVec<T> CreateVec<T>(Cursor cursor, ColInfo info)
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
-                    Contracts.Assert(info.Type.IsVector);
-                    Contracts.Assert(info.Type.ItemType.RawType == typeof(T));
+                    Contracts.Assert(info.Type is VectorType);
+                    Contracts.Assert(info.Type.RawType == typeof(VBuffer<T>));
 
                     var getSrc = cursor.Input.GetGetter<VBuffer<T>>(info.Index);
-                    var hasBad = Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);
+                    var hasBad = Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);
                     return new ValueVec<T>(cursor, getSrc, hasBad);
                 }
 
                 private abstract class TypedValue<T> : Value
                 {
                     private readonly ValueGetter<T> _getSrc;
-                    private readonly RefPredicate<T> _hasBad;
+                    private readonly InPredicate<T> _hasBad;
                     public T Src;
 
-                    protected TypedValue(RowCursor cursor, ValueGetter<T> getSrc, RefPredicate<T> hasBad)
+                    protected TypedValue(Cursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
                         : base(cursor)
                     {
                         Contracts.AssertValue(getSrc);
@@ -341,7 +326,7 @@ namespace Microsoft.ML.Runtime.Data
                     public override bool Refresh()
                     {
                         _getSrc(ref Src);
-                        return !_hasBad(ref Src);
+                        return !_hasBad(in Src);
                     }
                 }
 
@@ -349,7 +334,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     private readonly ValueGetter<T> _getter;
 
-                    public ValueOne(RowCursor cursor, ValueGetter<T> getSrc, RefPredicate<T> hasBad)
+                    public ValueOne(Cursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
                         : base(cursor, getSrc, hasBad)
                     {
                         _getter = GetValue;
@@ -371,7 +356,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     private readonly ValueGetter<VBuffer<T>> _getter;
 
-                    public ValueVec(RowCursor cursor, ValueGetter<VBuffer<T>> getSrc, RefPredicate<VBuffer<T>> hasBad)
+                    public ValueVec(Cursor cursor, ValueGetter<VBuffer<T>> getSrc, InPredicate<VBuffer<T>> hasBad)
                         : base(cursor, getSrc, hasBad)
                     {
                         _getter = GetValue;
@@ -393,8 +378,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly NAFilter _parent;
             private readonly Value[] _values;
 
-            public RowCursor(NAFilter parent, IRowCursor input, bool[] active)
-                : base(parent.Host, input, parent.Schema, active)
+            public Cursor(NAFilter parent, RowCursor input, bool[] active)
+                : base(parent.Host, input, parent.OutputSchema, active)
             {
                 _parent = parent;
                 _values = new Value[_parent._infos.Length];

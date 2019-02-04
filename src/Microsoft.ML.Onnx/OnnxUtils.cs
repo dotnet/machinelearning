@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Google.Protobuf;
-using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
+using Microsoft.ML.UniversalModelFormat.Onnx;
 
-namespace Microsoft.ML.Runtime.Model.Onnx
+namespace Microsoft.ML.Model.Onnx
 {
     /// <summary>
     /// Contains methods to create ONNX models in protocol buffer.
@@ -186,13 +188,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<long> value)
             => node.Attribute.Add(MakeAttribute(argName, value));
 
-        public static void NodeAddAttributes(NodeProto node, string argName, DvText value)
+        public static void NodeAddAttributes(NodeProto node, string argName, ReadOnlyMemory<char> value)
             => node.Attribute.Add(MakeAttribute(argName, StringToByteString(value)));
 
         public static void NodeAddAttributes(NodeProto node, string argName, string[] value)
             => node.Attribute.Add(MakeAttribute(argName, StringToByteString(value)));
 
-        public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<DvText> value)
+        public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<ReadOnlyMemory<char>> value)
             => node.Attribute.Add(MakeAttribute(argName, StringToByteString(value)));
 
         public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<string> value)
@@ -210,8 +212,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public static void NodeAddAttributes(NodeProto node, string argName, bool value)
             => node.Attribute.Add(MakeAttribute(argName, value));
 
-        private static ByteString StringToByteString(DvText str) => ByteString.CopyFrom(Encoding.UTF8.GetBytes(str.ToString()));
-        private static IEnumerable<ByteString> StringToByteString(IEnumerable<DvText> str)
+        private static ByteString StringToByteString(ReadOnlyMemory<char> str) => ByteString.CopyFrom(Encoding.UTF8.GetBytes(str.ToString()));
+        private static IEnumerable<ByteString> StringToByteString(IEnumerable<ReadOnlyMemory<char>> str)
             => str.Select(s => ByteString.CopyFrom(Encoding.UTF8.GetBytes(s.ToString())));
 
         private static IEnumerable<ByteString> StringToByteString(IEnumerable<string> str)
@@ -237,12 +239,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
         public static ModelProto MakeModel(List<NodeProto> nodes, string producerName, string name,
             string domain, string producerVersion, long modelVersion, List<ModelArgs> inputs,
-            List<ModelArgs> outputs, List<ModelArgs> intermediateValues)
+            List<ModelArgs> outputs, List<ModelArgs> intermediateValues, List<TensorProto> initializers)
         {
             Contracts.CheckValue(nodes, nameof(nodes));
             Contracts.CheckValue(inputs, nameof(inputs));
             Contracts.CheckValue(outputs, nameof(outputs));
-            Contracts.CheckValue(outputs, nameof(intermediateValues));
+            Contracts.CheckValue(intermediateValues, nameof(intermediateValues));
+            Contracts.CheckValue(initializers, nameof(initializers));
             Contracts.CheckNonEmpty(producerName, nameof(producerName));
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckNonEmpty(domain, nameof(domain));
@@ -255,7 +258,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             model.IrVersion = (long)UniversalModelFormat.Onnx.Version.IrVersion;
             model.ModelVersion = modelVersion;
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 1 });
-            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx", Version = 6 });
+            model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 7 });
             model.Graph = new GraphProto();
             var graph = model.Graph;
             graph.Node.Add(nodes);
@@ -281,6 +284,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 MakeValue(val, arg.Name, arg.DataType, arg.Dims, arg.DimParams);
             }
 
+            graph.Initializer.AddRange(initializers);
+
             return model;
         }
 
@@ -291,31 +296,40 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             Contracts.CheckNonEmpty(colName, nameof(colName));
 
             TensorProto.Types.DataType dataType = TensorProto.Types.DataType.Undefined;
-            DataKind rawKind;
-            if (type.IsVector)
-                rawKind = type.AsVector.ItemType.RawKind;
-            else if (type.IsKey)
-                rawKind = type.AsKey.RawKind;
+            Type rawType;
+            if (type is VectorType vectorType)
+                rawType = vectorType.ItemType.RawType;
             else
-                rawKind = type.RawKind;
+                rawType = type.RawType;
 
-            switch (rawKind)
+            if (rawType == typeof(bool))
+                dataType = TensorProto.Types.DataType.Float;
+            else if (rawType == typeof(ReadOnlyMemory<char>))
+                dataType = TensorProto.Types.DataType.String;
+            else if (rawType == typeof(sbyte))
+                dataType = TensorProto.Types.DataType.Int8;
+            else if (rawType == typeof(byte))
+                dataType = TensorProto.Types.DataType.Uint8;
+            else if (rawType == typeof(short))
+                dataType = TensorProto.Types.DataType.Int16;
+            else if (rawType == typeof(ushort))
+                dataType = TensorProto.Types.DataType.Uint16;
+            else if (rawType == typeof(int))
+                dataType = TensorProto.Types.DataType.Int32;
+            else if (rawType == typeof(uint))
+                dataType = TensorProto.Types.DataType.Int64;
+            else if (rawType == typeof(long))
+                dataType = TensorProto.Types.DataType.Int64;
+            else if (rawType == typeof(ulong))
+                dataType = TensorProto.Types.DataType.Uint64;
+            else if (rawType == typeof(float))
+                dataType = TensorProto.Types.DataType.Float;
+            else if (rawType == typeof(double))
+                dataType = TensorProto.Types.DataType.Double;
+            else
             {
-                case DataKind.BL:
-                    dataType = TensorProto.Types.DataType.Float;
-                    break;
-                case DataKind.TX:
-                    dataType = TensorProto.Types.DataType.String;
-                    break;
-                case DataKind.U4:
-                    dataType = TensorProto.Types.DataType.Int64;
-                    break;
-                case DataKind.R4:
-                    dataType = TensorProto.Types.DataType.Float;
-                    break;
-                default:
-                    Contracts.Assert(false, "Unknown type.");
-                    break;
+                string msg = "Unsupported type: " + type.ToString();
+                Contracts.Check(false, msg);
             }
 
             string name = colName;
@@ -329,24 +343,97 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             else
             {
                 dimsLocal = new List<long>();
-                if (type.ValueCount == 0) //Unknown size.
+                int valueCount = type.GetValueCount();
+                if (valueCount == 0) //Unknown size.
                 {
                     dimsLocal.Add(1);
                     dimsParamLocal = new List<bool>() { false, true }; //false for batch size, true for dims.
                 }
-                else if (type.ValueCount == 1)
+                else if (valueCount == 1)
                     dimsLocal.Add(1);
-                else if (type.ValueCount > 1)
+                else if (valueCount > 1)
                 {
-                    var vec = type.AsVector;
-                    for (int i = 0; i < vec.DimCount; i++)
-                        dimsLocal.Add(vec.GetDim(i));
+                    var vec = (VectorType)type;
+                    for (int i = 0; i < vec.Dimensions.Length; i++)
+                        dimsLocal.Add(vec.Dimensions[i]);
                 }
             }
             //batch size.
             dimsLocal?.Insert(0, 1);
 
             return new ModelArgs(name, dataType, dimsLocal, dimsParamLocal);
+        }
+
+        // Make long scalar in ONNX from native C# number
+        public static TensorProto MakeInt64(string name, long value)
+        {
+            var tensor = new TensorProto();
+            tensor.Name = name;
+            tensor.DataType = TensorProto.Types.DataType.Int64;
+            tensor.Int64Data.Add(value);
+            return tensor;
+        }
+
+        // Make long vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
+        public static TensorProto MakeInt64s(string name, IEnumerable<long> values, IEnumerable<long> dims = null)
+        {
+            var tensor = new TensorProto();
+            tensor.Name = name;
+            tensor.DataType = TensorProto.Types.DataType.Int64;
+            tensor.Int64Data.AddRange(values);
+            if (dims != null)
+                tensor.Dims.AddRange(dims);
+            else
+                tensor.Dims.Add(values.Count());
+            return tensor;
+        }
+
+        // Make float scalar in ONNX from native C# number
+        public static TensorProto MakeFloat(string name, float value)
+        {
+            var tensor = new TensorProto();
+            tensor.Name = name;
+            tensor.DataType = TensorProto.Types.DataType.Float;
+            tensor.FloatData.Add(value);
+            return tensor;
+        }
+
+        // Make float vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
+        public static TensorProto MakeFloats(string name, IEnumerable<float> values, IEnumerable<long> dims = null)
+        {
+            var tensor = new TensorProto();
+            tensor.Name = name;
+            tensor.DataType = TensorProto.Types.DataType.Float;
+            tensor.FloatData.AddRange(values);
+            if (dims != null)
+                tensor.Dims.AddRange(dims);
+            else
+                tensor.Dims.Add(values.Count());
+            return tensor;
+        }
+
+        // Make string scalar in ONNX from native C# number
+        public static TensorProto MakeString(string name, string value)
+        {
+            var tensor = new TensorProto();
+            tensor.Name = name;
+            tensor.DataType = TensorProto.Types.DataType.String;
+            tensor.StringData.Add(StringToByteString(value));
+            return tensor;
+        }
+
+        // Make string vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
+        public static TensorProto MakeStrings(string name, IEnumerable<string> values, IEnumerable<long> dims = null)
+        {
+            var tensor = new TensorProto();
+            tensor.Name = name;
+            tensor.DataType = TensorProto.Types.DataType.String;
+            tensor.StringData.AddRange(StringToByteString(values));
+            if (dims != null)
+                tensor.Dims.AddRange(dims);
+            else
+                tensor.Dims.Add(values.Count());
+            return tensor;
         }
     }
 }

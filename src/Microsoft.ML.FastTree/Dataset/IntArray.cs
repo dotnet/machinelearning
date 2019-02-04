@@ -5,14 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
 #else
-    using FloatType = System.Double;
 #endif
 
     public enum IntArrayType { Dense, Sparse, Repeat, Segmented, Current };

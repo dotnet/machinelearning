@@ -2,43 +2,52 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.Data
+using Microsoft.Data.DataView;
+
+namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Base class for a cursor has an input cursor, but still needs to do work on
-    /// MoveNext/MoveMany.
+    /// Base class for a cursor has an input cursor, but still needs to do work on <see cref="RowCursor.MoveNext"/>.
     /// </summary>
-    public abstract class LinkedRootCursorBase<TInput> : RootCursorBase
-        where TInput : class, ICursor
+    [BestFriend]
+    internal abstract class LinkedRootCursorBase : RootCursorBase
     {
-        private readonly ICursor _root;
 
         /// <summary>Gets the input cursor.</summary>
-        protected TInput Input { get; }
+        protected RowCursor Input { get; }
 
         /// <summary>
-        /// Returns the root cursor of the input. It should be used to perform MoveNext or MoveMany operations.
-        /// Note that GetRootCursor() returns "this", NOT Root. Root is used to advance our input, not for
-        /// clients of this cursor. That's why it is protected, not public.
+        /// Returns the root cursor of the input. It should be used to perform <see cref="RowCursor.MoveNext"/>
+        /// operations, but with the distinction, as compared to <see cref="SynchronizedCursorBase"/>, that this is not
+        /// a simple passthrough, but rather very implementation specific. For example, a common usage of this class is
+        /// on filter cursor implemetnations, where how that input cursor is consumed is very implementation specific.
+        /// That is why this is <see langword="protected"/>, not <see langword="private"/>.
         /// </summary>
-        protected ICursor Root { get { return _root; } }
+        protected RowCursor Root { get; }
 
-        protected LinkedRootCursorBase(IChannelProvider provider, TInput input)
+        private bool _disposed;
+
+        protected LinkedRootCursorBase(IChannelProvider provider, RowCursor input)
             : base(provider)
         {
             Ch.AssertValue(input, nameof(input));
 
             Input = input;
-            _root = Input.GetRootCursor();
+            Root = Input is SynchronizedCursorBase snycInput ? snycInput.Root : input;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (State != CursorState.Done)
+            if (_disposed)
+                return;
+            if (disposing)
             {
                 Input.Dispose();
-                base.Dispose();
+                // The base class should set the state to done under these circumstances.
+
             }
+            _disposed = true;
+            base.Dispose(disposing);
         }
     }
 }

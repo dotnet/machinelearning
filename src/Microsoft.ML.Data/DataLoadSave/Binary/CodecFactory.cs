@@ -6,9 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     internal sealed partial class CodecFactory
     {
@@ -17,7 +18,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         // Or maybe not. That may depend on how much flexibility we really need from this.
         private readonly Dictionary<string, GetCodecFromStreamDelegate> _loadNameToCodecCreator;
         // The non-vector non-generic types can have a very simple codec mapping.
-        private readonly Dictionary<DataKind, IValueCodec> _simpleCodecTypeMap;
+        private readonly Dictionary<Type, IValueCodec> _simpleCodecTypeMap;
         // A shared object pool of memory buffers. Objects returned to the memory stream pool
         // should be cleared and have position set to 0. Use the ReturnMemoryStream helper method.
         private readonly MemoryStreamPool _memPool;
@@ -42,31 +43,34 @@ namespace Microsoft.ML.Runtime.Data.IO
             _encoding = Encoding.UTF8;
 
             _loadNameToCodecCreator = new Dictionary<string, GetCodecFromStreamDelegate>();
-            _simpleCodecTypeMap = new Dictionary<DataKind, IValueCodec>();
+            _simpleCodecTypeMap = new Dictionary<Type, IValueCodec>();
             // Register the current codecs.
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt1>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<sbyte>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<byte>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt2>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<short>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<ushort>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt4>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<int>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<uint>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt8>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<long>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<ulong>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<Single>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<Double>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvTimeSpan>(this));
-            RegisterSimpleCodec(new DvTextCodec(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<float>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<double>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<TimeSpan>(this));
+            RegisterSimpleCodec(new TextCodec(this));
             RegisterSimpleCodec(new BoolCodec(this));
             RegisterSimpleCodec(new DateTimeCodec(this));
-            RegisterSimpleCodec(new DateTimeZoneCodec(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<UInt128>(this));
+            RegisterSimpleCodec(new DateTimeOffsetCodec(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<RowId>(this));
 
-            // Register the old boolean reading codec.
-            var oldBool = new OldBoolCodec(this);
-            RegisterOtherCodec(oldBool.LoadName, oldBool.GetCodec);
+            // Register the old type system reading codec.
+            RegisterOtherCodec("DvBool", new OldBoolCodec(this).GetCodec);
+            RegisterOtherCodec("DvDateTimeZone", new DateTimeOffsetCodec(this).GetCodec);
+            RegisterOtherCodec("DvDateTime", new DateTimeCodec(this).GetCodec);
+            RegisterOtherCodec("DvTimeSpan", new UnsafeTypeCodec<TimeSpan>(this).GetCodec);
 
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
-            RegisterOtherCodec("Key", GetKeyCodec);
+            RegisterOtherCodec("Key2", GetKeyCodec);
+            RegisterOtherCodec("Key", GetKeyCodecOld);
         }
 
         private BinaryWriter OpenBinaryWriter(Stream stream)
@@ -82,9 +86,9 @@ namespace Microsoft.ML.Runtime.Data.IO
         private void RegisterSimpleCodec<T>(SimpleCodec<T> codec)
         {
             Contracts.Assert(!_loadNameToCodecCreator.ContainsKey(codec.LoadName));
-            Contracts.Assert(!_simpleCodecTypeMap.ContainsKey(codec.Type.RawKind));
+            Contracts.Assert(!_simpleCodecTypeMap.ContainsKey(codec.Type.RawType));
             _loadNameToCodecCreator.Add(codec.LoadName, codec.GetCodec);
-            _simpleCodecTypeMap.Add(codec.Type.RawKind, codec);
+            _simpleCodecTypeMap.Add(codec.Type.RawType, codec);
         }
 
         private void RegisterOtherCodec(string name, GetCodecFromStreamDelegate fn)
@@ -96,11 +100,11 @@ namespace Microsoft.ML.Runtime.Data.IO
         public bool TryGetCodec(ColumnType type, out IValueCodec codec)
         {
             // Handle the primier types specially.
-            if (type.IsKey)
+            if (type is KeyType)
                 return GetKeyCodec(type, out codec);
-            if (type.IsVector)
-                return GetVBufferCodec(type, out codec);
-            return _simpleCodecTypeMap.TryGetValue(type.RawKind, out codec);
+            if (type is VectorType vectorType)
+                return GetVBufferCodec(vectorType, out codec);
+            return _simpleCodecTypeMap.TryGetValue(type.RawType, out codec);
         }
 
         /// <summary>
@@ -182,7 +186,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                         }
                     }
                     ch.Warning("Did not recognize value codec signature '{0}'", signature);
-                    ch.Done();
                     return false;
                 }
                 // Opportunistically validate in the case of a seekable stream.
@@ -190,7 +193,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                 bool retval = del(definitionStream, out codec);
                 if (definitionStream.CanSeek && definitionStream.Position - pos != len)
                     throw ch.ExceptDecode("Codec type definition supposedly has {0} bytes, but the handler consumed {1}", len, definitionStream.Position - pos);
-                ch.Done();
                 return retval;
             }
         }

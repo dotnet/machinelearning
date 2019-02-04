@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.Data.DataView;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Opaque IDataView implementation to provide a barrier for data pipe optimizations.
@@ -14,27 +16,19 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly IDataView _source;
         public bool CanShuffle => _source.CanShuffle;
-        public ISchema Schema => _source.Schema;
+        public Schema Schema => _source.Schema;
 
         public OpaqueDataView(IDataView source)
         {
             _source = source;
         }
 
-        public long? GetRowCount(bool lazy = true)
-        {
-            return _source.GetRowCount(lazy);
-        }
+        public long? GetRowCount() => _source.GetRowCount();
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
-        {
-            return _source.GetRowCursor(predicate, rand);
-        }
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            =>_source.GetRowCursor(columnsNeeded, rand);
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
-        {
-            return _source.GetRowCursorSet(out consolidator, predicate, n, rand);
-        }
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => _source.GetRowCursorSet(columnsNeeded, n, rand);
     }
 }

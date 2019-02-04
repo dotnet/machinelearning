@@ -3,10 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), typeof(ProduceIdTransform.Arguments), typeof(SignatureDataTransform),
     "", "ProduceIdTransform", "ProduceId")]
@@ -14,11 +18,11 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), null, typeof(SignatureLoadDataTransform),
     "Produce ID Transform", ProduceIdTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Produces a column with the cursor's ID as a column. This can be useful for diagnostic purposes.
-    /// 
+    ///
     /// This class will obviously generate different data given different IDs. So, if you save data to
     /// some other file, then apply this transform to that dataview, it may of course have a different
     /// result. This is distinct from most transforms that produce results based on data alone.
@@ -33,7 +37,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Bindings : ColumnBindingsBase
         {
-            public Bindings(ISchema input, bool user, string name)
+            public Bindings(Schema input, bool user, string name)
                 : base(input, user, name)
             {
                 Contracts.Assert(InfoCount == 1);
@@ -45,7 +49,7 @@ namespace Microsoft.ML.Runtime.Data
                 return NumberType.UG;
             }
 
-            public static Bindings Create(ModelLoadContext ctx, ISchema input)
+            public static Bindings Create(ModelLoadContext ctx, Schema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -70,13 +74,13 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(predicate);
 
                 var active = GetActiveInput(predicate);
-                Contracts.Assert(active.Length == Input.ColumnCount);
+                Contracts.Assert(active.Length == Input.Count);
                 return col => 0 <= col && col < active.Length && active[col];
             }
         }
 
         internal const string Summary = "Produces a new column with the row ID.";
-        public const string LoaderSignature = "ProduceIdTransform";
+        internal const string LoaderSignature = "ProduceIdTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -84,12 +88,13 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ProduceIdTransform).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema OutputSchema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -133,28 +138,30 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
 
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var inputPred = _bindings.GetDependencies(predicate);
-            var input = Source.GetRowCursor(inputPred, rand);
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols, rand);
             bool active = predicate(_bindings.MapIinfoToCol(0));
 
-            return new RowCursor(Host, _bindings, input, active);
+            return new Cursor(Host, _bindings, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var inputPred = _bindings.GetDependencies(predicate);
-            IRowCursor[] cursors = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            RowCursor[] cursors = Source.GetRowCursorSet(inputCols, n, rand);
             bool active = predicate(_bindings.MapIinfoToCol(0));
             for (int c = 0; c < cursors.Length; ++c)
-                cursors[c] = new RowCursor(Host, _bindings, cursors[c], active);
+                cursors[c] = new Cursor(Host, _bindings, cursors[c], active);
             return cursors;
         }
 
@@ -164,14 +171,14 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public ISchema Schema { get { return _bindings; } }
+            public override Schema Schema => _bindings.AsSchema;
 
-            public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool active)
+            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));
@@ -179,7 +186,7 @@ namespace Microsoft.ML.Runtime.Data
                 _active = active;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
                 bool isSrc;
@@ -190,7 +197,7 @@ namespace Microsoft.ML.Runtime.Data
                 return _active;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
                 Ch.CheckParam(IsColumnActive(col), nameof(col));

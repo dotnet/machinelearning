@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.ML.Runtime.Model
+namespace Microsoft.ML.Model
 {
     public sealed partial class ModelSaveContext : IDisposable
     {

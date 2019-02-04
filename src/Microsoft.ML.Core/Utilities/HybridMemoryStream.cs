@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -15,7 +15,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// file system. This can be useful if we have intermediate operations that require streams.
     /// The temporary file will be destroyed if the object is properly disposed.
     /// </summary>
-    public sealed class HybridMemoryStream : Stream
+    [BestFriend]
+    internal sealed class HybridMemoryStream : Stream
     {
         private MemoryStream _memStream;
         private Stream _overflowStream;

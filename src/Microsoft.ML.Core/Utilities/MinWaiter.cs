@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
     /// A synchronization primitive meant to address situations where you have a set of
     /// entities of known count, where you want to iteratively provide critical sections
     /// for each depending on which comes first, but you do not necessarily know what
     /// constitutes "first" until all such entities tell you where they stand in line.
-    /// 
+    ///
     /// The anticipated usage is that whatever entity is using the <see cref="MinWaiter"/>
     /// to synchronize itself, will register itself using <see cref="Register"/>
     /// so as to unblock any "lower" waiters as soon as it knows what value it needs to
@@ -21,14 +20,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// registering itself for a new event (or, finally, retiring itself through
     /// <see cref="Retire"/>).
     /// </summary>
-    public sealed class MinWaiter
+    [BestFriend]
+    internal sealed class MinWaiter
     {
         /// <summary>
         /// This is an event-line pair. The intended usage is, when the line
         /// is the minimum at a point when all waiters have registered, the event
         /// will be signaled.
         /// </summary>
-        private struct WaitStats
+        private readonly struct WaitStats
         {
             public readonly long Line;
             public readonly ManualResetEventSlim Event;
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// point when we actually want to wait. This method itself has the potential to
         /// signal other events, if by registering ourselves the waiter becomes aware of
         /// the maximum number of waiters, allowing that waiter to enter its critical state.
-        /// 
+        ///
         /// If multiple events are associated with the minimum value, then only one will
         /// be signaled, and the rest will remain unsignaled. Which is chosen is undefined.
         /// </summary>
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             lock (_waiters)
             {
                 Contracts.Check(_maxWaiters > 0, "All waiters have been retired, Wait should not be called at this point");
-                // We should never reach the state 
+                // We should never reach the state
                 Contracts.Assert(_waiters.Count < _maxWaiters);
                 ev = new WaitStats(position);
                 // REVIEW: Optimize the case where this is the minimum?

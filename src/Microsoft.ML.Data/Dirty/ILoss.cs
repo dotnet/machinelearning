@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.ML.EntryPoints;
 using Float = System.Single;
 
-using System;
-using Microsoft.ML.Runtime.EntryPoints;
-
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     public interface ILossFunction<in TOutput, in TLabel>
     {

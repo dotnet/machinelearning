@@ -3,26 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.LightGBM;
+using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.LightGBM;
 
-[assembly: LoadableClass(typeof(LightGbmArguments.TreeBooster), typeof(LightGbmArguments.TreeBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.TreeBooster.FriendlyName, LightGbmArguments.TreeBooster.Name)]
-[assembly: LoadableClass(typeof(LightGbmArguments.DartBooster), typeof(LightGbmArguments.DartBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.DartBooster.FriendlyName, LightGbmArguments.DartBooster.Name)]
-[assembly: LoadableClass(typeof(LightGbmArguments.GossBooster), typeof(LightGbmArguments.GossBooster.Arguments),
-    typeof(SignatureLightGBMBooster), LightGbmArguments.GossBooster.FriendlyName, LightGbmArguments.GossBooster.Name)]
+[assembly: LoadableClass(typeof(Options.TreeBooster), typeof(Options.TreeBooster.Arguments),
+    typeof(SignatureLightGBMBooster), Options.TreeBooster.FriendlyName, Options.TreeBooster.Name)]
+[assembly: LoadableClass(typeof(Options.DartBooster), typeof(Options.DartBooster.Arguments),
+    typeof(SignatureLightGBMBooster), Options.DartBooster.FriendlyName, Options.DartBooster.Name)]
+[assembly: LoadableClass(typeof(Options.GossBooster), typeof(Options.GossBooster.Arguments),
+    typeof(SignatureLightGBMBooster), Options.GossBooster.FriendlyName, Options.GossBooster.Name)]
 
-[assembly: EntryPointModule(typeof(LightGbmArguments.TreeBooster.Arguments))]
-[assembly: EntryPointModule(typeof(LightGbmArguments.DartBooster.Arguments))]
-[assembly: EntryPointModule(typeof(LightGbmArguments.GossBooster.Arguments))]
+[assembly: EntryPointModule(typeof(Options.TreeBooster.Arguments))]
+[assembly: EntryPointModule(typeof(Options.DartBooster.Arguments))]
+[assembly: EntryPointModule(typeof(Options.GossBooster.Arguments))]
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
     public delegate void SignatureLightGBMBooster();
 
@@ -36,10 +36,10 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <summary>
-    /// Parameters names comes from LightGBM library. 
+    /// Parameters names comes from LightGBM library.
     /// See https://github.com/Microsoft/LightGBM/blob/master/docs/Parameters.rst.
     /// </summary>
-    public sealed class LightGbmArguments : LearnerInputBaseWithGroupId
+    public sealed class Options : LearnerInputBaseWithGroupId
     {
         public abstract class BoosterParameter<TArgs> : IBoosterParameter
             where TArgs : class, new()
@@ -56,9 +56,16 @@ namespace Microsoft.ML.Runtime.LightGBM
             /// </summary>
             public virtual void UpdateParameters(Dictionary<string, object> res)
             {
-                FieldInfo[] fields = Args.GetType().GetFields();
+                FieldInfo[] fields = Args.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var field in fields)
-                    res[GetArgName(field.Name)] = field.GetValue(Args).ToString();
+                {
+                    var attribute = field.GetCustomAttribute<ArgumentAttribute>(false);
+
+                    if (attribute == null)
+                        continue;
+
+                    res[GetArgName(field.Name)] = field.GetValue(Args);
+                }
             }
         }
 
@@ -80,6 +87,13 @@ namespace Microsoft.ML.Runtime.LightGBM
                     strBuf.Append(c);
             }
             return strBuf.ToString();
+        }
+
+        [BestFriend]
+        internal static class Defaults
+        {
+            [BestFriend]
+            internal const int NumBoostRound = 100;
         }
 
         public sealed class TreeBooster : BoosterParameter<TreeBooster.Arguments>
@@ -268,7 +282,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations.", SortOrder = 1, ShortName = "iter")]
         [TGUI(Label = "Number of boosting iterations", SuggestedSweeps = "10,20,50,100,150,200")]
         [TlcModule.SweepableDiscreteParam("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 })]
-        public int NumBoostRound = 100;
+        public int NumBoostRound = Defaults.NumBoostRound;
 
         [Argument(ArgumentType.AtMostOnce,
             HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",
@@ -310,7 +324,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         public EvalMetricType EvalMetric = EvalMetricType.DefaultMetric;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
-        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false})]
+        [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
         public bool? UseSoftmax;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Rounds of early stopping, 0 will disable it.",
@@ -320,6 +334,11 @@ namespace Microsoft.ML.Runtime.LightGBM
         [Argument(ArgumentType.AtMostOnce, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
         [TGUI(Label = "Ranking Label Gain")]
         public string CustomGains = "0,3,7,15,31,63,127,255,511,1023,2047,4095";
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function. Used only in " + nameof(LightGbmBinaryTrainer) + ", " + nameof(LightGbmMulticlassTrainer) +
+            " and in " + nameof(LightGbmRankingTrainer) + ".", ShortName = "sigmoid")]
+        [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+        public double Sigmoid = 0.5;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of entries in a batch when loading data.", Hide = true)]
         public int BatchSize = 1 << 20;
@@ -359,18 +378,19 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             Contracts.CheckValue(host, nameof(host));
             Contracts.CheckUserArg(MaxBin > 0, nameof(MaxBin), "must be > 0.");
+            Contracts.CheckUserArg(Sigmoid > 0, nameof(Sigmoid), "must be > 0.");
             Dictionary<string, object> res = new Dictionary<string, object>();
 
             var boosterParams = Booster.CreateComponent(host);
             boosterParams.UpdateParameters(res);
 
-            res[GetArgName(nameof(MaxBin))] = MaxBin.ToString();
+            res[GetArgName(nameof(MaxBin))] = MaxBin;
 
             res["verbose"] = Silent ? "-1" : "1";
             if (NThread.HasValue)
-                res["nthread"] = NThread.Value.ToString();
+                res["nthread"] = NThread.Value;
 
-            res["seed"] = host.Rand.Next().ToString();
+            res["seed"] = host.Rand.Next();
 
             string metric = null;
             switch (EvalMetric)
@@ -401,13 +421,13 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
             if (!string.IsNullOrEmpty(metric))
                 res["metric"] = metric;
-            res["sigmoid"] = "0.5";
+            res["sigmoid"] = Sigmoid;
             res["label_gain"] = CustomGains;
-            res[GetArgName(nameof(UseMissing))] = UseMissing.ToString();
-            res[GetArgName(nameof(MinDataPerGroup))] = MinDataPerGroup.ToString();
-            res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold.ToString();
-            res[GetArgName(nameof(CatSmooth))] = CatSmooth.ToString();
-            res[GetArgName(nameof(CatL2))] = CatL2.ToString();
+            res[GetArgName(nameof(UseMissing))] = UseMissing;
+            res[GetArgName(nameof(MinDataPerGroup))] = MinDataPerGroup;
+            res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold;
+            res[GetArgName(nameof(CatSmooth))] = CatSmooth;
+            res[GetArgName(nameof(CatL2))] = CatL2;
             return res;
         }
     }

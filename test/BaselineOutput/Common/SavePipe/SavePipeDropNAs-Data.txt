@@ -1,0 +1,17 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Num:R4:0-1
+#@   col=Sep:TX:2
+#@   col=NumNAsDropped:R4:3-**
+#@   col={name=Sep2 type=TX src={ min=-1}}
+#@   col={name=Text type=TX src={ min=-1 var=+}}
+#@   col={name=Sep3 type=TX src={ min=-1}}
+#@   col={name=TextNAsDropped type=U4 src={ min=-1 var=+} key=4}
+#@ }
+""	""	Sep	Sep2	Sep3
+2	0	|	2	0	|	Hello	World!	|	0
+3	4	|	3	4	|	|
+0	?	|	0	|	Bye	all	|	3	1
+7	8	|	7	8	|	Good	bye	|	2
+?	?	|	|	this	is	a	|

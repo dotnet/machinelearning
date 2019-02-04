@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(Average), null, typeof(SignatureCombiner), Average.UserName)]
 [assembly: LoadableClass(typeof(Average), null, typeof(SignatureLoadModel), Average.UserName, Average.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
+namespace Microsoft.ML.Ensemble.OutputCombiners
 {
     public sealed class Average : BaseAverager, ICanSaveModel, IRegressionOutputCombiner
     {
@@ -25,7 +25,8 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(Average).Assembly.FullName);
         }
 
         public Average(IHostEnvironment env)

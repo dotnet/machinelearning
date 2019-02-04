@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.ML.Runtime.Internal.CpuMath;
+using Microsoft.ML.Internal.CpuMath;
 
-namespace Microsoft.ML.Runtime.Sweeper.Algorithms
+namespace Microsoft.ML.Sweeper.Algorithms
 {
     public sealed class SweeperProbabilityUtils
     {
@@ -79,7 +75,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
 
         /// <summary>
         /// This performs (slow) roulette-wheel sampling of a categorical distribution. Should be swapped for other
-        /// method as soon as one is available. 
+        /// method as soon as one is available.
         /// </summary>
         /// <param name="numSamples">Number of samples to draw.</param>
         /// <param name="weights">Weights for distribution (should sum to 1).</param>
@@ -117,7 +113,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
         }
 
         /// <summary>
-        /// Simple binary search method for finding smallest index in array where value 
+        /// Simple binary search method for finding smallest index in array where value
         /// meets or exceeds what you're looking for.
         /// </summary>
         /// <param name="a">Array to search</param>
@@ -160,11 +156,11 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             return Normalize(weights);
         }
 
-        public static Float[] ParameterSetAsFloatArray(IHost host, IValueGenerator[] sweepParams, ParameterSet ps, bool expandCategoricals = true)
+        public static float[] ParameterSetAsFloatArray(IHost host, IValueGenerator[] sweepParams, ParameterSet ps, bool expandCategoricals = true)
         {
             host.Assert(ps.Count == sweepParams.Length);
 
-            var result = new List<Float>();
+            var result = new List<float>();
 
             for (int i = 0; i < sweepParams.Length; i++)
             {
@@ -212,7 +208,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             return result.ToArray();
         }
 
-        public static ParameterSet FloatArrayAsParameterSet(IHost host, IValueGenerator[] sweepParams, Float[] array, bool expandedCategoricals = true)
+        public static ParameterSet FloatArrayAsParameterSet(IHost host, IValueGenerator[] sweepParams, float[] array, bool expandedCategoricals = true)
         {
             Contracts.Assert(array.Length == sweepParams.Length);
 

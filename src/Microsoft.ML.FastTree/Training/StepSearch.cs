@@ -5,11 +5,11 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public interface IStepSearch
+    internal interface IStepSearch
     {
-        void AdjustTreeOutputs(IChannel ch, RegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores);
+        void AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores);
     }
 
     public sealed class LineSearch : IStepSearch, IFastTrainingScoresUpdate
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             _historicStepSize = Math.Max(1.0, _minStepSize);
         }
 
-        private readonly static double _phi = (1.0 + Math.Sqrt(5)) / 2;
+        private static readonly double _phi = (1.0 + Math.Sqrt(5)) / 2;
 
         private static void Swap<T>(ref T a, ref T b)
         {
@@ -58,11 +58,11 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                 _lossIndex = lossIndex;
             }
 
-            private RegressionTree _tree;
+            private InternalRegressionTree _tree;
             private DocumentPartitioning _partitioning;
             private ScoreTracker _previousScores;
 
-            public void Initialize(RegressionTree tree, DocumentPartitioning partitioning, ScoreTracker previousScores)
+            public void Initialize(InternalRegressionTree tree, DocumentPartitioning partitioning, ScoreTracker previousScores)
             {
                 _tree = tree;
                 _partitioning = partitioning;
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         private StepScoresAndLoss _right;
         private StepScoresAndLoss _hi;
 
-        public void AdjustTreeOutputs(IChannel ch, RegressionTree tree, DocumentPartitioning partitioning,
+        void IStepSearch.AdjustTreeOutputs(IChannel ch, InternalRegressionTree tree, DocumentPartitioning partitioning,
             ScoreTracker previousScores)
         {
             _lo.Initialize(tree, partitioning, previousScores);

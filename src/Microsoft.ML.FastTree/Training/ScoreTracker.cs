@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public class ScoreTracker
     {
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         }
 
         //Creates linear combination of scores1 + tree * multiplier
-        public void Initialize(ScoreTracker scores1, RegressionTree tree, DocumentPartitioning partitioning, double multiplier)
+        internal void Initialize(ScoreTracker scores1, InternalRegressionTree tree, DocumentPartitioning partitioning, double multiplier)
         {
             InitScores = null;
             if (Scores == null || Scores.Length != scores1.Scores.Length)
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         }
 
         //InitScores -initScores can be null in such case the scores are reinitialized to Zero
-        private void InitializeScores(double[] initScores /* = null */)
+        private void InitializeScores(double[] initScores)
         {
             if (initScores == null)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             SendScoresUpdatedMessage();
         }
 
-        public virtual void AddScores(RegressionTree tree, double multiplier)
+        internal virtual void AddScores(InternalRegressionTree tree, double multiplier)
         {
             tree.AddOutputsToScores(Dataset, Scores, multiplier);
             SendScoresUpdatedMessage();
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         //Use faster method for score update with Partitioning
         // suitable for TrainSet
-        public virtual void AddScores(RegressionTree tree, DocumentPartitioning partitioning, double multiplier)
+        internal virtual void AddScores(InternalRegressionTree tree, DocumentPartitioning partitioning, double multiplier)
         {
             Parallel.For(0, tree.NumLeaves, new ParallelOptions { MaxDegreeOfParallelism = BlockingThreadPool.NumThreads }, (leaf) =>
             {
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             return result;
         }
 
-        public override void AddScores(RegressionTree tree, double multiplier)
+        internal override void AddScores(InternalRegressionTree tree, double multiplier)
         {
             _k++;
             double coeff = (_k - 1.0) / (_k + 2.0);
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             SendScoresUpdatedMessage();
         }
 
-        public override void AddScores(RegressionTree tree, DocumentPartitioning partitioning, double multiplier)
+        internal override void AddScores(InternalRegressionTree tree, DocumentPartitioning partitioning, double multiplier)
         {
             _k++;
             double coeff = (_k - 1.0) / (_k + 2.0);

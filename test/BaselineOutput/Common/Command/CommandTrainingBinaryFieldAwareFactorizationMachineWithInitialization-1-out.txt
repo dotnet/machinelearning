@@ -1,0 +1,37 @@
+maml.exe TrainTest test=%Data% tr=ffm{d=7 shuf- iters=3} col[Feature]=FieldA col[Feature]=FieldB col[Feature]=FieldC col[Feature]=FieldD cont=+ loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9} data=%Data% out=%Output% in=%Output%
+Warning: Skipped 16 examples with bad label/weight/features in training set
+Not training a calibrator because it is not needed.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      173 |       66 | 0.7238
+ negative ||       26 |      418 | 0.9414
+          ||======================
+Precision ||   0.8693 |   0.8636 |
+OVERALL 0/1 ACCURACY: 0.865300
+LOG LOSS/instance:  0.437368
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 53.172696
+AUC:                0.942195
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.942195 (0.0000)
+Accuracy:           0.865300 (0.0000)
+Positive precision: 0.869347 (0.0000)
+Positive recall:    0.723849 (0.0000)
+Negative precision: 0.863636 (0.0000)
+Negative recall:    0.941441 (0.0000)
+Log-loss:           0.437368 (0.0000)
+Log-loss reduction: 53.172696 (0.0000)
+F1 Score:           0.789954 (0.0000)
+AUPRC:              0.896692 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

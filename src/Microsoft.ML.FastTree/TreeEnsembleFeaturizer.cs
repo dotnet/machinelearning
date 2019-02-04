@@ -5,15 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.TreePredictor;
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(TreeEnsembleFeaturizerTransform), typeof(TreeEnsembleFeaturizerBindableMapper.Arguments),
     typeof(SignatureBindableMapper), "Tree Ensemble Featurizer Mapper", TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
@@ -30,11 +33,11 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(void), typeof(TreeFeaturize), null, typeof(SignatureEntryPointModule), "TreeFeaturize")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A bindable mapper wrapper for tree ensembles, that creates a bound mapper with three outputs:
-    /// 1. A vector containing the individual tree outputs of the tree ensemble. 
+    /// 1. A vector containing the individual tree outputs of the tree ensemble.
     /// 2. An indicator vector for the leaves that the feature vector falls on in the tree ensemble.
     /// 3. An indicator vector for the internal nodes on the paths that the feature vector falls on in the tree ensemble.
     /// </summary>
@@ -53,129 +56,29 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class BoundMapper : ISchemaBoundRowMapper
         {
-            private sealed class Schema : ISchema
-            {
-                private readonly IExceptionContext _ectx;
-                private readonly string[] _names;
-                private readonly ColumnType[] _types;
-
-                private readonly TreeEnsembleFeaturizerBindableMapper _parent;
-
-                public int ColumnCount { get { return _types.Length; } }
-
-                public Schema(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper parent,
-                    ColumnType treeValueColType, ColumnType leafIdColType, ColumnType pathIdColType)
-                {
-                    Contracts.CheckValueOrNull(ectx);
-                    _ectx = ectx;
-                    _ectx.AssertValue(parent);
-                    _ectx.AssertValue(treeValueColType);
-                    _ectx.AssertValue(leafIdColType);
-                    _ectx.AssertValue(pathIdColType);
-
-                    _parent = parent;
-
-                    _names = new string[3];
-                    _names[TreeIdx] = OutputColumnNames.Trees;
-                    _names[LeafIdx] = OutputColumnNames.Leaves;
-                    _names[PathIdx] = OutputColumnNames.Paths;
-
-                    _types = new ColumnType[3];
-                    _types[TreeIdx] = treeValueColType;
-                    _types[LeafIdx] = leafIdColType;
-                    _types[PathIdx] = pathIdColType;
-                }
-
-                public bool TryGetColumnIndex(string name, out int col)
-                {
-                    col = -1;
-                    if (name == OutputColumnNames.Trees)
-                        col = TreeIdx;
-                    else if (name == OutputColumnNames.Leaves)
-                        col = LeafIdx;
-                    else if (name == OutputColumnNames.Paths)
-                        col = PathIdx;
-                    return col >= 0;
-                }
-
-                public string GetColumnName(int col)
-                {
-                    _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                    return _names[col];
-                }
-
-                public ColumnType GetColumnType(int col)
-                {
-                    _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                    return _types[col];
-                }
-
-                public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-                {
-                    _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                    yield return
-                        MetadataUtils.GetNamesType(_types[col].VectorSize).GetPair(MetadataUtils.Kinds.SlotNames);
-                    if (col == PathIdx || col == LeafIdx)
-                        yield return BoolType.Instance.GetPair(MetadataUtils.Kinds.IsNormalized);
-                }
-
-                public ColumnType GetMetadataTypeOrNull(string kind, int col)
-                {
-                    _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                    if ((col == PathIdx || col == LeafIdx) && kind == MetadataUtils.Kinds.IsNormalized)
-                        return BoolType.Instance;
-                    if (kind == MetadataUtils.Kinds.SlotNames)
-                        return MetadataUtils.GetNamesType(_types[col].VectorSize);
-                    return null;
-                }
-
-                public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-                {
-                    _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                    if ((col == PathIdx || col == LeafIdx) && kind == MetadataUtils.Kinds.IsNormalized)
-                        MetadataUtils.Marshal<DvBool, TValue>(IsNormalized, col, ref value);
-                    else if (kind == MetadataUtils.Kinds.SlotNames)
-                    {
-                        switch (col)
-                        {
-                            case TreeIdx:
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetTreeSlotNames, col, ref value);
-                                break;
-                            case LeafIdx:
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetLeafSlotNames, col, ref value);
-                                break;
-                            default:
-                                Contracts.Assert(col == PathIdx);
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetPathSlotNames, col, ref value);
-                                break;
-                        }
-                    }
-                    else
-                        throw _ectx.ExceptGetMetadata();
-                }
-
-                private void IsNormalized(int iinfo, ref DvBool dst)
-                {
-                    dst = DvBool.True;
-                }
-            }
-
-            private const int TreeIdx = 0;
-            private const int LeafIdx = 1;
-            private const int PathIdx = 2;
+            /// <summary>
+            /// Column index of values predicted by all trees in an ensemble in <see cref="OutputSchema"/>.
+            /// </summary>
+            private const int TreeValuesColumnId = 0;
+            /// <summary>
+            /// Column index of leaf IDs containing the considered example in <see cref="OutputSchema"/>.
+            /// </summary>
+            private const int LeafIdsColumnId = 1;
+            /// <summary>
+            /// Column index of path IDs which specify the paths the considered example passing through per tree in <see cref="OutputSchema"/>.
+            /// </summary>
+            private const int PathIdsColumnId = 2;
 
             private readonly TreeEnsembleFeaturizerBindableMapper _owner;
-            private readonly RoleMappedSchema _inputSchema;
-            private readonly ISchema _outputSchema;
             private readonly IExceptionContext _ectx;
 
-            public RoleMappedSchema InputSchema { get { return _inputSchema; } }
+            public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public ISchema OutputSchema { get { return _outputSchema; } }
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema OutputSchema { get; }
+            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
-            public ISchemaBindableMapper Bindable { get { return _owner; } }
+            public ISchemaBindableMapper Bindable => _owner;
 
             public BoundMapper(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper owner,
                 RoleMappedSchema schema)
@@ -183,72 +86,105 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(ectx);
                 ectx.AssertValue(owner);
                 ectx.AssertValue(schema);
-                ectx.AssertValue(schema.Feature);
+                ectx.Assert(schema.Feature.HasValue);
 
                 _ectx = ectx;
 
                 _owner = owner;
-                _inputSchema = schema;
+                InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
-                var treeValueType = new VectorType(NumberType.Float, _owner._ensemble.NumTrees);
-                // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example 
+                var treeValueType = new VectorType(NumberType.Float, owner._ensemble.TrainedEnsemble.NumTrees);
+                // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example
                 // ends up in all the trees in the ensemble.
-                var leafIdType = new VectorType(NumberType.Float, _owner._totalLeafCount);
-                // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on 
+                var leafIdType = new VectorType(NumberType.Float, owner._totalLeafCount);
+                // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on
                 // the paths of the example in all the trees in the ensemble.
                 // The total number of nodes in a binary tree is equal to the number of internal nodes + the number of leaf nodes,
                 // and it is also equal to the number of children of internal nodes (which is 2 * the number of internal nodes)
-                // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1, 
-                // which means that #internal = #leaf - 1. 
+                // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1,
+                // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
-                var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.NumTrees);
-                _outputSchema = new Schema(ectx, owner, treeValueType, leafIdType, pathIdType);
+                var pathIdType = new VectorType(NumberType.Float, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
+
+                // Start creating output schema with types derived above.
+                var schemaBuilder = new SchemaBuilder();
+
+                // Metadata of tree values.
+                var treeIdMetadataBuilder = new MetadataBuilder();
+                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(treeValueType.Size),
+                    (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetTreeSlotNames);
+                // Add the column of trees' output values
+                schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.GetMetadata());
+
+                // Metadata of leaf IDs.
+                var leafIdMetadataBuilder = new MetadataBuilder();
+                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.Size),
+                    (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetLeafSlotNames);
+                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => value = true);
+                // Add the column of leaves' IDs where the input example reaches.
+                schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.GetMetadata());
+
+                // Metadata of path IDs.
+                var pathIdMetadataBuilder = new MetadataBuilder();
+                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.Size),
+                    (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetPathSlotNames);
+                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => value = true);
+                // Add the column of encoded paths which the input example passes.
+                schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.GetMetadata());
+
+                OutputSchema = schemaBuilder.GetSchema();
+
+                // Tree values must be the first output column.
+                Contracts.Assert(OutputSchema[OutputColumnNames.Trees].Index == TreeValuesColumnId);
+                // leaf IDs must be the second output column.
+                Contracts.Assert(OutputSchema[OutputColumnNames.Leaves].Index == LeafIdsColumnId);
+                // Path IDs must be the third output column.
+                Contracts.Assert(OutputSchema[OutputColumnNames.Paths].Index == PathIdsColumnId);
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
-                disposer = null;
-                return new SimpleRow(_outputSchema, input, CreateGetters(input, predicate));
+                return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
             }
 
-            private Delegate[] CreateGetters(IRow input, Func<int, bool> predicate)
+            private Delegate[] CreateGetters(Row input, Func<int, bool> predicate)
             {
                 _ectx.AssertValue(input);
                 _ectx.AssertValue(predicate);
 
                 var delegates = new Delegate[3];
 
-                var treeValueActive = predicate(TreeIdx);
-                var leafIdActive = predicate(LeafIdx);
-                var pathIdActive = predicate(PathIdx);
+                var treeValueActive = predicate(TreeValuesColumnId);
+                var leafIdActive = predicate(LeafIdsColumnId);
+                var pathIdActive = predicate(PathIdsColumnId);
 
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;
 
-                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, _inputSchema.Feature.Index);
+                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, FeatureColumn.Index);
 
                 // Get the tree value getter.
                 if (treeValueActive)
                 {
                     ValueGetter<VBuffer<float>> fn = state.GetTreeValues;
-                    delegates[TreeIdx] = fn;
+                    delegates[TreeValuesColumnId] = fn;
                 }
 
                 // Get the leaf indicator getter.
                 if (leafIdActive)
                 {
                     ValueGetter<VBuffer<float>> fn = state.GetLeafIds;
-                    delegates[LeafIdx] = fn;
+                    delegates[LeafIdsColumnId] = fn;
                 }
 
                 // Get the path indicators getter.
                 if (pathIdActive)
                 {
                     ValueGetter<VBuffer<float>> fn = state.GetPathIds;
-                    delegates[PathIdx] = fn;
+                    delegates[PathIdsColumnId] = fn;
                 }
 
                 return delegates;
@@ -257,8 +193,8 @@ namespace Microsoft.ML.Runtime.Data
             private sealed class State
             {
                 private readonly IExceptionContext _ectx;
-                private readonly IRow _input;
-                private readonly FastTreePredictionWrapper _ensemble;
+                private readonly Row _input;
+                private readonly TreeEnsembleModelParameters _ensemble;
                 private readonly int _numTrees;
                 private readonly int _numLeaves;
 
@@ -274,16 +210,16 @@ namespace Microsoft.ML.Runtime.Data
                 private long _cachedLeafBuilderPosition;
                 private long _cachedPathBuilderPosition;
 
-                public State(IExceptionContext ectx, IRow input, FastTreePredictionWrapper ensemble, int numLeaves, int featureIndex)
+                public State(IExceptionContext ectx, Row input, TreeEnsembleModelParameters ensemble, int numLeaves, int featureIndex)
                 {
                     Contracts.AssertValue(ectx);
                     _ectx = ectx;
                     _ectx.AssertValue(input);
                     _ectx.AssertValue(ensemble);
-                    _ectx.Assert(ensemble.NumTrees > 0);
+                    _ectx.Assert(ensemble.TrainedEnsemble.NumTrees > 0);
                     _input = input;
                     _ensemble = ensemble;
-                    _numTrees = _ensemble.NumTrees;
+                    _numTrees = _ensemble.TrainedEnsemble.NumTrees;
                     _numLeaves = numLeaves;
 
                     _src = default(VBuffer<float>);
@@ -302,14 +238,11 @@ namespace Microsoft.ML.Runtime.Data
                 public void GetTreeValues(ref VBuffer<float> dst)
                 {
                     EnsureCachedPosition();
-                    var vals = dst.Values;
-                    if (Utils.Size(vals) < _numTrees)
-                        vals = new float[_numTrees];
-
+                    var editor = VBufferEditor.Create(ref dst, _numTrees);
                     for (int i = 0; i < _numTrees; i++)
-                        vals[i] = _ensemble.GetLeafValue(i, _leafIds[i]);
+                        editor.Values[i] = _ensemble.GetLeafValue(i, _leafIds[i]);
 
-                    dst = new VBuffer<float>(_numTrees, vals, dst.Indices);
+                    dst = editor.Commit();
                 }
 
                 public void GetLeafIds(ref VBuffer<float> dst)
@@ -326,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
 
                         _leafIdBuilder.Reset(_numLeaves, false);
                         var offset = 0;
-                        var trees = _ensemble.GetTrees();
+                        var trees = ((ITreeEnsemble)_ensemble).GetTrees();
                         for (int i = 0; i < trees.Length; i++)
                         {
                             _leafIdBuilder.AddFeature(offset + _leafIds[i], 1);
@@ -350,7 +283,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (_pathIdBuilder == null)
                             _pathIdBuilder = BufferBuilder<float>.CreateDefault();
 
-                        var trees = _ensemble.GetTrees();
+                        var trees = ((ITreeEnsemble)_ensemble).GetTrees();
                         _pathIdBuilder.Reset(_numLeaves - _numTrees, dense: false);
                         var offset = 0;
                         for (int i = 0; i < _numTrees; i++)
@@ -375,7 +308,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 private void EnsureCachedPosition()
                 {
-                    _ectx.Check(_input.Position >= 0, "Getter was called on an inactive cursor.");
+                    _ectx.Check(_input.Position >= 0, RowCursorUtils.FetchValueStateError);
                     if (_cachedPosition != _input.Position)
                     {
                         _featureGetter(ref _src);
@@ -384,7 +317,7 @@ namespace Microsoft.ML.Runtime.Data
                         _ectx.Assert(Utils.Size(_pathIds) == _numTrees);
 
                         for (int i = 0; i < _numTrees; i++)
-                            _leafIds[i] = _ensemble.GetLeaf(i, ref _src, ref _pathIds[i]);
+                            _leafIds[i] = _ensemble.GetLeaf(i, in _src, ref _pathIds[i]);
 
                         _cachedPosition = _input.Position;
                     }
@@ -393,15 +326,15 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(_inputSchema.Feature.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(FeatureColumn.Name);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
-                        return col => col == _inputSchema.Feature.Index;
+                        return col => col == FeatureColumn.Index;
                 }
                 return col => false;
             }
@@ -418,11 +351,12 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Add _defaultValueForMissing
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TreeEnsembleFeaturizerBindableMapper).Assembly.FullName);
         }
 
         private readonly IHost _host;
-        private readonly FastTreePredictionWrapper _ensemble;
+        private readonly TreeEnsembleModelParameters _ensemble;
         private readonly int _totalLeafCount;
 
         public TreeEnsembleFeaturizerBindableMapper(IHostEnvironment env, Arguments args, IPredictor predictor)
@@ -434,7 +368,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (predictor is CalibratedPredictorBase)
                 predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-            _ensemble = predictor as FastTreePredictionWrapper;
+            _ensemble = predictor as TreeEnsembleModelParameters;
             _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
 
             _totalLeafCount = CountLeaves(_ensemble);
@@ -449,7 +383,7 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // ensemble
 
-            ctx.LoadModel<FastTreePredictionWrapper, SignatureLoadModel>(env, out _ensemble, "Ensemble");
+            ctx.LoadModel<TreeEnsembleModelParameters, SignatureLoadModel>(env, out _ensemble, "Ensemble");
             _totalLeafCount = CountLeaves(_ensemble);
         }
 
@@ -466,11 +400,11 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveModel(_ensemble, "Ensemble");
         }
 
-        private static int CountLeaves(FastTreePredictionWrapper ensemble)
+        private static int CountLeaves(TreeEnsembleModelParameters ensemble)
         {
             Contracts.AssertValue(ensemble);
 
-            var trees = ensemble.GetTrees();
+            var trees = ((ITreeEnsemble)ensemble).GetTrees();
             var numTrees = trees.Length;
             var totalLeafCount = 0;
             for (int i = 0; i < numTrees; i++)
@@ -478,63 +412,55 @@ namespace Microsoft.ML.Runtime.Data
             return totalLeafCount;
         }
 
-        private void GetTreeSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetTreeSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
         {
-            var numTrees = _ensemble.NumTrees;
+            var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
-            var names = dst.Values;
-            if (Utils.Size(names) < numTrees)
-                names = new DvText[numTrees];
-
+            var editor = VBufferEditor.Create(ref dst, numTrees);
             for (int t = 0; t < numTrees; t++)
-                names[t] = new DvText(string.Format("Tree{0:000}", t));
+                editor.Values[t] = string.Format("Tree{0:000}", t).AsMemory();
 
-            dst = new VBuffer<DvText>(numTrees, names, dst.Indices);
+            dst = editor.Commit();
         }
 
-        private void GetLeafSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetLeafSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
         {
-            var numTrees = _ensemble.NumTrees;
+            var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
-            var names = dst.Values;
-            if (Utils.Size(names) < _totalLeafCount)
-                names = new DvText[_totalLeafCount];
-
+            var editor = VBufferEditor.Create(ref dst, _totalLeafCount);
             int i = 0;
             int t = 0;
-            foreach (var tree in _ensemble.GetTrees())
+            foreach (var tree in ((ITreeEnsemble)_ensemble).GetTrees())
             {
                 for (int l = 0; l < tree.NumLeaves; l++)
-                    names[i++] = new DvText(string.Format("Tree{0:000}Leaf{1:000}", t, l));
+                    editor.Values[i++] = string.Format("Tree{0:000}Leaf{1:000}", t, l).AsMemory();
                 t++;
             }
             _host.Assert(i == _totalLeafCount);
-            dst = new VBuffer<DvText>(_totalLeafCount, names, dst.Indices);
+            dst = editor.Commit();
         }
 
-        private void GetPathSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetPathSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
         {
-            var numTrees = _ensemble.NumTrees;
+            var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
             var totalNodeCount = _totalLeafCount - numTrees;
-            var names = dst.Values;
-            if (Utils.Size(names) < totalNodeCount)
-                names = new DvText[totalNodeCount];
+            var editor = VBufferEditor.Create(ref dst, totalNodeCount);
 
             int i = 0;
             int t = 0;
-            foreach (var tree in _ensemble.GetTrees())
+            foreach (var tree in ((ITreeEnsemble)_ensemble).GetTrees())
             {
                 var numLeaves = tree.NumLeaves;
                 for (int l = 0; l < tree.NumLeaves - 1; l++)
-                    names[i++] = new DvText(string.Format("Tree{0:000}Node{1:000}", t, l));
+                    editor.Values[i++] = string.Format("Tree{0:000}Node{1:000}", t, l).AsMemory();
                 t++;
             }
             _host.Assert(i == totalNodeCount);
-            dst = new VBuffer<DvText>(totalNodeCount, names, dst.Indices);
+            dst = editor.Commit();
         }
 
-        public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
@@ -544,10 +470,16 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public static class TreeEnsembleFeaturizerTransform
+    /// <include file='doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]'/>
+    [BestFriend]
+    internal static class TreeEnsembleFeaturizerTransform
     {
-        public sealed class Arguments : TrainAndScoreTransform.ArgumentsBase<SignatureTreeEnsembleTrainer>
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
+        public sealed class Arguments : TrainAndScoreTransformer.ArgumentsBase
         {
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", NullName = "<None>", SortOrder = 1, SignatureType = typeof(SignatureTreeEnsembleTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
+
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Predictor model file used in scoring",
                 ShortName = "in", SortOrder = 2)]
             public string TrainedModelFile;
@@ -562,8 +494,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// REVIEW: Ideally we should have only one arguments class by using IComponentFactory for the model. 
-        /// For now it probably warrants a REVIEW comment here in case we'd like to merge these two arguments in the future. 
+        /// REVIEW: Ideally we should have only one arguments class by using IComponentFactory for the model.
+        /// For now it probably warrants a REVIEW comment here in case we'd like to merge these two arguments in the future.
         /// Also, it might be worthwhile to extract the common arguments to a base class.
         /// </summary>
         [TlcModule.EntryPointKind(typeof(CommonInputs.IFeaturizerInput))]
@@ -578,8 +510,9 @@ namespace Microsoft.ML.Runtime.Data
             public int LabelPermutationSeed;
 
             [Argument(ArgumentType.Required, HelpText = "Trainer to use", SortOrder = 10, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
+#pragma warning restore CS0649
 
         internal const string TreeEnsembleSummary =
             "Trains a tree ensemble, or loads it from a file, then maps a numeric feature vector " +
@@ -592,13 +525,15 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string UserName = "Tree Ensemble Featurization Transform";
 
-        public static IDataScorerTransform Create(IHostEnvironment env,
+        // Factory method for SignatureDataScorer.
+        private static IDataScorerTransform Create(IHostEnvironment env,
             TreeEnsembleFeaturizerBindableMapper.Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             return new GenericScorer(env, args, data, mapper, trainSchema);
         }
 
-        public static ISchemaBindableMapper Create(IHostEnvironment env,
+        // Factory method for SignatureBindableMapper.
+        private static ISchemaBindableMapper Create(IHostEnvironment env,
             TreeEnsembleFeaturizerBindableMapper.Arguments args, IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -608,19 +543,21 @@ namespace Microsoft.ML.Runtime.Data
             return new TreeEnsembleFeaturizerBindableMapper(env, args, predictor);
         }
 
-        public static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
+        // Factory method for SignatureLoadModel.
+        private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             return new TreeEnsembleFeaturizerBindableMapper(env, ctx);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("Tree Featurizer Transform");
 
             host.CheckValue(args, nameof(args));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(!string.IsNullOrWhiteSpace(args.TrainedModelFile) || args.Trainer.IsGood(), nameof(args.TrainedModelFile),
+            host.CheckUserArg(!string.IsNullOrWhiteSpace(args.TrainedModelFile) || args.Trainer != null, nameof(args.TrainedModelFile),
                 "Please specify either a trainer or an input model file.");
             host.CheckUserArg(!string.IsNullOrEmpty(args.FeatureColumn), nameof(args.FeatureColumn), "Transform needs an input features column");
 
@@ -630,7 +567,7 @@ namespace Microsoft.ML.Runtime.Data
                 var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments() { Suffix = args.Suffix };
                 if (!string.IsNullOrWhiteSpace(args.TrainedModelFile))
                 {
-                    if (args.Trainer.IsGood())
+                    if (args.Trainer != null)
                         ch.Warning("Both an input model and a trainer were specified. Using the model file.");
 
                     ch.Trace("Loading model");
@@ -640,51 +577,50 @@ namespace Microsoft.ML.Runtime.Data
                         ModelLoadContext.LoadModel<IPredictor, SignatureLoadModel>(host, out predictor, rep, ModelFileUtils.DirPredictor);
 
                     ch.Trace("Creating scorer");
-                    var data = TrainAndScoreTransform.CreateDataFromArgs(ch, input, args);
+                    var data = TrainAndScoreTransformer.CreateDataFromArgs(ch, input, args);
+                    Contracts.Assert(data.Schema.Feature.HasValue);
 
                     // Make sure that the given predictor has the correct number of input features.
                     if (predictor is CalibratedPredictorBase)
                         predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-                    // Predictor should be a FastTreePredictionWrapper, which implements IValueMapper, so this should
+                    // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
                     ch.CheckUserArg(vm != null, nameof(args.TrainedModelFile), "Predictor in model file does not have compatible type");
-                    if (vm.InputType.VectorSize != data.Schema.Feature.Type.VectorSize)
+                    if (vm.InputType.GetVectorSize() != data.Schema.Feature.Value.Type.GetVectorSize())
                     {
                         throw ch.ExceptUserArg(nameof(args.TrainedModelFile),
                             "Predictor in model file expects {0} features, but data has {1} features",
-                            vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
+                            vm.InputType.GetVectorSize(), data.Schema.Feature.Value.Type.GetVectorSize());
                     }
 
-                    var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
+                    ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                     var bound = bindable.Bind(env, data.Schema);
                     xf = new GenericScorer(env, scorerArgs, input, bound, data.Schema);
                 }
                 else
                 {
-                    ch.Assert(args.Trainer.IsGood());
+                    ch.AssertValue(args.Trainer);
 
                     ch.Trace("Creating TrainAndScoreTransform");
-                    string scorerSettings = CmdParser.GetSettings(ch, scorerArgs,
-                        new TreeEnsembleFeaturizerBindableMapper.Arguments());
-                    var scorer =
-                        new SubComponent<IDataScorerTransform, SignatureDataScorer>(
-                            TreeEnsembleFeaturizerBindableMapper.LoadNameShort, scorerSettings);
 
-                    var trainScoreArgs = new TrainAndScoreTransform.Arguments();
+                    var trainScoreArgs = new TrainAndScoreTransformer.Arguments();
                     args.CopyTo(trainScoreArgs);
-                    trainScoreArgs.Trainer = new SubComponent<ITrainer, SignatureTrainer>(args.Trainer.Kind,
-                        args.Trainer.Settings);
+                    trainScoreArgs.Trainer = args.Trainer;
+
+                    trainScoreArgs.Scorer = ComponentFactoryUtils.CreateFromFunction<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(
+                        (e, data, mapper, trainSchema) => Create(e, scorerArgs, data, mapper, trainSchema));
+
+                    var mapperFactory = ComponentFactoryUtils.CreateFromFunction<IPredictor, ISchemaBindableMapper>(
+                            (e, predictor) => new TreeEnsembleFeaturizerBindableMapper(e, scorerArgs, predictor));
 
                     var labelInput = AppendLabelTransform(host, ch, input, trainScoreArgs.LabelColumn, args.LabelPermutationSeed);
-                    trainScoreArgs.Scorer = scorer;
-                    var scoreXf = TrainAndScoreTransform.Create(host, trainScoreArgs, labelInput);
+                    var scoreXf = TrainAndScoreTransformer.Create(host, trainScoreArgs, labelInput, mapperFactory);
+
                     if (input == labelInput)
                         return scoreXf;
                     return (IDataTransform)ApplyTransformUtils.ApplyAllTransformsToData(host, scoreXf, input, labelInput);
                 }
-
-                ch.Done();
             }
             return xf;
         }
@@ -698,7 +634,6 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckValue(input, nameof(input));
             host.CheckUserArg(args.PredictorModel != null, nameof(args.PredictorModel), "Please specify a predictor model.");
 
-            IDataTransform xf;
             using (var ch = host.Start("Create Tree Ensemble Scorer"))
             {
                 var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments() { Suffix = args.Suffix };
@@ -707,28 +642,27 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedData data = null;
                 args.PredictorModel.PrepareData(env, input, out data, out var predictor2);
                 ch.AssertValue(data);
+                ch.Assert(data.Schema.Feature.HasValue);
                 ch.Assert(predictor == predictor2);
 
                 // Make sure that the given predictor has the correct number of input features.
                 if (predictor is CalibratedPredictorBase)
                     predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-                // Predictor should be a FastTreePredictionWrapper, which implements IValueMapper, so this should
+                // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;
                 ch.CheckUserArg(vm != null, nameof(args.PredictorModel), "Predictor does not have compatible type");
-                if (data != null && vm.InputType.VectorSize != data.Schema.Feature.Type.VectorSize)
+                if (data != null && vm.InputType.GetVectorSize() != data.Schema.Feature.Value.Type.GetVectorSize())
                 {
                     throw ch.ExceptUserArg(nameof(args.PredictorModel),
                         "Predictor expects {0} features, but data has {1} features",
-                        vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
+                        vm.InputType.GetVectorSize(), data.Schema.Feature.Value.Type.GetVectorSize());
                 }
 
-                var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
+                ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                 var bound = bindable.Bind(env, data.Schema);
-                xf = new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
-                ch.Done();
+               return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
             }
-            return xf;
         }
 
         private static IDataView AppendFloatMapper<TInput>(IHostEnvironment env, IChannel ch, IDataView input,
@@ -736,7 +670,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             // Any key is convertible to ulong, so rather than add special case handling for all possible
             // key-types we just upfront convert it to the most general type (ulong) and work from there.
-            KeyType dstType = new KeyType(DataKind.U8, type.Min, type.Count, type.Contiguous);
+            KeyType dstType = new KeyType(typeof(ulong), type.Count);
             bool identity;
             var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
             var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);
@@ -746,30 +680,30 @@ namespace Microsoft.ML.Runtime.Data
             if (seed == 0)
             {
                 mapper =
-                    (ref TInput src, ref Single dst) =>
+                    (in TInput src, ref Single dst) =>
                     {
-                        if (isNa(ref src))
+                        if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;
                         }
-                        converter(ref src, ref temp);
+                        converter(in src, ref temp);
                         dst = (Single)(temp - 1);
                     };
             }
             else
             {
                 ch.Check(type.Count > 0, "Label must be of known cardinality.");
-                int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.Count);
+                int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.GetCountAsInt32(env));
                 mapper =
-                    (ref TInput src, ref Single dst) =>
+                    (in TInput src, ref Single dst) =>
                     {
-                        if (isNa(ref src))
+                        if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;
                         }
-                        converter(ref src, ref temp);
+                        converter(in src, ref temp);
                         dst = (Single)permutation[(int)(temp - 1)];
                     };
             }
@@ -784,25 +718,30 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertValue(input);
             ch.AssertNonWhiteSpace(labelName);
 
-            int col;
-            if (!input.Schema.TryGetColumnIndex(labelName, out col))
-                throw ch.Except("Label column '{0}' not found.", labelName);
-            ColumnType labelType = input.Schema.GetColumnType(col);
-            if (!labelType.IsKey)
+            var col = input.Schema.GetColumnOrNull(labelName);
+            if (!col.HasValue)
+                throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
+
+            ColumnType labelType = col.Value.Type;
+            if (!(labelType is KeyType))
             {
                 if (labelPermutationSeed != 0)
                     ch.Warning(
                         "labelPermutationSeed != 0 only applies on a multi-class learning problem when the label type is a key.");
                 return input;
             }
-            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, labelType.AsKey,
+            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyType)labelType,
                 labelPermutationSeed);
         }
     }
 
-    public static partial class TreeFeaturize
+    internal static partial class TreeFeaturize
     {
-        [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer", Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary, UserName = TreeEnsembleFeaturizerTransform.UserName, ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
+        [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer",
+            Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary,
+            UserName = TreeEnsembleFeaturizerTransform.UserName,
+            ShortName = TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
         public static CommonOutputs.TransformOutput Featurizer(IHostEnvironment env, TreeEnsembleFeaturizerTransform.ArgumentsForEntryPoint input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -811,7 +750,8 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = TreeEnsembleFeaturizerTransform.CreateForEntryPoint(env, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
+#pragma warning restore CS0649
     }
 }

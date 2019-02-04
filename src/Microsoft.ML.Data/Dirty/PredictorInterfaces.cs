@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
 
     /// <summary>
@@ -21,7 +20,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// A generic interface for models that can average parameters from multiple instance of self
     /// </summary>
-    public interface IParameterMixer
+    [BestFriend]
+    internal interface IParameterMixer
     {
         IParameterMixer CombineParameters(IList<IParameterMixer> models);
     }
@@ -29,7 +29,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// A generic interface for models that can average parameters from multiple instance of self
     /// </summary>
-    public interface IParameterMixer<TOutput>
+    [BestFriend]
+    internal interface IParameterMixer<TOutput>
     {
         IParameterMixer<TOutput> CombineParameters(IList<IParameterMixer<TOutput>> models);
     }
@@ -38,7 +39,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// Predictor that can specialize for quantile regression. It will produce a <see cref="ISchemaBindableMapper"/>, given
     /// an array of quantiles.
     /// </summary>
-    public interface IQuantileRegressionPredictor
+    [BestFriend]
+    internal interface IQuantileRegressionPredictor
     {
         ISchemaBindableMapper CreateMapper(Double[] quantiles);
     }
@@ -47,7 +49,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// A generic interface for probability distributions
     /// </summary>
     /// <typeparam name="TResult">Type of statistics result</typeparam>
-    public interface IDistribution<out TResult>
+    [BestFriend]
+    internal interface IDistribution<out TResult>
     {
         TResult Minimum { get; }
 
@@ -59,16 +62,18 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     }
 
     // REVIEW: How should this quantile stuff work?
-    public interface IQuantileValueMapper
+    [BestFriend]
+    internal interface IQuantileValueMapper
     {
-        ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper(Float[] quantiles);
+        ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles);
     }
 
     /// <summary>
     /// Interface for quantile distribution
     /// </summary>
     /// <typeparam name="TResult">Type of statistics result</typeparam>
-    public interface IQuantileDistribution<TResult> : IDistribution<TResult>, ISampleableDistribution<TResult>
+    [BestFriend]
+    internal interface IQuantileDistribution<TResult> : IDistribution<TResult>, ISampleableDistribution<TResult>
     {
         TResult Median { get; }
 
@@ -76,10 +81,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// Returns an estimate of the p-th quantile, the data value where proportionately p of the data has value
         /// less than or equal to the returned value.
         /// </summary>
-        TResult GetQuantile(Float p);
+        TResult GetQuantile(float p);
     }
 
-    public interface ISampleableDistribution<TResult> : IDistribution<TResult>
+    [BestFriend]
+    internal interface ISampleableDistribution<TResult> : IDistribution<TResult>
     {
         /// <summary>
         /// Returns Support sample for the distribution.
@@ -92,7 +98,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Predictors that can output themselves in a human-readable text format
     /// </summary>
-    public interface ICanSaveInTextFormat
+    [BestFriend]
+    internal interface ICanSaveInTextFormat
     {
         void SaveAsText(TextWriter writer, RoleMappedSchema schema);
     }
@@ -100,7 +107,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Predictors that can output themselves in the Bing ini format.
     /// </summary>
-    public interface ICanSaveInIniFormat
+    [BestFriend]
+    internal interface ICanSaveInIniFormat
     {
         void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
     }
@@ -108,7 +116,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Predictors that can output Summary.
     /// </summary>
-    public interface ICanSaveSummary
+    [BestFriend]
+    internal interface ICanSaveSummary
     {
         void SaveSummary(TextWriter writer, RoleMappedSchema schema);
     }
@@ -118,7 +127,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// The content of value 'object' can be any type such as integer, float, string or an array of them.
     /// It is up the caller to check and decide how to consume the values.
     /// </summary>
-    public interface ICanGetSummaryInKeyValuePairs
+    [BestFriend]
+    internal interface ICanGetSummaryInKeyValuePairs
     {
         /// <summary>
         /// Gets model summary including model statistics (if exists) in key value pairs.
@@ -126,14 +136,16 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema);
     }
 
-    public interface ICanGetSummaryAsIRow
+    [BestFriend]
+    internal interface ICanGetSummaryAsIRow
     {
-        IRow GetSummaryIRowOrNull(RoleMappedSchema schema);
+        Row GetSummaryIRowOrNull(RoleMappedSchema schema);
 
-        IRow GetStatsIRowOrNull(RoleMappedSchema schema);
+        Row GetStatsIRowOrNull(RoleMappedSchema schema);
     }
 
-    public interface ICanGetSummaryAsIDataView
+    [BestFriend]
+    internal interface ICanGetSummaryAsIDataView
     {
         IDataView GetSummaryDataView(RoleMappedSchema schema);
     }
@@ -141,7 +153,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Predictors that can output themselves in C#/C++ code.
     /// </summary>
-    public interface ICanSaveInSourceCode
+    [BestFriend]
+    internal interface ICanSaveInSourceCode
     {
         void SaveAsCode(TextWriter writer, RoleMappedSchema schema);
     }
@@ -163,7 +176,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// The larger the absolute value of a weights, the more informative/important the feature.
         /// A weights of zero signifies that the feature is not used by the model.
         /// </summary>
-        void GetFeatureWeights(ref VBuffer<Float> weights);
+        void GetFeatureWeights(ref VBuffer<float> weights);
     }
 
     /// <summary>
@@ -173,16 +186,12 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     {
     }
 
-    public interface IHasLabelGains : ITrainer
-    {
-        Double[] GetLabelGains();
-    }
-
     /// <summary>
     /// Interface for mapping input values to corresponding feature contributions.
     /// This interface is commonly implemented by predictors.
     /// </summary>
-    public interface IWhatTheFeatureValueMapper : IPredictor
+    [BestFriend]
+    internal interface IFeatureContributionMapper : IPredictor
     {
         /// <summary>
         /// Get a delegate for mapping Contributions to Features.
@@ -192,7 +201,24 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// For trees we will not have negative contributions, so bottom param will be ignored.
         /// If normalization is requested that resulting values will be normalized to [-1, 1].
         /// </summary>
-        ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize);
+        ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize);
+    }
+
+    /// <summary>
+    /// Allows support for feature contribution calculation.
+    /// </summary>
+    public interface ICalculateFeatureContribution : IPredictor
+    {
+        FeatureContributionCalculator FeatureContributionCalculator { get; }
+    }
+
+    /// <summary>
+    /// Support for feature contribution calculation.
+    /// </summary>
+    public sealed class FeatureContributionCalculator
+    {
+        internal IFeatureContributionMapper ContributionMapper { get; }
+        internal FeatureContributionCalculator(IFeatureContributionMapper contributionMapper) => ContributionMapper = contributionMapper;
     }
 
     /// <summary>

@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Text;
+using Microsoft.Data.DataView;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Data type specifier.
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
         Num = R4,
 
         TX = 11,
-#pragma warning disable TLC_GeneralName // The data kind enum has its own logic, independnet of C# naming conventions.
+#pragma warning disable MSML_GeneralName // The data kind enum has its own logic, independent of C# naming conventions.
         TXT = TX,
         Text = TX,
 
@@ -46,16 +46,17 @@ namespace Microsoft.ML.Runtime.Data
 
         UG = 16, // Unsigned 16-byte integer.
         U16 = UG,
-#pragma warning restore TLC_GeneralName
+#pragma warning restore MSML_GeneralName
     }
 
     /// <summary>
     /// Extension methods related to the DataKind enum.
     /// </summary>
-    public static class DataKindExtensions
+    [BestFriend]
+    internal static class DataKindExtensions
     {
         public const DataKind KindMin = DataKind.I1;
-        public const DataKind KindLim = DataKind.UG + 1;
+        public const DataKind KindLim = DataKind.U16 + 1;
         public const int KindCount = KindLim - KindMin;
 
         /// <summary>
@@ -83,23 +84,49 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return (ulong)sbyte.MaxValue;
-            case DataKind.U1:
-                return byte.MaxValue;
-            case DataKind.I2:
-                return (ulong)short.MaxValue;
-            case DataKind.U2:
-                return ushort.MaxValue;
-            case DataKind.I4:
-                return int.MaxValue;
-            case DataKind.U4:
-                return uint.MaxValue;
-            case DataKind.I8:
-                return long.MaxValue;
-            case DataKind.U8:
-                return ulong.MaxValue;
+                case DataKind.I1:
+                    return (ulong)sbyte.MaxValue;
+                case DataKind.U1:
+                    return byte.MaxValue;
+                case DataKind.I2:
+                    return (ulong)short.MaxValue;
+                case DataKind.U2:
+                    return ushort.MaxValue;
+                case DataKind.I4:
+                    return int.MaxValue;
+                case DataKind.U4:
+                    return uint.MaxValue;
+                case DataKind.I8:
+                    return long.MaxValue;
+                case DataKind.U8:
+                    return ulong.MaxValue;
             }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// For integer Types, this returns the maximum legal value. For un-supported Types,
+        /// it returns zero.
+        /// </summary>
+        public static ulong ToMaxInt(this Type type)
+        {
+            if (type == typeof(sbyte))
+                return (ulong)sbyte.MaxValue;
+            else if (type == typeof(byte))
+                return byte.MaxValue;
+            else if (type == typeof(short))
+                return (ulong)short.MaxValue;
+            else if (type == typeof(ushort))
+                return ushort.MaxValue;
+            else if (type == typeof(int))
+                return int.MaxValue;
+            else if (type == typeof(uint))
+                return uint.MaxValue;
+            else if (type == typeof(long))
+                return long.MaxValue;
+            else if (type == typeof(ulong))
+                return ulong.MaxValue;
 
             return 0;
         }
@@ -112,22 +139,22 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return sbyte.MinValue;
-            case DataKind.U1:
-                return byte.MinValue;
-            case DataKind.I2:
-                return short.MinValue;
-            case DataKind.U2:
-                return ushort.MinValue;
-            case DataKind.I4:
-                return int.MinValue;
-            case DataKind.U4:
-                return uint.MinValue;
-            case DataKind.I8:
-                return long.MinValue;
-            case DataKind.U8:
-                return 0;
+                case DataKind.I1:
+                    return sbyte.MinValue;
+                case DataKind.U1:
+                    return byte.MinValue;
+                case DataKind.I2:
+                    return short.MinValue;
+                case DataKind.U2:
+                    return ushort.MinValue;
+                case DataKind.I4:
+                    return int.MinValue;
+                case DataKind.U4:
+                    return uint.MinValue;
+                case DataKind.I8:
+                    return long.MinValue;
+                case DataKind.U8:
+                    return 0;
             }
 
             return 1;
@@ -140,38 +167,38 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return typeof(DvInt1);
-            case DataKind.U1:
-                return typeof(byte);
-            case DataKind.I2:
-                return typeof(DvInt2);
-            case DataKind.U2:
-                return typeof(ushort);
-            case DataKind.I4:
-                return typeof(DvInt4);
-            case DataKind.U4:
-                return typeof(uint);
-            case DataKind.I8:
-                return typeof(DvInt8);
-            case DataKind.U8:
-                return typeof(ulong);
-            case DataKind.R4:
-                return typeof(Single);
-            case DataKind.R8:
-                return typeof(Double);
-            case DataKind.TX:
-                return typeof(DvText);
-            case DataKind.BL:
-                return typeof(DvBool);
-            case DataKind.TS:
-                return typeof(DvTimeSpan);
-            case DataKind.DT:
-                return typeof(DvDateTime);
-            case DataKind.DZ:
-                return typeof(DvDateTimeZone);
-            case DataKind.UG:
-                return typeof(UInt128);
+                case DataKind.I1:
+                    return typeof(sbyte);
+                case DataKind.U1:
+                    return typeof(byte);
+                case DataKind.I2:
+                    return typeof(short);
+                case DataKind.U2:
+                    return typeof(ushort);
+                case DataKind.I4:
+                    return typeof(int);
+                case DataKind.U4:
+                    return typeof(uint);
+                case DataKind.I8:
+                    return typeof(long);
+                case DataKind.U8:
+                    return typeof(ulong);
+                case DataKind.R4:
+                    return typeof(Single);
+                case DataKind.R8:
+                    return typeof(Double);
+                case DataKind.TX:
+                    return typeof(ReadOnlyMemory<char>);
+                case DataKind.BL:
+                    return typeof(bool);
+                case DataKind.TS:
+                    return typeof(TimeSpan);
+                case DataKind.DT:
+                    return typeof(DateTime);
+                case DataKind.DZ:
+                    return typeof(DateTimeOffset);
+                case DataKind.UG:
+                    return typeof(RowId);
             }
 
             return null;
@@ -185,19 +212,19 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(type);
 
             // REVIEW: Make this more efficient. Should we have a global dictionary?
-            if (type == typeof(DvInt1))
+            if (type == typeof(sbyte))
                 kind = DataKind.I1;
             else if (type == typeof(byte))
                 kind = DataKind.U1;
-            else if (type == typeof(DvInt2))
+            else if (type == typeof(short))
                 kind = DataKind.I2;
             else if (type == typeof(ushort))
                 kind = DataKind.U2;
-            else if (type == typeof(DvInt4))
+            else if (type == typeof(int))
                 kind = DataKind.I4;
             else if (type == typeof(uint))
                 kind = DataKind.U4;
-            else if (type == typeof(DvInt8))
+            else if (type == typeof(long))
                 kind = DataKind.I8;
             else if (type == typeof(ulong))
                 kind = DataKind.U8;
@@ -205,17 +232,17 @@ namespace Microsoft.ML.Runtime.Data
                 kind = DataKind.R4;
             else if (type == typeof(Double))
                 kind = DataKind.R8;
-            else if (type == typeof(DvText))
+            else if (type == typeof(ReadOnlyMemory<char>) || type == typeof(string))
                 kind = DataKind.TX;
-            else if (type == typeof(DvBool) || type == typeof(bool) ||type ==typeof(bool?))
+            else if (type == typeof(bool))
                 kind = DataKind.BL;
-            else if (type == typeof(DvTimeSpan))
+            else if (type == typeof(TimeSpan))
                 kind = DataKind.TS;
-            else if (type == typeof(DvDateTime))
+            else if (type == typeof(DateTime))
                 kind = DataKind.DT;
-            else if (type == typeof(DvDateTimeZone))
+            else if (type == typeof(DateTimeOffset))
                 kind = DataKind.DZ;
-            else if (type == typeof(UInt128))
+            else if (type == typeof(RowId))
                 kind = DataKind.UG;
             else
             {
@@ -234,38 +261,38 @@ namespace Microsoft.ML.Runtime.Data
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return "I1";
-            case DataKind.I2:
-                return "I2";
-            case DataKind.I4:
-                return "I4";
-            case DataKind.I8:
-                return "I8";
-            case DataKind.U1:
-                return "U1";
-            case DataKind.U2:
-                return "U2";
-            case DataKind.U4:
-                return "U4";
-            case DataKind.U8:
-                return "U8";
-            case DataKind.R4:
-                return "R4";
-            case DataKind.R8:
-                return "R8";
-            case DataKind.BL:
-                return "BL";
-            case DataKind.TX:
-                return "TX";
-            case DataKind.TS:
-                return "TS";
-            case DataKind.DT:
-                return "DT";
-            case DataKind.DZ:
-                return "DZ";
-            case DataKind.UG:
-                return "UG";
+                case DataKind.I1:
+                    return "I1";
+                case DataKind.I2:
+                    return "I2";
+                case DataKind.I4:
+                    return "I4";
+                case DataKind.I8:
+                    return "I8";
+                case DataKind.U1:
+                    return "U1";
+                case DataKind.U2:
+                    return "U2";
+                case DataKind.U4:
+                    return "U4";
+                case DataKind.U8:
+                    return "U8";
+                case DataKind.R4:
+                    return "R4";
+                case DataKind.R8:
+                    return "R8";
+                case DataKind.BL:
+                    return "BL";
+                case DataKind.TX:
+                    return "TX";
+                case DataKind.TS:
+                    return "TS";
+                case DataKind.DT:
+                    return "DT";
+                case DataKind.DZ:
+                    return "DZ";
+                case DataKind.UG:
+                    return "UG";
             }
             return "";
         }

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     internal struct BufferBlock
     {

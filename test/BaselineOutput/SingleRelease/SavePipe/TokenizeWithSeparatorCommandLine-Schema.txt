@@ -1,0 +1,10 @@
+---- BoundLoader ----
+1 columns:
+  T: Text
+---- SkipTakeFilter ----
+1 columns:
+  T: Text
+---- RowToRowMapperTransform ----
+2 columns:
+  T: Text
+  T: Vec<Text>

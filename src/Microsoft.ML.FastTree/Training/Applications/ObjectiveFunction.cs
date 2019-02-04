@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public abstract class ObjectiveFunctionBase
     {

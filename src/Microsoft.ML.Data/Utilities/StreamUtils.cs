@@ -6,15 +6,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // REVIEW: Implement properly on CoreCLR.
-    public static class StreamUtils
+    [BestFriend]
+    internal static class StreamUtils
     {
         public static Stream OpenInStream(string fileName)
         {
 #if !CORECLR
-            return Microsoft.ML.Runtime.Internal.IO.ZStreamIn.Open(fileName);
+            return Microsoft.ML.Internal.IO.ZStreamIn.Open(fileName);
 #else
             return new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
 #endif

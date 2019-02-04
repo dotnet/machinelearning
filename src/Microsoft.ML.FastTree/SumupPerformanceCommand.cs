@@ -12,24 +12,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 
 [assembly: LoadableClass(typeof(SumupPerformanceCommand), typeof(SumupPerformanceCommand.Arguments), typeof(SignatureCommand),
     "", "FastTreeSumupPerformance", "ftsumup")]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
-    using Stopwatch = System.Diagnostics.Stopwatch;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
     /// <summary>
     /// This is an internal utility command to measure the performance of the IntArray sumup operation.
     /// </summary>
-    public sealed class SumupPerformanceCommand : ICommand
+    internal sealed class SumupPerformanceCommand : ICommand
     {
         public sealed class Arguments
         {
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.FastTree
         private IEnumerable<int> CreateSparse(IChannel ch, Random rgen)
         {
             ch.CheckUserArg(0 <= _param && _param < 1, nameof(Arguments.Parameter), "For sparse ararys");
-            // The parameter is the level of sparsity. Use the geometric distribution to determine the number of 
+            // The parameter is the level of sparsity. Use the geometric distribution to determine the number of
             // Geometric distribution (with 0 support) would be Math.
             double denom = Math.Log(1 - _param);
             if (double.IsNegativeInfinity(denom))
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
-        private IEnumerator<double> Geometric(double p, IRandom rgen)
+        private IEnumerator<double> Geometric(double p, Random rgen)
         {
             double denom = Math.Log(1 - p);
 
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
-        private IEnumerable<int> CreateDocIndicesCore(double sparsity, IRandom rgen)
+        private IEnumerable<int> CreateDocIndicesCore(double sparsity, Random rgen)
         {
             _host.Assert(0 < sparsity && sparsity < 1);
             int remaining = _len;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
-        private IEnumerable<int> CreateDocIndices(double sparsity, IRandom rgen)
+        private IEnumerable<int> CreateDocIndices(double sparsity, Random rgen)
         {
             _host.Assert(0 <= sparsity && sparsity <= 1);
             if (sparsity == 1)
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return CreateDocIndicesCore(sparsity, rgen);
         }
 
-        private void InitSumupInputData(SumupInputData data, double sparsity, IRandom rgen)
+        private void InitSumupInputData(SumupInputData data, double sparsity, Random rgen)
         {
             int count = 0;
             foreach (int d in CreateDocIndices(sparsity, rgen))
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
                 for (int t = 0; t < threadPool.Length; ++t)
                 {
-                    Thread thread = threadPool[t] = Utils.CreateForegroundThread((object io) =>
+                    Thread thread = threadPool[t] = Utils.RunOnForegroundThread((object io) =>
                     {
                         int w = (int)io;
                         AutoResetEvent ev = events[w];
@@ -326,8 +326,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     ch.Info("Partition {0} ({1} of {2}), completed {3} ({4:0.000} ns per doc)",
                         partition, data.TotalCount, _len, completed, nsPerDoc);
                 }
-
-                ch.Done();
             }
         }
     }

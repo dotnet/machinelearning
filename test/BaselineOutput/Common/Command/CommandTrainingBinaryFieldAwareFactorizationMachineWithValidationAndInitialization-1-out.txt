@@ -1,0 +1,45 @@
+maml.exe TrainTest test=%Data% tr=ffm{d=5 shuf- iters=2} col[Feature]=FieldA col[Feature]=FieldB col[Feature]=FieldC col[Feature]=FieldD valid=%Data% cont=+ loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9} data=%Data% in=%Output%
+Warning: Skipped 16 examples with bad label/weight/features in training set
+Warning: Skipped 16 examples with bad label/weight/features in validation set
+Not training a calibrator because it is not needed.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      161 |       78 | 0.6736
+ negative ||       22 |      422 | 0.9505
+          ||======================
+Precision ||   0.8798 |   0.8440 |
+OVERALL 0/1 ACCURACY: 0.853587
+LOG LOSS/instance:  0.467507
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 49.945869
+AUC:                0.938049
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.938049 (0.0000)
+Accuracy:           0.853587 (0.0000)
+Positive precision: 0.879781 (0.0000)
+Positive recall:    0.673640 (0.0000)
+Negative precision: 0.844000 (0.0000)
+Negative recall:    0.950450 (0.0000)
+Log-loss:           0.467507 (0.0000)
+Log-loss reduction: 49.945869 (0.0000)
+F1 Score:           0.763033 (0.0000)
+AUPRC:              0.888521 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Training' started.
+[1] (%Time%)	1 iterations, 683 examples	Training-loss: 0.335744151109243	Validation-loss: 0.342440113888871
+[1] (%Time%)	2 iterations, 683 examples	Training-loss: 0.308545584262705	Validation-loss: 0.324051099165314
+[1] 'Training' finished in %Time%.
+[2] 'Saving model' started.
+[2] 'Saving model' finished in %Time%.

@@ -4,13 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Internal.CpuMath.Core;
 using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Internal.CpuMath
+namespace Microsoft.ML.Internal.CpuMath
 {
-    using Conditional = System.Diagnostics.ConditionalAttribute;
-
-    public interface ICpuBuffer<T> : IEnumerable<T>, IDisposable
+    [BestFriend]
+    internal interface ICpuBuffer<T> : IEnumerable<T>, IDisposable
         where T : struct
     {
         int ValueCount { get; }
@@ -39,7 +39,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// <summary>
     /// A logical math vector.
     /// </summary>
-    public interface ICpuVector : ICpuBuffer<Float>
+    [BestFriend]
+    internal interface ICpuVector : ICpuBuffer<Float>
     {
         /// <summary>
         /// The vector size
@@ -52,7 +53,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         Float GetValue(int i);
     }
 
-    public interface ICpuMatrix : ICpuBuffer<Float>
+    [BestFriend]
+    internal interface ICpuMatrix : ICpuBuffer<Float>
     {
         /// <summary>
         /// The row count
@@ -68,7 +70,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// <summary>
     /// A 2-dimensional matrix.
     /// </summary>
-    public interface ICpuFullMatrix : ICpuMatrix
+    [BestFriend]
+    internal interface ICpuFullMatrix : ICpuMatrix
     {
         /// <summary>
         /// Copy the values for the given row into dst, starting at slot ivDst.
@@ -77,8 +80,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         /// <summary>
         /// Zero out the items with the given indices.
-        /// The indices contain the logical indices to the vectorized representation of the matrix, 
-        /// which can be different depending on whether the matrix is row-major or column-major. 
+        /// The indices contain the logical indices to the vectorized representation of the matrix,
+        /// which can be different depending on whether the matrix is row-major or column-major.
         /// </summary>
         void ZeroItems(int[] indices);
     }

@@ -5,33 +5,36 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(LoadTransform.Summary, typeof(IDataTransform), typeof(LoadTransform), typeof(LoadTransform.Arguments), typeof(SignatureDataTransform),
     "Load Transform", "LoadTransform", "Load")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Load specific transforms from the specified model file. Allows one to 'cherry pick' transforms from 
+    /// Load specific transforms from the specified model file. Allows one to 'cherry pick' transforms from
     /// a serialized chain, or to apply a pre-trained transform to a different (but still compatible) data view.
     /// </summary>
     public static class LoadTransform
     {
         public class Arguments
         {
-            // REVIEW: make it not required, and make commands fill in the missing model file with the default 
+            // REVIEW: make it not required, and make commands fill in the missing model file with the default
             // input model file. This requires some hacking in DataDiagnosticCommand.
             [Argument(ArgumentType.Required, HelpText = "Model file to load the transforms from", ShortName = "in",
                 SortOrder = 1, IsInputFileName = true)]
             public string ModelFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "The tags (comma-separated) to be loaded (or omitted, if " + nameof(Complement) + "+)", SortOrder = 2)]
-            public string[] Tag;
+            [Argument(ArgumentType.Multiple, HelpText = "The tags (comma-separated) to be loaded (or omitted, if " + nameof(Complement) + "+)",
+                Name = "Tag", SortOrder = 2)]
+            public string[] Tags;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to load all transforms except those marked by tags", ShortName = "comp", SortOrder = 3)]
             public bool Complement = false;
@@ -39,7 +42,27 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "Loads specified transforms from the model file and applies them to current data.";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        /// <summary>
+        /// A helper method to create <see cref="LoadTransform"/> for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="modelFile">Model file to load the transforms from.</param>
+        /// <param name="tag">The tags (comma-separated) to be loaded (or omitted, if complement is true).</param>
+        /// <param name="complement">Whether to load all transforms except those marked by tags.</param>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] tag, bool complement = false)
+        {
+            var args = new Arguments()
+            {
+                ModelFile = modelFile,
+                Tags = tag,
+                Complement = complement
+            };
+            return Create(env, args, input);
+        }
+
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("LoadTransform");
@@ -50,11 +73,11 @@ namespace Microsoft.ML.Runtime.Data
             IDataView currentView;
 
             // If there are no 'tag' parameters, we load everything, regardless of 'comp'.
-            bool complement = args.Complement || Utils.Size(args.Tag) == 0;
+            bool complement = args.Complement || Utils.Size(args.Tags) == 0;
             var allTags = new HashSet<string>();
-            for (int i = 0; i < Utils.Size(args.Tag); i++)
+            for (int i = 0; i < Utils.Size(args.Tags); i++)
             {
-                var curList = args.Tag[i];
+                var curList = args.Tags[i];
                 if (string.IsNullOrWhiteSpace(curList))
                     continue;
 
@@ -92,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
                                 ? "transforms that don't have tags from the list: '{0}'"
                                 : "transforms that have tags from the list: '{0}'",
                             string.Join(",", allTags));
-                    throw h.ExceptUserArg(nameof(args.Tag), "No transforms were found that match the search criteria ({0})", criteria);
+                    throw h.ExceptUserArg(nameof(args.Tags), "No transforms were found that match the search criteria ({0})", criteria);
                 }
             }
 

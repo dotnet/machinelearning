@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
 using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers.FastTree;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     //=========================== Binary classifiers ====================
     public class PredictorAndArgs
@@ -35,18 +32,29 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 
-    public /*static*/ class TestLearnersBase
+    public class TestLearnersBase
     {
         // This ensures that the needed assemblies are loaded!
         static TestLearnersBase()
         {
             bool ok = true;
-            //ok &= typeof(BinaryNeuralNetwork) != null;
             ok &= typeof(FastTreeBinaryClassificationTrainer) != null;
-            //ok &= typeof(OneClassSvmTrainer) != null;
-            //ok &= typeof(LDSvmTrainer) != null;
             Contracts.Check(ok, "Missing assemblies!");
         }
+
+        // New.
+        public static PredictorAndArgs binaryPrior = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("PriorPredictor"),
+            Tag = "BinaryPrior"
+        };
+
+        // New.
+        public static PredictorAndArgs binaryRandom = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("RandomPredictor"),
+            Tag = "BinaryRandom"
+        };
 
         // New.
         public static PredictorAndArgs binarySdca = new PredictorAndArgs
@@ -122,6 +130,25 @@ namespace Microsoft.ML.Runtime.RunTests
             Tag = "AveragedPerceptron-Reg"
         };
 
+        public static PredictorAndArgs Ova = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("OVA", "p=AvgPer{ lr=0.8 }"),
+            MamlArgs = new[] { "norm=no" },
+        };
+
+        public static PredictorAndArgs OvaWithFastForest = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("OVA", "p=FastForest{ }"),
+            MamlArgs = new[] { "norm=no" },
+            Tag = "OVA-FastForest",
+        };
+
+        public static PredictorAndArgs Pkpd = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("PKPD", "p=AvgPer { lr=0.8 }"),
+            MamlArgs = new[] { "norm=no" },
+        };
+
         // Old.
         public static PredictorAndArgs perceptronDefault = new PredictorAndArgs
         {
@@ -162,6 +189,14 @@ namespace Microsoft.ML.Runtime.RunTests
         public static PredictorAndArgs logisticRegression = new PredictorAndArgs
         {
             Trainer = new SubComponent("LogisticRegression", "l1=1.0 l2=0.1 ot=1e-3 nt=1"),
+            MamlArgs = new[] { "norm=no" },
+            BaselineProgress = true
+        };
+
+        // New.
+        public static PredictorAndArgs symSGD = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("SymSGD", "nt=1"),
             MamlArgs = new[] { "norm=no" },
             BaselineProgress = true
         };
@@ -606,7 +641,7 @@ namespace Microsoft.ML.Runtime.RunTests
             };
         }
 
-        public static PredictorAndArgs DssmDefault(int qryFeaturesCount, int docFeaturesCount, int negativeDocsCount, int numIterations, Float gamma)
+        public static PredictorAndArgs DssmDefault(int qryFeaturesCount, int docFeaturesCount, int negativeDocsCount, int numIterations, float gamma)
         {
             string settings = string.Format("qfeats={0} dfeats={1} negdocs={2} iter={3} gamma={4} accel=sse",
                 qryFeaturesCount, docFeaturesCount, negativeDocsCount, numIterations, gamma);

@@ -2,20 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.Data.DataView;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Delegate type to map/convert a value.
     /// </summary>
-    public delegate void ValueMapper<TSrc, TDst>(ref TSrc src, ref TDst dst);
+    [BestFriend]
+    internal delegate void ValueMapper<TSrc, TDst>(in TSrc src, ref TDst dst);
 
     /// <summary>
     /// Delegate type to map/convert among three values, for example, one input with two
     /// outputs, or two inputs with one output.
     /// </summary>
-    public delegate void ValueMapper<TVal1, TVal2, TVal3>(ref TVal1 val1, ref TVal2 val2, ref TVal3 val3);
+    [BestFriend]
+    internal delegate void ValueMapper<TVal1, TVal2, TVal3>(in TVal1 val1, ref TVal2 val2, ref TVal3 val3);
 
     /// <summary>
     /// Interface for mapping a single input value (of an indicated ColumnType) to
@@ -24,7 +26,8 @@ namespace Microsoft.ML.Runtime.Data
     /// type arguments for GetMapper, but typically contain additional information like
     /// vector lengths.
     /// </summary>
-    public interface IValueMapper
+    [BestFriend]
+    internal interface IValueMapper
     {
         ColumnType InputType { get; }
         ColumnType OutputType { get; }
@@ -43,7 +46,8 @@ namespace Microsoft.ML.Runtime.Data
     /// type arguments for GetMapper, but typically contain additional information like
     /// vector lengths.
     /// </summary>
-    public interface IValueMapperDist : IValueMapper
+    [BestFriend]
+    internal interface IValueMapperDist : IValueMapper
     {
         ColumnType DistType { get; }
 

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.Ensemble</IncludeInPackage>
+    <IncludeInPackage>Microsoft.ML</IncludeInPackage>
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
 

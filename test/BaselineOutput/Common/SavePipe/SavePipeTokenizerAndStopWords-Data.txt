@@ -1,0 +1,16 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Source:TX:0
+#@   col=Lang:TX:1
+#@   col=SourceTokens:TX:2-**
+#@   col={name=Output type=TX src={ min=-1 var=+}}
+#@ }
+Source	Lang
+"1 ""Oh, no,"" she's saying, ""our $400 blender can't handle something this hard!"""	English	1	"""Oh,"	"no,"""	she's	saying,	"""our"	$400	blender	can't	handle	something	this	"hard!"""	1	"""Oh,"	"no,"""	she's	saying,	"""our"	$400	blender	can't	handle	"hard!"""
+2 Vous êtes au volant d'une voiture et vous roulez à grande vitesse	French	2	Vous	êtes	au	volant	d'une	voiture	et	vous	roulez	à	grande	vitesse	2	êtes	volant	d'une	voiture	roulez	grande	vitesse
+3 Lange nichts voneinander gehört! Es freut mich, dich kennen zu lernen	German	3	Lange	nichts	voneinander	gehört!	Es	freut	mich,	dich	kennen	zu	lernen	3	voneinander	gehört!	freut	mich,	kennen	lernen
+4 Goedemorgen, Waar kom je vandaan? Ik kom uit Nederlands	Dutch	4	Goedemorgen,	Waar	kom	je	vandaan?	Ik	kom	uit	Nederlands	4	Goedemorgen,	Waar	kom	vandaan?	kom	Nederlands
+5 Ciao, Come va? Bene grazie. E tu? Quanto tempo!	Italian	5	Ciao,	Come	va?	Bene	grazie.	E	tu?	Quanto	tempo!	5	Ciao,	Come	va?	Bene	grazie.	tu?	Quanto	tempo!
+六 初めまして 良い一日を ごきげんよう！ さようなら	Japanese	六	初めまして	良い一日を	ごきげんよう！	さようなら	六	初めまして	良い一日を	ごきげんよう！	さようなら
+6 ¡Hola! ¿Cómo te llamas? Mi nombre es ABELE	Spanish	6	¡Hola!	¿Cómo	te	llamas?	Mi	nombre	es	ABELE	6	¡Hola!	¿Cómo	te	llamas?	Mi	nombre	ABELE

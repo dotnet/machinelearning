@@ -2,13 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.ML.Runtime.CommandLine;
-
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if OLD_DATALOAD
     public class LogLossCommandLineArgs : TrainingCommandLineArgs
@@ -107,15 +101,6 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
                     _gradient[d1] += delta;
                     _gradient[d2] -= delta;
-                    /*
-                                        double labelDiff = (labels[d1] - labels[d2]);
-                                        double margin = labelDiff * (_scores[d1] - _scores[d2]);
-                                        if (_coef - margin > 0)
-                                        {
-                                            _gradient[d1] += 0.01 * labelDiff;
-                                            _gradient[d2] -= 0.01 * labelDiff;
-                                        }
-                    */
                 }
             }
         }

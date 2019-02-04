@@ -1,0 +1,113 @@
+  Bad value at line 5 in column Value
+Processed 7 rows with 1 bad values and 0 format errors
+  Bad value at line 5 in column Value
+Processed 7 rows with 1 bad values and 0 format errors
+  Bad value at line 5 in column Value
+Processed 7 rows with 1 bad values and 0 format errors
+Wrote 7 rows across 2 columns in %Time%
+Warning: Key 'Wirtschaft' in mapping file is mapped to non key value '3.14'
+Warning: Key 'Gesundheit' in mapping file is mapped to non key value '0.1'
+Warning: Key 'Deutschland' in mapping file is mapped to non key value '1.5'
+Warning: Key 'Ausland' in mapping file is mapped to non key value '0.5'
+Warning: Key 'Unterhaltung' in mapping file is mapped to non key value '1a'
+Warning: Found 7 non key values in the file '%Output%
+Warning: Did not find any valid key values in the file '%Output%
+  Bad value at line 1 in column Value
+  Bad value at line 2 in column Value
+  Bad value at line 3 in column Value
+  Bad value at line 4 in column Value
+  Bad value at line 5 in column Value
+  Bad value at line 6 in column Value
+  Bad value at line 7 in column Value
+Processed 7 rows with 7 bad values and 0 format errors
+  Bad value at line 1 in column Value
+  Bad value at line 2 in column Value
+  Bad value at line 3 in column Value
+  Bad value at line 4 in column Value
+  Bad value at line 5 in column Value
+  Bad value at line 6 in column Value
+  Bad value at line 7 in column Value
+Processed 7 rows with 7 bad values and 0 format errors
+  Bad value at line 1 in column Value
+  Bad value at line 2 in column Value
+  Bad value at line 3 in column Value
+  Bad value at line 4 in column Value
+  Bad value at line 5 in column Value
+  Bad value at line 6 in column Value
+  Bad value at line 7 in column Value
+Processed 7 rows with 7 bad values and 0 format errors
+Wrote 7 rows across 2 columns in %Time%
+Wrote 7 rows across 2 columns in %Time%
+Wrote 7 rows across 2 columns in %Time%
+Wrote 119 rows of length 3
+Wrote 119 rows across 3 columns in %Time%
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	119 examples	Total Terms: 7
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'BinarySaver' started.
+[2] (%Time%)	7 rows
+[2] 'BinarySaver' finished in %Time%.
+[3] 'BinarySaver #2' started.
+[3] (%Time%)	7 rows
+[3] 'BinarySaver #2' finished in %Time%.
+[4] 'TextSaver: saving data' started.
+[4] (%Time%)	119 rows
+[4] 'TextSaver: saving data' finished in %Time%.
+[5] 'BinarySaver #3' started.
+[5] (%Time%)	119 rows
+[5] 'BinarySaver #3' finished in %Time%.
+[6] 'BinarySaver #4' started.
+[6] (%Time%)	7 rows
+[6] 'BinarySaver #4' finished in %Time%.
+[7] 'BinarySaver #5' started.
+[7] (%Time%)	7 rows
+[7] 'BinarySaver #5' finished in %Time%.
+[8] 'TextSaver: saving data #2' started.
+[8] (%Time%)	119 rows
+[8] 'TextSaver: saving data #2' finished in %Time%.
+[9] 'BinarySaver #6' started.
+[9] (%Time%)	119 rows
+[9] 'BinarySaver #6' finished in %Time%.
+[10] 'BinarySaver #7' started.
+[10] (%Time%)	7 rows
+[10] 'BinarySaver #7' finished in %Time%.
+[11] 'BinarySaver #8' started.
+[11] (%Time%)	7 rows
+[11] 'BinarySaver #8' finished in %Time%.
+[12] 'TextSaver: saving data #3' started.
+[12] (%Time%)	119 rows
+[12] 'TextSaver: saving data #3' finished in %Time%.
+[13] 'BinarySaver #9' started.
+[13] (%Time%)	119 rows
+[13] 'BinarySaver #9' finished in %Time%.
+[14] 'BinarySaver #10' started.
+[14] (%Time%)	7 rows
+[14] 'BinarySaver #10' finished in %Time%.
+[15] 'BinarySaver #11' started.
+[15] (%Time%)	7 rows
+[15] 'BinarySaver #11' finished in %Time%.
+[16] 'TextSaver: saving data #4' started.
+[16] (%Time%)	119 rows
+[16] 'TextSaver: saving data #4' finished in %Time%.
+[17] 'BinarySaver #12' started.
+[17] (%Time%)	119 rows
+[17] 'BinarySaver #12' finished in %Time%.
+[18] 'BinarySaver #13' started.
+[18] (%Time%)	7 rows
+[18] 'BinarySaver #13' finished in %Time%.
+[19] 'BinarySaver #14' started.
+[19] (%Time%)	7 rows
+[19] 'BinarySaver #14' finished in %Time%.
+[20] 'BinarySaver #15' started.
+[20] (%Time%)	7 rows
+[20] 'BinarySaver #15' finished in %Time%.
+[21] 'BinarySaver #16' started.
+[21] (%Time%)	7 rows
+[21] 'BinarySaver #16' finished in %Time%.
+[22] 'TextSaver: saving data #5' started.
+[22] (%Time%)	119 rows
+[22] 'TextSaver: saving data #5' finished in %Time%.
+[23] 'BinarySaver #17' started.
+[23] (%Time%)	119 rows
+[23] 'BinarySaver #17' finished in %Time%.

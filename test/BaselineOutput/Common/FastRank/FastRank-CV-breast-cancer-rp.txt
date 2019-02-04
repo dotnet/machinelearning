@@ -1,0 +1,4 @@
+FastRank
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/lr	/nl	/mil	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.988453	0.961273	0.940267	0.94675	0.973982	0.967201	0.174518	81.25037	0.94303	0.962986	0.25	5	5	20	FastRank	%Data%		%Output%	99	0	0	maml.exe CV tr=FastRank{nl=5 mil=5 lr=0.25 iter=20} threads=- dout=%Output% data=%Data% seed=1	/lr:0.25;/nl:5;/mil:5;/iter:20	
+

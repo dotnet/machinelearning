@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     // REVIEW: Currently, to enable shuffling, we require the row counts of the sources to be known.
     // We can think of the shuffling in AppendRowsDataView as a two-stage process:
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
     /// This class provides the functionality to combine multiple IDataView objects which share the same schema
     /// All sources must contain the same number of columns and their column names, sizes, and item types must match.
     /// The row count of the resulting IDataView will be the sum over that of each individual.
-    /// 
+    ///
     /// An AppendRowsDataView instance is shuffleable iff all of its sources are shuffleable and their row counts are known.
     /// </summary>
     public sealed class AppendRowsDataView : IDataView
@@ -33,28 +33,28 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IDataView[] _sources;
         private readonly int[] _counts;
-        private readonly ISchema _schema;
+        private readonly Schema _schema;
         private readonly IHost _host;
         private readonly bool _canShuffle;
 
         public bool CanShuffle { get { return _canShuffle; } }
 
-        public ISchema Schema { get { return _schema; } }
+        public Schema Schema { get { return _schema; } }
 
         // REVIEW: AppendRowsDataView now only checks schema consistency up to column names and types.
         // A future task will be to ensure that the sources are consistent on the metadata level.
 
         /// <summary>
         /// Create a dataview by appending the rows of the sources.
-        /// 
-        /// All sources must be consistent with the passed-in schema in the number of columns, column names, 
+        ///
+        /// All sources must be consistent with the passed-in schema in the number of columns, column names,
         /// and column types. If schema is null, the first source's schema will be used.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="schema">The schema for the result. If this is null, the first source's schema will be used.</param>
         /// <param name="sources">The sources to be appended.</param>
         /// <returns>The resulting IDataView.</returns>
-        public static IDataView Create(IHostEnvironment env, ISchema schema, params IDataView[] sources)
+        public static IDataView Create(IHostEnvironment env, Schema schema, params IDataView[] sources)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(sources, nameof(sources));
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.Data
             return new AppendRowsDataView(env, schema, sources);
         }
 
-        private AppendRowsDataView(IHostEnvironment env, ISchema schema, IDataView[] sources)
+        private AppendRowsDataView(IHostEnvironment env, Schema schema, IDataView[] sources)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.Data
                     _counts = null;
                     break;
                 }
-                long? count = dv.GetRowCount(true);
+                long? count = dv.GetRowCount();
                 if (count == null || count < 0 || count > int.MaxValue)
                 {
                     _canShuffle = false;
@@ -108,30 +108,31 @@ namespace Microsoft.ML.Runtime.Data
             const string errMsg = "Inconsistent schema: all source dataviews must have identical column names, sizes, and item types.";
 
             int startingSchemaIndex = _schema == _sources[0].Schema ? 1 : 0;
-            int colCount = _schema.ColumnCount;
+            int colCount = _schema.Count;
 
             // Check if the column counts are identical.
-            _host.Check(_sources.All(source => source.Schema.ColumnCount == colCount), errMsg);
+            _host.Check(_sources.All(source => source.Schema.Count == colCount), errMsg);
 
             for (int c = 0; c < colCount; c++)
             {
-                string name = _schema.GetColumnName(c);
-                ColumnType type = _schema.GetColumnType(c);
+                string name = _schema[c].Name;
+                ColumnType type = _schema[c].Type;
+
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
-                    ISchema schema = _sources[i].Schema;
-                    _host.Check(schema.GetColumnName(c) == name, errMsg);
-                    _host.Check(schema.GetColumnType(c).SameSizeAndItemType(type), errMsg);
+                    var schema = _sources[i].Schema;
+                    _host.Check(schema[c].Name == name, errMsg);
+                    _host.Check(schema[c].Type.SameSizeAndItemType(type), errMsg);
                 }
             }
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             long sum = 0;
             foreach (var source in _sources)
             {
-                var cur = source.GetRowCount(lazy);
+                var cur = source.GetRowCount();
                 if (cur == null)
                     return null;
                 _host.Check(cur.Value >= 0, "One of the sources returned a negative row count");
@@ -144,28 +145,26 @@ namespace Microsoft.ML.Runtime.Data
             return sum;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(needCol, nameof(needCol));
             if (rand == null || !_canShuffle)
-                return new Cursor(this, needCol);
-            return new RandCursor(this, needCol, rand, _counts);
+                return new Cursor(this, columnsNeeded);
+            return new RandCursor(this, columnsNeeded, rand, _counts);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
-        private abstract class CursorBase : RootCursorBase, IRowCursor
+        private abstract class CursorBase : RootCursorBase
         {
             protected readonly IDataView[] Sources;
             protected readonly Delegate[] Getters;
 
             public override long Batch => 0;
 
-            public ISchema Schema { get; }
+            public sealed override Schema Schema { get; }
 
             public CursorBase(AppendRowsDataView parent)
                 : base(parent._host)
@@ -173,12 +172,12 @@ namespace Microsoft.ML.Runtime.Data
                 Sources = parent._sources;
                 Ch.AssertNonEmpty(Sources);
                 Schema = parent._schema;
-                Getters = new Delegate[Schema.ColumnCount];
+                Getters = new Delegate[Schema.Count];
             }
 
             protected Delegate CreateGetter(int col)
             {
-                ColumnType colType = Schema.GetColumnType(col);
+                ColumnType colType = Schema[col].Type;
                 Ch.AssertValue(colType);
                 Func<int, Delegate> creator = CreateTypedGetter<int>;
                 var typedCreator = creator.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
@@ -187,7 +186,7 @@ namespace Microsoft.ML.Runtime.Data
 
             protected abstract ValueGetter<TValue> CreateTypedGetter<TValue>(int col);
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "The column must be active against the defined predicate.");
                 if (!(Getters[col] is ValueGetter<TValue>))
@@ -195,48 +194,45 @@ namespace Microsoft.ML.Runtime.Data
                 return Getters[col] as ValueGetter<TValue>;
             }
 
-            public bool IsColumnActive(int col)
+            public sealed override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount, "Column index is out of range");
+                Ch.Check(0 <= col && col < Schema.Count, "Column index is out of range");
                 return Getters[col] != null;
             }
         }
 
         /// <summary>
-        /// The deterministic cursor. It will scan through the sources sequentially. 
+        /// The deterministic cursor. It will scan through the sources sequentially.
         /// </summary>
         private sealed class Cursor : CursorBase
         {
-            private IRowCursor _currentCursor;
-            private ValueGetter<UInt128> _currentIdGetter;
+            private RowCursor _currentCursor;
+            private ValueGetter<RowId> _currentIdGetter;
             private int _currentSourceIndex;
+            private bool _disposed;
 
-            public Cursor(AppendRowsDataView parent, Func<int, bool> needCol)
+            public Cursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded)
                 : base(parent)
             {
-                Ch.AssertValue(needCol);
-
                 _currentSourceIndex = 0;
-                _currentCursor = Sources[_currentSourceIndex].GetRowCursor(needCol);
+                _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                 _currentIdGetter = _currentCursor.GetIdGetter();
-                for (int c = 0; c < Getters.Length; c++)
-                {
-                    if (needCol(c))
-                        Getters[c] = CreateGetter(c);
-                }
+
+                foreach(var col in columnsNeeded)
+                    Getters[col.Index] = CreateGetter(col.Index);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         _currentIdGetter(ref val);
                         // While the union of all IDs may not be acceptable, by taking each
                         // data views IDs and combining them against their source index, the
                         // union of these IDs becomes acceptable.
-                        // REVIEW: Convenience UInt128 constructor for this scenario?
-                        val = val.Combine(new UInt128((ulong)_currentSourceIndex, 0));
+                        // REVIEW: Convenience RowId constructor for this scenario?
+                        val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
             }
 
@@ -249,7 +245,7 @@ namespace Microsoft.ML.Runtime.Data
                 return
                     (ref TValue val) =>
                     {
-                        Ch.Check(State == CursorState.Good, "A getter can only be used when the cursor state is Good.");
+                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         if (_currentSourceIndex != capturedSourceIndex)
                         {
                             Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
@@ -271,73 +267,74 @@ namespace Microsoft.ML.Runtime.Data
                     _currentCursor = null;
                     if (++_currentSourceIndex >= Sources.Length)
                         return false;
-                    _currentCursor = Sources[_currentSourceIndex].GetRowCursor(c => IsColumnActive(c));
+
+                    var columnsNeeded = Schema.Where(col => IsColumnActive(col.Index));
+                    _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                     _currentIdGetter = _currentCursor.GetIdGetter();
                 }
 
                 return true;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (State != CursorState.Done)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    Ch.Done();
                     Ch.Dispose();
-                    if (_currentCursor != null)
-                        _currentCursor.Dispose();
-                    base.Dispose();
+                    _currentCursor?.Dispose();
                 }
+                _disposed = true;
+                base.Dispose(disposing);
             }
         }
 
         /// <summary>
         ///  A RandCursor will ask each subordinate cursor to shuffle itself.
-        /// Then, at each step, it randomly calls a subordinate to move next with probability (roughly) proportional to 
+        /// Then, at each step, it randomly calls a subordinate to move next with probability (roughly) proportional to
         /// the number of the subordinate's remaining rows.
         /// </summary>
         private sealed class RandCursor : CursorBase
         {
-            private readonly IRowCursor[] _cursorSet;
+            private readonly RowCursor[] _cursorSet;
             private readonly MultinomialWithoutReplacementSampler _sampler;
-            private readonly IRandom _rand;
+            private readonly Random _rand;
             private int _currentSourceIndex;
+            private bool _disposed;
 
-            public RandCursor(AppendRowsDataView parent, Func<int, bool> needCol, IRandom rand, int[] counts)
+            public RandCursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded, Random rand, int[] counts)
                 : base(parent)
             {
-                Ch.AssertValue(needCol);
                 Ch.AssertValue(rand);
 
                 _rand = rand;
                 Ch.AssertValue(counts);
                 Ch.Assert(Sources.Length == counts.Length);
-                _cursorSet = new IRowCursor[counts.Length];
+                _cursorSet = new RowCursor[counts.Length];
                 for (int i = 0; i < counts.Length; i++)
                 {
                     Ch.Assert(counts[i] >= 0);
-                    _cursorSet[i] = parent._sources[i].GetRowCursor(needCol, RandomUtils.Create(_rand));
+                    _cursorSet[i] = parent._sources[i].GetRowCursor(columnsNeeded, RandomUtils.Create(_rand));
                 }
                 _sampler = new MultinomialWithoutReplacementSampler(Ch, counts, rand);
                 _currentSourceIndex = -1;
-                for (int c = 0; c < Getters.Length; c++)
-                {
-                    if (needCol(c))
-                        Getters[c] = CreateGetter(c);
-                }
+
+                foreach(var col in columnsNeeded)
+                    Getters[col.Index] = CreateGetter(col.Index);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
-                ValueGetter<UInt128>[] idGetters = new ValueGetter<UInt128>[_cursorSet.Length];
+                ValueGetter<RowId>[] idGetters = new ValueGetter<RowId>[_cursorSet.Length];
                 for (int i = 0; i < _cursorSet.Length; ++i)
                     idGetters[i] = _cursorSet[i].GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         idGetters[_currentSourceIndex](ref val);
-                        val = val.Combine(new UInt128((ulong)_currentSourceIndex, 0));
+                        val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
             }
 
@@ -347,7 +344,7 @@ namespace Microsoft.ML.Runtime.Data
                 return
                     (ref TValue val) =>
                     {
-                        Ch.Check(State == CursorState.Good, "A getter can only be used when the cursor state is Good.");
+                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
                         if (getSrc[_currentSourceIndex] == null)
                             getSrc[_currentSourceIndex] = _cursorSet[_currentSourceIndex].GetGetter<TValue>(col);
@@ -368,36 +365,38 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (State != CursorState.Done)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    Ch.Done();
                     Ch.Dispose();
-                    foreach (IRowCursor c in _cursorSet)
+                    foreach (RowCursor c in _cursorSet)
                         c.Dispose();
-                    base.Dispose();
                 }
+                _disposed = true;
+                base.Dispose(disposing);
             }
         }
 
         /// <summary>
         /// Given k classes with counts (N_0, N_2, N_3, ...,  N_{k-1}), the goal of this sampler is to select the i-th
-        /// class with probability N_i/M, where M = N_0 + N_1 + ... + N_{k-1}. 
+        /// class with probability N_i/M, where M = N_0 + N_1 + ... + N_{k-1}.
         /// Once the i-th class is selected, its count will be updated to N_i - 1.
-        /// 
+        ///
         /// For efficiency consideration, the sampling distribution is only an approximation of the desired distribution.
         /// </summary>
         private sealed class MultinomialWithoutReplacementSampler
         {
             // Implementation: generate a batch array of size BatchSize.
             // Each class will claim a fraction of the batch proportional to its remaining row count.
-            // Shuffle the array. The sampler reads from the array one at a time until the batch is consumed. 
+            // Shuffle the array. The sampler reads from the array one at a time until the batch is consumed.
             // The sampler then generates a new batch and repeat the process.
             private const int BatchSize = 1000;
 
             private readonly int[] _rowsLeft;
-            private readonly IRandom _rand;
+            private readonly Random _rand;
             private readonly int[] _batch;
             private readonly IExceptionContext _ectx;
 
@@ -405,7 +404,7 @@ namespace Microsoft.ML.Runtime.Data
             private int _batchPos;
             private int _totalLeft;
 
-            public MultinomialWithoutReplacementSampler(IExceptionContext context, int[] counts, IRandom rand)
+            public MultinomialWithoutReplacementSampler(IExceptionContext context, int[] counts, Random rand)
             {
                 Contracts.AssertValue(context);
                 _ectx = context;
@@ -444,7 +443,7 @@ namespace Microsoft.ML.Runtime.Data
                     _batchEnd = newEnd;
                 }
                 _totalLeft -= _batchEnd;
-                Utils.Shuffle(_rand, _batch, 0, _batchEnd);
+                Utils.Shuffle(_rand, _batch.AsSpan(0, _batchEnd));
             }
 
             public int Next()

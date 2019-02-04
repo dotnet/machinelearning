@@ -5,12 +5,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
     /// Implements a least recently used cache.
     /// </summary>
-    public sealed class LruCache<TKey, TValue>
+    [BestFriend]
+    internal sealed class LruCache<TKey, TValue>
     {
         private readonly int _size;
         private readonly Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>> _cache;

@@ -1,0 +1,5 @@
+<Project DefaultTargets="Pack">
+
+  <Import Project="Microsoft.ML.TensorFlow.nupkgproj" />
+
+</Project>

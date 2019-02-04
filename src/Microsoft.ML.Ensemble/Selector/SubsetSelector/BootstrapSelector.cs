@@ -2,21 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.SubsetSelector;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(BootstrapSelector), typeof(BootstrapSelector.Arguments),
     typeof(SignatureEnsembleDataSelector), BootstrapSelector.UserName, BootstrapSelector.LoadName)]
 
 [assembly: EntryPointModule(typeof(BootstrapSelector))]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
 {
-    public sealed class BootstrapSelector : BaseSubsetSelector<BootstrapSelector.Arguments>
+    internal sealed class BootstrapSelector : BaseSubsetSelector<BootstrapSelector.Arguments>
     {
         public const string UserName = "Bootstrap Selector";
         public const string LoadName = "BootstrapSelector";
@@ -40,12 +42,12 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         {
         }
 
-        public override IEnumerable<Subset> GetSubsets(Batch batch, IRandom rand)
+        public override IEnumerable<Subset> GetSubsets(Batch batch, Random rand)
         {
             for (int i = 0; i < Size; i++)
             {
                 // REVIEW: Consider ways to reintroduce "balanced" samples.
-                var viewTrain = new BootstrapSampleTransform(Host, new BootstrapSampleTransform.Arguments(), Data.Data);
+                var viewTrain = new BootstrapSamplingTransformer(Host, new BootstrapSamplingTransformer.Arguments(), Data.Data);
                 var dataTrain = new RoleMappedData(viewTrain, Data.Schema.GetColumnRoleNames());
                 yield return FeatureSelector.SelectFeatures(dataTrain, rand);
             }

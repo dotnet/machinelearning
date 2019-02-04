@@ -15,7 +15,7 @@
 #include <assert.h>
 /*
 Algorithm described in 
-http://www.jstatsoft.org/v11/i03/paper
+https://www.jstatsoft.org/v11/i03/paper
 George Marsaglia
 Fast generation of discrete random variables
 */

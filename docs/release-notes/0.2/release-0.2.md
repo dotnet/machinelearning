@@ -39,7 +39,7 @@ Below are some of the highlights from this release.
       their taste in movies. 
 
     * ML.NET 0.2 exposes `KMeansPlusPlusClusterer` which implements [K-Means++
-      clustering](http://theory.stanford.edu/~sergei/papers/vldb12-kmpar.pdf)
+      clustering](https://theory.stanford.edu/~sergei/papers/vldb12-kmpar.pdf)
       with [Yinyang K-means
       acceleration](https://www.microsoft.com/en-us/research/publication/yinyang-k-means-a-drop-in-replacement-of-the-classic-k-means-with-consistent-speedup/?from=http%3A%2F%2Fresearch.microsoft.com%2Fapps%2Fpubs%2Fdefault.aspx%3Fid%3D252149).
       [This

@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.ML.Internal.CpuMath.Core;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Internal.CpuMath
+namespace Microsoft.ML.Internal.CpuMath
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -18,7 +18,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// the AlignedArray with a logical size, which does not include padding, while the AlignedArray
     /// size does include padding.
     /// </summary>
-    public sealed class CpuAlignedVector : ICpuVector
+    [BestFriend]
+    internal sealed class CpuAlignedVector : ICpuVector
     {
         private readonly AlignedArray _items;
         private readonly int _size; // The logical size.
@@ -80,7 +81,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         /// <summary>
-        /// The physical AligenedArray items. 
+        /// The physical AligenedArray items.
         /// </summary>
         public AlignedArray Items { get { return _items; } }
 
@@ -155,7 +156,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         /// <summary>
-        /// Copy the values from this vector starting at slot ivSrc into dst, starting at slot ivDst. 
+        /// Copy the values from this vector starting at slot ivSrc into dst, starting at slot ivDst.
         /// The number of values that are copied is determined by count.
         /// </summary>
         /// <param name="ivSrc">The staring index in this vector</param>
@@ -180,7 +181,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             Contracts.AssertValue(src);
             Contracts.Assert(0 <= index && index <= src.Length - _size);
-            _items.CopyFrom(src, index, _size);
+            _items.CopyFrom(src.AsSpan(index, _size));
             index += _size;
         }
 
@@ -198,7 +199,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(0 <= count && count <= src.Length);
             Contracts.Assert(0 <= ivDst && ivDst <= _size - count);
             Contracts.Assert(0 <= ivSrc && ivSrc <= src.Length - count);
-            _items.CopyFrom(ivDst, src, ivSrc, _size);
+            _items.CopyFrom(ivDst, src.AsSpan(ivSrc, _size));
         }
 
         /// <summary>
@@ -231,7 +232,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// This implements a logical matrix of Floats that is automatically aligned for SSE/AVX operations.
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    public abstract class CpuAlignedMatrixBase
+    [BestFriend]
+    internal abstract class CpuAlignedMatrixBase
     {
         // _items includes "head" items filled with NaN, followed by RunLenPhy * RunCntPhy entries, followed by
         // "tail" items, also filled with NaN. Note that RunLenPhy and RunCntPhy are divisible by the alignment
@@ -393,7 +395,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// This implements a logical row-major matrix of Floats that is automatically aligned for SSE/AVX operations.
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    public abstract class CpuAlignedMatrixRowBase : CpuAlignedMatrixBase, ICpuBuffer<Float>
+    [BestFriend]
+    internal abstract class CpuAlignedMatrixRowBase : CpuAlignedMatrixBase, ICpuBuffer<Float>
     {
         protected CpuAlignedMatrixRowBase(int crow, int ccol, int cbAlign)
             : base(ccol, crow, cbAlign)
@@ -461,14 +464,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (ColCount == ColCountPhy)
             {
-                Items.CopyFrom(src, ivSrc, ValueCount);
+                Items.CopyFrom(src.AsSpan(ivSrc, ValueCount));
                 ivSrc += ValueCount;
             }
             else
             {
                 for (int row = 0; row < RowCount; row++)
                 {
-                    Items.CopyFrom(row * ColCountPhy, src, ivSrc, ColCount);
+                    Items.CopyFrom(row * ColCountPhy, src.AsSpan(ivSrc, ColCount));
                     ivSrc += ColCount;
                 }
             }
@@ -497,7 +500,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// This implements a row-major matrix of Floats that is automatically aligned for SSE/AVX operations.
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    public sealed class CpuAlignedMatrixRow : CpuAlignedMatrixRowBase, ICpuFullMatrix
+    [BestFriend]
+    internal sealed class CpuAlignedMatrixRow : CpuAlignedMatrixRowBase, ICpuFullMatrix
     {
         public CpuAlignedMatrixRow(int crow, int ccol, int cbAlign)
             : base(crow, ccol, cbAlign)
@@ -525,7 +529,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public override int ColCountPhy { get { return RunLenPhy; } }
 
         /// <summary>
-        /// Copy the values from this matrix, starting from the row into dst, starting at slot ivDst and advancing ivDst. 
+        /// Copy the values from this matrix, starting from the row into dst, starting at slot ivDst and advancing ivDst.
         /// </summary>
         /// <param name="row">The starting row in this matrix</param>
         /// <param name="dst">The destination array</param>
@@ -550,7 +554,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             // REVIEW: Ideally, we'd adjust the indices once so we wouldn't need to
             // repeatedly deal with padding adjustments.
-            SseUtils.ZeroMatrixItems(Items, ColCount, ColCountPhy, indices);
+            CpuMathUtils.ZeroMatrixItems(Items, ColCount, ColCountPhy, indices);
         }
     }
 
@@ -558,7 +562,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// This implements a logical matrix of Floats that is automatically aligned for SSE/AVX operations.
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    public sealed class CpuAlignedMatrixCol : CpuAlignedMatrixBase, ICpuFullMatrix
+    [BestFriend]
+    internal sealed class CpuAlignedMatrixCol : CpuAlignedMatrixBase, ICpuFullMatrix
     {
         /// <summary>
         /// Allocate an aligned matrix with the given alignment (in bytes).
@@ -606,7 +611,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         /// <summary>
-        /// Copy the values from this matrix, starting from the row into dst, starting at slot ivDst and advancing ivDst. 
+        /// Copy the values from this matrix, starting from the row into dst, starting at slot ivDst and advancing ivDst.
         /// </summary>
         /// <param name="row">The starting row in this matrix</param>
         /// <param name="dst">The destination array</param>

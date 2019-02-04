@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Numeric
+namespace Microsoft.ML.Numeric
 {
     /// <summary>
     /// An object which is used to decide whether to stop optimization.
@@ -85,9 +84,9 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             Console.Error.Write(_checkingMessage);
             Console.Error.Flush();
-            var x = state.X;
+            VBuffer<float> x = state.X;
             var lastDir = state.LastDir;
-            Float checkResult = GradientTester.Test(state.Function, ref x, ref lastDir, true, ref _newGrad, ref _newX);
+            Float checkResult = GradientTester.Test(state.Function, in x, ref lastDir, true, ref _newGrad, ref _newX);
             for (int i = 0; i < _checkingMessage.Length; i++)
                 Console.Error.Write('\b');
             return checkResult;
@@ -169,10 +168,6 @@ namespace Microsoft.ML.Runtime.Numeric
         public bool Terminate(Optimizer.OptimizerState state, out string message)
         {
             _unnormMeanImprovement = (state.LastValue - state.Value) + _lambda * _unnormMeanImprovement;
-            //if (state.Iter < 5) {
-            //   message = "wait for 5...";
-            //   return false;
-            //}
 
             Float crit = _unnormMeanImprovement * (1 - _lambda) / (1 - MathUtils.Pow(_lambda, state.Iter));
             message = string.Format("{0:0.000e0}", crit);

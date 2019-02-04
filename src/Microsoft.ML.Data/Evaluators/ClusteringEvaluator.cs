@@ -1,17 +1,19 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Numeric;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(typeof(ClusteringEvaluator), typeof(ClusteringEvaluator), typeof(ClusteringEvaluator.Arguments), typeof(SignatureEvaluator),
     "Clustering Evaluator", ClusteringEvaluator.LoadName, "Clustering")]
@@ -23,7 +25,7 @@ using Microsoft.ML.Runtime.Numeric;
 [assembly: LoadableClass(typeof(ClusteringPerInstanceEvaluator), null, typeof(SignatureLoadRowMapper),
     "", ClusteringPerInstanceEvaluator.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -52,58 +54,98 @@ namespace Microsoft.ML.Runtime.Data
             _calculateDbi = args.CalculateDbi;
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        /// <summary>
+        /// Evaluates scored clustering data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="label">The name of the optional label column in <paramref name="data"/>.</param>
+        /// <param name="features">The name of the optional feature column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results.</returns>
+        public ClusteringMetrics Evaluate(IDataView data, string score, string label = null, string features = null)
         {
-            ColumnType type;
-            if (schema.Label != null && (type = schema.Label.Type) != NumberType.Float && type.KeyCount == 0)
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(score, nameof(score));
+
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+
+            if (label != null)
+                roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(label));
+
+            if (features != null)
+                roles.Add(RoleMappedSchema.ColumnRole.Feature.Bind(features));
+
+            var rolesMappedData = new RoleMappedData(data, opt: false, roles.ToArray());
+
+            var resultDict = ((IEvaluator)this).Evaluate(rolesMappedData);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            ClusteringMetrics result;
+            using (var cursor = overall.GetRowCursorForAllColumns())
             {
-                throw Host.Except("Clustering evaluator: label column '{0}' type must be {1} or Key of known cardinality." +
-                    " Provide a correct label column, or none: it is optional.",
-                    schema.Label.Name, NumberType.Float);
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new ClusteringMetrics(Host, cursor, _calculateDbi);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+            return result;
+        }
+
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        {
+            ColumnType type = schema.Label?.Type;
+            if (type != null && type != NumberType.Float && !(type is KeyType keyType && keyType.Count > 0))
+            {
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name,
+                    "float or KeyType", type.ToString());
             }
 
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             type = score.Type;
-            if (!type.IsKnownSizeVector || type.ItemType != NumberType.Float)
-                throw Host.Except("Scores column '{0}' type must be a float vector of known size", score.Name);
+            if (!(type is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", type.ToString());
         }
 
-        protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
+        private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
             if (_calculateDbi)
             {
-                Host.AssertValue(schema.Feature);
-                var t = schema.Feature.Type;
-                if (!t.IsKnownSizeVector || t.ItemType != NumberType.Float)
+                Host.Assert(schema.Feature.HasValue);
+                var t = schema.Feature.Value.Type;
+                if (!(t is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
                 {
-                    throw Host.Except("Features column '{0}' type must be {1} vector of known-size",
-                        schema.Feature.Name, NumberType.Float);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "features", schema.Feature.Value.Name,
+                        "R4 vector of known size", t.ToString());
                 }
             }
         }
 
-        protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
+        private protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var pred = base.GetActiveColsCore(schema);
             // We also need the features column for dbi calculation.
             Host.Assert(!_calculateDbi || schema.Feature != null);
-            return i => _calculateDbi && i == schema.Feature.Index || pred(i);
+            return i => _calculateDbi && i == schema.Feature.Value.Index || pred(i);
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             Host.AssertValue(schema);
-            Host.Assert(!_calculateDbi || (schema.Feature != null && schema.Feature.Type.IsKnownSizeVector));
+            Host.Assert(!_calculateDbi || schema.Feature?.Type.IsKnownSizeVector() == true);
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Host.Assert(score.Type.VectorSize > 0);
-            int numClusters = score.Type.VectorSize;
+            var scoreType = score.Type as VectorType;
+            Host.Assert(scoreType != null && scoreType.Size > 0);
+            int numClusters = scoreType.Size;
             return new Aggregator(Host, schema.Feature, numClusters, _calculateDbi, schema.Weight != null, stratName);
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int numClusters = scoreInfo.Type.VectorSize;
+            int numClusters = scoreInfo.Type.GetVectorSize();
             return new ClusteringPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, numClusters);
         }
 
@@ -114,12 +156,12 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("DBI", Dbi, MetricColumn.Objective.Minimize);
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+            out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var stratVal = new List<ReadOnlyMemory<char>>();
+            var isWeighted = new List<bool>();
             var nmi = new List<Double>();
             var avgMinScores = new List<Double>();
             var dbi = new List<Double>();
@@ -136,7 +178,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     nmi.Add(agg.UnweightedCounters.Nmi);
                     avgMinScores.Add(agg.UnweightedCounters.AvgMinScores);
                     if (agg.UnweightedCounters.CalculateDbi)
@@ -145,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         nmi.Add(agg.WeightedCounters.Nmi);
                         avgMinScores.Add(agg.WeightedCounters.AvgMinScores);
                         if (agg.WeightedCounters.CalculateDbi)
@@ -159,7 +201,7 @@ namespace Microsoft.ML.Runtime.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -262,7 +304,7 @@ namespace Microsoft.ML.Runtime.Data
                                     continue;
                                 var centroidJ = _clusterCentroids[j];
                                 Double num = _distancesToCentroids[i] + _distancesToCentroids[j];
-                                Single denom = VectorUtils.Distance(ref centroidI, ref centroidJ);
+                                Single denom = VectorUtils.Distance(in centroidI, in centroidJ);
                                 maxi = Math.Max(maxi, num / denom);
                             }
 
@@ -274,7 +316,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public Counters(int numClusters, bool calculateDbi, ColumnInfo features)
+                public Counters(int numClusters, bool calculateDbi, Schema.Column? features)
                 {
                     _numClusters = numClusters;
                     CalculateDbi = calculateDbi;
@@ -284,10 +326,10 @@ namespace Microsoft.ML.Runtime.Data
                     _confusionMatrix = new List<Double[]>();
                     if (CalculateDbi)
                     {
-                        Contracts.AssertValue(features);
+                        Contracts.Assert(features.HasValue);
                         _clusterCentroids = new VBuffer<Single>[_numClusters];
                         for (int i = 0; i < _numClusters; i++)
-                            _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Type.VectorSize);
+                            _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.GetVectorSize());
                         _distancesToCentroids = new Double[_numClusters];
                     }
                 }
@@ -323,11 +365,11 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public void UpdateSecondPass(ref VBuffer<Single> features, int[] indices)
+                public void UpdateSecondPass(in VBuffer<Single> features, int[] indices)
                 {
                     int assigned = indices[0];
 
-                    var distance = VectorUtils.Distance(ref _clusterCentroids[assigned], ref features);
+                    var distance = VectorUtils.Distance(in _clusterCentroids[assigned], in features);
                     _distancesToCentroids[assigned] += distance;
                 }
             }
@@ -354,7 +396,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly bool _calculateDbi;
 
-            public Aggregator(IHostEnvironment env, ColumnInfo features, int scoreVectorSize, bool calculateDbi, bool weighted, string stratName)
+            internal Aggregator(IHostEnvironment env, Schema.Column? features, int scoreVectorSize, bool calculateDbi, bool weighted, string stratName)
                 : base(env, stratName)
             {
                 _calculateDbi = calculateDbi;
@@ -365,10 +407,10 @@ namespace Microsoft.ML.Runtime.Data
                 WeightedCounters = Weighted ? new Counters(scoreVectorSize, _calculateDbi, features) : null;
                 if (_calculateDbi)
                 {
-                    Host.AssertValue(features);
+                    Host.Assert(features.HasValue);
                     _clusterCentroids = new VBuffer<Single>[scoreVectorSize];
                     for (int i = 0; i < scoreVectorSize; i++)
-                        _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Type.VectorSize);
+                        _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.GetVectorSize());
                 }
             }
 
@@ -390,7 +432,7 @@ namespace Microsoft.ML.Runtime.Data
                 _scoreGetter(ref _scores);
                 Host.Check(_scores.Length == _scoresArr.Length);
 
-                if (VBufferUtils.HasNaNs(ref _scores) || VBufferUtils.HasNonFinite(ref _scores))
+                if (VBufferUtils.HasNaNs(in _scores) || VBufferUtils.HasNonFinite(in _scores))
                 {
                     NumBadScores++;
                     return;
@@ -418,7 +460,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (_clusterCentroids != null)
                 {
                     _featGetter(ref _features);
-                    VectorUtils.Add(ref _features, ref _clusterCentroids[_indicesArr[0]]);
+                    VectorUtils.Add(in _features, ref _clusterCentroids[_indicesArr[0]]);
                 }
             }
 
@@ -430,19 +472,19 @@ namespace Microsoft.ML.Runtime.Data
                 _scoreGetter(ref _scores);
                 Host.Check(_scores.Length == _scoresArr.Length);
 
-                if (VBufferUtils.HasNaNs(ref _scores) || VBufferUtils.HasNonFinite(ref _scores))
+                if (VBufferUtils.HasNaNs(in _scores) || VBufferUtils.HasNonFinite(in _scores))
                     return;
                 _scores.CopyTo(_scoresArr);
                 int j = 0;
                 foreach (var index in Enumerable.Range(0, _scoresArr.Length).OrderBy(i => _scoresArr[i]))
                     _indicesArr[j++] = index;
 
-                UnweightedCounters.UpdateSecondPass(ref _features, _indicesArr);
+                UnweightedCounters.UpdateSecondPass(in _features, _indicesArr);
                 if (WeightedCounters != null)
-                    WeightedCounters.UpdateSecondPass(ref _features, _indicesArr);
+                    WeightedCounters.UpdateSecondPass(in _features, _indicesArr);
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 AssertValid(assertGetters: false);
 
@@ -451,21 +493,21 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (_calculateDbi)
                 {
-                    Host.AssertValue(schema.Feature);
-                    _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.Index);
+                    Host.Assert(schema.Feature.HasValue);
+                    _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.Value.Index);
                 }
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-                Host.Assert(score.Type.VectorSize == _scoresArr.Length);
+                Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
                 _scoreGetter = row.GetGetter<VBuffer<Single>>(score.Index);
 
                 if (PassNum == 0)
                 {
-                    if (schema.Label != null)
-                        _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
+                    if (schema.Label.HasValue)
+                        _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                     else
                         _labelGetter = (ref Single value) => value = Single.NaN;
-                    if (schema.Weight != null)
-                        _weightGetter = row.GetGetter<Single>(schema.Weight.Index);
+                    if (schema.Weight.HasValue)
+                        _weightGetter = row.GetGetter<Single>(schema.Weight.Value.Index);
                 }
                 else
                 {
@@ -529,7 +571,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ClusteringPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int ClusterIdCol = 0;
@@ -543,20 +586,20 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int _numClusters;
         private readonly ColumnType[] _types;
 
-        public ClusteringPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, int numClusters)
+        public ClusteringPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, int numClusters)
             : base(env, schema, scoreCol, null)
         {
             CheckInputColumnTypes(schema);
             _numClusters = numClusters;
 
             _types = new ColumnType[3];
-            var key = new KeyType(DataKind.U4, 0, _numClusters);
+            var key = new KeyType(typeof(uint), _numClusters);
             _types[ClusterIdCol] = key;
             _types[SortedClusterCol] = new VectorType(key, _numClusters);
             _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
         }
 
-        private ClusteringPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private ClusteringPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -569,13 +612,13 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckDecode(_numClusters > 0);
 
             _types = new ColumnType[3];
-            var key = new KeyType(DataKind.U4, 0, _numClusters);
+            var key = new KeyType(typeof(uint), _numClusters);
             _types[ClusterIdCol] = key;
             _types[SortedClusterCol] = new VectorType(key, _numClusters);
             _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
         }
 
-        public static ClusteringPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static ClusteringPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -595,7 +638,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.Write(_numClusters);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col =>
@@ -603,13 +646,13 @@ namespace Microsoft.ML.Runtime.Data
                     (activeOutput(ClusterIdCol) || activeOutput(SortedClusterCol) || activeOutput(SortedClusterScoreCol));
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             disposer = null;
 
             var getters = new Delegate[3];
 
-            if (!activeOutput(ClusterIdCol) && !activeOutput(SortedClusterCol) && !activeOutput(SortedClusterScoreCol))
+            if (!activeCols(ClusterIdCol) && !activeCols(SortedClusterCol) && !activeCols(SortedClusterScoreCol))
                 return getters;
 
             long cachedPosition = -1;
@@ -632,7 +675,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 };
 
-            if (activeOutput(ClusterIdCol))
+            if (activeCols(ClusterIdCol))
             {
                 ValueGetter<uint> assignedFn =
                     (ref uint dst) =>
@@ -643,82 +686,75 @@ namespace Microsoft.ML.Runtime.Data
                 getters[ClusterIdCol] = assignedFn;
             }
 
-            if (activeOutput(SortedClusterScoreCol))
+            if (activeCols(SortedClusterScoreCol))
             {
                 ValueGetter<VBuffer<Single>> topKScoresFn =
                     (ref VBuffer<Single> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClusters)
-                            values = new Single[_numClusters];
+                        var editor = VBufferEditor.Create(ref dst, _numClusters);
                         for (int i = 0; i < _numClusters; i++)
-                            values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = new VBuffer<Single>(_numClusters, values);
+                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = editor.Commit();
                     };
                 getters[SortedClusterScoreCol] = topKScoresFn;
             }
 
-            if (activeOutput(SortedClusterCol))
+            if (activeCols(SortedClusterCol))
             {
                 ValueGetter<VBuffer<uint>> topKClassesFn =
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClusters)
-                            values = new uint[_numClusters];
+                        var editor = VBufferEditor.Create(ref dst, _numClusters);
                         for (int i = 0; i < _numClusters; i++)
-                            values[i] = (uint)sortedIndices[i] + 1;
-                        dst = new VBuffer<uint>(_numClusters, values);
+                            editor.Values[i] = (uint)sortedIndices[i] + 1;
+                        dst = editor.Commit();
                     };
                 getters[SortedClusterCol] = topKClassesFn;
             }
             return getters;
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new RowMapperColumnInfo[3];
-            infos[ClusterIdCol] = new RowMapperColumnInfo(ClusterId, _types[ClusterIdCol], null);
+            var infos = new Schema.DetachedColumn[3];
+            infos[ClusterIdCol] = new Schema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
-            var sortedClusters = new ColumnMetadataInfo(SortedClusters);
-            sortedClusters.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
-                CreateSlotNamesGetter(_numClusters, "Cluster")));
-            var sortedClusterScores = new ColumnMetadataInfo(SortedClusterScores);
-            sortedClusterScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
-                CreateSlotNamesGetter(_numClusters, "Score")));
+            var sortedClusters = new MetadataBuilder();
+            int vectorSize = slotNamesType.GetVectorSize();
+            sortedClusters.AddSlotNames(vectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
-            infos[SortedClusterCol] = new RowMapperColumnInfo(SortedClusters, _types[SortedClusterCol], sortedClusters);
-            infos[SortedClusterScoreCol] = new RowMapperColumnInfo(SortedClusterScores,
-                _types[SortedClusterScoreCol], sortedClusterScores);
+            var builder = new MetadataBuilder();
+            builder.AddSlotNames(vectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
+
+            infos[SortedClusterCol] = new Schema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new Schema.DetachedColumn(SortedClusterScores, _types[SortedClusterScoreCol], builder.GetMetadata());
             return infos;
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateSlotNamesGetter(int numTopClusters, string suffix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClusters, string suffix)
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < numTopClusters)
-                        values = new DvText[numTopClusters];
+                    var editor = VBufferEditor.Create(ref dst, numTopClusters);
                     for (int i = 1; i <= numTopClusters; i++)
-                        values[i - 1] = new DvText(string.Format("#{0} {1}", i, suffix));
-                    dst = new VBuffer<DvText>(numTopClusters, values);
+                        editor.Values[i - 1] = $"#{i} {suffix}".AsMemory();
+                    dst = editor.Commit();
                 };
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
 
-            var type = schema.GetColumnType(ScoreIndex);
-            if (!type.IsKnownSizeVector || type.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type {1}, but must be a float vector of known-size", ScoreCol, type);
+            var type = schema[(int) ScoreIndex].Type;
+            if (!(type is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", type.ToString());
         }
     }
 
@@ -742,7 +778,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string _featureCol;
         private readonly bool _calculateDbi;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public ClusteringMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.Clustering, "ClusteringMamlEvaluator")
@@ -761,7 +797,7 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new ClusteringEvaluator(Host, evalArgs);
         }
 
-        protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
+        private protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
         {
             foreach (var col in base.GetInputColumnRolesCore(schema))
             {
@@ -781,13 +817,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Clustering evaluator adds three per-instance columns: "ClusterId", "Top clusters" and "Top cluster scores".
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
 
             // Output the label column if it exists.
-            if (schema.Label != null)
-                yield return schema.Label.Name;
+            if (schema.Label.HasValue)
+                yield return schema.Label.Value.Name;
 
             // Return the output columns.
             yield return ClusteringPerInstanceEvaluator.ClusterId;
@@ -795,63 +831,27 @@ namespace Microsoft.ML.Runtime.Data
             yield return ClusteringPerInstanceEvaluator.SortedClusterScores;
         }
 
-        protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
+        private protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
         {
             // Wrap with a DropSlots transform to pick only the first _numTopClusters slots.
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusters, out int index))
             {
-                var type = perInst.Schema.GetColumnType(index);
-                if (_numTopClusters < type.VectorSize)
-                {
-                    var args = new DropSlotsTransform.Arguments
-                    {
-                        Column = new DropSlotsTransform.Column[]
-                        {
-                            new DropSlotsTransform.Column()
-                            {
-                                Name = ClusteringPerInstanceEvaluator.SortedClusters,
-                                Slots = new[] {
-                                    new DropSlotsTransform.Range()
-                                    {
-                                        Min = _numTopClusters
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
-                }
+                var type = perInst.Schema[index].Type;
+                if (_numTopClusters < type.GetVectorSize())
+                    perInst = new SlotsDroppingTransformer(Host, ClusteringPerInstanceEvaluator.SortedClusters, min: _numTopClusters).Transform(perInst);
             }
 
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusterScores, out index))
             {
-                var type = perInst.Schema.GetColumnType(index);
-                if (_numTopClusters < type.VectorSize)
-                {
-                    var args = new DropSlotsTransform.Arguments
-                    {
-                        Column = new DropSlotsTransform.Column[]
-                        {
-                            new DropSlotsTransform.Column()
-                            {
-                                Name = ClusteringPerInstanceEvaluator.SortedClusterScores,
-                                Slots = new[] {
-                                    new DropSlotsTransform.Range()
-                                    {
-                                        Min = _numTopClusters
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
-                }
+                var type = perInst.Schema[index].Type;
+                if (_numTopClusters < type.GetVectorSize())
+                    perInst = new SlotsDroppingTransformer(Host, ClusteringPerInstanceEvaluator.SortedClusterScores, min: _numTopClusters).Transform(perInst);
             }
             return perInst;
         }
     }
 
-    public static partial class Evaluate
+    internal static partial class Evaluate
     {
         [TlcModule.EntryPoint(Name = "Models.ClusterEvaluator", Desc = "Evaluates a clustering scored dataset.")]
         public static CommonOutputs.CommonEvaluateOutput Clustering(IHostEnvironment env, ClusteringMamlEvaluator.Arguments input)
@@ -862,11 +862,11 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             MatchColumns(host, input, out string label, out string weight, out string name);
-            ISchema schema = input.Data.Schema;
+            var schema = input.Data.Schema;
             string features = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(ClusteringMamlEvaluator.Arguments.FeatureColumn),
                 input.FeatureColumn, DefaultColumnNames.Features);
-            var evaluator = new ClusteringMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new ClusteringMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, features, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

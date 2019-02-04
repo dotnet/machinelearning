@@ -1,0 +1,98 @@
+---- BoundLoader ----
+2 columns:
+  T1: Text
+  T2: Text
+---- TextNormalizerTransform ----
+4 columns:
+  T1: Text
+  T2: Text
+  T1_TextNormalizer: Text
+  T2_TextNormalizer: Text
+---- DelimitedTokenizeTransform ----
+6 columns:
+  T1: Text
+  T2: Text
+  T1_TextNormalizer: Text
+  T2_TextNormalizer: Text
+  T1_TextNormalizer_WordTokenizer: Vec<Text>
+  T2_TextNormalizer_WordTokenizer: Vec<Text>
+---- RowToRowMapperTransform ----
+8 columns:
+  T1: Text
+  T2: Text
+  T1_TextNormalizer: Text
+  T2_TextNormalizer: Text
+  T1_TextNormalizer_WordTokenizer: Vec<Text>
+  T2_TextNormalizer_WordTokenizer: Vec<Text>
+  temp_T1_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+  temp_T2_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+---- RowToRowMapperTransform ----
+10 columns:
+  T1: Text
+  T2: Text
+  T1_TextNormalizer: Text
+  T2_TextNormalizer: Text
+  T1_TextNormalizer_WordTokenizer: Vec<Text>
+  T2_TextNormalizer_WordTokenizer: Vec<Text>
+  temp_T1_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+  temp_T1_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-1073741823>>
+  temp_T2_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+  temp_T2_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-1073741823>>
+---- NgramHashTransform ----
+11 columns:
+  T1: Text
+  T2: Text
+  T1_TextNormalizer: Text
+  T2_TextNormalizer: Text
+  T1_TextNormalizer_WordTokenizer: Vec<Text>
+  T2_TextNormalizer_WordTokenizer: Vec<Text>
+  temp_T1_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+  temp_T1_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-1073741823>>
+  temp_T2_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+  temp_T2_TextNormalizer_WordTokenizer_000: Vec<Key<U4, 0-1073741823>>
+  Features_WordExtractor: Vec<R4, 32>
+---- DropColumnsTransform ----
+7 columns:
+  T1: Text
+  T2: Text
+  T1_TextNormalizer: Text
+  T2_TextNormalizer: Text
+  T1_TextNormalizer_WordTokenizer: Vec<Text>
+  T2_TextNormalizer_WordTokenizer: Vec<Text>
+  Features_WordExtractor: Vec<R4, 32>
+---- RowToRowMapperTransform ----
+8 columns:
+  T1: Text
+  T2: Text
+  T1_TextNormalizer: Text
+  T2_TextNormalizer: Text
+  T1_TextNormalizer_WordTokenizer: Vec<Text>
+  T2_TextNormalizer_WordTokenizer: Vec<Text>
+  Features_WordExtractor: Vec<R4, 32>
+  Features: Vec<R4, 32>
+---- DropColumnsTransform ----
+3 columns:
+  T1: Text
+  T2: Text
+  Features: Vec<R4, 32>
+---- SelectColumnsDataTransform ----
+1 columns:
+  Features: Vec<R4, 32>

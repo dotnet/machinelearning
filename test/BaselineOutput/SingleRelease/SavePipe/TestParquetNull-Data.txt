@@ -1,0 +1,9 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=foo:I4:0
+#@   col=bar:I4:1
+#@ }
+foo	bar
+1	2
+1	

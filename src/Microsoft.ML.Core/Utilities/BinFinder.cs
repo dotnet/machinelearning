@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
-    public abstract class BinFinderBase
+    [BestFriend]
+    internal abstract class BinFinderBase
     {
         private Single[] _valuesSng; // distinct values
         private Double[] _valuesDbl; // distinct values
@@ -272,17 +272,18 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     }
 }
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // This needs to be large enough to represent a product of 2 ints without losing precision
     using EnergyType = System.Int64;
 
     // Uses the energy function: sum(1,N) dx^2 where dx is the difference in accum values.
-    public sealed class GreedyBinFinder : BinFinderBase
+    [BestFriend]
+    internal sealed class GreedyBinFinder : BinFinderBase
     {
         // Potential drop location for another peg, together with its energy improvement.
         // PlacePegs uses a heap of these. Note that this is a struct so size matters.
-        private struct Segment
+        private readonly struct Segment
         {
             public readonly int Min;
             public readonly int Split;
@@ -523,13 +524,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     }
 }
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // Reasonable choices are Double and System.Int64.
     using EnergyType = System.Double;
 
     // Uses dynamic programming.
-    public sealed class DynamicBinFinder : BinFinderBase
+    [BestFriend]
+    internal sealed class DynamicBinFinder : BinFinderBase
     {
         private int[] _accum; // integral of counts
 
