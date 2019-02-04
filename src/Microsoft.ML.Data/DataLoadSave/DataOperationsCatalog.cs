@@ -48,9 +48,12 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Filter the dataset by the values of a numeric column.
+        /// </summary>
+        /// <remarks>
         /// Keep only those rows that satisfy the range condition: the value of column <paramref name="columnName"/>
         /// must be between <paramref name="lowerBound"/> (inclusive) and <paramref name="upperBound"/> (exclusive).
-        /// </summary>
+        /// </remarks>
         /// <param name="input">The input data.</param>
         /// <param name="columnName">The name of a column to use for filtering.</param>
         /// <param name="lowerBound">The inclusive lower bound.</param>
@@ -75,11 +78,14 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Filter the dataset by the values of a <see cref="KeyType"/> column.
+        /// </summary>
+        /// <remarks>
         /// Keep only those rows that satisfy the range condition: the value of a key column <paramref name="columnName"/>
         /// (treated as a fraction of the entire key range) must be between <paramref name="lowerBound"/> (inclusive) and <paramref name="upperBound"/> (exclusive).
         /// This filtering is useful if the <paramref name="columnName"/> is a key column obtained by some 'stable randomization',
         /// for example, hashing.
-        /// </summary>
+        /// </remarks>
         /// <param name="input">The input data.</param>
         /// <param name="columnName">The name of a column to use for filtering.</param>
         /// <param name="lowerBound">The inclusive lower bound.</param>
