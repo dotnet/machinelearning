@@ -17,7 +17,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Text;
 
-[assembly: LoadableClass(TokenizingByCharactersTransformer.Summary, typeof(IDataTransform), typeof(TokenizingByCharactersTransformer), typeof(TokenizingByCharactersTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(TokenizingByCharactersTransformer.Summary, typeof(IDataTransform), typeof(TokenizingByCharactersTransformer), typeof(TokenizingByCharactersTransformer.Options), typeof(SignatureDataTransform),
     TokenizingByCharactersTransformer.UserName, "CharTokenize", TokenizingByCharactersTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(IDataTransform), typeof(TokenizingByCharactersTransformer), null, typeof(SignatureLoadDataTransform),
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public TokenizingByCharactersTransformer(IHostEnvironment env, bool useMarkerCharacters = TokenizingByCharactersEstimator.Defaults.UseMarkerCharacters,
+        internal TokenizingByCharactersTransformer(IHostEnvironment env, bool useMarkerCharacters = TokenizingByCharactersEstimator.Defaults.UseMarkerCharacters,
             params (string outputColumnName, string inputColumnName)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
@@ -161,20 +161,20 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = new (string outputColumnName, string inputColumnName)[args.Columns.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new (string outputColumnName, string inputColumnName)[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Columns[i];
+                var item = options.Columns[i];
                 cols[i] = (item.Name, item.Source ?? item.Name);
             }
-            return new TokenizingByCharactersTransformer(env, args.UseMarkerChars, cols).MakeDataTransform(input);
+            return new TokenizingByCharactersTransformer(env, options.UseMarkerChars, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public TokenizingByCharactersEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
+        internal TokenizingByCharactersEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             bool useMarkerCharacters = Defaults.UseMarkerCharacters)
             : this(env, useMarkerCharacters, new[] { (outputColumnName, inputColumnName ?? outputColumnName) })
         {
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
-        public TokenizingByCharactersEstimator(IHostEnvironment env, bool useMarkerCharacters = Defaults.UseMarkerCharacters,
+        internal TokenizingByCharactersEstimator(IHostEnvironment env, bool useMarkerCharacters = Defaults.UseMarkerCharacters,
             params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TokenizingByCharactersEstimator)), new TokenizingByCharactersTransformer(env, useMarkerCharacters, columns))
         {

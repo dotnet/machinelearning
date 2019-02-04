@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = TokenizingByCharactersTransformer.Summary,
             UserName = TokenizingByCharactersTransformer.UserName,
             ShortName = TokenizingByCharactersTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, TokenizingByCharactersTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, TokenizingByCharactersTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
