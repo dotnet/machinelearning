@@ -325,9 +325,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotFullFramework))] // Tracked by https://github.com/dotnet/machinelearning/issues/2104
+        [Fact]
         public void TestWhiteningCommandLine()
         {
+            MLContext env = new MLContext();
+            IHostEnvironment environment = env;
+            environment.ComponentCatalog.RegisterAssembly(typeof(VectorWhiteningTransformer).Assembly);
+
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
         }
 

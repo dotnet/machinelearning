@@ -136,6 +136,9 @@ namespace Microsoft.ML.Tests
         void TestCommandLine()
         {
             var env = new MLContext();
+            IHostEnvironment environment = env;
+            environment.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
+
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }), (int)0);
         }
 
