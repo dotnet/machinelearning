@@ -1,81 +1,81 @@
 ﻿using System;
-using System.Linq;
-using Microsoft.Data.DataView;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class BootstrapSample
+    public static class BootstrapSample
     {
         public static void Example()
         {
-            // Downloading the dataset from github.com/dotnet/machinelearning.
-            // This will create a housing.txt file in the filesystem.
-            // You can open this file, if you want to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
-
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(
-                columns: new[]
-                    {
-                        new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
-                        new TextLoader.Column("CrimesPerCapita", DataKind.R4, 1),
-                        new TextLoader.Column("PercentResidental", DataKind.R4, 2),
-                        new TextLoader.Column("PercentNonRetail", DataKind.R4, 3),
-                        new TextLoader.Column("CharlesRiver", DataKind.R4, 4),
-                        new TextLoader.Column("NitricOxides", DataKind.R4, 5),
-                        new TextLoader.Column("RoomsPerDwelling", DataKind.R4, 6),
-                        new TextLoader.Column("PercentPre40s", DataKind.R4, 7),
-                        new TextLoader.Column("EmploymentDistance", DataKind.R4, 8),
-                        new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
-                        new TextLoader.Column("TaxRate", DataKind.R4, 10),
-                        new TextLoader.Column("TeacherRatio", DataKind.R4, 11),
-                    },
-                hasHeader: true
-            );
-            
-            // Read the data
-            var data = reader.Read(dataFile);
+            // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
+            IEnumerable<SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample> enumerableOfData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(5);
+            var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
 
-            // Create a training set by taking a bootstrap sample. The sample has about the same number of rows as the input dataset
-            // (it's an approximate streaming bootstrap), but will only use about 63% unique rows per sample (i.e. 1-e^-1).
-            var train = mlContext.Data.BootstrapSample(data, seed: 632);
-            // And create a training set consisting of the complementary set of rows unused above by using the complement parameter
-            // with the same seed as before.
-            var test = mlContext.Data.BootstrapSample(data, complement: true, seed: 632);
-
-            // Create a learning pipeline
-            var labelName = "MedianHomeValue";
-            var featuresName = "Features";
-            var featureNames = data.Schema
-                .Select(column => column.Name) // Get the column names
-                .Where(name => name != labelName) // Drop the Label
-                .ToArray();
-            var pipeline = mlContext.Transforms.Concatenate(featuresName, featureNames)
-                    .Append(mlContext.Transforms.Normalize(Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance))
-                    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: labelName, featureColumn: featuresName));
-
-            // Train it
-            var model = pipeline.Fit(train);
-
-            // Score it
-            var scoredTrain = model.Transform(train);
-            var scoredTest = model.Transform(test);
-
-            // Evaluate the results
-            var trainEval = mlContext.Regression.Evaluate(scoredTrain, label: labelName);
-            var testEval = mlContext.Regression.Evaluate(scoredTest, label: labelName);
-
-            Console.WriteLine($"Train RMS: {trainEval.Rms:0.00} Test RMS: {testEval.Rms:0.00}");
-
+            // Look at the original dataset
+            Console.WriteLine($"Label\tFeatures[0]");
+            foreach (var row in enumerableOfData)
+            {
+                Console.WriteLine($"{row.Label}\t{row.Features[0]}");
+            }
+            Console.WriteLine();
             // Expected output:
-            //  Train RMS: 17.57 Test RMS: 17.73
+            //  Label Features[0]
+            //  True    1.017325
+            //  False   0.6326591
+            //  False   0.0326252
+            //  True    0.8426974
+            //  True    0.9947656
 
-            // Exercise: Try to tune the learner hyperparameters to minimize the root mean squared loss.
+            // Now take a bootstrap sample of this dataset to create a new dataset. The bootstrap is a resampling technique that
+            // creates a training set of the same size by picking with replacement from the original dataset. With the bootstrap, 
+            // we expect that the resampled dataset will have about 63% of the rows of the original dataset (i.e. 1-e^-1), with some
+            // rows represented more than once.
+            // BootstrapSample is a streaming implementation of the boostrap that enables sampling from a dataset too large to hold in memory.
+            // To enable streaming, BootstrapSample approximates the bootstrap by sampling each row according to a Poisson(1) distribution and
+            // then shuffling the results. Note that this streaming approximation treats each row independently, thus the resampled dataset is
+            // not guaranteed to be the exact same length as the input dataset.
+            // Let's take a look at the behavior of the BootstrapSample by examining a few draws:
+            for (int i = 0; i < 3; i++)
+            {
+                var resample = mlContext.Data.BootstrapSample(data, seed: (uint) i);
+
+                var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample>(resample, reuseRowObject: false);
+                Console.WriteLine($"Label\tFeatures[0]");
+                foreach (var row in enumerable)
+                {
+                    Console.WriteLine($"{row.Label}\t{row.Features[0]}");
+                }
+                Console.WriteLine();
+            }
+            // Expected output:
+            //  Label Features[0]
+            //  True    1.017325
+            //  False   0.0326252
+            //  True    0.8426974
+            //
+            //  Label Features[0]
+            //  False   0.6326591
+            //  True    0.8426974
+            //  True    0.8426974
+            //  True    1.017325
+            //  True    0.8426974
+            //  True    0.9947656
+            //  False   0.0326252
+            //  True    0.9947656
+            //
+            //  Label Features[0]
+            //  True    1.017325
+            //  True    0.9947656
+            //  False   0.0326252
+            //  False   0.0326252
+            //  False   0.0326252
+            //  True    0.8426974
+            //  False   0.6326591
         }
     }
 }
