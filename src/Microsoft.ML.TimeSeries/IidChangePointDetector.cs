@@ -14,7 +14,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
-using static Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(IidChangePointDetector.Summary, typeof(IDataTransform), typeof(IidChangePointDetector), typeof(IidChangePointDetector.Arguments), typeof(SignatureDataTransform),
     IidChangePointDetector.UserName, IidChangePointDetector.LoaderSignature, IidChangePointDetector.ShortName)]
@@ -33,7 +32,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// This class implements the change point detector transform for an i.i.d. sequence based on adaptive kernel density estimation and martingales.
     /// </summary>
-    public sealed class IidChangePointDetector : IidAnomalyDetectionBase
+    public sealed class IidChangePointDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer, ICanSaveModel
     {
         internal const string Summary = "This transform detects the change-points in an i.i.d. sequence using adaptive kernel density estimation and martingales.";
         internal const string LoaderSignature = "IidChangePointDetector";
@@ -59,7 +58,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public double Confidence = 95;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The martingale used for scoring.", ShortName = "mart", SortOrder = 103)]
-            public MartingaleType Martingale = SequentialAnomalyDetectionTransformBase<float, State>.MartingaleType.Power;
+            public MartingaleType Martingale = MartingaleType.Power;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The epsilon parameter for the Power martingale.",
                 ShortName = "eps", SortOrder = 104)]
@@ -72,23 +71,23 @@ namespace Microsoft.ML.TimeSeriesProcessing
             {
                 Source = args.Source;
                 Name = args.Name;
-                Side = SequentialAnomalyDetectionTransformBase<float, State>.AnomalySide.TwoSided;
+                Side = AnomalySide.TwoSided;
                 WindowSize = args.ChangeHistoryLength;
                 Martingale = args.Martingale;
                 PowerMartingaleEpsilon = args.PowerMartingaleEpsilon;
-                AlertOn = SequentialAnomalyDetectionTransformBase<float, State>.AlertingScore.MartingaleScore;
+                AlertOn = AlertingScore.MartingaleScore;
             }
 
             public BaseArguments(IidChangePointDetector transform)
             {
-                Source = transform.InputColumnName;
-                Name = transform.OutputColumnName;
+                Source = transform.Base.InputColumnName;
+                Name = transform.Base.OutputColumnName;
                 Side = AnomalySide.TwoSided;
-                WindowSize = transform.WindowSize;
-                Martingale = transform.Martingale;
-                PowerMartingaleEpsilon = transform.PowerMartingaleEpsilon;
+                WindowSize = transform.Base.WindowSize;
+                Martingale = transform.Base.Martingale;
+                PowerMartingaleEpsilon = transform.Base.PowerMartingaleEpsilon;
                 AlertOn = AlertingScore.MartingaleScore;
-                AlertThreshold = transform.AlertThreshold;
+                AlertThreshold = transform.Base.AlertThreshold;
             }
         }
 
@@ -112,30 +111,30 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return new IidChangePointDetector(env, args).MakeDataTransform(input);
         }
 
-        internal override IStatefulTransformer Clone()
+        IStatefulTransformer IStatefulTransformer.Clone()
         {
             var clone = (IidChangePointDetector)MemberwiseClone();
-            clone.StateRef = (State)clone.StateRef.Clone();
-            clone.StateRef.InitState(clone, Host);
+            clone.Base.StateRef = (IidAnomalyDetectionBase.State)clone.Base.StateRef.Clone();
+            clone.Base.StateRef.InitState(clone.Base, Base.Host);
             return clone;
         }
 
         internal IidChangePointDetector(IHostEnvironment env, Arguments args)
             : base(new BaseArguments(args), LoaderSignature, env)
         {
-            switch (Martingale)
+            switch (Base.Martingale)
             {
                 case MartingaleType.None:
-                    AlertThreshold = Double.MaxValue;
+                    Base.AlertThreshold = Double.MaxValue;
                     break;
                 case MartingaleType.Power:
-                    AlertThreshold = Math.Exp(WindowSize * LogPowerMartigaleBettingFunc(1 - args.Confidence / 100, PowerMartingaleEpsilon));
+                    Base.AlertThreshold = Math.Exp(Base.WindowSize * Base.LogPowerMartigaleBettingFunc(1 - args.Confidence / 100, Base.PowerMartingaleEpsilon));
                     break;
                 case MartingaleType.Mixture:
-                    AlertThreshold = Math.Exp(WindowSize * LogMixtureMartigaleBettingFunc(1 - args.Confidence / 100));
+                    Base.AlertThreshold = Math.Exp(Base.WindowSize * Base.LogMixtureMartigaleBettingFunc(1 - args.Confidence / 100));
                     break;
                 default:
-                    throw Host.ExceptParam(nameof(args.Martingale),
+                    throw Base.Host.ExceptParam(nameof(args.Martingale),
                         "The martingale type can be only (0) None, (1) Power or (2) Mixture.");
             }
         }
@@ -166,8 +165,8 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            Host.CheckDecode(ThresholdScore == AlertingScore.MartingaleScore);
-            Host.CheckDecode(Side == AnomalySide.TwoSided);
+            Base.Host.CheckDecode(Base.ThresholdScore == AlertingScore.MartingaleScore);
+            Base.Host.CheckDecode(Base.Side == AnomalySide.TwoSided);
         }
 
         private IidChangePointDetector(IHostEnvironment env, IidChangePointDetector transform)
@@ -177,12 +176,12 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            Base.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Host.Assert(ThresholdScore == AlertingScore.MartingaleScore);
-            Host.Assert(Side == AnomalySide.TwoSided);
+            Base.Host.Assert(Base.ThresholdScore == AlertingScore.MartingaleScore);
+            Base.Host.Assert(Base.Side == AnomalySide.TwoSided);
 
             // *** Binary format ***
             // <base>
@@ -244,18 +243,18 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryFindColumn(Transformer.InputColumnName, out var col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName);
+            if (!inputSchema.TryFindColumn(Transformer.Base.InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.Base.InputColumnName);
             if (col.ItemType != NumberType.R4)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName, "float", col.GetTypeString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.Base.InputColumnName, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
 
-            resultDic[Transformer.OutputColumnName] = new SchemaShape.Column(
-                Transformer.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+            resultDic[Transformer.Base.OutputColumnName] = new SchemaShape.Column(
+                Transformer.Base.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

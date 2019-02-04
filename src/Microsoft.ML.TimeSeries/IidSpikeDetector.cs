@@ -13,7 +13,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
-using static Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(IidSpikeDetector.Summary, typeof(IDataTransform), typeof(IidSpikeDetector), typeof(IidSpikeDetector.Arguments), typeof(SignatureDataTransform),
     IidSpikeDetector.UserName, IidSpikeDetector.LoaderSignature, IidSpikeDetector.ShortName)]
@@ -32,7 +31,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// This class implements the spike detector transform for an i.i.d. sequence based on adaptive kernel density estimation.
     /// </summary>
-    public sealed class IidSpikeDetector : IidAnomalyDetectionBase
+    public sealed class IidSpikeDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
         internal const string Summary = "This transform detects the spikes in a i.i.d. sequence using adaptive kernel density estimation.";
         internal const string LoaderSignature = "IidSpikeDetector";
@@ -71,17 +70,17 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 Side = args.Side;
                 WindowSize = args.PvalueHistoryLength;
                 AlertThreshold = 1 - args.Confidence / 100;
-                AlertOn = SequentialAnomalyDetectionTransformBase<float, State>.AlertingScore.PValueScore;
+                AlertOn = AlertingScore.PValueScore;
                 Martingale = MartingaleType.None;
             }
 
             public BaseArguments(IidSpikeDetector transform)
             {
-                Source = transform.InputColumnName;
-                Name = transform.OutputColumnName;
-                Side = transform.Side;
-                WindowSize = transform.WindowSize;
-                AlertThreshold = transform.AlertThreshold;
+                Source = transform.Base.InputColumnName;
+                Name = transform.Base.OutputColumnName;
+                Side = transform.Base.Side;
+                WindowSize = transform.Base.WindowSize;
+                AlertThreshold = transform.Base.AlertThreshold;
                 AlertOn = AlertingScore.PValueScore;
                 Martingale = MartingaleType.None;
             }
@@ -108,11 +107,11 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return new IidSpikeDetector(env, args).MakeDataTransform(input);
         }
 
-        internal override IStatefulTransformer Clone()
+        IStatefulTransformer IStatefulTransformer.Clone()
         {
             var clone = (IidSpikeDetector)MemberwiseClone();
-            clone.StateRef = (State)clone.StateRef.Clone();
-            clone.StateRef.InitState(clone, Host);
+            clone.Base.StateRef = (IidAnomalyDetectionBase.State)clone.Base.StateRef.Clone();
+            clone.Base.StateRef.InitState(clone.Base, Base.Host);
             return clone;
         }
 
@@ -148,7 +147,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            Host.CheckDecode(ThresholdScore == AlertingScore.PValueScore);
+            Base.Host.CheckDecode(Base.ThresholdScore == AlertingScore.PValueScore);
         }
         private IidSpikeDetector(IHostEnvironment env, IidSpikeDetector transform)
            : base(new BaseArguments(transform), LoaderSignature, env)
@@ -157,11 +156,11 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            Base.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Host.Assert(ThresholdScore == AlertingScore.PValueScore);
+            Base.Host.Assert(Base.ThresholdScore == AlertingScore.PValueScore);
 
             // *** Binary format ***
             // <base>
@@ -219,17 +218,17 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryFindColumn(Transformer.InputColumnName, out var col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName);
+            if (!inputSchema.TryFindColumn(Transformer.Base.InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.Base.InputColumnName);
             if (col.ItemType != NumberType.R4)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName, "float", col.GetTypeString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.Base.InputColumnName, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            resultDic[Transformer.OutputColumnName] = new SchemaShape.Column(
-                Transformer.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+            resultDic[Transformer.Base.OutputColumnName] = new SchemaShape.Column(
+                Transformer.Base.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

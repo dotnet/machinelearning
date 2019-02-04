@@ -81,12 +81,26 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
     }
 
-    /// <summary>
-    /// This base class that implements the general anomaly detection transform based on Singular Spectrum modeling of the time-series.
-    /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
-    /// </summary>
-    public abstract class SsaAnomalyDetectionBase : SequentialAnomalyDetectionTransformBase<Single, SsaAnomalyDetectionBase.State>
+    public class SsaAnomalyDetectionBaseWrapper : IStatefulTransformer, ICanSaveModel
     {
+        public bool IsRowToRowMapper => Base.IsRowToRowMapper;
+
+        IStatefulTransformer IStatefulTransformer.Clone() => Base.Clone();
+
+        public Schema GetOutputSchema(Schema inputSchema) => Base.GetOutputSchema(inputSchema);
+
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => Base.GetRowToRowMapper(inputSchema);
+
+        public IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema) => ((IStatefulTransformer)Base).GetStatefulRowToRowMapper(inputSchema);
+
+        public IDataView Transform(IDataView input) => Base.Transform(input);
+
+        public virtual void Save(ModelSaveContext ctx) => Base.SaveThis(ctx);
+
+        internal IStatefulRowMapper MakeRowMapper(Schema schema) => Base.MakeRowMapper(schema);
+
+        internal IDataTransform MakeDataTransform(IDataView input) => Base.MakeDataTransform(input);
+
         public abstract class SsaArguments : ArgumentsBase
         {
             [Argument(ArgumentType.Required, HelpText = "The inner window size for SSA in [2, windowSize]", ShortName = "swnd", SortOrder = 11)]
@@ -102,172 +116,192 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public bool IsAdaptive = false;
         }
 
-        protected readonly int SeasonalWindowSize;
-        protected readonly Single DiscountFactor;
-        protected readonly bool IsAdaptive;
-        protected readonly ErrorFunction ErrorFunction;
-        protected readonly Func<Double, Double, Double> ErrorFunc;
-        protected SequenceModelerBase<Single, Single> Model;
+        internal SsaAnomalyDetectionBase Base;
 
-        public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env)
-            : base(args.WindowSize, 0, args.Source, args.Name, name, env, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
+        public SsaAnomalyDetectionBaseWrapper(SsaArguments args, string name, IHostEnvironment env) { Base = new SsaAnomalyDetectionBase(args, name, env, this); }
+
+        public SsaAnomalyDetectionBaseWrapper(IHostEnvironment env, ModelLoadContext ctx, string name) { Base = new SsaAnomalyDetectionBase(env, ctx, name); }
+
+        /// <summary>
+        /// This base class that implements the general anomaly detection transform based on Singular Spectrum modeling of the time-series.
+        /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
+        /// </summary>
+        internal sealed class SsaAnomalyDetectionBase : SequentialAnomalyDetectionTransformBase<float, SsaAnomalyDetectionBase.State>
         {
-            Host.CheckUserArg(2 <= args.SeasonalWindowSize, nameof(args.SeasonalWindowSize), "Must be at least 2.");
-            Host.CheckUserArg(0 <= args.DiscountFactor && args.DiscountFactor <= 1, nameof(args.DiscountFactor), "Must be in the range [0, 1].");
-            Host.CheckUserArg(Enum.IsDefined(typeof(ErrorFunction), args.ErrorFunction), nameof(args.ErrorFunction), ErrorFunctionUtils.ErrorFunctionHelpText);
+            internal SsaAnomalyDetectionBaseWrapper Parent;
+            internal readonly int SeasonalWindowSize;
+            internal readonly Single DiscountFactor;
+            internal readonly bool IsAdaptive;
+            internal readonly ErrorFunction ErrorFunction;
+            internal readonly Func<Double, Double, Double> ErrorFunc;
+            internal SequenceModelerBase<Single, Single> Model;
 
-            SeasonalWindowSize = args.SeasonalWindowSize;
-            DiscountFactor = args.DiscountFactor;
-            ErrorFunction = args.ErrorFunction;
-            ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
-            IsAdaptive = args.IsAdaptive;
-            // Creating the master SSA model
-            Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
-                DiscountFactor, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
-
-            StateRef = new State();
-            StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
-        }
-
-        public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
-            : base(env, ctx, name)
-        {
-            // *** Binary format ***
-            // <base>
-            // int: _seasonalWindowSize
-            // float: _discountFactor
-            // byte: _errorFunction
-            // bool: _isAdaptive
-            // AdaptiveSingularSpectrumSequenceModeler: _model
-
-            Host.CheckDecode(InitialWindowSize == 0);
-
-            SeasonalWindowSize = ctx.Reader.ReadInt32();
-            Host.CheckDecode(2 <= SeasonalWindowSize);
-
-            DiscountFactor = ctx.Reader.ReadSingle();
-            Host.CheckDecode(0 <= DiscountFactor && DiscountFactor <= 1);
-
-            byte temp;
-            temp = ctx.Reader.ReadByte();
-            Host.CheckDecode(Enum.IsDefined(typeof(ErrorFunction), temp));
-            ErrorFunction = (ErrorFunction)temp;
-            ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
-
-            IsAdaptive = ctx.Reader.ReadBoolean();
-            StateRef = new State(ctx.Reader);
-
-            ctx.LoadModel<SequenceModelerBase<Single, Single>, SignatureLoadModel>(env, out Model, "SSA");
-            Host.CheckDecode(Model != null);
-            StateRef.InitState(this, Host);
-        }
-
-        public override Schema GetOutputSchema(Schema inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-
-            if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
-
-            var colType = inputSchema[col].Type;
-            if (colType != NumberType.R4)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "float", colType.ToString());
-
-            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
-        }
-
-        private protected override void SaveModel(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-
-            Host.Assert(InitialWindowSize == 0);
-            Host.Assert(2 <= SeasonalWindowSize);
-            Host.Assert(0 <= DiscountFactor && DiscountFactor <= 1);
-            Host.Assert(Enum.IsDefined(typeof(ErrorFunction), ErrorFunction));
-            Host.Assert(Model != null);
-
-            // *** Binary format ***
-            // <base>
-            // int: _seasonalWindowSize
-            // float: _discountFactor
-            // byte: _errorFunction
-            // bool: _isAdaptive
-            // State: StateRef
-            // AdaptiveSingularSpectrumSequenceModeler: _model
-
-            base.SaveModel(ctx);
-            ctx.Writer.Write(SeasonalWindowSize);
-            ctx.Writer.Write(DiscountFactor);
-            ctx.Writer.Write((byte)ErrorFunction);
-            ctx.Writer.Write(IsAdaptive);
-            StateRef.Save(ctx.Writer);
-
-            ctx.SaveModel(Model, "SSA");
-        }
-
-        public sealed class State : AnomalyDetectionStateBase
-        {
-            private SequenceModelerBase<Single, Single> _model;
-            private SsaAnomalyDetectionBase _parentAnomalyDetector;
-
-            public State()
+            public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env, SsaAnomalyDetectionBaseWrapper parent)
+                : base(args.WindowSize, 0, args.Source, args.Name, name, env, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
             {
+                Host.CheckUserArg(2 <= args.SeasonalWindowSize, nameof(args.SeasonalWindowSize), "Must be at least 2.");
+                Host.CheckUserArg(0 <= args.DiscountFactor && args.DiscountFactor <= 1, nameof(args.DiscountFactor), "Must be in the range [0, 1].");
+                Host.CheckUserArg(Enum.IsDefined(typeof(ErrorFunction), args.ErrorFunction), nameof(args.ErrorFunction), ErrorFunctionUtils.ErrorFunctionHelpText);
+
+                SeasonalWindowSize = args.SeasonalWindowSize;
+                DiscountFactor = args.DiscountFactor;
+                ErrorFunction = args.ErrorFunction;
+                ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
+                IsAdaptive = args.IsAdaptive;
+                // Creating the master SSA model
+                Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
+                    DiscountFactor, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
+
+                StateRef = new State();
+                StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
+                Parent = parent;
             }
 
-            internal State(BinaryReader reader) : base(reader)
+            public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
+                : base(env, ctx, name)
             {
-                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
-                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                // *** Binary format ***
+                // <base>
+                // int: _seasonalWindowSize
+                // float: _discountFactor
+                // byte: _errorFunction
+                // bool: _isAdaptive
+                // AdaptiveSingularSpectrumSequenceModeler: _model
+
+                Host.CheckDecode(InitialWindowSize == 0);
+
+                SeasonalWindowSize = ctx.Reader.ReadInt32();
+                Host.CheckDecode(2 <= SeasonalWindowSize);
+
+                DiscountFactor = ctx.Reader.ReadSingle();
+                Host.CheckDecode(0 <= DiscountFactor && DiscountFactor <= 1);
+
+                byte temp;
+                temp = ctx.Reader.ReadByte();
+                Host.CheckDecode(Enum.IsDefined(typeof(ErrorFunction), temp));
+                ErrorFunction = (ErrorFunction)temp;
+                ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
+
+                IsAdaptive = ctx.Reader.ReadBoolean();
+                StateRef = new State(ctx.Reader);
+
+                ctx.LoadModel<SequenceModelerBase<Single, Single>, SignatureLoadModel>(env, out Model, "SSA");
+                Host.CheckDecode(Model != null);
+                StateRef.InitState(this, Host);
             }
 
-            internal override void Save(BinaryWriter writer)
+            public override Schema GetOutputSchema(Schema inputSchema)
             {
-                base.Save(writer);
-                TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, writer);
-                TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, writer);
+                Host.CheckValue(inputSchema, nameof(inputSchema));
+
+                if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
+
+                var colType = inputSchema[col].Type;
+                if (colType != NumberType.R4)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "float", colType.ToString());
+
+                return Transform(new EmptyDataView(Host, inputSchema)).Schema;
             }
 
-            private protected override void CloneCore(StateBase state)
+            private protected override void SaveModel(ModelSaveContext ctx)
             {
-                base.CloneCore(state);
-                Contracts.Assert(state is State);
-                var stateLocal = state as State;
-                stateLocal.WindowedBuffer = WindowedBuffer.Clone();
-                stateLocal.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
-                if (_model != null)
+                Parent.SaveModel(ctx);
+            }
+
+            internal void SaveThis(ModelSaveContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+                ctx.CheckAtModel();
+
+                Host.Assert(InitialWindowSize == 0);
+                Host.Assert(2 <= SeasonalWindowSize);
+                Host.Assert(0 <= DiscountFactor && DiscountFactor <= 1);
+                Host.Assert(Enum.IsDefined(typeof(ErrorFunction), ErrorFunction));
+                Host.Assert(Model != null);
+
+                // *** Binary format ***
+                // <base>
+                // int: _seasonalWindowSize
+                // float: _discountFactor
+                // byte: _errorFunction
+                // bool: _isAdaptive
+                // State: StateRef
+                // AdaptiveSingularSpectrumSequenceModeler: _model
+
+                base.SaveModel(ctx);
+                ctx.Writer.Write(SeasonalWindowSize);
+                ctx.Writer.Write(DiscountFactor);
+                ctx.Writer.Write((byte)ErrorFunction);
+                ctx.Writer.Write(IsAdaptive);
+                StateRef.Save(ctx.Writer);
+
+                ctx.SaveModel(Model, "SSA");
+            }
+
+            internal sealed class State : AnomalyDetectionStateBase
+            {
+                private SequenceModelerBase<Single, Single> _model;
+                private SsaAnomalyDetectionBase _parentAnomalyDetector;
+
+                public State()
                 {
-                    _parentAnomalyDetector.Model = _parentAnomalyDetector.Model.Clone();
+                }
+
+                internal State(BinaryReader reader) : base(reader)
+                {
+                    WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                    InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                }
+
+                internal override void Save(BinaryWriter writer)
+                {
+                    base.Save(writer);
+                    TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, writer);
+                    TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, writer);
+                }
+
+                private protected override void CloneCore(State state)
+                {
+                    base.CloneCore(state);
+                    Contracts.Assert(state is State);
+                    var stateLocal = state as State;
+                    stateLocal.WindowedBuffer = WindowedBuffer.Clone();
+                    stateLocal.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
+                    if (_model != null)
+                    {
+                        _parentAnomalyDetector.Model = _parentAnomalyDetector.Model.Clone();
+                        _model = _parentAnomalyDetector.Model;
+                    }
+                }
+
+                private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+                {
+                    // This method is empty because there is no need to implement a training logic here.
+                }
+
+                private protected override void InitializeAnomalyDetector()
+                {
+                    _parentAnomalyDetector = (SsaAnomalyDetectionBase)Parent;
                     _model = _parentAnomalyDetector.Model;
                 }
+
+                private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
+                {
+                    // Get the prediction for the next point opn the series
+                    Single expectedValue = 0;
+                    _model.PredictNext(ref expectedValue);
+
+                    if (PreviousPosition == -1)
+                        // Feed the current point to the model
+                        _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
+
+                    // Return the error as the raw anomaly score
+                    return _parentAnomalyDetector.ErrorFunc(input, expectedValue);
+                }
+
+                public override void Consume(Single input) => _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
             }
-
-            private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
-            {
-                // This method is empty because there is no need to implement a training logic here.
-            }
-
-            private protected override void InitializeAnomalyDetector()
-            {
-                _parentAnomalyDetector = (SsaAnomalyDetectionBase)Parent;
-                _model = _parentAnomalyDetector.Model;
-            }
-
-            private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
-            {
-                // Get the prediction for the next point opn the series
-                Single expectedValue = 0;
-                _model.PredictNext(ref expectedValue);
-
-                if (PreviousPosition == -1)
-                    // Feed the current point to the model
-                    _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
-
-                // Return the error as the raw anomaly score
-                return _parentAnomalyDetector.ErrorFunc(input, expectedValue);
-            }
-
-            public override void Consume(Single input) => _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
         }
     }
 }

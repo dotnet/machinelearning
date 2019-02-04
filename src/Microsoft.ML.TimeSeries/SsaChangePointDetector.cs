@@ -14,7 +14,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
-using static Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(IDataTransform), typeof(SsaChangePointDetector), typeof(SsaChangePointDetector.Arguments), typeof(SignatureDataTransform),
     SsaChangePointDetector.UserName, SsaChangePointDetector.LoaderSignature, SsaChangePointDetector.ShortName)]
@@ -34,7 +33,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// This class implements the change point detector transform based on Singular Spectrum modeling of the time-series.
     /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    public sealed class SsaChangePointDetector : SsaAnomalyDetectionBase
+    public sealed class SsaChangePointDetector : SsaAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
         internal const string Summary = "This transform detects the change-points in a seasonal time-series using Singular Spectrum Analysis (SSA).";
         internal const string LoaderSignature = "SsaChangePointDetector";
@@ -70,7 +69,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public ErrorFunction ErrorFunction = ErrorFunction.SignedDifference;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The martingale used for scoring.", ShortName = "mart", SortOrder = 104)]
-            public MartingaleType Martingale = SequentialAnomalyDetectionTransformBase<float, State>.MartingaleType.Power;
+            public MartingaleType Martingale = MartingaleType.Power;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The epsilon parameter for the Power martingale.",
                 ShortName = "eps", SortOrder = 105)]
@@ -83,13 +82,13 @@ namespace Microsoft.ML.TimeSeriesProcessing
             {
                 Source = args.Source;
                 Name = args.Name;
-                Side = SequentialAnomalyDetectionTransformBase<float, State>.AnomalySide.TwoSided;
+                Side = AnomalySide.TwoSided;
                 WindowSize = args.ChangeHistoryLength;
                 InitialWindowSize = args.TrainingWindowSize;
                 SeasonalWindowSize = args.SeasonalWindowSize;
                 Martingale = args.Martingale;
                 PowerMartingaleEpsilon = args.PowerMartingaleEpsilon;
-                AlertOn = SequentialAnomalyDetectionTransformBase<float, State>.AlertingScore.MartingaleScore;
+                AlertOn = AlertingScore.MartingaleScore;
                 DiscountFactor = 1;
                 IsAdaptive = false;
                 ErrorFunction = args.ErrorFunction;
@@ -109,7 +108,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         internal SsaChangePointDetector(IHostEnvironment env, Arguments args, IDataView input)
             : this(env, args)
         {
-            Model.Train(new RoleMappedData(input, null, InputColumnName));
+            Base.Model.Train(new RoleMappedData(input, null, Base.InputColumnName));
         }
 
         // Factory method for SignatureDataTransform.
@@ -122,32 +121,32 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return new SsaChangePointDetector(env, args, input).MakeDataTransform(input);
         }
 
-        internal override IStatefulTransformer Clone()
+        IStatefulTransformer IStatefulTransformer.Clone()
         {
             var clone = (SsaChangePointDetector)MemberwiseClone();
-            clone.Model = clone.Model.Clone();
-            clone.StateRef = (State)clone.StateRef.Clone();
-            clone.StateRef.InitState(clone, Host);
+            clone.Base.Model = clone.Base.Model.Clone();
+            clone.Base.StateRef = (SsaAnomalyDetectionBase.State)clone.Base.StateRef.Clone();
+            clone.Base.StateRef.InitState(clone.Base, Base.Host);
             return clone;
         }
 
         internal SsaChangePointDetector(IHostEnvironment env, Arguments args)
             : base(new BaseArguments(args), LoaderSignature, env)
         {
-            switch (Martingale)
+            switch (Base.Martingale)
             {
                 case MartingaleType.None:
-                    AlertThreshold = Double.MaxValue;
+                    Base.AlertThreshold = Double.MaxValue;
                     break;
                 case MartingaleType.Power:
-                    AlertThreshold = Math.Exp(WindowSize * LogPowerMartigaleBettingFunc(1 - args.Confidence / 100, PowerMartingaleEpsilon));
+                    Base.AlertThreshold = Math.Exp(Base.WindowSize * Base.LogPowerMartigaleBettingFunc(1 - args.Confidence / 100, Base.PowerMartingaleEpsilon));
                     break;
                 case MartingaleType.Mixture:
-                    AlertThreshold = Math.Exp(WindowSize * LogMixtureMartigaleBettingFunc(1 - args.Confidence / 100));
+                    Base.AlertThreshold = Math.Exp(Base.WindowSize * Base.LogMixtureMartigaleBettingFunc(1 - args.Confidence / 100));
                     break;
                 default:
-                    Host.Assert(!Enum.IsDefined(typeof(MartingaleType), Martingale));
-                    throw Host.ExceptUserArg(nameof(args.Martingale), "Value not defined.");
+                    Base.Host.Assert(!Enum.IsDefined(typeof(MartingaleType), Base.Martingale));
+                    throw Base.Host.ExceptUserArg(nameof(args.Martingale), "Value not defined.");
             }
         }
 
@@ -177,22 +176,22 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            Host.CheckDecode(ThresholdScore == AlertingScore.MartingaleScore);
-            Host.CheckDecode(Side == AnomalySide.TwoSided);
-            Host.CheckDecode(DiscountFactor == 1);
-            Host.CheckDecode(IsAdaptive == false);
+            Base.Host.CheckDecode(Base.ThresholdScore == AlertingScore.MartingaleScore);
+            Base.Host.CheckDecode(Base.Side == AnomalySide.TwoSided);
+            Base.Host.CheckDecode(Base.DiscountFactor == 1);
+            Base.Host.CheckDecode(Base.IsAdaptive == false);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            Base.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Host.Assert(ThresholdScore == AlertingScore.MartingaleScore);
-            Host.Assert(Side == AnomalySide.TwoSided);
-            Host.Assert(DiscountFactor == 1);
-            Host.Assert(IsAdaptive == false);
+            Base.Host.Assert(Base.ThresholdScore == AlertingScore.MartingaleScore);
+            Base.Host.Assert(Base.Side == AnomalySide.TwoSided);
+            Base.Host.Assert(Base.DiscountFactor == 1);
+            Base.Host.Assert(Base.IsAdaptive == false);
 
             // *** Binary format ***
             // <base>

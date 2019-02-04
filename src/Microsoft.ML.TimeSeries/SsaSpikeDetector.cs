@@ -13,7 +13,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
-using static Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Arguments), typeof(SignatureDataTransform),
     SsaSpikeDetector.UserName, SsaSpikeDetector.LoaderSignature, SsaSpikeDetector.ShortName)]
@@ -33,7 +32,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// This class implements the spike detector transform based on Singular Spectrum modeling of the time-series.
     /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    public sealed class SsaSpikeDetector : SsaAnomalyDetectionBase
+    public sealed class SsaSpikeDetector : SsaAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
         internal const string Summary = "This transform detects the spikes in a seasonal time-series using Singular Spectrum Analysis (SSA).";
         internal const string LoaderSignature = "SsaSpikeDetector";
@@ -84,7 +83,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 InitialWindowSize = args.TrainingWindowSize;
                 SeasonalWindowSize = args.SeasonalWindowSize;
                 AlertThreshold = 1 - args.Confidence / 100;
-                AlertOn = SequentialAnomalyDetectionTransformBase<float, State>.AlertingScore.PValueScore;
+                AlertOn = AlertingScore.PValueScore;
                 DiscountFactor = 1;
                 IsAdaptive = false;
                 ErrorFunction = args.ErrorFunction;
@@ -106,7 +105,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         internal SsaSpikeDetector(IHostEnvironment env, Arguments args, IDataView input)
             : base(new BaseArguments(args), LoaderSignature, env)
         {
-            Model.Train(new RoleMappedData(input, null, InputColumnName));
+            Base.Model.Train(new RoleMappedData(input, null, Base.InputColumnName));
         }
 
         // Factory method for SignatureDataTransform.
@@ -135,12 +134,12 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return new SsaSpikeDetector(env, ctx).MakeDataTransform(input);
         }
 
-        internal override IStatefulTransformer Clone()
+        IStatefulTransformer IStatefulTransformer.Clone()
         {
             var clone = (SsaSpikeDetector)MemberwiseClone();
-            clone.Model = clone.Model.Clone();
-            clone.StateRef = (State)clone.StateRef.Clone();
-            clone.StateRef.InitState(clone, Host);
+            clone.Base.Model = clone.Base.Model.Clone();
+            clone.Base.StateRef = (SsaAnomalyDetectionBase.State)clone.Base.StateRef.Clone();
+            clone.Base.StateRef.InitState(clone.Base, Base.Host);
             return clone;
         }
 
@@ -160,20 +159,20 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            Host.CheckDecode(ThresholdScore == AlertingScore.PValueScore);
-            Host.CheckDecode(DiscountFactor == 1);
-            Host.CheckDecode(IsAdaptive == false);
+            Base.Host.CheckDecode(Base.ThresholdScore == AlertingScore.PValueScore);
+            Base.Host.CheckDecode(Base.DiscountFactor == 1);
+            Base.Host.CheckDecode(Base.IsAdaptive == false);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            Base.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Host.Assert(ThresholdScore == AlertingScore.PValueScore);
-            Host.Assert(DiscountFactor == 1);
-            Host.Assert(IsAdaptive == false);
+            Base.Host.Assert(Base.ThresholdScore == AlertingScore.PValueScore);
+            Base.Host.Assert(Base.DiscountFactor == 1);
+            Base.Host.Assert(Base.IsAdaptive == false);
 
             // *** Binary format ***
             // <base>
