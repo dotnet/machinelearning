@@ -18,7 +18,7 @@ namespace Microsoft.ML
         public CategoricalTransforms Categorical { get; }
 
         /// <summary>
-        /// The list of operations for rescaling data.
+        /// The list of operations for data type conversion.
         /// </summary>
         public ConversionTransforms Conversion { get; }
 
@@ -71,7 +71,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The catalog of rescaling operations.
+        /// The catalog of type conversion operations.
         /// </summary>
         public sealed class ConversionTransforms : SubCatalogBase
         {
