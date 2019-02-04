@@ -22,7 +22,14 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> ResNet18(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            return ResNet18(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
+#if NETFRAMEWORK
+            // Substring is  removing initial "file:///" from the codebase string.
+            var executingAssemblyLocation = Directory.GetParent(Assembly.GetExecutingAssembly().CodeBase.Substring(8)).FullName;
+
+#else
+            var executingAssemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+#endif
+            return ResNet18(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(executingAssemblyLocation, "DnnImageModels"));
         }
 
         /// <summary>
