@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<int>() { 1, 2, 3, 4 };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
+                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A")
                 }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var t = estimator.Fit(dataView);
 
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<ReadOnlyMemory<char>>() { "a".AsMemory(), "b".AsMemory(), "c".AsMemory(), "d".AsMemory() };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
+                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A")
                 }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var t = estimator.Fit(dataView);
 

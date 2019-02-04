@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = ML.Transforms.Text.WordTokenizingTransformer.Summary,
             UserName = ML.Transforms.Text.WordTokenizingTransformer.UserName,
             ShortName = ML.Transforms.Text.WordTokenizingTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, WordTokenizingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, WordTokenizingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "DelimitedTokenizeTransform", input);
             var xf = ML.Transforms.Text.WordTokenizingTransformer.Create(h, input, input.Data);

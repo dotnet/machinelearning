@@ -328,11 +328,11 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.NeedsWordTokenizationTransform)
             {
-                var xfCols = new WordTokenizingTransformer.ColumnInfo[textCols.Length];
+                var xfCols = new WordTokenizingEstimator.ColumnInfo[textCols.Length];
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new WordTokenizingTransformer.ColumnInfo(GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"), textCols[i]);
+                    var col = new WordTokenizingEstimator.ColumnInfo(GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"), textCols[i]);
                     xfCols[i] = col;
                     wordTokCols[i] = col.Name;
                     tempCols.Add(col.Name);

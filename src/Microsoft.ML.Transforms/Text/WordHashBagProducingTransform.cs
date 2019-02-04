@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms.Text
             var uniqueSourceNames = NgramExtractionUtils.GenerateUniqueSourceNames(h, args.Columns, view.Schema);
             Contracts.Assert(uniqueSourceNames.Length == args.Columns.Length);
 
-            var tokenizeColumns = new List<WordTokenizingTransformer.ColumnInfo>();
+            var tokenizeColumns = new List<WordTokenizingEstimator.ColumnInfo>();
             var extractorCols = new NgramHashExtractingTransformer.Column[args.Columns.Length];
             var colCount = args.Columns.Length;
             List<string> tmpColNames = new List<string>();
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
                 var curTmpNames = new string[srcCount];
                 Contracts.Assert(uniqueSourceNames[iinfo].Length == args.Columns[iinfo].Source.Length);
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                    tokenizeColumns.Add(new WordTokenizingTransformer.ColumnInfo(curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc], args.Columns[iinfo].Source[isrc]));
+                    tokenizeColumns.Add(new WordTokenizingEstimator.ColumnInfo(curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc], args.Columns[iinfo].Source[isrc]));
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =

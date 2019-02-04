@@ -124,7 +124,7 @@ namespace Microsoft.ML.Transforms.Text
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new WordTokenizingTransformer.ColumnInfo[args.Columns.Length];
+            var tokenizeColumns = new WordTokenizingEstimator.ColumnInfo[args.Columns.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Arguments()
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] = new WordTokenizingTransformer.ColumnInfo(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
+                tokenizeColumns[iinfo] = new WordTokenizingEstimator.ColumnInfo(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
 
                 extractorArgs.Columns[iinfo] =
                     new NgramExtractorTransform.Column()

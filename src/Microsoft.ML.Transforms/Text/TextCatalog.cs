@@ -180,7 +180,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
-            params WordTokenizingTransformer.ColumnInfo[] columns)
+            params WordTokenizingEstimator.ColumnInfo[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
