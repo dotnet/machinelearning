@@ -36,9 +36,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // we expect that the resampled dataset will have about 63% of the rows of the original dataset (i.e. 1-e^-1), with some
             // rows represented more than once.
             // BootstrapSample is a streaming implementation of the boostrap that enables sampling from a dataset too large to hold in memory.
-            // To enable streaming, BootstrapSample approximates the bootstrap by sampling each row according to a Poisson(1) distribution and
-            // then shuffling the results. Note that this streaming approximation treats each row independently, thus the resampled dataset is
-            // not guaranteed to be the exact same length as the input dataset.
+            // To enable streaming, BootstrapSample approximates the bootstrap by sampling each row according to a Poisson(1) distribution.
+            // Note that this streaming approximation treats each row independently, thus the resampled dataset is not guaranteed to be the 
+            // same length as the input dataset.
             // Let's take a look at the behavior of the BootstrapSample by examining a few draws:
             for (int i = 0; i < 3; i++)
             {
