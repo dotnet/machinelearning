@@ -25,14 +25,15 @@ namespace Microsoft.ML.Samples.Dynamic
             // 34.0   1.0   0-5yrs      2.0         4.0       2.0      4.0  ...
             // 35.0   1.0   6-11yrs     1.0         3.0       32.0     5.0  ...
 
-            // Select a subset of columns to keep, but don't drop the others.
+            // Select a subset of columns to keep.
             var pipeline = mlContext.Transforms.SelectColumns(new string[] { "Age", "Education" });
 
             // Now we can transform the data and look at the output to confirm the behavior of CopyColumns.
-            // Don't forget that this operation doesn't actually evaluate data until we read the data below.
+            // Don't forget that this operation doesn't actually evaluate data until we read the data below,
+            // as transformations are lazy in ML.NET.
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
 
-            // Print the number of columns schema
+            // Print the number of columns in the schema
             Console.WriteLine($"There are {transformedData.Schema.Count} columns in the dataset.");
 
             // Expected output:
