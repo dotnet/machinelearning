@@ -146,7 +146,7 @@ namespace Microsoft.ML
         /// </example>
         public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
            WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
-           params WordEmbeddingsExtractingTransformer.ColumnInfo[] columns)
+           params WordEmbeddingsExtractingEstimator.ColumnInfo[] columns)
             => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
 
         /// <summary>

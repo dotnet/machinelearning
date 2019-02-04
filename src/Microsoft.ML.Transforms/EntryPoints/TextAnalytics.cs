@@ -135,7 +135,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = WordEmbeddingsExtractingTransformer.Summary,
             UserName = WordEmbeddingsExtractingTransformer.UserName,
             ShortName = WordEmbeddingsExtractingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));

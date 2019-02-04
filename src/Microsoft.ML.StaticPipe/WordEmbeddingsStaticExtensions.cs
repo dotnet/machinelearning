@@ -72,11 +72,11 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var cols = new WordEmbeddingsExtractingTransformer.ColumnInfo[toOutput.Length];
+                var cols = new WordEmbeddingsExtractingEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (OutColumn)toOutput[i];
-                    cols[i] = new WordEmbeddingsExtractingTransformer.ColumnInfo(outputNames[outCol], inputNames[outCol.Input]);
+                    cols[i] = new WordEmbeddingsExtractingEstimator.ColumnInfo(outputNames[outCol], inputNames[outCol.Input]);
                 }
 
                 bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);

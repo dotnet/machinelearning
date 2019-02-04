@@ -3629,7 +3629,7 @@ namespace Microsoft.ML.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Options()
             {
                 Data = dataView,
                 Columns = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
