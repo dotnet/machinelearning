@@ -55,27 +55,30 @@ namespace Microsoft.ML.Samples.Dynamic
             // Expected output:
             //  Label Features[0]
             //  True    1.017325
-            //  False   0.0326252
-            //  True    0.8426974
-            //
-            //  Label Features[0]
             //  False   0.6326591
-            //  True    0.8426974
-            //  True    0.8426974
-            //  True    1.017325
-            //  True    0.8426974
-            //  True    0.9947656
+            //  False   0.6326591
+            //  False   0.6326591
             //  False   0.0326252
-            //  True    0.9947656
-            //
+            //  False   0.0326252
+            //  True    0.8426974
+            //  True    0.8426974
+
             //  Label Features[0]
             //  True    1.017325
+            //  True    1.017325
+            //  False   0.6326591
+            //  False   0.6326591
+            //  False   0.0326252
+            //  False   0.0326252
+            //  False   0.0326252
             //  True    0.9947656
-            //  False   0.0326252
-            //  False   0.0326252
+
+            //  Label Features[0]
+            //  False   0.6326591
             //  False   0.0326252
             //  True    0.8426974
-            //  False   0.6326591
+            //  True    0.8426974
+            //  True    0.8426974
         }
     }
 }

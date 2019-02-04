@@ -49,7 +49,13 @@ namespace Microsoft.ML
             bool complement = BootstrapSamplingTransformer.Defaults.Complement)
         {
             Environment.CheckValue(input, nameof(input));
-            return new BootstrapSamplingTransformer(Environment, input, complement: complement, seed: seed);
+            return new BootstrapSamplingTransformer(
+                Environment,
+                input,
+                complement: complement,
+                seed: seed,
+                shuffleInput: false,
+                poolSize: 0);
         }
 
         /// <summary>
