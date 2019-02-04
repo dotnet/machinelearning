@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
+    using MulticlassClassificationExample = DatasetUtils.MulticlassClassificationExample;
+
     public static class FilterByKeyColumnFraction
     {
         public static void Example()
@@ -13,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            IEnumerable<SamplesUtils.DatasetUtils.MulticlassClassificationExample> enumerableOfData = SamplesUtils.DatasetUtils.GenerateRandomMulticlassClassificationExamples(10);
+            IEnumerable<MulticlassClassificationExample> enumerableOfData = DatasetUtils.GenerateRandomMulticlassClassificationExamples(10);
             var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
 
             // Convert the string labels to keys
