@@ -303,6 +303,13 @@ namespace Microsoft.ML
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Logistic Regression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/LogisticRegression.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static LogisticRegression LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
