@@ -90,5 +90,19 @@ namespace Microsoft.ML
                 throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "KeyType", type.ToString());
             return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
+
+        /// <summary>
+        /// Drop rows where any column in <paramref name="columns"/> contains an 'NA' value.
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="complement">If true, keep only rows that contain NA values, and filter the rest.</param>
+        /// <param name="columns">Name of the columns. Only these columns will be used to filter rows having 'NA' values.</param>
+        public IDataView NAFilter(IDataView input, bool complement = false, params string[] columns)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
+
+            return new NAFilter(Environment, input, complement, columns);
+        }
     }
 }
