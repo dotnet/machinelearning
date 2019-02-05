@@ -16,7 +16,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(IDataTransform), typeof(MissingValueIndicatorTransformer), typeof(MissingValueIndicatorTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(IDataTransform), typeof(MissingValueIndicatorTransformer), typeof(MissingValueIndicatorTransformer.Options), typeof(SignatureDataTransform),
     MissingValueIndicatorTransformer.FriendlyName, MissingValueIndicatorTransformer.LoadName, "NAIndicator", MissingValueIndicatorTransformer.ShortName, DocName = "transform/NAHandle.md")]
 
 [assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(IDataTransform), typeof(MissingValueIndicatorTransformer), null, typeof(SignatureLoadDataTransform),
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="NAIndicator"]'/>
     public sealed class MissingValueIndicatorTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -78,6 +78,9 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = nameof(MissingValueIndicatorTransformer);
 
+        /// <summary>
+        /// The names of the output and input column pairs for the transformation.
+        /// </summary>
         public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
@@ -85,13 +88,13 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public MissingValueIndicatorTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal MissingValueIndicatorTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), columns)
         {
         }
 
-        internal MissingValueIndicatorTransformer(IHostEnvironment env, Arguments args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), GetColumnPairs(args.Columns))
+        internal MissingValueIndicatorTransformer(IHostEnvironment env, Options options)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), GetColumnPairs(options.Columns))
         {
         }
 
@@ -114,8 +117,8 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
-            => new MissingValueIndicatorTransformer(env, args).MakeDataTransform(input);
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
+            => new MissingValueIndicatorTransformer(env, options).MakeDataTransform(input);
 
         // Factory method for SignatureLoadDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -434,7 +437,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public MissingValueIndicatorEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal MissingValueIndicatorEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), new MissingValueIndicatorTransformer(env, columns))
         {
             Contracts.CheckValue(env, nameof(env));
@@ -446,13 +449,14 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment to use.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        public MissingValueIndicatorEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
+        internal MissingValueIndicatorEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
             : this(env, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
         /// <summary>
-        /// Returns the schema that would be produced by the transformation.
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
         /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

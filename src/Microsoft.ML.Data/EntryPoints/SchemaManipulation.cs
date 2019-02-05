@@ -14,7 +14,7 @@ namespace Microsoft.ML.EntryPoints
     internal static class SchemaManipulation
     {
         [TlcModule.EntryPoint(Name = "Transforms.ColumnConcatenator", Desc = ColumnConcatenatingTransformer.Summary, UserName = ColumnConcatenatingTransformer.UserName, ShortName = ColumnConcatenatingTransformer.LoadName)]
-        public static CommonOutputs.TransformOutput ConcatColumns(IHostEnvironment env, ColumnConcatenatingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput ConcatColumns(IHostEnvironment env, ColumnConcatenatingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("ConcatColumns");

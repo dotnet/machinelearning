@@ -16,7 +16,6 @@ using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Transforms.Normalizers;
 using Newtonsoft.Json.Linq;
-using static Microsoft.ML.Transforms.Normalizers.NormalizeTransform;
 
 [assembly: LoadableClass(typeof(NormalizingTransformer), null, typeof(SignatureLoadModel),
     "", NormalizingTransformer.LoaderSignature)]
@@ -206,7 +205,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
-        public NormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, NormalizerMode mode = NormalizerMode.MinMax)
+        internal NormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, NormalizerMode mode = NormalizerMode.MinMax)
             : this(env, mode, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
@@ -217,7 +216,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
         /// <param name="columns">An array of (outputColumnName, inputColumnName) tuples.</param>
-        public NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string outputColumnName, string inputColumnName)[] columns)
+        internal NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string outputColumnName, string inputColumnName)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(NormalizingEstimator));
@@ -230,7 +229,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// </summary>
         /// <param name="env">The private instance of the <see cref="IHostEnvironment"/>.</param>
         /// <param name="columns">An array of <see cref="ColumnBase"/> defining the inputs to the Normalizer, and their settings.</param>
-        public NormalizingEstimator(IHostEnvironment env, params ColumnBase[] columns)
+        internal NormalizingEstimator(IHostEnvironment env, params ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(NormalizingEstimator));
@@ -239,12 +238,19 @@ namespace Microsoft.ML.Transforms.Normalizers
             _columns = columns.ToArray();
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="NormalizingTransformer"/>.
+        /// </summary>
         public NormalizingTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             return NormalizingTransformer.Train(_host, input, _columns);
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -275,7 +281,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
     public sealed partial class NormalizingTransformer : OneToOneTransformerBase
     {
-        public const string LoaderSignature = "Normalizer";
+        internal const string LoaderSignature = "Normalizer";
 
         internal const string LoaderSignatureOld = "NormalizeFunction";
 
@@ -387,7 +393,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             ColumnFunctions = new ColumnFunctionAccessor(Columns);
         }
 
-        public static NormalizingTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
+        internal static NormalizingTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
@@ -510,7 +516,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             Columns = ImmutableArray.Create(cols);
         }
 
-        public static NormalizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static NormalizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
