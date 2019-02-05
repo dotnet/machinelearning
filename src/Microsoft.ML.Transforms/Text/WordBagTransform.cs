@@ -14,7 +14,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 
-[assembly: LoadableClass(WordBagBuildingTransformer.Summary, typeof(IDataTransform), typeof(WordBagBuildingTransformer), typeof(WordBagBuildingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(WordBagBuildingTransformer.Summary, typeof(IDataTransform), typeof(WordBagBuildingTransformer), typeof(WordBagBuildingTransformer.Options), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
 
 [assembly: LoadableClass(NgramExtractorTransform.Summary, typeof(INgramExtractorFactory), typeof(NgramExtractorTransform), typeof(NgramExtractorTransform.NgramExtractorArguments),
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         public sealed class TokenizeColumn : OneToOneColumn { }
 
-        public sealed class Arguments : NgramExtractorTransform.ArgumentsBase
+        internal sealed class Options : NgramExtractorTransform.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -105,13 +105,13 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text. It does so by building "
             + "a dictionary of ngrams and using the id in the dictionary as the index in the bag.";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
-            h.CheckValue(args, nameof(args));
+            h.CheckValue(options, nameof(options));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
 
             // Compose the WordBagTransform from a tokenize transform,
             // followed by a NgramExtractionTransform.
@@ -124,22 +124,22 @@ namespace Microsoft.ML.Transforms.Text
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new WordTokenizingEstimator.ColumnInfo[args.Columns.Length];
+            var tokenizeColumns = new WordTokenizingEstimator.ColumnInfo[options.Columns.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Arguments()
                 {
-                    MaxNumTerms = args.MaxNumTerms,
-                    NgramLength = args.NgramLength,
-                    SkipLength = args.SkipLength,
-                    AllLengths = args.AllLengths,
-                    Weighting = args.Weighting,
-                    Columns = new NgramExtractorTransform.Column[args.Columns.Length]
+                    MaxNumTerms = options.MaxNumTerms,
+                    NgramLength = options.NgramLength,
+                    SkipLength = options.SkipLength,
+                    AllLengths = options.AllLengths,
+                    Weighting = options.Weighting,
+                    Columns = new NgramExtractorTransform.Column[options.Columns.Length]
                 };
 
-            for (int iinfo = 0; iinfo < args.Columns.Length; iinfo++)
+            for (int iinfo = 0; iinfo < options.Columns.Length; iinfo++)
             {
-                var column = args.Columns[iinfo];
+                var column = options.Columns[iinfo];
                 h.CheckUserArg(!string.IsNullOrWhiteSpace(column.Name), nameof(column.Name));
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             IDataView view = input;
-            view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Columns, view);
+            view = NgramExtractionUtils.ApplyConcatOnSources(h, options.Columns, view);
             view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
             return NgramExtractorTransform.Create(h, extractorArgs, view);
         }
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Transforms.Text
             var concatColumns = new List<ColumnConcatenatingTransformer.ColumnInfo>();
             foreach (var col in columns)
             {
-                env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Arguments.Columns));
+                env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Options.Columns));
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 var col = columns[iinfo];
-                env.CheckUserArg(col != null, nameof(WordHashBagProducingTransformer.Arguments.Columns));
+                env.CheckUserArg(col != null, nameof(WordHashBagProducingTransformer.Options.Columns));
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0 &&
                               col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));

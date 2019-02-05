@@ -1007,7 +1007,7 @@ namespace Microsoft.ML.RunTests
                 else
                 {
                     data = WordHashBagProducingTransformer.Create(Env,
-                        new WordHashBagProducingTransformer.Arguments()
+                        new WordHashBagProducingTransformer.Options()
                         {
                             Columns =
                                 new[] { new WordHashBagProducingTransformer.Column() { Name = "Features", Source = new[] { "Text" } }, }
