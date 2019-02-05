@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
                 var savedData = ML.Data.TakeRows(feat.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = ML.Transforms.SelectColumns("Data", "Data_TransformedText").Transform(savedData);
+                savedData = ML.Transforms.SelectColumns("Data", "Data_TransformedText").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var outputPath = GetOutputPath("Text", "tokenized.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-            savedData = ML.Transforms.SelectColumns("text", "words", "chars").Transform(savedData);
+            savedData = ML.Transforms.SelectColumns("text", "words", "chars").Fit(savedData).Transform(savedData);
 
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);

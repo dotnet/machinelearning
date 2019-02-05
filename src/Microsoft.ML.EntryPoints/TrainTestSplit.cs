@@ -55,11 +55,11 @@ namespace Microsoft.ML.EntryPoints
 
             IDataView trainData = new RangeFilter(host,
                 new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = false }, data);
-            trainData = new ColumnSelectingTransformer(host, null, new[] { stratCol }).Transform(trainData);
+            trainData = ColumnSelectingTransformer.CreateDrop(host, trainData, stratCol);
 
             IDataView testData = new RangeFilter(host,
                 new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = true }, data);
-            testData = new ColumnSelectingTransformer(host, null, new[] { stratCol }).Transform(testData);
+            testData = ColumnSelectingTransformer.CreateDrop(host, testData, stratCol);
 
             return new Output() { TrainData = trainData, TestData = testData };
         }

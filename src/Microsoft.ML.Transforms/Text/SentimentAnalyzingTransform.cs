@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // 5. Drop all the columns created by the pretrained model, including the expected input column
             // and the output column, which we have copied to a temporary column in (4).
-            input = new ColumnSelectingTransformer(env, null, _modelIntermediateColumnNames).Transform(input);
+            input = ColumnSelectingTransformer.CreateDrop(env, input, _modelIntermediateColumnNames);
 
             // 6. Unalias all the original columns that were originally present in the IDataView, but may have
             // been shadowed by column names in the pretrained model. This method will also drop all the temporary
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Transforms.Text
             input = copyTransformer.Transform(input);
 
             // 8. Drop the temporary column with the score created in (4).
-            return new ColumnSelectingTransformer(env, null, new[] { scoreTempName }).Transform(input) as IDataTransform;
+            return ColumnSelectingTransformer.CreateDrop(env, input, scoreTempName) as IDataTransform;
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms.Text
                 return input;
 
             input = new ColumnCopyingTransformer(env, hiddenNames.Select(x => (outputColumnName: x.Key, inputColumnName: x.Value)).ToArray()).Transform(input);
-            return new ColumnSelectingTransformer(env, null, hiddenNames.Select(pair => pair.Value).ToArray()).Transform(input);
+            return ColumnSelectingTransformer.CreateDrop(env, input, hiddenNames.Select(pair => pair.Value).ToArray());
         }
 
         private static IDataView LoadTransforms(IHostEnvironment env, IDataView input, string modelFile)

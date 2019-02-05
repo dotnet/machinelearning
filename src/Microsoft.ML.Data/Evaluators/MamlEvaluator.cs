@@ -262,7 +262,7 @@ namespace Microsoft.ML.Data
                 colsToKeep.Add(col);
 
             idv = new ColumnCopyingTransformer(Host, cols.ToArray()).Transform(idv);
-            idv = new ColumnSelectingTransformer(Host, colsToKeep.ToArray(), null).Transform(idv);
+            idv = ColumnSelectingTransformer.CreateKeep(Host, idv, colsToKeep.ToArray());
             return GetPerInstanceMetricsCore(idv, perInst.Schema);
         }
 

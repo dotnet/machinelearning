@@ -1225,7 +1225,7 @@ namespace Microsoft.ML.Data
             fold = new ColumnCopyingTransformer(Host, cols).Transform(fold);
 
             // Select the columns that are specified in the Copy
-            fold = new ColumnSelectingTransformer(Host, colsToKeep.ToArray(), null).Transform(fold);
+            fold = ColumnSelectingTransformer.CreateKeep(Host, fold, colsToKeep.ToArray());
 
             string weightedConf;
             var unweightedConf = MetricWriter.GetConfusionTable(Host, conf, out weightedConf);
@@ -1243,7 +1243,7 @@ namespace Microsoft.ML.Data
 
         private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            return new ColumnSelectingTransformer(Host, null, new[] { BinaryClassifierEvaluator.Entropy }).Transform(overall);
+            return ColumnSelectingTransformer.CreateDrop(Host, overall, BinaryClassifierEvaluator.Entropy);
         }
 
         private protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)

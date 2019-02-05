@@ -728,7 +728,7 @@ namespace Microsoft.ML.Data
             colsToKeep.Add(BinaryClassifierEvaluator.Auc);
 
             overall = new ColumnCopyingTransformer(Host, cols).Transform(overall);
-            IDataView fold = new ColumnSelectingTransformer(Host, colsToKeep.ToArray(), null).Transform(overall);
+            IDataView fold = ColumnSelectingTransformer.CreateKeep(Host, overall, colsToKeep.ToArray());
 
             string weightedFold;
             ch.Info(MetricWriter.GetPerFoldResults(Host, fold, out weightedFold));
@@ -736,15 +736,13 @@ namespace Microsoft.ML.Data
 
         private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            return new ColumnSelectingTransformer(Host, null, new string[]
-                {
-                    AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies,
-                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK,
-                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP,
-                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos
-                })
-                .Transform(overall);
-    }
+            return ColumnSelectingTransformer.CreateDrop(Host,
+                                                    overall,
+                                                    AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies,
+                                                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK,
+                                                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP,
+                                                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
+        }
 
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {

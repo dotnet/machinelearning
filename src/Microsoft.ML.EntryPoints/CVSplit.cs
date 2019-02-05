@@ -69,11 +69,11 @@ namespace Microsoft.ML.EntryPoints
             {
                 var trainData = new RangeFilter(host,
                     new RangeFilter.Options { Column = stratCol, Min = i * fraction, Max = (i + 1) * fraction, Complement = true }, data);
-                output.TrainData[i] = new ColumnSelectingTransformer(host, null, new[] { stratCol }).Transform(trainData);
+                output.TrainData[i] = ColumnSelectingTransformer.CreateDrop(host, trainData, stratCol);
 
                 var testData = new RangeFilter(host,
                     new RangeFilter.Options { Column = stratCol, Min = i * fraction, Max = (i + 1) * fraction, Complement = false }, data);
-                output.TestData[i] = new ColumnSelectingTransformer(host, null, new[] { stratCol }).Transform(testData);
+                output.TestData[i] = ColumnSelectingTransformer.CreateDrop(host, testData, stratCol);
             }
 
             return output;

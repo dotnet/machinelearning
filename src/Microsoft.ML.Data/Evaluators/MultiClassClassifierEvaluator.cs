@@ -953,14 +953,14 @@ namespace Microsoft.ML.Data
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
             input = new ColumnCopyingTransformer(Host, (string.Format(TopKAccuracyFormat, _outputTopKAcc), MultiClassClassifierEvaluator.TopKAccuracy)).Transform(input);
-            return new ColumnSelectingTransformer(Host, null, new[] { MultiClassClassifierEvaluator.TopKAccuracy }).Transform(input);
+            return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy);
         }
 
         private IDataView DropPerClassColumn(IDataView input)
         {
             if (input.Schema.TryGetColumnIndex(MultiClassClassifierEvaluator.PerClassLogLoss, out int perClassCol))
             {
-                input = new ColumnSelectingTransformer(Host, null, new[] { MultiClassClassifierEvaluator.PerClassLogLoss }).Transform(input);
+                input = ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
             }
             return input;
         }

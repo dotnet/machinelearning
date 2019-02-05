@@ -465,7 +465,7 @@ namespace Microsoft.ML.RunTests
                      MetadataUtils.Const.ScoreValueKind.Score)
                     ).Transform(individualScores[i]);
 
-                individualScores[i] = new ColumnSelectingTransformer(Env, null, new[] { MetadataUtils.Const.ScoreValueKind.Score }).Transform(individualScores[i]);
+                individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };

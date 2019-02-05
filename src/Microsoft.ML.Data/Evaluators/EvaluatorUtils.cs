@@ -934,7 +934,7 @@ namespace Microsoft.ML.Data
                                  variableSizeVectorColumnName, vectorType);
 
                         // Drop the old column that does not have variable length.
-                        idv = new ColumnSelectingTransformer(env, null, new[] { variableSizeVectorColumnName }).Transform(idv);
+                        idv = idv = ColumnSelectingTransformer.CreateDrop(env, idv, variableSizeVectorColumnName);
                     }
                     return idv;
                 };
@@ -1058,7 +1058,7 @@ namespace Microsoft.ML.Data
             {
                 if (Utils.Size(nonAveragedCols) > 0)
                 {
-                    data = new ColumnSelectingTransformer(env, null, nonAveragedCols.ToArray()).Transform(data);
+                    data = ColumnSelectingTransformer.CreateDrop(env, data, nonAveragedCols.ToArray());
                 }
                 idvList.Add(data);
             }
@@ -1749,7 +1749,7 @@ namespace Microsoft.ML.Data
             var found = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             env.Check(found, "If stratification column exist, data view must also contain a StratVal column");
 
-            data = new ColumnSelectingTransformer(env, null, new[] { data.Schema[stratCol].Name, data.Schema[stratVal].Name }).Transform(data);
+            data = ColumnSelectingTransformer.CreateDrop(env, data, data.Schema[stratCol].Name, data.Schema[stratVal].Name);
             return data;
         }
     }

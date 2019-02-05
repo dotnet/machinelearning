@@ -400,18 +400,12 @@ namespace Microsoft.ML.Transforms
         }
 
         [BestFriend]
-        internal static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, string[] keepColumns, bool keepHidden = false)
-        {
-            var transform = new ColumnSelectingTransformer(env, keepColumns, null, keepHidden);
-            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
-        }
+        internal static IDataView CreateKeep(IHostEnvironment env, IDataView input, string[] keepColumns, bool keepHidden = false)
+            => new ColumnSelectingTransformer(env, keepColumns, null, keepHidden).Transform(input);
 
         [BestFriend]
-        internal static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
-        {
-            var transform = new ColumnSelectingTransformer(env, null, dropColumns);
-            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
-        }
+        internal static IDataView CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
+            => new ColumnSelectingTransformer(env, null, dropColumns).Transform(input);
 
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)

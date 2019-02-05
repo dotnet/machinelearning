@@ -947,7 +947,7 @@ namespace Microsoft.ML.Transforms.Conversions
             };
 
             var view = new ColumnCopyingTransformer(host, cols.ToArray()).Transform(lookup);
-            view = new ColumnSelectingTransformer(host, cols.Select(x => x.outputColumnName).ToArray(), null).Transform(view);
+            view = ColumnSelectingTransformer.CreateKeep(host, view, cols.Select(x => x.outputColumnName).ToArray());
 
             var saver = new BinarySaver(host, new BinarySaver.Arguments());
             using (var strm = new MemoryStream())
