@@ -9,9 +9,9 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// <summary>
     /// A fact for tests requiring matrix factorization.
     /// </summary>
-    public sealed class MatrixFactorizationFact : EnvironmentSpecificFactAttribute
+    public sealed class MatrixFactorizationFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public MatrixFactorizationFact() : base("Disabled - this test is being fixed as part of https://github.com/dotnet/machinelearning/issues/1441")
+        public MatrixFactorizationFactAttribute() : base("Disabled - this test is being fixed as part of https://github.com/dotnet/machinelearning/issues/1441")
         {
         }
 

@@ -120,16 +120,12 @@ namespace Microsoft.ML.Tests
             catch (ArgumentOutOfRangeException) { }
             catch (InvalidOperationException) { }
         }
-
-        // x86 not supported
-        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))]
+ 
+        [OnnxTheory]
         [InlineData(null, false)]
         [InlineData(null, true)]
         void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
 

@@ -9,9 +9,9 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// <summary>
     /// A fact for tests requiring X64 environment.
     /// </summary>
-    public sealed class X64Fact : EnvironmentSpecificFactAttribute
+    public sealed class X64FactAttribute : EnvironmentSpecificFactAttribute
     {
-        public X64Fact(string skipMessage) : base(skipMessage)
+        public X64FactAttribute(string skipMessage) : base(skipMessage)
         {
         }
 

@@ -3,22 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
     /// <summary>
-    /// A fact for tests requiring either .NET Core version lower than 3.0 or framework other than .NET Core.
+    /// A fact for tests requiring Onnx.
     /// </summary>
-    public sealed class LessThanNetCore30OrNotNetCoreFact : EnvironmentSpecificFactAttribute
+    public sealed class OnnxTheoryAttribute : EnvironmentSpecificTheoryAttribute
     {
-        public LessThanNetCore30OrNotNetCoreFact() : base("netcore3.0 output differs from Baseline")
+        public OnnxTheoryAttribute() : base("Onnx is 64-bit Windows only")
         {
         }
 
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null;
+            return Environment.Is64BitProcess && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         }
     }
 }

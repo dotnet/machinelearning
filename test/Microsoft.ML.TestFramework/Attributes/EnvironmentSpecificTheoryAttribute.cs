@@ -11,15 +11,15 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// A base class for environment-specific fact attributes.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public abstract class EnvironmentSpecificFactAttribute : FactAttribute
+    public abstract class EnvironmentSpecificTheoryAttribute : TheoryAttribute
     {
         private readonly string _skipMessage;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="EnvironmentSpecificFactAttribute" /> class.
+        /// Creates a new instance of the <see cref="EnvironmentSpecificTheoryAttribute" /> class.
         /// </summary>
         /// <param name="skipMessage">The message to be used when skipping the test marked with this attribute.</param>
-        protected EnvironmentSpecificFactAttribute(string skipMessage)
+        protected EnvironmentSpecificTheoryAttribute(string skipMessage)
         {
             _skipMessage = skipMessage ?? throw new ArgumentNullException(nameof(skipMessage));
         }

@@ -9,9 +9,9 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// <summary>
     /// A fact for tests requiring x64 environment and either .NET Core version lower than 3.0 or framework other than .NET Core.
     /// </summary>
-    public sealed class LessThanNetCore30OrNotNetCoreAndX64Fact : EnvironmentSpecificFactAttribute
+    public sealed class LessThanNetCore30OrNotNetCoreAndX64FactAttribute : EnvironmentSpecificFactAttribute
     {
-        public LessThanNetCore30OrNotNetCoreAndX64Fact(string skipMessage) : base(skipMessage)
+        public LessThanNetCore30OrNotNetCoreAndX64FactAttribute(string skipMessage) : base(skipMessage)
         {
         }
 
