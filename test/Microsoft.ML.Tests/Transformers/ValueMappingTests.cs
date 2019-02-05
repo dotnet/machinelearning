@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests.Transformers
             foreach (var name in new[] { "D", "E", "F" })
             {
                 Assert.True(schema.TryFindColumn(name, out var originalColumn));
-                Assert.Equal(SchemaShape.Column.VectorKind.Vector, originalColumn.Kind);
+                Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
             }
 
             var t = estimator.Fit(dataView);
