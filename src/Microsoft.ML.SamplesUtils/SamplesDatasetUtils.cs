@@ -118,6 +118,23 @@ namespace Microsoft.ML.SamplesUtils
             return data;
         }
 
+        public class SampleTemperatureData
+        {
+            public DateTime Date {get; set; }
+            public float Temperature { get; set; }
+        }
+
+        public static IEnumerable<SampleTemperatureData> GetSampleTemperatureData()
+        {
+            var data = new List<SampleTemperatureData>();
+            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,1), Temperature = 39.0F });
+            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,2), Temperature = 82.0F });
+            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,3), Temperature = 75.0F });
+            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,4), Temperature = 67.0F });
+            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,5), Temperature = 75.0F });
+            return data;
+        }
+
         /// <summary>
         /// Represents the column of the infertility dataset.
         /// </summary>
@@ -168,7 +185,7 @@ namespace Microsoft.ML.SamplesUtils
             data.Add(new SampleInfertData
             {
                 RowNum = 2,
-                Education = "0-5yrs",
+                Education = "12+yrs",
                 Age = 39,
                 Parity = 6,
                 Induced = 2,
