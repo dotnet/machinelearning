@@ -4,7 +4,7 @@
 
 We have also instrumented [code coverage](https://codecov.io/gh/dotnet/machinelearning) tools as part of our CI systems and will continue to push for stability and quality in the code.
 
-One of the milestones that we have achieved in this release is moving `DataView` into a new and separate assembly under `Microsoft.Data` namespace. For detailed documentation on `DataView` please take a look at [IDataView design principles](https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewDesignPrinciples.md).
+One of the milestones that we have achieved in this release is moving `IDataView` into a new and separate assembly under `Microsoft.Data.DataView` namespace. For detailed documentation on `IDataView` please take a look at [IDataView design principles](https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewDesignPrinciples.md).
 
 ### Installation
 
