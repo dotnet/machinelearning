@@ -980,20 +980,62 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns.ToImmutableArray();
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>
+            /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of column to transform. If set to <see langword="null"/>, the value of the <cref see="Name"/> will be used as source.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// The number of topics.
+            /// </summary>
             public readonly int NumTopic;
+            /// <summary>
+            /// Dirichlet prior on document-topic vectors.
+            /// </summary>
             public readonly float AlphaSum;
+            /// <summary>
+            /// Dirichlet prior on vocab-topic vectors.
+            /// </summary>
             public readonly float Beta;
+            /// <summary>
+            /// Number of Metropolis Hasting step.
+            /// </summary>
             public readonly int MHStep;
+            /// <summary>
+            /// Number of iterations.
+            /// </summary>
             public readonly int NumIter;
+            /// <summary>
+            /// Compute log likelihood over local dataset on this iteration interval.
+            /// </summary>
             public readonly int LikelihoodInterval;
+            /// <summary>
+            /// The number of training threads.
+            /// </summary>
             public readonly int NumThread;
+            /// <summary>
+            /// The threshold of maximum count of tokens per doc.
+            /// </summary>
             public readonly int NumMaxDocToken;
+            /// <summary>
+            /// The number of words to summarize the topic.
+            /// </summary>
             public readonly int NumSummaryTermPerTopic;
+            /// <summary>
+            /// The number of burn-in iterations.
+            /// </summary>
             public readonly int NumBurninIter;
+            /// <summary>
+            /// Reset the random number generator for each document.
+            /// </summary>
             public readonly bool ResetRandomGenerator;
 
             /// <summary>
@@ -1150,7 +1192,8 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Returns the schema that would be produced by the transformation.
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
         /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -1169,6 +1212,9 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="LatentDirichletAllocationTransformer"/>.
+        /// </summary>
         public LatentDirichletAllocationTransformer Fit(IDataView input)
         {
             return LatentDirichletAllocationTransformer.TrainLdaTransformer(_host, input, _columns.ToArray());

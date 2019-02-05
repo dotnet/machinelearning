@@ -1202,6 +1202,10 @@ namespace Microsoft.ML.Transforms.Text
 
         internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertible to U4";
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -1222,6 +1226,9 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="NgramHashingTransformer"/>.
+        /// </summary>
         public NgramHashingTransformer Fit(IDataView input) => new NgramHashingTransformer(_host, input, _columns);
     }
 }

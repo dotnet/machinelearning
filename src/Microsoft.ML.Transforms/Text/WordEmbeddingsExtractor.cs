@@ -850,6 +850,10 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -867,6 +871,9 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="WordEmbeddingsExtractingTransformer"/>.
+        /// </summary>
         public WordEmbeddingsExtractingTransformer Fit(IDataView input)
         {
             bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);

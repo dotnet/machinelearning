@@ -762,6 +762,9 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns;
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="NgramExtractingTransformer"/>.
+        /// </summary>
         public NgramExtractingTransformer Fit(IDataView input) => new NgramExtractingTransformer(_host, input, _columns);
 
         internal static bool IsColumnTypeValid(ColumnType type)
@@ -865,6 +868,10 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
