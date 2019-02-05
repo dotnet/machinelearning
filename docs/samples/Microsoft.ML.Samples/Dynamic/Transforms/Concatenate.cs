@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
+            var data = SamplesUtils.DatasetUtils.GetInfertData();
             var trainData = mlContext.Data.ReadFromEnumerable(data);
 
             // Preview of the data.

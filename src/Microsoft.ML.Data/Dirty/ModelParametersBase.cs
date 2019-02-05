@@ -69,7 +69,8 @@ namespace Microsoft.ML.Internal.Internallearn
         /// <summary>
         /// This emits a warning if there is Normalizer sub-model.
         /// </summary>
-        public static bool WarnOnOldNormalizer(ModelLoadContext ctx, Type typePredictor, IChannelProvider provider)
+        [BestFriend]
+        private protected static bool WarnOnOldNormalizer(ModelLoadContext ctx, Type typePredictor, IChannelProvider provider)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(ctx, nameof(ctx));

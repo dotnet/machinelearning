@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.Online
 
     public abstract class OnlineLinearTrainer<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+        where TModel : class
     {
         protected readonly OnlineLinearArguments Args;
         protected readonly string Name;

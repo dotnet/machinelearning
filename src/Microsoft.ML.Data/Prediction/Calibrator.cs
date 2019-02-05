@@ -116,7 +116,6 @@ namespace Microsoft.ML.Internal.Calibration
         IPredictor Calibrate(IChannel ch, IDataView data, ICalibratorTrainer caliTrainer, int maxRows);
     }
 
-    [BestFriend]
     public abstract class CalibratedPredictorBase :
         IDistPredictorProducing<float, float>,
         ICanSaveInIniFormat,
@@ -131,7 +130,7 @@ namespace Microsoft.ML.Internal.Calibration
         public ICalibrator Calibrator { get; }
         public PredictionKind PredictionKind => SubPredictor.PredictionKind;
 
-        protected CalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<float> predictor, ICalibrator calibrator)
+        private protected CalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<float> predictor, ICalibrator calibrator)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
@@ -185,20 +184,20 @@ namespace Microsoft.ML.Internal.Calibration
             return null;
         }
 
-        protected void SaveCore(ModelSaveContext ctx)
+        private protected void SaveCore(ModelSaveContext ctx)
         {
             ctx.SaveModel(SubPredictor, ModelFileUtils.DirPredictor);
             ctx.SaveModel(Calibrator, @"Calibrator");
         }
 
-        protected static IPredictorProducing<float> GetPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private protected static IPredictorProducing<float> GetPredictor(IHostEnvironment env, ModelLoadContext ctx)
         {
             IPredictorProducing<float> predictor;
             ctx.LoadModel<IPredictorProducing<float>, SignatureLoadModel>(env, out predictor, ModelFileUtils.DirPredictor);
             return predictor;
         }
 
-        protected static ICalibrator GetCalibrator(IHostEnvironment env, ModelLoadContext ctx)
+        private protected static ICalibrator GetCalibrator(IHostEnvironment env, ModelLoadContext ctx)
         {
             ICalibrator calibrator;
             ctx.LoadModel<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
@@ -221,7 +220,7 @@ namespace Microsoft.ML.Internal.Calibration
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
-        protected ValueMapperCalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<float> predictor, ICalibrator calibrator)
+        private protected ValueMapperCalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<float> predictor, ICalibrator calibrator)
             : base(env, name, predictor, calibrator)
         {
             Contracts.AssertValue(Host);

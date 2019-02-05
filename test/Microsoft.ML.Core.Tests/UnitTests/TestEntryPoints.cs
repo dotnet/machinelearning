@@ -349,7 +349,7 @@ namespace Microsoft.ML.RunTests
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransformer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoadingTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);

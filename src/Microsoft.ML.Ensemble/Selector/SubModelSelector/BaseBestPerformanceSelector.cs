@@ -21,13 +21,13 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
         {
         }
 
-        public override void CalculateMetrics(FeatureSubsetModel<IPredictorProducing<TOutput>> model,
+        public override void CalculateMetrics(FeatureSubsetModel<TOutput> model,
             ISubsetSelector subsetSelector, Subset subset, Batch batch, bool needMetrics)
         {
             base.CalculateMetrics(model, subsetSelector, subset, batch, true);
         }
 
-        public override IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> Prune(IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
+        public override IList<FeatureSubsetModel<TOutput>> Prune(IList<FeatureSubsetModel<TOutput>> models)
         {
             using (var ch = Host.Start("Pruning"))
             {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             return null;
         }
 
-        private sealed class ModelPerformanceComparer : IComparer<FeatureSubsetModel<IPredictorProducing<TOutput>>>
+        private sealed class ModelPerformanceComparer : IComparer<FeatureSubsetModel<TOutput>>
         {
             private readonly string _metricName;
             private readonly bool _isAscMetric;
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
                 _isAscMetric = isAscMetric;
             }
 
-            public int Compare(FeatureSubsetModel<IPredictorProducing<TOutput>> x, FeatureSubsetModel<IPredictorProducing<TOutput>> y)
+            public int Compare(FeatureSubsetModel<TOutput> x, FeatureSubsetModel<TOutput> y)
             {
                 if (x == null || y == null)
                     return (x == null ? 0 : 1) - (y == null ? 0 : 1);

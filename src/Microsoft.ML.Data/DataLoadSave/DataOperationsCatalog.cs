@@ -25,6 +25,41 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Take an approximate bootstrap sample of <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// This sampler is a streaming version of <a href="https://en.wikipedia.org/wiki/Bootstrapping_(statistics)">bootstrap resampling</a>.
+        /// Instead of taking the whole dataset into memory and resampling, <see cref="BootstrapSample"/> streams through the dataset and
+        /// uses a <a href="https://en.wikipedia.org/wiki/Poisson_distribution">Poisson</a>(1) distribution to select the number of times a
+        /// given row will be added to the sample. The <paramref name="complement"/> parameter allows for the creation of a bootstap sample
+        /// and complementary out-of-bag sample by using the same <paramref name="seed"/>.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="seed">The random seed. If unspecified random state will be instead derived from the <see cref="MLContext"/>.</param>
+        /// <param name="complement">Whether this is the out-of-bag sample, that is, all those rows that are not selected by the transform.
+        /// Can be used to create a complementary pair of samples by using the same seed.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[BootstrapSample](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/BootstrapSample.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView BootstrapSample(IDataView input,
+            uint? seed = null,
+            bool complement = BootstrapSamplingTransformer.Defaults.Complement)
+        {
+            Environment.CheckValue(input, nameof(input));
+            return new BootstrapSamplingTransformer(
+                Environment,
+                input,
+                complement: complement,
+                seed: seed,
+                shuffleInput: false,
+                poolSize: 0);
+        }
+
+        /// <summary>
         /// Creates a lazy in-memory cache of <paramref name="input"/>.
         /// </summary>
         /// <remarks>
@@ -57,18 +92,28 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Keep only those rows that satisfy the range condition: the value of column <paramref name="columnName"/>
-        /// must be between <paramref name="lowerBound"/> and <paramref name="upperBound"/>, inclusive.
+        /// Filter the dataset by the values of a numeric column.
         /// </summary>
+        /// <remarks>
+        /// Keep only those rows that satisfy the range condition: the value of column <paramref name="columnName"/>
+        /// must be between <paramref name="lowerBound"/> (inclusive) and <paramref name="upperBound"/> (exclusive).
+        /// </remarks>
         /// <param name="input">The input data.</param>
         /// <param name="columnName">The name of a column to use for filtering.</param>
         /// <param name="lowerBound">The inclusive lower bound.</param>
         /// <param name="upperBound">The exclusive upper bound.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FilterByColumn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByColumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView FilterByColumn(IDataView input, string columnName, double lowerBound = double.NegativeInfinity, double upperBound = double.PositiveInfinity)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckNonEmpty(columnName, nameof(columnName));
-            Environment.CheckParam(lowerBound <= upperBound, nameof(upperBound), "Must be no less than lowerBound");
+            Environment.CheckParam(lowerBound < upperBound, nameof(upperBound), "Must be less than lowerBound");
 
             var type = input.Schema[columnName].Type;
             if (!(type is NumberType))
@@ -77,15 +122,25 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Keep only those rows that satisfy the range condition: the value of a key column <paramref name="columnName"/>
-        /// (treated as a fraction of the entire key range) must be between <paramref name="lowerBound"/> and <paramref name="upperBound"/>, inclusive.
-        /// This filtering is useful if the <paramref name="columnName"/> is a key column obtained by some 'stable randomization'
-        /// (for example, hashing).
+        /// Filter the dataset by the values of a <see cref="KeyType"/> column.
         /// </summary>
+        /// <remarks>
+        /// Keep only those rows that satisfy the range condition: the value of a key column <paramref name="columnName"/>
+        /// (treated as a fraction of the entire key range) must be between <paramref name="lowerBound"/> (inclusive) and <paramref name="upperBound"/> (exclusive).
+        /// This filtering is useful if the <paramref name="columnName"/> is a key column obtained by some 'stable randomization',
+        /// for example, hashing.
+        /// </remarks>
         /// <param name="input">The input data.</param>
         /// <param name="columnName">The name of a column to use for filtering.</param>
         /// <param name="lowerBound">The inclusive lower bound.</param>
         /// <param name="upperBound">The exclusive upper bound.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FilterByKeyColumnFraction](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByKeyColumnFraction.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView FilterByKeyColumnFraction(IDataView input, string columnName, double lowerBound = 0, double upperBound = 1)
         {
             Environment.CheckValue(input, nameof(input));

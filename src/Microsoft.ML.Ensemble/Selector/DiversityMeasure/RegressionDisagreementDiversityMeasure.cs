@@ -12,7 +12,7 @@ using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 
 namespace Microsoft.ML.Ensemble.Selector.DiversityMeasure
 {
-    public class RegressionDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<Single>, IRegressionDiversityMeasure
+    internal sealed class RegressionDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<Single>, IRegressionDiversityMeasure
     {
         public const string LoadName = "RegressionDisagreementDiversityMeasure";
 

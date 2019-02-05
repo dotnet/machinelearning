@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+
+    <member name="ImageGrayscalingEstimator">
+      <summary>
+        Converts the images to grayscale.
+      </summary>
+      <remarks>
+        <format type="text/markdown">
+            <![CDATA[ 
+
+          ## Remarks 
+          The images might be converted to grayscale to reduce the complexity of the model.
+          The grayed out images contain less information to process than the colored images.
+          Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,        
+          a technique known as [data augmentation](http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf)</a>.
+          
+          For end-to-end image processing pipelines, and scenarios in your applications, see the 
+          [examples in the machinelearning-samples github repository](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started).</a>
+        ]]></format>
+        <seealso cref="ImageEstimatorsCatalog" />
+        <seealso cref="ImageLoadingEstimator"/>
+    </remarks>
+    </member>
+
+    <member name="ImagePixelExtractingEstimator">
+      <summary>
+        Extracts the pixels from the input images and, converts them into a vector of numbers. This can be further used as feature by the algorithms added to the pipeline.   
+      </summary>
+      <remarks>
+        The ImagePixelExtractingEstimator extracts the pixels from the input images and, converts them into a vector of numbers.
+        This can be further used as feature by the algorithms added to the pipeline.
+
+        ImagePixelExtractingEstimator expects a <see cref="ImageResizingEstimator"/>  in the pipeline, before it is used.
+        For end-to-end image processing pipelines, and scenarios in your applications, see the
+        <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started">examples in the machinelearning-samples github repository</a>.
+        <seealso cref="ImageEstimatorsCatalog" />
+        <seealso cref="ImageLoadingEstimator"/>
+        <seealso cref="ImageResizingEstimator"/>
+      </remarks>
+    </member>
+
+    <member name="ImageResizingEstimator">
+      <summary>
+        Resizes the images to a new width and height. 
+      </summary>
+      <remarks>
+        In image processing pipelines, often machine learning practitioners make use of <a href="https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model/">pre-trained DNN featurizers</a> to
+        extract features for usage in the machine learning algorithms.
+        Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
+        further processing.
+
+        For end-to-end image processing pipelines, and scenarios in your applications, see the
+        <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started">examples in the machinelearning-samples github repository.</a>
+        <seealso cref="ImageEstimatorsCatalog" />
+        <seealso cref="ImageLoadingEstimator"/>
+      </remarks>
+    </member>
+        
+  </members>
+</doc>
