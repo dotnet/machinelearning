@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             int lines = 0;
             double columnAverage = 0.0;
-            var enumerable = mlContext.CreateEnumerable<HousingRegression>(data, reuseRowObject: true);
+            var enumerable = mlContext.CreateEnumerable<DatasetUtils.HousingRegression>(data, reuseRowObject: true);
             var watch = System.Diagnostics.Stopwatch.StartNew();
             foreach (var row in enumerable)
             {
@@ -55,25 +55,9 @@ namespace Microsoft.ML.Samples.Dynamic
             }
             watch.Stop();
             columnAverage /= lines;
-            var elapsedSeconds = watch.ElapsedMilliseconds / 1000.0;
+            var elapsed = watch.Elapsed;
 
-            return (lines, columnAverage, elapsedSeconds);
-        }
-
-        private class HousingRegression
-        {
-            public float MedianHomeValue { get; set; }
-            public float CrimesPerCapita { get; set; }
-            public float PercentResidental { get; set; }
-            public float PercentNonRetail { get; set; }
-            public float CharlesRiver { get; set; }
-            public float NitricOxides { get; set; }
-            public float RoomsPerDwelling { get; set; }
-            public float PercentPre40s { get; set; }
-            public float EmploymentDistance { get; set; }
-            public float HighwayDistance { get; set; }
-            public float TaxRate { get; set; }
-            public float TeacherRatio { get; set; }
+            return (lines, columnAverage, elapsed.Seconds);
         }       
     }
 }

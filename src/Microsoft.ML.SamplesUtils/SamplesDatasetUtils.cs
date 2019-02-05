@@ -50,6 +50,25 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
+        /// A class to hold the raw housing regression rows.
+        /// </summary>
+        public class HousingRegression
+        {
+            public float MedianHomeValue { get; set; }
+            public float CrimesPerCapita { get; set; }
+            public float PercentResidental { get; set; }
+            public float PercentNonRetail { get; set; }
+            public float CharlesRiver { get; set; }
+            public float NitricOxides { get; set; }
+            public float RoomsPerDwelling { get; set; }
+            public float PercentPre40s { get; set; }
+            public float EmploymentDistance { get; set; }
+            public float HighwayDistance { get; set; }
+            public float TaxRate { get; set; }
+            public float TeacherRatio { get; set; }
+        }
+
+        /// <summary>
         /// Downloads the wikipedia detox dataset from the ML.NET repo.
         /// </summary>
         public static string DownloadSentimentDataset()
