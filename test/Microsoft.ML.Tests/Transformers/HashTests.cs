@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new HashingEstimator(Env, new[]{
+            var pipe = ML.Transforms.Conversion.Hash(new[]{
                     new HashingEstimator.ColumnInfo("HashA", "A", hashBits:4, invertHash:-1),
                     new HashingEstimator.ColumnInfo("HashB", "B", hashBits:3, ordered:true),
                     new HashingEstimator.ColumnInfo("HashC", "C", seed:42),
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new HashingEstimator(Env, new[] {
+            var pipe = ML.Transforms.Conversion.Hash(new[] {
                 new HashingEstimator.ColumnInfo("HashA", "A", invertHash:1, hashBits:10),
                 new HashingEstimator.ColumnInfo("HashAUnlim", "A", invertHash:-1, hashBits:10),
                 new HashingEstimator.ColumnInfo("HashAUnlimOrdered", "A", invertHash:-1, hashBits:10, ordered:true)
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new HashingEstimator(Env, new[]{
+            var pipe = ML.Transforms.Conversion.Hash(new[]{
                     new HashingEstimator.ColumnInfo("HashA", "A", hashBits:4, invertHash:-1),
                     new HashingEstimator.ColumnInfo("HashB", "B", hashBits:3, ordered:true),
                     new HashingEstimator.ColumnInfo("HashC", "C", seed:42),

@@ -728,7 +728,7 @@ namespace Microsoft.ML.Transforms.Conversions
     /// </summary>
     public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorMappingTransformer>
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const bool Bag = false;
         }

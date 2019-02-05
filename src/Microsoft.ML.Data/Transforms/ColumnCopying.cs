@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms
         internal const string ShortName = "Copy";
 
         /// <summary>
-        /// Names of input and ouput column pairs on which the transformation is applied.
+        /// Names of output and input column pairs on which the transformation is applied.
         /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
