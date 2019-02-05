@@ -511,6 +511,17 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [TestCategory("Binary")]
+        [TestCategory("LightGBM")]
+        public void LightGBMTestMonotonic()
+        {
+            var binaryPredictors = new[] { TestLearners.LightGBMMonotonic };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "Monotonic");
+            Done();
+        }
+
         /// <summary>
         /// A test for multi class classifiers.
         /// </summary>
@@ -526,6 +537,21 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
+        /// A test for multi class classifiers with monotonic
+        /// </summary>
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [TestCategory("Multiclass")]
+        [TestCategory("LightGBM")]
+        public void MultiClassifierLightGBMMonotonic()
+        {
+            var multiPredictors = new[] { TestLearners.LightGBMMCMonotonic };
+            var multiClassificationDatasets = new[] { TestDatasets.irisLoaderU404 };
+            RunAllTests(multiPredictors, multiClassificationDatasets, extraTag: "Monotonic");
+            Done();
+        }
+
+
+        /// <summary>
         /// A test for multi class classifiers.
         /// </summary>
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
@@ -539,6 +565,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
+
         /// <summary>
         /// A test for regression.
         /// </summary>
@@ -550,6 +577,20 @@ namespace Microsoft.ML.RunTests
             var regPredictors = new[] { TestLearners.LightGBMReg };
             var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
             RunAllTests(regPredictors, regDatasets);
+            Done();
+        }
+
+        /// <summary>
+        /// A test for regression.
+        /// </summary>
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [TestCategory("Regression")]
+        [TestCategory("LightGBM")]
+        public void RegressorLightGBMRMonotoneTest()
+        {
+            var regPredictors = new[] { TestLearners.LightGBMRegMonotonic };
+            var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
+            RunAllTests(regPredictors, regDatasets, extraTag: "Monotonic");
             Done();
         }
 

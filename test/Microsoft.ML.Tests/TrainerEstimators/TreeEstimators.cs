@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
@@ -63,91 +64,66 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
 
-        class DataPoint
+        class MonotoneTestData
         {
-            [VectorType(1)]
+            [VectorType(11)]
             public float[] Features { get; set; } 
-
-            public float Label { get; set; }
         }
 
-        public class DataPointResult
+        class MonotoneTestResult
         {
-            public float Label;
-            public float[] Features;
-            public float Score;
+            public float Score = 0.0F;
         }
 
-        private static DataPoint[] GenerateDataPoints(int size, int xSize)
-        {
-            DataPoint[] dataPoints = new DataPoint[size];
-            float xDelta = (float)xSize / (float)size;
-            float xSum = 0;
-            float ySum = xSize;
-            var rand = RandomUtils.Create(size);
 
-            for(int i = 0; i < size; ++i)
+        private MonotoneTestData[] GenerateTestFeatures(int index, int featureCount)
+        { 
+            float x = 0.0F;
+            MonotoneTestData[] testData = new MonotoneTestData[100];
+            for (int i = 0; i < 100; ++i)
             {
-                dataPoints[i] = new DataPoint()
+                testData[i] = new MonotoneTestData()
                 {
-                    Features = new float[1] { xSum },
-                    Label = (float)Math.Pow(ySum, 2) + (float)xSize - (float)(xSize * rand.Next())
+                    Features = new float[featureCount]
                 };
-                xSum += xDelta;
-                ySum -= xDelta;
+                testData[i].Features[index] = x;
+                x += 0.1F;
             }
 
-            return dataPoints;
+            return testData;
         }
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
-        public void LightGBMEstimatorPositiveMonotone()
+        public void LightGBMEstimatorTestMonotonic()
         {
             // Create a sample dataset to verify that the constraint is working
             var mlContext = new MLContext();
-            var dataPoints = GenerateDataPoints(100, 10);
+            var dataView = GetRegressionPipeline();
+            var trainer = mlContext.Regression.Trainers.LightGbm(new Options() { MonotoneConstraints=new string[] { "pos:0", "neg:1" } }).Fit(dataView);
+            var engine = trainer.CreatePredictionEngine<MonotoneTestData, MonotoneTestResult>(Env);
 
-            // Sort in descending order --  the order doesnt matter for training this sort is done
-            // to verify that.
-            Array.Sort<DataPoint>(dataPoints, new Comparison<DataPoint>((d1, d2) => d2.Features[0].CompareTo(d1.Features[0])));
-            var data = mlContext.Data.ReadFromEnumerable(dataPoints);
-            var trainer = mlContext.Regression.Trainers.LightGbm(new Options() { MonotoneConstraints=new string[] { "pos:0" } }).Fit(data);
-            
-            // Now sort in ascending order. This is done to ensure that we are getting positively increasing scores
-            Array.Sort<DataPoint>(dataPoints, new Comparison<DataPoint>((d1, d2) => d1.Features[0].CompareTo(d2.Features[0])));
-            var dataSorted = mlContext.Data.ReadFromEnumerable(dataPoints);
-            var transformedData = trainer.Transform(dataSorted);
-            
-            var rows = ML.CreateEnumerable<DataPointResult>(transformedData, reuseRowObject: false);
-            float lastScore = float.MinValue;
-            foreach(var row in rows)
+            // Feature 0 is monotonically increasing and feature 1 is monotonically decreasing. 
+            // This confirms the these trends are true by generating test data for the positive feature
+            // and a test data for the negatively feature, then calls predict with each test data 
+            // confirming the increasing and decreasing.
+            int numFeatures = 11;
+            var positiveTestData = GenerateTestFeatures(0, numFeatures);
+            var negativeTestData = GenerateTestFeatures(1, numFeatures);
+
+            var lastValue = float.MinValue;
+            foreach(var x in positiveTestData)
             {
-                Assert.True(lastScore <= row.Score);
-                lastScore = row.Score;
+                var result = engine.Predict(x);
+                Assert.True(result.Score >= lastValue);
+                lastValue = result.Score;
             }
-        }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
-        public void LightGBMEstimatorNegativeMonotone()
-        {
-            // Create a sample dataset to verify that the constraint is working
-            var mlContext = new MLContext();
-            var dataPoints = GenerateDataPoints(100, 10);
-
-            var data = mlContext.Data.ReadFromEnumerable(dataPoints);
-            var trainer = mlContext.Regression.Trainers.LightGbm(new Options() { MonotoneConstraints=new string[] { "neg:0" } }).Fit(data);
-            
-            // Sort in descending order to ensure that we are getting decreasing scores
-            Array.Sort<DataPoint>(dataPoints, new Comparison<DataPoint>((d1, d2) => d2.Features[0].CompareTo(d1.Features[0])));
-            var dataSorted = mlContext.Data.ReadFromEnumerable(dataPoints);
-            var transformedData = trainer.Transform(dataSorted);
-            
-            var rows = ML.CreateEnumerable<DataPointResult>(transformedData, reuseRowObject: false);
-            float lastScore = float.MaxValue;
-            foreach(var row in rows)
+            lastValue = float.MaxValue;
+            foreach(var x in negativeTestData)
             {
-                Assert.True(lastScore >= row.Score);
-                lastScore = row.Score;
+                var result = engine.Predict(x);
+                Assert.True(result.Score <= lastValue);
+                lastValue = result.Score;
             }
         }
 
@@ -192,6 +168,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             Dictionary<string, object> options = new Dictionary<string, object>();
             options["monotone_constraints"] = new string[] { "pos1:2"};
+            var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentInvalidFormat()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos1:2:3"};
             var trainer = new LightGbmBinaryTrainer(Env, new Options(){ });
             trainer.ExpandMonotoneConstraint(ref options, 20);
             Assert.True(options.ContainsKey("monotone_constraints"));
@@ -246,6 +234,55 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(options.ContainsKey("monotone_constraints"));
             var constraintString = options["monotone_constraints"];
             Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
+
+        [Fact]
+        public void LightGBMMonotoneArgumentNull()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = null;
+            var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Null(constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentBadValue()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos:TabbyCat" };
+            var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentAllPositive()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "pos" };
+            var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1", constraintString);
+        }
+
+        [Fact]
+        public void LightGBMMonotoneArgumentAllNegative()
+        {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["monotone_constraints"] = new string[] { "neg" };
+            var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
+            trainer.ExpandMonotoneConstraint(ref options, 20);
+            Assert.True(options.ContainsKey("monotone_constraints"));
+            var constraintString = options["monotone_constraints"];
+            Assert.Equal("-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1", constraintString);
         }
 
 

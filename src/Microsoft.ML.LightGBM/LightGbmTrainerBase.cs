@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
@@ -120,23 +121,36 @@ namespace Microsoft.ML.LightGBM
             // The end result is a string array of 1s,0s, and -1s that should be equal
             // to the number of features in the Feature column.
             int[] constraintArray = new int[featureCount];
+            const string positiveKeyword = "pos";
+            const string negativeKeyword = "neg";
+
             foreach(var argument in constraintArguments)
             {
                 // Split by : to get the keyword and range
                 var subArguments = argument.Split(':');
-                if (subArguments.Length != 2)
+                if (subArguments.Length > 2)
                     // Invalid argument, skip to the next argument
                     continue;
 
                 var keyword = subArguments[0].ToLowerInvariant();
-                var rangesArgument = subArguments[1];
                 int constraint = 0;
-                if (string.Compare(keyword,"pos") == 0)
+                if (keyword.Equals(positiveKeyword, StringComparison.OrdinalIgnoreCase))
                     constraint = 1;
-                else if (string.Compare(keyword, "neg") == 0)
+                else if (keyword.Equals(negativeKeyword, StringComparison.OrdinalIgnoreCase))
                     constraint = -1;
                 else
                     continue;
+
+                // If only the keyword (pos or neg) is present without a range, this will
+                // set the same constraint for all features.
+                if (subArguments.Length == 1)
+                {
+                    for(int i = 0; i < featureCount; i++)
+                        constraintArray[i] = constraint;
+                    continue;
+                }
+
+                var rangesArgument = subArguments[1];
 
                 // Parse the range. Since multiple ranges
                 // can be specified in a single range, split by comma first

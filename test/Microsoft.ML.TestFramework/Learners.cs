@@ -323,6 +323,13 @@ namespace Microsoft.ML.RunTests
             BaselineProgress = true,
         };
 
+        public static PredictorAndArgs LightGBMMonotonic = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMBinary", "nt=1 nl=5 mil=5 lr=0.25 iter=20 mb=255 mc=pos:0 mc=neg:1"),
+            Tag = "LightGBM",
+            BaselineProgress = true,
+        };
+
         public static PredictorAndArgs LightGBMMC = new PredictorAndArgs
         {
             Trainer = new SubComponent("LightGBMMC", "nt=1 iter=10 v=- lr=0.2 mil=10 nl=20"),
@@ -330,9 +337,23 @@ namespace Microsoft.ML.RunTests
             BaselineProgress = true,
         };
 
+        public static PredictorAndArgs LightGBMMCMonotonic = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMMC", "nt=1 iter=10 v=- lr=0.2 mil=10 nl=20 mc=pos:0 mc=neg:1"),
+            Tag = "LightGBMMC",
+            BaselineProgress = true,
+        };
+
         public static PredictorAndArgs LightGBMReg = new PredictorAndArgs
         {
             Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 v=+ booster=gbdt{l1=0.2 l2=0.2} lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMReg",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMRegMonotonic = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 v=+ booster=gbdt{l1=0.2 l2=0.2} lr=0.2 mil=10 nl=20 mc=pos:0 mc=neg:1"),
             Tag = "LightGBMReg",
             BaselineProgress = true,
         };

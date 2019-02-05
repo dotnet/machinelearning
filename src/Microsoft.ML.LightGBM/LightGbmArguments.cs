@@ -376,7 +376,8 @@ namespace Microsoft.ML.LightGBM
             "the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is " +
             "specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the " +
             "first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, " +
-            "then no constraint will be applied.")]
+            "then no constraint will be applied. The keyword of 'pos' or 'neg' without a range will apply the constraint to all features.",
+            ShortName="mc")]
         public string[] MonotoneConstraints;
 
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]

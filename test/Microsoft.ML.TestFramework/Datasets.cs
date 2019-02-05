@@ -199,6 +199,14 @@ namespace Microsoft.ML.RunTests
              }
         };
 
+        public static TestDataset generatedMonotonicPositiveDataset = new TestDataset
+        {
+            name = "generatedMonotonicPositiveDataset",
+            trainFilename = "generated_regression_dataset.csv",
+            testFilename = "generated_regression_dataset.csv",
+            loaderSettings = "loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+}"
+        };
+
         public static TestDataset generatedRegressionDataset = new TestDataset
         {
             name = "generatedRegressionDataset",
