@@ -89,6 +89,9 @@ namespace Microsoft.ML.Tests.Transformers
             var estimator = new WordTokenizingEstimator(Env, new[]{
                     new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
                 }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
+            var schema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            Assert.True(schema.TryFindColumn("VecD", out var originalColumn));
+            Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
