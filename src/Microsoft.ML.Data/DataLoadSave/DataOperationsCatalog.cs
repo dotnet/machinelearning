@@ -101,11 +101,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MissingValueFilter](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/MissingValueFilter.cs)]
+        /// [!code-csharp[FilterByMissingValues](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByMissingValues.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView MissingValueFilter(IDataView input, bool complement = false, params string[] columns)
+        public IDataView FilterByMissingValues(IDataView input, bool complement = false, params string[] columns)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
