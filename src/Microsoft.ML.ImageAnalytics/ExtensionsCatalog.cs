@@ -81,7 +81,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// In image processing pipelines, often machine learning practitioner make use of<a href= "https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model/">
-        /// pre - trained DNN featurizers</a> to extract features for usage in the machine learning algorithms.
+        /// pre-trained DNN featurizers</a> to extract features for usage in the machine learning algorithms.
         /// Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
         /// further processing.
         /// The new width and height can be specified in the <paramref name="imageWidth"/> and <paramref name="imageHeight"/>
