@@ -328,8 +328,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestWhiteningCommandLine()
         {
-            MLContext env = new MLContext();
-            IHostEnvironment environment = env;
+            IHostEnvironment environment = new MLContext();
             environment.ComponentCatalog.RegisterAssembly(typeof(VectorWhiteningTransformer).Assembly);
 
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
