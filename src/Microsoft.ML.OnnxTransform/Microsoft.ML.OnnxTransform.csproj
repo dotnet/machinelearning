@@ -4,8 +4,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.OnnxTransform</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplicationIcon />
-    <Win32Resource />
   </PropertyGroup>
 
   <ItemGroup>

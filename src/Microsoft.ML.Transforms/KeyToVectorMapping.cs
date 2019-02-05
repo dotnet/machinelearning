@@ -425,7 +425,7 @@ namespace Microsoft.ML.Transforms.Conversions
     }
 
     /// <summary>
-    ///  Converts the key types back to binary verctors.
+    ///  Converts the key types back to binary vectors.
     /// </summary>
     public sealed class KeyToBinaryVectorMappingEstimator : TrivialEstimator<KeyToBinaryVectorMappingTransformer>
     {
