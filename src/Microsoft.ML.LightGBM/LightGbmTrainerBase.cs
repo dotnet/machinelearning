@@ -124,7 +124,7 @@ namespace Microsoft.ML.LightGBM
             const string positiveKeyword = "pos";
             const string negativeKeyword = "neg";
 
-            foreach(var argument in constraintArguments)
+            foreach (var argument in constraintArguments)
             {
                 // Split by : to get the keyword and range
                 var subArguments = argument.Split(':');
@@ -145,7 +145,7 @@ namespace Microsoft.ML.LightGBM
                 // set the same constraint for all features.
                 if (subArguments.Length == 1)
                 {
-                    for(int i = 0; i < featureCount; i++)
+                    for (int i = 0; i < featureCount; i++)
                         constraintArray[i] = constraint;
                     continue;
                 }
@@ -161,7 +161,7 @@ namespace Microsoft.ML.LightGBM
                 if (ranges.Length == 0)
                     continue;
 
-                foreach(var range in ranges)
+                foreach (var range in ranges)
                 {
                     min = 0;
                     max = 0;
@@ -191,8 +191,8 @@ namespace Microsoft.ML.LightGBM
                 }
 
                 // Process each range
-                foreach(var indexRange in indexRanges)
-                   for(int i  = indexRange.min; i <= indexRange.max; ++i)
+                foreach (var indexRange in indexRanges)
+                    for (int i = indexRange.min; i <= indexRange.max; ++i)
                         constraintArray[i] = constraint;
             }
             // Update Options to contain the expanded array
@@ -280,7 +280,7 @@ namespace Microsoft.ML.LightGBM
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
-        protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg=false)
+        protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg = false)
         {
             double learningRate = Args.LearningRate ?? DefaultLearningRate(numRow, hasCategarical, totalCats);
             int numLeaves = Args.NumLeaves ?? DefaultNumLeaves(numRow, hasCategarical, totalCats);
@@ -702,7 +702,7 @@ namespace Microsoft.ML.LightGBM
             int[] nonZeroCntPerColumn = new int[catMetaData.NumCol];
             int estimateNonZeroCnt = (int)(numSampleRow * density);
             estimateNonZeroCnt = Math.Max(1, estimateNonZeroCnt);
-            for(int i = 0; i < catMetaData.NumCol; i++)
+            for (int i = 0; i < catMetaData.NumCol; i++)
             {
                 nonZeroCntPerColumn[i] = 0;
                 sampleValuePerColumn[i] = new double[estimateNonZeroCnt];
