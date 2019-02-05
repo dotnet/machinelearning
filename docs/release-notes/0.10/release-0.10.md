@@ -37,7 +37,7 @@ Below are a few of the highlights from this release. There are many other improv
 ([#2081](https://github.com/dotnet/machinelearning/pull/2081))
   - Better naming for NuGet packages based on the scenario (Recommendations) instead of the trainer's name
 
-* Support multiple 'feature columns' in FFM (Field Factorization Machine)
+* Support multiple 'feature columns' in FFM (Field-aware Factorization Machines)
 ([#2205](https://github.com/dotnet/machinelearning/pull/2205)) 
   - Allows multiple feature column names in advanced trainer arguments so certain FFM trainers can support multiple multiple feature columns as explained in [#2179](https://github.com/dotnet/machinelearning/issues/2179) issue.
 
@@ -52,7 +52,7 @@ Below are a few of the highlights from this release. There are many other improv
 
 * Added Tensorflow unfrozen models support in GetModelSchema 
 ([#2112](https://github.com/dotnet/machinelearning/pull/2112)) 
-  - Fixes issues like [#2102](https://github.com/dotnet/machinelearning/issues/2102)
+  - Fixes issue [#2102](https://github.com/dotnet/machinelearning/issues/2102)
 
 * Providing API for properly inspecting trees ([#2243](https://github.com/dotnet/machinelearning/pull/2243))
 
