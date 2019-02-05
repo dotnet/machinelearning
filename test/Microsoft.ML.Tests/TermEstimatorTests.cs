@@ -154,7 +154,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestCommandLine()
         {
-            var env = new MLContext();
             Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} in=f:\2.txt" }));
         }
 

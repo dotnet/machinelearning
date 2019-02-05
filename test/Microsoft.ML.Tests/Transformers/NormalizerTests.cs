@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.Data.DataView;
@@ -328,9 +329,8 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestWhiteningCommandLine()
         {
-            IHostEnvironment environment = new MLContext();
-            environment.ComponentCatalog.RegisterAssembly(typeof(VectorWhiteningTransformer).Assembly);
-
+            // typeof helps to load the VectorWhiteningTransformer type.
+            Type type = typeof(VectorWhiteningTransformer);
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
         }
 

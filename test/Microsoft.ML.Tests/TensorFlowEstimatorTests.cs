@@ -135,9 +135,8 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         void TestCommandLine()
         {
-            IHostEnvironment environment = new MLContext();
-            environment.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
-
+            // typeof helps to load the TensorFlowTransformer type.
+            Type type = typeof(TensorFlowTransformer);
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }), (int)0);
         }
 
