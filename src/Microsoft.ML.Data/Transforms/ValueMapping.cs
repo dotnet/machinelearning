@@ -63,7 +63,13 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
+            var vectorKind = SchemaShape.Column.VectorKind.Scalar;
+            if (Transformer.ValueColumnType is VectorType)
+            {
+                vectorKind = SchemaShape.Column.VectorKind.Vector;
+                if(Transformer.ValueColumnType.GetVectorSize() == 0)
+                    vectorKind = SchemaShape.Column.VectorKind.VariableVector;
+            }
             var isKey = Transformer.ValueColumnType is KeyType;
             var columnType = (isKey) ? NumberType.U4 :
                                     Transformer.ValueColumnType.GetItemType();

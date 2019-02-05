@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
@@ -513,6 +514,60 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Workout on value mapping
             var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var schema = est.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            foreach (var name in new[] { "D", "E", "F" })
+            {
+                Assert.True(schema.TryFindColumn(name, out var originalColumn));
+                Assert.Equal(SchemaShape.Column.VectorKind.Scalar, originalColumn.Kind);
+                Assert.Equal(NumberType.I4, originalColumn.ItemType);
+            }
+            TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
+        }
+
+        [Fact]
+        public void ValueMappingValueTypeIsVectorWorkout()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
+            var dataView = ML.Data.ReadFromEnumerable(data);
+            var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
+            var badDataView = ML.Data.ReadFromEnumerable(badData);
+
+            var keys = new List<string>() { "foo", "bar", "test" };
+            var values = new List<int[]>() {
+                new int[] {2, 3, 4 },
+                new int[] {100, 200 },
+                new int[] {400, 500, 600, 700 }};
+
+            // Workout on value mapping
+            var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var schema = est.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            foreach (var name in new[] { "D", "E", "F" })
+            {
+                Assert.True(schema.TryFindColumn(name, out var originalColumn));
+                Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
+                Assert.Equal(NumberType.I4, originalColumn.ItemType);
+            }
+            TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
+        }
+
+        [Fact]
+        public void ValueMappingInputIsVectorWorkout()
+        {
+            var data = new[] { new TestClass() { B = "bar test foo" } };
+            var dataView = ML.Data.ReadFromEnumerable(data);
+
+            var badData = new[] { new TestWrong() { B = 1.2f } };
+            var badDataView = ML.Data.ReadFromEnumerable(badData);
+
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<int>() { 1, 2, 3, 4 };
+
+            var est = ML.Transforms.Text.TokenizeWords("TokenizeB", "B")
+                .Append(ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("VecB", "TokenizeB") }));
+            var schema = est.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            Assert.True(schema.TryFindColumn("VecB", out var originalColumn));
+            Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
+            Assert.Equal(NumberType.I4, originalColumn.ItemType);
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
