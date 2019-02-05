@@ -20,7 +20,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Text;
 
-[assembly: LoadableClass(StopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransformer), typeof(StopWordsRemovingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(StopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransformer), typeof(StopWordsRemovingTransformer.Options), typeof(SignatureDataTransform),
     "Stopwords Remover Transform", "StopWordsRemoverTransform", "StopWordsRemover", "StopWords")]
 
 [assembly: LoadableClass(StopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -32,7 +32,7 @@ using Microsoft.ML.Transforms.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(StopWordsRemovingTransformer), null, typeof(SignatureLoadRowMapper),
     "Stopwords Remover Transform", StopWordsRemovingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(CustomStopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(CustomStopWordsRemovingTransformer), typeof(CustomStopWordsRemovingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(CustomStopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(CustomStopWordsRemovingTransformer), typeof(CustomStopWordsRemovingTransformer.Options), typeof(SignatureDataTransform),
     "Custom Stopwords Remover Transform", "CustomStopWordsRemoverTransform", "CustomStopWords")]
 
 [assembly: LoadableClass(CustomStopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(CustomStopWordsRemovingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
-            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.Name, x.Source)).ToArray()).Fit(input).Transform(input) as IDataTransform;
+            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingEstimator.ColumnInfo(x.Name, x.Source)).ToArray()).Fit(input).Transform(input) as IDataTransform;
         }
     }
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class Arguments
+        internal sealed class Options
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -131,9 +131,9 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(StopWordsRemovingTransformer).Assembly.FullName);
         }
 
-        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+        public IReadOnlyCollection<StopWordsRemovingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
 
-        private readonly ColumnInfo[] _columns;
+        private readonly StopWordsRemovingEstimator.ColumnInfo[] _columns;
         private static volatile NormStr.Pool[] _stopWords;
         private static volatile Dictionary<ReadOnlyMemory<char>, StopWordsRemovingEstimator.Language> _langsDictionary;
 
@@ -179,38 +179,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        /// <summary>
-        /// Describes how the transformer handles one column pair.
-        /// </summary>
-        public sealed class ColumnInfo
-        {
-            public readonly string Name;
-            public readonly string InputColumnName;
-            public readonly StopWordsRemovingEstimator.Language Language;
-            public readonly string LanguageColumn;
-
-            /// <summary>
-            /// Describes how the transformer handles one column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="language">Language-specific stop words list.</param>
-            /// <param name="languageColumn">Optional column to use for languages. This overrides language value.</param>
-            public ColumnInfo(string name,
-                string inputColumnName = null,
-                StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Defaults.DefaultLanguage,
-                string languageColumn = null)
-            {
-                Contracts.CheckNonWhiteSpace(name, nameof(name));
-
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                Language = language;
-                LanguageColumn = languageColumn;
-            }
-        }
-
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(StopWordsRemovingEstimator.ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -228,7 +197,7 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to remove stop words from.</param>
-        public StopWordsRemovingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
+        internal StopWordsRemovingTransformer(IHostEnvironment env, params StopWordsRemovingEstimator.ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns;
@@ -262,13 +231,13 @@ namespace Microsoft.ML.Transforms.Text
             // foreach column:
             //   int: the stopwords list language
             //   string: the id of languages column name
-            _columns = new ColumnInfo[columnsLength];
+            _columns = new StopWordsRemovingEstimator.ColumnInfo[columnsLength];
             for (int i = 0; i < columnsLength; i++)
             {
                 var lang = (StopWordsRemovingEstimator.Language)ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(Enum.IsDefined(typeof(StopWordsRemovingEstimator.Language), lang));
                 var langColName = ctx.LoadStringOrNull();
-                _columns[i] = new ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, lang, langColName);
+                _columns[i] = new StopWordsRemovingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, lang, langColName);
             }
         }
 
@@ -283,22 +252,22 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = new ColumnInfo[args.Columns.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new StopWordsRemovingEstimator.ColumnInfo[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Columns[i];
-                cols[i] = new ColumnInfo(
+                var item = options.Columns[i];
+                cols[i] = new StopWordsRemovingEstimator.ColumnInfo(
                    item.Name,
                    item.Source ?? item.Name,
-                   item.Language ?? args.Language,
-                   item.LanguagesColumn ?? args.LanguagesColumn);
+                   item.Language ?? options.Language,
+                   item.LanguagesColumn ?? options.LanguagesColumn);
             }
             return new StopWordsRemovingTransformer(env, cols).MakeDataTransform(input);
         }
@@ -520,6 +489,36 @@ namespace Microsoft.ML.Transforms.Text
     public sealed class StopWordsRemovingEstimator : TrivialEstimator<StopWordsRemovingTransformer>
     {
         /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnInfo
+        {
+            public readonly string Name;
+            public readonly string InputColumnName;
+            public readonly StopWordsRemovingEstimator.Language Language;
+            public readonly string LanguageColumn;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="language">Language-specific stop words list.</param>
+            /// <param name="languageColumn">Optional column to use for languages. This overrides language value.</param>
+            public ColumnInfo(string name,
+                string inputColumnName = null,
+                StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Defaults.DefaultLanguage,
+                string languageColumn = null)
+            {
+                Contracts.CheckNonWhiteSpace(name, nameof(name));
+
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                Language = language;
+                LanguageColumn = languageColumn;
+            }
+        }
+        /// <summary>
         /// Stopwords language. This enumeration is serialized.
         /// </summary>
         public enum Language
@@ -562,7 +561,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="language">Langauge of the input text column <paramref name="inputColumnName"/>.</param>
-        public StopWordsRemovingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, Language language = Language.English)
+        internal StopWordsRemovingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, Language language = Language.English)
             : this(env, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }, language)
         {
         }
@@ -574,12 +573,12 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to remove stop words on.</param>
         /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
-        public StopWordsRemovingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns, Language language = Language.English)
-            : this(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName, language)).ToArray())
+        internal StopWordsRemovingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns, Language language = Language.English)
+            : this(env, columns.Select(x => new ColumnInfo(x.outputColumnName, x.inputColumnName, language)).ToArray())
         {
         }
 
-        public StopWordsRemovingEstimator(IHostEnvironment env, params StopWordsRemovingTransformer.ColumnInfo[] columns)
+        internal StopWordsRemovingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(StopWordsRemovingEstimator)), new StopWordsRemovingTransformer(env, columns))
         {
         }
@@ -642,7 +641,7 @@ namespace Microsoft.ML.Transforms.Text
             public string StopwordsColumn;
         }
 
-        public sealed class Arguments : ArgumentsBase
+        internal sealed class Options : ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -713,7 +712,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (isBinary || isTranspose)
                 {
                     ch.Assert(isBinary != isTranspose);
-                    ch.CheckUserArg(!string.IsNullOrWhiteSpace(stopwordsCol), nameof(Arguments.StopwordsColumn),
+                    ch.CheckUserArg(!string.IsNullOrWhiteSpace(stopwordsCol), nameof(Options.StopwordsColumn),
                         "stopwordsColumn should be specified");
                     if (isBinary)
                         dataLoader = new BinaryLoader(Host, new BinaryLoader.Arguments(), fileSource);
@@ -772,7 +771,7 @@ namespace Microsoft.ML.Transforms.Text
                         warnEmpty = false;
                     }
                 }
-                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Arguments.Stopword), "stopwords is empty");
+                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Options.Stopword), "stopwords is empty");
             }
             else
             {
@@ -780,9 +779,9 @@ namespace Microsoft.ML.Transforms.Text
                 var loader = GetLoaderForStopwords(ch, dataFile, loaderFactory, ref srcCol);
 
                 if (!loader.Schema.TryGetColumnIndex(srcCol, out int colSrcIndex))
-                    throw ch.ExceptUserArg(nameof(Arguments.StopwordsColumn), "Unknown column '{0}'", srcCol);
+                    throw ch.ExceptUserArg(nameof(Options.StopwordsColumn), "Unknown column '{0}'", srcCol);
                 var typeSrc = loader.Schema[colSrcIndex].Type;
-                ch.CheckUserArg(typeSrc is TextType, nameof(Arguments.StopwordsColumn), "Must be a scalar text column");
+                ch.CheckUserArg(typeSrc is TextType, nameof(Options.StopwordsColumn), "Must be a scalar text column");
 
                 // Accumulate the stopwords.
                 using (var cursor = loader.GetRowCursor(loader.Schema[srcCol]))
@@ -805,7 +804,7 @@ namespace Microsoft.ML.Transforms.Text
                         }
                     }
                 }
-                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Arguments.DataFile), "dataFile is empty");
+                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Options.DataFile), "dataFile is empty");
             }
         }
 
@@ -817,7 +816,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="stopwords">Array of words to remove.</param>
         /// <param name="columns">Pairs of columns to remove stop words from.</param>
-        public CustomStopWordsRemovingTransformer(IHostEnvironment env, string[] stopwords, params (string outputColumnName, string inputColumnName)[] columns) :
+        internal CustomStopWordsRemovingTransformer(IHostEnvironment env, string[] stopwords, params (string outputColumnName, string inputColumnName)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
             _stopWordsMap = new NormStr.Pool();
@@ -938,24 +937,24 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = new (string outputColumnName, string inputColumnName)[args.Columns.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new (string outputColumnName, string inputColumnName)[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Columns[i];
+                var item = options.Columns[i];
                 cols[i] = (item.Name, item.Source ?? item.Name);
             }
             CustomStopWordsRemovingTransformer transfrom = null;
-            if (Utils.Size(args.Stopwords) > 0)
-                transfrom = new CustomStopWordsRemovingTransformer(env, args.Stopwords, cols);
+            if (Utils.Size(options.Stopwords) > 0)
+                transfrom = new CustomStopWordsRemovingTransformer(env, options.Stopwords, cols);
             else
-                transfrom = new CustomStopWordsRemovingTransformer(env, args.Stopword, args.DataFile, args.StopwordsColumn, args.Loader, cols);
+                transfrom = new CustomStopWordsRemovingTransformer(env, options.Stopword, options.DataFile, options.StopwordsColumn, options.Loader, cols);
             return transfrom.MakeDataTransform(input);
         }
 
@@ -1057,7 +1056,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="stopwords">Array of words to remove.</param>
-        public CustomStopWordsRemovingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, params string[] stopwords)
+        internal CustomStopWordsRemovingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, params string[] stopwords)
             : this(env, new[] { (outputColumnName, inputColumnName ?? outputColumnName) }, stopwords)
         {
         }
@@ -1069,7 +1068,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to remove stop words on.</param>
         /// <param name="stopwords">Array of words to remove.</param>
-        public CustomStopWordsRemovingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns, string[] stopwords) :
+        internal CustomStopWordsRemovingEstimator(IHostEnvironment env, (string outputColumnName, string inputColumnName)[] columns, string[] stopwords) :
            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CustomStopWordsRemovingEstimator)), new CustomStopWordsRemovingTransformer(env, stopwords, columns))
         {
         }

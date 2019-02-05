@@ -151,9 +151,9 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var columns = new List<StopWordsRemovingTransformer.ColumnInfo>();
+                var columns = new List<StopWordsRemovingEstimator.ColumnInfo>();
                 foreach (var outCol in toOutput)
-                    columns.Add(new StopWordsRemovingTransformer.ColumnInfo(outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input], _language));
+                    columns.Add(new StopWordsRemovingEstimator.ColumnInfo(outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input], _language));
 
                 return new StopWordsRemovingEstimator(env, columns.ToArray());
             }

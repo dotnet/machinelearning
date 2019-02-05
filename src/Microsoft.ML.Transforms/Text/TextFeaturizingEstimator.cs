@@ -344,12 +344,12 @@ namespace Microsoft.ML.Transforms.Text
             if (tparams.UsePredefinedStopWordRemover)
             {
                 Contracts.Assert(wordTokCols != null, "StopWords transform requires that word tokenization has been applied to the input text.");
-                var xfCols = new StopWordsRemovingTransformer.ColumnInfo[wordTokCols.Length];
+                var xfCols = new StopWordsRemovingEstimator.ColumnInfo[wordTokCols.Length];
                 var dstCols = new string[wordTokCols.Length];
                 for (int i = 0; i < wordTokCols.Length; i++)
                 {
                     var tempName = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
-                    var col = new StopWordsRemovingTransformer.ColumnInfo(tempName, wordTokCols[i], tparams.StopwordsLanguage);
+                    var col = new StopWordsRemovingEstimator.ColumnInfo(tempName, wordTokCols[i], tparams.StopwordsLanguage);
                     dstCols[i] = tempName;
                     tempCols.Add(tempName);
 
