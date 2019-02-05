@@ -4,7 +4,7 @@
 
 We have also instrumented [code coverage](https://codecov.io/gh/dotnet/machinelearning) tools as part of our CI systems and will continue to push for stability and quality in the code.
 
-One of the milestones that we have acheived in this release is moving `DataView` into a new and separate assembly under `Microsoft.Data` namespace. For detailed documentation on `DataView` please take a look at [IDataView design principles](https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewDesignPrinciples.md).
+One of the milestones that we have achieved in this release is moving `DataView` into a new and separate assembly under `Microsoft.Data` namespace. For detailed documentation on `DataView` please take a look at [IDataView design principles](https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewDesignPrinciples.md).
 
 ### Installation
 
@@ -30,9 +30,8 @@ Below are a few of the highlights from this release. There are many other improv
 * DataView moved into a separate assembly and NuGet package 
 ([#2220](https://github.com/dotnet/machinelearning/pull/2220))
 
-* Added support for returning multiple ranked results when scoring a multi-class classification model. 
+* Improvements in the API for predixion engine. 
 ([#2250](https://github.com/dotnet/machinelearning/pull/2250))
-  - This allows to classify something into more than one category, for instance, assign a product to multiple categories, not just one
 
 * Introducing Microsoft.ML.Recommender NuGet name instead of Microsoft.ML.MatrixFactorization name
 ([#2081](https://github.com/dotnet/machinelearning/pull/2081))
