@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -92,12 +93,20 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Drop rows where any column in <paramref name="columns"/> contains an 'NA' value.
+        /// Drop rows where any column in <paramref name="columns"/> contains a missing value.
         /// </summary>
         /// <param name="input">The input data.</param>
-        /// <param name="complement">If true, keep only rows that contain NA values, and filter the rest.</param>
-        /// <param name="columns">Name of the columns. Only these columns will be used to filter rows having 'NA' values.</param>
-        public IDataView NAFilter(IDataView input, bool complement = false, params string[] columns)
+        /// <param name="complement">If true, keep only rows that contain missing values, and filter the rest.</param>
+        /// <param name="columns">Name of the columns to filter on. If a row is has a missing value in any of
+        /// these columns, it will be dropped from the dataset.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MissingValueFilter](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/MissingValueFilter.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView MissingValueFilter(IDataView input, bool complement = false, params string[] columns)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));

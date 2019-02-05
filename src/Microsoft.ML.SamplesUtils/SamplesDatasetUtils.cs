@@ -296,7 +296,7 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Features;
         }
 
-        public static  IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount)
+        public static  IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount, double naRate = 0)
         {
             var rnd = new Random(0);
             var data = new List<FloatLabelFloatFeatureVectorSample>();
@@ -307,10 +307,14 @@ namespace Microsoft.ML.SamplesUtils
                 // Fill feature vector according the assigned label.
                 for (int j = 0; j < _simpleBinaryClassSampleFeatureLength; ++j)
                 {
-                    var value = (float)rnd.NextDouble();
-                    // Positive class gets larger feature value.
-                    if (sample.Label == 0)
-                        value += 0.2f;
+                    float value = float.NaN;
+                    if (naRate <= 0 || rnd.NextDouble() > naRate)
+                    {
+                        value = (float)rnd.NextDouble();
+                        // Positive class gets larger feature value.
+                        if (sample.Label == 0)
+                            value += 0.2f;
+                    }
                     sample.Features[j] = value;
                 }
 
