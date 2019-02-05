@@ -40,8 +40,8 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
         {
         }
 
-        public override List<ModelDiversityMetric<Single>> CalculateDiversityMeasure(IList<FeatureSubsetModel<TScalarPredictor>> models,
-            ConcurrentDictionary<FeatureSubsetModel<TScalarPredictor>, Single[]> predictions)
+        public override List<ModelDiversityMetric<Single>> CalculateDiversityMeasure(IList<FeatureSubsetModel<float>> models,
+            ConcurrentDictionary<FeatureSubsetModel<float>, Single[]> predictions)
         {
             var diversityMetric = CreateDiversityMetric();
             return diversityMetric.CalculateDiversityMeasure(models, predictions);

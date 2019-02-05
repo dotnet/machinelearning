@@ -130,7 +130,6 @@ namespace Microsoft.ML.Sweeper
 
             IDataView view = dvBuilder.GetDataView();
             _host.Assert(view.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");
-            RoleMappedData data = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
 
             using (IChannel ch = _host.Start("Single training"))
             {
@@ -142,11 +141,13 @@ namespace Microsoft.ML.Sweeper
                         FeatureFraction = _args.SplitRatio,
                         NumTrees = _args.NumOfTrees,
                         MinDocumentsInLeafs = _args.NMinForSplit,
+                        LabelColumn = DefaultColumnNames.Label,
+                        FeatureColumn = DefaultColumnNames.Features,
                     });
-                var predictor = trainer.Train(data);
+                var predictor = trainer.Train(view);
 
                 // Return random forest predictor.
-                return predictor;
+                return predictor.Model;
             }
         }
 
