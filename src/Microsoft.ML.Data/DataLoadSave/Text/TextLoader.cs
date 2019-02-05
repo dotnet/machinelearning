@@ -1413,6 +1413,10 @@ namespace Microsoft.ML.Data
 
         public DataViewSchema GetOutputSchema() => _bindings.OutputSchema;
 
+        /// <summary>
+        /// Reads data from <paramref name="source"/> into an <see cref="IDataView"/>.
+        /// </summary>
+        /// <param name="source">The source from which to load data.</param>
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
         internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
