@@ -11,12 +11,12 @@ namespace Microsoft.ML.ImageAnalytics.EntryPoints
 {
     internal static class ImageAnalytics
     {
-        [TlcModule.EntryPoint(Name = "Transforms.ImageLoader", Desc = ImageLoaderTransformer.Summary,
-            UserName = ImageLoaderTransformer.UserName, ShortName = ImageLoaderTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput ImageLoader(IHostEnvironment env, ImageLoaderTransformer.Options input)
+        [TlcModule.EntryPoint(Name = "Transforms.ImageLoader", Desc = ImageLoadingTransformer.Summary,
+            UserName = ImageLoadingTransformer.UserName, ShortName = ImageLoadingTransformer.LoaderSignature)]
+        public static CommonOutputs.TransformOutput ImageLoader(IHostEnvironment env, ImageLoadingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageLoaderTransform", input);
-            var xf = ImageLoaderTransformer.Create(h, input, input.Data);
+            var xf = ImageLoadingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),
@@ -50,12 +50,12 @@ namespace Microsoft.ML.ImageAnalytics.EntryPoints
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ImageGrayscale", Desc = ImageGrayscaleTransformer.Summary,
-            UserName = ImageGrayscaleTransformer.UserName, ShortName = ImageGrayscaleTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput ImageGrayscale(IHostEnvironment env, ImageGrayscaleTransformer.Options input)
+        [TlcModule.EntryPoint(Name = "Transforms.ImageGrayscale", Desc = ImageGrayscalingTransformer.Summary,
+            UserName = ImageGrayscalingTransformer.UserName, ShortName = ImageGrayscalingTransformer.LoaderSignature)]
+        public static CommonOutputs.TransformOutput ImageGrayscale(IHostEnvironment env, ImageGrayscalingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImageGrayscaleTransform", input);
-            var xf = ImageGrayscaleTransformer.Create(h, input, input.Data);
+            var xf = ImageGrayscalingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),

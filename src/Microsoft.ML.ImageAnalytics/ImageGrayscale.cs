@@ -18,24 +18,24 @@ using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(ImageGrayscaleTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscaleTransformer), typeof(ImageGrayscaleTransformer.Options), typeof(SignatureDataTransform),
-    ImageGrayscaleTransformer.UserName, "ImageGrayscaleTransform", "ImageGrayscale")]
+[assembly: LoadableClass(ImageGrayscalingTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscalingTransformer), typeof(ImageGrayscalingTransformer.Options), typeof(SignatureDataTransform),
+    ImageGrayscalingTransformer.UserName, "ImageGrayscaleTransform", "ImageGrayscale")]
 
-[assembly: LoadableClass(ImageGrayscaleTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscaleTransformer), null, typeof(SignatureLoadDataTransform),
-    ImageGrayscaleTransformer.UserName, ImageGrayscaleTransformer.LoaderSignature)]
+[assembly: LoadableClass(ImageGrayscalingTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscalingTransformer), null, typeof(SignatureLoadDataTransform),
+    ImageGrayscalingTransformer.UserName, ImageGrayscalingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(ImageGrayscaleTransformer), null, typeof(SignatureLoadModel),
-    ImageGrayscaleTransformer.UserName, ImageGrayscaleTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(ImageGrayscalingTransformer), null, typeof(SignatureLoadModel),
+    ImageGrayscalingTransformer.UserName, ImageGrayscalingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageGrayscaleTransformer), null, typeof(SignatureLoadRowMapper),
-    ImageGrayscaleTransformer.UserName, ImageGrayscaleTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageGrayscalingTransformer), null, typeof(SignatureLoadRowMapper),
+    ImageGrayscalingTransformer.UserName, ImageGrayscalingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
     /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
-    public sealed class ImageGrayscaleTransformer : OneToOneTransformerBase
+    public sealed class ImageGrayscalingTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
         {
@@ -73,7 +73,7 @@ namespace Microsoft.ML.ImageAnalytics
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(ImageGrayscaleTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(ImageGrayscalingTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImageGrayscale";
@@ -89,7 +89,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
         /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
 
-        internal ImageGrayscaleTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
+        internal ImageGrayscalingTransformer(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
         }
@@ -102,21 +102,21 @@ namespace Microsoft.ML.ImageAnalytics
             env.CheckValue(input, nameof(input));
             env.CheckValue(args.Columns, nameof(args.Columns));
 
-            return new ImageGrayscaleTransformer(env, args.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
+            return new ImageGrayscalingTransformer(env, args.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static ImageGrayscaleTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ImageGrayscalingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new ImageGrayscaleTransformer(host, ctx);
+            return new ImageGrayscalingTransformer(host, ctx);
         }
 
-        private ImageGrayscaleTransformer(IHost host, ModelLoadContext ctx)
+        private ImageGrayscalingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
         }
@@ -161,9 +161,9 @@ namespace Microsoft.ML.ImageAnalytics
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private ImageGrayscaleTransformer _parent;
+            private ImageGrayscalingTransformer _parent;
 
-            public Mapper(ImageGrayscaleTransformer parent, Schema inputSchema)
+            public Mapper(ImageGrayscalingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -217,7 +217,7 @@ namespace Microsoft.ML.ImageAnalytics
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
-    public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscaleTransformer>
+    public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscalingTransformer>
     {
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
         [BestFriend]
         internal ImageGrayscalingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscalingEstimator)), new ImageGrayscaleTransformer(env, columns))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscalingEstimator)), new ImageGrayscalingTransformer(env, columns))
         {
         }
 

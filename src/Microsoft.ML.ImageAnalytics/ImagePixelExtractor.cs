@@ -36,7 +36,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImagePixelExtractingEstimator" /> .
     /// </summary>
     /// <remarks>
-    ///  During the transformation, the columns of <see cref="ImageType"/> are converted them into a vector representign the image pixels
+    ///  During the transformation, the columns of <see cref="ImageType"/> are converted them into a vector representing the image pixels
     ///  than can be further used as features by the algorithms added to the pipeline.
     /// <seealso cref="ImageEstimatorsCatalog" />
     /// <seealso cref = "ImageLoadingEstimator" />
@@ -528,7 +528,7 @@ namespace Microsoft.ML.ImageAnalytics
             /// <summary>Scale color pixel value by this amount.</summary>
             public readonly float Scale;
 
-            /// <summary> Wheather to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them separated in the plannar form.</summary>
+            /// <summary> Whether to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them separated in the plannar form.</summary>
             public readonly bool Interleave;
 
             /// <summary> Output the array as float array. If false, output as byte array.</summary>
@@ -578,15 +578,15 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="colors">What colors to extract.</param>
-            /// <param name="interleave">Wheather to interleave the pixels, meaning keep them in the `RGB RGB` order, or leave them in the plannar form: of all red pixels,
-            /// than all green, than all blue.</param>
+            /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them in the plannar form: of all red pixels,
+            /// then all green, then all blue.</param>
             /// <param name="scale">Scale color pixel value by this amount.</param>
             /// <param name="offset">Offset color pixel value by this amount.</param>
             /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
 
             public ColumnInfo(string name,
                 string inputColumnName = null,
-                ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingTransformer.Defaults.Colors,
+                ColorBits colors = ImagePixelExtractingTransformer.Defaults.Colors,
                 bool interleave = ImagePixelExtractingTransformer.Defaults.Interleave,
                 float scale = ImagePixelExtractingTransformer.Defaults.Scale,
                 float offset = ImagePixelExtractingTransformer.Defaults.Offset,
@@ -693,7 +693,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>. Null means <paramref name="inputColumnName"/> is replaced.</param>
         /// <param name="inputColumnName">Name of the input column.</param>
         /// <param name="colors">What colors to extract.</param>
-        /// <param name="interleave">Wheather to interleave the pixels, meaning keep them in the `RGB RGB` order, or leave them in the plannar form: of all red pixels,
+        /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the `RGB RGB` order, or leave them in the plannar form: of all red pixels,
         /// than all green, than all blue.</param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
         /// <param name="offset">Offset color pixel value by this amount.</param>

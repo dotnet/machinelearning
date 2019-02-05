@@ -21,7 +21,17 @@ namespace Microsoft.ML
         public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params (string outputColumnName, string inputColumnName)[] columnPairs)
             => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), columnPairs);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="ImageLoadingEstimator"]/*' />
+        /// <summary>
+        /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
+        /// </summary>
+        /// <remarks>
+        /// The get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type.
+        /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
+        /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
+        /// For end-to-end image processing pipelines, and scenarios in your applications, see the
+        /// <a href = "https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started" > examples in the machinelearning-samples github repository.</a>
+        /// <seealso cref = "ImageEstimatorsCatalog" />
+        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="imageFolder">The images folder.</param>
         /// <param name="columnPairs">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
@@ -38,8 +48,9 @@ namespace Microsoft.ML
         /// <param name="catalog"> The transform's catalog.</param>
         /// <param name="outputColumnName"> Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName"> Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="colors"> Specifies which colors to extract from the image. The order of colors is: Alpha, Red, Green Blue.</param>
-        /// <param name="interleave">Wheather to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them separated in the planar form.</param>
+        /// <param name="colors"> Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> to extract from the image. The order of colors is: Alpha, Red, Green Blue.</param>
+        /// <param name="interleave">Wheather to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them separated in the planar form, where the colors are outputed one by one
+        /// alpha, red, green, blue for all the pixels of the image. </param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
         /// <param name="offset">Offset color pixel value by this amount.</param>
         /// <param name="asFloat">Output the array as float array. If false, output as byte array.</param>
@@ -53,7 +64,8 @@ namespace Microsoft.ML
             string outputColumnName,
             string inputColumnName = null,
             ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.ColorBits.Rgb,
-            bool interleave = false, float scale = ImagePixelExtractingTransformer.Defaults.Scale,
+            bool interleave = false,
+            float scale = ImagePixelExtractingTransformer.Defaults.Scale,
             float offset = ImagePixelExtractingTransformer.Defaults.Offset,
             bool asFloat = ImagePixelExtractingTransformer.Defaults.Convert)
             => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colors, interleave, scale, offset, asFloat);
@@ -107,7 +119,7 @@ namespace Microsoft.ML
         /// Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
         /// further processing.
         /// The new width and height, as well as other properties of resizing, like type of scaling (uniform, or non-uniform), and whether to pad the image,
-        /// or just crop it can be specidied separately for each column loaded, through the <see cref="ImageResizingEstimator.ColumnInfo"/>.
+        /// or just crop it can be specified separately for each column loaded, through the <see cref="ImageResizingEstimator.ColumnInfo"/>.
         /// <seealso cref = "ImageEstimatorsCatalog" />
         /// <seealso cref= "ImageLoadingEstimator" />
         /// </remarks >
@@ -116,7 +128,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ResizeImage.cs)]
+        ///  [!code-csharp[Resize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ResizeImage.cs)]
         /// ]]></format>
         /// </example>
         public static ImageResizingEstimator Resize(this TransformsCatalog catalog, params ImageResizingEstimator.ColumnInfo[] columns)

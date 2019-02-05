@@ -24,28 +24,13 @@
     </remarks>
     </member>
 
-    <member name="ImageLoadingEstimator">
-      <summary>
-        Loads the images from a given folder into memory as an <see cref="ImageType"/>
-      </summary>
-      <remarks>
-        The images to load are present in the folder specfied as imageFolder. They get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type. 
-        Loading the images in memory is the first step of almost every pipeline that does image processing, and further analysis on images. 
-        The images to load need to be in the formats supported by <see cref="System.Drawing.Bitmap" />.
-
-        For end-to-end image processing pipelines, and scenarios in your applications, see the
-        <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started">examples in the machinelearning-samples github repository.</a>
-        <seealso cref="ImageEstimatorsCatalog" />
-      </remarks>
-    </member>
-
     <member name="ImagePixelExtractingEstimator">
       <summary>
-        Extracts the pixels from the input images and, converts them into a vector of numbers, than can be further used as feature by the algorithms added to the pipeline.   
+        Extracts the pixels from the input images and, converts them into a vector of numbers. This can be further used as feature by the algorithms added to the pipeline.   
       </summary>
       <remarks>
-        The ImagePixelExtractingEstimator extracts the pixels from the input images and, converts them into a vector of numbers,
-        than can be further used as feature by the algorithms added to the pipeline.
+        The ImagePixelExtractingEstimator extracts the pixels from the input images and, converts them into a vector of numbers.
+        This can be further used as feature by the algorithms added to the pipeline.
 
         ImagePixelExtractingEstimator expects a <see cref="ImageResizingEstimator"/>  in the pipeline, before it is used. 
         For end-to-end image processing pipelines, and scenarios in your applications, see the
@@ -61,7 +46,7 @@
         Resizes the images to a new width and height. 
       </summary>
       <remarks>
-        In image processing pipelines, often machine learning practitioner make use of <a href="https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model/">pre-trained DNN featurizers</a> to
+        In image processing pipelines, often machine learning practitioners make use of <a href="https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model/">pre-trained DNN featurizers</a> to
         extract features for usage in the machine learning algorithms.
         Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
         further processing.

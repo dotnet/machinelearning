@@ -18,20 +18,29 @@ using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(ImageLoaderTransformer.Summary, typeof(IDataTransform), typeof(ImageLoaderTransformer), typeof(ImageLoaderTransformer.Options), typeof(SignatureDataTransform),
-    ImageLoaderTransformer.UserName, "ImageLoaderTransform", "ImageLoader")]
+[assembly: LoadableClass(ImageLoadingTransformer.Summary, typeof(IDataTransform), typeof(ImageLoadingTransformer), typeof(ImageLoadingTransformer.Options), typeof(SignatureDataTransform),
+    ImageLoadingTransformer.UserName, "ImageLoaderTransform", "ImageLoader")]
 
-[assembly: LoadableClass(ImageLoaderTransformer.Summary, typeof(IDataTransform), typeof(ImageLoaderTransformer), null, typeof(SignatureLoadDataTransform),
-   ImageLoaderTransformer.UserName, ImageLoaderTransformer.LoaderSignature)]
+[assembly: LoadableClass(ImageLoadingTransformer.Summary, typeof(IDataTransform), typeof(ImageLoadingTransformer), null, typeof(SignatureLoadDataTransform),
+   ImageLoadingTransformer.UserName, ImageLoadingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(ImageLoaderTransformer), null, typeof(SignatureLoadModel), "", ImageLoaderTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(ImageLoadingTransformer), null, typeof(SignatureLoadModel), "", ImageLoadingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageLoaderTransformer), null, typeof(SignatureLoadRowMapper), "", ImageLoaderTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImageLoadingTransformer), null, typeof(SignatureLoadRowMapper), "", ImageLoadingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.ImageAnalytics
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="ImageLoadingEstimator"]/*' />
-    public sealed class ImageLoaderTransformer : OneToOneTransformerBase
+    /// <summary> The <see cref="ITransformer"/> produced by fitting an <see cref="IDataView"/> to an <see cref="ImageLoadingEstimator"/>.
+    /// This <see cref="ITransformer"/>, on calling <see cref="ITransformer.Transform(IDataView)"/> loads the images from a given folder into memory as an<see cref="ImageType"/>.</summary>
+    /// <remarks>
+    /// The images to load are present in the folder specfied as <see cref="ImageFolder"/>imageFolder.They get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type.
+    /// Loading the images in memory is the first step of almost every pipeline that does image processing, and further analysis on images.
+    /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap"/>.
+    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
+    /// <a href = "https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started" > examples in the machinelearning-samples github repository.</a>
+    /// <seealso cref = "ImageEstimatorsCatalog"/>
+    /// </remarks >
+    public sealed class ImageLoadingTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
         {
@@ -81,8 +90,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The host environment.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
-        internal ImageLoaderTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderTransformer)), columns)
+        internal ImageLoadingTransformer(IHostEnvironment env, string imageFolder = null, params (string outputColumnName, string inputColumnName)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingTransformer)), columns)
         {
             ImageFolder = imageFolder;
         }
@@ -90,21 +99,21 @@ namespace Microsoft.ML.ImageAnalytics
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView data)
         {
-            return new ImageLoaderTransformer(env, args.ImageFolder, args.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
+            return new ImageLoadingTransformer(env, args.ImageFolder, args.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(data);
         }
 
         // Factory method for SignatureLoadModel.
-        private static ImageLoaderTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ImageLoadingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
 
             ctx.CheckAtModel(GetVersionInfo());
-            return new ImageLoaderTransformer(env.Register(nameof(ImageLoaderTransformer)), ctx);
+            return new ImageLoadingTransformer(env.Register(nameof(ImageLoadingTransformer)), ctx);
         }
 
-        private ImageLoaderTransformer(IHost host, ModelLoadContext ctx)
+        private ImageLoadingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             // *** Binary format ***
@@ -152,17 +161,17 @@ namespace Microsoft.ML.ImageAnalytics
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(ImageLoaderTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(ImageLoadingTransformer).Assembly.FullName);
         }
 
         private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ImageLoaderTransformer _parent;
+            private readonly ImageLoadingTransformer _parent;
             private readonly ImageType _imageType;
 
-            public Mapper(ImageLoaderTransformer parent, Schema inputSchema)
+            public Mapper(ImageLoadingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _imageType = new ImageType();
@@ -220,8 +229,18 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="ImageLoadingEstimator"]/*' />
-    public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoaderTransformer>
+    /// <summary> Loads the images from a given folder into memory.</summary>
+    /// <remarks>
+    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageLoadingTransformer"/>.
+    /// The images to load are present in the folder specfied as <see cref="ImageLoadingTransformer.ImageFolder" />.
+    /// They get loaded in memory as a<see cref="System.Drawing.Bitmap" /> type.
+    /// Loading the images in memory is the first step of almost every pipeline that does image processing, and further analysis on images.
+    /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
+    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
+    /// <a href = "https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started" > examples in the machinelearning-samples github repository.</a>
+    /// <seealso cref = "ImageEstimatorsCatalog" />
+    /// </remarks >
+    public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoadingTransformer>
     {
         private readonly ImageType _imageType;
 
@@ -232,11 +251,11 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Names of input and output columns.</param>
         internal ImageLoadingEstimator(IHostEnvironment env, string imageFolder, params (string outputColumnName, string inputColumnName)[] columns)
-            : this(env, new ImageLoaderTransformer(env, imageFolder, columns))
+            : this(env, new ImageLoadingTransformer(env, imageFolder, columns))
         {
         }
 
-        internal ImageLoadingEstimator(IHostEnvironment env, ImageLoaderTransformer transformer)
+        internal ImageLoadingEstimator(IHostEnvironment env, ImageLoadingTransformer transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingEstimator)), transformer)
         {
             _imageType = new ImageType();

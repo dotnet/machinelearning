@@ -28,8 +28,8 @@ namespace Microsoft.ML.StaticPipe
             /// Reconciler to an <see cref="ImageLoadingEstimator"/> for the <see cref="PipelineColumn"/>.
             /// </summary>
             /// <remarks>
-            /// We must create a new reconciler per call, because the relative path of <see cref="ImageLoaderTransformer.Options.ImageFolder"/>
-            /// is considered a transform-wide option, as it is not specified in <see cref="ImageLoaderTransformer.Column"/>. However, we still
+            /// We must create a new reconciler per call, because the relative path of <see cref="ImageLoadingTransformer.Options.ImageFolder"/>
+            /// is considered a transform-wide option, as it is not specified in <see cref="ImageLoadingTransformer.Column"/>. However, we still
             /// implement <see cref="IEquatable{T}"/> so the analyzer can still equate two of these things if they happen to share the same
             /// path, so we can be a bit more efficient with respect to our estimator declarations.
             /// </remarks>

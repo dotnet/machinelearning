@@ -5,12 +5,15 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     public class ExtractPixelsExample
     {
+        // Sample that loads the images from the file system, resizes them (ExtractPixels requires a resizing operation), and extracts the 
+        // values of the pixels as a vector. 
         public static void ExtractPixels()
         {
             var mlContext = new MLContext();
 
-            // Downloading a few images, and an images.tsv file, that contains a list of the files, from the dotnet/machinelearning/test/data/images/
-            // if you inspect the fileSystem, after running this line, the 
+            // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.
+            // If you inspect the fileSystem, after running this line, an "images" folder will be created, containing 4 images, and a .tsv file
+            // enumerating the images. 
             var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
 
             // Preview of the content of the images.tsv file
@@ -33,7 +36,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageObject", "ImagePath"))
-                          .Append(mlContext.Transforms.Resize("ImageObject",imageWidth: 100 , imageHeight: 100 ))
+                        //  .Append(mlContext.Transforms.Resize("ImageObject",imageWidth: 100 , imageHeight: 100 ))
                           .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"));
 
 
@@ -44,7 +47,6 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedDataPreview = transformedData.Preview();
 
             // Preview of the content of the images.tsv file
-            // The actual images, in the ImageReal column are of type System.Drawing.Bitmap.
             //
             // ImagePath    Name        ImageObject                 "Pixels"
             // tomato.bmp   tomato      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 232, 243, 226, ...

@@ -5,12 +5,14 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     public class LoadImageExample
     {
+        // Loads the images of the imagesFolder into an IDataView. 
         public static void LoadImage()
         {
             var mlContext = new MLContext();
 
-            // Downloading a few images, and an images.tsv file, that contains a list of the files, from the dotnet/machinelearning/test/data/images/
-            // if you inspect the fileSystem, after running this line, the 
+            // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.
+            // If you inspect the fileSystem, after running this line, an "images" folder will be created, containing 4 images, and a .tsv file
+            // enumerating the images. 
             var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
 
             // Preview of the content of the images.tsv file
