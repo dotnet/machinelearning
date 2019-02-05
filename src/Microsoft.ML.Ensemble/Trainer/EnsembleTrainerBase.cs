@@ -129,7 +129,7 @@ namespace Microsoft.ML.Ensemble
                 validationDataSetProportion = Math.Max(validationDataSetProportion, stackingTrainer.ValidationDatasetProportion);
 
             var needMetrics = Args.ShowMetrics || Combiner is IWeightedAverager;
-            var models = new List<FeatureSubsetModel<IPredictorProducing<TOutput>>>();
+            var models = new List<FeatureSubsetModel<TOutput>>();
 
             _subsetSelector.Initialize(data, NumModels, Args.BatchSize, validationDataSetProportion);
             int batchNumber = 1;
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Ensemble
             {
                 // 2. Core train
                 ch.Info("Training {0} learners for the batch {1}", Trainers.Length, batchNumber++);
-                var batchModels = new FeatureSubsetModel<IPredictorProducing<TOutput>>[Trainers.Length];
+                var batchModels = new FeatureSubsetModel<TOutput>[Trainers.Length];
 
                 Parallel.ForEach(_subsetSelector.GetSubsets(batch, Host.Rand),
                     new ParallelOptions() { MaxDegreeOfParallelism = Args.TrainParallel ? -1 : 1 },
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Ensemble
                         {
                             if (EnsureMinimumFeaturesSelected(subset))
                             {
-                                var model = new FeatureSubsetModel<IPredictorProducing<TOutput>>(
+                                var model = new FeatureSubsetModel<TOutput>(
                                     Trainers[(int)index].Train(subset.Data),
                                     subset.SelectedFeatures,
                                     null);
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Ensemble
             return CreatePredictor(models);
         }
 
-        private protected abstract TPredictor CreatePredictor(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models);
+        private protected abstract TPredictor CreatePredictor(List<FeatureSubsetModel<TOutput>> models);
 
         private bool EnsureMinimumFeaturesSelected(Subset subset)
         {
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Ensemble
             return false;
         }
 
-        private protected virtual void PrintMetrics(IChannel ch, List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
+        private protected virtual void PrintMetrics(IChannel ch, List<FeatureSubsetModel<TOutput>> models)
         {
             // REVIEW: The formatting of this method is bizarre and seemingly not even self-consistent
             // w.r.t. its usage of |. Is this intentional?
@@ -212,12 +212,12 @@ namespace Microsoft.ML.Ensemble
                 ch.Info("{0}{1}", string.Join("", model.Metrics.Select(m => string.Format("| {0} |", m.Value))), model.Predictor.GetType().Name);
         }
 
-        private protected static FeatureSubsetModel<T>[] CreateModels<T>(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models) where T : IPredictor
+        private protected static FeatureSubsetModel<TOutput>[] CreateModels<T>(List<FeatureSubsetModel<TOutput>> models) where T : IPredictorProducing<TOutput>
         {
-            var subsetModels = new FeatureSubsetModel<T>[models.Count];
+            var subsetModels = new FeatureSubsetModel<TOutput>[models.Count];
             for (int i = 0; i < models.Count; i++)
             {
-                subsetModels[i] = new FeatureSubsetModel<T>(
+                subsetModels[i] = new FeatureSubsetModel<TOutput>(
                     (T)models[i].Predictor,
                     models[i].SelectedFeatures,
                     models[i].Metrics);

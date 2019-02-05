@@ -122,7 +122,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
                 throw Contracts.Except("Stacking predictor output type is unsupported: {0}", ivm.OutputType);
         }
 
-        public void Train(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models, RoleMappedData data, IHostEnvironment env)
+        public void Train(List<FeatureSubsetModel<TOutput>> models, RoleMappedData data, IHostEnvironment env)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(Stacking.LoadName);

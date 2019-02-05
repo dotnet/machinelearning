@@ -124,15 +124,23 @@ namespace Microsoft.ML.SamplesUtils
             public float Temperature { get; set; }
         }
 
-        public static IEnumerable<SampleTemperatureData> GetSampleTemperatureData()
+        /// <summary>
+        /// Get a fake temperature dataset.
+        /// </summary>
+        /// <param name="exampleCount">The number of examples to return.</param>
+        /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
+        public static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(int exampleCount)
         {
-            var data = new List<SampleTemperatureData>();
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,1), Temperature = 39.0F });
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,2), Temperature = 82.0F });
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,3), Temperature = 75.0F });
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,4), Temperature = 67.0F });
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,5), Temperature = 75.0F });
-            return data;
+            var rng = new Random(1234321);
+            var date = new DateTime(2012, 1, 1);
+            float temperature = 39.0f;
+
+            for (int i = 0; i < exampleCount; i++)
+            {
+                date = date.AddDays(1);
+                temperature += rng.Next(-5, 5);
+                yield return new SampleTemperatureData { Date = date, Temperature = temperature };
+            }
         }
 
         /// <summary>

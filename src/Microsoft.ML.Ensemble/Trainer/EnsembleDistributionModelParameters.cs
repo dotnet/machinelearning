@@ -22,7 +22,7 @@ namespace Microsoft.ML.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
 
-    public sealed class EnsembleDistributionModelParameters : EnsembleModelParametersBase<TDistPredictor, Single>,
+    public sealed class EnsembleDistributionModelParameters : EnsembleModelParametersBase<Single>,
          TDistPredictor, IValueMapperDist
     {
         internal const string UserName = "Ensemble Distribution Executor";
@@ -62,8 +62,8 @@ namespace Microsoft.ML.Ensemble
         /// <param name="models">Array of sub-models that you want to ensemble together.</param>
         /// <param name="combiner">The combiner class to use to ensemble the models.</param>
         /// <param name="weights">The weights assigned to each model to be ensembled.</param>
-        public EnsembleDistributionModelParameters(IHostEnvironment env, PredictionKind kind,
-            FeatureSubsetModel<TDistPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
+        internal EnsembleDistributionModelParameters(IHostEnvironment env, PredictionKind kind,
+            FeatureSubsetModel<float>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
             PredictionKind = kind;

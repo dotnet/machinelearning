@@ -8,7 +8,7 @@ namespace Microsoft.ML.Training
 {
     public interface ITrainerEstimator<out TTransformer, out TPredictor> : IEstimator<TTransformer>
         where TTransformer : ISingleFeaturePredictionTransformer<TPredictor>
-        where TPredictor : IPredictor
+        where TPredictor : class
     {
         TrainerInfo Info { get; }
 

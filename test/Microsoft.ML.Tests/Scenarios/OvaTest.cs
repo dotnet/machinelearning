@@ -34,10 +34,8 @@ namespace Microsoft.ML.Scenarios
             var data = reader.Read(GetDataPath(dataPath));
 
             // Pipeline
-            var pipeline = new Ova(
-                mlContext, 
-                mlContext.BinaryClassification.Trainers.LogisticRegression(),
-                useProbabilities: false);
+            var logReg = mlContext.BinaryClassification.Trainers.LogisticRegression();
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(logReg, useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
@@ -68,11 +66,9 @@ namespace Microsoft.ML.Scenarios
             var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
 
             // Pipeline
-            var pipeline = new Ova(
-                mlContext,
-                mlContext.BinaryClassification.Trainers.AveragedPerceptron(
-                    new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null }),
-                useProbabilities: false);
+            var ap = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
+                    new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null });
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(ap, useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
@@ -103,8 +99,7 @@ namespace Microsoft.ML.Scenarios
             var data = reader.Read(GetDataPath(dataPath));
 
             // Pipeline
-            var pipeline = new Ova(
-                mlContext,
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
                 mlContext.BinaryClassification.Trainers.FastTree(new FastTreeBinaryClassificationTrainer.Options { NumThreads = 1 }),
                 useProbabilities: false);
 
@@ -137,7 +132,7 @@ namespace Microsoft.ML.Scenarios
             var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
 
             // Pipeline
-            var pipeline = new Ova(mlContext, 
+            var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
                 mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumIterations = 100 }),
                 useProbabilities: false);
 

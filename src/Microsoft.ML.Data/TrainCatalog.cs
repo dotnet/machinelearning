@@ -20,7 +20,7 @@ namespace Microsoft.ML
     /// </summary>
     public abstract class TrainCatalogBase
     {
-        protected readonly IHost Host;
+        protected internal readonly IHost Host;
 
         [BestFriend]
         internal IHostEnvironment Environment => Host;
@@ -68,7 +68,7 @@ namespace Microsoft.ML
         /// Train the <paramref name="estimator"/> on <paramref name="numFolds"/> folds of the data sequentially.
         /// Return each model and each scored test dataset.
         /// </summary>
-        protected (IDataView scoredTestSet, ITransformer model)[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
+        protected internal (IDataView scoredTestSet, ITransformer model)[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
             int numFolds, string stratificationColumn, uint? seed = null)
         {
             Host.CheckValue(data, nameof(data));
@@ -111,7 +111,7 @@ namespace Microsoft.ML
             return result.ToArray();
         }
 
-        protected TrainCatalogBase(IHostEnvironment env, string registrationName)
+        protected internal TrainCatalogBase(IHostEnvironment env, string registrationName)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(registrationName, nameof(registrationName));
@@ -174,7 +174,7 @@ namespace Microsoft.ML
             [BestFriend]
             internal TrainCatalogBase Owner { get; }
 
-            protected CatalogInstantiatorBase(TrainCatalogBase catalog)
+            internal protected CatalogInstantiatorBase(TrainCatalogBase catalog)
             {
                 Owner = catalog;
             }
@@ -182,16 +182,16 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for binary classification trainers.
+    /// The central catalog for binary classification tasks and trainers.
     /// </summary>
     public sealed class BinaryClassificationCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// For trainers for performing binary classification.
+        /// The list of trainers for performing binary classification.
         /// </summary>
         public BinaryClassificationTrainers Trainers { get; }
 
-        public BinaryClassificationCatalog(IHostEnvironment env)
+        internal BinaryClassificationCatalog(IHostEnvironment env)
             : base(env, nameof(BinaryClassificationCatalog))
         {
             Trainers = new BinaryClassificationTrainers(this);
@@ -298,19 +298,19 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for clustering trainers.
+    /// The central catalog for clustering tasks and trainers.
     /// </summary>
     public sealed class ClusteringCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// List of trainers for performing clustering.
+        /// The list of trainers for performing clustering.
         /// </summary>
         public ClusteringTrainers Trainers { get; }
 
         /// <summary>
         /// The clustering context.
         /// </summary>
-        public ClusteringCatalog(IHostEnvironment env)
+        internal ClusteringCatalog(IHostEnvironment env)
             : base(env, nameof(ClusteringCatalog))
         {
             Trainers = new ClusteringTrainers(this);
@@ -379,16 +379,16 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for multiclass classification trainers.
+    /// The central catalog for multiclass classification tasks and trainers.
     /// </summary>
     public sealed class MulticlassClassificationCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// For trainers for performing multiclass classification.
+        /// The list of trainers for performing multiclass classification.
         /// </summary>
         public MulticlassClassificationTrainers Trainers { get; }
 
-        public MulticlassClassificationCatalog(IHostEnvironment env)
+        internal MulticlassClassificationCatalog(IHostEnvironment env)
             : base(env, nameof(MulticlassClassificationCatalog))
         {
             Trainers = new MulticlassClassificationTrainers(this);
@@ -455,16 +455,16 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for regression trainers.
+    /// The central catalog for regression tasks and trainers.
     /// </summary>
     public sealed class RegressionCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// For trainers for performing regression.
+        /// The list of trainers for performing regression.
         /// </summary>
         public RegressionTrainers Trainers { get; }
 
-        public RegressionCatalog(IHostEnvironment env)
+        internal RegressionCatalog(IHostEnvironment env)
             : base(env, nameof(RegressionCatalog))
         {
             Trainers = new RegressionTrainers(this);
@@ -522,16 +522,16 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for ranking trainers.
+    /// The central catalog for ranking tasks and trainers.
     /// </summary>
     public sealed class RankingCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// For trainers for performing regression.
+        /// The list of trainers for performing regression.
         /// </summary>
         public RankingTrainers Trainers { get; }
 
-        public RankingCatalog(IHostEnvironment env)
+        internal RankingCatalog(IHostEnvironment env)
             : base(env, nameof(RankingCatalog))
         {
             Trainers = new RankingTrainers(this);
