@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Read the Housing regression dataset
             var data = DatasetUtils.LoadHousingRegressionDataset(mlContext);
 
-            // Step 1: Pipeline
+            // Create a pipeline
             // Concatenate the features to create a Feature vector.
             // Then append a gam regressor, setting the "MedianHomeValue" column as the label of the dataset,
             // the "Features" column produced by concatenation as the features column,
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Extract the model from the pipeline
             var gamModel = fitPipeline.LastTransformer.Model;
 
-            // Step 2: Investigate the properties of the model
+            // Now investigate the properties of the Generalized Additive Model: The intercept and shape functions.
 
             // The intercept for the GAM models represent the average prediction for the training data
             var intercept = gamModel.Intercept;
