@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -12,65 +13,67 @@ namespace Microsoft.ML.Samples.Dynamic
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Get a small dataset as an IEnumerable.
-            IEnumerable<SamplesUtils.DatasetUtils.FloatLabelFloatFeatureVectorSample> enumerableOfData = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(100000);
-            var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
+            var data = DatasetUtils.LoadHousingRegressionDataset(mlContext);
 
             // Time how long it takes to page through the records if we don't cache.
-            int lines = 0;
-            double averageOfColumn0 = 0.0;
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.FloatLabelFloatFeatureVectorSample>(data, reuseRowObject: true);
-            foreach (var row in enumerable)
-            {
-                lines++;
-                averageOfColumn0 += row.Features[0];
-            }
-            watch.Stop();
-            averageOfColumn0 /= lines;
-            var elapsedSeconds = watch.ElapsedMilliseconds / 1000.0;
-            Console.WriteLine($"Lines={lines}, averageOfColumn0={averageOfColumn0:0.00} and took {elapsedSeconds} seconds.");
+            (int lines, double columnAverage, double elapsedSeconds) = TimeToScanIDataView(mlContext, data);
+            Console.WriteLine($"Lines={lines}, averageOfColumn0={columnAverage:0.00} and took {elapsedSeconds} seconds.");
             // Expected output (time is approximate):
-            //  Lines=100000, averageOfColumn0=0.60 and took 0.221 seconds.
+            // Lines=506, averageOfColumn0=564.17 and took 0.314 seconds.
 
-            // Now cache the data.
+            // Now create a cached view of the data.
             var cachedData = mlContext.Data.Cache(data);
 
-            // Time how long it takes to page through the records the first time they're accessed after a cache.
-            // This iteration will be longer, as the dataset is being accessed and stored for later.
-            lines = 0;
-            averageOfColumn0 = 0.0;
-            watch = System.Diagnostics.Stopwatch.StartNew();
-            enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.FloatLabelFloatFeatureVectorSample>(cachedData, reuseRowObject: true);
-            foreach (var row in enumerable)
-            {
-                lines++;
-                averageOfColumn0 += row.Features[0];
-            }
-            watch.Stop();
-            averageOfColumn0 /= lines;
-            elapsedSeconds = watch.ElapsedMilliseconds / 1000.0;
-            Console.WriteLine($"Lines={lines}, averageOfColumn0={averageOfColumn0:0.00} and took {elapsedSeconds} seconds.");
+            // Time how long it takes to page through the records the first time they're accessed after a cache is applied.
+            // This iteration will be longer than subsequent calls, as the dataset is being accessed and stored for later.
+            // Note that this operation may be relatively quick, as the system may have cached the file.
+            (lines, columnAverage, elapsedSeconds) = TimeToScanIDataView(mlContext, cachedData);
+            Console.WriteLine($"Lines={lines}, averageOfColumn0={columnAverage:0.00} and took {elapsedSeconds} seconds.");
             // Expected output (time is approximate):
-            //  Lines=100000, averageOfColumn0=0.60 and took 0.357 seconds.
+            // Lines=506, averageOfColumn0=564.17 and took 0.056 seconds.
 
             // Time how long it takes to page through the records now that the data is cached. After the first iteration that caches the IDataView,
             // future iterations, like this one, are faster because they are pulling from data cached in memory.
-            lines = 0;
-            averageOfColumn0 = 0.0;
-            watch = System.Diagnostics.Stopwatch.StartNew();
-            enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.FloatLabelFloatFeatureVectorSample>(cachedData, reuseRowObject: true);
+            (lines, columnAverage, elapsedSeconds) = TimeToScanIDataView(mlContext, cachedData);
+            Console.WriteLine($"Lines={lines}, averageOfColumn0={columnAverage:0.00} and took {elapsedSeconds} seconds.");
+            // Expected output (time is approximate):
+            // Lines=506, averageOfColumn0=564.17 and took 0.006 seconds.
+        }
+
+        private static (int lines, double columnAverage, double elapsedSeconds) TimeToScanIDataView(MLContext mlContext, IDataView data)
+        {
+            int lines = 0;
+            double columnAverage = 0.0;
+            var enumerable = mlContext.CreateEnumerable<HousingRegression>(data, reuseRowObject: true);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             foreach (var row in enumerable)
             {
                 lines++;
-                averageOfColumn0 += row.Features[0];
+                columnAverage += row.MedianHomeValue + row.CrimesPerCapita + row.PercentResidental + row.PercentNonRetail + row.CharlesRiver 
+                    + row.NitricOxides + row.RoomsPerDwelling + row.PercentPre40s + row.EmploymentDistance 
+                    + row.HighwayDistance + row.TaxRate + row.TeacherRatio;
             }
             watch.Stop();
-            averageOfColumn0 /= lines;
-            elapsedSeconds = watch.ElapsedMilliseconds / 1000.0;
-            Console.WriteLine($"Lines={lines}, averageOfColumn0={averageOfColumn0:0.00} and took {elapsedSeconds} seconds.");
-            // Expected output (time is approximate):
-            //  Lines=100000, averageOfColumn0=0.60 and took 0.137 seconds.
+            columnAverage /= lines;
+            var elapsedSeconds = watch.ElapsedMilliseconds / 1000.0;
+
+            return (lines, columnAverage, elapsedSeconds);
         }
+
+        private class HousingRegression
+        {
+            public float MedianHomeValue { get; set; }
+            public float CrimesPerCapita { get; set; }
+            public float PercentResidental { get; set; }
+            public float PercentNonRetail { get; set; }
+            public float CharlesRiver { get; set; }
+            public float NitricOxides { get; set; }
+            public float RoomsPerDwelling { get; set; }
+            public float PercentPre40s { get; set; }
+            public float EmploymentDistance { get; set; }
+            public float HighwayDistance { get; set; }
+            public float TaxRate { get; set; }
+            public float TeacherRatio { get; set; }
+        }       
     }
 }
