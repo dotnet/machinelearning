@@ -30,7 +30,7 @@ Below are a few of the highlights from this release. There are many other improv
 * DataView moved into a separate assembly and NuGet package 
 ([#2220](https://github.com/dotnet/machinelearning/pull/2220))
 
-* Improvements in the API for predixion engine. 
+* Improvements in the API for prediction engine. 
 ([#2250](https://github.com/dotnet/machinelearning/pull/2250))
 
 * Introducing Microsoft.ML.Recommender NuGet name instead of Microsoft.ML.MatrixFactorization name
