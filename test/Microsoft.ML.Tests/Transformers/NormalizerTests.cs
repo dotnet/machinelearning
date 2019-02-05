@@ -416,7 +416,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact]
+        [LessThanNetCore30OrNotNetCoreFact("netcore3.0 output differs from Baseline")]
         public void GcnWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);

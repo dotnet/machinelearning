@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact]
+        [LessThanNetCore30OrNotNetCoreFact("netcore3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(conc: 1);
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact]
+        [LessThanNetCore30OrNotNetCoreFact("netcore3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
             const int ChangeHistorySize = 10;
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
         }
 
-        [LessThanNetCore30OrNotNetCoreFact]
+        [LessThanNetCore30OrNotNetCoreFact("netcore3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngine()
         {
             const int ChangeHistorySize = 10;

@@ -1171,7 +1171,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [LessThanNetCore30OrNotNetCoreFact]
+        [LessThanNetCore30OrNotNetCoreFact("netcore3.0 output differs from Baseline")]
         [TestCategory(Cat), TestCategory("Multiclass"), TestCategory("Logistic Regression")]
         public void CommandTrainMlrWithStats()
         {

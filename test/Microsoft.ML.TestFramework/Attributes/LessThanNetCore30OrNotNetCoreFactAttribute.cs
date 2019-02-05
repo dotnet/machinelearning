@@ -11,7 +11,7 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// </summary>
     public sealed class LessThanNetCore30OrNotNetCoreFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public LessThanNetCore30OrNotNetCoreFactAttribute() : base("netcore3.0 output differs from Baseline")
+        public LessThanNetCore30OrNotNetCoreFactAttribute(string skipMessage) : base(skipMessage)
         {
         }
 

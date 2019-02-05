@@ -1313,7 +1313,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact]
+        [LessThanNetCore30OrNotNetCoreFact("netcore3.0 output differs from Baseline")]
         public void EntryPointPipelineEnsembleGetSummary()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -4070,7 +4070,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [LessThanNetCore30OrNotNetCoreFact]
+        [LessThanNetCore30OrNotNetCoreFact("netcore3.0 output differs from Baseline")]
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
