@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers.FastTree
         TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
-        where TModel : IPredictorProducing<Float>
+        where TModel : class
     {
         protected readonly TArgs Args;
         protected readonly bool AllowGC;

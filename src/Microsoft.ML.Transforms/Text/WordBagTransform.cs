@@ -27,20 +27,20 @@ namespace Microsoft.ML.Transforms.Text
     /// <summary>
     /// Signature for creating an INgramExtractorFactory.
     /// </summary>
-    public delegate void SignatureNgramExtractorFactory(TermLoaderArguments termLoaderArgs);
+    internal delegate void SignatureNgramExtractorFactory(TermLoaderArguments termLoaderArgs);
 
     /// <summary>
     /// A many-to-one column common to both <see cref="NgramExtractorTransform"/>
     /// and <see cref="NgramHashExtractingTransformer"/>.
     /// </summary>
-    public sealed class ExtractorColumn : ManyToOneColumn
+    internal sealed class ExtractorColumn : ManyToOneColumn
     {
         // For all source columns, use these friendly names for the source
         // column names instead of the real column names.
         public string[] FriendlyNames;
     }
 
-    public static class WordBagBuildingTransformer
+    internal static class WordBagBuildingTransformer
     {
         public sealed class Column : ManyToOneColumn
         {
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text. It does so by building "
             + "a dictionary of ngrams and using the id in the dictionary as the index in the bag.";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Transforms.Text
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
-    public static class NgramExtractorTransform
+    internal static class NgramExtractorTransform
     {
         public sealed class Column : OneToOneColumn
         {
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Transforms.Text
     /// Arguments for defining custom list of terms or data file containing the terms.
     /// The class includes a subset of <see cref="ValueToKeyMappingTransformer"/>'s arguments.
     /// </summary>
-    public sealed class TermLoaderArguments
+    internal sealed class TermLoaderArguments
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string Term;
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <summary>
     /// An ngram extractor factory interface to create an ngram extractor transform.
     /// </summary>
-    public interface INgramExtractorFactory
+    internal interface INgramExtractorFactory
     {
         /// <summary>
         /// Whether the extractor transform created by this factory uses the hashing trick
@@ -453,7 +453,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     [TlcModule.ComponentKind("NgramExtractor")]
-    public interface INgramExtractorFactoryFactory : IComponentFactory<TermLoaderArguments, INgramExtractorFactory> { }
+    internal interface INgramExtractorFactoryFactory : IComponentFactory<TermLoaderArguments, INgramExtractorFactory> { }
 
     /// <summary>
     /// An implementation of <see cref="INgramExtractorFactory"/> to create <see cref="NgramExtractorTransform"/>.
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Transforms.Text
         }
     }
 
-    public static class NgramExtractionUtils
+    internal static class NgramExtractionUtils
     {
         public static IDataView ApplyConcatOnSources(IHostEnvironment env, ManyToOneColumn[] columns, IDataView input)
         {

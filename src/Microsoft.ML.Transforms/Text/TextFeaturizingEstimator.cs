@@ -59,7 +59,7 @@ namespace Microsoft.ML.Transforms.Text
             LInf = 3
         }
 
-        public sealed class Column : ManyToOneColumn
+        internal sealed class Column : ManyToOneColumn
         {
             internal static Column Parse(string str)
             {

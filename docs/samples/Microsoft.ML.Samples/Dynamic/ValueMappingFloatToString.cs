@@ -27,17 +27,16 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData> data = SamplesUtils.DatasetUtils.GetSampleTemperatureData();
+            IEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData> data = SamplesUtils.DatasetUtils.GetSampleTemperatureData(5);
             IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
 
             // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
             // Creating a list of keys based on the induced value from the dataset
             var temperatureKeys = new List<float>()
             {
-                39.0F,
-                67.0F,
-                75.0F,
-                82.0F,
+                36.0f,
+                35.0f,
+                34.0f
             };
 
             // Creating a list of values, these strings will map accordingly to each key.
@@ -45,8 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 "T1",
                 "T2",
-                "T3", 
-                "T4"
+                "T3"
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
@@ -65,15 +63,15 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine($"{featureRow.Date.ToString("d")}\t{featureRow.Temperature}\t\t{featureRow.TemperatureCategory}");
             }
 
-            // Features column obtained post-transformation.
-            //
-            // Example of mapping float->string
-            // Date         Temperature TemperatureCategory
-            // 1/1/2012     39          T1
-            // 1/2/2012     82          T4
-            // 1/3/2012     75          T3
-            // 1/4/2012     67          T2
-            // 1/5/2012     75          T3
+            // Expected output:
+            //  Features column obtained post-transformation.
+            //  Example of mapping float->string
+            //  Date         Temperature TemperatureCategory
+            //  1/2/2012        36              T1
+            //  1/3/2012        36              T1
+            //  1/4/2012        34              T3
+            //  1/5/2012        35              T2
+            //  1/6/2012        35              T2
         }
     }
 }

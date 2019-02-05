@@ -50,11 +50,11 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     [TlcModule.ComponentKind("StopWordsRemover")]
-    public interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IDataTransform> { }
+    internal interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IDataTransform> { }
 
     [TlcModule.Component(Name = "Predefined", FriendlyName = "Predefined Stopwords List Remover", Alias = "PredefinedStopWordsRemover,PredefinedStopWords",
         Desc = "Remover with predefined list of stop words.")]
-    public sealed class PredefinedStopWordsRemoverFactory : IStopWordsRemoverFactory
+    internal sealed class PredefinedStopWordsRemoverFactory : IStopWordsRemoverFactory
     {
         public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class StopWordsRemovingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Optional column to use for languages. This overrides sentence separator language value.",
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class Arguments
+        internal sealed class Arguments
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class CustomStopWordsRemovingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -624,7 +624,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public abstract class ArgumentsBase
+        internal abstract class ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of stopwords", Name = "Stopwords", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Stopword;
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Transforms.Text
             public string StopwordsColumn;
         }
 
-        public sealed class Arguments : ArgumentsBase
+        internal sealed class Arguments : ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -650,7 +650,7 @@ namespace Microsoft.ML.Transforms.Text
 
         [TlcModule.Component(Name = "Custom", FriendlyName = "Custom Stopwords Remover", Alias = "CustomStopWordsRemover,CustomStopWords",
             Desc = "Remover with list of stopwords specified by the user.")]
-        public sealed class LoaderArguments : ArgumentsBase, IStopWordsRemoverFactory
+        internal sealed class LoaderArguments : ArgumentsBase, IStopWordsRemoverFactory
         {
             public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {

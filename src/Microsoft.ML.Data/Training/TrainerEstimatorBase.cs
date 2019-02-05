@@ -14,9 +14,9 @@ namespace Microsoft.ML.Training
     /// A 'simple trainer' accepts one feature column and one label column, also optionally a weight column.
     /// It produces a 'prediction transformer'.
     /// </summary>
-    public abstract class TrainerEstimatorBase<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<TModel>
+    public abstract class TrainerEstimatorBase<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<IPredictor>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+        where TModel : class
     {
         /// <summary>
         /// A standard string to use in errors or warnings by subclasses, to communicate the idea that no valid
@@ -85,10 +85,12 @@ namespace Microsoft.ML.Training
         /// </summary>
         protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
 
-        TModel ITrainer<TModel>.Train(TrainContext context)
+        IPredictor ITrainer<IPredictor>.Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            return TrainModelCore(context);
+            var pred = TrainModelCore(context) as IPredictor;
+            Host.Check(pred != null, "Training did not return a predictor.");
+            return pred;
         }
 
         private void CheckInputSchema(SchemaShape inputSchema)
@@ -147,7 +149,7 @@ namespace Microsoft.ML.Training
         private protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);
 
-        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<IPredictor>)this).Train(context);
     }
 
     /// <summary>
@@ -157,7 +159,8 @@ namespace Microsoft.ML.Training
     /// </summary>
     public abstract class TrainerEstimatorBaseWithGroupId<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+        where TModel : class
+
     {
         /// <summary>
         /// The optional groupID column that the ranking trainers expects.

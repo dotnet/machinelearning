@@ -28,9 +28,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1, });
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
-                .Append(new Ova(ml, sdcaTrainer))
-                .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
+                .Append(ml.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                .Append(ml.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer))
+                .Append(ml.Transforms.Conversion.MapKeyToValue(("PredictedLabel")));
 
             var model = pipeline.Fit(data);
         }

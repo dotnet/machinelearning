@@ -19,12 +19,10 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble
 {
-    using TScalarPredictor = IPredictorProducing<Single>;
-
     /// <summary>
     /// A class for artifacts of ensembled models.
     /// </summary>
-    public sealed class EnsembleModelParameters : EnsembleModelParametersBase<TScalarPredictor, Single>, IValueMapper
+    public sealed class EnsembleModelParameters : EnsembleModelParametersBase<Single>, IValueMapper
     {
         internal const string UserName = "Ensemble Executor";
         internal const string LoaderSignature = "EnsembleFloatExec";
@@ -58,8 +56,8 @@ namespace Microsoft.ML.Ensemble
         /// <param name="models">Array of sub-models that you want to ensemble together.</param>
         /// <param name="combiner">The combiner class to use to ensemble the models.</param>
         /// <param name="weights">The weights assigned to each model to be ensembled.</param>
-        public EnsembleModelParameters(IHostEnvironment env, PredictionKind kind,
-            FeatureSubsetModel<TScalarPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
+        internal EnsembleModelParameters(IHostEnvironment env, PredictionKind kind,
+            FeatureSubsetModel<float>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, LoaderSignature, models, combiner, weights)
         {
             PredictionKind = kind;

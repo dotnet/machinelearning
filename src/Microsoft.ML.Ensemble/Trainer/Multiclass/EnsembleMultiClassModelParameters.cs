@@ -18,7 +18,7 @@ namespace Microsoft.ML.Ensemble
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
 
-    public sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<TVectorPredictor, VBuffer<Single>>, IValueMapper
+    public sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
     {
         internal const string UserName = "Ensemble Multiclass Executor";
         internal const string LoaderSignature = "EnsemMcExec";
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Ensemble
         /// <param name="models">Array of sub-models that you want to ensemble together.</param>
         /// <param name="combiner">The combiner class to use to ensemble the models.</param>
         /// <param name="weights">The weights assigned to each model to be ensembled.</param>
-        public EnsembleMultiClassModelParameters(IHostEnvironment env, FeatureSubsetModel<TVectorPredictor>[] models,
+        internal EnsembleMultiClassModelParameters(IHostEnvironment env, FeatureSubsetModel<VBuffer<float>>[] models,
             IMultiClassOutputCombiner combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
