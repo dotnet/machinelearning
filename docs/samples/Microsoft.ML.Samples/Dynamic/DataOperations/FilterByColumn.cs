@@ -4,6 +4,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
+    /// <summary>
+    /// Sample class showing how to use <see cref="DataOperationsCatalog.FilterByColumn"/>.
+    /// </summary>
     public static class FilterByColumn
     {
         public static void Example()
