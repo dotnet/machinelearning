@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms.Categorical
             if (binaryCols.Count > 0)
                 toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName)).ToArray());
             if (cols.Count > 0)
-                toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName, x.bag)).ToArray());
+                toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingEstimator.ColumnInfo(x.outputColumnName, x.inputColumnName, x.bag)).ToArray());
 
             if (toBinVector != null && toVector != null)
                 _toSomething = toVector.Append(toBinVector);
@@ -316,16 +316,16 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
-            Desc = OneHotHashEncoding.Summary,
-            UserName = OneHotHashEncoding.UserName)]
-        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncoding.Arguments input)
+            Desc = OneHotHashEncodingTransformer.Summary,
+            UserName = OneHotHashEncodingTransformer.UserName)]
+        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncodingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CatTransformDict");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = OneHotHashEncoding.Create(host, input, input.Data);
+            var xf = OneHotHashEncodingTransformer.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 

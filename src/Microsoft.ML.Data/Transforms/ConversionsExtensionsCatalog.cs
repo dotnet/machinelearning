@@ -36,7 +36,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashingTransformer.ColumnInfo[] columns)
+        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashingEstimator.ColumnInfo[] columns)
             => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="columns">The input column to map back to vectors.</param>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
-            params KeyToVectorMappingTransformer.ColumnInfo[] columns)
+            params KeyToVectorMappingEstimator.ColumnInfo[] columns)
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>

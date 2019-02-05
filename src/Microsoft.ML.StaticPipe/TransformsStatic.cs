@@ -578,11 +578,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new KeyToVectorMappingTransformer.ColumnInfo[toOutput.Length];
+                var infos = new KeyToVectorMappingEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToVectorMappingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input], col.Bag);
+                    infos[i] = new KeyToVectorMappingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input], col.Bag);
                 }
                 return new KeyToVectorMappingEstimator(env, infos);
             }
