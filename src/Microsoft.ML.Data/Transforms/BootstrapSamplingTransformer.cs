@@ -29,7 +29,7 @@ namespace Microsoft.ML.Transforms
     [BestFriend]
     internal sealed class BootstrapSamplingTransformer : FilterBase
     {
-        private static class Defaults
+        internal static class Defaults
         {
             public const bool Complement = false;
             public const bool ShuffleInput = true;
