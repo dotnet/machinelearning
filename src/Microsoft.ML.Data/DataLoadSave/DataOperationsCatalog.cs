@@ -48,18 +48,28 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Keep only those rows that satisfy the range condition: the value of column <paramref name="columnName"/>
-        /// must be between <paramref name="lowerBound"/> and <paramref name="upperBound"/>, inclusive.
+        /// Filter the dataset by the values of a numeric column.
         /// </summary>
+        /// <remarks>
+        /// Keep only those rows that satisfy the range condition: the value of column <paramref name="columnName"/>
+        /// must be between <paramref name="lowerBound"/> (inclusive) and <paramref name="upperBound"/> (exclusive).
+        /// </remarks>
         /// <param name="input">The input data.</param>
         /// <param name="columnName">The name of a column to use for filtering.</param>
         /// <param name="lowerBound">The inclusive lower bound.</param>
         /// <param name="upperBound">The exclusive upper bound.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FilterByColumn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByColumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView FilterByColumn(IDataView input, string columnName, double lowerBound = double.NegativeInfinity, double upperBound = double.PositiveInfinity)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckNonEmpty(columnName, nameof(columnName));
-            Environment.CheckParam(lowerBound <= upperBound, nameof(upperBound), "Must be no less than lowerBound");
+            Environment.CheckParam(lowerBound < upperBound, nameof(upperBound), "Must be less than lowerBound");
 
             var type = input.Schema[columnName].Type;
             if (!(type is NumberType))
@@ -68,15 +78,25 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Keep only those rows that satisfy the range condition: the value of a key column <paramref name="columnName"/>
-        /// (treated as a fraction of the entire key range) must be between <paramref name="lowerBound"/> and <paramref name="upperBound"/>, inclusive.
-        /// This filtering is useful if the <paramref name="columnName"/> is a key column obtained by some 'stable randomization'
-        /// (for example, hashing).
+        /// Filter the dataset by the values of a <see cref="KeyType"/> column.
         /// </summary>
+        /// <remarks>
+        /// Keep only those rows that satisfy the range condition: the value of a key column <paramref name="columnName"/>
+        /// (treated as a fraction of the entire key range) must be between <paramref name="lowerBound"/> (inclusive) and <paramref name="upperBound"/> (exclusive).
+        /// This filtering is useful if the <paramref name="columnName"/> is a key column obtained by some 'stable randomization',
+        /// for example, hashing.
+        /// </remarks>
         /// <param name="input">The input data.</param>
         /// <param name="columnName">The name of a column to use for filtering.</param>
         /// <param name="lowerBound">The inclusive lower bound.</param>
         /// <param name="upperBound">The exclusive upper bound.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FilterByKeyColumnFraction](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByKeyColumnFraction.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView FilterByKeyColumnFraction(IDataView input, string columnName, double lowerBound = 0, double upperBound = 1)
         {
             Environment.CheckValue(input, nameof(input));
