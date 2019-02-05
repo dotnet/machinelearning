@@ -25,7 +25,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             Host = env.Register(name);
         }
 
-        protected void Print(IChannel ch, IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models, string metricName)
+        protected void Print(IChannel ch, IList<FeatureSubsetModel<TOutput>> models, string metricName)
         {
             // REVIEW: The output format was faithfully reproduced from the original format, but it's unclear
             // to me that this is right. Why have two bars in the header line, but only one bar in the results?
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             }
         }
 
-        public virtual IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> Prune(IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models)
+        public virtual IList<FeatureSubsetModel<TOutput>> Prune(IList<FeatureSubsetModel<TOutput>> models)
         {
             return models;
         }
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
             }
         }
 
-        public virtual void CalculateMetrics(FeatureSubsetModel<IPredictorProducing<TOutput>> model,
+        public virtual void CalculateMetrics(FeatureSubsetModel<TOutput> model,
             ISubsetSelector subsetSelector, Subset subset, Batch batch, bool needMetrics)
         {
             if (!needMetrics || model == null || model.Metrics != null)

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using Microsoft.ML.Data;
 
@@ -34,6 +35,26 @@ namespace Microsoft.ML.SamplesUtils
         /// </summary>
         public static string DownloadBreastCancerDataset()
             => Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/breast-cancer.txt", "breast-cancer.txt");
+
+        /// <summary>
+        /// Downloads 4 images, and a tsv file with their names from the dotnet/machinelearning repo.
+        /// </summary>
+        public static string DownloadImages()
+        {
+            string path = "images";
+
+            var dirInfo = Directory.CreateDirectory(path);
+
+            string pathEscaped = $"{path}{Path.DirectorySeparatorChar}";
+
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/banana.jpg", $"{pathEscaped}banana.jpg");
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/hotdog.jpg", $"{pathEscaped}hotdog.jpg");
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/images.tsv", $"{pathEscaped}images.tsv");
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.bmp", $"{pathEscaped}tomato.bmp");
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.jpg", $"{pathEscaped}tomato.jpg");
+
+            return $"{path}{Path.DirectorySeparatorChar}images.tsv";
+        }
 
         private static string Download(string baseGitPath, string dataFile)
         {
@@ -124,15 +145,23 @@ namespace Microsoft.ML.SamplesUtils
             public float Temperature { get; set; }
         }
 
-        public static IEnumerable<SampleTemperatureData> GetSampleTemperatureData()
+        /// <summary>
+        /// Get a fake temperature dataset.
+        /// </summary>
+        /// <param name="exampleCount">The number of examples to return.</param>
+        /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
+        public static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(int exampleCount)
         {
-            var data = new List<SampleTemperatureData>();
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,1), Temperature = 39.0F });
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,2), Temperature = 82.0F });
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,3), Temperature = 75.0F });
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,4), Temperature = 67.0F });
-            data.Add(new SampleTemperatureData { Date = new DateTime(2012,1,5), Temperature = 75.0F });
-            return data;
+            var rng = new Random(1234321);
+            var date = new DateTime(2012, 1, 1);
+            float temperature = 39.0f;
+
+            for (int i = 0; i < exampleCount; i++)
+            {
+                date = date.AddDays(1);
+                temperature += rng.Next(-5, 5);
+                yield return new SampleTemperatureData { Date = date, Temperature = temperature };
+            }
         }
 
         /// <summary>

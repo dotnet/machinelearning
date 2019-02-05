@@ -34,7 +34,6 @@ namespace Microsoft.ML.Trainers.SymSgd
     using TPredictor = IPredictorWithFeatureWeights<float>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
-    [BestFriend]
     public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
         internal const string LoadNameValue = "SymbolicSGD";

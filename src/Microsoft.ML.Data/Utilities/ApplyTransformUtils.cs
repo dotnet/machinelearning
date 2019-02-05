@@ -12,7 +12,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Utilities to rebind data transforms
     /// </summary>
-    public static class ApplyTransformUtils
+    [BestFriend]
+    internal static class ApplyTransformUtils
     {
         /// <summary>
         /// Attempt to apply the data transform to a different data view source.

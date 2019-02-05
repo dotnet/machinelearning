@@ -50,11 +50,11 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     [TlcModule.ComponentKind("StopWordsRemover")]
-    public interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IDataTransform> { }
+    internal interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IDataTransform> { }
 
     [TlcModule.Component(Name = "Predefined", FriendlyName = "Predefined Stopwords List Remover", Alias = "PredefinedStopWordsRemover,PredefinedStopWords",
         Desc = "Remover with predefined list of stop words.")]
-    public sealed class PredefinedStopWordsRemoverFactory : IStopWordsRemoverFactory
+    internal sealed class PredefinedStopWordsRemoverFactory : IStopWordsRemoverFactory
     {
         public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
@@ -623,7 +623,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public abstract class ArgumentsBase
+        internal abstract class ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of stopwords", Name = "Stopwords", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Stopword;
@@ -649,7 +649,7 @@ namespace Microsoft.ML.Transforms.Text
 
         [TlcModule.Component(Name = "Custom", FriendlyName = "Custom Stopwords Remover", Alias = "CustomStopWordsRemover,CustomStopWords",
             Desc = "Remover with list of stopwords specified by the user.")]
-        public sealed class LoaderArguments : ArgumentsBase, IStopWordsRemoverFactory
+        internal sealed class LoaderArguments : ArgumentsBase, IStopWordsRemoverFactory
         {
             public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {

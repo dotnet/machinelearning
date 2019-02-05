@@ -12,10 +12,29 @@ namespace Microsoft.ML
     {
         internal IHostEnvironment Environment { get; }
 
+        /// <summary>
+        /// The list of operations over categorical data.
+        /// </summary>
         public CategoricalTransforms Categorical { get; }
+
+        /// <summary>
+        /// The list of operations for data type conversion.
+        /// </summary>
         public ConversionTransforms Conversion { get; }
+
+        /// <summary>
+        /// The list of operations for processing text data.
+        /// </summary>
         public TextTransforms Text { get; }
+
+        /// <summary>
+        /// The list of operations for data projection.
+        /// </summary>
         public ProjectionTransforms Projection { get; }
+
+        /// <summary>
+        /// The list of operations for selecting features based on some criteria.
+        /// </summary>
         public FeatureSelectionTransforms FeatureSelection { get; }
 
         internal TransformsCatalog(IHostEnvironment env)
@@ -52,11 +71,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The catalog of rescaling operations.
+        /// The catalog of type conversion operations.
         /// </summary>
         public sealed class ConversionTransforms : SubCatalogBase
         {
-            public ConversionTransforms(TransformsCatalog owner) : base(owner)
+            internal ConversionTransforms(TransformsCatalog owner) : base(owner)
             {
             }
         }
@@ -66,7 +85,7 @@ namespace Microsoft.ML
         /// </summary>
         public sealed class TextTransforms : SubCatalogBase
         {
-            public TextTransforms(TransformsCatalog owner) : base(owner)
+            internal TextTransforms(TransformsCatalog owner) : base(owner)
             {
             }
         }
@@ -76,7 +95,7 @@ namespace Microsoft.ML
         /// </summary>
         public sealed class ProjectionTransforms : SubCatalogBase
         {
-            public ProjectionTransforms(TransformsCatalog owner) : base(owner)
+            internal ProjectionTransforms(TransformsCatalog owner) : base(owner)
             {
             }
         }
@@ -86,7 +105,7 @@ namespace Microsoft.ML
         /// </summary>
         public sealed class FeatureSelectionTransforms : SubCatalogBase
         {
-            public FeatureSelectionTransforms(TransformsCatalog owner) : base(owner)
+            internal FeatureSelectionTransforms(TransformsCatalog owner) : base(owner)
             {
             }
         }

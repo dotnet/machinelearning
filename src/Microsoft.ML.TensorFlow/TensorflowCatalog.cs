@@ -49,20 +49,20 @@ namespace Microsoft.ML
         /// The model is specified in the <see cref="TensorFlowTransformer.Options.ModelLocation"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="args">The <see cref="TensorFlowTransformer.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
+        /// <param name="options">The <see cref="TensorFlowTransformer.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
         public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
-            TensorFlowTransformer.Options args)
-            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), args);
+            TensorFlowTransformer.Options options)
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), options);
 
         /// <summary>
         /// Scores or retrains (based on setting of the <see cref="TensorFlowTransformer.Options.ReTrain"/>) a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="args">The <see cref="TensorFlowTransformer.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
+        /// <param name="options">The <see cref="TensorFlowTransformer.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
         /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
         public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
-            TensorFlowTransformer.Options args,
+            TensorFlowTransformer.Options options,
             TensorFlowModelInfo tensorFlowModel)
-            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), args, tensorFlowModel);
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), options, tensorFlowModel);
     }
 }

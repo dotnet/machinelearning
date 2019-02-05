@@ -538,7 +538,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class RankerPerInstanceTransform : IDataTransform
+    internal sealed class RankerPerInstanceTransform : IDataTransform
     {
         public const string LoaderSignature = "RankerPerInstTransform";
         private const string RegistrationName = LoaderSignature;

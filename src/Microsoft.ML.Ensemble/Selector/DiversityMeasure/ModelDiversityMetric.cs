@@ -6,10 +6,10 @@ using System;
 
 namespace Microsoft.ML.Ensemble.Selector.DiversityMeasure
 {
-    public class ModelDiversityMetric<TOutput>
+    internal sealed class ModelDiversityMetric<TOutput>
     {
-        public FeatureSubsetModel<IPredictorProducing<TOutput>> ModelX { get; set; }
-        public FeatureSubsetModel<IPredictorProducing<TOutput>> ModelY { get; set; }
+        public FeatureSubsetModel<TOutput> ModelX { get; set; }
+        public FeatureSubsetModel<TOutput> ModelY { get; set; }
         public Single DiversityNumber { get; set; }
     }
 }
