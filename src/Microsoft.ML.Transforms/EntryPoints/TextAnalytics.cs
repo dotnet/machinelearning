@@ -51,7 +51,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = NgramExtractingTransformer.Summary,
             UserName = NgramExtractingTransformer.UserName,
             ShortName = NgramExtractingTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramExtractingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramExtractingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
             var xf = NgramExtractingTransformer.Create(h, input, input.Data);

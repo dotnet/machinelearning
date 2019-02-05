@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms.Text
 
         /// <summary>
         /// This class is a merger of <see cref="ValueToKeyMappingTransformer.Options"/> and
-        /// <see cref="NgramExtractingTransformer.Arguments"/>, with the allLength option removed.
+        /// <see cref="NgramExtractingTransformer.Options"/>, with the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
         {
@@ -349,11 +349,11 @@ namespace Microsoft.ML.Transforms.Text
                     view = new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()).Transform(view);
             }
 
-            var ngramColumns = new NgramExtractingTransformer.ColumnInfo[args.Columns.Length];
+            var ngramColumns = new NgramExtractingEstimator.ColumnInfo[args.Columns.Length];
             for (int iinfo = 0; iinfo < args.Columns.Length; iinfo++)
             {
                 var column = args.Columns[iinfo];
-                ngramColumns[iinfo] = new NgramExtractingTransformer.ColumnInfo(column.Name,
+                ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnInfo(column.Name,
                     column.NgramLength ?? args.NgramLength,
                     column.SkipLength ?? args.SkipLength,
                     column.AllLengths ?? args.AllLengths,

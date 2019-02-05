@@ -241,7 +241,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the ngram process on.</param>
         public static NgramExtractingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
-             params NgramExtractingTransformer.ColumnInfo[] columns)
+             params NgramExtractingEstimator.ColumnInfo[] columns)
           => new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
