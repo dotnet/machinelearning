@@ -394,13 +394,15 @@ namespace Microsoft.ML.Transforms
             return transform.Transform(input);
         }
 
-        public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, string[] keepColumns, bool keepHidden = false)
+        [BestFriend]
+        internal static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, string[] keepColumns, bool keepHidden = false)
         {
             var transform = new ColumnSelectingTransformer(env, keepColumns, null, keepHidden);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
-        public static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
+        [BestFriend]
+        internal static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
         {
             var transform = new ColumnSelectingTransformer(env, null, dropColumns);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);

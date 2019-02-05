@@ -59,7 +59,7 @@ namespace Microsoft.ML.Transforms.Text
             LInf = 3
         }
 
-        public sealed class Column : ManyToOneColumn
+        internal sealed class Column : ManyToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// This class exposes <see cref="NgramExtractorTransform"/>/<see cref="NgramHashExtractingTransformer"/> arguments.
         /// </summary>
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "New column definition (optional form: name:srcs).", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column Columns;
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
         {
             Action<Settings> settings = s =>
             {
