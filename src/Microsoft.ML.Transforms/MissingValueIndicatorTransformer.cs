@@ -78,6 +78,9 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = nameof(MissingValueIndicatorTransformer);
 
+        /// <summary>
+        /// The names of the output and input column pairs for the transformation.
+        /// </summary>
         public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>

@@ -220,6 +220,9 @@ namespace Microsoft.ML.Data
 
         private readonly ColumnInfo[] _columns;
 
+        /// <summary>
+        /// The names of the output and input column pairs for the transformation.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string[] inputColumnNames)> Columns
             => _columns.Select(col => (outputColumnName: col.Name, inputColumnNames: col.Sources.Select(source => source.name).ToArray())).ToArray().AsReadOnly();
 

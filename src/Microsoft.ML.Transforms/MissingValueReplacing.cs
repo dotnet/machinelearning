@@ -445,8 +445,8 @@ namespace Microsoft.ML.Transforms
                     item.Name,
                     item.Source,
                     (MissingValueReplacingEstimator.ColumnInfo.ReplacementMode)(item.Kind ?? options.ReplacementKind),
-                    item.Slot ?? options.ImputeBySlot);
-                cols[i].ReplacementString = item.ReplacementString;
+                    item.Slot ?? options.ImputeBySlot,
+                    item.ReplacementString);
             };
             return new MissingValueReplacingTransformer(env, input, cols).MakeDataTransform(input);
         }
@@ -911,30 +911,26 @@ namespace Microsoft.ML.Transforms
             public enum ReplacementMode : byte
             {
                 /// <summary>
-                /// Replace using default value.
+                /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
                 /// </summary>
                 DefaultValue = 0,
                 /// <summary>
-                /// Replace using mean.
+                /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
                 /// </summary>
                 Mean = 1,
                 /// <summary>
-                /// Replace using minimum
+                /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
                 /// </summary>
                 Minimum = 2,
                 /// <summary>
-                /// Replace using maximum.
+                /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
                 /// </summary>
                 Maximum = 3,
             }
 
-            /// <summary>
-            /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>
-            /// </summary>
+            /// <summary> Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
-            /// <summary>
-            /// Name of column to transform.
-            /// </summary>
+            /// <summary> Name of column to transform. </summary>
             public readonly string InputColumnName;
             /// <summary>
             /// If true, per-slot imputation of replacement is performed.
@@ -942,12 +938,10 @@ namespace Microsoft.ML.Transforms
             /// where imputation is always for the entire column.
             /// </summary>
             public readonly bool ImputeBySlot;
-            /// <summary>
-            /// How to replace the missing values.
-            /// </summary>
+            /// <summary> How to replace the missing values.</summary>
             public readonly ReplacementMode Replacement;
-
-            internal string ReplacementString { get; set; }
+            /// <summary> Replacement value for missing values (only used in entrypoing and command line API).</summary>
+            internal readonly string ReplacementString;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -966,6 +960,16 @@ namespace Microsoft.ML.Transforms
                 InputColumnName = inputColumnName ?? name;
                 ImputeBySlot = imputeBySlot;
                 Replacement = replacementMode;
+            }
+
+            /// <summary>
+            /// This constructor is used internally to convert from <see cref="MissingValueReplacingTransformer.Options"/> to <see cref="ColumnInfo"/>
+            /// as we support <paramref name="replacementString"/> in command line and entrypoint API only.
+            /// </summary>
+            internal ColumnInfo(string name, string inputColumnName, ReplacementMode replacementMode, bool imputeBySlot, string replacementString)
+                : this(name, inputColumnName, replacementMode, imputeBySlot)
+            {
+                ReplacementString = replacementString;
             }
         }
 
