@@ -22,7 +22,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> AlexNet(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            return AlexNet(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
+            // Substring is  removing initial "file:///" from the codebase string.
+            string executingAssemblyLocation = Directory.GetParent(Assembly.GetExecutingAssembly().CodeBase.Substring(8)).FullName;
+            return AlexNet(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(executingAssemblyLocation, "DnnImageModels"));
         }
 
         /// <summary>
