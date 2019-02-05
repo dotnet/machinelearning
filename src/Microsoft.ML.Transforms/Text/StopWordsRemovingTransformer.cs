@@ -548,7 +548,7 @@ namespace Microsoft.ML.Transforms.Text
             public const Language DefaultLanguage = Language.English;
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) =>
+        internal static bool IsColumnTypeValid(ColumnType type) =>
             type is VectorType vectorType && vectorType.ItemType is TextType;
 
         internal const string ExpectedColumnType = "vector of Text type";
@@ -583,6 +583,10 @@ namespace Microsoft.ML.Transforms.Text
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -1073,6 +1077,10 @@ namespace Microsoft.ML.Transforms.Text
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

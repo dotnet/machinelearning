@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <include file='doc.xml' path='doc/members/member[@name="WordTokenizer"]/*' />
     public sealed class WordTokenizingTransformer : OneToOneTransformerBase
     {
-        public class Column : OneToOneColumn
+        internal class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public abstract class ArgumentsBase : TransformInputBase
+        internal abstract class ArgumentsBase : TransformInputBase
         {
             // REVIEW: Think about adding a user specified separator string, that is added as an extra token between
             // the tokens of each column
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class WordTokenizingEstimator : TrivialEstimator<WordTokenizingTransformer>
     {
-        public static bool IsColumnTypeValid(ColumnType type) => type.GetItemType() is TextType;
+        internal static bool IsColumnTypeValid(ColumnType type) => type.GetItemType() is TextType;
 
         internal const string ExpectedColumnType = "Text";
 
@@ -461,6 +461,10 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

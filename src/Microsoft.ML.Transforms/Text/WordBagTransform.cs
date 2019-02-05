@@ -85,15 +85,6 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        /// <summary>
-        /// A vanilla implementation of OneToOneColumn that is used to represent the input of any tokenize
-        /// transform (a transform that implements ITokenizeTransform interface).
-        /// Note: Since WordBagTransform is a many-to-one column transform, for each WordBagTransform.Column
-        /// with multiple sources, ConcatTransform is applied first. The output of ConcatTransform is a
-        /// one-to-one column which is in turn the input to a tokenize transform.
-        /// </summary>
-        public sealed class TokenizeColumn : OneToOneColumn { }
-
         internal sealed class Options : NgramExtractorTransform.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", Name = "Column", ShortName = "col", SortOrder = 1)]
@@ -222,7 +213,7 @@ namespace Microsoft.ML.Transforms.Text
         /// This class is a merger of <see cref="ValueToKeyMappingTransformer.Options"/> and
         /// <see cref="NgramExtractingTransformer.Options"/>, with the allLength option removed.
         /// </summary>
-        public abstract class ArgumentsBase
+        internal abstract class ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Ngram length", ShortName = "ngram")]
             public int NgramLength = 1;
@@ -366,7 +357,7 @@ namespace Microsoft.ML.Transforms.Text
             return new NgramExtractingEstimator(env, ngramColumns).Fit(view).Transform(view) as IDataTransform;
         }
 
-        public static IDataTransform Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,
+        internal static IDataTransform Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,
             ExtractorColumn[] cols, TermLoaderArguments termLoaderArgs = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -384,7 +375,7 @@ namespace Microsoft.ML.Transforms.Text
                 extractorCols[i] = new Column { Name = cols[i].Name, Source = cols[i].Source[0] };
             }
 
-            var args = new Options
+            var options = new Options
             {
                 Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
@@ -394,10 +385,10 @@ namespace Microsoft.ML.Transforms.Text
                 Weighting = extractorArgs.Weighting
             };
 
-            return Create(h, args, input, termLoaderArgs);
+            return Create(h, options, input, termLoaderArgs);
         }
 
-        public static INgramExtractorFactory Create(IHostEnvironment env, NgramExtractorArguments extractorArgs,
+        internal static INgramExtractorFactory Create(IHostEnvironment env, NgramExtractorArguments extractorArgs,
             TermLoaderArguments termLoaderArgs)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -152,11 +152,11 @@ namespace Microsoft.ML
                     // Generate a new column with the hashed stratification column.
                     while (data.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
                         stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    HashingTransformer.ColumnInfo columnInfo;
+                    HashingEstimator.ColumnInfo columnInfo;
                     if (seed.HasValue)
-                        columnInfo = new HashingTransformer.ColumnInfo(stratificationColumn, origStratCol, 30, seed.Value);
+                        columnInfo = new HashingEstimator.ColumnInfo(stratificationColumn, origStratCol, 30, seed.Value);
                     else
-                        columnInfo = new HashingTransformer.ColumnInfo(stratificationColumn, origStratCol, 30);
+                        columnInfo = new HashingEstimator.ColumnInfo(stratificationColumn, origStratCol, 30);
                     data = new HashingEstimator(Host, columnInfo).Fit(data).Transform(data);
                 }
             }

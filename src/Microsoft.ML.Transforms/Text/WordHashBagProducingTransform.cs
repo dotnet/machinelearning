@@ -245,11 +245,11 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashingTransformer.Arguments"/> and
+        /// This class is a merger of <see cref="HashingTransformer.Options"/> and
         /// <see cref="NgramHashingTransformer.Options"/>, with the ordered option,
         /// the rehashUnigrams option and the allLength option removed.
         /// </summary>
-        public abstract class ArgumentsBase
+        internal abstract class ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Ngram length", ShortName = "ngram", SortOrder = 3)]
             public int NgramLength = 1;
@@ -330,7 +330,8 @@ namespace Microsoft.ML.Transforms.Text
             List<ValueToKeyMappingTransformer.Column> termCols = null;
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
-            var hashColumns = new List<HashingTransformer.ColumnInfo>();
+
+	    var hashColumns = new List<HashingEstimator.ColumnInfo>();
             var ngramHashColumns = new NgramHashingEstimator.ColumnInfo[options.Columns.Length];
 
             var colCount = options.Columns.Length;
@@ -360,7 +361,7 @@ namespace Microsoft.ML.Transforms.Text
                             });
                     }
 
-                    hashColumns.Add(new HashingTransformer.ColumnInfo(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
+                    hashColumns.Add(new HashingEstimator.ColumnInfo(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
                         30, column.Seed ?? options.Seed, false, column.InvertHash ?? options.InvertHash));
                 }
 
@@ -429,7 +430,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            var args = new Options
+            var options = new Options
             {
                 Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
@@ -441,7 +442,7 @@ namespace Microsoft.ML.Transforms.Text
                 AllLengths = extractorArgs.AllLengths
             };
 
-            return Create(h, args, input, termLoaderArgs);
+            return Create(h, options, input, termLoaderArgs);
         }
 
         internal static INgramExtractorFactory Create(IHostEnvironment env, NgramHashExtractorArguments extractorArgs,

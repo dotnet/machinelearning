@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms.Text
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Pre-trained model used to create the vocabulary", ShortName = "model", SortOrder = 1)]
-            public PretrainedModelKind? ModelKind = PretrainedModelKind.Sswe;
+            public WordEmbeddingsExtractingEstimator.PretrainedModelKind? ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Filename for custom word embedding model",
                 ShortName = "dataFile", SortOrder = 2)]
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string ShortName = "WordEmbeddings";
         internal const string LoaderSignature = "WordEmbeddingsTransform";
 
-        public static VersionInfo GetVersionInfo()
+        internal static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "W2VTRANS",
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(WordEmbeddingsExtractingTransformer).Assembly.FullName);
         }
 
-        private readonly PretrainedModelKind? _modelKind;
+        private readonly WordEmbeddingsExtractingEstimator.PretrainedModelKind? _modelKind;
         private readonly string _modelFileNameWithPath;
         private static object _embeddingsLock = new object();
         private readonly bool _customLookup;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
         internal WordEmbeddingsExtractingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-           PretrainedModelKind modelKind = PretrainedModelKind.Sswe)
+           WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
            : this(env, modelKind, new WordEmbeddingsExtractingEstimator.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
@@ -183,13 +183,13 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">Host Environment.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
         /// <param name="columns">Input/Output columns.</param>
-        internal WordEmbeddingsExtractingTransformer(IHostEnvironment env, PretrainedModelKind modelKind, params WordEmbeddingsExtractingEstimator.ColumnInfo[] columns)
+        internal WordEmbeddingsExtractingTransformer(IHostEnvironment env, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind, params WordEmbeddingsExtractingEstimator.ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            env.CheckUserArg(Enum.IsDefined(typeof(PretrainedModelKind), modelKind), nameof(modelKind));
+            env.CheckUserArg(Enum.IsDefined(typeof(WordEmbeddingsExtractingEstimator.PretrainedModelKind), modelKind), nameof(modelKind));
 
             _modelKind = modelKind;
-            _modelFileNameWithPath = EnsureModelFile(env, out _linesToSkip, (PretrainedModelKind)_modelKind);
+            _modelFileNameWithPath = EnsureModelFile(env, out _linesToSkip, (WordEmbeddingsExtractingEstimator.PretrainedModelKind)_modelKind);
             _currentVocab = GetVocabularyDictionary(env);
         }
 
@@ -225,8 +225,8 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             if (options.ModelKind == null)
-                options.ModelKind = PretrainedModelKind.Sswe;
-            env.CheckUserArg(!options.ModelKind.HasValue || Enum.IsDefined(typeof(PretrainedModelKind), options.ModelKind), nameof(options.ModelKind));
+                options.ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe;
+            env.CheckUserArg(!options.ModelKind.HasValue || Enum.IsDefined(typeof(WordEmbeddingsExtractingEstimator.PretrainedModelKind), options.ModelKind), nameof(options.ModelKind));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
 
@@ -259,8 +259,8 @@ namespace Microsoft.ML.Transforms.Text
             }
             else
             {
-                _modelKind = (PretrainedModelKind)ctx.Reader.ReadUInt32();
-                _modelFileNameWithPath = EnsureModelFile(Host, out _linesToSkip, (PretrainedModelKind)_modelKind);
+                _modelKind = (WordEmbeddingsExtractingEstimator.PretrainedModelKind)ctx.Reader.ReadUInt32();
+                _modelFileNameWithPath = EnsureModelFile(Host, out _linesToSkip, (WordEmbeddingsExtractingEstimator.PretrainedModelKind)_modelKind);
             }
 
             Host.CheckNonWhiteSpace(_modelFileNameWithPath, nameof(_modelFileNameWithPath));
@@ -601,57 +601,24 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public enum PretrainedModelKind
+        private static Dictionary<WordEmbeddingsExtractingEstimator.PretrainedModelKind, string> _modelsMetaData = new Dictionary<WordEmbeddingsExtractingEstimator.PretrainedModelKind, string>()
         {
-            [TGUI(Label = "GloVe 50D")]
-            GloVe50D = 0,
-
-            [TGUI(Label = "GloVe 100D")]
-            GloVe100D = 1,
-
-            [TGUI(Label = "GloVe 200D")]
-            GloVe200D = 2,
-
-            [TGUI(Label = "GloVe 300D")]
-            GloVe300D = 3,
-
-            [TGUI(Label = "GloVe Twitter 25D")]
-            GloVeTwitter25D = 4,
-
-            [TGUI(Label = "GloVe Twitter 50D")]
-            GloVeTwitter50D = 5,
-
-            [TGUI(Label = "GloVe Twitter 100D")]
-            GloVeTwitter100D = 6,
-
-            [TGUI(Label = "GloVe Twitter 200D")]
-            GloVeTwitter200D = 7,
-
-            [TGUI(Label = "fastText Wikipedia 300D")]
-            FastTextWikipedia300D = 8,
-
-            [TGUI(Label = "Sentiment-Specific Word Embedding")]
-            Sswe = 9
-        }
-
-        private static Dictionary<PretrainedModelKind, string> _modelsMetaData = new Dictionary<PretrainedModelKind, string>()
-        {
-             { PretrainedModelKind.GloVe50D, "glove.6B.50d.txt" },
-             { PretrainedModelKind.GloVe100D, "glove.6B.100d.txt" },
-             { PretrainedModelKind.GloVe200D, "glove.6B.200d.txt" },
-             { PretrainedModelKind.GloVe300D, "glove.6B.300d.txt" },
-             { PretrainedModelKind.GloVeTwitter25D, "glove.twitter.27B.25d.txt" },
-             { PretrainedModelKind.GloVeTwitter50D, "glove.twitter.27B.50d.txt" },
-             { PretrainedModelKind.GloVeTwitter100D, "glove.twitter.27B.100d.txt" },
-             { PretrainedModelKind.GloVeTwitter200D, "glove.twitter.27B.200d.txt" },
-             { PretrainedModelKind.FastTextWikipedia300D, "wiki.en.vec" },
-             { PretrainedModelKind.Sswe, "sentiment.emd" }
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVe50D, "glove.6B.50d.txt" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVe100D, "glove.6B.100d.txt" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVe200D, "glove.6B.200d.txt" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVe300D, "glove.6B.300d.txt" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D, "glove.twitter.27B.25d.txt" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter50D, "glove.twitter.27B.50d.txt" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter100D, "glove.twitter.27B.100d.txt" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter200D, "glove.twitter.27B.200d.txt" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.FastTextWikipedia300D, "wiki.en.vec" },
+             { WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe, "sentiment.emd" }
         };
 
-        private static Dictionary<PretrainedModelKind, int> _linesToSkipInModels = new Dictionary<PretrainedModelKind, int>()
-            { { PretrainedModelKind.FastTextWikipedia300D, 1 } };
+        private static Dictionary<WordEmbeddingsExtractingEstimator.PretrainedModelKind, int> _linesToSkipInModels = new Dictionary<WordEmbeddingsExtractingEstimator.PretrainedModelKind, int>()
+            { { WordEmbeddingsExtractingEstimator.PretrainedModelKind.FastTextWikipedia300D, 1 } };
 
-        private string EnsureModelFile(IHostEnvironment env, out int linesToSkip, PretrainedModelKind kind)
+        private string EnsureModelFile(IHostEnvironment env, out int linesToSkip, WordEmbeddingsExtractingEstimator.PretrainedModelKind kind)
         {
             linesToSkip = 0;
             if (_modelsMetaData.ContainsKey(kind))
@@ -661,7 +628,7 @@ namespace Microsoft.ML.Transforms.Text
                     linesToSkip = _linesToSkipInModels[kind];
                 using (var ch = Host.Start("Ensuring resources"))
                 {
-                    string dir = kind == PretrainedModelKind.Sswe ? Path.Combine("Text", "Sswe") : "WordVectors";
+                    string dir = kind == WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe ? Path.Combine("Text", "Sswe") : "WordVectors";
                     var url = $"{dir}/{modelFileName}";
                     var ensureModel = ResourceManagerUtils.Instance.EnsureResource(Host, ch, url, modelFileName, dir, Timeout);
                     ensureModel.Wait();
@@ -770,7 +737,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         private readonly IHost _host;
         private readonly ColumnInfo[] _columns;
-        private readonly WordEmbeddingsExtractingTransformer.PretrainedModelKind? _modelKind;
+        private readonly PretrainedModelKind? _modelKind;
         private readonly string _customLookupTable;
 
         /// <summary>
@@ -782,9 +749,9 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
+        /// <param name="modelKind">The embeddings <see cref="PretrainedModelKind"/> to use. </param>
         internal WordEmbeddingsExtractingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-           WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
+           PretrainedModelKind modelKind = PretrainedModelKind.Sswe)
             : this(env, modelKind, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
@@ -811,10 +778,10 @@ namespace Microsoft.ML.Transforms.Text
         /// and third one represent maximum encountered values (for each dimension).
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
+        /// <param name="modelKind">The embeddings <see cref="PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
         internal WordEmbeddingsExtractingEstimator(IHostEnvironment env,
-            WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
+            PretrainedModelKind modelKind = PretrainedModelKind.Sswe,
             params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -833,13 +800,57 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns;
         }
 
+        public enum PretrainedModelKind
+        {
+            [TGUI(Label = "GloVe 50D")]
+            GloVe50D = 0,
+
+            [TGUI(Label = "GloVe 100D")]
+            GloVe100D = 1,
+
+            [TGUI(Label = "GloVe 200D")]
+            GloVe200D = 2,
+
+            [TGUI(Label = "GloVe 300D")]
+            GloVe300D = 3,
+
+            [TGUI(Label = "GloVe Twitter 25D")]
+            GloVeTwitter25D = 4,
+
+            [TGUI(Label = "GloVe Twitter 50D")]
+            GloVeTwitter50D = 5,
+
+            [TGUI(Label = "GloVe Twitter 100D")]
+            GloVeTwitter100D = 6,
+
+            [TGUI(Label = "GloVe Twitter 200D")]
+            GloVeTwitter200D = 7,
+
+            [TGUI(Label = "fastText Wikipedia 300D")]
+            FastTextWikipedia300D = 8,
+
+            [TGUI(Label = "Sentiment-Specific Word Embedding")]
+            Sswe = 9
+        }
         /// <summary>
         /// Information for each column pair.
         /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>
+            /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Name of column to transform. If set to <see langword="null"/>, the value of the <cref see="Name"/> will be used as source.
+            /// </summary>
             public readonly string InputColumnName;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <cref see="inputColumnName"/>. </param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/> <cref see="name"/> will be used as source.</param>
 
             public ColumnInfo(string name, string inputColumnName = null)
             {

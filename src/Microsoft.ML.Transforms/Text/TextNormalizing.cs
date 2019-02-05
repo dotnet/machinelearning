@@ -450,7 +450,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) => (type.GetItemType() is TextType);
+        internal static bool IsColumnTypeValid(ColumnType type) => (type.GetItemType() is TextType);
 
         internal const string ExpectedColumnType = "Text or vector of text.";
 
@@ -497,6 +497,10 @@ namespace Microsoft.ML.Transforms.Text
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

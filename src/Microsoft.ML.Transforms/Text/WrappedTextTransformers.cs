@@ -108,7 +108,7 @@ namespace Microsoft.ML.Transforms.Text
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
-            var args = new WordBagBuildingTransformer.Options
+            var options = new WordBagBuildingTransformer.Options
             {
                 Columns = _columns.Select(x => new WordBagBuildingTransformer.Column { Name = x.outputColumnName, Source = x.sourceColumnsNames }).ToArray(),
                 NgramLength = _ngramLength,
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Transforms.Text
                 Weighting = _weighting
             };
 
-            return new TransformWrapper(Host, WordBagBuildingTransformer.Create(Host, args, input), true);
+            return new TransformWrapper(Host, WordBagBuildingTransformer.Create(Host, options, input), true);
         }
     }
 
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.Text
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
-            var args = new WordHashBagProducingTransformer.Options
+            var options = new WordHashBagProducingTransformer.Options
             {
                 Columns = _columns.Select(x => new WordHashBagProducingTransformer.Column { Name = x.outputColumnName  ,Source = x.inputColumnNames}).ToArray(),
                 HashBits = _hashBits,
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms.Text
                 InvertHash = _invertHash
             };
 
-            return new TransformWrapper(Host, WordHashBagProducingTransformer.Create(Host, args, input), true);
+            return new TransformWrapper(Host, WordHashBagProducingTransformer.Create(Host, options, input), true);
         }
     }
 }
