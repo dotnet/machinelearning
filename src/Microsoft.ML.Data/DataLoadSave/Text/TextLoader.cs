@@ -1237,18 +1237,16 @@ namespace Microsoft.ML.Data
             cols = null;
             error = false;
 
-            // It's fine if the user sets the following three arguments that are not considered core arguments.
-            // Setting the defaults to the user provided values will avoid these in the output of the call CmdParser.GetSettings.
-            var optionsCoreDefault = new Options()
+            // Verify that the current schema-defining arguments are default.
+            // Get settings just for core arguments, not everything.
+            string tmp = CmdParser.GetSettings(host, options, new Options()
             {
+                // It's fine if the user sets the following three arguments that are not considered core arguments.
+                // Setting the defaults to the user provided values will avoid these in the output of the call CmdParser.GetSettings.
                 UseThreads = options.UseThreads,
                 HeaderFile = options.HeaderFile,
                 MaxRows = options.MaxRows
-            };
-
-            // Verify that the current schema-defining arguments are default.
-            // Get settings just for core arguments, not everything.
-            string tmp = CmdParser.GetSettings(host, options, optionsCoreDefault);
+            });
 
             // Try to get the schema information from the file.
             string str = Cursor.GetEmbeddedArgs(files);
