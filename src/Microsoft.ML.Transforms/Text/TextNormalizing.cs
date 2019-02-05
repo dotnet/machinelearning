@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class TextNormalizingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {

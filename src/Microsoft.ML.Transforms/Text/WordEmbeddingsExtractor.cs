@@ -38,7 +38,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
     public sealed class WordEmbeddingsExtractingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {

@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class StopWordsRemovingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Optional column to use for languages. This overrides sentence separator language value.",
@@ -606,7 +606,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class CustomStopWordsRemovingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {

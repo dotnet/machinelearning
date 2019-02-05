@@ -26,7 +26,7 @@ namespace Microsoft.ML.Transforms.Text
 {
     public static class WordHashBagProducingTransformer
     {
-        public sealed class Column : NgramHashExtractingTransformer.ColumnBase
+        internal sealed class Column : NgramHashExtractingTransformer.ColumnBase
         {
             internal static Column Parse(string str)
             {
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.Text
             public bool? AllLengths;
         }
 
-        public sealed class Column : ColumnBase
+        internal sealed class Column : ColumnBase
         {
             // For all source columns, use these friendly names for the source
             // column names instead of the real column names.

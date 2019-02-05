@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.Text
             public bool OutputTopicWordSummary;
         }
 
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics")]
             public int? NumTopic;

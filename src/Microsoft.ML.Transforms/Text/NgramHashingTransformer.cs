@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class NgramHashingTransformer : RowToRowTransformerBase
     {
-        public sealed class Column : ManyToOneColumn
+        internal sealed class Column : ManyToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram")]
             public int? NgramLength;

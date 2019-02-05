@@ -38,7 +38,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class NgramExtractingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram")]
             public int? NgramLength;

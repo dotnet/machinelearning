@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms.Text
 
     public static class WordBagBuildingTransformer
     {
-        public sealed class Column : ManyToOneColumn
+        internal sealed class Column : ManyToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Ngram length", ShortName = "ngram")]
             public int? NgramLength;
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms.Text
             var tokenizeColumns = new WordTokenizingEstimator.ColumnInfo[options.Columns.Length];
 
             var extractorArgs =
-                new NgramExtractorTransform.Arguments()
+                new NgramExtractorTransform.Options()
                 {
                     MaxNumTerms = options.MaxNumTerms,
                     NgramLength = options.NgramLength,
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public static class NgramExtractorTransform
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Ngram length (stores all lengths up to the specified Ngram length)", ShortName = "ngram")]
             public int? NgramLength;
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class Arguments : ArgumentsBase
+        internal sealed class Options : ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -265,22 +265,22 @@ namespace Microsoft.ML.Transforms.Text
 
         internal const string LoaderSignature = "NgramExtractor";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input,
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input,
             TermLoaderArguments termLoaderArgs = null)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
-            h.CheckValue(args, nameof(args));
+            h.CheckValue(options, nameof(options));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
 
             IDataView view = input;
             var termCols = new List<Column>();
-            var isTermCol = new bool[args.Columns.Length];
+            var isTermCol = new bool[options.Columns.Length];
 
-            for (int i = 0; i < args.Columns.Length; i++)
+            for (int i = 0; i < options.Columns.Length; i++)
             {
-                var col = args.Columns[i];
+                var col = options.Columns[i];
 
                 h.CheckNonWhiteSpace(col.Name, nameof(col.Name));
                 h.CheckNonWhiteSpace(col.Source, nameof(col.Source));
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Options()
                         {
-                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
+                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
@@ -349,16 +349,16 @@ namespace Microsoft.ML.Transforms.Text
                     view = new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()).Transform(view);
             }
 
-            var ngramColumns = new NgramExtractingEstimator.ColumnInfo[args.Columns.Length];
-            for (int iinfo = 0; iinfo < args.Columns.Length; iinfo++)
+            var ngramColumns = new NgramExtractingEstimator.ColumnInfo[options.Columns.Length];
+            for (int iinfo = 0; iinfo < options.Columns.Length; iinfo++)
             {
-                var column = args.Columns[iinfo];
+                var column = options.Columns[iinfo];
                 ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnInfo(column.Name,
-                    column.NgramLength ?? args.NgramLength,
-                    column.SkipLength ?? args.SkipLength,
-                    column.AllLengths ?? args.AllLengths,
-                    column.Weighting ?? args.Weighting,
-                    column.MaxNumTerms ?? args.MaxNumTerms,
+                    column.NgramLength ?? options.NgramLength,
+                    column.SkipLength ?? options.SkipLength,
+                    column.AllLengths ?? options.AllLengths,
+                    column.Weighting ?? options.Weighting,
+                    column.MaxNumTerms ?? options.MaxNumTerms,
                     isTermCol[iinfo] ? column.Name : column.Source
                     );
             }
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Transforms.Text
             h.CheckValue(extractorArgs, nameof(extractorArgs));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(extractorArgs.SkipLength < extractorArgs.NgramLength, nameof(extractorArgs.SkipLength), "Should be less than " + nameof(extractorArgs.NgramLength));
-            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Arguments.Columns), "Must be specified");
+            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Options.Columns), "Must be specified");
             h.CheckValueOrNull(termLoaderArgs);
 
             var extractorCols = new Column[cols.Length];
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Transforms.Text
                 extractorCols[i] = new Column { Name = cols[i].Name, Source = cols[i].Source[0] };
             }
 
-            var args = new Arguments
+            var args = new Options
             {
                 Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
