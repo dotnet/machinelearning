@@ -52,7 +52,7 @@ namespace Microsoft.ML.SamplesUtils
         /// <summary>
         /// A class to hold the raw housing regression rows.
         /// </summary>
-        public class HousingRegression
+        public sealed class HousingRegression
         {
             public float MedianHomeValue { get; set; }
             public float CrimesPerCapita { get; set; }
