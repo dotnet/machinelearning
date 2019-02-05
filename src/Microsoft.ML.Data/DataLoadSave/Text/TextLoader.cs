@@ -1237,9 +1237,18 @@ namespace Microsoft.ML.Data
             cols = null;
             error = false;
 
+            // It's fine if the user sets the following three arguments that are not considered core arguments.
+            // Setting the defaults to the user provided values will avoid these in the output of the call CmdParser.GetSettings.
+            var optionsCoreDefault = new Options()
+            {
+                UseThreads = options.UseThreads,
+                HeaderFile = options.HeaderFile,
+                MaxRows = options.MaxRows
+            };
+
             // Verify that the current schema-defining arguments are default.
             // Get settings just for core arguments, not everything.
-            string tmp = CmdParser.GetSettings(host, options, new Options());
+            string tmp = CmdParser.GetSettings(host, options, optionsCoreDefault);
 
             // Try to get the schema information from the file.
             string str = Cursor.GetEmbeddedArgs(files);
@@ -1249,7 +1258,7 @@ namespace Microsoft.ML.Data
             // Parse the extracted information.
             using (var ch = host.Start("Parsing options from file"))
             {
-                // If tmp is not empty, this means the user specified some additional arguments in the command line,
+                // If tmp is not empty, this means the user specified some additional arguments in the options or command line,
                 // such as quote- or sparse-. Warn them about it, since this means that the columns will not be read from the file.
                 if (!string.IsNullOrWhiteSpace(tmp))
                 {
@@ -1275,12 +1284,14 @@ namespace Microsoft.ML.Data
                     goto LDone;
 
                 var optionsNew = new Options();
-                // Copy the non-core arguments to the new options (we already know that all the core arguments are default).
-                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(host, options, new Options()), optionsNew);
-                ch.Assert(parsed);
                 // Copy the core arguments to the new options.
                 if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), optionsNew, typeof(Options), msg => ch.Error(msg)))
                     goto LDone;
+
+                // Set the non core arguments in the new options.
+                optionsNew.UseThreads = options.UseThreads;
+                optionsNew.HeaderFile = options.HeaderFile;
+                optionsNew.MaxRows = options.MaxRows;
 
                 cols = optionsNew.Columns;
                 if (Utils.Size(cols) == 0)
