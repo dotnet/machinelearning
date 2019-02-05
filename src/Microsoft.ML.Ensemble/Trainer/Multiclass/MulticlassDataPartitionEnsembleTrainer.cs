@@ -72,7 +72,6 @@ namespace Microsoft.ML.Ensemble
                             return TrainerUtils.MapTrainerEstimatorToTrainer<MulticlassLogisticRegression,
                                 MulticlassLogisticRegressionModelParameters, MulticlassLogisticRegressionModelParameters>(env, trainerEstimator);
                         })
-                        //env => new MulticlassLogisticRegression(env, LabelColumn, FeatureColumn))
                 };
             }
         }

@@ -17,7 +17,7 @@ namespace Microsoft.ML.Ensemble.Selector
             ConcurrentDictionary<FeatureSubsetModel<TOutput>, TOutput[]> predictions);
     }
 
-    public delegate void SignatureEnsembleDiversityMeasure();
+    internal delegate void SignatureEnsembleDiversityMeasure();
 
     internal interface IBinaryDiversityMeasure : IDiversityMeasure<Single>
     { }

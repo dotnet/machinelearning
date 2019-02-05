@@ -19,8 +19,6 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble
 {
-    using TScalarPredictor = IPredictorProducing<Single>;
-
     /// <summary>
     /// A class for artifacts of ensembled models.
     /// </summary>
