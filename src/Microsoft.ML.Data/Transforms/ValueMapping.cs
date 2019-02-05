@@ -66,7 +66,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
             var isKey = Transformer.ValueColumnType is KeyType;
             var columnType = (isKey) ? NumberType.U4 :
-                                    Transformer.ValueColumnType;
+                                    Transformer.ValueColumnType.GetItemType();
             var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (outputColumnName, inputColumnName) in _columns)
             {

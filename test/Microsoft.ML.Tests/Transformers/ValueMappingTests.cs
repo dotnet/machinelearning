@@ -159,6 +159,13 @@ namespace Microsoft.ML.Tests.Transformers
                 new int[] {400, 500, 600, 700 }};
 
             var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var schema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            foreach (var name in new[] { "D", "E", "F" })
+            {
+                Assert.True(schema.TryFindColumn(name, out var originalColumn));
+                Assert.Equal(SchemaShape.Column.VectorKind.Vector, originalColumn.Kind);
+            }
+
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
