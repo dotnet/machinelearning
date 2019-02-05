@@ -1131,21 +1131,13 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
             /// </summary>
             public readonly string Name;
-            /// <summary>
-            /// Name of column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
-            /// </summary>
+            /// <summary> Name of column to transform.</summary>
             public readonly string InputColumnName;
-            /// <summary>
-            /// Number of bits to hash into. Must be between 1 and 31, inclusive.
-            /// </summary>
+            /// <summary> Number of bits to hash into. Must be between 1 and 31, inclusive.</summary>
             public readonly int HashBits;
-            /// <summary>
-            /// Hashing seed.
-            /// </summary>
+            /// <summary> Hashing seed.</summary>
             public readonly uint Seed;
-            /// <summary>
-            /// Whether the position of each term should be included in the hash.
-            /// </summary>
+            /// <summary> Whether the position of each term should be included in the hash.</summary>
             public readonly bool Ordered;
             /// <summary>
             /// During hashing we constuct mappings between original values and the produced hash values.

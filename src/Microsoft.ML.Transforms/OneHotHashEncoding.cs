@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms.Categorical
         private HashingEstimator _hash;
 
         /// <summary>
-        /// A helper method to create <see cref="OneHotHashEncodingEstimator"/> for public facing API.
+        /// Instantiates a new instance of <see cref="OneHotHashEncodingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
@@ -270,8 +270,8 @@ namespace Microsoft.ML.Transforms.Categorical
         internal OneHotHashEncodingEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
-            int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
-            int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
+            int hashBits = Defaults.HashBits,
+            int invertHash = Defaults.InvertHash,
             OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind)
             : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, outputKind, hashBits, invertHash: invertHash))
         {

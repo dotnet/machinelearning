@@ -738,16 +738,13 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         public sealed class ColumnInfo
         {
-            /// <summary>
-            /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.
-            /// </summary>
+            /// <summary> Name of the column resulting from the transformation of <cref see="InputColumnName"/>.</summary>
             public readonly string Name;
-            /// <summary>
-            /// Name of column to transform. If set to <see langword="null"/>, the value of the <cref see="Name"/> will be used as source.
-            /// </summary>
+            /// <summary> Name of column to transform.</summary>
             public readonly string InputColumnName;
             /// <summary>
-            /// Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input column is a vector.
+            /// Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them.
+            /// This is only relevant when the input column is a vector.
             /// </summary>
             public readonly bool Bag;
 
