@@ -905,11 +905,26 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary>
+            /// The possible ways to replace missing values.
+            /// </summary>
             public enum ReplacementMode : byte
             {
+                /// <summary>
+                /// Replace using default value.
+                /// </summary>
                 DefaultValue = 0,
+                /// <summary>
+                /// Replace using mean.
+                /// </summary>
                 Mean = 1,
+                /// <summary>
+                /// Replace using minimum
+                /// </summary>
                 Minimum = 2,
+                /// <summary>
+                /// Replace using maximum.
+                /// </summary>
                 Maximum = 3,
             }
 
@@ -928,16 +943,18 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public readonly bool ImputeBySlot;
             /// <summary>
-            /// What to replace the missing value with.
+            /// How to replace the missing values.
             /// </summary>
             public readonly ReplacementMode Replacement;
+
+            internal string ReplacementString { get; set; }
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="replacementMode">What to replace the missing value with.</param>
+            /// <param name="replacementMode">How to replace the missing values.</param>
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
@@ -950,8 +967,6 @@ namespace Microsoft.ML.Transforms
                 ImputeBySlot = imputeBySlot;
                 Replacement = replacementMode;
             }
-
-            internal string ReplacementString { get; set; }
         }
 
         private readonly IHost _host;
