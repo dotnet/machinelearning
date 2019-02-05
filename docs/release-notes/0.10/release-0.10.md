@@ -30,7 +30,7 @@ Below are a few of the highlights from this release. There are many other improv
 * DataView moved into a separate assembly and NuGet package 
 ([#2220](https://github.com/dotnet/machinelearning/pull/2220))
 
-* Improvements in the API for prediction engine. 
+* Improvements in the API for prediction engine
 ([#2250](https://github.com/dotnet/machinelearning/pull/2250))
 
 * Introducing Microsoft.ML.Recommender NuGet name instead of Microsoft.ML.MatrixFactorization name
@@ -39,15 +39,15 @@ Below are a few of the highlights from this release. There are many other improv
 
 * Support multiple 'feature columns' in FFM (Field-aware Factorization Machines)
 ([#2205](https://github.com/dotnet/machinelearning/pull/2205)) 
-  - Allows multiple feature column names in advanced trainer arguments so certain FFM trainers can support multiple multiple feature columns as explained in [#2179](https://github.com/dotnet/machinelearning/issues/2179) issue.
+  - Allows multiple feature column names in advanced trainer arguments so certain FFM trainers can support multiple multiple feature columns as explained in [#2179](https://github.com/dotnet/machinelearning/issues/2179) issue
 
-* Added support for loading map from file through dataview by using ValueMapperTransformer.
+* Added support for loading map from file through dataview by using ValueMapperTransformer
 ([#2232](https://github.com/dotnet/machinelearning/pull/2232)) 
-  - This provides support for additional scenarios like a Text/NLP scenario ([#747](https://github.com/dotnet/machinelearning/issues/747)) in TensorFlowTransform where model's expected input is vector of integers.
+  - This provides support for additional scenarios like a Text/NLP scenario ([#747](https://github.com/dotnet/machinelearning/issues/747)) in TensorFlowTransform where model's expected input is vector of integers
 
 * Added support for running benchmarks on .NET Framework in addition to .NET Core.
 ([#2157](https://github.com/dotnet/machinelearning/pull/2157)) 
-  - Benchmarks can be based on [Microsoft.ML.Benchmarks](https://github.com/dotnet/machinelearning/tree/master/test/Microsoft.ML.Benchmarks).
+  - Benchmarks can be based on [Microsoft.ML.Benchmarks](https://github.com/dotnet/machinelearning/tree/master/test/Microsoft.ML.Benchmarks)
   - This fixes issues like [#1945](https://github.com/dotnet/machinelearning/issues/1945)
 
 * Added Tensorflow unfrozen models support in GetModelSchema 
@@ -60,5 +60,5 @@ Below are a few of the highlights from this release. There are many other improv
 
 Shoutout to [endintiers](https://github.com/endintiers),
 [hvitved](https://github.com/hvitved),
-[mareklinka](https://github.com/mareklinka), [kilick](https://github.com/kilick) and the [ML.NET](https://aka.ms/mlnet) team for their
+[mareklinka](https://github.com/mareklinka), [kilick](https://github.com/kilick), and the [ML.NET](https://aka.ms/mlnet) team for their
 contributions as part of this release!
