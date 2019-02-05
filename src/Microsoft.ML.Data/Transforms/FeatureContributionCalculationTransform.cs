@@ -202,10 +202,10 @@ namespace Microsoft.ML.Data
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataSchema schema)
             => new Mapper(this, schema);
 
         private class Mapper : OneToOneMapperBase
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Data
             private readonly int _featureColumnIndex;
             private readonly VectorType _featureColumnType;
 
-            public Mapper(FeatureContributionCalculatingTransformer parent, Schema schema)
+            public Mapper(FeatureContributionCalculatingTransformer parent, DataSchema schema)
                 : base(parent.Host, parent, schema)
             {
                 _parent = parent;
@@ -235,12 +235,12 @@ namespace Microsoft.ML.Data
 
             // The FeatureContributionCalculatingTransformer produces two sets of columns: the columns obtained from scoring and the FeatureContribution column.
             // If the argument stringify is true, the type of the FeatureContribution column is string, otherwise it is a vector of float.
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 // Add FeatureContributions column.
                 var builder = new MetadataBuilder();
                 builder.Add(InputSchema[_featureColumnIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
-                return new[] { new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _featureColumnType.Size), builder.GetMetadata()) };
+                return new[] { new DataSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _featureColumnType.Size), builder.GetMetadata()) };
             }
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> active, out Action disposer)

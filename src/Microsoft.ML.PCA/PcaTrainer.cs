@@ -340,7 +340,7 @@ namespace Microsoft.ML.Trainers.PCA
             };
         }
 
-        protected override AnomalyPredictionTransformer<PcaModelParameters> MakeTransformer(PcaModelParameters model, Schema trainSchema)
+        protected override AnomalyPredictionTransformer<PcaModelParameters> MakeTransformer(PcaModelParameters model, DataSchema trainSchema)
             => new AnomalyPredictionTransformer<PcaModelParameters>(Host, model, trainSchema, _featureColumn);
 
         [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",

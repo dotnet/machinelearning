@@ -296,7 +296,7 @@ namespace Microsoft.ML.Trainers
             if (data.Schema.Weight?.Type == NumberType.Float)
                 colWeight = data.Schema.Weight.Value.Index;
 
-            var cols = colWeight > -1 ? new Schema.Column[] { labelCol, data.Schema.Weight.Value } : new Schema.Column[] { labelCol };
+            var cols = colWeight > -1 ? new DataSchema.Column[] { labelCol, data.Schema.Weight.Value } : new DataSchema.Column[] { labelCol };
 
             using (var cursor = data.Data.GetRowCursor(cols))
             {

@@ -38,7 +38,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// The one and only constructor for Bindings.
             /// </summary>
-            private Bindings(Schema input, ISchemaBoundRowMapper mapper, string suffix, bool user)
+            private Bindings(DataSchema input, ISchemaBoundRowMapper mapper, string suffix, bool user)
                 : base(input, mapper, suffix, user)
             {
                 Contracts.Assert(DerivedColumnCount == 0);
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Create the bindings given the input schema, bound mapper, and column name suffix.
             /// </summary>
-            public static Bindings Create(Schema input, ISchemaBoundRowMapper mapper, string suffix, bool user = true)
+            public static Bindings Create(DataSchema input, ISchemaBoundRowMapper mapper, string suffix, bool user = true)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(mapper);
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Create the bindings given the env, bindable, input schema, column roles, and column name suffix.
             /// </summary>
-            private static Bindings Create(IHostEnvironment env, ISchemaBindableMapper bindable, Schema input,
+            private static Bindings Create(IHostEnvironment env, ISchemaBindableMapper bindable, DataSchema input,
                 IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles, string suffix, bool user = true)
             {
                 Contracts.AssertValue(env);
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Data
             /// Create a new Bindings from this one, but based on a potentially different schema.
             /// Used by the ITransformTemplate.ApplyToData implementation.
             /// </summary>
-            public Bindings ApplyToSchema(IHostEnvironment env, Schema input)
+            public Bindings ApplyToSchema(IHostEnvironment env, DataSchema input)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(env);
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Data
             /// Deserialize the bindings, given the env, bindable and input schema.
             /// </summary>
             public static Bindings Create(ModelLoadContext ctx,
-                IHostEnvironment env, ISchemaBindableMapper bindable, Schema input)
+                IHostEnvironment env, ISchemaBindableMapper bindable, DataSchema input)
             {
                 Contracts.AssertValue(ctx);
 
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Data
         private readonly Bindings _bindings;
         private protected override BindingsBase GetBindings() => _bindings;
 
-        public override Schema OutputSchema { get; }
+        public override DataSchema OutputSchema { get; }
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 

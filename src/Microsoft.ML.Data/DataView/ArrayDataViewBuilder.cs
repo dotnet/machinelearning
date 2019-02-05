@@ -195,10 +195,10 @@ namespace Microsoft.ML.Data
         {
             private readonly int _rowCount;
             private readonly Column[] _columns;
-            private readonly Schema _schema;
+            private readonly DataSchema _schema;
             private readonly IHost _host;
 
-            public Schema Schema { get { return _schema; } }
+            public DataSchema Schema { get { return _schema; } }
 
             public long? GetRowCount() { return _rowCount; }
 
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Data
                 _rowCount = rowCount;
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Data
                 return new Cursor(_host, this, predicate, rand);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Data
                 private readonly BitArray _active;
                 private readonly int[] _indices;
 
-                public override Schema Schema => _view.Schema;
+                public override DataSchema Schema => _view.Schema;
 
                 public override long Batch
                 {

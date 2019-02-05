@@ -221,13 +221,13 @@ namespace Microsoft.ML.Training
             throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);
         }
 
-        private static IEnumerable<Schema.Column> CreatePredicate(RoleMappedData data, CursOpt opt, IEnumerable<int> extraCols)
+        private static IEnumerable<DataSchema.Column> CreatePredicate(RoleMappedData data, CursOpt opt, IEnumerable<int> extraCols)
         {
             Contracts.AssertValue(data);
             Contracts.AssertValueOrNull(extraCols);
 
             var columns = extraCols == null ?
-                Enumerable.Empty<Schema.Column>() :
+                Enumerable.Empty<DataSchema.Column>() :
                 data.Data.Schema.Where(c => extraCols.Contains(c.Index));
 
             if ((opt & CursOpt.Label) != 0 && data.Schema.Label.HasValue)
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Training
             }
 
             /// <summary>
-            /// The typed analog to <see cref="IDataView.GetRowCursor(IEnumerable{Schema.Column},Random)"/>.
+            /// The typed analog to <see cref="IDataView.GetRowCursor(IEnumerable{DataSchema.Column},Random)"/>.
             /// </summary>
             /// <param name="rand">Non-null if we are requesting a shuffled cursor.</param>
             /// <param name="extraCols">The extra columns to activate on the row cursor

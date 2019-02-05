@@ -24,7 +24,7 @@ namespace Microsoft.ML.Internal.Internallearn
 
             private readonly FeatureNameCollection _collection;
 
-            public readonly Schema FeatureNameCollectionSchema;
+            public readonly DataSchema FeatureNameCollectionSchema;
 
             public FeatureNameCollectionBinding(FeatureNameCollection collection)
             {

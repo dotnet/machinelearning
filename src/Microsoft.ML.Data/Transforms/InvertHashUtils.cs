@@ -33,7 +33,7 @@ namespace Microsoft.ML.Data
         /// This StringBuilder representation will be a component of the composed KeyValues for the
         /// hash outputs.
         /// </summary>
-        public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(Schema schema, int col)
+        public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(DataSchema schema, int col)
         {
             Contracts.AssertValue(schema);
             Contracts.Assert(0 <= col && col < schema.Count);

@@ -18,7 +18,7 @@ namespace Microsoft.ML.Data
         /// <param name="columnsNeeded">The columns requested by this <see cref="RowCursor"/>, or as otherwise called, the active columns.
         /// An empty collection indicates that no column is needed.</param>
         /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="columnsNeeded"/>.</param>
-        public static RowCursor GetRowCursor(this IDataView dv, params Schema.Column[] columnsNeeded)
+        public static RowCursor GetRowCursor(this IDataView dv, params DataSchema.Column[] columnsNeeded)
         {
             Contracts.AssertValue(columnsNeeded, $"The {nameof(columnsNeeded)} cannot be null. Pass an empty array, to indicate that no columns is needed.");
 
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="columnNeeded">The column requested by this <see cref="RowCursor"/>, or as otherwise called, the active column.</param>
         /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="columnNeeded"/>.</param>
-        public static RowCursor GetRowCursor(this IDataView dv, Schema.Column columnNeeded)
+        public static RowCursor GetRowCursor(this IDataView dv, DataSchema.Column columnNeeded)
         {
             Contracts.Assert(dv.Schema[columnNeeded.Index].Equals(columnNeeded), $"The requested column named: {columnNeeded.Name}, with index: {columnNeeded.Index} and type: {columnNeeded.Type}" +
                    $" is not present in the {nameof(IDataView)} where the {nameof(RowCursor)} is being requested.");
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Get a row cursor. No colums are needed by this <see cref="RowCursor"/>.
         /// </summary>
-        public static RowCursor GetRowCursor(this IDataView dv) =>  dv.GetRowCursor(Enumerable.Empty<Schema.Column>());
+        public static RowCursor GetRowCursor(this IDataView dv) =>  dv.GetRowCursor(Enumerable.Empty<DataSchema.Column>());
 
         /// <summary>
         /// Get a row cursor including all the columns of the <see cref="IDataView"/> it is called upon..

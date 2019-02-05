@@ -22,7 +22,7 @@ namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This interface is used to create a <see cref="RowToRowMapperTransform"/>.
-    /// Implementations should be given an <see cref="Schema"/> in their constructor, and should have a
+    /// Implementations should be given an <see cref="DataSchema"/> in their constructor, and should have a
     /// ctor or Create method with <see cref="SignatureLoadRowMapper"/>, along with a corresponding
     /// <see cref="LoadableClassAttribute"/>.
     /// </summary>
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns information about the output columns, including their name, type and any metadata information.
         /// </summary>
-        Schema.DetachedColumn[] GetOutputColumns();
+        DataSchema.DetachedColumn[] GetOutputColumns();
 
         /// <summary>
         /// DO NOT USE IT!
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Data
         ITransformer GetTransformer();
     }
 
-    public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, Schema schema);
+    public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, DataSchema schema);
 
     /// <summary>
     /// This class is a transform that can add any number of output columns, that depend on any number of input columns.
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
         private readonly ColumnBindings _bindings;
 
         // If this is not null, the transform is re-appliable without save/load.
-        private readonly Func<Schema, IRowMapper> _mapperFactory;
+        private readonly Func<DataSchema, IRowMapper> _mapperFactory;
 
         public const string RegistrationName = "RowToRowMapperTransform";
         public const string LoaderSignature = "RowToRowMapper";
@@ -86,14 +86,14 @@ namespace Microsoft.ML.Data
                 loaderAssemblyName: typeof(RowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override Schema OutputSchema => _bindings.Schema;
+        public override DataSchema OutputSchema => _bindings.Schema;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
         [BestFriend]
-        internal RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<Schema, IRowMapper> mapperFactory)
+        internal RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<DataSchema, IRowMapper> mapperFactory)
             : base(env, RegistrationName, input)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
+        internal static DataSchema GetOutputSchema(DataSchema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Data
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Data
             return predicateInput;
         }
 
-        public Schema InputSchema => Source.Schema;
+        public DataSchema InputSchema => Source.Schema;
 
         public Row GetRow(Row input, Func<int, bool> active)
         {
@@ -307,9 +307,9 @@ namespace Microsoft.ML.Data
             private readonly RowToRowMapperTransform _parent;
             private readonly Action _disposer;
 
-            public override Schema Schema { get; }
+            public override DataSchema Schema { get; }
 
-            public RowImpl(Row input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters, Action disposer)
+            public RowImpl(Row input, RowToRowMapperTransform parent, DataSchema schema, Delegate[] getters, Action disposer)
                 : base(input)
             {
                 _parent = parent;
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Data
             private readonly Action _disposer;
             private bool _disposed;
 
-            public override Schema Schema => _bindings.Schema;
+            public override DataSchema Schema => _bindings.Schema;
 
             public Cursor(IChannelProvider provider, RowCursor input, RowToRowMapperTransform parent, bool[] active)
                 : base(provider, input)

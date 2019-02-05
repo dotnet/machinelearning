@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
             return idv;
         }
 
-        public Schema GetOutputSchema()
+        public DataSchema GetOutputSchema()
         {
             var s = Reader.GetOutputSchema();
             return Transformer.GetOutputSchema(s);

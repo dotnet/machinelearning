@@ -394,7 +394,7 @@ namespace Microsoft.ML.Data
             return transformer.MakeDataTransform(input);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataSchema inputSchema) => new Mapper(this, inputSchema);
 
         /// <summary>
         /// Factory method for SignatureLoadDataTransform.
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(inputSchema);
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Data
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(ColumnConcatenatingTransformer parent, Schema inputSchema) :
+            public Mapper(ColumnConcatenatingTransformer parent, DataSchema inputSchema) :
                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            private BoundColumn MakeColumn(Schema inputSchema, int iinfo)
+            private BoundColumn MakeColumn(DataSchema inputSchema, int iinfo)
             {
                 Contracts.AssertValue(inputSchema);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -528,9 +528,9 @@ namespace Microsoft.ML.Data
                 private readonly VectorType _slotNamesType;
                 private readonly ColumnType _categoricalRangeType;
 
-                private readonly Schema _inputSchema;
+                private readonly DataSchema _inputSchema;
 
-                public BoundColumn(Schema inputSchema, ColumnInfo columnInfo, int[] sources, VectorType outputType,
+                public BoundColumn(DataSchema inputSchema, ColumnInfo columnInfo, int[] sources, VectorType outputType,
                     bool isNormalized, bool hasSlotNames, bool hasCategoricals, int slotCount, int catCount)
                 {
                     _columnInfo = columnInfo;
@@ -553,12 +553,12 @@ namespace Microsoft.ML.Data
                         _categoricalRangeType = MetadataUtils.GetCategoricalType(catCount / 2);
                 }
 
-                public Schema.DetachedColumn MakeSchemaColumn()
+                public DataSchema.DetachedColumn MakeSchemaColumn()
                 {
                     if (_isIdentity)
                     {
                         var inputCol = _inputSchema[SrcIndices[0]];
-                        return new Schema.DetachedColumn(_columnInfo.Name, inputCol.Type, inputCol.Metadata);
+                        return new DataSchema.DetachedColumn(_columnInfo.Name, inputCol.Type, inputCol.Metadata);
                     }
 
                     var metadata = new MetadataBuilder();
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Data
                     if (_hasCategoricals)
                         metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, _categoricalRangeType, (ValueGetter<VBuffer<int>>)GetCategoricalSlotRanges);
 
-                    return new Schema.DetachedColumn(_columnInfo.Name, OutputType, metadata.GetMetadata());
+                    return new DataSchema.DetachedColumn(_columnInfo.Name, OutputType, metadata.GetMetadata());
                 }
 
                 private void GetIsNormalized(ref bool value) => value = _isNormalized;
@@ -850,7 +850,7 @@ namespace Microsoft.ML.Data
                 return col => active[col];
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore() => _columns.Select(x => x.MakeSchemaColumn()).ToArray();
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore() => _columns.Select(x => x.MakeSchemaColumn()).ToArray();
 
             public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 

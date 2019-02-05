@@ -60,18 +60,18 @@ namespace Microsoft.ML.FactorizationMachine
 
         public RoleMappedSchema InputRoleMappedSchema { get; }
 
-        public Schema OutputSchema { get; }
+        public DataSchema OutputSchema { get; }
 
-        public Schema InputSchema => InputRoleMappedSchema.Schema;
+        public DataSchema InputSchema => InputRoleMappedSchema.Schema;
 
         public ISchemaBindableMapper Bindable => _pred;
 
-        private readonly Schema.Column[] _columns;
+        private readonly DataSchema.Column[] _columns;
         private readonly List<int> _inputColumnIndexes;
         private readonly IHostEnvironment _env;
 
         public FieldAwareFactorizationMachineScalarRowMapper(IHostEnvironment env, RoleMappedSchema schema,
-            Schema outputSchema, FieldAwareFactorizationMachineModelParameters pred)
+            DataSchema outputSchema, FieldAwareFactorizationMachineModelParameters pred)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);

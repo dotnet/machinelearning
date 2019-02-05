@@ -43,7 +43,7 @@ namespace Microsoft.ML.Data
             /// Input schema of this transform. It's useful when determining column dependencies and other
             /// relations between input and output schemas.
             /// </summary>
-            private readonly Schema _sourceSchema;
+            private readonly DataSchema _sourceSchema;
 
             /// <summary>
             /// Some column indexes in the input schema. <see cref="_sources"/> is computed from <see cref="_selectedColumnIndexes"/>
@@ -57,9 +57,9 @@ namespace Microsoft.ML.Data
             private readonly bool _drop;
 
             // This transform's output schema.
-            internal Schema OutputSchema { get; }
+            internal DataSchema OutputSchema { get; }
 
-            internal Bindings(Arguments args, Schema sourceSchema)
+            internal Bindings(Arguments args, DataSchema sourceSchema)
             {
                 Contracts.AssertValue(args);
                 Contracts.AssertValue(sourceSchema);
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Common method of computing <see cref="_sources"/> from necessary parameters. This function is used in constructors.
             /// </summary>
-            private static void ComputeSources(bool drop, int[] selectedColumnIndexes, Schema sourceSchema, out int[] sources)
+            private static void ComputeSources(bool drop, int[] selectedColumnIndexes, DataSchema sourceSchema, out int[] sources)
             {
                 // Compute the mapping, <see cref="_sources"/>, from output column index to input column index.
                 if (drop)
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Data
             /// After <see cref="_sourceSchema"/> and <see cref="_sources"/> are set, pick up selected columns from <see cref="_sourceSchema"/> to create <see cref="OutputSchema"/>
             /// Note that <see cref="_sources"/> tells us what columns in <see cref="_sourceSchema"/> are put into <see cref="OutputSchema"/>.
             /// </summary>
-            private Schema ComputeOutputSchema()
+            private DataSchema ComputeOutputSchema()
             {
                 var schemaBuilder = new SchemaBuilder();
                 for (int i = 0; i < _sources.Length; ++i)
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Data
                 return schemaBuilder.GetSchema();
             }
 
-            internal Bindings(ModelLoadContext ctx, Schema sourceSchema)
+            internal Bindings(ModelLoadContext ctx, DataSchema sourceSchema)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(sourceSchema);
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Data
             _bindings.Save(ctx);
         }
 
-        public override Schema OutputSchema => _bindings.OutputSchema;
+        public override DataSchema OutputSchema => _bindings.OutputSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Data
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public sealed override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Data
                 _active = active;
             }
 
-            public override Schema Schema => _bindings.OutputSchema;
+            public override DataSchema Schema => _bindings.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {

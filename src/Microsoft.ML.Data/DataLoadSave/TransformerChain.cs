@@ -119,7 +119,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataSchema GetOutputSchema(DataSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -217,13 +217,13 @@ namespace Microsoft.ML.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.Check(IsRowToRowMapper, nameof(GetRowToRowMapper) + " method called despite " + nameof(IsRowToRowMapper) + " being false.");
 
             IRowToRowMapper[] mappers = new IRowToRowMapper[_transformers.Length];
-            Schema schema = inputSchema;
+            DataSchema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)
             {
                 mappers[i] = _transformers[i].GetRowToRowMapper(schema);

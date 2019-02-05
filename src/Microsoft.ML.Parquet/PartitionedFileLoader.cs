@@ -287,19 +287,19 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle => true;
 
-        public Schema Schema { get; }
+        public DataSchema Schema { get; }
 
         public long? GetRowCount()
         {
             return null;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             return new Cursor(_host, this, _files, columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             var cursor = new Cursor(_host, this, _files, columnsNeeded, rand);
             return new RowCursor[] { cursor };
@@ -312,13 +312,13 @@ namespace Microsoft.ML.Data
         /// <param name="cols">The partitioned columns.</param>
         /// <param name="subLoader">The sub loader.</param>
         /// <returns>The resulting schema.</returns>
-        private Schema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
+        private DataSchema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
         {
             Contracts.AssertValue(cols);
             Contracts.AssertValue(subLoader);
 
             var builder = new SchemaBuilder();
-            builder.AddColumns(cols.Select(c => new Schema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
+            builder.AddColumns(cols.Select(c => new DataSchema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
             var colSchema = builder.GetSchema();
 
             var subSchema = subLoader.Schema;
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Data
             }
             else
             {
-                var schemas = new Schema[]
+                var schemas = new DataSchema[]
                 {
                     subSchema,
                     colSchema
@@ -371,15 +371,15 @@ namespace Microsoft.ML.Data
             private Delegate[] _getters;
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
-            private readonly IEnumerable<Schema.Column> _columnsNeeded;
-            private readonly IEnumerable<Schema.Column> _subActivecolumnsNeeded;
+            private readonly IEnumerable<DataSchema.Column> _columnsNeeded;
+            private readonly IEnumerable<DataSchema.Column> _subActivecolumnsNeeded;
 
             private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
             private RowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
 
-            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, IEnumerable<Schema.Column> columnsNeeded, Random rand)
+            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, IEnumerable<DataSchema.Column> columnsNeeded, Random rand)
                 : base(provider)
             {
                 Contracts.AssertValue(parent);
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            public override Schema Schema => _parent.Schema;
+            public override DataSchema Schema => _parent.Schema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            private bool SchemasMatch(Schema schema1, Schema schema2)
+            private bool SchemasMatch(DataSchema schema1, DataSchema schema2)
             {
                 if (schema1.Count != schema2.Count)
                 {

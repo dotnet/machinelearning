@@ -51,7 +51,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// </summary>
         /// <param name="ectx">The context on which to throw exceptions</param>
         /// <param name="schema">The schema to check</param>
-        public void Check(IExceptionContext ectx, Schema schema)
+        public void Check(IExceptionContext ectx, DataSchema schema)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(schema);
@@ -234,7 +234,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// <param name="col">The column</param>
         /// <returns>The .NET type for the static pipelines that should be used to reflect this type, given
         /// both the characteristics of the <see cref="ColumnType"/> as well as one or two crucial pieces of metadata</returns>
-        private static Type GetTypeOrNull(Schema.Column col)
+        private static Type GetTypeOrNull(DataSchema.Column col)
         {
             var t = col.Type;
 

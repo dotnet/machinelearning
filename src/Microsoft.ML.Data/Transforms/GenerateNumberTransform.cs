@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms
             public readonly TauswortheHybrid.State[] States;
 
             private Bindings(bool[] useCounter, TauswortheHybrid.State[] states,
-                Schema input, bool user, string[] names)
+                DataSchema input, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.Assert(Utils.Size(useCounter) == InfoCount);
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms
                 States = states;
             }
 
-            public static Bindings Create(Arguments args, Schema input)
+            public static Bindings Create(Arguments args, DataSchema input)
             {
                 var names = new string[args.Columns.Length];
                 var useCounter = new bool[args.Columns.Length];
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(useCounter, states, input, true, names);
             }
 
-            public static Bindings Create(ModelLoadContext ctx, Schema input)
+            public static Bindings Create(ModelLoadContext ctx, DataSchema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(ctx);
         }
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override DataSchema OutputSchema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return false; } }
 
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override DataSchema Schema => _bindings.AsSchema;
 
             public override bool IsColumnActive(int col)
             {

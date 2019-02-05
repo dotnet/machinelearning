@@ -42,8 +42,8 @@ namespace Microsoft.ML.Data
 
             private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreColumnKind;
             private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreValueKind;
-            private readonly Schema.Metadata _predColMetadata;
-            private BindingsImpl(Schema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
+            private readonly DataSchema.Metadata _predColMetadata;
+            private BindingsImpl(DataSchema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
                 bool user, int scoreColIndex, ColumnType predColType)
                 : base(input, mapper, suffix, user, DefaultColumnNames.PredictedLabel)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            private static Schema.Metadata KeyValueMetadataFromMetadata<T>(Schema.Metadata meta, Schema.Column metaCol)
+            private static DataSchema.Metadata KeyValueMetadataFromMetadata<T>(DataSchema.Metadata meta, DataSchema.Column metaCol)
             {
                 Contracts.AssertValue(meta);
                 Contracts.Assert(0 <= metaCol.Index && metaCol.Index < meta.Schema.Count);
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Data
                 return builder.GetMetadata();
             }
 
-            public static BindingsImpl Create(Schema input, ISchemaBoundRowMapper mapper, string suffix,
+            public static BindingsImpl Create(DataSchema input, ISchemaBoundRowMapper mapper, string suffix,
                 string scoreColKind, int scoreColIndex, ColumnType predColType)
             {
                 Contracts.AssertValue(input);
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Data
                     scoreColIndex, predColType);
             }
 
-            public BindingsImpl ApplyToSchema(Schema input, ISchemaBindableMapper bindable, IHostEnvironment env)
+            public BindingsImpl ApplyToSchema(DataSchema input, ISchemaBindableMapper bindable, IHostEnvironment env)
             {
                 Contracts.AssertValue(env);
                 env.AssertValue(input);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Data
                 return new BindingsImpl(input, rowMapper, Suffix, ScoreColumnKind, true, mapperScoreColumn, PredColType);
             }
 
-            public static BindingsImpl Create(ModelLoadContext ctx, Schema input,
+            public static BindingsImpl Create(ModelLoadContext ctx, DataSchema input,
                 IHostEnvironment env, ISchemaBindableMapper bindable,
                 Func<ColumnType, bool> outputTypeMatches, Func<ColumnType, ISchemaBoundRowMapper, ColumnType> getPredColType)
             {
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Data
         private protected readonly BindingsImpl Bindings;
         [BestFriend]
         private protected sealed override BindingsBase GetBindings() => Bindings;
-        public override Schema OutputSchema { get; }
+        public override DataSchema OutputSchema { get; }
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 

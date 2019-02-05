@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
@@ -315,9 +315,9 @@ namespace Microsoft.ML.Transforms.Text
                 ctx.Writer.Write((uint)_modelKind);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataSchema inputSchema, int col, int srcCol)
         {
             var colType = inputSchema[srcCol].Type;
             if (!(colType is VectorType vectorType && vectorType.ItemType is TextType))
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly WordEmbeddingsExtractingTransformer _parent;
             private readonly VectorType _outputType;
 
-            public Mapper(WordEmbeddingsExtractingTransformer parent, Schema inputSchema)
+            public Mapper(WordEmbeddingsExtractingTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -345,8 +345,8 @@ namespace Microsoft.ML.Transforms.Text
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent.ColumnPairs.Select(x => new Schema.DetachedColumn(x.outputColumnName, _outputType, null)).ToArray();
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent.ColumnPairs.Select(x => new DataSchema.DetachedColumn(x.outputColumnName, _outputType, null)).ToArray();
 
             public void SaveAsOnnx(OnnxContext ctx)
             {

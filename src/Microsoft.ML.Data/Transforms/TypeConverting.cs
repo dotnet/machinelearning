@@ -368,10 +368,10 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
         internal static bool GetNewType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyCount keyCount, out PrimitiveType itemType)
         {
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
-            public Mapper(TypeConvertingTransformer parent, Schema inputSchema)
+            public Mapper(TypeConvertingTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -453,9 +453,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 return true;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent._columns.Length];
+                var result = new DataSchema.DetachedColumn[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
                     var builder = new MetadataBuilder();
@@ -481,7 +481,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         ValueGetter<bool> getter = (ref bool dst) => dst = true;
                         builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
                     }
-                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.GetMetadata());
+                    result[i] = new DataSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.GetMetadata());
                 }
                 return result;
             }

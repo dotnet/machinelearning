@@ -17,9 +17,9 @@ namespace Microsoft.ML.Data
         private readonly IHost _host;
 
         public bool CanShuffle => true;
-        public Schema Schema { get; }
+        public DataSchema Schema { get; }
 
-        public EmptyDataView(IHostEnvironment env, Schema schema)
+        public EmptyDataView(IHostEnvironment env, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(EmptyDataView));
@@ -29,13 +29,13 @@ namespace Microsoft.ML.Data
 
         public long? GetRowCount() => 0;
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             return new Cursor(_host, Schema, columnsNeeded);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             return new[] { new Cursor(_host, Schema, columnsNeeded) };
@@ -45,10 +45,10 @@ namespace Microsoft.ML.Data
         {
             private readonly bool[] _active;
 
-            public override Schema Schema { get; }
+            public override DataSchema Schema { get; }
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, Schema schema, IEnumerable<Schema.Column> columnsNeeded)
+            public Cursor(IChannelProvider provider, DataSchema schema, IEnumerable<DataSchema.Column> columnsNeeded)
                 : base(provider)
             {
                 Ch.AssertValue(schema);

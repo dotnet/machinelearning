@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data
         public readonly int RowCount;
         // -1 for input columns that were not transposed, a non-negative index into _cols for those that were.
         private readonly int[] _inputToTransposed;
-        private readonly Schema.Column[] _cols;
+        private readonly DataSchema.Column[] _cols;
         private readonly int[] _splitLim;
         private bool _disposed;
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Data
                 columnSet = columnSet.Where(c => _tview.GetSlotType(c) == null);
             }
             columns = columnSet.ToArray();
-            _cols = new Schema.Column[columns.Length];
+            _cols = new DataSchema.Column[columns.Length];
             var schema = _view.Schema;
             _nameToICol = new Dictionary<string, int>();
             // Let i be a column index in _view's Schema. _inputToTransposed[i] is -1 if the i-th column can
@@ -277,14 +277,14 @@ namespace Microsoft.ML.Data
         // we are still and will likely forever remain in a state where only a few specialized
         // operations make use of the transpose dataview, with many operations instead being
         // handled in the standard row-wise fashion.
-        public Schema Schema => _view.Schema;
+        public DataSchema Schema => _view.Schema;
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             => _view.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             => _view.GetRowCursorSet(columnsNeeded, n, rand);
 
         public long? GetRowCount()
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Data
 
             public bool CanShuffle { get { return _input.CanShuffle; } }
 
-            public Schema Schema { get; }
+            public DataSchema Schema { get; }
 
             public DataViewSlicer(IHost host, IDataView input, int[] toSlice)
             {
@@ -822,7 +822,7 @@ namespace Microsoft.ML.Data
                 splitCol = _colToSplitCol[col];
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
@@ -833,7 +833,7 @@ namespace Microsoft.ML.Data
                 return new Cursor(_host, this, _input.GetRowCursor(inputCols, rand), predicate, activeSplitters);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
 
@@ -853,7 +853,7 @@ namespace Microsoft.ML.Data
             /// Given a possibly null predicate for this data view, produce the dependency predicate for the sources,
             /// as well as a list of all the splitters for which we should produce rowsets.
             /// </summary>
-            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/> method.</param>
+            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(IEnumerable{DataSchema.Column}, Random)"/> method.</param>
             /// <param name="activeSplitters">A boolean indicator array of length equal to the number of splitters,
             /// indicating whether that splitter has any active columns in its outputs or not</param>
             /// <returns>The predicate to use when constructing the row cursor from the source</returns>
@@ -897,7 +897,7 @@ namespace Microsoft.ML.Data
                 /// Output schema of a splitter. A splitter takes a column from input data and then divide it into multiple columns
                 /// to form its output data.
                 /// </summary>
-                public abstract Schema OutputSchema { get; }
+                public abstract DataSchema OutputSchema { get; }
 
                 protected Splitter(IDataView view, int col)
                 {
@@ -967,7 +967,7 @@ namespace Microsoft.ML.Data
                 {
                     protected readonly TSplitter Parent;
 
-                    public sealed override Schema Schema => Parent.OutputSchema;
+                    public sealed override DataSchema Schema => Parent.OutputSchema;
 
                     public RowBase(TSplitter parent, Row input)
                         : base(input)
@@ -988,7 +988,7 @@ namespace Microsoft.ML.Data
                 {
                     public override int ColumnCount => 1;
 
-                    public override Schema OutputSchema { get; }
+                    public override DataSchema OutputSchema { get; }
 
                     /// <summary>
                     /// This is NoSplitter. Thus, the column, indexed by col, which supposes to be splitted will just be copied to an output
@@ -1054,7 +1054,7 @@ namespace Microsoft.ML.Data
                     // Cache of the types of each slice.
                     private readonly VectorType[] _types;
 
-                    public override Schema OutputSchema { get; }
+                    public override DataSchema OutputSchema { get; }
 
                     public override int ColumnCount { get { return _lims.Length; } }
 
@@ -1233,7 +1233,7 @@ namespace Microsoft.ML.Data
                 private readonly DataViewSlicer _slicer;
                 private readonly Row[] _sliceRows;
 
-                public override Schema Schema => _slicer.Schema;
+                public override DataSchema Schema => _slicer.Schema;
 
                 public Cursor(IChannelProvider provider, DataViewSlicer slicer, RowCursor input, Func<int, bool> pred, bool[] activeSplitters)
                     : base(provider, input)
@@ -1367,7 +1367,7 @@ namespace Microsoft.ML.Data
             private readonly int _col;
             private readonly ColumnType _type;
 
-            public Schema Schema { get; }
+            public DataSchema Schema { get; }
 
             public bool CanShuffle => false;
 
@@ -1396,7 +1396,7 @@ namespace Microsoft.ML.Data
                 return valueCount;
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             {
                 bool hasZero = columnsNeeded != null && columnsNeeded.Any(x => x.Index == 0);
                 return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, hasZero);
@@ -1407,7 +1407,7 @@ namespace Microsoft.ML.Data
                 return new Cursor<T>(this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
             }
@@ -1418,7 +1418,7 @@ namespace Microsoft.ML.Data
                 private readonly SlotCursor _slotCursor;
                 private readonly Delegate _getter;
 
-                public override Schema Schema => _parent.Schema;
+                public override DataSchema Schema => _parent.Schema;
 
                 public override long Batch => 0;
 
@@ -1466,7 +1466,7 @@ namespace Microsoft.ML.Data
         {
             private readonly SlotCursor _slotCursor;
 
-            public override Schema Schema { get; }
+            public override DataSchema Schema { get; }
 
             public override long Batch => 0;
 

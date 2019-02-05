@@ -48,11 +48,11 @@ namespace Microsoft.ML.Transforms
             // The input schema of the original data view that contains the source columns. We need this
             // so that we can have the metadata even when we load this transform with new data that does not have
             // these columns.
-            private readonly Schema _inputWithOptionalColumn;
+            private readonly DataSchema _inputWithOptionalColumn;
             private readonly int[] _srcColsWithOptionalColumn;
 
             private Bindings(OptionalColumnTransform parent, ColumnType[] columnTypes, int[] srcCols,
-                int[] srcColsWithOptionalColumn, Schema input, Schema inputWithOptionalColumn, bool user, string[] names)
+                int[] srcColsWithOptionalColumn, DataSchema input, DataSchema inputWithOptionalColumn, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Transforms
                 SetMetadata();
             }
 
-            public static Bindings Create(Arguments args, Schema input, OptionalColumnTransform parent)
+            public static Bindings Create(Arguments args, DataSchema input, OptionalColumnTransform parent)
             {
                 var names = new string[args.Columns.Length];
                 var columnTypes = new ColumnType[args.Columns.Length];
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(parent, columnTypes, srcCols, srcCols, input, input, true, names);
             }
 
-            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, Schema input, OptionalColumnTransform parent)
+            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema input, OptionalColumnTransform parent)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(Host, ctx);
         }
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override DataSchema OutputSchema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -431,7 +431,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override DataSchema Schema => _bindings.AsSchema;
 
             public override bool IsColumnActive(int col)
             {

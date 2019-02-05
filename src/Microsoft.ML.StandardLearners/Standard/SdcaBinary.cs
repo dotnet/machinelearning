@@ -1575,7 +1575,7 @@ namespace Microsoft.ML.Trainers
             weightSetCount = 1;
         }
 
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
+        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, DataSchema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
@@ -1736,7 +1736,7 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
+        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, DataSchema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)

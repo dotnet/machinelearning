@@ -281,7 +281,7 @@ namespace Microsoft.ML.Data
         private readonly VBuffer<ReadOnlyMemory<char>> _quantiles;
         private readonly ColumnType _outputType;
 
-        public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string labelCol, int scoreSize, VBuffer<ReadOnlyMemory<char>> quantiles)
+        public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, DataSchema schema, string scoreCol, string labelCol, int scoreSize, VBuffer<ReadOnlyMemory<char>> quantiles)
             : base(env, schema, scoreCol, labelCol)
         {
             Host.CheckParam(scoreSize > 0, nameof(scoreSize), "must be greater than 0");
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Data
             _outputType = new VectorType(NumberType.R8, _scoreSize);
         }
 
-        private QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        private QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Data
             _outputType = new VectorType(NumberType.R8, _scoreSize);
         }
 
-        public static QuantileRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        public static QuantileRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -348,9 +348,9 @@ namespace Microsoft.ML.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+        private protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.DetachedColumn[2];
+            var infos = new DataSchema.DetachedColumn[2];
 
             var slotNamesType = new VectorType(TextType.Instance, _scoreSize);
             var l1Metadata = new MetadataBuilder();
@@ -359,8 +359,8 @@ namespace Microsoft.ML.Data
             var l2Metadata = new MetadataBuilder();
             l2Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L2));
 
-            infos[L1Col] = new Schema.DetachedColumn(L1, _outputType, l1Metadata.GetMetadata());
-            infos[L2Col] = new Schema.DetachedColumn(L2, _outputType, l2Metadata.GetMetadata());
+            infos[L1Col] = new DataSchema.DetachedColumn(L1, _outputType, l1Metadata.GetMetadata());
+            infos[L2Col] = new DataSchema.DetachedColumn(L2, _outputType, l2Metadata.GetMetadata());
             return infos;
         }
 
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(Schema schema)
+        private void CheckInputColumnTypes(DataSchema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);

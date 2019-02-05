@@ -154,9 +154,9 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema OutputSchema => _groupBinding.OutputSchema;
+        public override DataSchema OutputSchema => _groupBinding.OutputSchema;
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -172,15 +172,15 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return false; } }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
         }
 
         /// <summary>
-        /// This class describes the relation between <see cref="GroupTransform"/>'s input <see cref="Schema"/>,
-        /// <see cref="GroupBinding._inputSchema"/>, and output <see cref="Schema"/>, <see cref="GroupBinding.OutputSchema"/>.
+        /// This class describes the relation between <see cref="GroupTransform"/>'s input <see cref="DataSchema"/>,
+        /// <see cref="GroupBinding._inputSchema"/>, and output <see cref="DataSchema"/>, <see cref="GroupBinding.OutputSchema"/>.
         ///
         /// The <see cref="GroupBinding.OutputSchema"/> contains columns used to group columns and columns being aggregated from input data.
         /// In <see cref="GroupBinding.OutputSchema"/>, group columns are followed by aggregated columns. For example, if column "Age" is used to group "UserId" column,
@@ -189,12 +189,12 @@ namespace Microsoft.ML.Transforms
         ///
         /// For group columns, the schema information is intact. For aggregated columns, the type is Vector of original type and variable length.
         /// The only metadata preserved is the KeyNames and IsNormalized. All other columns are dropped. Please see
-        /// <see cref="GroupBinding.BuildOutputSchema(Schema)"/> how this idea got implemented.
+        /// <see cref="GroupBinding.BuildOutputSchema(DataSchema)"/> how this idea got implemented.
         /// </summary>
         private sealed class GroupBinding
         {
             private readonly IExceptionContext _ectx;
-            private readonly Schema _inputSchema;
+            private readonly DataSchema _inputSchema;
 
             // Column names in source schema used to group rows.
             private readonly string[] _groupColumns;
@@ -211,11 +211,11 @@ namespace Microsoft.ML.Transforms
             public readonly int[] KeepColumnIndexes;
 
             /// <summary>
-            /// Output <see cref="Schema"/> of <see cref="GroupTransform"/> when input schema is <see cref="_inputSchema"/>.
+            /// Output <see cref="DataSchema"/> of <see cref="GroupTransform"/> when input schema is <see cref="_inputSchema"/>.
             /// </summary>
-            public Schema OutputSchema { get; }
+            public DataSchema OutputSchema { get; }
 
-            public GroupBinding(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
+            public GroupBinding(IExceptionContext ectx, DataSchema inputSchema, string[] groupColumns, string[] keepColumns)
             {
                 Contracts.AssertValue(ectx);
                 _ectx = ectx;
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms
                 OutputSchema = BuildOutputSchema(inputSchema);
             }
 
-            public GroupBinding(Schema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
+            public GroupBinding(DataSchema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(env);
                 _ectx = env.Register(LoaderSignature);
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             /// <param name="sourceSchema">Input schema.</param>
             /// <returns>The associated output schema produced by <see cref="GroupTransform"/>.</returns>
-            private Schema BuildOutputSchema(Schema sourceSchema)
+            private DataSchema BuildOutputSchema(DataSchema sourceSchema)
             {
                 // Create schema build. We will sequentially add group columns and then aggregated columns.
                 var schemaBuilder = new SchemaBuilder();
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="names">Column names</param>
             /// <param name="except">Marked exception function</param>
             /// <returns>column indexes</returns>
-            private int[] GetColumnIds(Schema schema, string[] names, Func<string, Exception> except)
+            private int[] GetColumnIds(DataSchema schema, string[] names, Func<string, Exception> except)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(names);
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => 0;
 
-            public override Schema Schema => _parent.OutputSchema;
+            public override DataSchema Schema => _parent.OutputSchema;
 
             public Cursor(GroupTransform parent, Func<int, bool> predicate)
                 : base(parent.Host)

@@ -15,14 +15,14 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal sealed class ZipBinding
     {
-        private readonly Schema[] _sources;
+        private readonly DataSchema[] _sources;
 
-        public Schema OutputSchema { get; }
+        public DataSchema OutputSchema { get; }
 
         // Zero followed by cumulative column counts. Zero being used for the empty case.
         private readonly int[] _cumulativeColCounts;
 
-        public ZipBinding(Schema[] sources)
+        public ZipBinding(DataSchema[] sources)
         {
             Contracts.AssertNonEmpty(sources);
             _sources = sources;

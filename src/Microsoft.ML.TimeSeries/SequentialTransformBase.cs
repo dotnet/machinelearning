@@ -353,20 +353,20 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             var srcCursor = _transform.GetRowCursor(columnsNeeded, rand);
             return new Cursor(this, srcCursor);
         }
 
-        public override Schema OutputSchema => _transform.Schema;
+        public override DataSchema OutputSchema => _transform.Schema;
 
         public override long? GetRowCount()
         {
             return _transform.GetRowCount();
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             => new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
 
         /// <summary>
@@ -383,7 +383,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 _parent = parent;
             }
 
-            public override Schema Schema { get { return _parent.OutputSchema; } }
+            public override DataSchema Schema { get { return _parent.OutputSchema; } }
 
             public override bool IsColumnActive(int col)
             {

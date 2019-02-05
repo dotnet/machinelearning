@@ -16,7 +16,7 @@ namespace Microsoft.ML.Data
     {
         private readonly IDataView _source;
         public bool CanShuffle => _source.CanShuffle;
-        public Schema Schema => _source.Schema;
+        public DataSchema Schema => _source.Schema;
 
         public OpaqueDataView(IDataView source)
         {
@@ -25,10 +25,10 @@ namespace Microsoft.ML.Data
 
         public long? GetRowCount() => _source.GetRowCount();
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             =>_source.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             => _source.GetRowCursorSet(columnsNeeded, n, rand);
     }
 }

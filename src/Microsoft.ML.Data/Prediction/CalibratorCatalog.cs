@@ -211,7 +211,7 @@ namespace Microsoft.ML.Calibrator
             ctx.SaveModel(_calibrator, @"Calibrator");
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper<TICalibrator>(this, _calibrator, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper<TICalibrator>(this, _calibrator, schema);
 
         protected VersionInfo GetVersionInfo()
         {
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Calibrator
             private int _scoreColIndex;
             private CalibratorTransformer<TCalibrator> _parent;
 
-            internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, Schema inputSchema) :
+            internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, DataSchema inputSchema) :
                 base(parent.Host, inputSchema, parent)
             {
                 _calibrator = calibrator;
@@ -247,11 +247,11 @@ namespace Microsoft.ML.Calibrator
 
             public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 return new[]
                 {
-                    new Schema.DetachedColumn(DefaultColumnNames.Probability, NumberType.Float, null)
+                    new DataSchema.DetachedColumn(DefaultColumnNames.Probability, NumberType.Float, null)
                 };
             }
 

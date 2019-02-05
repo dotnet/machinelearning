@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorType[] _kvTypes;
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!HashingEstimator.IsColumnTypeValid(type))
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        private ColumnType GetOutputType(Schema inputSchema, ColumnInfo column)
+        private ColumnType GetOutputType(DataSchema inputSchema, ColumnInfo column)
         {
             var keyCount = (ulong)1 << column.HashBits;
             inputSchema.TryGetColumnIndex(column.InputColumnName, out int srcCol);
@@ -255,10 +255,10 @@ namespace Microsoft.ML.Transforms.Conversions
             var types = new ColumnType[_columns.Length];
             List<int> invertIinfos = null;
             List<int> invertHashMaxCounts = null;
-            var sourceColumnsForInvertHash = new List<Schema.Column>();
+            var sourceColumnsForInvertHash = new List<DataSchema.Column>();
             for (int i = 0; i < _columns.Length; i++)
             {
-                Schema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].inputColumnName);
+                DataSchema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].inputColumnName);
                 if (srcCol == null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].inputColumnName);
                 CheckInputColumn(input.Schema, i, srcCol.Value.Index);
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return ComposeGetterVec(input, iinfo, srcCol, vectorType);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
         // Factory method for SignatureLoadModel.
         private static HashingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
@@ -873,7 +873,7 @@ namespace Microsoft.ML.Transforms.Conversions
             private readonly ColumnType[] _types;
             private readonly HashingTransformer _parent;
 
-            public Mapper(HashingTransformer parent, Schema inputSchema)
+            public Mapper(HashingTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -882,9 +882,9 @@ namespace Microsoft.ML.Transforms.Conversions
                     _types[i] = _parent.GetOutputType(inputSchema, _parent._columns[i]);
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
@@ -894,7 +894,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     if (_parent._kvTypes != null && _parent._kvTypes[i] != null)
                         AddMetaKeyValues(i, meta);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
+                    result[i] = new DataSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
                 }
                 return result;
             }

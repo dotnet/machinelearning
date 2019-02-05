@@ -473,14 +473,14 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given a collection of <see cref="Schema.Column"/>, that is a subset of the Schema of the data, create a predicate,
+        /// Given a collection of <see cref="DataSchema.Column"/>, that is a subset of the Schema of the data, create a predicate,
         /// that when passed a column index, will return <langword>true</langword> or <langword>false</langword>, based on whether
-        /// the column with the given <see cref="Schema.Column.Index"/> is part of the <paramref name="columnsNeeded"/>.
+        /// the column with the given <see cref="DataSchema.Column.Index"/> is part of the <paramref name="columnsNeeded"/>.
         /// </summary>
-        /// <param name="columnsNeeded">The subset of columns from the <see cref="Schema"/> that are needed from this <see cref="RowCursor"/>.</param>
-        /// <param name="sourceSchema">The <see cref="Schema"/> from where the columnsNeeded originate.</param>
+        /// <param name="columnsNeeded">The subset of columns from the <see cref="DataSchema"/> that are needed from this <see cref="RowCursor"/>.</param>
+        /// <param name="sourceSchema">The <see cref="DataSchema"/> from where the columnsNeeded originate.</param>
         [BestFriend]
-        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<Schema.Column> columnsNeeded, Schema sourceSchema)
+        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<DataSchema.Column> columnsNeeded, DataSchema sourceSchema)
         {
             Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
             Contracts.CheckValue(sourceSchema, nameof(sourceSchema));
@@ -503,7 +503,7 @@ namespace Microsoft.ML.Data
             private readonly Row _row;
             private readonly IHost _host; // A channel provider is required for creating the cursor.
 
-            public Schema Schema => _row.Schema;
+            public DataSchema Schema => _row.Schema;
             public bool CanShuffle => true; // The shuffling is even uniformly IID!! :)
 
             public OneRowDataView(IHostEnvironment env, Row row)
@@ -516,14 +516,14 @@ namespace Microsoft.ML.Data
                 _row = row;
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
                 bool[] active = Utils.BuildArray(Schema.Count, columnNeeded);
                 return new Cursor(_host, this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
                 return new RowCursor[] { GetRowCursor(columnNeeded, rand) };
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Data
                 private readonly OneRowDataView _parent;
                 private readonly bool[] _active;
 
-                public override Schema Schema => _parent.Schema;
+                public override DataSchema Schema => _parent.Schema;
                 public override long Batch => 0;
 
                 public Cursor(IHost host, OneRowDataView parent, bool[] active)

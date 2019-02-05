@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data
         {
             public readonly ISchemaBoundRowMapper RowMapper;
 
-            protected BindingsBase(Schema schema, ISchemaBoundRowMapper mapper, string suffix, bool user, params string[] namesDerived)
+            protected BindingsBase(DataSchema schema, ISchemaBoundRowMapper mapper, string suffix, bool user, params string[] namesDerived)
                 : base(schema, mapper, suffix, user, namesDerived)
             {
                 RowMapper = mapper;
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         protected abstract bool WantParallelCursors(Func<int, bool> predicate);
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Contracts.AssertValueOrNull(rand);
 
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Data
             return new Cursor(Host, this, input, active, predicateMapper);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
             private readonly Row _output;
             private bool _disposed;
 
-            public override Schema Schema { get; }
+            public override DataSchema Schema { get; }
 
             public Cursor(IChannelProvider provider, RowToRowScorerBase parent, RowCursor input, bool[] active, Func<int, bool> predicateMapper)
                 : base(provider, input)
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Data
         private readonly uint _crtScoreSet;
         private readonly MetadataUtils.MetadataGetter<uint> _getScoreColumnSetId;
 
-        protected ScorerBindingsBase(Schema input, ISchemaBoundMapper mapper, string suffix, bool user, params string[] namesDerived)
+        protected ScorerBindingsBase(DataSchema input, ISchemaBoundMapper mapper, string suffix, bool user, params string[] namesDerived)
             : base(input, user, GetOutputNames(mapper, suffix, namesDerived))
         {
             Contracts.AssertValue(mapper);

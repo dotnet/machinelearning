@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema OutputSchema => _ungroupBinding.OutputSchema;
+        public override DataSchema OutputSchema => _ungroupBinding.OutputSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, inputCursor, _ungroupBinding, predicate);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded,
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded,
             int n, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private readonly Schema _inputSchema;
+            private readonly DataSchema _inputSchema;
             private readonly IExceptionContext _ectx;
 
             /// <summary>
@@ -263,12 +263,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public readonly UngroupMode Mode;
             /// <summary>
-            /// Output data's <see cref="Schema"/> produced by this <see cref="UngroupTransform"/>
+            /// Output data's <see cref="DataSchema"/> produced by this <see cref="UngroupTransform"/>
             /// when input data's schema is <see cref="_inputSchema"/>.
             /// </summary>
-            public Schema OutputSchema { get; }
+            public DataSchema OutputSchema { get; }
 
-            public UngroupBinding(IExceptionContext ectx, Schema inputSchema, UngroupMode mode, string[] pivotColumns)
+            public UngroupBinding(IExceptionContext ectx, DataSchema inputSchema, UngroupMode mode, string[] pivotColumns)
             {
                 Contracts.AssertValueOrNull(ectx);
                 _ectx = ectx;
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms
                 OutputSchema = schemaBuilder.GetSchema();
             }
 
-            private static void Bind(IExceptionContext ectx, Schema inputSchema,
+            private static void Bind(IExceptionContext ectx, DataSchema inputSchema,
                 string[] pivotColumns, out PivotColumnInfo[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public static UngroupBinding Create(ModelLoadContext ctx, IExceptionContext ectx, Schema inputSchema)
+            public static UngroupBinding Create(ModelLoadContext ctx, IExceptionContext ectx, DataSchema inputSchema)
             {
                 Contracts.AssertValueOrNull(ectx);
                 ectx.AssertValue(ctx);
@@ -591,7 +591,7 @@ namespace Microsoft.ML.Transforms
                     };
             }
 
-            public override Schema Schema => _ungroupBinding.OutputSchema;
+            public override DataSchema Schema => _ungroupBinding.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {

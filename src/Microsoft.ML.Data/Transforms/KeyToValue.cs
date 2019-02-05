@@ -140,7 +140,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Transforms.Conversions
             SaveColumns(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataSchema inputSchema) => new Mapper(this, inputSchema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsPfa
         {
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms.Conversions
             private readonly ColumnType[] _types;
             private readonly KeyToValueMap[] _kvMaps;
 
-            public Mapper(KeyToValueMappingTransformer parent, Schema inputSchema)
+            public Mapper(KeyToValueMappingTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -172,14 +172,14 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public bool CanSavePfa => true;
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var meta = new MetadataBuilder();
                     meta.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
+                    result[i] = new DataSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             // Computes the types of the columns and constructs the kvMaps.
-            private void ComputeKvMaps(Schema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
+            private void ComputeKvMaps(DataSchema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
             {
                 types = new ColumnType[_parent.ColumnPairs.Length];
                 kvMaps = new KeyToValueMap[_parent.ColumnPairs.Length];

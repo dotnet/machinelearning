@@ -33,7 +33,7 @@ namespace Microsoft.ML.Data
             public readonly int ScoreIndex;
             public readonly int GroupIndex;
 
-            protected BindingsBase(IExceptionContext ectx, Schema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
+            protected BindingsBase(IExceptionContext ectx, DataSchema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
                 : base(input, user, names)
             {
                 ectx.AssertNonWhiteSpace(labelCol);
@@ -93,9 +93,9 @@ namespace Microsoft.ML.Data
         protected readonly string ScoreCol;
         protected readonly string GroupCol;
 
-        Schema IDataView.Schema => OutputSchema;
+        DataSchema IDataView.Schema => OutputSchema;
 
-        public Schema OutputSchema => GetBindings().AsSchema;
+        public DataSchema OutputSchema => GetBindings().AsSchema;
 
         public IDataView Source { get; }
 
@@ -154,13 +154,13 @@ namespace Microsoft.ML.Data
             return Source.GetRowCount();
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Data
             private readonly ValueGetter<TLabel> _labelGetter;
             private readonly ValueGetter<TScore> _scoreGetter;
 
-            public override Schema Schema => _parent.OutputSchema;
+            public override DataSchema Schema => _parent.OutputSchema;
 
             public override long Batch => 0;
 

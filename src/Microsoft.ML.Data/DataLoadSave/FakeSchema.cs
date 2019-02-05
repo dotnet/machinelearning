@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data.DataLoadSave
         private const int AllVectorSizes = 10;
         private const int AllKeySizes = 10;
 
-        public static Schema Create(SchemaShape shape)
+        public static DataSchema Create(SchemaShape shape)
         {
             var builder = new SchemaBuilder();
 

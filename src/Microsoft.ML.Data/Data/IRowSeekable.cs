@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     {
         RowSeeker GetSeeker(Func<int, bool> predicate);
 
-        Schema Schema { get; }
+        DataSchema Schema { get; }
     }
 
     /// <summary>

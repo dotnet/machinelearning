@@ -190,7 +190,7 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle { get { return true; } }
 
-        public Schema Schema => _subsetInput.Schema;
+        public DataSchema Schema => _subsetInput.Schema;
 
         /// <summary>
         /// Return the number of rows if available.
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Data
             return _rowCount;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
 
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Data
             return CreateCursor(predicate, RandomIndex<TWaiter>.Create(waiter, perm));
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
 
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Data
 
             public override long Position => _internal.Position;
             public override long Batch => _internal.Batch;
-            public override Schema Schema => _internal.Schema;
+            public override DataSchema Schema => _internal.Schema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _internal.GetGetter<TValue>(col);
             public override ValueGetter<RowId> GetIdGetter() => _internal.GetIdGetter();
@@ -1127,7 +1127,7 @@ namespace Microsoft.ML.Data
 
             private bool _disposed;
 
-            public sealed override Schema Schema => Parent.Schema;
+            public sealed override DataSchema Schema => Parent.Schema;
 
             public sealed override long Position => PositionCore;
 

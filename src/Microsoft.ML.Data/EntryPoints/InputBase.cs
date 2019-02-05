@@ -141,7 +141,7 @@ namespace Microsoft.ML.EntryPoints
     [BestFriend]
     internal static class LearnerEntryPointsUtils
     {
-        public static string FindColumn(IExceptionContext ectx, Schema schema, Optional<string> value)
+        public static string FindColumn(IExceptionContext ectx, DataSchema schema, Optional<string> value)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));

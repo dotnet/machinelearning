@@ -284,12 +284,12 @@ namespace Microsoft.ML.Trainers.Recommender
             private readonly string _matrixColumnIndexColumnName;
             private readonly string _matrixRowIndexColumnName;
             private IHostEnvironment _env;
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            public Schema OutputSchema { get; }
+            public DataSchema InputSchema => InputRoleMappedSchema.Schema;
+            public DataSchema OutputSchema { get; }
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public RowMapper(IHostEnvironment env, MatrixFactorizationPredictor parent, RoleMappedSchema schema, Schema outputSchema)
+            public RowMapper(IHostEnvironment env, MatrixFactorizationPredictor parent, RoleMappedSchema schema, DataSchema outputSchema)
             {
                 Contracts.AssertValue(parent);
                 _env = env;
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 yield return RecommenderUtils.MatrixRowIndexKind.Bind(_matrixRowIndexColumnName);
             }
 
-            private void CheckInputSchema(Schema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
+            private void CheckInputSchema(DataSchema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
             {
                 // See if matrix-column-index role's type matches the one expected in the trained predictor
                 var type = schema[matrixColumnIndexCol].Type;
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>
         /// <param name="matrixRowIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixRowIndexKind"/> in matrix factorization world</param>
         /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>
-        public MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationPredictor model, Schema trainSchema,
+        public MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationPredictor model, DataSchema trainSchema,
             string matrixColumnIndexColumnName, string matrixRowIndexColumnName, string scoreColumnNameSuffix = "")
             :base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Trainers.Recommender
             Scorer = new GenericScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        public override Schema GetOutputSchema(Schema inputSchema)
+        public override DataSchema GetOutputSchema(DataSchema inputSchema)
         {
             if (!inputSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "matrixColumnIndex", MatrixColumnIndexColumnName);

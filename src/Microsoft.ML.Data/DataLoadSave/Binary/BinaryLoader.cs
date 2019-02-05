@@ -635,11 +635,11 @@ namespace Microsoft.ML.Data.IO
 
         /// <summary>
         /// This function returns output schema, <see cref="Schema"/>, of <see cref="BinaryLoader"/> by translating <see cref="_aliveColumns"/> into
-        /// <see cref="Schema.Column"/>s. If a <see cref="BinaryLoader"/> loads a text column from the input file, its <see cref="Schema"/>
-        /// should contains a <see cref="Schema.Column"/> with <see cref="TextType.Instance"/> as its <see cref="ColumnType"/>.
+        /// <see cref="DataSchema.Column"/>s. If a <see cref="BinaryLoader"/> loads a text column from the input file, its <see cref="Schema"/>
+        /// should contains a <see cref="DataSchema.Column"/> with <see cref="TextType.Instance"/> as its <see cref="ColumnType"/>.
         /// </summary>
         /// <returns><see cref="Schema"/> of loaded file.</returns>
-        private Schema ComputeOutputSchema()
+        private DataSchema ComputeOutputSchema()
         {
             var schemaBuilder = new SchemaBuilder();
 
@@ -675,7 +675,7 @@ namespace Microsoft.ML.Data.IO
         private readonly BinaryReader _reader;
         private readonly CodecFactory _factory;
         private readonly Header _header;
-        private readonly Schema _outputSchema;
+        private readonly DataSchema _outputSchema;
         private readonly bool _autodeterminedThreads;
         private readonly int _threads;
         private readonly string _generatedRowIndexName;
@@ -738,7 +738,7 @@ namespace Microsoft.ML.Data.IO
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
-        public Schema Schema => _outputSchema;
+        public DataSchema Schema => _outputSchema;
 
         private long RowCount => _header.RowCount;
 
@@ -980,7 +980,7 @@ namespace Microsoft.ML.Data.IO
         /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the binary loader is instantiated with no input streams.
         /// </summary>
-        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, Schema schema, out int[] unsavableColIndices)
+        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, DataSchema schema, out int[] unsavableColIndices)
         {
             Contracts.AssertValue(env, "env");
             var h = env.Register(LoadName);
@@ -1012,7 +1012,7 @@ namespace Microsoft.ML.Data.IO
         /// to begin the pipe with, with the assumption that the user will bypass the loader at deserialization
         /// time by providing a starting data view.
         /// </summary>
-        public static void SaveInstance(IHostEnvironment env, ModelSaveContext ctx, Schema schema)
+        public static void SaveInstance(IHostEnvironment env, ModelSaveContext ctx, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoadName);
@@ -1214,7 +1214,7 @@ namespace Microsoft.ML.Data.IO
             return entry;
         }
 
-        private RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        private RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
             {
@@ -1227,13 +1227,13 @@ namespace Microsoft.ML.Data.IO
             return new Cursor(this, columnsNeeded, rand);
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             return GetRowCursorCore(columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
@@ -1260,7 +1260,7 @@ namespace Microsoft.ML.Data.IO
             private volatile bool _disposed;
             private volatile bool _done;
 
-            public override Schema Schema => _parent.Schema;
+            public override DataSchema Schema => _parent.Schema;
 
             public override long Batch
             {
@@ -1268,7 +1268,7 @@ namespace Microsoft.ML.Data.IO
                 get { return 0; }
             }
 
-            public Cursor(BinaryLoader parent, IEnumerable<Schema.Column> columnsNeeded, Random rand)
+            public Cursor(BinaryLoader parent, IEnumerable<DataSchema.Column> columnsNeeded, Random rand)
                 : base(parent._host)
             {
                 _parent = parent;

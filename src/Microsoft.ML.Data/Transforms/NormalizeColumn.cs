@@ -1125,7 +1125,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     srcType.ToString());
             }
 
-            public static int GetLabelColumnId(IExceptionContext host, Schema schema, string labelColumnName)
+            public static int GetLabelColumnId(IExceptionContext host, DataSchema schema, string labelColumnName)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(schema);

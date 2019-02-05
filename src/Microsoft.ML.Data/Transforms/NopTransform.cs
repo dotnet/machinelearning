@@ -27,7 +27,7 @@ namespace Microsoft.ML.Data
 
         public IDataView Source { get; }
 
-        Schema IRowToRowMapper.InputSchema => Source.Schema;
+        DataSchema IRowToRowMapper.InputSchema => Source.Schema;
 
         /// <summary>
         /// Creates a NopTransform if the input is not an IDataTransform.
@@ -105,22 +105,22 @@ namespace Microsoft.ML.Data
         /// Explicit implementation prevents Schema from being accessed from derived classes.
         /// It's our first step to separate data produced by transform from transform.
         /// </summary>
-        Schema IDataView.Schema => OutputSchema;
+        DataSchema IDataView.Schema => OutputSchema;
 
         /// <summary>
         /// Shape information of the produced output. Note that the input and the output of this transform (and their types) are identical.
         /// </summary>
-        public Schema OutputSchema => Source.Schema;
+        public DataSchema OutputSchema => Source.Schema;
 
         public long? GetRowCount()
         {
             return Source.GetRowCount();
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             => Source.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             => Source.GetRowCursorSet(columnsNeeded, n, rand);
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)

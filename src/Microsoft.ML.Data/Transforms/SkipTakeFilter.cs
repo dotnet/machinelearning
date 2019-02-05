@@ -190,7 +190,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, RowCursor input, Schema schema, bool[] active, long skip, long take)
+            public Cursor(IChannelProvider provider, RowCursor input, DataSchema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
             {
                 Ch.Assert(skip >= 0);

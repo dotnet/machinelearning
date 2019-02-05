@@ -52,7 +52,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
         }
 
-        private void CheckSchemaHasColumn(Schema schema, string name, out int idx)
+        private void CheckSchemaHasColumn(DataSchema schema, string name, out int idx)
             => Assert.True(schema.TryGetColumnIndex(name, out idx), "Could not find column '" + name + "'");
 
         [Fact]
@@ -167,7 +167,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Ahhh. No one would ever, ever do this, of course, but just having fun with it.
 
-            void Helper(Schema thisSchema, string name, ColumnType expected)
+            void Helper(DataSchema thisSchema, string name, ColumnType expected)
             {
                 Assert.True(thisSchema.TryGetColumnIndex(name, out int thisCol), $"Could not find column '{name}'");
                 Assert.Equal(expected, thisSchema[thisCol].Type);

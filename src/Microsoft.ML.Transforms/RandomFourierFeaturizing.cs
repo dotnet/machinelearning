@@ -268,7 +268,7 @@ namespace Microsoft.ML.Transforms.Projections
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             string reason = TestColumnType(type);
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms.Projections
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
-            var activeColumns = new List<Schema.Column>();
+            var activeColumns = new List<DataSchema.Column>();
             int[] srcCols = new int[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private RandomFourierFeaturizingTransformer(IHost host, ModelLoadContext ctx)
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Transforms.Projections
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Transforms.Projections
             private readonly ColumnType[] _types;
             private readonly RandomFourierFeaturizingTransformer _parent;
 
-            public Mapper(RandomFourierFeaturizingTransformer parent, Schema inputSchema)
+            public Mapper(RandomFourierFeaturizingTransformer parent, DataSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -531,11 +531,11 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], null);
+                    result[i] = new DataSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], null);
                 return result;
             }
 

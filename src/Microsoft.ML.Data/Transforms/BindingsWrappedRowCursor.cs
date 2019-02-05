@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     {
         private readonly ColumnBindingsBase _bindings;
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override DataSchema Schema => _bindings.AsSchema;
 
         /// <summary>
         /// Creates a wrapped version of the cursor

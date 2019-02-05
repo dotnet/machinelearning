@@ -209,13 +209,13 @@ namespace Microsoft.ML.Data
         public const string L1 = "L1-loss";
         public const string L2 = "L2-loss";
 
-        public RegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string labelCol)
+        public RegressionPerInstanceEvaluator(IHostEnvironment env, DataSchema schema, string scoreCol, string labelCol)
             : base(env, schema, scoreCol, labelCol)
         {
             CheckInputColumnTypes(schema);
         }
 
-        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
             // base
         }
 
-        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -250,11 +250,11 @@ namespace Microsoft.ML.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+        private protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.DetachedColumn[2];
-            infos[L1Col] = new Schema.DetachedColumn(L1, NumberType.R8, null);
-            infos[L2Col] = new Schema.DetachedColumn(L2, NumberType.R8, null);
+            var infos = new DataSchema.DetachedColumn[2];
+            infos[L1Col] = new DataSchema.DetachedColumn(L1, NumberType.R8, null);
+            infos[L2Col] = new DataSchema.DetachedColumn(L2, NumberType.R8, null);
             return infos;
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(Schema schema)
+        private void CheckInputColumnTypes(DataSchema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);

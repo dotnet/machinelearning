@@ -280,7 +280,7 @@ namespace Microsoft.ML.ImageAnalytics
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
@@ -312,9 +312,9 @@ namespace Microsoft.ML.ImageAnalytics
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataSchema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].InputColumnName, "image", inputSchema[srcCol].Type.ToString());
@@ -324,14 +324,14 @@ namespace Microsoft.ML.ImageAnalytics
         {
             private readonly ImageResizerTransformer _parent;
 
-            public Mapper(ImageResizerTransformer parent, Schema inputSchema)
+            public Mapper(ImageResizerTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent._columns.Select(x => new Schema.DetachedColumn(x.Name, x.Type, null)).ToArray();
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent._columns.Select(x => new DataSchema.DetachedColumn(x.Name, x.Type, null)).ToArray();
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {

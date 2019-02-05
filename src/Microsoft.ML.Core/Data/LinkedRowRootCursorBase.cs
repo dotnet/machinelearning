@@ -18,9 +18,9 @@ namespace Microsoft.ML.Data
         private readonly bool[] _active;
 
         /// <summary>Gets row's schema.</summary>
-        public sealed override Schema Schema { get; }
+        public sealed override DataSchema Schema { get; }
 
-        protected LinkedRowRootCursorBase(IChannelProvider provider, RowCursor input, Schema schema, bool[] active)
+        protected LinkedRowRootCursorBase(IChannelProvider provider, RowCursor input, DataSchema schema, bool[] active)
             : base(provider, input)
         {
             Ch.CheckValue(schema, nameof(schema));

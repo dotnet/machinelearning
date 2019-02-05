@@ -525,8 +525,8 @@ namespace Microsoft.ML.Internal.Calibration
 
             public ISchemaBindableMapper Bindable => _parent;
             public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
-            public Schema InputSchema => _predictor.InputSchema;
-            public Schema OutputSchema { get; }
+            public DataSchema InputSchema => _predictor.InputSchema;
+            public DataSchema OutputSchema { get; }
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
@@ -825,8 +825,8 @@ namespace Microsoft.ML.Internal.Calibration
                 ch.Info("Training calibrator.");
 
                 var cols = weightCol > -1 ?
-                    new Schema.Column[] { scored.Schema[labelCol], scored.Schema[scoreCol], scored.Schema[weightCol] } :
-                    new Schema.Column[] { scored.Schema[labelCol], scored.Schema[scoreCol] };
+                    new DataSchema.Column[] { scored.Schema[labelCol], scored.Schema[scoreCol], scored.Schema[weightCol] } :
+                    new DataSchema.Column[] { scored.Schema[labelCol], scored.Schema[scoreCol] };
 
                 using (var cursor = scored.GetRowCursor(cols))
                 {

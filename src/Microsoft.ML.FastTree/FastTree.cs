@@ -1316,7 +1316,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return _dataset;
             }
 
-            private static int AddColumnIfNeeded(Schema.Column? info, List<int> toTranspose)
+            private static int AddColumnIfNeeded(DataSchema.Column? info, List<int> toTranspose)
             {
                 if (!info.HasValue)
                     return -1;

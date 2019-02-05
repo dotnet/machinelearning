@@ -148,7 +148,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private OnnxTransformer(IHostEnvironment env, Arguments args, byte[] modelBytes = null) :
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Transforms
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
         }
-        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataSchema inputSchema) => new Mapper(this, inputSchema);
 
         private static IEnumerable<int> AdjustDimensions(OnnxShape shape)
         {
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms
             private readonly OnnxShape[] _inputTensorShapes;
             private readonly System.Type[] _inputOnnxTypes;
 
-            public Mapper(OnnxTransformer parent, Schema inputSchema) :
+            public Mapper(OnnxTransformer parent, DataSchema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
 
@@ -355,11 +355,11 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var info = new Schema.DetachedColumn[_parent.Outputs.Length];
+                var info = new DataSchema.DetachedColumn[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new Schema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                    info[i] = new DataSchema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
 

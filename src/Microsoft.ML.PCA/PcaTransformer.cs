@@ -283,7 +283,7 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
@@ -539,9 +539,9 @@ namespace Microsoft.ML.Transforms.Projections
             return y;
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataSchema inputSchema, int col, int srcCol)
         {
             ValidatePcaInput(Host, inputSchema[srcCol].Name, inputSchema[srcCol].Type);
         }
@@ -562,7 +562,7 @@ namespace Microsoft.ML.Transforms.Projections
                 public int InputIndex { get; }
                 public int WeightColumnIndex { get; }
 
-                public ColumnSchemaInfo((string outputColumnName, string inputColumnName) columnPair, Schema schema, string weightColumn = null)
+                public ColumnSchemaInfo((string outputColumnName, string inputColumnName) columnPair, DataSchema schema, string weightColumn = null)
                 {
                     schema.TryGetColumnIndex(columnPair.inputColumnName, out int inputIndex);
                     InputIndex = inputIndex;
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Transforms.Projections
             private readonly PcaTransformer _parent;
             private readonly int _numColumns;
 
-            public Mapper(PcaTransformer parent, Schema inputSchema)
+            public Mapper(PcaTransformer parent, DataSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -600,11 +600,11 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_numColumns];
+                var result = new DataSchema.DetachedColumn[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _parent._transformInfos[i].OutputType, null);
+                    result[i] = new DataSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _parent._transformInfos[i].OutputType, null);
                 return result;
             }
 

@@ -397,17 +397,17 @@ namespace Microsoft.ML.Data
 
         private readonly VectorType _labelType;
         private readonly VectorType _scoreType;
-        private readonly Schema.Metadata _labelMetadata;
-        private readonly Schema.Metadata _scoreMetadata;
+        private readonly DataSchema.Metadata _labelMetadata;
+        private readonly DataSchema.Metadata _scoreMetadata;
 
-        public MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol,
+        public MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, DataSchema schema, string scoreCol,
             string labelCol)
             : base(env, schema, scoreCol, labelCol)
         {
             CheckInputColumnTypes(schema, out _labelType, out _scoreType, out _labelMetadata, out _scoreMetadata);
         }
 
-        private MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        private MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema, out _labelType, out _scoreType, out _labelMetadata, out _scoreMetadata);
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Data
             // base
         }
 
-        public static MultiOutputRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        public static MultiOutputRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -446,14 +446,14 @@ namespace Microsoft.ML.Data
                     (col == ScoreIndex || col == LabelIndex);
         }
 
-        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+        private protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.DetachedColumn[5];
-            infos[LabelOutput] = new Schema.DetachedColumn(LabelCol, _labelType, _labelMetadata);
-            infos[ScoreOutput] = new Schema.DetachedColumn(ScoreCol, _scoreType, _scoreMetadata);
-            infos[L1Output] = new Schema.DetachedColumn(L1, NumberType.R8, null);
-            infos[L2Output] = new Schema.DetachedColumn(L2, NumberType.R8, null);
-            infos[DistCol] = new Schema.DetachedColumn(Dist, NumberType.R8, null);
+            var infos = new DataSchema.DetachedColumn[5];
+            infos[LabelOutput] = new DataSchema.DetachedColumn(LabelCol, _labelType, _labelMetadata);
+            infos[ScoreOutput] = new DataSchema.DetachedColumn(ScoreCol, _scoreType, _scoreMetadata);
+            infos[L1Output] = new DataSchema.DetachedColumn(L1, NumberType.R8, null);
+            infos[L2Output] = new DataSchema.DetachedColumn(L2, NumberType.R8, null);
+            infos[DistCol] = new DataSchema.DetachedColumn(Dist, NumberType.R8, null);
             return infos;
         }
 
@@ -540,8 +540,8 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(Schema schema, out VectorType labelType, out VectorType scoreType,
-            out Schema.Metadata labelMetadata, out Schema.Metadata scoreMetadata)
+        private void CheckInputColumnTypes(DataSchema schema, out VectorType labelType, out VectorType scoreType,
+            out DataSchema.Metadata labelMetadata, out DataSchema.Metadata scoreMetadata)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Data
             scoreMetadata = builder.GetMetadata();
         }
 
-        private ValueGetter<uint> GetScoreColumnSetId(Schema schema)
+        private ValueGetter<uint> GetScoreColumnSetId(DataSchema schema)
         {
             int c;
             var max = schema.GetMaxMetadataKind(out c, MetadataUtils.Kinds.ScoreColumnSetId);
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Data
             dst = MetadataUtils.Const.ScoreValueKind.Score.AsMemory();
         }
 
-        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(Schema schema, int column, int length, string prefix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(DataSchema schema, int column, int length, string prefix)
         {
             var type = schema[column].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             if (type != null && type is TextType)

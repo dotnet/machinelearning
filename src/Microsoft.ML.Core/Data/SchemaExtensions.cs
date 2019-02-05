@@ -10,7 +10,7 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal static class SchemaExtensions
     {
-        public static Schema MakeSchema(IEnumerable<Schema.DetachedColumn> columns)
+        public static DataSchema MakeSchema(IEnumerable<DataSchema.DetachedColumn> columns)
         {
             var builder = new SchemaBuilder();
             builder.AddColumns(columns);
@@ -19,9 +19,9 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Legacy method to get the column index.
-        /// DO NOT USE: use <see cref="Schema.GetColumnOrNull"/> instead.
+        /// DO NOT USE: use <see cref="DataSchema.GetColumnOrNull"/> instead.
         /// </summary>
-        public static bool TryGetColumnIndex(this Schema schema, string name, out int col)
+        public static bool TryGetColumnIndex(this DataSchema schema, string name, out int col)
         {
             col = schema.GetColumnOrNull(name)?.Index ?? -1;
             return col >= 0;

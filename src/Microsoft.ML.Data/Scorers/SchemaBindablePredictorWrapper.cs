@@ -197,10 +197,10 @@ namespace Microsoft.ML.Data
             private readonly SchemaBindablePredictorWrapperBase _parent;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public Schema OutputSchema { get; }
+            public DataSchema OutputSchema { get; }
             public ISchemaBindableMapper Bindable => _parent;
 
-            public SingleValueRowMapper(RoleMappedSchema schema, SchemaBindablePredictorWrapperBase parent, Schema outputSchema)
+            public SingleValueRowMapper(RoleMappedSchema schema, SchemaBindablePredictorWrapperBase parent, DataSchema outputSchema)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(parent);
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Data
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Value.Name);
             }
 
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public DataSchema InputSchema => InputRoleMappedSchema.Schema;
 
             public Row GetRow(Row input, Func<int, bool> predicate)
             {
@@ -470,9 +470,9 @@ namespace Microsoft.ML.Data
             private readonly SchemaBindableBinaryPredictorWrapper _parent;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public DataSchema InputSchema => InputRoleMappedSchema.Schema;
 
-            public Schema OutputSchema { get; }
+            public DataSchema OutputSchema { get; }
 
             public ISchemaBindableMapper Bindable => _parent;
 

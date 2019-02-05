@@ -316,11 +316,11 @@ namespace Microsoft.ML.Transforms.Conversions
         internal static string KeyColumnName = "Key";
         internal static string ValueColumnName = "Value";
         private ValueMap _valueMap;
-        private Schema.Metadata _valueMetadata;
+        private DataSchema.Metadata _valueMetadata;
         private byte[] _dataView;
 
         public ColumnType ValueColumnType => _valueMap.ValueType;
-        public Schema.Metadata ValueColumnMetadata => _valueMetadata;
+        public DataSchema.Metadata ValueColumnMetadata => _valueMetadata;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -709,7 +709,7 @@ namespace Microsoft.ML.Transforms.Conversions
         protected static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         protected static PrimitiveType GetPrimitiveType(Type rawType, out bool isVectorType)
@@ -752,16 +752,16 @@ namespace Microsoft.ML.Transforms.Conversions
                 ValueType = valueType;
             }
 
-            public static ValueMap Create(ColumnType keyType, ColumnType valueType, Schema.Metadata valueMetadata)
+            public static ValueMap Create(ColumnType keyType, ColumnType valueType, DataSchema.Metadata valueMetadata)
             {
-                Func<ColumnType, ColumnType, Schema.Metadata, ValueMap> del = CreateValueMapInvoke<int, int>;
+                Func<ColumnType, ColumnType, DataSchema.Metadata, ValueMap> del = CreateValueMapInvoke<int, int>;
                 var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(keyType.RawType, valueType.RawType);
                 return (ValueMap)meth.Invoke(null, new object[] { keyType, valueType, valueMetadata });
             }
 
             private static ValueMap CreateValueMapInvoke<TKey, TValue>(ColumnType keyType,
                                                                                 ColumnType valueType,
-                                                                                Schema.Metadata valueMetadata)
+                                                                                DataSchema.Metadata valueMetadata)
                 => new ValueMap<TKey, TValue>(keyType, valueType, valueMetadata);
 
             public abstract void Train(IHostEnvironment env, RowCursor cursor);
@@ -778,7 +778,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             private Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
-            private Schema.Metadata _valueMetadata;
+            private DataSchema.Metadata _valueMetadata;
 
             private Dictionary<TKey, TValue> CreateDictionary()
             {
@@ -787,7 +787,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return new Dictionary<TKey, TValue>();
             }
 
-            public ValueMap(ColumnType keyType, ColumnType valueType, Schema.Metadata valueMetadata)
+            public ValueMap(ColumnType keyType, ColumnType valueType, DataSchema.Metadata valueMetadata)
                 : base(keyType, valueType)
             {
                 _mapping = CreateDictionary();
@@ -954,23 +954,23 @@ namespace Microsoft.ML.Transforms.Conversions
             return new BinaryLoader(env, new BinaryLoader.Arguments(), strm);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataSchema schema)
         {
             return new Mapper(this, schema, _valueMap, _valueMetadata, ColumnPairs);
         }
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly Schema _inputSchema;
+            private readonly DataSchema _inputSchema;
             private readonly ValueMap _valueMap;
-            private readonly Schema.Metadata _valueMetadata;
+            private readonly DataSchema.Metadata _valueMetadata;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
             private readonly ValueMappingTransformer _parent;
 
             internal Mapper(ValueMappingTransformer transform,
-                            Schema inputSchema,
+                            DataSchema inputSchema,
                             ValueMap valueMap,
-                            Schema.Metadata valueMetadata,
+                            DataSchema.Metadata valueMetadata,
                             (string outputColumnName, string inputColumnName)[] columns)
                 : base(transform.Host.Register(nameof(Mapper)), transform, inputSchema)
             {
@@ -990,9 +990,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 return _valueMap.GetGetter(input, ColMapNewToOld[iinfo]);
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_columns.Length];
+                var result = new DataSchema.DetachedColumn[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     if (_inputSchema[_columns[i].inputColumnName].Type is VectorType && _valueMap.ValueType is VectorType)
@@ -1000,7 +1000,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     var colType = _valueMap.ValueType;
                     if (_inputSchema[_columns[i].inputColumnName].Type is VectorType)
                         colType = new VectorType(ColumnTypeExtensions.PrimitiveTypeFromType(_valueMap.ValueType.GetItemType().RawType));
-                    result[i] = new Schema.DetachedColumn(_columns[i].outputColumnName, colType, _valueMetadata);
+                    result[i] = new DataSchema.DetachedColumn(_columns[i].outputColumnName, colType, _valueMetadata);
                 }
                 return result;
             }

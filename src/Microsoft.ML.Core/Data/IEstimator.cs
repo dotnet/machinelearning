@@ -12,7 +12,7 @@ namespace Microsoft.ML.Core.Data
 {
     /// <summary>
     /// A set of 'requirements' to the incoming schema, as well as a set of 'promises' of the outgoing schema.
-    /// This is more relaxed than the proper <see cref="Schema"/>, since it's only a subset of the columns,
+    /// This is more relaxed than the proper <see cref="DataSchema"/>, since it's only a subset of the columns,
     /// and also since it doesn't specify exact <see cref="ColumnType"/>'s for vectors and keys.
     /// </summary>
     public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Core.Data
         /// Create a schema shape out of the fully defined schema.
         /// </summary>
         [BestFriend]
-        internal static SchemaShape Create(Schema schema)
+        internal static SchemaShape Create(DataSchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
             var cols = new List<Column>();
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// The output schema of the reader.
         /// </summary>
-        Schema GetOutputSchema();
+        DataSchema GetOutputSchema();
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Core.Data
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
         /// </summary>
-        Schema GetOutputSchema(Schema inputSchema);
+        DataSchema GetOutputSchema(DataSchema inputSchema);
 
         /// <summary>
         /// Take the data in, make transformations, output the data.
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Core.Data
         IDataView Transform(IDataView input);
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// Whether a call to <see cref="GetRowToRowMapper(DataSchema)"/> should succeed, on an
         /// appropriate schema.
         /// </summary>
         bool IsRowToRowMapper { get; }
@@ -290,13 +290,13 @@ namespace Microsoft.ML.Core.Data
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
         /// <returns>The row to row mapper.</returns>
-        IRowToRowMapper GetRowToRowMapper(Schema inputSchema);
+        IRowToRowMapper GetRowToRowMapper(DataSchema inputSchema);
     }
 
     /// <summary>
     /// The estimator (in Spark terminology) is an 'untrained transformer'. It needs to 'fit' on the data to manufacture
     /// a transformer.
-    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="Schema"/>.
+    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="DataSchema"/>.
     /// </summary>
     public interface IEstimator<out TTransformer>
         where TTransformer : ITransformer

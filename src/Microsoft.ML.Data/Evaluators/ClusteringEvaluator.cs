@@ -316,7 +316,7 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public Counters(int numClusters, bool calculateDbi, Schema.Column? features)
+                public Counters(int numClusters, bool calculateDbi, DataSchema.Column? features)
                 {
                     _numClusters = numClusters;
                     CalculateDbi = calculateDbi;
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Data
 
             private readonly bool _calculateDbi;
 
-            internal Aggregator(IHostEnvironment env, Schema.Column? features, int scoreVectorSize, bool calculateDbi, bool weighted, string stratName)
+            internal Aggregator(IHostEnvironment env, DataSchema.Column? features, int scoreVectorSize, bool calculateDbi, bool weighted, string stratName)
                 : base(env, stratName)
             {
                 _calculateDbi = calculateDbi;
@@ -586,7 +586,7 @@ namespace Microsoft.ML.Data
         private readonly int _numClusters;
         private readonly ColumnType[] _types;
 
-        public ClusteringPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, int numClusters)
+        public ClusteringPerInstanceEvaluator(IHostEnvironment env, DataSchema schema, string scoreCol, int numClusters)
             : base(env, schema, scoreCol, null)
         {
             CheckInputColumnTypes(schema);
@@ -599,7 +599,7 @@ namespace Microsoft.ML.Data
             _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
         }
 
-        private ClusteringPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        private ClusteringPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -618,7 +618,7 @@ namespace Microsoft.ML.Data
             _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
         }
 
-        public static ClusteringPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        public static ClusteringPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -716,10 +716,10 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+        private protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.DetachedColumn[3];
-            infos[ClusterIdCol] = new Schema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
+            var infos = new DataSchema.DetachedColumn[3];
+            infos[ClusterIdCol] = new DataSchema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
@@ -730,8 +730,8 @@ namespace Microsoft.ML.Data
             var builder = new MetadataBuilder();
             builder.AddSlotNames(vectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
 
-            infos[SortedClusterCol] = new Schema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
-            infos[SortedClusterScoreCol] = new Schema.DetachedColumn(SortedClusterScores, _types[SortedClusterScoreCol], builder.GetMetadata());
+            infos[SortedClusterCol] = new DataSchema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new DataSchema.DetachedColumn(SortedClusterScores, _types[SortedClusterScoreCol], builder.GetMetadata());
             return infos;
         }
 
@@ -748,7 +748,7 @@ namespace Microsoft.ML.Data
                 };
         }
 
-        private void CheckInputColumnTypes(Schema schema)
+        private void CheckInputColumnTypes(DataSchema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
 

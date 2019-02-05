@@ -571,18 +571,18 @@ namespace Microsoft.ML.TimeSeriesProcessing
             private protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        private protected override IStatefulRowMapper MakeRowMapper(Schema schema) => new Mapper(Host, this, schema);
+        private protected override IStatefulRowMapper MakeRowMapper(DataSchema schema) => new Mapper(Host, this, schema);
 
         private sealed class Mapper : IStatefulRowMapper
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
-            private readonly Schema _parentSchema;
+            private readonly DataSchema _parentSchema;
             private readonly int _inputColumnIndex;
             private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
             private TState State { get; set; }
 
-            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, Schema inputSchema)
+            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, DataSchema inputSchema)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(nameof(Mapper));
@@ -604,12 +604,12 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 State = _parent.StateRef;
             }
 
-            public Schema.DetachedColumn[] GetOutputColumns()
+            public DataSchema.DetachedColumn[] GetOutputColumns()
             {
                 var meta = new MetadataBuilder();
                 meta.AddSlotNames(_parent._outputLength, GetSlotNames);
-                var info = new Schema.DetachedColumn[1];
-                info[0] = new Schema.DetachedColumn(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent._outputLength), meta.GetMetadata());
+                var info = new DataSchema.DetachedColumn[1];
+                info[0] = new DataSchema.DetachedColumn(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent._outputLength), meta.GetMetadata());
                 return info;
             }
 

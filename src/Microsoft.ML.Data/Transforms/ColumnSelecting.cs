@@ -439,7 +439,7 @@ namespace Microsoft.ML.Transforms
             return missing.Count() == 0;
         }
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataSchema GetOutputSchema(DataSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             if (!IgnoreMissing && !IsSchemaValid(inputSchema.Select(x => x.Name),
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms
             return new Mapper(this, inputSchema).OutputSchema;
         }
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             if (!IgnoreMissing && !IsSchemaValid(inputSchema.Select(x => x.Name),
@@ -480,14 +480,14 @@ namespace Microsoft.ML.Transforms
         private sealed class Mapper
         {
             private readonly IHost _host;
-            private readonly Schema _inputSchema;
+            private readonly DataSchema _inputSchema;
             private readonly int[] _outputToInputMap;
 
-            public Schema InputSchema => _inputSchema;
+            public DataSchema InputSchema => _inputSchema;
 
-            public Schema OutputSchema { get; }
+            public DataSchema OutputSchema { get; }
 
-            public Mapper(ColumnSelectingTransformer transform, Schema inputSchema)
+            public Mapper(ColumnSelectingTransformer transform, DataSchema inputSchema)
             {
                 _host = transform._host.Register(nameof(Mapper));
                 _inputSchema = inputSchema;
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Transforms
             private static int[] BuildOutputToInputMap(IEnumerable<string> selectedColumns,
                 bool keepColumns,
                 bool keepHidden,
-                Schema inputSchema)
+                DataSchema inputSchema)
             {
                 var outputToInputMapping = new List<int>();
                 var columnCount = inputSchema.Count;
@@ -571,10 +571,10 @@ namespace Microsoft.ML.Transforms
                 return outputToInputMapping.ToArray();
             }
 
-            private static Schema GenerateOutputSchema(IEnumerable<int> map,
-                                                        Schema inputSchema)
+            private static DataSchema GenerateOutputSchema(IEnumerable<int> map,
+                                                        DataSchema inputSchema)
             {
-                var outputColumns = map.Select(x => new Schema.DetachedColumn(inputSchema[x]));
+                var outputColumns = map.Select(x => new DataSchema.DetachedColumn(inputSchema[x]));
                 return SchemaExtensions.MakeSchema(outputColumns);
             }
         }
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Transforms
                 _mapper = mapper;
             }
 
-            public override Schema Schema => _mapper.OutputSchema;
+            public override DataSchema Schema => _mapper.OutputSchema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
@@ -617,15 +617,15 @@ namespace Microsoft.ML.Transforms
 
             public IDataView Source { get; }
 
-            public Schema InputSchema => Source.Schema;
+            public DataSchema InputSchema => Source.Schema;
 
-            Schema IDataView.Schema => OutputSchema;
+            DataSchema IDataView.Schema => OutputSchema;
 
-            public Schema OutputSchema => _mapper.OutputSchema;
+            public DataSchema OutputSchema => _mapper.OutputSchema;
 
             public long? GetRowCount() => Source.GetRowCount();
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.AssertValueOrNull(rand);
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Transforms
                 return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.CheckValueOrNull(rand);
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            public override Schema Schema => _mapper.OutputSchema;
+            public override DataSchema Schema => _mapper.OutputSchema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {

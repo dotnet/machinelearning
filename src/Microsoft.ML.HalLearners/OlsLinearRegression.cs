@@ -87,7 +87,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             _perParameterSignificance = options.PerParameterSignificance;
         }
 
-        protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, Schema trainSchema)
+        protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, DataSchema trainSchema)
              => new RegressionPredictionTransformer<OlsLinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         public RegressionPredictionTransformer<OlsLinearRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)

@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data
         private readonly Delegate[] _getters;
         private readonly Action _disposer;
 
-        public override Schema Schema { get; }
+        public override DataSchema Schema { get; }
 
         /// <summary>
         /// Constructor.
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
         /// If one of these is <see langword="null"/>, the corresponding column is considered inactive.</param>
         /// <param name="disposer">A method that, if non-null, will be called exactly once during
         /// <see cref="IDisposable.Dispose"/>, prior to disposing <paramref name="input"/>.</param>
-        public SimpleRow(Schema schema, Row input, Delegate[] getters, Action disposer = null)
+        public SimpleRow(DataSchema schema, Row input, Delegate[] getters, Action disposer = null)
             : base(input)
         {
             Contracts.CheckValue(schema, nameof(schema));
@@ -72,13 +72,13 @@ namespace Microsoft.ML.Data
 
     public static class SimpleSchemaUtils
     {
-        public static Schema Create(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
+        public static DataSchema Create(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(columns, nameof(columns));
 
             var builder = new SchemaBuilder();
-            builder.AddColumns(columns.Select(kvp => new Schema.DetachedColumn(kvp.Key, kvp.Value)));
+            builder.AddColumns(columns.Select(kvp => new DataSchema.DetachedColumn(kvp.Key, kvp.Value)));
             return builder.GetSchema();
         }
     }

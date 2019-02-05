@@ -568,12 +568,12 @@ namespace Microsoft.ML.Data
         /// Explicit implementation prevents Schema from being accessed from derived classes.
         /// It's our first step to separate data produced by transform from transform.
         /// </summary>
-        Schema IDataView.Schema => OutputSchema;
+        DataSchema IDataView.Schema => OutputSchema;
 
         /// <summary>
         /// Shape information of the produced output. Note that the input and the output of this transform (and their types) are identical.
         /// </summary>
-        public Schema OutputSchema => _transform.OutputSchema;
+        public DataSchema OutputSchema => _transform.OutputSchema;
 
         public RankerPerInstanceTransform(IHostEnvironment env, IDataView input, string labelCol, string scoreCol, string groupCol,
                 int truncationLevel, Double[] labelGains)
@@ -608,10 +608,10 @@ namespace Microsoft.ML.Data
             return _transform.GetRowCount();
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             => _transform.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             => _transform.GetRowCursorSet(columnsNeeded, n, rand);
 
         private sealed class Transform : PerGroupTransformBase<short, Single, Transform.RowCursorState>
@@ -623,7 +623,7 @@ namespace Microsoft.ML.Data
                 private readonly int _truncationLevel;
                 private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _slotNamesGetter;
 
-                public Bindings(IExceptionContext ectx, Schema input, bool user, string labelCol, string scoreCol, string groupCol,
+                public Bindings(IExceptionContext ectx, DataSchema input, bool user, string labelCol, string scoreCol, string groupCol,
                     int truncationLevel)
                     : base(ectx, input, labelCol, scoreCol, groupCol, user, Ndcg, Dcg, MaxDcg)
                 {

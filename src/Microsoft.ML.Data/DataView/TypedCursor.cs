@@ -241,7 +241,7 @@ namespace Microsoft.ML.Data
             protected readonly IChannel Ch;
             private readonly Action<TRow>[] _setters;
 
-            public override Schema Schema => base.Input.Schema;
+            public override DataSchema Schema => base.Input.Schema;
 
             public TypedRowBase(TypedCursorable<TRow> parent, Row input, string channelMessage)
                 : base(input)
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Data
 
             public long Position => _row.Position;
             public long Batch => _row.Batch;
-            public Schema Schema => _row.Schema;
+            public DataSchema Schema => _row.Schema;
             public void FillValues(TRow row) => _row.FillValues(row);
             public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
             public ValueGetter<RowId> GetIdGetter() => _row.GetIdGetter();
@@ -492,7 +492,7 @@ namespace Microsoft.ML.Data
 
             public override long Position => _cursor.Position;
             public override long Batch => _cursor.Batch;
-            public override Schema Schema => _cursor.Schema;
+            public override DataSchema Schema => _cursor.Schema;
 
             protected override void Dispose(bool disposing)
             {

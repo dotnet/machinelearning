@@ -166,7 +166,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             // We do not use the input random because this cursor does not support shuffling.
             var rgen = new TauswortheHybrid(_state);
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Transforms
             return cursor;
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             var cursor = GetRowCursorCore(columnsNeeded, rand);
             return new RowCursor[] { cursor };
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => 0;
 
-            public override Schema Schema => Input.Schema;
+            public override DataSchema Schema => Input.Schema;
 
             public Cursor(BootstrapSamplingTransformer parent, RowCursor input, Random rgen)
                 : base(parent.Host, input)

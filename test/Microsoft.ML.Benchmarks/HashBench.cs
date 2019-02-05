@@ -19,7 +19,7 @@ namespace Microsoft.ML.Benchmarks
         {
             public long PositionValue;
 
-            public override Schema Schema { get; }
+            public override DataSchema Schema { get; }
             public override long Position => PositionValue;
             public override long Batch => 0;
             public override ValueGetter<RowId> GetIdGetter()

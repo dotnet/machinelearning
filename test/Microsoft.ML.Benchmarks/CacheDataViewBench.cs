@@ -21,7 +21,7 @@ namespace Microsoft.ML.Benchmarks
         private RowCursor _cursor;
         private ValueGetter<int> _seekerGetter;
         private ValueGetter<int> _cursorGetter;
-        private Schema.Column _col;
+        private DataSchema.Column _col;
 
         private RowSeeker _seeker;
         private long[] _positions;

@@ -220,7 +220,7 @@ namespace Microsoft.ML.LightGBM
             };
         }
 
-        protected override MulticlassPredictionTransformer<OvaModelParameters> MakeTransformer(OvaModelParameters model, Schema trainSchema)
+        protected override MulticlassPredictionTransformer<OvaModelParameters> MakeTransformer(OvaModelParameters model, DataSchema trainSchema)
             => new MulticlassPredictionTransformer<OvaModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         public MulticlassPredictionTransformer<OvaModelParameters> Train(IDataView trainData, IDataView validationData = null)

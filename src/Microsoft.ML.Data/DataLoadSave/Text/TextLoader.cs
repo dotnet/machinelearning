@@ -529,7 +529,7 @@ namespace Microsoft.ML.Data
             public readonly ColInfo[] Infos;
             /// <summary>
             /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="MetadataUtils.Kinds.SlotNames"/>
-            /// in <see cref="Schema.Metadata"/>.
+            /// in <see cref="DataSchema.Metadata"/>.
             /// </summary>
             private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
             /// <summary>
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private readonly ReadOnlyMemory<char> _header;
 
-            public Schema OutputSchema { get; }
+            public DataSchema OutputSchema { get; }
 
             public Bindings(TextLoader parent, Column[] cols, IMultiStreamSource headerFile, IMultiStreamSource dataSample)
             {
@@ -877,7 +877,7 @@ namespace Microsoft.ML.Data
                     ctx.SaveTextStream("Header.txt", writer => writer.WriteLine(_header.ToString()));
             }
 
-            private Schema ComputeOutputSchema()
+            private DataSchema ComputeOutputSchema()
             {
                 var schemaBuilder = new SchemaBuilder();
 
@@ -1308,7 +1308,7 @@ namespace Microsoft.ML.Data
             _bindings.Save(ctx);
         }
 
-        public Schema GetOutputSchema() => _bindings.OutputSchema;
+        public DataSchema GetOutputSchema() => _bindings.OutputSchema;
 
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
@@ -1408,16 +1408,16 @@ namespace Microsoft.ML.Data
             // REVIEW: Should we try to support shuffling?
             public bool CanShuffle => false;
 
-            public Schema Schema => _reader._bindings.OutputSchema;
+            public DataSchema Schema => _reader._bindings.OutputSchema;
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
                 var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.Create(_reader, _files, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
                 var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);

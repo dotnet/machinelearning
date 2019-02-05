@@ -67,7 +67,7 @@ namespace Microsoft.ML.Transforms
             LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName);
         }
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataSchema GetOutputSchema(DataSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
@@ -80,23 +80,23 @@ namespace Microsoft.ML.Transforms
             return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var simplerMapper = MakeRowMapper(inputSchema);
             return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), simplerMapper, MakeRowMapper);
         }
 
-        private IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : IRowMapper
         {
             private readonly IHost _host;
-            private readonly Schema _inputSchema;
+            private readonly DataSchema _inputSchema;
             private readonly CustomMappingTransformer<TSrc, TDst> _parent;
             private readonly TypedCursorable<TSrc> _typedSrc;
 
-            public Mapper(CustomMappingTransformer<TSrc, TDst> parent, Schema inputSchema)
+            public Mapper(CustomMappingTransformer<TSrc, TDst> parent, DataSchema inputSchema)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(inputSchema);
@@ -167,11 +167,11 @@ namespace Microsoft.ML.Transforms
                 return col => false;
             }
 
-            Schema.DetachedColumn[] IRowMapper.GetOutputColumns()
+            DataSchema.DetachedColumn[] IRowMapper.GetOutputColumns()
             {
                 var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent.AddedSchema);
                 // All the output columns of dstRow are our outputs.
-                return Enumerable.Range(0, dstRow.Schema.Count).Select(x => new Schema.DetachedColumn(dstRow.Schema[x])).ToArray();
+                return Enumerable.Range(0, dstRow.Schema.Count).Select(x => new DataSchema.DetachedColumn(dstRow.Schema[x])).ToArray();
             }
 
             public void Save(ModelSaveContext ctx)

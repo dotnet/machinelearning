@@ -126,7 +126,7 @@ namespace Microsoft.ML.ImageAnalytics
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
@@ -151,9 +151,9 @@ namespace Microsoft.ML.ImageAnalytics
                     new float[] {0, 0, 0, 0, 1}
                 });
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataSchema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "image", inputSchema[srcCol].Type.ToString());
@@ -163,14 +163,14 @@ namespace Microsoft.ML.ImageAnalytics
         {
             private ImageGrayscaleTransformer _parent;
 
-            public Mapper(ImageGrayscaleTransformer parent, Schema inputSchema)
+            public Mapper(ImageGrayscaleTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent.ColumnPairs.Select((x, idx) => new Schema.DetachedColumn(x.outputColumnName, InputSchema[ColMapNewToOld[idx]].Type, null)).ToArray();
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent.ColumnPairs.Select((x, idx) => new DataSchema.DetachedColumn(x.outputColumnName, InputSchema[ColMapNewToOld[idx]].Type, null)).ToArray();
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {

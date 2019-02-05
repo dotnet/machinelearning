@@ -11,11 +11,11 @@ using System.Linq;
 namespace Microsoft.Data.DataView
 {
     /// <summary>
-    /// This class represents the <see cref="Schema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="Row"/>.
-    /// On the high level, the schema is a collection of <see cref="Schema.Column"/>.
+    /// This class represents the <see cref="DataSchema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="Row"/>.
+    /// On the high level, the schema is a collection of <see cref="DataSchema.Column"/>.
     /// </summary>
     [System.Diagnostics.DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
-    public sealed class Schema : IReadOnlyList<Schema.Column>
+    public sealed class DataSchema : IReadOnlyList<DataSchema.Column>
     {
         private readonly Column[] _columns;
         private readonly Dictionary<string, int> _nameMap;
@@ -124,7 +124,7 @@ namespace Microsoft.Data.DataView
         }
 
         /// <summary>
-        /// This class represents the schema of one column of a data view, without an attachment to a particular <see cref="Schema"/>.
+        /// This class represents the schema of one column of a data view, without an attachment to a particular <see cref="DataSchema"/>.
         /// </summary>
         public struct DetachedColumn
         {
@@ -151,7 +151,7 @@ namespace Microsoft.Data.DataView
 
                 Name = name;
                 Type = type ?? throw new ArgumentNullException(nameof(type));
-                Metadata = metadata ?? Schema.Metadata.Empty;
+                Metadata = metadata ?? DataSchema.Metadata.Empty;
             }
 
             /// <summary>
@@ -179,9 +179,9 @@ namespace Microsoft.Data.DataView
             /// <summary>
             /// The schema of the metadata row. It is different from the schema that the column belongs to.
             /// </summary>
-            public Schema Schema { get; }
+            public DataSchema Schema { get; }
 
-            public static Metadata Empty { get; } = new Metadata(new Schema(new Column[0]), new Delegate[0]);
+            public static Metadata Empty { get; } = new Metadata(new DataSchema(new Column[0]), new Delegate[0]);
 
             /// <summary>
             /// Create a metadata row by supplying the schema columns and the getter delegates for all the values.
@@ -189,7 +189,7 @@ namespace Microsoft.Data.DataView
             /// <remarks>
             /// Note: The <paramref name="getters"/> array will be owned by this Metadata instance.
             /// </remarks>
-            internal Metadata(Schema schema, Delegate[] getters)
+            internal Metadata(DataSchema schema, Delegate[] getters)
             {
                 Debug.Assert(schema != null);
                 Debug.Assert(getters != null);
@@ -254,7 +254,7 @@ namespace Microsoft.Data.DataView
         /// This constructor should only be called by <see cref="SchemaBuilder"/>.
         /// </summary>
         /// <param name="columns">The input columns. The constructed instance takes ownership of the array.</param>
-        internal Schema(Column[] columns)
+        internal DataSchema(Column[] columns)
         {
             if (columns == null)
                 throw new ArgumentNullException(nameof(columns));

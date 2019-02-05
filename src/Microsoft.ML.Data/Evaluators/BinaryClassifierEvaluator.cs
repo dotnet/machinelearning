@@ -892,7 +892,7 @@ namespace Microsoft.ML.Data
         private readonly bool _useRaw;
         private readonly ColumnType[] _types;
 
-        public BinaryPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
+        public BinaryPerInstanceEvaluator(IHostEnvironment env, DataSchema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
             : base(env, schema, scoreCol, labelCol)
         {
             _threshold = threshold;
@@ -912,7 +912,7 @@ namespace Microsoft.ML.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
             : base(env, ctx, schema)
         {
             // *** Binary format **
@@ -938,7 +938,7 @@ namespace Microsoft.ML.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1078,19 +1078,19 @@ namespace Microsoft.ML.Data
             return Single.IsNaN(val) ? false : val > _threshold;
         }
 
-        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+        private protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
         {
             if (_probIndex >= 0)
             {
-                var infos = new Schema.DetachedColumn[2];
-                infos[LogLossCol] = new Schema.DetachedColumn(LogLoss, _types[LogLossCol], null);
-                infos[AssignedCol] = new Schema.DetachedColumn(Assigned, _types[AssignedCol], null);
+                var infos = new DataSchema.DetachedColumn[2];
+                infos[LogLossCol] = new DataSchema.DetachedColumn(LogLoss, _types[LogLossCol], null);
+                infos[AssignedCol] = new DataSchema.DetachedColumn(Assigned, _types[AssignedCol], null);
                 return infos;
             }
-            return new[] { new Schema.DetachedColumn(Assigned, _types[AssignedCol], null), };
+            return new[] { new DataSchema.DetachedColumn(Assigned, _types[AssignedCol], null), };
         }
 
-        private void CheckInputColumnTypes(Schema schema)
+        private void CheckInputColumnTypes(DataSchema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertValueOrNull(_probCol);

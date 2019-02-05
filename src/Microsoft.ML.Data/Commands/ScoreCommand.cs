@@ -207,7 +207,7 @@ namespace Microsoft.ML.Data
         /// Whether a column should be added, assuming it's not hidden
         /// (i.e.: this doesn't check for hidden
         /// </summary>
-        private bool ShouldAddColumn(Schema schema, int i, uint scoreSet, bool outputNamesAndLabels)
+        private bool ShouldAddColumn(DataSchema schema, int i, uint scoreSet, bool outputNamesAndLabels)
         {
             uint scoreSetId = 0;
             if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)

@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to check whether all types in an input schema are shufflable.
         /// </summary>
-        internal static bool CanShuffleAll(Schema schema)
+        internal static bool CanShuffleAll(DataSchema schema)
         {
             for (int c = 0; c < schema.Count; ++c)
             {
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return true; } }
 
-        public override Schema OutputSchema { get { return _subsetInput.Schema; } }
+        public override DataSchema OutputSchema { get { return _subsetInput.Schema; } }
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _poolRows, input, rand);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _colToActivesIndex;
             private bool _disposed;
 
-            public override Schema Schema => _input.Schema;
+            public override DataSchema Schema => _input.Schema;
 
             // REVIEW: Implement cursor set support.
             public override long Batch => 0;

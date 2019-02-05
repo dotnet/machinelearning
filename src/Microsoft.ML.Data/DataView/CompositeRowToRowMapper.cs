@@ -17,8 +17,8 @@ namespace Microsoft.ML.Data
         internal IRowToRowMapper[] InnerMappers { get; }
         private static readonly IRowToRowMapper[] _empty = new IRowToRowMapper[0];
 
-        public Schema InputSchema { get; }
-        public Schema OutputSchema { get; }
+        public DataSchema InputSchema { get; }
+        public DataSchema OutputSchema { get; }
 
         /// <summary>
         /// Out of a series of mappers, construct a seemingly unitary mapper that is able to apply them in sequence.
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Data
         /// <param name="inputSchema">The input schema.</param>
         /// <param name="mappers">The sequence of mappers to wrap. An empty or <c>null</c> argument
         /// is legal, and counts as being a no-op application.</param>
-        public CompositeRowToRowMapper(Schema inputSchema, IRowToRowMapper[] mappers)
+        public CompositeRowToRowMapper(DataSchema inputSchema, IRowToRowMapper[] mappers)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValueOrNull(mappers);
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Data
                 _pred = pred;
             }
 
-            public override Schema Schema => _row.Schema;
+            public override DataSchema Schema => _row.Schema;
             public override long Position => _row.Position;
             public override long Batch => _row.Batch;
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);

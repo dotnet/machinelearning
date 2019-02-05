@@ -10,19 +10,19 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This class contains method for creating commonly used <see cref="Schema"/>s.
+    /// This class contains method for creating commonly used <see cref="DataSchema"/>s.
     /// </summary>
     [BestFriend]
     internal static class ScoreSchemaFactory
     {
         /// <summary>
-        /// Return a <see cref="Schema"/> which contains a single score column.
+        /// Return a <see cref="DataSchema"/> which contains a single score column.
         /// </summary>
         /// <param name="scoreType">The type of the score column.</param>
         /// <param name="scoreColumnKindValue">The kind of the score column. It's the value of <see cref="MetadataUtils.Kinds.ScoreColumnKind"/> in the score column's metadata.</param>
-        /// <param name="scoreColumnName">The score column's name in the generated <see cref="Schema"/>.</param>
-        /// <returns><see cref="Schema"/> which contains only one column.</returns>
-        public static Schema Create(ColumnType scoreType, string scoreColumnKindValue, string scoreColumnName = MetadataUtils.Const.ScoreValueKind.Score)
+        /// <param name="scoreColumnName">The score column's name in the generated <see cref="DataSchema"/>.</param>
+        /// <returns><see cref="DataSchema"/> which contains only one column.</returns>
+        public static DataSchema Create(ColumnType scoreType, string scoreColumnKindValue, string scoreColumnName = MetadataUtils.Const.ScoreValueKind.Score)
         {
             Contracts.CheckValue(scoreType, nameof(scoreType));
             Contracts.CheckNonEmpty(scoreColumnKindValue, nameof(scoreColumnKindValue));
@@ -42,14 +42,14 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Create a <see cref="Schema"/> with two columns for binary classifier. The first column, indexed by 0, is the score column.
+        /// Create a <see cref="DataSchema"/> with two columns for binary classifier. The first column, indexed by 0, is the score column.
         /// The second column is the probability column. For example, for linear support vector machine, score column stands for the inner product
         /// of linear coefficients and the input feature vector and we convert score column to probability column using a calibrator.
         /// </summary>
         /// <param name="scoreColumnName">Column name of score column</param>
         /// <param name="probabilityColumnName">Column name of probability column</param>
-        /// <returns><see cref="Schema"/> of binary classifier's output.</returns>
-        public static Schema CreateBinaryClassificationSchema(string scoreColumnName = MetadataUtils.Const.ScoreValueKind.Score,
+        /// <returns><see cref="DataSchema"/> of binary classifier's output.</returns>
+        public static DataSchema CreateBinaryClassificationSchema(string scoreColumnName = MetadataUtils.Const.ScoreValueKind.Score,
             string probabilityColumnName = MetadataUtils.Const.ScoreValueKind.Probability)
         {
             // Schema of Score column. We are going to extend it by adding a Probability column.
@@ -78,8 +78,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="scoreType">Output element's type of quantile regressor. Note that a quantile regressor can produce an array of <see cref="PrimitiveType"/>.</param>
         /// <param name="quantiles">Quantiles used in quantile regressor.</param>
-        /// <returns><see cref="Schema"/> of quantile regressor's output.</returns>
-        public static Schema CreateQuantileRegressionSchema(ColumnType scoreType, double[] quantiles)
+        /// <returns><see cref="DataSchema"/> of quantile regressor's output.</returns>
+        public static DataSchema CreateQuantileRegressionSchema(ColumnType scoreType, double[] quantiles)
         {
             Contracts.CheckValue(scoreType, nameof(scoreType));
             Contracts.CheckValue(scoreType as PrimitiveType, nameof(scoreType));
@@ -115,8 +115,8 @@ namespace Microsoft.ML.Data
         /// <see cref="MetadataUtils.Kinds.ScoreColumnKind"/>.</param>
         /// <param name="keyNames">Sequence predictor usually generates integer outputs. This field tells the tags of all possible output values.
         /// For example, output integer 0 cound be mapped to "Sell" and 0 to "Buy" when predicting stock trend.</param>
-        /// <returns><see cref="Schema"/> of sequence predictor's output.</returns>
-        public static Schema CreateSequencePredictionSchema(ColumnType scoreType, string scoreColumnKindValue, VBuffer<ReadOnlyMemory<char>> keyNames=default)
+        /// <returns><see cref="DataSchema"/> of sequence predictor's output.</returns>
+        public static DataSchema CreateSequencePredictionSchema(ColumnType scoreType, string scoreColumnKindValue, VBuffer<ReadOnlyMemory<char>> keyNames=default)
         {
             Contracts.CheckValue(scoreType, nameof(scoreType));
             Contracts.CheckValue(scoreColumnKindValue, nameof(scoreColumnKindValue));

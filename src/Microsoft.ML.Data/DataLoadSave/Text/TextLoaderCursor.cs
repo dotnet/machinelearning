@@ -269,7 +269,7 @@ namespace Microsoft.ML.Data
                 return sb.ToString();
             }
 
-            public override Schema Schema => _bindings.OutputSchema;
+            public override DataSchema Schema => _bindings.OutputSchema;
 
             protected override void Dispose(bool disposing)
             {

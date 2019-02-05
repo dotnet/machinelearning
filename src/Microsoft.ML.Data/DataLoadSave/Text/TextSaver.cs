@@ -386,7 +386,7 @@ namespace Microsoft.ML.Data.IO
             ch.AssertNonEmpty(cols);
 
             // Determine the active columns and whether there is header information.
-            var activeCols = new List<Schema.Column>();
+            var activeCols = new List<DataSchema.Column>();
             for (int i = 0; i < cols.Length; i++)
             {
                 ch.Check(0 <= cols[i] && cols[i] < data.Schema.Count);
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Data.IO
             writer.WriteLine("#@ }");
         }
 
-        private string CreateLoaderArguments(Schema schema, ValueWriter[] pipes, bool hasHeader, IChannel ch)
+        private string CreateLoaderArguments(DataSchema schema, ValueWriter[] pipes, bool hasHeader, IChannel ch)
         {
             StringBuilder sb = new StringBuilder();
             if (hasHeader)

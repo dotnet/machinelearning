@@ -18,7 +18,7 @@ namespace Microsoft.ML.TimeSeries
 
     internal interface IStatefulTransformer : ITransformer
     {
-        IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema);
+        IRowToRowMapper GetStatefulRowToRowMapper(DataSchema inputSchema);
 
         IStatefulTransformer Clone();
     }
@@ -171,7 +171,7 @@ namespace Microsoft.ML.TimeSeries
                 return transformer.IsRowToRowMapper || transformer is IStatefulTransformer;
         }
 
-        private IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        private IRowToRowMapper GetRowToRowMapper(DataSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.Check(IsRowToRowMapper(InputTransformer), nameof(GetRowToRowMapper) +
@@ -187,7 +187,7 @@ namespace Microsoft.ML.TimeSeries
 
             var transformers = ((ITransformerChainAccessor )InputTransformer).Transformers;
             IRowToRowMapper[] mappers = new IRowToRowMapper[transformers.Length];
-            Schema schema = inputSchema;
+            DataSchema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)
             {
                 if (transformers[i] is IStatefulTransformer)
@@ -200,7 +200,7 @@ namespace Microsoft.ML.TimeSeries
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }
 
-        protected override Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        protected override Func<DataSchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(IsRowToRowMapper(transformer), nameof(transformer), "Must be a row to row mapper or " + nameof(IStatefulTransformer));

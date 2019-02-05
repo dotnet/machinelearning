@@ -476,7 +476,7 @@ namespace Microsoft.ML.Data
         protected readonly int ScoreIndex;
         protected readonly int LabelIndex;
 
-        protected PerInstanceEvaluatorBase(IHostEnvironment env, Schema schema, string scoreCol, string labelCol)
+        protected PerInstanceEvaluatorBase(IHostEnvironment env, DataSchema schema, string scoreCol, string labelCol)
         {
             Contracts.AssertValue(env);
             Contracts.AssertNonEmpty(scoreCol);
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
-        protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  Schema schema)
+        protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  DataSchema schema)
         {
             Host = env.Register("PerInstanceRowMapper");
 
@@ -523,11 +523,11 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput);
 
-        Schema.DetachedColumn[] IRowMapper.GetOutputColumns()
+        DataSchema.DetachedColumn[] IRowMapper.GetOutputColumns()
             => GetOutputColumnsCore();
 
         [BestFriend]
-        private protected abstract Schema.DetachedColumn[] GetOutputColumnsCore();
+        private protected abstract DataSchema.DetachedColumn[] GetOutputColumnsCore();
 
         Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
             => CreateGettersCore(input, activeCols, out disposer);

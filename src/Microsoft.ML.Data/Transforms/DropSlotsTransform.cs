@@ -319,7 +319,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return true;
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataSchema schema)
             => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             private readonly bool[] _suppressed;
             private readonly int[][] _categoricalRanges;
 
-            public Mapper(SlotsDroppingTransformer parent, Schema inputSchema)
+            public Mapper(SlotsDroppingTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -498,7 +498,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// <param name="suppressed">Whether the column is suppressed (all slots dropped)</param>
             /// <param name="type">The column type</param>
             /// <param name="categoricalRanges">Categorical feature indices.</param>
-            private void ComputeType(Schema input, int iinfo, SlotDropper slotDropper,
+            private void ComputeType(DataSchema input, int iinfo, SlotDropper slotDropper,
                 out bool suppressed, out ColumnType type, out int[] categoricalRanges)
             {
                 var slotsMin = _parent.SlotsMin[iinfo];
@@ -814,9 +814,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     // Avoid closure when adding metadata.
@@ -862,7 +862,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     // Add isNormalize and KeyValues metadata.
                     builder.Add(InputSchema[_cols[iinfo]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
 
-                    result[iinfo] = new Schema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.GetMetadata());
+                    result[iinfo] = new DataSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.GetMetadata());
                 }
                 return result;
             }

@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        protected override MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters> MakeTransformer(MultiClassNaiveBayesModelParameters model, Schema trainSchema)
+        protected override MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters> MakeTransformer(MultiClassNaiveBayesModelParameters model, DataSchema trainSchema)
             => new MulticlassPredictionTransformer<MultiClassNaiveBayesModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         private protected override MultiClassNaiveBayesModelParameters TrainModelCore(TrainContext context)

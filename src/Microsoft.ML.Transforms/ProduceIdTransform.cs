@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Bindings : ColumnBindingsBase
         {
-            public Bindings(Schema input, bool user, string name)
+            public Bindings(DataSchema input, bool user, string name)
                 : base(input, user, name)
             {
                 Contracts.Assert(InfoCount == 1);
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms
                 return NumberType.UG;
             }
 
-            public static Bindings Create(ModelLoadContext ctx, Schema input)
+            public static Bindings Create(ModelLoadContext ctx, DataSchema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly Bindings _bindings;
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override DataSchema OutputSchema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(ctx);
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Transforms
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override DataSchema Schema => _bindings.AsSchema;
 
             public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool active)
                 : base(provider, input)

@@ -466,7 +466,7 @@ namespace Microsoft.ML.Transforms.Text
         public static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
             => new Transformer(env, ctx);
 
-        private static string GenerateColumnName(Schema schema, string srcName, string xfTag)
+        private static string GenerateColumnName(DataSchema schema, string srcName, string xfTag)
         {
             return schema.GetTempColumnName(string.Format("{0}_{1}", srcName, xfTag));
         }
@@ -536,7 +536,7 @@ namespace Microsoft.ML.Transforms.Text
                 _xf = ApplyTransformUtils.ApplyAllTransformsToData(_host, view, new EmptyDataView(_host, input.Schema), input);
             }
 
-            public Schema GetOutputSchema(Schema inputSchema)
+            public DataSchema GetOutputSchema(DataSchema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 return Transform(new EmptyDataView(_host, inputSchema)).Schema;
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public bool IsRowToRowMapper => true;
 
-            public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+            public IRowToRowMapper GetRowToRowMapper(DataSchema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 var input = new EmptyDataView(_host, inputSchema);

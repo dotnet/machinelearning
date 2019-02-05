@@ -567,7 +567,7 @@ namespace Microsoft.ML.Data
         private readonly ReadOnlyMemory<char>[] _classNames;
         private readonly ColumnType[] _types;
 
-        public MultiClassPerInstanceEvaluator(IHostEnvironment env, Schema schema, Schema.Column scoreColumn, string labelCol)
+        public MultiClassPerInstanceEvaluator(IHostEnvironment env, DataSchema schema, DataSchema.Column scoreColumn, string labelCol)
             : base(env, schema, scoreColumn.Name, labelCol)
         {
             CheckInputColumnTypes(schema);
@@ -592,7 +592,7 @@ namespace Microsoft.ML.Data
             _types[SortedClassesCol] = new VectorType(key, _numClasses);
         }
 
-        private MultiClassPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        private MultiClassPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -621,7 +621,7 @@ namespace Microsoft.ML.Data
             _types[SortedClassesCol] = new VectorType(key, _numClasses);
         }
 
-        public static MultiClassPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        public static MultiClassPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -761,15 +761,15 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+        private protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.DetachedColumn[4];
+            var infos = new DataSchema.DetachedColumn[4];
 
             var assignedColKeyValues = new MetadataBuilder();
             assignedColKeyValues.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
-            infos[AssignedCol] = new Schema.DetachedColumn(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadata());
+            infos[AssignedCol] = new DataSchema.DetachedColumn(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadata());
 
-            infos[LogLossCol] = new Schema.DetachedColumn(LogLoss, _types[LogLossCol], null);
+            infos[LogLossCol] = new DataSchema.DetachedColumn(LogLoss, _types[LogLossCol], null);
 
             var sortedScores = new MetadataBuilder();
             sortedScores.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Score"));
@@ -778,8 +778,8 @@ namespace Microsoft.ML.Data
             sortedClasses.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Class"));
             sortedClasses.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
 
-            infos[SortedScoresCol] = new Schema.DetachedColumn(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadata());
-            infos[SortedClassesCol] = new Schema.DetachedColumn(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadata());
+            infos[SortedScoresCol] = new DataSchema.DetachedColumn(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadata());
+            infos[SortedClassesCol] = new DataSchema.DetachedColumn(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadata());
             return infos;
         }
 
@@ -808,7 +808,7 @@ namespace Microsoft.ML.Data
                 };
         }
 
-        private void CheckInputColumnTypes(Schema schema)
+        private void CheckInputColumnTypes(DataSchema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);

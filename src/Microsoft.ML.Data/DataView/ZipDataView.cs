@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle { get { return false; } }
 
-        public Schema Schema => _zipBinding.OutputSchema;
+        public DataSchema Schema => _zipBinding.OutputSchema;
 
         public long? GetRowCount()
         {
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
             return min;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             _host.CheckValueOrNull(rand);
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Data
             return dv.GetRowCursor();
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public override Schema Schema => _zipBinding.OutputSchema;
+            public override DataSchema Schema => _zipBinding.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {

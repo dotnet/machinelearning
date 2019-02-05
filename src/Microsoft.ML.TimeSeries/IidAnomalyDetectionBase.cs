@@ -34,7 +34,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             StateRef.InitState(this, Host);
         }
 
-        public override Schema GetOutputSchema(Schema inputSchema)
+        public override DataSchema GetOutputSchema(DataSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 

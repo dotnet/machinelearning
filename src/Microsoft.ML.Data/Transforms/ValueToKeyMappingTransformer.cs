@@ -278,7 +278,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return "standard type or a vector of standard type";
         }
 
-        private ColInfo[] CreateInfos(Schema inputSchema)
+        private ColInfo[] CreateInfos(DataSchema inputSchema)
         {
             Host.AssertValue(inputSchema);
             var infos = new ColInfo[ColumnPairs.Length];
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
@@ -735,7 +735,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return _unboundMaps[iinfo];
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataSchema schema)
           => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public bool CanSavePfa => true;
 
-            public Mapper(ValueToKeyMappingTransformer parent, Schema inputSchema)
+            public Mapper(ValueToKeyMappingTransformer parent, DataSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -773,9 +773,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
@@ -784,7 +784,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _termMap[i].AddMetadata(builder);
 
                     builder.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }

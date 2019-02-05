@@ -33,13 +33,13 @@ namespace Microsoft.ML.Data
 
         private readonly IDataView[] _sources;
         private readonly int[] _counts;
-        private readonly Schema _schema;
+        private readonly DataSchema _schema;
         private readonly IHost _host;
         private readonly bool _canShuffle;
 
         public bool CanShuffle { get { return _canShuffle; } }
 
-        public Schema Schema { get { return _schema; } }
+        public DataSchema Schema { get { return _schema; } }
 
         // REVIEW: AppendRowsDataView now only checks schema consistency up to column names and types.
         // A future task will be to ensure that the sources are consistent on the metadata level.
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Data
         /// <param name="schema">The schema for the result. If this is null, the first source's schema will be used.</param>
         /// <param name="sources">The sources to be appended.</param>
         /// <returns>The resulting IDataView.</returns>
-        public static IDataView Create(IHostEnvironment env, Schema schema, params IDataView[] sources)
+        public static IDataView Create(IHostEnvironment env, DataSchema schema, params IDataView[] sources)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(sources, nameof(sources));
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Data
             return new AppendRowsDataView(env, schema, sources);
         }
 
-        private AppendRowsDataView(IHostEnvironment env, Schema schema, IDataView[] sources)
+        private AppendRowsDataView(IHostEnvironment env, DataSchema schema, IDataView[] sources)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -145,14 +145,14 @@ namespace Microsoft.ML.Data
             return sum;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             if (rand == null || !_canShuffle)
                 return new Cursor(this, columnsNeeded);
             return new RandCursor(this, columnsNeeded, rand, _counts);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            public sealed override Schema Schema { get; }
+            public sealed override DataSchema Schema { get; }
 
             public CursorBase(AppendRowsDataView parent)
                 : base(parent._host)
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Data
             private int _currentSourceIndex;
             private bool _disposed;
 
-            public Cursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded)
+            public Cursor(AppendRowsDataView parent, IEnumerable<DataSchema.Column> columnsNeeded)
                 : base(parent)
             {
                 _currentSourceIndex = 0;
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Data
             private int _currentSourceIndex;
             private bool _disposed;
 
-            public RandCursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded, Random rand, int[] counts)
+            public RandCursor(AppendRowsDataView parent, IEnumerable<DataSchema.Column> columnsNeeded, Random rand, int[] counts)
                 : base(parent)
             {
                 Ch.AssertValue(rand);

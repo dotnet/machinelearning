@@ -534,7 +534,7 @@ namespace Microsoft.ML.Transforms.Text
         /// Generates and returns unique names for columns source. Each element of the returned array is
         /// an array of unique source names per specific column.
         /// </summary>
-        public static string[][] GenerateUniqueSourceNames(IHostEnvironment env, ManyToOneColumn[] columns, Schema schema)
+        public static string[][] GenerateUniqueSourceNames(IHostEnvironment env, ManyToOneColumn[] columns, DataSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(columns, nameof(columns));

@@ -41,7 +41,7 @@ namespace Microsoft.ML.EntryPoints
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
 
-        private static bool ShouldAddColumn(Schema schema, int i, string[] extraColumns, uint scoreSet)
+        private static bool ShouldAddColumn(DataSchema schema, int i, string[] extraColumns, uint scoreSet)
         {
             uint scoreSetId = 0;
             if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)

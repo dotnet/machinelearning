@@ -254,8 +254,8 @@ namespace Microsoft.ML.Data
                 private readonly Func<ISchemaBoundMapper, ColumnType, bool> _canWrap;
 
                 public RoleMappedSchema InputRoleMappedSchema => _mapper.InputRoleMappedSchema;
-                public Schema InputSchema => _mapper.InputSchema;
-                public Schema OutputSchema { get; }
+                public DataSchema InputSchema => _mapper.InputSchema;
+                public DataSchema OutputSchema { get; }
 
                 public ISchemaBindableMapper Bindable
                 {
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Data
                 /// <summary>
                 /// Append label names to score column as its metadata.
                 /// </summary>
-                private Schema DecorateOutputSchema(Schema partialSchema, int scoreColumnIndex, VectorType labelNameType,
+                private DataSchema DecorateOutputSchema(DataSchema partialSchema, int scoreColumnIndex, VectorType labelNameType,
                     ValueGetter<VBuffer<T>> labelNameGetter, string labelNameKind)
                 {
                     var builder = new SchemaBuilder();
@@ -339,12 +339,12 @@ namespace Microsoft.ML.Data
 
                 private sealed class RowImpl : WrappingRow
                 {
-                    private readonly Schema _schema;
+                    private readonly DataSchema _schema;
 
                     // The schema is of course the only difference from _row.
-                    public override Schema Schema => _schema;
+                    public override DataSchema Schema => _schema;
 
-                    public RowImpl(Row row, Schema schema)
+                    public RowImpl(Row row, DataSchema schema)
                         : base(row)
                     {
                         Contracts.AssertValue(row);

@@ -99,9 +99,9 @@ namespace Microsoft.ML.Transforms
 
         public bool CanShuffle => false;
 
-        Schema IDataView.Schema => OutputSchema;
+        DataSchema IDataView.Schema => OutputSchema;
 
-        public Schema OutputSchema => _bindings.Schema;
+        public DataSchema OutputSchema => _bindings.Schema;
 
         public long? GetRowCount()
         {
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(this, input, columnsNeeded);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Contracts.CheckParam(n >= 0, nameof(n));
             Contracts.CheckValueOrNull(rand);
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => _input.Batch;
 
-            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, IEnumerable<Schema.Column> columnsNeeded)
+            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, IEnumerable<DataSchema.Column> columnsNeeded)
                 : base(parent.Host)
             {
                 Ch.AssertValue(input);
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms
                 isRowAccepted = _parent._filterFunc(_src, _dst, _state);
             }
 
-            public override Schema Schema => _parent._bindings.Schema;
+            public override DataSchema Schema => _parent._bindings.Schema;
 
             public override bool IsColumnActive(int col)
             {

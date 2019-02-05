@@ -23,7 +23,7 @@ namespace Microsoft.ML.Data
         /// Use tag to independently create multiple temporary, unique column
         /// names for a single transform.
         /// </summary>
-        public static string GetTempColumnName(this Schema schema, string tag = null)
+        public static string GetTempColumnName(this DataSchema schema, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
 
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Data
         /// Use tag to independently create multiple temporary, unique column
         /// names for a single transform.
         /// </summary>
-        public static string[] GetTempColumnNames(this Schema schema, int n, string tag = null)
+        public static string[] GetTempColumnNames(this DataSchema schema, int n, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(n > 0, "n");
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Data
         /// the target cardinality of the cursor set.
         /// </summary>
         public static bool TryCreateConsolidatingCursor(out RowCursor curs,
-            IDataView view, IEnumerable<Schema.Column> columnsNeeded, IHost host, Random rand)
+            IDataView view, IEnumerable<DataSchema.Column> columnsNeeded, IHost host, Random rand)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCacheable(Schema schema, Func<int, bool> predicate)
+        public static bool AllCacheable(DataSchema schema, Func<int, bool> predicate)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(predicate, nameof(predicate));
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCacheable(IEnumerable<Schema.Column> columnsNeeded)
+        public static bool AllCacheable(IEnumerable<DataSchema.Column> columnsNeeded)
         {
             Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
 
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         private sealed class Splitter
         {
-            private readonly Schema _schema;
+            private readonly DataSchema _schema;
             private readonly object[] _cachePools;
 
             /// <summary>
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Data
 #pragma warning restore MSML_GeneralName
             }
 
-            private Splitter(Schema schema)
+            private Splitter(DataSchema schema)
             {
                 Contracts.AssertValue(schema);
                 _schema = schema;
@@ -494,7 +494,7 @@ namespace Microsoft.ML.Data
                 return pool;
             }
 
-            public static RowCursor[] Split(IChannelProvider provider, Schema schema, RowCursor input, int cthd)
+            public static RowCursor[] Split(IChannelProvider provider, DataSchema schema, RowCursor input, int cthd)
             {
                 Contracts.AssertValue(provider, "provider");
 
@@ -999,7 +999,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private sealed class Cursor : RootCursorBase
             {
-                private readonly Schema _schema;
+                private readonly DataSchema _schema;
                 private readonly int[] _activeToCol;
                 private readonly int[] _colToActive;
                 private readonly OutPipe[] _pipes;
@@ -1012,7 +1012,7 @@ namespace Microsoft.ML.Data
                 private long _batch;
                 private bool _disposed;
 
-                public override Schema Schema => _schema;
+                public override DataSchema Schema => _schema;
 
                 public override long Batch => _batch;
 
@@ -1027,7 +1027,7 @@ namespace Microsoft.ML.Data
                 /// <param name="pipes">The output pipes, one per channel of information</param>
                 /// <param name="batchInputs"></param>
                 /// <param name="quitAction"></param>
-                public Cursor(IChannelProvider provider, Schema schema, int[] activeToCol, int[] colToActive,
+                public Cursor(IChannelProvider provider, DataSchema schema, int[] activeToCol, int[] colToActive,
                     OutPipe[] pipes, BlockingCollection<Batch> batchInputs, Action quitAction)
                     : base(provider)
                 {
@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Data
             private readonly RowCursor[] _cursors;
             private readonly Delegate[] _getters;
 
-            private readonly Schema _schema;
+            private readonly DataSchema _schema;
             private readonly Heap<CursorStats> _mins;
             private readonly int[] _activeToCol;
             private readonly int[] _colToActive;
@@ -1164,7 +1164,7 @@ namespace Microsoft.ML.Data
             // input batch as our own batch. Should we suppress it?
             public override long Batch { get { return _batch; } }
 
-            public override Schema Schema => _schema;
+            public override DataSchema Schema => _schema;
 
             public SynchronousConsolidatingCursor(IChannelProvider provider, RowCursor[] cursors)
                 : base(provider)

@@ -273,7 +273,7 @@ namespace Microsoft.ML.Trainers.KMeans
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, Schema trainSchema)
+        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, DataSchema trainSchema)
         => new ClusteringPredictionTransformer<KMeansModelParameters>(Host, model, trainSchema, _featureColumn);
     }
 

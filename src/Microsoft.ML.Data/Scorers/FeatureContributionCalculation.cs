@@ -295,16 +295,16 @@ namespace Microsoft.ML.Data
             private readonly IHostEnvironment _env;
             private readonly ISchemaBoundRowMapper _genericRowMapper;
             private readonly BindableMapper _parent;
-            private readonly Schema _outputSchema;
-            private readonly Schema _outputGenericSchema;
+            private readonly DataSchema _outputSchema;
+            private readonly DataSchema _outputGenericSchema;
             private VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
+            public DataSchema InputSchema => InputRoleMappedSchema.Schema;
+            private DataSchema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
-            public Schema OutputSchema { get; }
+            public DataSchema OutputSchema { get; }
 
             public ISchemaBindableMapper Bindable => _parent;
 
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Data
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
-                OutputSchema = new ZipBinding(new Schema[] { _outputGenericSchema, _outputSchema, }).OutputSchema;
+                OutputSchema = new ZipBinding(new DataSchema[] { _outputGenericSchema, _outputSchema, }).OutputSchema;
             }
 
             /// <summary>

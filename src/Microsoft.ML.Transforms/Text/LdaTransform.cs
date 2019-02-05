@@ -703,7 +703,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly LatentDirichletAllocationTransformer _parent;
             private readonly int[] _srcCols;
 
-            public Mapper(LatentDirichletAllocationTransformer parent, Schema inputSchema)
+            public Mapper(LatentDirichletAllocationTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -721,13 +721,13 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var info = _parent._columns[i];
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberType.Float, info.NumTopic), null);
+                    result[i] = new DataSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberType.Float, info.NumTopic), null);
                 }
                 return result;
             }
@@ -865,7 +865,7 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
@@ -936,7 +936,7 @@ namespace Microsoft.ML.Transforms.Text
             ch.AssertValue(states);
             ch.Assert(states.Length == columns.Length);
 
-            var activeColumns = new List<Schema.Column>();
+            var activeColumns = new List<DataSchema.Column>();
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
 
@@ -1080,7 +1080,7 @@ namespace Microsoft.ML.Transforms.Text
             return columnMappings;
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataSchema schema)
             => new Mapper(this, schema);
     }
 

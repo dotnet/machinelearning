@@ -14,7 +14,7 @@ namespace Microsoft.ML.Data
     {
         public override long Batch => Input.Batch;
 
-        protected LinkedRowFilterCursorBase(IChannelProvider provider, RowCursor input, Schema schema, bool[] active)
+        protected LinkedRowFilterCursorBase(IChannelProvider provider, RowCursor input, DataSchema schema, bool[] active)
             : base(provider, input, schema, active)
         {
         }

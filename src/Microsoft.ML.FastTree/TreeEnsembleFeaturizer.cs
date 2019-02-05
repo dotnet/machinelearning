@@ -74,9 +74,9 @@ namespace Microsoft.ML.Data
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            public Schema OutputSchema { get; }
-            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
+            public DataSchema InputSchema => InputRoleMappedSchema.Schema;
+            public DataSchema OutputSchema { get; }
+            private DataSchema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
             public ISchemaBindableMapper Bindable => _owner;
 

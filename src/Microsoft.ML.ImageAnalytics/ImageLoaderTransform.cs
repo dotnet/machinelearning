@@ -115,10 +115,10 @@ namespace Microsoft.ML.ImageAnalytics
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataSchema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is TextType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, TextType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
@@ -151,14 +151,14 @@ namespace Microsoft.ML.ImageAnalytics
                 loaderAssemblyName: typeof(ImageLoaderTransformer).Assembly.FullName);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImageLoaderTransformer _parent;
             private readonly ImageType _imageType;
 
-            public Mapper(ImageLoaderTransformer parent, Schema inputSchema)
+            public Mapper(ImageLoaderTransformer parent, DataSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _imageType = new ImageType();
@@ -211,8 +211,8 @@ namespace Microsoft.ML.ImageAnalytics
                 return del;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent.ColumnPairs.Select(x => new Schema.DetachedColumn(x.outputColumnName, _imageType, null)).ToArray();
+            protected override DataSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent.ColumnPairs.Select(x => new DataSchema.DetachedColumn(x.outputColumnName, _imageType, null)).ToArray();
         }
     }
 

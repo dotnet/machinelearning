@@ -27,16 +27,16 @@ namespace Microsoft.ML.Data
 
         public bool IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);
         }
 
         [BestFriend]
-        private protected abstract IRowMapper MakeRowMapper(Schema schema);
+        private protected abstract IRowMapper MakeRowMapper(DataSchema schema);
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataSchema GetOutputSchema(DataSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
@@ -54,23 +54,23 @@ namespace Microsoft.ML.Data
         protected abstract class MapperBase : IRowMapper
         {
             protected readonly IHost Host;
-            protected readonly Schema InputSchema;
-            private readonly Lazy<Schema.DetachedColumn[]> _outputColumns;
+            protected readonly DataSchema InputSchema;
+            private readonly Lazy<DataSchema.DetachedColumn[]> _outputColumns;
             private readonly RowToRowTransformerBase _parent;
 
-            protected MapperBase(IHost host, Schema inputSchema, RowToRowTransformerBase parent)
+            protected MapperBase(IHost host, DataSchema inputSchema, RowToRowTransformerBase parent)
             {
                 Contracts.CheckValue(host, nameof(host));
                 Contracts.CheckValue(inputSchema, nameof(inputSchema));
                 Host = host;
                 InputSchema = inputSchema;
                 _parent = parent;
-                _outputColumns = new Lazy<Schema.DetachedColumn[]>(GetOutputColumnsCore);
+                _outputColumns = new Lazy<DataSchema.DetachedColumn[]>(GetOutputColumnsCore);
             }
 
-            protected abstract Schema.DetachedColumn[] GetOutputColumnsCore();
+            protected abstract DataSchema.DetachedColumn[] GetOutputColumnsCore();
 
-            Schema.DetachedColumn[] IRowMapper.GetOutputColumns() => _outputColumns.Value;
+            DataSchema.DetachedColumn[] IRowMapper.GetOutputColumns() => _outputColumns.Value;
 
             Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {

@@ -13,7 +13,7 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Utilities for implementing and using the metadata API of <see cref="Schema"/>.
+    /// Utilities for implementing and using the metadata API of <see cref="DataSchema"/>.
     /// </summary>
     public static class MetadataUtils
     {
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Data
         /// The filter function is called for each column, passing in the schema and the column index, and returns
         /// true if the column should be considered, false if the column should be skipped.
         /// </summary>
-        public static uint GetMaxMetadataKind(this Schema schema, out int colMax, string metadataKind, Func<Schema, int, bool> filterFunc = null)
+        public static uint GetMaxMetadataKind(this DataSchema schema, out int colMax, string metadataKind, Func<DataSchema, int, bool> filterFunc = null)
         {
             uint max = 0;
             colMax = -1;
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Data
         /// The metadata type should be a KeyType with raw type U4.
         /// </summary>
         [BestFriend]
-        internal static IEnumerable<int> GetColumnSet(this Schema schema, string metadataKind, uint value)
+        internal static IEnumerable<int> GetColumnSet(this DataSchema schema, string metadataKind, uint value)
         {
             for (int col = 0; col < schema.Count; col++)
             {
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Data
         /// The metadata type should be of type text.
         /// </summary>
         [BestFriend]
-        internal static IEnumerable<int> GetColumnSet(this Schema schema, string metadataKind, string value)
+        internal static IEnumerable<int> GetColumnSet(this DataSchema schema, string metadataKind, string value)
         {
             for (int col = 0; col < schema.Count; col++)
             {
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Data
         ///  * has a SlotNames metadata
         ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length N
         /// </summary>
-        public static bool HasSlotNames(this Schema.Column column)
+        public static bool HasSlotNames(this DataSchema.Column column)
             => column.Type is VectorType vectorType
                 && vectorType.Size > 0
                 && column.HasSlotNames(vectorType.Size);
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Data
         ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length <paramref name="vectorSize"/>.
         /// </summary>
         [BestFriend]
-        internal static bool HasSlotNames(this Schema.Column column, int vectorSize)
+        internal static bool HasSlotNames(this DataSchema.Column column, int vectorSize)
         {
             if (vectorSize == 0)
                 return false;
@@ -319,10 +319,10 @@ namespace Microsoft.ML.Data
                 && vectorType.ItemType is TextType;
         }
 
-        public static void GetSlotNames(this Schema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
+        public static void GetSlotNames(this DataSchema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
             => column.Metadata.GetValue(Kinds.SlotNames, ref slotNames);
 
-        public static void GetKeyValues<TValue>(this Schema.Column column, ref VBuffer<TValue> keyValues)
+        public static void GetKeyValues<TValue>(this DataSchema.Column column, ref VBuffer<TValue> keyValues)
             => column.Metadata.GetValue(Kinds.KeyValues, ref keyValues);
 
         [BestFriend]
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValueOrNull(schema);
             Contracts.CheckParam(vectorSize >= 0, nameof(vectorSize));
 
-            IReadOnlyList<Schema.Column> list = schema?.GetColumns(role);
+            IReadOnlyList<DataSchema.Column> list = schema?.GetColumns(role);
             if (list?.Count != 1 || !schema.Schema[list[0].Index].HasSlotNames(vectorSize))
                 VBufferUtils.Resize(ref slotNames, vectorSize, 0);
             else
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static bool HasKeyValues(this Schema.Column column, ColumnType type)
+        internal static bool HasKeyValues(this DataSchema.Column column, ColumnType type)
         {
             // False if type is not KeyType because GetKeyCount() returns 0.
             ulong keyCount = type.GetKeyCount();
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns true iff <paramref name="column"/> has IsNormalized metadata set to true.
         /// </summary>
-        public static bool IsNormalized(this Schema.Column column)
+        public static bool IsNormalized(this DataSchema.Column column)
         {
             var metaColumn = column.Metadata.Schema.GetColumnOrNull((Kinds.IsNormalized));
             if (metaColumn == null || !(metaColumn.Value.Type is BoolType))
@@ -418,7 +418,7 @@ namespace Microsoft.ML.Data
         /// <param name="value">The value to return, if successful</param>
         /// <returns>True if the metadata of the right type exists, false otherwise</returns>
         [BestFriend]
-        internal static bool TryGetMetadata<T>(this Schema schema, PrimitiveType type, string kind, int col, ref T value)
+        internal static bool TryGetMetadata<T>(this DataSchema schema, PrimitiveType type, string kind, int col, ref T value)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(type, nameof(type));
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Data
         /// Features with indices 3 and 4 are another categorical. Features 5 and 6 don't appear there, so they are not categoricals.
         /// </summary>
         [BestFriend]
-        internal static bool TryGetCategoricalFeatureIndices(Schema schema, int colIndex, out int[] categoricalFeatures)
+        internal static bool TryGetCategoricalFeatureIndices(DataSchema schema, int colIndex, out int[] categoricalFeatures)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(colIndex >= 0, nameof(colIndex));
@@ -515,15 +515,15 @@ namespace Microsoft.ML.Data
 
         private sealed class MetadataRow : Row
         {
-            private readonly Schema.Metadata _metadata;
+            private readonly DataSchema.Metadata _metadata;
 
-            public MetadataRow(Schema.Metadata metadata)
+            public MetadataRow(DataSchema.Metadata metadata)
             {
                 Contracts.AssertValue(metadata);
                 _metadata = metadata;
             }
 
-            public override Schema Schema => _metadata.Schema;
+            public override DataSchema Schema => _metadata.Schema;
             public override long Position => 0;
             public override long Batch => 0;
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
@@ -532,12 +532,12 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Presents a <see cref="Schema.Metadata"/> as a an <see cref="Row"/>.
+        /// Presents a <see cref="DataSchema.Metadata"/> as a an <see cref="Row"/>.
         /// </summary>
         /// <param name="metadata">The metadata to wrap.</param>
         /// <returns>A row that wraps an input metadata.</returns>
         [BestFriend]
-        internal static Row MetadataAsRow(Schema.Metadata metadata)
+        internal static Row MetadataAsRow(DataSchema.Metadata metadata)
         {
             Contracts.CheckValue(metadata, nameof(metadata));
             return new MetadataRow(metadata);

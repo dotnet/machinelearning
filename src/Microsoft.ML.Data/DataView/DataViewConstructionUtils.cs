@@ -137,9 +137,9 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            public override Schema Schema { get; }
+            public override DataSchema Schema { get; }
 
-            public InputRowBase(IHostEnvironment env, Schema schema, InternalSchemaDefinition schemaDef, Delegate[] peeks, Func<int, bool> predicate)
+            public InputRowBase(IHostEnvironment env, DataSchema schema, InternalSchemaDefinition schemaDef, Delegate[] peeks, Func<int, bool> predicate)
             {
                 Contracts.AssertValue(env);
                 Host = env.Register("Row");
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Data
         {
             protected readonly IHost Host;
 
-            private readonly Schema _schema;
+            private readonly DataSchema _schema;
             private readonly InternalSchemaDefinition _schemaDefn;
 
             // The array of generated methods that extract the fields of the current row object.
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Data
 
             public abstract bool CanShuffle { get; }
 
-            public Schema Schema => _schema;
+            public DataSchema Schema => _schema;
 
             protected DataViewBase(IHostEnvironment env, string name, InternalSchemaDefinition schemaDefn)
             {
@@ -394,9 +394,9 @@ namespace Microsoft.ML.Data
 
             public abstract long? GetRowCount();
 
-            public abstract RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null);
+            public abstract RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null);
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 return new[] { GetRowCursor(columnsNeeded, rand) };
             }
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Data
 
                 public override long Position => _toWrap.Position;
                 public override long Batch => _toWrap.Batch;
-                public override Schema Schema => _toWrap.Schema;
+                public override DataSchema Schema => _toWrap.Schema;
 
                 protected override void Dispose(bool disposing)
                 {
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Data
                 return _data.Count;
             }
 
-            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
                 return new WrappedCursor(new Cursor(Host, "ListDataView", this, predicate, rand));
@@ -601,7 +601,7 @@ namespace Microsoft.ML.Data
             public override long? GetRowCount()
                 => (_data as ICollection<TRow>)?.Count;
 
-            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
                 return new WrappedCursor (new Cursor(Host, this, predicate));
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Data
                 _current = value;
             }
 
-            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
@@ -704,17 +704,17 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static Schema.DetachedColumn[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
+        internal static DataSchema.DetachedColumn[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
         {
             Contracts.AssertValue(schemaDefn);
-            var columns = new Schema.DetachedColumn[schemaDefn.Columns.Length];
+            var columns = new DataSchema.DetachedColumn[schemaDefn.Columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 var col = schemaDefn.Columns[i];
                 var meta = new MetadataBuilder();
                 foreach (var kvp in col.Metadata)
                     meta.Add(kvp.Value.Kind, kvp.Value.MetadataType, kvp.Value.GetGetterDelegate());
-                columns[i] = new Schema.DetachedColumn(col.ColumnName, col.ColumnType, meta.GetMetadata());
+                columns[i] = new DataSchema.DetachedColumn(col.ColumnName, col.ColumnType, meta.GetMetadata());
             }
 
             return columns;

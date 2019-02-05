@@ -375,7 +375,7 @@ namespace Microsoft.ML.Data.IO
         // inspect the schema. We also want to ensure that the useful property that
         // a cursor and view's schemas are the same, is preserved, which allows us
         // to use the cursors from the schema view if convenient to do so.
-        public Schema Schema => _schemaEntry.GetView().Schema;
+        public DataSchema Schema => _schemaEntry.GetView().Schema;
 
         public bool CanShuffle
         {
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Data.IO
         /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the tranpsose loader is instantiated with no input streams.
         /// </summary>
-        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, Schema schema)
+        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, DataSchema schema)
         {
             Contracts.AssertValue(env);
 
@@ -617,7 +617,7 @@ namespace Microsoft.ML.Data.IO
             return _header.RowCount;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, _schemaEntry.GetView().Schema);
 
@@ -627,7 +627,7 @@ namespace Microsoft.ML.Data.IO
             return new Cursor(this, predicate);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             if (HasRowData)
                 return _schemaEntry.GetView().GetRowCursorSet(columnsNeeded, n, rand);
@@ -751,7 +751,7 @@ namespace Microsoft.ML.Data.IO
             private readonly Delegate[] _getters;
             private bool _disposed;
 
-            public override Schema Schema => _parent.Schema;
+            public override DataSchema Schema => _parent.Schema;
 
             public override long Batch { get { return 0; } }
 

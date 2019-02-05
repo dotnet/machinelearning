@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
             var data = loader.Read(source);
 
-            ColumnType GetType(Schema schema, string name)
+            ColumnType GetType(DataSchema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
                 return schema[cIdx].Type;
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
             var data = loader.Read(source);
 
-            ColumnType GetType(Schema schema, string name)
+            ColumnType GetType(DataSchema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
                 return schema[cIdx].Type;

@@ -21,7 +21,7 @@ namespace Microsoft.ML.Data
             public const int MaxRows = 100;
         }
 
-        public Schema Schema { get; }
+        public DataSchema Schema { get; }
         public ImmutableArray<ColumnInfo> ColumnView { get; }
         public ImmutableArray<RowInfo> RowView { get; }
 
@@ -96,12 +96,12 @@ namespace Microsoft.ML.Data
 
         public sealed class ColumnInfo
         {
-            public Schema.Column Column { get; }
+            public DataSchema.Column Column { get; }
             public object[] Values { get; }
 
             public override string ToString() => $"{Column.Name}: {Column.Type}";
 
-            internal ColumnInfo(Schema.Column column, object[] values)
+            internal ColumnInfo(DataSchema.Column column, object[] values)
             {
                 Column = column;
                 Values = values;

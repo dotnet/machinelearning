@@ -42,8 +42,8 @@ namespace Microsoft.ML.Ensemble
 
             public ISchemaBindableMapper Bindable => Parent;
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            public Schema OutputSchema { get; }
+            public DataSchema InputSchema => InputRoleMappedSchema.Schema;
+            public DataSchema OutputSchema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, VectorType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, DataSchema schema, int labelIndex, VectorType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));

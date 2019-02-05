@@ -255,7 +255,7 @@ namespace Microsoft.ML.Data.IO
         /// <param name="ch">The channel to which we write any diagnostic information</param>
         /// <returns>The offset of the metadata table of contents, or 0 if there was
         /// no metadata</returns>
-        private long WriteMetadata(BinaryWriter writer, Schema schema, int col, IChannel ch)
+        private long WriteMetadata(BinaryWriter writer, DataSchema schema, int col, IChannel ch)
         {
             _host.AssertValue(writer);
             _host.AssertValue(schema);
@@ -342,9 +342,9 @@ namespace Microsoft.ML.Data.IO
             return offsets[metadataInfos.Count];
         }
 
-        private delegate IValueCodec WriteMetadataCoreDelegate(Stream stream, Schema schema, int col, string kind, ColumnType type, out CompressionKind compression);
+        private delegate IValueCodec WriteMetadataCoreDelegate(Stream stream, DataSchema schema, int col, string kind, ColumnType type, out CompressionKind compression);
 
-        private IValueCodec WriteMetadataCore<T>(Stream stream, Schema schema, int col, string kind, ColumnType type, out CompressionKind compressionKind)
+        private IValueCodec WriteMetadataCore<T>(Stream stream, DataSchema schema, int col, string kind, ColumnType type, out CompressionKind compressionKind)
         {
             _host.Assert(typeof(T) == type.RawType);
             IValueCodec generalCodec;
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Data.IO
         }
 
         private void WriteWorker(Stream stream, BlockingCollection<Block> toWrite, ColumnCodec[] activeColumns,
-            Schema sourceSchema, int rowsPerBlock, IChannelProvider cp, ExceptionMarshaller exMarshaller)
+            DataSchema sourceSchema, int rowsPerBlock, IChannelProvider cp, ExceptionMarshaller exMarshaller)
         {
             _host.AssertValue(exMarshaller);
             try
@@ -702,7 +702,7 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        private ColumnCodec[] GetActiveColumns(Schema schema, int[] colIndices)
+        private ColumnCodec[] GetActiveColumns(DataSchema schema, int[] colIndices)
         {
             _host.AssertValue(schema);
             _host.AssertValueOrNull(colIndices);

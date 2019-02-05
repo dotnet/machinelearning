@@ -302,7 +302,7 @@ namespace Microsoft.ML.FactorizationMachine
         private readonly string _thresholdColumn;
         private readonly float _threshold;
 
-        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachineModelParameters model, Schema trainSchema,
+        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachineModelParameters model, DataSchema trainSchema,
             string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
         {
@@ -366,11 +366,11 @@ namespace Microsoft.ML.FactorizationMachine
         }
 
         /// <summary>
-        /// Gets the <see cref="Schema"/> result after transformation.
+        /// Gets the <see cref="DataSchema"/> result after transformation.
         /// </summary>
-        /// <param name="inputSchema">The <see cref="Schema"/> of the input data.</param>
-        /// <returns>The post transformation <see cref="Schema"/>.</returns>
-        public override Schema GetOutputSchema(Schema inputSchema)
+        /// <param name="inputSchema">The <see cref="DataSchema"/> of the input data.</param>
+        /// <returns>The post transformation <see cref="DataSchema"/>.</returns>
+        public override DataSchema GetOutputSchema(DataSchema inputSchema)
         {
             for (int i = 0; i < FeatureColumns.Length; i++)
             {

@@ -95,7 +95,7 @@ namespace Microsoft.ML.EntryPoints
             env.AssertValue(input);
             env.AssertNonEmpty(input.Models);
 
-            Schema inputSchema = null;
+            DataSchema inputSchema = null;
             startingData = null;
             transformedData = null;
             byte[][] transformedDataSerialized = null;

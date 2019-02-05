@@ -284,7 +284,7 @@ namespace Microsoft.ML.Learners
                 };
         }
 
-        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryModelParameters parent, Schema.Column featureColumn)
+        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryModelParameters parent, DataSchema.Column featureColumn)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Learners
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, Schema.Column featureColumn, int paramCountCap)
+        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, DataSchema.Column featureColumn, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Learners
             return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
         }
 
-        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, Schema.Column featureColumn, int paramCountCap)
+        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, DataSchema.Column featureColumn, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(writer, nameof(writer));
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Learners
         /// Support method for linear models and <see cref="ICanGetSummaryInKeyValuePairs"/>.
         /// </summary>
         internal void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
-            Schema.Column featureColumn, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
+            DataSchema.Column featureColumn, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
         {
             Contracts.AssertValue(_env);
             _env.AssertValue(resultCollection);
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Learners
             }
         }
 
-        internal Schema.Metadata MakeStatisticsMetadata(LinearBinaryModelParameters parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
+        internal DataSchema.Metadata MakeStatisticsMetadata(LinearBinaryModelParameters parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
         {
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);

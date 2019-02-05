@@ -17,17 +17,17 @@ namespace Microsoft.ML.Transforms.TensorFlow
     public static class TensorFlowUtils
     {
         /// <summary>
-        /// Key to access operator's type (a string) in <see cref="Schema.Column.Metadata"/>.
-        /// Its value describes the Tensorflow operator that produces this <see cref="Schema.Column"/>.
+        /// Key to access operator's type (a string) in <see cref="DataSchema.Column.Metadata"/>.
+        /// Its value describes the Tensorflow operator that produces this <see cref="DataSchema.Column"/>.
         /// </summary>
         public const string TensorflowOperatorTypeKind = "TensorflowOperatorType";
         /// <summary>
-        /// Key to access upstream operators' names (a string array) in <see cref="Schema.Column.Metadata"/>.
-        /// Its value states operators that the associated <see cref="Schema.Column"/>'s generator depends on.
+        /// Key to access upstream operators' names (a string array) in <see cref="DataSchema.Column.Metadata"/>.
+        /// Its value states operators that the associated <see cref="DataSchema.Column"/>'s generator depends on.
         /// </summary>
         public const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
-        internal static Schema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
+        internal static DataSchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
             var schemaBuilder = new SchemaBuilder();
             foreach (var op in graph)
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         /// <summary>
-        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="Schema"/>.
+        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="DataSchema"/>.
         /// For every node in the graph that has an output type that is compatible with the types supported by
         /// <see cref="TensorFlowTransformer"/>, the output schema contains a column with the name of that node, and the
         /// type of its output (including the item type and the shape, if it is known). Every column also contains metadata
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
-        public static Schema GetModelSchema(IHostEnvironment env, string modelPath)
+        public static DataSchema GetModelSchema(IHostEnvironment env, string modelPath)
         {
             var model = LoadTensorFlowModel(env, modelPath);
             return GetModelSchema(env, model.Session.Graph);
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         /// <summary>
         /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
-        /// iterates over the columns of the <see cref="Schema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
+        /// iterates over the columns of the <see cref="DataSchema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
         /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
         /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
         /// </summary>

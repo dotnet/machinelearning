@@ -56,11 +56,11 @@ namespace Microsoft.ML.Data
         /// is that a transformer should know the type it will produce but shouldn't contain the type of the data it produces.
         /// Thus, this field will be eventually removed while legacy code can still access <see cref="IDataView.Schema"/> for now.
         /// </summary>
-        Schema IDataView.Schema => OutputSchema;
+        DataSchema IDataView.Schema => OutputSchema;
 
-        public abstract Schema OutputSchema { get; }
+        public abstract DataSchema OutputSchema { get; }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -94,9 +94,9 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Create a single (non-parallel) row cursor.
         /// </summary>
-        protected abstract RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null);
+        protected abstract RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null);
 
-        public abstract RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null);
+        public abstract RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null);
     }
 
     /// <summary>
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Data
 
         public override long? GetRowCount() => null;
 
-        public override Schema OutputSchema => Source.Schema;
+        public override DataSchema OutputSchema => Source.Schema;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Data
 
         protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> predicate);
 
-        public Schema InputSchema => Source.Schema;
+        public DataSchema InputSchema => Source.Schema;
 
         public Row GetRow(Row input, Func<int, bool> active)
         {
@@ -188,15 +188,15 @@ namespace Microsoft.ML.Data
 
         private sealed class RowImpl : WrappingRow
         {
-            private readonly Schema _schema;
+            private readonly DataSchema _schema;
             private readonly Delegate[] _getters;
             private readonly Action _disposer;
 
             private readonly RowToRowMapperTransformBase _parent;
 
-            public override Schema Schema => _schema;
+            public override DataSchema Schema => _schema;
 
-            public RowImpl(Row input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters, Action disposer)
+            public RowImpl(Row input, RowToRowMapperTransformBase parent, DataSchema schema, Delegate[] getters, Action disposer)
                 : base(input)
             {
                 _parent = parent;
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Data
             private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
             private Bindings(OneToOneTransformBase parent, ColInfo[] infos,
-                Schema input, bool user, string[] names)
+                DataSchema input, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Data
                 Infos = infos;
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, Schema inputSchema,
+            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, DataSchema inputSchema,
                ITransposeDataView transposedInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Data
                 return new Bindings(parent, infos, inputSchema, true, names);
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, Schema inputSchema,
+            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, DataSchema inputSchema,
                 ITransposeDataView transposeInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Data
         private protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
-        public sealed override Schema OutputSchema => _bindings.AsSchema;
+        public sealed override DataSchema OutputSchema => _bindings.AsSchema;
 
         VectorType ITransposeDataView.GetSlotType(int col) => _bindings.GetSlotType(col);
 
@@ -709,7 +709,7 @@ namespace Microsoft.ML.Data
             return _bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<DataSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -723,7 +723,7 @@ namespace Microsoft.ML.Data
             return new Cursor(Host, this, input, active);
         }
 
-        public sealed override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(IEnumerable<DataSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -868,7 +868,7 @@ namespace Microsoft.ML.Data
                 base.Dispose(disposing);
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override DataSchema Schema => _bindings.AsSchema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
