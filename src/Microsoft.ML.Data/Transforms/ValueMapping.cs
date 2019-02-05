@@ -63,6 +63,9 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             var resultDic = inputSchema.ToDictionary(x => x.Name);
+
+            // Decide the output VectorKind for the columns
+            // based on the value type of the dictionary
             var vectorKind = SchemaShape.Column.VectorKind.Scalar;
             if (Transformer.ValueColumnType is VectorType)
             {
@@ -70,6 +73,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 if(Transformer.ValueColumnType.GetVectorSize() == 0)
                     vectorKind = SchemaShape.Column.VectorKind.VariableVector;
             }
+
+            // Set the data type of the output column
+            // if the output VectorKind is a vector or variable vector then
+            // this is the data type of items stored in the vector.
             var isKey = Transformer.ValueColumnType is KeyType;
             var columnType = (isKey) ? NumberType.U4 :
                                     Transformer.ValueColumnType.GetItemType();
@@ -84,6 +91,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     if (Transformer.ValueColumnType is VectorType)
                         throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", inputColumnName);
+                    // if input to the estimator is of vector type then output should always be vector.
+                    // The transformer maps each item in input vector to the values in the dictionary
+                    // producing a vector as output.
                     vectorKind = originalColumn.Kind;
                 }
                 // Create the Value column

@@ -514,13 +514,6 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Workout on value mapping
             var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
-            var schema = est.GetOutputSchema(SchemaShape.Create(dataView.Schema));
-            foreach (var name in new[] { "D", "E", "F" })
-            {
-                Assert.True(schema.TryFindColumn(name, out var originalColumn));
-                Assert.Equal(SchemaShape.Column.VectorKind.Scalar, originalColumn.Kind);
-                Assert.Equal(NumberType.I4, originalColumn.ItemType);
-            }
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -540,13 +533,6 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Workout on value mapping
             var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
-            var schema = est.GetOutputSchema(SchemaShape.Create(dataView.Schema));
-            foreach (var name in new[] { "D", "E", "F" })
-            {
-                Assert.True(schema.TryFindColumn(name, out var originalColumn));
-                Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
-                Assert.Equal(NumberType.I4, originalColumn.ItemType);
-            }
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -564,10 +550,6 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = ML.Transforms.Text.TokenizeWords("TokenizeB", "B")
                 .Append(ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("VecB", "TokenizeB") }));
-            var schema = est.GetOutputSchema(SchemaShape.Create(dataView.Schema));
-            Assert.True(schema.TryFindColumn("VecB", out var originalColumn));
-            Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
-            Assert.Equal(NumberType.I4, originalColumn.ItemType);
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
