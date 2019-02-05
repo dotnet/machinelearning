@@ -33,7 +33,15 @@ using Microsoft.ML.Model;
 namespace Microsoft.ML.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
-    /// <include file='doc.xml' path='doc/members/member[@name="ImageResizingEstimator"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImageResizingEstimator" />.
+    /// </summary>
+    /// <remarks>
+    /// Calling <see cref="ITransformer.Transform(IDataView)"/> resizes the images to a new height and width.
+    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, string, int, int, string, ImageResizingEstimator.ResizingKind, ImageResizingEstimator.Anchor)" />
+    /// <seealso cref = "ImageEstimatorsCatalog" />
+    /// </remarks >
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
     {
 
@@ -403,7 +411,15 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="ImageResizingEstimator"]/*' />
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> that resizes the image to a new width and height.
+    /// </summary>
+    /// <remarks>
+    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageResizingTransformer"/>.
+    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)" />
+    /// <seealso cref = "ImageEstimatorsCatalog" />
+    /// </remarks >
     public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizingTransformer>
     {
         /// <summary>

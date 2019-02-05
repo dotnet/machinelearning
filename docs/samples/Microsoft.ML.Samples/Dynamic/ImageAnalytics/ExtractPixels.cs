@@ -30,13 +30,13 @@ namespace Microsoft.ML.Samples.Dynamic
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
+                }
             }).Read(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageObject", "ImagePath"))
-                        //  .Append(mlContext.Transforms.Resize("ImageObject",imageWidth: 100 , imageHeight: 100 ))
+                          .Append(mlContext.Transforms.Resize("ImageObject",imageWidth: 100 , imageHeight: 100 ))
                           .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"));
 
 

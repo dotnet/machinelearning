@@ -30,16 +30,17 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.ImageAnalytics
 {
-    /// <summary> The <see cref="ITransformer"/> produced by fitting an <see cref="IDataView"/> to an <see cref="ImageLoadingEstimator"/>.
-    /// This <see cref="ITransformer"/>, on calling <see cref="ITransformer.Transform(IDataView)"/> loads the images from a given folder into memory as an<see cref="ImageType"/>.</summary>
+    /// <summary>
+    /// The <see cref="ITransformer"/> produced by fitting an <see cref="IDataView"/> to an <see cref="ImageLoadingEstimator"/>.
+    /// </summary>
     /// <remarks>
-    /// The images to load are present in the folder specfied as <see cref="ImageFolder"/>imageFolder.They get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type.
-    /// Loading the images in memory is the first step of almost every pipeline that does image processing, and further analysis on images.
-    /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap"/>.
+    /// Calling <see cref="ITransformer.Transform(IDataView)"/> that loads images from the disk.
+    /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
+    /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// <a href = "https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started" > examples in the machinelearning-samples github repository.</a>
+    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
     /// <seealso cref = "ImageEstimatorsCatalog"/>
-    /// </remarks >
+    /// </remarks>
     public sealed class ImageLoadingTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
@@ -85,7 +86,7 @@ namespace Microsoft.ML.ImageAnalytics
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
-        /// Load images in memory.
+        /// Initializes a new instance of <see cref="ImageLoadingTransformer"/>.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
@@ -229,17 +230,17 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
-    /// <summary> Loads the images from a given folder into memory.</summary>
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> that loads images from the disk.
+    /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageLoadingTransformer"/>.
-    /// The images to load are present in the folder specfied as <see cref="ImageLoadingTransformer.ImageFolder" />.
-    /// They get loaded in memory as a<see cref="System.Drawing.Bitmap" /> type.
-    /// Loading the images in memory is the first step of almost every pipeline that does image processing, and further analysis on images.
+    /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
     /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// <a href = "https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started" > examples in the machinelearning-samples github repository.</a>
-    /// <seealso cref = "ImageEstimatorsCatalog" />
-    /// </remarks >
+    /// <a href = "https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
+    /// <seealso cref="ImageEstimatorsCatalog" />
+    /// </remarks>
     public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoadingTransformer>
     {
         private readonly ImageType _imageType;

@@ -38,9 +38,9 @@ namespace Microsoft.ML.ImageAnalytics
     /// <remarks>
     ///  During the transformation, the columns of <see cref="ImageType"/> are converted them into a vector representing the image pixels
     ///  than can be further used as features by the algorithms added to the pipeline.
-    /// <seealso cref="ImageEstimatorsCatalog" />
-    /// <seealso cref = "ImageLoadingEstimator" />
-    /// <seealso cref="ImageResizingEstimator"/>
+    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnInfo[])" />
+    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, string, string, ImagePixelExtractingEstimator.ColorBits, bool, float, float, bool)" />
+    /// <seealso cref="ImageEstimatorsCatalog"/>
     /// </remarks>
     public sealed class ImagePixelExtractingTransformer : OneToOneTransformerBase
     {
@@ -490,7 +490,16 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> that extracts the pixels of the image into a vector.
+    /// This vector can further be used as a feature to the algorithms.
+    /// </summary>
+    /// <remarks>
+    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImagePixelExtractingTransformer"/>.
+    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnInfo[])" />
+    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, string, string, ColorBits, bool, float, float, bool)" />
+    /// <seealso cref="ImageEstimatorsCatalog"/>
+    /// </remarks>
     public sealed class ImagePixelExtractingEstimator : TrivialEstimator<ImagePixelExtractingTransformer>
     {
         /// <summary>

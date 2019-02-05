@@ -34,7 +34,19 @@ namespace Microsoft.ML.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
-    /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImageGrayscalingEstimator" />.
+    /// </summary>
+    /// <remarks>
+    /// Calling <see cref="ITransformer.Transform(IDataView)"/> converts the image to grayscale.
+    /// The images might be converted to grayscale to reduce the complexity of the model.
+    /// The grayed out images contain less information to process than the colored images.
+    /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,
+    /// a technique known as <a href = "http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf"> data augmentation</a>.
+    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
+    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
+    /// <seealso cref = "ImageEstimatorsCatalog" />
+    /// </remarks>
     public sealed class ImageGrayscalingTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
@@ -216,7 +228,19 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> that converts the image to grayscale.
+    /// </summary>
+    /// <remarks>
+    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageGrayscalingEstimator"/>.
+    /// The images might be converted to grayscale to reduce the complexity of the model.
+    /// The grayed out images contain less information to process than the colored images.
+    /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,
+    /// a technique known as <a href = "http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf"> data augmentation</a>.
+    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
+    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
+    /// <seealso cref = "ImageEstimatorsCatalog" />
+    /// </remarks >
     public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscalingTransformer>
     {
 

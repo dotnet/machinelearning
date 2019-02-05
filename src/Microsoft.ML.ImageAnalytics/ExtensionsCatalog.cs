@@ -25,11 +25,11 @@ namespace Microsoft.ML
         /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
         /// </summary>
         /// <remarks>
-        /// The get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type.
+        /// The image get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type.
         /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
         /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
         /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-        /// <a href = "https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started" > examples in the machinelearning-samples github repository.</a>
+        /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
         /// <seealso cref = "ImageEstimatorsCatalog" />
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
