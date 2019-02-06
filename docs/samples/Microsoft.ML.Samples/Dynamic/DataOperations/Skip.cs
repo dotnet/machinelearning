@@ -16,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData> enumerableOfData = SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
+            var enumerableOfData = SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
             var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
