@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = ML.Transforms.Text.WordTokenizingTransformer.Summary,
             UserName = ML.Transforms.Text.WordTokenizingTransformer.UserName,
             ShortName = ML.Transforms.Text.WordTokenizingTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, WordTokenizingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, WordTokenizingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "DelimitedTokenizeTransform", input);
             var xf = ML.Transforms.Text.WordTokenizingTransformer.Create(h, input, input.Data);
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = NgramExtractingTransformer.Summary,
             UserName = NgramExtractingTransformer.UserName,
             ShortName = NgramExtractingTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramExtractingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramExtractingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
             var xf = NgramExtractingTransformer.Create(h, input, input.Data);
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = TokenizingByCharactersTransformer.Summary,
             UserName = TokenizingByCharactersTransformer.UserName,
             ShortName = TokenizingByCharactersTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, TokenizingByCharactersTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, TokenizingByCharactersTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
@@ -114,13 +114,13 @@ namespace Microsoft.ML.Transforms.Text
             Desc = LatentDirichletAllocationTransformer.Summary,
             UserName = LatentDirichletAllocationTransformer.UserName,
             ShortName = LatentDirichletAllocationTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LatentDirichletAllocationTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LatentDirichletAllocationTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
-            var cols = input.Columns.Select(colPair => new LatentDirichletAllocationTransformer.ColumnInfo(colPair, input)).ToArray();
+            var cols = input.Columns.Select(colPair => new LatentDirichletAllocationEstimator.ColumnInfo(colPair, input)).ToArray();
             var est = new LatentDirichletAllocationEstimator(h, cols);
             var view = est.Fit(input.Data).Transform(input.Data);
 
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = WordEmbeddingsExtractingTransformer.Summary,
             UserName = WordEmbeddingsExtractingTransformer.UserName,
             ShortName = WordEmbeddingsExtractingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));

@@ -473,7 +473,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
-                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingTransformer.PretrainedModelKind.GloVeTwitter25D)
+                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D)
                 ));
 
             // Let's train our pipeline, and then apply it to the same data.
