@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms.Projections
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
 
-            public void Save(ModelSaveContext ctx, string directoryName)
+            internal void Save(ModelSaveContext ctx, string directoryName)
             {
                 Contracts.AssertValue(ctx);
 

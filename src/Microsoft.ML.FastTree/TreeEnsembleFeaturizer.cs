@@ -387,7 +387,7 @@ namespace Microsoft.ML.Data
             _totalLeafCount = CountLeaves(_ensemble);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

@@ -142,7 +142,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <summary>
         /// Save model to the given context
         /// </summary>
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
@@ -375,7 +375,7 @@ namespace Microsoft.ML.Trainers.Recommender
         }
     }
 
-    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationPredictor>, ICanSaveModel
+    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationPredictor>
     {
         public const string LoaderSignature = "MaFactPredXf";
         public string MatrixColumnIndexColumnName { get; }
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Trainers.Recommender
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

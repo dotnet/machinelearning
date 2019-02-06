@@ -151,7 +151,7 @@ namespace Microsoft.ML.Internal.Internallearn
                 loaderAssemblyName: typeof(FeatureNameCollection).Assembly.FullName);
         }
 
-        public static void Save(ModelSaveContext ctx, in VBuffer<ReadOnlyMemory<char>> names)
+        internal static void Save(ModelSaveContext ctx, in VBuffer<ReadOnlyMemory<char>> names)
         {
             Contracts.AssertValue(ctx);
             ctx.CheckAtModel();

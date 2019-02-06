@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _instanceWeights = buffer.ToDoubleArray(ref position);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        internal override void Save(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // double[]: Labels Distribution.

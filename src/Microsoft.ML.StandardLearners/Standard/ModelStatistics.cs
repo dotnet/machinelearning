@@ -166,7 +166,7 @@ namespace Microsoft.ML.Learners
             return new LinearModelStatistics(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(ctx, nameof(ctx));

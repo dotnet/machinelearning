@@ -406,7 +406,7 @@ namespace Microsoft.ML.Data
             return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

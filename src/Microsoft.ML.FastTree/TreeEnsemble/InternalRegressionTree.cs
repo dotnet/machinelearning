@@ -409,7 +409,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             writer.WriteDoubleArray(_previousLeafValue);
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        internal virtual void Save(ModelSaveContext ctx)
         {
             Save(ctx, TreeType.Regression);
         }
