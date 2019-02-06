@@ -165,7 +165,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Constructor for <see cref="ApplyToData"/> method.
+        /// Constructor for <see cref="ApplyToDataCore"/> method.
         /// </summary>
         private GenericScorer(IHostEnvironment env, GenericScorer transform, IDataView data)
             : base(env, data, RegistrationName, transform.Bindable)
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Data
             return _bindings.AnyNewColumnsActive(predicate);
         }
 
-        public override IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        private protected override IDataTransform ApplyToDataCore(IHostEnvironment env, IDataView newSource)
         {
             Host.CheckValue(env, nameof(env));
             Host.CheckValue(newSource, nameof(newSource));

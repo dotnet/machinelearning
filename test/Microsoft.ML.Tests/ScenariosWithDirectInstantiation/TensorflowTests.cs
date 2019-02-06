@@ -235,10 +235,10 @@ namespace Microsoft.ML.Scenarios
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-            var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", 32, 32, "ImageReal").Transform(images);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 32, 32, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractorTransformer(mlContext, "image_tensor", "ImageCropped", asFloat: false).Transform(cropped);
+            var pixels = new ImagePixelExtractingTransformer(mlContext, "image_tensor", "ImageCropped", asFloat: false).Transform(cropped);
             var tf = new TensorFlowTransformer(mlContext, modelLocation, 
                 new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" }, new[] { "image_tensor" }).Transform(pixels);
 
@@ -276,9 +276,9 @@ namespace Microsoft.ML.Scenarios
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-            var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", 224, 224 , "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractorTransformer(mlContext, "input","ImageCropped").Transform(cropped);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 224, 224 , "ImageReal").Transform(images);
+            var pixels = new ImagePixelExtractingTransformer(mlContext, "input","ImageCropped").Transform(cropped);
             var tf = new TensorFlowTransformer(mlContext, modelLocation, "softmax2_pre_activation", "input").Transform(pixels);
 
             tf.Schema.TryGetColumnIndex("input", out int input);
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Scenarios
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("OneHotLabel", "Label")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumn("Features", "Placeholder")))
-                    .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransformer.Arguments()
+                    .Append(mlContext.Transforms.TensorFlow(new TensorFlowTransformer.Options()
                     {
                         ModelLocation = model_location,
                         InputColumns = new[] { "Features" },
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     }))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
-                    .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel","Label", maxNumTerms: 10))
+                    .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel","Label", maxNumKeys: 10))
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("KeyLabel", "Features"));
 
                 var trainedModel = pipe.Fit(trainData);
@@ -527,14 +527,14 @@ namespace Microsoft.ML.Scenarios
                 if (shuffle)
                 {
                     // Shuffle training data set
-                    preprocessedTrainData = new RowShufflingTransformer(mlContext, new RowShufflingTransformer.Arguments()
+                    preprocessedTrainData = new RowShufflingTransformer(mlContext, new RowShufflingTransformer.Options()
                     {
                         ForceShuffle = shuffle,
                         ForceShuffleSeed = shuffleSeed
                     }, trainData);
 
                     // Shuffle test data set
-                    preprocessedTestData = new RowShufflingTransformer(mlContext, new RowShufflingTransformer.Arguments()
+                    preprocessedTestData = new RowShufflingTransformer(mlContext, new RowShufflingTransformer.Options()
                     {
                         ForceShuffle = shuffle,
                         ForceShuffleSeed = shuffleSeed
@@ -547,7 +547,7 @@ namespace Microsoft.ML.Scenarios
                 }
 
                 var pipe = mlContext.Transforms.CopyColumns(("Features", "Placeholder"))
-                    .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransformer.Arguments()
+                    .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransformer.Options()
                     {
                         ModelLocation = modelLocation,
                         InputColumns = new[] { "Features" },
@@ -781,9 +781,9 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Name", DataKind.TX, 1),
                 }
             );
-            var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractorTransformer(mlContext, "Input", "ImageCropped", interleave: true).Transform(cropped);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var pixels = new ImagePixelExtractingTransformer(mlContext, "Input", "ImageCropped", interleave: true).Transform(cropped);
             IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Output", "Input").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
@@ -833,9 +833,9 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Name", DataKind.TX, 1),
                 }
             );
-            var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizerTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractorTransformer(mlContext, "Input", "ImageCropped").Transform(cropped);
+            var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+            var pixels = new ImagePixelExtractingTransformer(mlContext, "Input", "ImageCropped").Transform(cropped);
 
             var thrown = false;
             try

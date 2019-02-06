@@ -127,7 +127,7 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
             var env = new MLContext();
             var dataView = env.Data.ReadFromEnumerable(data);
-            var term = ValueToKeyMappingTransformer.Create(env, new ValueToKeyMappingTransformer.Arguments()
+            var term = ValueToKeyMappingTransformer.Create(env, new ValueToKeyMappingTransformer.Options()
             {
                 Columns = new[] { new ValueToKeyMappingTransformer.Column() { Source = "Term", Name = "T" } }
             }, dataView);
@@ -153,7 +153,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestCommandLine()
         {
-            var env = new MLContext();
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=copy{col=B:A} in=f:\1.txt" }), (int)0);
         }
 

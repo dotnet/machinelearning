@@ -455,7 +455,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 _parent.Save(ctx);
             }
 
-            public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+            IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
             {
                 return new SequentialDataTransform(Contracts.CheckRef(env, nameof(env)).Register("SequentialDataTransform"), _parent, newSource, _mapper);
             }

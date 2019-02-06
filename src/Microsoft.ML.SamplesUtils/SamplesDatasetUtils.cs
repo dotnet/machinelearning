@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
@@ -16,6 +18,56 @@ namespace Microsoft.ML.SamplesUtils
         /// </summary>
         public static string DownloadHousingRegressionDataset()
         => Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", "housing.txt");
+
+        public static IDataView LoadHousingRegressionDataset(MLContext mlContext)
+        {
+            // Download the file
+            string dataFile = DownloadHousingRegressionDataset();
+
+            // Define the columns to read
+            var reader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                    {
+                        new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
+                        new TextLoader.Column("CrimesPerCapita", DataKind.R4, 1),
+                        new TextLoader.Column("PercentResidental", DataKind.R4, 2),
+                        new TextLoader.Column("PercentNonRetail", DataKind.R4, 3),
+                        new TextLoader.Column("CharlesRiver", DataKind.R4, 4),
+                        new TextLoader.Column("NitricOxides", DataKind.R4, 5),
+                        new TextLoader.Column("RoomsPerDwelling", DataKind.R4, 6),
+                        new TextLoader.Column("PercentPre40s", DataKind.R4, 7),
+                        new TextLoader.Column("EmploymentDistance", DataKind.R4, 8),
+                        new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
+                        new TextLoader.Column("TaxRate", DataKind.R4, 10),
+                        new TextLoader.Column("TeacherRatio", DataKind.R4, 11),
+                    },
+                hasHeader: true
+            );
+
+            // Read the data into an IDataView
+            var data = reader.Read(dataFile);
+
+            return data;
+        }
+
+        /// <summary>
+        /// A class to hold the raw housing regression rows.
+        /// </summary>
+        public sealed class HousingRegression
+        {
+            public float MedianHomeValue { get; set; }
+            public float CrimesPerCapita { get; set; }
+            public float PercentResidental { get; set; }
+            public float PercentNonRetail { get; set; }
+            public float CharlesRiver { get; set; }
+            public float NitricOxides { get; set; }
+            public float RoomsPerDwelling { get; set; }
+            public float PercentPre40s { get; set; }
+            public float EmploymentDistance { get; set; }
+            public float HighwayDistance { get; set; }
+            public float TaxRate { get; set; }
+            public float TeacherRatio { get; set; }
+        }
 
         /// <summary>
         /// Downloads the wikipedia detox dataset from the ML.NET repo.
@@ -34,6 +86,26 @@ namespace Microsoft.ML.SamplesUtils
         /// </summary>
         public static string DownloadBreastCancerDataset()
             => Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/breast-cancer.txt", "breast-cancer.txt");
+
+        /// <summary>
+        /// Downloads 4 images, and a tsv file with their names from the dotnet/machinelearning repo.
+        /// </summary>
+        public static string DownloadImages()
+        {
+            string path = "images";
+
+            var dirInfo = Directory.CreateDirectory(path);
+
+            string pathEscaped = $"{path}{Path.DirectorySeparatorChar}";
+
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/banana.jpg", $"{pathEscaped}banana.jpg");
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/hotdog.jpg", $"{pathEscaped}hotdog.jpg");
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/images.tsv", $"{pathEscaped}images.tsv");
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.bmp", $"{pathEscaped}tomato.bmp");
+            Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.jpg", $"{pathEscaped}tomato.jpg");
+
+            return $"{path}{Path.DirectorySeparatorChar}images.tsv";
+        }
 
         private static string Download(string baseGitPath, string dataFile)
         {
@@ -118,6 +190,31 @@ namespace Microsoft.ML.SamplesUtils
             return data;
         }
 
+        public class SampleTemperatureData
+        {
+            public DateTime Date {get; set; }
+            public float Temperature { get; set; }
+        }
+
+        /// <summary>
+        /// Get a fake temperature dataset.
+        /// </summary>
+        /// <param name="exampleCount">The number of examples to return.</param>
+        /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
+        public static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(int exampleCount)
+        {
+            var rng = new Random(1234321);
+            var date = new DateTime(2012, 1, 1);
+            float temperature = 39.0f;
+
+            for (int i = 0; i < exampleCount; i++)
+            {
+                date = date.AddDays(1);
+                temperature += rng.Next(-5, 5);
+                yield return new SampleTemperatureData { Date = date, Temperature = temperature };
+            }
+        }
+
         /// <summary>
         /// Represents the column of the infertility dataset.
         /// </summary>
@@ -168,7 +265,7 @@ namespace Microsoft.ML.SamplesUtils
             data.Add(new SampleInfertData
             {
                 RowNum = 2,
-                Education = "0-5yrs",
+                Education = "12+yrs",
                 Age = 39,
                 Parity = 6,
                 Induced = 2,
@@ -279,7 +376,7 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Features;
         }
 
-        public static  IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount)
+        public static  IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount, double naRate = 0)
         {
             var rnd = new Random(0);
             var data = new List<FloatLabelFloatFeatureVectorSample>();
@@ -290,10 +387,14 @@ namespace Microsoft.ML.SamplesUtils
                 // Fill feature vector according the assigned label.
                 for (int j = 0; j < _simpleBinaryClassSampleFeatureLength; ++j)
                 {
-                    var value = (float)rnd.NextDouble();
-                    // Positive class gets larger feature value.
-                    if (sample.Label == 0)
-                        value += 0.2f;
+                    float value = float.NaN;
+                    if (naRate <= 0 || rnd.NextDouble() > naRate)
+                    {
+                        value = (float)rnd.NextDouble();
+                        // Positive class gets larger feature value.
+                        if (sample.Label == 0)
+                            value += 0.2f;
+                    }
                     sample.Features[j] = value;
                 }
 

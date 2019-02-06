@@ -45,7 +45,7 @@ namespace Microsoft.ML
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Concatenates two columns together.
+        /// Concatenates columns together.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
@@ -53,7 +53,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ConcatTransform.cs)]
+        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Concatenate.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -64,17 +64,47 @@ namespace Microsoft.ML
         /// DropColumns is used to select a list of columns that user wants to drop from a given input. Any column not specified will
         /// be maintained in the output schema.
         /// </summary>
+        /// <remarks>
+        /// <see cref="DropColumns"/> is commonly used to remove unwanted columns from the schema if the dataset is going to be serialized or
+        /// written out to a file. It is not actually necessary to drop unused columns before training or
+        /// performing transforms, as IDataView's lazy evaluation won't actually materialize those columns.
+        /// In the case of serialization, every column in the schema will be written out. If you have columns
+        /// that you don't want to save, you can use DropColumns to remove them from the schema.
+        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnsToDrop">The array of column names to drop.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Concat](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/DropColumns.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ColumnSelectingEstimator DropColumns(this TransformsCatalog catalog, params string[] columnsToDrop)
             => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnsToDrop);
 
         /// <summary>
-        /// ColumnSelectingEstimator is used to select a list of columns that user wants to drop from a given input.
+        /// ColumnSelectingEstimator is used to select a list of columns that user wants to keep from a given input.
         /// </summary>
+        /// <remarks>
+        /// <format type="text/markdown">
+        /// <see cref="SelectColumns"/> operates on the schema of an input IDataView,
+        /// either dropping unselected columns from the schema or keeping them but marking them as hidden in the schema. Keeping columns hidden
+        /// is recommended when it is necessary to understand how the inputs of a pipeline map to outputs of the pipeline. This feature
+        /// is useful, for example, in debugging a pipeline of transforms by allowing you to print out results from the middle of the pipeline.
+        /// For more information on hidden columns, please refer to [IDataView Design Principles](~/../docs/samples/docs/code/IDataViewDesignPrinciples.md).
+        /// </format>
+        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>
         /// <param name="keepHidden">If true will keep hidden columns and false will remove hidden columns.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectColumns](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/SelectColumns.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
             string[] keepColumns,
             bool keepHidden = ColumnSelectingTransformer.Defaults.KeepHidden)

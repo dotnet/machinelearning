@@ -26,7 +26,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var averagePerceptron = ML.BinaryClassification.Trainers.AveragedPerceptron(
                 new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null });
 
-            pipeline = pipeline.Append(new Ova(Env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
+            var ova = ML.MulticlassClassification.Trainers.OneVersusAll(averagePerceptron, imputeMissingLabelsAsNegative: true,
+                calibrator: calibrator, maxCalibrationExamples: 10000, useProbabilities: true);
+
+            pipeline = pipeline.Append(ova)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
@@ -43,7 +46,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                 new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1, Calibrator = null });
 
-            pipeline = pipeline.Append(new Ova(Env, sdcaTrainer, useProbabilities: false))
+            pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer, useProbabilities: false))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
@@ -61,8 +64,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                 new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
 
-            pipeline = pipeline.Append(new Pkpd(Env, sdcaTrainer))
-                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+            pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.PairwiseCoupling(sdcaTrainer))
+                    .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
             Done();
@@ -84,7 +87,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
-                .Append(new Ova(Env, sdcaTrainer))
+                .Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer))
                 .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             var model = pipeline.Fit(data);

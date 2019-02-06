@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
@@ -87,8 +88,11 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<int>() { 1, 2, 3, 4 };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
+                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A")
                 }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
+            var schema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            Assert.True(schema.TryFindColumn("VecD", out var originalColumn));
+            Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -120,7 +124,7 @@ namespace Microsoft.ML.Tests.Transformers
             var values = new List<ReadOnlyMemory<char>>() { "a".AsMemory(), "b".AsMemory(), "c".AsMemory(), "d".AsMemory() };
 
             var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("TokenizeA", "A")
+                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A")
                 }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
             var t = estimator.Fit(dataView);
 
@@ -156,6 +160,13 @@ namespace Microsoft.ML.Tests.Transformers
                 new int[] {400, 500, 600, 700 }};
 
             var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var schema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            foreach (var name in new[] { "D", "E", "F" })
+            {
+                Assert.True(schema.TryFindColumn(name, out var originalColumn));
+                Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
+            }
+
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -503,6 +514,42 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Workout on value mapping
             var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
+        }
+
+        [Fact]
+        public void ValueMappingValueTypeIsVectorWorkout()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
+            var dataView = ML.Data.ReadFromEnumerable(data);
+            var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
+            var badDataView = ML.Data.ReadFromEnumerable(badData);
+
+            var keys = new List<string>() { "foo", "bar", "test" };
+            var values = new List<int[]>() {
+                new int[] {2, 3, 4 },
+                new int[] {100, 200 },
+                new int[] {400, 500, 600, 700 }};
+
+            // Workout on value mapping
+            var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
+        }
+
+        [Fact]
+        public void ValueMappingInputIsVectorWorkout()
+        {
+            var data = new[] { new TestClass() { B = "bar test foo" } };
+            var dataView = ML.Data.ReadFromEnumerable(data);
+
+            var badData = new[] { new TestWrong() { B = 1.2f } };
+            var badDataView = ML.Data.ReadFromEnumerable(badData);
+
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<int>() { 1, 2, 3, 4 };
+
+            var est = ML.Transforms.Text.TokenizeWords("TokenizeB", "B")
+                .Append(ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("VecB", "TokenizeB") }));
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 

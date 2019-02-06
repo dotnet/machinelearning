@@ -19643,7 +19643,8 @@
                     "Kind": "Enum",
                     "Values": [
                       "IsoPad",
-                      "IsoCrop"
+                      "IsoCrop",
+                      "Fill"
                     ]
                   },
                   "Desc": "Resizing method",
@@ -19749,7 +19750,8 @@
             "Kind": "Enum",
             "Values": [
               "IsoPad",
-              "IsoCrop"
+              "IsoCrop",
+              "Fill"
             ]
           },
           "Desc": "Resizing method",

@@ -10,6 +10,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Training
 {
@@ -397,6 +398,93 @@ namespace Microsoft.ML.Training
             if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        /// <summary>
+        /// This is a shim class to translate the more contemporaneous <see cref="ITrainerEstimator{TTransformer, TPredictor}"/>
+        /// style transformers into the older now disfavored <see cref="ITrainer{TPredictor}"/> idiom, for components that still
+        /// need to operate via that older mechanism. (Mostly command line invocations, and so on.).
+        /// </summary>
+        /// <typeparam name="TModel">The type of the new model parameters.</typeparam>
+        /// <typeparam name="TPredictor">The type corresponding to the legacy predictor.</typeparam>
+        private sealed class TrainerEstimatorToTrainerShim<TModel, TPredictor> : ITrainer<TPredictor>
+            where TModel : class, TPredictor
+            where TPredictor : IPredictor
+        {
+            public TrainerInfo Info { get; }
+            public PredictionKind PredictionKind { get; }
+
+            private readonly ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> _trainer;
+            private readonly IHostEnvironment _env;
+
+            public TrainerEstimatorToTrainerShim(IHostEnvironment env, ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> trainer)
+            {
+                Contracts.AssertValue(env);
+                _env = env;
+                _env.AssertValue(trainer);
+                _env.Assert(trainer is ITrainer);
+
+                var oldTrainer = (ITrainer)trainer;
+                Info = oldTrainer.Info;
+                PredictionKind = oldTrainer.PredictionKind;
+
+                _trainer = trainer;
+            }
+
+            public TPredictor Train(TrainContext context)
+            {
+                _env.CheckValue(context, nameof(context));
+                // For the purpose of mapping into the estimator, we assume that the input estimator does not have
+                // any custom overrides for the column names defined.
+                var tschema = context.TrainingSet.Schema;
+                var nameMap = new List<(string outName, string inName)>();
+                if (tschema.Feature?.Name is string fname && fname != DefaultColumnNames.Features)
+                    nameMap.Add((DefaultColumnNames.Features, fname));
+                if (tschema.Label?.Name is string lname && lname != DefaultColumnNames.Label)
+                    nameMap.Add((DefaultColumnNames.Label, lname));
+                if (tschema.Weight?.Name is string wname && wname != DefaultColumnNames.Weight)
+                    nameMap.Add((DefaultColumnNames.Weight, wname));
+                if (tschema.Group?.Name is string gname && gname != DefaultColumnNames.GroupId)
+                    nameMap.Add((DefaultColumnNames.GroupId, gname));
+                if (tschema.Group?.Name is string iname && iname != DefaultColumnNames.Item)
+                    nameMap.Add((DefaultColumnNames.Item, iname));
+                if (tschema.Group?.Name is string uname && uname != DefaultColumnNames.User)
+                    nameMap.Add((DefaultColumnNames.User, uname));
+
+                var data = context.TrainingSet.Data;
+                if (nameMap.Count > 0)
+                {
+                    var estimator = new ColumnCopyingEstimator(_env, nameMap.ToArray());
+                    data = estimator.Fit(data).Transform(data);
+                }
+                var predictionTransformer = _trainer.Fit(data);
+                var model = predictionTransformer.Model;
+                if (model is TPredictor pred)
+                    return pred;
+                throw _env.Except($"Training resulted in a model of type {model.GetType().Name}.");
+            }
+
+            IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        }
+
+        /// <summary>
+        /// This is a shim for legacy code that takes the more modern <see cref="ITrainerEstimator{TTransformer, TPredictor}"/>
+        /// interface, and maps it to the legacy code that wants an <see cref="ITrainer{TPredictor}"/>. The goal should be to
+        /// remove reliance on that interface if possible, but this may not be practical in the immediate term, so for the benefit
+        /// of scenarios like this we have this convenience function.
+        /// </summary>
+        /// <typeparam name="T">The trainer estimator type.</typeparam>
+        /// <typeparam name="TModel">The type of the model produced by the estimator.</typeparam>
+        /// <typeparam name="TPredictor">The type of the predictor to be produced by the predictor.</typeparam>
+        /// <param name="env">The host environment.</param>
+        /// <param name="trainer">The trainer estimator.</param>
+        /// <returns>An implementation of the legacy trainer interface.</returns>
+        public static ITrainer<TPredictor> MapTrainerEstimatorToTrainer<T, TModel, TPredictor>(IHostEnvironment env, T trainer)
+            where T : ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel>, ITrainer
+            where TModel : class, TPredictor
+            where TPredictor : IPredictor
+        {
+            return new TrainerEstimatorToTrainerShim<TModel, TPredictor>(env, trainer);
         }
     }
 

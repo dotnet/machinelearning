@@ -350,7 +350,7 @@ namespace Microsoft.ML.RunTests
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransformer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoadingTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
@@ -734,7 +734,6 @@ namespace Microsoft.ML.RunTests
             var scoredFf = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = twiceCalibratedFfModel }).ScoredData;
         }
 
-
         [Fact]
         public void EntryPointPipelineEnsemble()
         {
@@ -747,12 +746,12 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features2", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
-                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", sort: ValueToKeyMappingTransformer.SortOrder.Value).Fit(data).Transform(data);
+                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", sort: ValueToKeyMappingEstimator.SortOrder.Value).Fit(data).Transform(data);
 
                 var lrInput = new LogisticRegression.Options
                 {
@@ -1008,7 +1007,7 @@ namespace Microsoft.ML.RunTests
                 else
                 {
                     data = WordHashBagProducingTransformer.Create(Env,
-                        new WordHashBagProducingTransformer.Arguments()
+                        new WordHashBagProducingTransformer.Options()
                         {
                             Columns =
                                 new[] { new WordHashBagProducingTransformer.Column() { Name = "Features", Source = new[] { "Text" } }, }
@@ -1199,8 +1198,8 @@ namespace Microsoft.ML.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features1", 10, false, "Features"),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features2", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features1", 10, false, "Features"),
+                    new RandomFourierFeaturizingEstimator.ColumnInfo("Features2", 10, false, "Features"),
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
@@ -2492,7 +2491,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
-            var args = new SdcaBinaryTrainer.Options()
+            var options = new SdcaBinaryTrainer.Options()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
                 CheckFrequency = 42
@@ -2505,7 +2504,7 @@ namespace Microsoft.ML.RunTests
             inputBindingMap.Add("TrainingData", new List<ParameterBinding>() { parameterBinding });
             inputMap.Add(parameterBinding, new SimpleVariableBinding("data"));
 
-            var result = inputBuilder.GetJsonObject(args, inputBindingMap, inputMap);
+            var result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             var json = FixWhitespace(result.ToString(Formatting.Indented));
 
             var expected =
@@ -2517,8 +2516,8 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            args.LossFunction = new HingeLoss.Arguments();
-            result = inputBuilder.GetJsonObject(args, inputBindingMap, inputMap);
+            options.LossFunction = new HingeLoss.Arguments();
+            result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
             expected =
@@ -2533,8 +2532,8 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            args.LossFunction = new HingeLoss.Arguments() { Margin = 2 };
-            result = inputBuilder.GetJsonObject(args, inputBindingMap, inputMap);
+            options.LossFunction = new HingeLoss.Arguments() { Margin = 2 };
+            result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
             expected =
@@ -3542,12 +3541,12 @@ namespace Microsoft.ML.RunTests
 #pragma warning disable 0618
             var dataView = EntryPoints.ImportTextData.ImportText(Env, new EntryPoints.ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
-            var cat = Categorical.CatTransformDict(Env, new OneHotEncodingTransformer.Arguments()
+            var cat = Categorical.CatTransformDict(Env, new OneHotEncodingTransformer.Options()
             {
                 Data = dataView,
                 Columns = new[] { new OneHotEncodingTransformer.Column { Name = "Categories", Source = "Categories" } }
             });
-            var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Arguments()
+            var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Options()
             {
                 Data = cat.OutputData,
                 Columns = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
@@ -3630,11 +3629,11 @@ namespace Microsoft.ML.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Options()
             {
                 Data = dataView,
                 Columns = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe
+                ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursorForAllColumns())

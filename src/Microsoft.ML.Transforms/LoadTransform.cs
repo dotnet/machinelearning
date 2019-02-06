@@ -22,7 +22,7 @@ namespace Microsoft.ML.Transforms
     /// Load specific transforms from the specified model file. Allows one to 'cherry pick' transforms from
     /// a serialized chain, or to apply a pre-trained transform to a different (but still compatible) data view.
     /// </summary>
-    public static class LoadTransform
+    internal static class LoadTransform
     {
         public class Arguments
         {

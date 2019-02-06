@@ -83,18 +83,21 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Signature for creating an <see cref="IDataTransform"/>.
     /// </summary>
-    public delegate void SignatureDataTransform(IDataView input);
+    [BestFriend]
+    internal delegate void SignatureDataTransform(IDataView input);
 
     /// <summary>
     /// Signature for loading an <see cref="IDataTransform"/>.
     /// </summary>
-    public delegate void SignatureLoadDataTransform(ModelLoadContext ctx, IDataView input);
+    [BestFriend]
+    internal delegate void SignatureLoadDataTransform(ModelLoadContext ctx, IDataView input);
 
     /// <summary>
     /// Interface for a data transform. An <see cref="IDataTransform"/> can save its model information
     /// and is instantiatable from arguments and an input <see cref="IDataView"/>.
     /// </summary>
-    public interface IDataTransform : IDataView, ICanSaveModel
+    [BestFriend]
+    internal interface IDataTransform : IDataView, ICanSaveModel
     {
         IDataView Source { get; }
     }
@@ -103,7 +106,8 @@ namespace Microsoft.ML.Data
     /// Data transforms need to be able to apply themselves to a different input IDataView.
     /// This interface allows them to implement custom rebinding logic.
     /// </summary>
-    public interface ITransformTemplate : IDataTransform
+    [BestFriend]
+    internal interface ITransformTemplate : IDataTransform
     {
         // REVIEW: re-apply operation should support shallow schema modification,
         // like renaming source and destination columns.

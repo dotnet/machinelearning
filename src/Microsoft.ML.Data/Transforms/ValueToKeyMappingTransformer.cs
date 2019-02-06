@@ -22,7 +22,7 @@ using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer),
-    typeof(ValueToKeyMappingTransformer.Arguments), typeof(SignatureDataTransform),
+    typeof(ValueToKeyMappingTransformer.Options), typeof(SignatureDataTransform),
     ValueToKeyMappingTransformer.UserName, "Term", "AutoLabel", "TermTransform", "AutoLabelTransform", DocName = "transform/TermTransform.md")]
 
 [assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -45,7 +45,8 @@ namespace Microsoft.ML.Transforms.Conversions
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
     public sealed partial class ValueToKeyMappingTransformer : OneToOneTransformerBase
     {
-        public abstract class ColumnBase : OneToOneColumn
+        [BestFriend]
+        internal abstract class ColumnBase : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
             public int? MaxNumTerms;
@@ -58,7 +59,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').")]
-            public SortOrder? Sort;
+            public ValueToKeyMappingEstimator.SortOrder? Sort;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
             public bool? TextKeyValues;
@@ -80,7 +81,8 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        public sealed class Column : ColumnBase
+        [BestFriend]
+        internal sealed class Column : ColumnBase
         {
             internal static Column Parse(string str)
             {
@@ -97,21 +99,11 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        /// <summary>
-        /// Controls how the order of the output keys.
-        /// </summary>
-        public enum SortOrder : byte
-        {
-            Occurrence = 0,
-            Value = 1,
-            // REVIEW: We can think about having a frequency order option. What about
-            // other things, like case insensitive (where appropriate), culturally aware, etc.?
-        }
-
-        public abstract class ArgumentsBase : TransformInputBase
+        [BestFriend]
+        internal abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
+            public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Term;
@@ -136,7 +128,7 @@ namespace Microsoft.ML.Transforms.Conversions
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public SortOrder Sort = ValueToKeyMappingEstimator.Defaults.Sort;
+            public ValueToKeyMappingEstimator.SortOrder Sort = ValueToKeyMappingEstimator.Defaults.Sort;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
             // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
@@ -144,7 +136,8 @@ namespace Microsoft.ML.Transforms.Conversions
             public bool TextKeyValues;
         }
 
-        public sealed class Arguments : ArgumentsBase
+        [BestFriend]
+        internal sealed class Options : ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -164,46 +157,6 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        /// <summary>
-        /// Describes how the transformer handles one column pair.
-        /// </summary>
-        public class ColumnInfo
-        {
-            public readonly string Name;
-            public readonly string InputColumnName;
-            public readonly SortOrder Sort;
-            public readonly int MaxNumTerms;
-            public readonly string[] Term;
-            public readonly bool TextKeyValues;
-
-            protected internal string Terms { get; set; }
-
-            /// <summary>
-            /// Describes how the transformer handles one column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
-            /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
-            /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-            /// <param name="term">List of terms.</param>
-            /// <param name="textKeyValues">Whether key value metadata should be text, regardless of the actual input type.</param>
-            public ColumnInfo(string name, string inputColumnName = null,
-                int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms,
-                SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
-                string[] term = null,
-                bool textKeyValues = false
-                )
-            {
-                Contracts.CheckNonWhiteSpace(name, nameof(name));
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                Sort = sort;
-                MaxNumTerms = maxNumTerms;
-                Term = term;
-                TextKeyValues = textKeyValues;
-            }
-        }
         [BestFriend]
         internal const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";
         [BestFriend]
@@ -262,10 +215,10 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly bool[] _textMetadata;
         private const string RegistrationName = "Term";
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ValueToKeyMappingEstimator.ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
+            return columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray();
         }
 
         private string TestIsKnownDataKind(ColumnType type)
@@ -296,12 +249,12 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
-            params ColumnInfo[] columns) :
+            params ValueToKeyMappingEstimator.ColumnInfo[] columns) :
             this(env, input, columns, null, false)
         { }
 
         internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
-            ColumnInfo[] columns, IDataView keyData, bool autoConvert)
+            ValueToKeyMappingEstimator.ColumnInfo[] columns, IDataView keyData, bool autoConvert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             using (var ch = Host.Start("Training"))
@@ -317,42 +270,42 @@ namespace Microsoft.ML.Transforms.Conversions
 
         [BestFriend]
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = new ColumnInfo[args.Columns.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new ValueToKeyMappingEstimator.ColumnInfo[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
-                if ((args.Terms != null || !string.IsNullOrEmpty(args.Term)) &&
-                  (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader != null ||
-                      !string.IsNullOrWhiteSpace(args.TermsColumn)))
+                if ((options.Terms != null || !string.IsNullOrEmpty(options.Term)) &&
+                  (!string.IsNullOrWhiteSpace(options.DataFile) || options.Loader != null ||
+                      !string.IsNullOrWhiteSpace(options.TermsColumn)))
                 {
                     ch.Warning("Explicit term list specified. Data file arguments will be ignored");
                 }
-                if (!Enum.IsDefined(typeof(SortOrder), args.Sort))
-                    throw ch.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected", args.Sort);
+                if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), options.Sort))
+                    throw ch.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected", options.Sort);
 
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Columns[i];
-                    var sortOrder = item.Sort ?? args.Sort;
-                    if (!Enum.IsDefined(typeof(SortOrder), sortOrder))
-                        throw env.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
+                    var item = options.Columns[i];
+                    var sortOrder = item.Sort ?? options.Sort;
+                    if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.SortOrder), sortOrder))
+                        throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
 
-                    cols[i] = new ColumnInfo(
+                    cols[i] = new ValueToKeyMappingEstimator.ColumnInfo(
                         item.Name,
                         item.Source ?? item.Name,
-                        item.MaxNumTerms ?? args.MaxNumTerms,
+                        item.MaxNumTerms ?? options.MaxNumTerms,
                         sortOrder,
                         item.Terms,
-                        item.TextKeyValues ?? args.TextKeyValues);
-                    cols[i].Terms = item.Term ?? args.Term;
+                        item.TextKeyValues ?? options.TextKeyValues);
+                    cols[i].Terms = item.Term ?? options.Term;
                 };
-                var keyData = GetKeyDataViewOrNull(env, ch, args.DataFile, args.TermsColumn, args.Loader, out bool autoLoaded);
+                var keyData = GetKeyDataViewOrNull(env, ch, options.DataFile, options.TermsColumn, options.Loader, out bool autoLoaded);
                 return new ValueToKeyMappingTransformer(env, input, cols, keyData, autoLoaded).MakeDataTransform(input);
             }
         }
@@ -421,7 +374,7 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
-        /// Returns a single-column <see cref="IDataView"/>, based on values from <see cref="Arguments"/>,
+        /// Returns a single-column <see cref="IDataView"/>, based on values from <see cref="Options"/>,
         /// in the case where <see cref="ArgumentsBase.DataFile"/> is set. If that is not set, this will
         /// return <see langword="null"/>.
         /// </summary>
@@ -484,7 +437,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         ch.Warning(
                             "{0} should not be specified when default loader is " + nameof(TextLoader) + ". Ignoring {0}={1}",
-                            nameof(Arguments.TermsColumn), src);
+                            nameof(Options.TermsColumn), src);
                     }
                     keyData = new TextLoader(env,
                         columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
@@ -552,7 +505,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// This builds the <see cref="TermMap"/> instances per column.
         /// </summary>
         private static TermMap[] Train(IHostEnvironment env, IChannel ch, ColInfo[] infos,
-            IDataView keyData, ColumnInfo[] columns, IDataView trainingData, bool autoConvert)
+            IDataView keyData, ValueToKeyMappingEstimator.ColumnInfo[] columns, IDataView trainingData, bool autoConvert)
         {
             Contracts.AssertValue(env);
             env.AssertValue(ch);
@@ -608,7 +561,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 else
                 {
                     // Auto train this column. Leave the term map null for now, but set the lim appropriately.
-                    lims[iinfo] = columns[iinfo].MaxNumTerms;
+                    lims[iinfo] = columns[iinfo].MaxNumKeys;
                     ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), "Must be positive");
                     Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].InputColumnName, out int colIndex));
                     Utils.Add(ref toTrain, colIndex);

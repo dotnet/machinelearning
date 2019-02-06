@@ -45,8 +45,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(dataPath);
 
             data = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingTransformer.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingTransformer.ColumnInfo("B", "VectorString") }).Fit(data).Transform(data);
+                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") }).Fit(data).Transform(data);
 
             var badData1 = new ColumnCopyingTransformer(Env, ("A", "BareKey")).Transform(data);
             var badData2 = new ColumnCopyingTransformer(Env, ("B", "VectorString")).Transform(data);
@@ -82,8 +82,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingTransformer.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingTransformer.ColumnInfo("B", "VectorString") })
+                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (

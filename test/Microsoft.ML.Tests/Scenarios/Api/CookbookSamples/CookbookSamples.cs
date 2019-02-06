@@ -473,7 +473,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
-                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingTransformer.PretrainedModelKind.GloVeTwitter25D)
+                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D)
                 ));
 
             // Let's train our pipeline, and then apply it to the same data.
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "Features");
 
             // Append the OVA learner to the pipeline.
-            dynamicPipe = dynamicPipe.Append(new Ova(mlContext, binaryTrainer));
+            dynamicPipe = dynamicPipe.Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer));
 
             // At this point, we have a choice. We could continue working with the dynamically-typed pipeline, and
             // ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.

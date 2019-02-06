@@ -33,10 +33,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Transforms.Conversions
 {
-    /// <summary>
-    /// The ValueMappingEstimator is a 1-1 mapping from a key to value. This particular class load the mappings from an <see cref="IDataView"/>.
-    /// This gives user the flexibility to load the mapping from file instead of using IEnumerable in <see cref="ValueMappingEstimator{TKey, TValue}"/>
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
     public class ValueMappingEstimator : TrivialEstimator<ValueMappingTransformer>
     {
         private readonly (string outputColumnName, string inputColumnName)[] _columns;
@@ -66,19 +63,39 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
+
+            // Decide the output VectorKind for the columns
+            // based on the value type of the dictionary
+            var vectorKind = SchemaShape.Column.VectorKind.Scalar;
+            if (Transformer.ValueColumnType is VectorType)
+            {
+                vectorKind = SchemaShape.Column.VectorKind.Vector;
+                if(Transformer.ValueColumnType.GetVectorSize() == 0)
+                    vectorKind = SchemaShape.Column.VectorKind.VariableVector;
+            }
+
+            // Set the data type of the output column
+            // if the output VectorKind is a vector or variable vector then
+            // this is the data type of items stored in the vector.
             var isKey = Transformer.ValueColumnType is KeyType;
             var columnType = (isKey) ? NumberType.U4 :
-                                    Transformer.ValueColumnType;
+                                    Transformer.ValueColumnType.GetItemType();
             var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (outputColumnName, inputColumnName) in _columns)
             {
                 if (!inputSchema.TryFindColumn(inputColumnName, out var originalColumn))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName);
 
-                if ((originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
-                   originalColumn.Kind == SchemaShape.Column.VectorKind.Vector) && Transformer.ValueColumnType is VectorType)
-                    throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", inputColumnName);
+                if (originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
+                   originalColumn.Kind == SchemaShape.Column.VectorKind.Vector)
+                {
+                    if (Transformer.ValueColumnType is VectorType)
+                        throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", inputColumnName);
+                    // if input to the estimator is of vector type then output should always be vector.
+                    // The transformer maps each item in input vector to the values in the dictionary
+                    // producing a vector as output.
+                    vectorKind = originalColumn.Kind;
+                }
                 // Create the Value column
                 var col = new SchemaShape.Column(outputColumnName, vectorKind, columnType, isKey, metadataShape);
                 resultDic[outputColumnName] = col;
@@ -87,11 +104,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
-    /// <summary>
-    /// The ValueMappingEstimator is a 1-1 mapping from a key to value. The key type and value type are specified
-    /// through TKey and TValue. TKey is always a scalar. TValue can be either a scalar or an array (array is only possible when input is scalar).
-    /// The mapping is specified, not trained by providing a list of keys and a list of values.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
     /// <typeparam name="TKey">Specifies the key type.</typeparam>
     /// <typeparam name="TValue">Specifies the value type.</typeparam>
     public sealed class ValueMappingEstimator<TKey, TValue> : ValueMappingEstimator
@@ -302,6 +315,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
     public class ValueMappingTransformer : OneToOneTransformerBase
     {
         internal const string Summary = "Maps text values columns to new columns using a map dataset.";
@@ -706,7 +720,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return rgb;
         }
 
-        protected static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
