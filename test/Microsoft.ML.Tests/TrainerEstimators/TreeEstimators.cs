@@ -169,10 +169,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Dictionary<string, object> options = new Dictionary<string, object>();
             options["monotone_constraints"] = new string[] { "pos1:2" };
             var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
-            trainer.ExpandMonotoneConstraint(ref options, 20);
-            Assert.True(options.ContainsKey("monotone_constraints"));
-            var constraintString = options["monotone_constraints"];
-            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+            Assert.Throws<InvalidOperationException>(() => trainer.ExpandMonotoneConstraint(ref options, 20));
         }
 
         [Fact]
@@ -181,10 +178,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Dictionary<string, object> options = new Dictionary<string, object>();
             options["monotone_constraints"] = new string[] { "pos1:2:3" };
             var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
-            trainer.ExpandMonotoneConstraint(ref options, 20);
-            Assert.True(options.ContainsKey("monotone_constraints"));
-            var constraintString = options["monotone_constraints"];
-            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+            Assert.Throws<InvalidOperationException>(() => trainer.ExpandMonotoneConstraint(ref options, 20));
         }
 
         [Fact]
@@ -193,10 +187,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Dictionary<string, object> options = new Dictionary<string, object>();
             options["monotone_constraints"] = new string[] { "pos1:2", "neg:4" };
             var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
-            trainer.ExpandMonotoneConstraint(ref options, 20);
-            Assert.True(options.ContainsKey("monotone_constraints"));
-            var constraintString = options["monotone_constraints"];
-            Assert.Equal("0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+            Assert.Throws<InvalidOperationException>(() => trainer.ExpandMonotoneConstraint(ref options, 20));
         }
 
 
@@ -206,10 +197,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Dictionary<string, object> options = new Dictionary<string, object>();
             options["monotone_constraints"] = new string[] { "pos1:200" };
             var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
-            trainer.ExpandMonotoneConstraint(ref options, 20);
-            Assert.True(options.ContainsKey("monotone_constraints"));
-            var constraintString = options["monotone_constraints"];
-            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+            Assert.Throws<InvalidOperationException>(() => trainer.ExpandMonotoneConstraint(ref options, 20));
         }
 
         [Fact]
@@ -218,10 +206,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Dictionary<string, object> options = new Dictionary<string, object>();
             options["monotone_constraints"] = new string[] { "pos1:-200" };
             var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
-            trainer.ExpandMonotoneConstraint(ref options, 20);
-            Assert.True(options.ContainsKey("monotone_constraints"));
-            var constraintString = options["monotone_constraints"];
-            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+            Assert.Throws<InvalidOperationException>(() => trainer.ExpandMonotoneConstraint(ref options, 20));
         }
 
         [Fact]
@@ -230,10 +215,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Dictionary<string, object> options = new Dictionary<string, object>();
             options["monotone_constraints"] = new string[] { "pos1:10-1" };
             var trainer = new LightGbmBinaryTrainer(Env, new Options() { });
-            trainer.ExpandMonotoneConstraint(ref options, 20);
-            Assert.True(options.ContainsKey("monotone_constraints"));
-            var constraintString = options["monotone_constraints"];
-            Assert.Equal("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", constraintString);
+            Assert.Throws<InvalidOperationException>(() => trainer.ExpandMonotoneConstraint(ref options, 20));
         }
 
 

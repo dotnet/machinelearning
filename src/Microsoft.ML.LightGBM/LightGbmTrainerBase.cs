@@ -130,7 +130,7 @@ namespace Microsoft.ML.LightGBM
                 var subArguments = argument.Split(':');
                 if (subArguments.Length > 2)
                     // Invalid argument, skip to the next argument
-                    continue;
+                    throw Contracts.Except(Host, $"Invalid argument {argument}");
 
                 var keyword = subArguments[0].ToLowerInvariant();
                 int constraint = 0;
@@ -139,7 +139,7 @@ namespace Microsoft.ML.LightGBM
                 else if (keyword.Equals(negativeKeyword, StringComparison.OrdinalIgnoreCase))
                     constraint = -1;
                 else
-                    continue;
+                    throw Contracts.Except(Host, $"Unsupported keyword {keyword}");
 
                 // If only the keyword (pos or neg) is present without a range, this will
                 // set the same constraint for all features.
@@ -169,7 +169,7 @@ namespace Microsoft.ML.LightGBM
                     // Split by -
                     var minMax = range.Split('-');
                     if (minMax.Length > 2)
-                        continue;
+                        throw Contracts.Except(Host, $"Invalid range specified {range}");
 
                     if (minMax.Length == 1)
                     {
