@@ -168,5 +168,59 @@ namespace Microsoft.ML
 
             return new NAFilter(Environment, input, complement: false, columns);
         }
+
+        /// <summary>
+        /// Skip <paramref name="count"/> rows in <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// Skips the first <paramref name="count"/> rows from <paramref name="input"/> and returns an <see cref="IDataView"/> with all other rows.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="count">Number of rows to skip.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Skip](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/Skip.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView Skip(IDataView input, long count = SkipTakeFilter.Arguments.DefaultSkip)
+        {
+            Environment.CheckValue(input, nameof(input));
+
+            var options = new SkipTakeFilter.SkipArguments()
+            {
+                Count = count
+            };
+
+            return new SkipTakeFilter(Environment, options, input);
+        }
+
+        /// <summary>
+        /// Take <paramref name="count"/> rows from <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// Returns returns an <see cref="IDataView"/> with the first <paramref name="count"/> rows from <paramref name="input"/>.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="count">Number of rows to skip.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Take](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/Take.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView Take(IDataView input, long count = SkipTakeFilter.Arguments.DefaultTake)
+        {
+            Environment.CheckValue(input, nameof(input));
+
+            var options = new SkipTakeFilter.TakeArguments()
+            {
+                Count = count
+            };
+
+            return new SkipTakeFilter(Environment, options, input);
+        }
     }
 }
