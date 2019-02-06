@@ -147,5 +147,47 @@ namespace Microsoft.ML
                 throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "KeyType", type.ToString());
             return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
+
+        /// <summary>
+        /// Shuffle the rows of <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Shuffle"/> will shuffle the rows of any input <see cref="IDataView"/> by using a streaming pool.
+        /// A pool of <paramref name="poolRows"/> rows will be constructed from the first <paramref name="poolRows"/> rows
+        /// in the dataset. Rows will then be randomly yielded from the pool and replaced with the next row in the dataset
+        /// until all the rows have been yielded.
+        /// If the <paramref name="input"/> is shufflable, then it will read into the pool with a shuffled cursor.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="seed">The random seed. If unspecified random state will be instead derived from the <see cref="MLContext"/>.</param>
+        /// <param name="poolRows">The number of rows to hold in the pool. If the input dataset is shufflable, setting
+        /// this to 1 will turn off pool shuffling.</param>
+        /// <param name="poolOnly">If true, the transform will not attempt to shuffle the input cursor and only use the pool.
+        /// This parameter has no effect if the input data was not itself shufflable.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Shuffle](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/Shuffle.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView Shuffle(IDataView input,
+            uint? seed = null,
+            int poolRows = RowShufflingTransformer.Defaults.PoolRows,
+            bool poolOnly = RowShufflingTransformer.Defaults.PoolOnly)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(poolRows > 0, nameof(poolRows), "Pool size must be positive");
+
+            var args = new RowShufflingTransformer.Arguments
+            {
+                PoolRows = poolRows,
+                PoolOnly = poolOnly,
+                ForceShuffle = true,
+                ForceShuffleSeed = (int)seed
+            };
+
+            return new RowShufflingTransformer(Environment, args, input);
+        }
     }
 }

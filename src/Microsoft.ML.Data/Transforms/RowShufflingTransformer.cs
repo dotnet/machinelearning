@@ -30,16 +30,19 @@ namespace Microsoft.ML.Transforms
     /// rows in the input cursor, and then, successively, the output cursor will yield one
     /// of these rows and replace it with another row from the input.
     /// </summary>
-    public sealed class RowShufflingTransformer : RowToRowTransformBase
+    [BestFriend]
+    internal sealed class RowShufflingTransformer : RowToRowTransformBase
     {
-        private static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const int PoolRows = 1000;
             public const bool PoolOnly = false;
             public const bool ForceShuffle = false;
         }
 
-        public sealed class Arguments
+        [BestFriend]
+        internal sealed class Arguments
         {
             // REVIEW: A more intelligent heuristic, based on the expected size of the inputs, perhaps?
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
@@ -94,7 +97,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="poolRows">The pool will have this many rows</param>
         /// <param name="poolOnly">If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.</param>
         /// <param name="forceShuffle">If true, the transform will always provide a shuffled view.</param>
-        public RowShufflingTransformer(IHostEnvironment env,
+        [BestFriend]
+        internal RowShufflingTransformer(IHostEnvironment env,
             IDataView input,
             int poolRows = Defaults.PoolRows,
             bool poolOnly = Defaults.PoolOnly,
@@ -104,9 +108,10 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
+        /// Constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public RowShufflingTransformer(IHostEnvironment env, Arguments args, IDataView input)
+        [BestFriend]
+        internal RowShufflingTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
@@ -148,7 +153,8 @@ namespace Microsoft.ML.Transforms
             _subsetInput = SelectCachableColumns(input, host);
         }
 
-        public static RowShufflingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        [BestFriend]
+        internal static RowShufflingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -221,7 +227,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to take a cursor, and get a shuffled version of this cursor.
         /// </summary>
-        public static RowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, RowCursor cursor, Random rand)
+        [BestFriend]
+        internal static RowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, RowCursor cursor, Random rand)
         {
             Contracts.CheckValue(provider, nameof(provider));
 
