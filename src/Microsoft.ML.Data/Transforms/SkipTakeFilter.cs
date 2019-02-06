@@ -97,6 +97,28 @@ namespace Microsoft.ML.Transforms
             _take = take;
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="SkipTakeFilter"/>.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="args">Options for the skip operation.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
+        public SkipTakeFilter(IHostEnvironment env, SkipArguments args, IDataView input)
+            : this(args.Count, Arguments.DefaultTake, env, input)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SkipTakeFilter"/>.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="args">Options for the take operation.</param>
+        /// <param name="input">Input <see cref="IDataView"/>.</param>
+        public SkipTakeFilter(IHostEnvironment env, TakeArguments args, IDataView input)
+            : this(Arguments.DefaultSkip, args.Count, env, input)
+        {
+        }
+
         IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
             => new SkipTakeFilter(_skip, _take, env, newSource);
 
