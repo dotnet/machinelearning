@@ -171,7 +171,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
         /// ]]></format>
         /// </example>
-        public static ValueMappingEstimator ValueMap<TInputType, TOutputType>(
+        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType> values,
@@ -196,7 +196,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
         /// ]]></format>
         /// </example>
-        public static ValueMappingEstimator ValueMap<TInputType, TOutputType>(
+        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType> values,
@@ -224,12 +224,12 @@ namespace Microsoft.ML
         ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
         /// ]]></format>
         /// </example>
-        public static ValueMappingEstimator ValueMap<TInputType, TOutputType>(
+        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType[]> values,
             params (string outputColumnName, string inputColumnName)[] columns)
-            => new ValueMappingEstimator<TInputType, TOutputType[]>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
