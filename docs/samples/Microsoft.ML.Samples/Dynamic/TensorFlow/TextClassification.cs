@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 
@@ -9,21 +10,30 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
         public const int MaxSentenceLenth = 600;
         /// <summary>
         /// Example use of the TensorFlow sentiment classification model.
-        /// Download the model from 
-        /// https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model
-        /// The model is in 'SavedModel' format. For further explanation on how was the `sentiment_model` created 
-        /// c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
         /// </summary>
         public static void ScoringWithTextClassificationModelSample()
         {
-            string modelLocation = @"sentiment_model";
+            string modelLocation = SamplesUtils.DatasetUtils.DownloadTensorFlowSentimentModel();
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
-            var data = new[] { new IMDBSentiment() { Sentiment_Text = "this film was just brilliant casting location scenery story direction everyone's really suited the part they played and you could just imagine being there robert  is an amazing actor and now the same being director  father came from the same scottish island as myself so i loved the fact there was a real connection with this film the witty remarks throughout the film were great it was just brilliant so much that i bought the film as soon as it was released for  and would recommend it to everyone to watch and the fly fishing was amazing really cried at the end it was so sad and you know what they say if you cry at a film it must have been good and this definitely was also  to the two little boy's that played the  of norman and paul they were just brilliant children are often left out of the  list i think because the stars that play them all grown up are such a big profile for the whole film but these children are amazing and should be praised for what they have done don't you think the whole story was so lovely because it was true and was someone's life after all that was shared with us all" } };
+            var mlContext = new MLContext();
+            var data = new[] { new IMDBSentiment() {
+                Sentiment_Text = "this film was just brilliant casting location scenery story direction " +
+                "everyone's really suited the part they played and you could just imagine being there robert " +
+                "is an amazing actor and now the same being director  father came from the same scottish " +
+                "island as myself so i loved the fact there was a real connection with this film the witty " +
+                "remarks throughout the film were great it was just brilliant so much that i bought the " +
+                "film as soon as it was released for  and would recommend it to everyone to watch and the " +
+                "fly fishing was amazing really cried at the end it was so sad and you know what they say " +
+                "if you cry at a film it must have been good and this definitely was also  to the two " +
+                "little boy's that played the  of norman and paul they were just brilliant children are " +
+                "often left out of the  list i think because the stars that play them all grown up are " +
+                "such a big profile for the whole film but these children are amazing and should be praised " +
+                "for what they have done don't you think the whole story was so lovely because it was true " +
+                "and was someone's life after all that was shared with us all" } };
             var dataView = mlContext.Data.ReadFromEnumerable(data);
 
             // This is the dictionary to convert words into the integer indexes.
-            var lookupMap = mlContext.Data.ReadFromTextFile(@"sentiment_model/imdb_word_index.csv",
+            var lookupMap = mlContext.Data.ReadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
                    columns: new[]
                    {
                         new TextLoader.Column("Words", DataKind.TX, 0),
@@ -44,12 +54,13 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction = (i, j) =>
             {
                 j.Sentiment_Text = i.Sentiment_Text;
-                j.Features = i.VarLengthFeatures;
-                Array.Resize(ref j.Features, MaxSentenceLenth);
+                var features = i.VariableLenghtFeatures;
+                Array.Resize(ref features, MaxSentenceLenth);
+                j.Features = features;
             };
 
             var engine = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("VarLengthFeatures", "TokenizedWords") }))
+                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("VariableLenghtFeatures", "TokenizedWords") }))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
                 .Append(mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "Prediction/Softmax" }, new[] { "Features" }))
                 .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
@@ -76,8 +87,14 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
         public class IMDBSentiment
         {
             public string Sentiment_Text { get; set; }
+
+            /// <summary>
+            /// This is a variable length vector designated by VectorType(0) attribute.
+            /// Variable length vectors are produced by applying operations such as 'TokenizeWords' on strings
+            /// resulting in vectors of tokens of variable lengths.
+            /// </summary>
             [VectorType(0)]
-            public int[] VarLengthFeatures { get; set; }
+            public int[] VariableLenghtFeatures { get; set; }
         }
 
         /// <summary>
@@ -86,8 +103,9 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
         public class IntermediateFeatures
         {
             public string Sentiment_Text { get; set; }
-            [VectorType(600)]
-            public int[] Features;
+
+            [VectorType(MaxSentenceLenth)]
+            public int[] Features { get; set; }
         }
 
         /// <summary>
