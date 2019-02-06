@@ -1,0 +1,22 @@
+﻿<#@ template language="C#" linePragmas="false" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Train.cs" />
+    <Compile Include="ConsoleHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="0.9.0" />
+    <PackageReference Include="Microsoft.ML.HalLearners" Version="0.9.0" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="0.9.0" />
+  </ItemGroup>
+</Project>

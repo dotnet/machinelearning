@@ -44,7 +44,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateCreateTextReaderArgsColumnWithNullSoure()
         {
             var input = new ColumnInferenceResult(
-                new List<(TextLoader.Column, ColumnPurpose)>() { (new TextLoader.Column() { Name = "Column", Type = DataKind.R4 } , ColumnPurpose.CategoricalFeature) },
+                new List<(TextLoader.Column, ColumnPurpose)>() { (new TextLoader.Column() { Name = "Column", Type = DataKind.R4 }, ColumnPurpose.CategoricalFeature) },
                 false, false, "\t", false, false);
             UserInputValidationUtil.ValidateCreateTextReaderArgs(input);
         }
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Auto.Test
         [ExpectedException(typeof(ArgumentNullException))]
         public void ValidateAutoFitNullTrainData()
         {
-            UserInputValidationUtil.ValidateAutoFitArgs(null, DatasetUtil.UciAdultLabel, 
+            UserInputValidationUtil.ValidateAutoFitArgs(null, DatasetUtil.UciAdultLabel,
                 DatasetUtil.GetUciAdultDataView(), null, null);
         }
 
@@ -89,8 +89,10 @@ namespace Microsoft.ML.Auto.Test
         {
             UserInputValidationUtil.ValidateAutoFitArgs(DatasetUtil.GetUciAdultDataView(),
                 DatasetUtil.UciAdultLabel, DatasetUtil.GetUciAdultDataView(),
-                new AutoFitSettings() {
-                    StoppingCriteria = new ExperimentStoppingCriteria() {
+                new AutoFitSettings()
+                {
+                    StoppingCriteria = new ExperimentStoppingCriteria()
+                    {
                         MaxIterations = 0,
                     }
                 }, null);

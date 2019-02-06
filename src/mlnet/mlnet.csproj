@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>mlnet</ToolCommandName>
+    <PackageId>mlgen</PackageId>
+    <Authors>mlgen</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine.Experimental" Version="0.1.0-alpha-63728-01" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoML\AutoML.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="mscorlib">
+      <HintPath>mscorlib</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>System</HintPath>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>System.Core</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Templates\ConsoleHelper.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ConsoleHelper.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\MLCodeGen.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MLCodeGen.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\MLProjectGen.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MLProjectGen.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Templates\ConsoleHelper.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ConsoleHelper.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\MLCodeGen.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>MLCodeGen.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\MLProjectGen.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>MLProjectGen.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>

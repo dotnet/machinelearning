@@ -111,7 +111,7 @@ namespace Microsoft.ML.Auto
 
             IDataView data = dvBuilder.GetDataView();
             AutoMlUtils.Assert(data.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");
-            
+
             // Set relevant random forest arguments.
             // Train random forest.
             var trainer = new FastForestRegression(_context, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s =>
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Auto
             var retainedConfigs = new HashSet<ParameterSet>(bestConfigurations.Select(x => x.Item2));
 
             // remove configurations matching previous run
-            foreach(var previousRun in previousRuns)
+            foreach (var previousRun in previousRuns)
             {
                 retainedConfigs.Remove(previousRun.ParameterSet);
             }

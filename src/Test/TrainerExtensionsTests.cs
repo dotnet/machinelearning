@@ -17,7 +17,7 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var trainerNames = Enum.GetValues(typeof(TrainerName)).Cast<TrainerName>();
-            foreach(var trainerName in trainerNames)
+            foreach (var trainerName in trainerNames)
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
                 var instance = extension.CreateInstance(context, null);
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Auto.Test
             var tasks = new TaskKind[] { TaskKind.BinaryClassification,
                 TaskKind.MulticlassClassification, TaskKind.Regression  };
 
-            foreach(var task in tasks)
+            foreach (var task in tasks)
             {
                 var trainerSet10 = TrainerExtensionCatalog.GetTrainers(task, 10);
                 var trainerSet50 = TrainerExtensionCatalog.GetTrainers(task, 50);
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Auto.Test
         public void BuildPipelineNodePropsLightGbm()
         {
             var sweepParams = SweepableParams.BuildLightGbmParams();
-            foreach(var sweepParam in sweepParams)
+            foreach (var sweepParam in sweepParams)
             {
                 sweepParam.RawValue = 1;
             }
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Auto.Test
   ""CatSmooth"": 10,
   ""CatL2"": 0.5,
   ""TreeBooster"": {
-    ""Name"": ""Microsoft.ML.LightGBM.TreeBooster"",
+    ""Name"": ""LightGbmArguments.TreeBooster.Arguments"",
     ""Properties"": {
       ""RegLambda"": 0.5,
       ""RegAlpha"": 0.5
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Auto.Test
         public void BuildPipelineNodePropsSdca()
         {
             var sweepParams = SweepableParams.BuildSdcaParams();
-            foreach(var sweepParam in sweepParams)
+            foreach (var sweepParam in sweepParams)
             {
                 sweepParam.RawValue = 1;
             }
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Auto.Test
 }";
             Util.AssertObjectMatchesJson(expectedJson, sdcaBinaryProps);
         }
-        
+
         [TestMethod]
         public void BuildParameterSetLightGbm()
         {
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Auto.Test
             var multiParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.LightGbmMulti, props);
             var regressionParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.LightGbmRegression, props);
 
-            foreach(var paramSet in new ParameterSet[] { binaryParams, multiParams, regressionParams })
+            foreach (var paramSet in new ParameterSet[] { binaryParams, multiParams, regressionParams })
             {
                 Assert.AreEqual(4, paramSet.Count);
                 Assert.AreEqual("1", paramSet["NumBoostRound"].ValueText);
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Auto.Test
             };
 
             var sdcaParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.SdcaBinary, props);
-            
+
             Assert.AreEqual(1, sdcaParams.Count);
             Assert.AreEqual("1", sdcaParams["LearningRate"].ValueText);
         }

@@ -77,7 +77,7 @@ namespace Microsoft.ML.Auto
 
         public static IDictionary<string, object> BuildPipelineNodeProps(TrainerName trainerName, IEnumerable<SweepableParam> sweepParams)
         {
-            if(trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
+            if (trainerName == TrainerName.LightGbmBinary || trainerName == TrainerName.LightGbmMulti ||
                 trainerName == TrainerName.LightGbmRegression)
             {
                 return BuildLightGbmPipelineNodeProps(sweepParams);
@@ -92,11 +92,11 @@ namespace Microsoft.ML.Auto
             var parentArgParams = sweepParams.Except(treeBoosterParams);
 
             var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
-            var treeBoosterCustomProp = new CustomProperty("Microsoft.ML.LightGBM.TreeBooster", treeBoosterProps);
+            var treeBoosterCustomProp = new CustomProperty("LightGbmArguments.TreeBooster.Arguments", treeBoosterProps);
 
             var props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
             props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;
-            
+
             return props;
         }
 

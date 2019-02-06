@@ -1,0 +1,185 @@
+﻿<#@ template language="C#" linePragmas="false" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+/* This template shows the building blocks for training a machine learning model with ML.NET (https://aka.ms/mlnet).
+ * This model predicts whether a sentence has a positive or negative sentiment. It is based on a sample that can be 
+ * found at https://aka.ms/mlnetsentimentanalysis, which provides a more detailed introduction to ML.NET and the scenario. */
+
+using System;
+using System.IO;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using static Microsoft.ML.Data.TextLoader;
+<#= GeneratedUsings #>
+
+
+namespace MlnetSample
+{
+    class Program
+    {
+        private static string TrainDataPath = @"<#= Path #>";
+        private static string TestDataPath = @"<#= Path #>";
+        private static string ModelPath = @"./model.zip";
+
+        static void Main(string[] args)
+        {
+            //Create MLContext to be shared across the model creation workflow objects 
+            //Set a random seed for repeatable/deterministic results across multiple trainings.
+            var mlContext = new MLContext(seed: 1);
+
+            // Create, Train, Evaluate and Save a model
+            BuildTrainEvaluateAndSaveModel(mlContext);
+            ConsoleHelper.ConsoleWriteHeader("=============== End of training processh ===============");
+
+            // Make a single test prediction loding the model from .ZIP file
+            TestSinglePrediction(mlContext);
+
+            ConsoleHelper.ConsoleWriteHeader("=============== End of process, hit any key to finish ===============");
+            Console.ReadKey();
+
+        }
+
+        private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)
+        {
+            // STEP 1: Common data loading configuration
+            TextLoader textLoader = GetTextLoader(mlContext);
+
+            IDataView trainingDataView = textLoader.Read(TrainDataPath);
+            IDataView testDataView = textLoader.Read(TestDataPath);
+
+<# if(Transforms.Count >0 ) {#>
+            // STEP 2: Common data process configuration with pipeline data transformations          
+
+            var dataProcessPipeline = <# for(int i=0;i<Transforms.Count;i++) 
+			{ 
+			   if(i>0)
+			   { Write("\n                                    .Append(");
+			   }
+			   Write("mlContext.Transforms."+Transforms[i]); 
+            }#>;
+<#}#>
+
+            // STEP 3: Set the training algorithm, then create and config the modelBuilder  
+            var trainer = mlContext.<#= TaskType #>.Trainers.<#= Trainer #>;
+
+            // STEP 4: Train the model fitting to the DataSet
+<# if(Transforms.Count >0 ) {#>
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
+            var trainedModel = trainingPipeline.Fit(trainingDataView);
+<# }
+else{#>
+            var trainedModel = trainer.Fit(trainingDataView);
+<#}#>
+
+            // STEP 5: Evaluate the model and show accuracy stats
+            Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
+            var predictions = trainedModel.Transform(testDataView);
+            var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "Label", "Score");
+<#if("BinaryClassification".Equals(TaskType)){ #>
+            ConsoleHelper.PrintBinaryClassificationMetrics(trainer.ToString(), metrics);
+<#}#>
+<#if("Regression".Equals(TaskType)){ #>
+            ConsoleHelper.PrintRegressionMetrics(trainer.ToString(), metrics);
+<#}#>
+            // STEP 6: Save/persist the trained model to a .ZIP file
+
+            using (var fs = new FileStream(ModelPath, FileMode.Create, FileAccess.Write, FileShare.Write))
+                mlContext.Model.Save(trainedModel, fs);
+
+            Console.WriteLine("The model is saved to {0}", ModelPath);
+
+            return trainedModel;
+        }
+
+        private static TextLoader GetTextLoader(MLContext mlContext)
+        {
+            return mlContext.Data.CreateTextReader(
+                                                        columns: new[]
+                                                                    {
+<# foreach(var col in Columns) {#>
+                                                                    <#= col #>
+<# } #>
+                                                                    },                                                     
+                                                        hasHeader:<#= HasHeader.ToString().ToLowerInvariant() #>,
+                                                        separatorChar:'<#= Separator #>'
+                                                        );
+        }
+
+        // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
+        private static void TestSinglePrediction(MLContext mlContext)
+        {
+            TextLoader textLoader = GetTextLoader(mlContext);
+
+            //Load data to test. Could be any test data. For demonstration purpose train data is used here.
+            IDataView trainingDataView = textLoader.Read(TrainDataPath);
+
+            var sample = trainingDataView.AsEnumerable<SampleClass>(mlContext, false).First();
+
+            ITransformer trainedModel;
+            using (var stream = new FileStream(ModelPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                trainedModel = mlContext.Model.Load(stream);
+            }
+
+            // Create prediction engine related to the loaded trained model
+            var predEngine= trainedModel.CreatePredictionEngine<SampleClass, SamplePrediction>(mlContext);
+
+            //Score
+            var resultprediction = predEngine.Predict(sample);
+
+            Console.WriteLine($"=============== Single Prediction  ===============");
+            Console.WriteLine($"Input: {sample} | Prediction: {resultprediction.<#if("BinaryClassification".Equals(TaskType)){ #>Prediction<#}else{#>Score<#}#>} <#if("BinaryClassification".Equals(TaskType)){ #>Probability: {resultprediction.Probability} <# } #>");
+            Console.WriteLine($"==================================================");
+        }
+
+    }
+
+    public class SampleClass
+    {
+<#
+foreach(var label in ClassLabels)
+{#>
+       <#=label#>
+<#
+}
+#>
+    }
+
+    public class SamplePrediction
+    {
+<#if("BinaryClassification".Equals(TaskType)){ #>
+        // ColumnName attribute is used to change the column name from
+        // its default value, which is the name of the field.
+        [ColumnName("PredictedLabel")]
+        public bool Prediction { get; set; }
+
+        // No need to specify ColumnName attribute, because the field
+        // name "Probability" is the column name we want.
+        public float Probability { get; set; }
+<# } #>
+<#if("MultiClassClassification".Equals(TaskType)){ #>
+        public float[] Score { get; set; }
+<#}else{ #>
+        public float Score { get; set; }
+<#}#>
+    }
+
+}
+<#+
+public string Path {get;set;}
+public string TestPath {get;set;}
+public IList<string> Columns {get;set;}
+public bool HasHeader {get;set;}
+public string Separator {get;set;}
+public IList<string> Transforms {get;set;}
+public string Trainer {get;set;}
+public string TaskType {get;set;}
+public IList<string> ClassLabels {get;set;}
+public bool UsingLightGBM {get;set;}
+public bool UsingCategorical {get;set;}
+public string GeneratedUsings {get;set;}
+#>
