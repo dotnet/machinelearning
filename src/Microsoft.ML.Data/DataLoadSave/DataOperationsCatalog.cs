@@ -147,5 +147,26 @@ namespace Microsoft.ML
                 throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "KeyType", type.ToString());
             return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
+
+        /// <summary>
+        /// Drop rows where any column in <paramref name="columns"/> contains a missing value.
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="columns">Name of the columns to filter on. If a row is has a missing value in any of
+        /// these columns, it will be dropped from the dataset.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FilterByMissingValues](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByMissingValues.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView FilterByMissingValues(IDataView input, params string[] columns)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
+
+            return new NAFilter(Environment, input, complement: false, columns);
+        }
     }
 }
