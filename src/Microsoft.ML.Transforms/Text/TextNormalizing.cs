@@ -16,7 +16,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Text;
 
-[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), typeof(TextNormalizingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), typeof(TextNormalizingTransformer.Options), typeof(SignatureDataTransform),
     "Text Normalizer Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
 
 [assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class TextNormalizingTransformer : OneToOneTransformerBase
     {
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class Arguments
+        internal sealed class Options
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly bool _keepPunctuations;
         private readonly bool _keepNumbers;
 
-        public TextNormalizingTransformer(IHostEnvironment env,
+        internal TextNormalizingTransformer(IHostEnvironment env,
             TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizingEstimator.Defaults.TextCase,
             bool keepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics,
             bool keepPunctuations = TextNormalizingEstimator.Defaults.KeepPunctuations,
@@ -167,20 +167,20 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = new (string outputColumnName, string inputColumnName)[args.Columns.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new (string outputColumnName, string inputColumnName)[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Columns[i];
+                var item = options.Columns[i];
                 cols[i] = (item.Name, item.Source ?? item.Name);
             }
-            return new TextNormalizingTransformer(env, args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers, cols).MakeDataTransform(input);
+            return new TextNormalizingTransformer(env, options.TextCase, options.KeepDiacritics, options.KeepPunctuations, options.KeepNumbers, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) => (type.GetItemType() is TextType);
+        internal static bool IsColumnTypeValid(ColumnType type) => (type.GetItemType() is TextType);
 
         internal const string ExpectedColumnType = "Text or vector of text.";
 
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
-        public TextNormalizingEstimator(IHostEnvironment env,
+        internal TextNormalizingEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
             CaseNormalizationMode textCase = Defaults.TextCase,
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         /// <param name="columns">Pairs of columns to run the text normalization on.</param>
-        public TextNormalizingEstimator(IHostEnvironment env,
+        internal TextNormalizingEstimator(IHostEnvironment env,
             CaseNormalizationMode textCase = Defaults.TextCase,
             bool keepDiacritics = Defaults.KeepDiacritics,
             bool keepPunctuations = Defaults.KeepPunctuations,
@@ -497,6 +497,10 @@ namespace Microsoft.ML.Transforms.Text
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

@@ -1006,7 +1006,7 @@ namespace Microsoft.ML.RunTests
                 else
                 {
                     data = WordHashBagProducingTransformer.Create(Env,
-                        new WordHashBagProducingTransformer.Arguments()
+                        new WordHashBagProducingTransformer.Options()
                         {
                             Columns =
                                 new[] { new WordHashBagProducingTransformer.Column() { Name = "Features", Source = new[] { "Text" } }, }
@@ -2490,7 +2490,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
-            var args = new SdcaBinaryTrainer.Options()
+            var options = new SdcaBinaryTrainer.Options()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
                 CheckFrequency = 42
@@ -2503,7 +2503,7 @@ namespace Microsoft.ML.RunTests
             inputBindingMap.Add("TrainingData", new List<ParameterBinding>() { parameterBinding });
             inputMap.Add(parameterBinding, new SimpleVariableBinding("data"));
 
-            var result = inputBuilder.GetJsonObject(args, inputBindingMap, inputMap);
+            var result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             var json = FixWhitespace(result.ToString(Formatting.Indented));
 
             var expected =
@@ -2515,8 +2515,8 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            args.LossFunction = new HingeLoss.Arguments();
-            result = inputBuilder.GetJsonObject(args, inputBindingMap, inputMap);
+            options.LossFunction = new HingeLoss.Arguments();
+            result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
             expected =
@@ -2531,8 +2531,8 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            args.LossFunction = new HingeLoss.Arguments() { Margin = 2 };
-            result = inputBuilder.GetJsonObject(args, inputBindingMap, inputMap);
+            options.LossFunction = new HingeLoss.Arguments() { Margin = 2 };
+            result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
             expected =
@@ -3628,11 +3628,11 @@ namespace Microsoft.ML.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Options()
             {
                 Data = dataView,
                 Columns = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe
+                ModelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursorForAllColumns())
