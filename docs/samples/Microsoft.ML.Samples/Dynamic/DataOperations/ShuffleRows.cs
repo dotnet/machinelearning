@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
     /// <summary>
-    /// Sample class showing how to use <see cref="DataOperationsCatalog.FilterRowsByColumn"/>.
+    /// Sample class showing how to use ShuffleRows.
     /// </summary>
-    public static class FilterByColumn
+    public static class ShuffleRows
     {
         public static void Example()
         {
@@ -16,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData> enumerableOfData = SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
+            var enumerableOfData = DatasetUtils.GetSampleTemperatureData(5);
             var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
@@ -33,31 +33,24 @@ namespace Microsoft.ML.Samples.Dynamic
             //  1/4/2012        34
             //  1/5/2012        35
             //  1/6/2012        35
-            //  1/7/2012        39
-            //  1/8/2012        40
-            //  1/9/2012        35
-            //  1/10/2012       30
-            //  1/11/2012       29
 
-            // Filter the data by the values of the temperature. The lower bound is inclusive, the upper exclusive.
-            var filteredData = mlContext.Data.FilterRowsByColumn(data, columnName: "Temperature", lowerBound: 34, upperBound: 37);
+            // Shuffle the dataset.
+            var shuffledData = mlContext.Data.ShuffleRows(data, seed: 123);
 
-            // Look at the filtered data and observe that values outside [34,37) have been dropped.
-            var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
+            // Look at the shuffled data and observe that the rows are in a randomized order.
+            var enumerable = mlContext.CreateEnumerable<DatasetUtils.SampleTemperatureData>(shuffledData, reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
                 Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
             }
-
             // Expected output:
             //  Date    Temperature
-            //  1/2/2012        36
-            //  1/3/2012        36
             //  1/4/2012        34
+            //  1/2/2012        36
             //  1/5/2012        35
+            //  1/3/2012        36
             //  1/6/2012        35
-            //  1/9/2012        35
         }
     }
 }

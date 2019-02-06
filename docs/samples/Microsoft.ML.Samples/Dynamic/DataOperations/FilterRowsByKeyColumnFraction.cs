@@ -8,9 +8,9 @@ namespace Microsoft.ML.Samples.Dynamic
     using MulticlassClassificationExample = DatasetUtils.MulticlassClassificationExample;
 
     /// <summary>
-    /// Sample class showing how to use <see cref="DataOperationsCatalog.FilterRowsByKeyColumnFraction"/>.
+    /// Sample class showing how to use FilterRowsByKeyColumnFraction.
     /// </summary>
-    public static class FilterByKeyColumnFraction
+    public static class FilterRowsByKeyColumnFraction
     {
         public static void Example()
         {

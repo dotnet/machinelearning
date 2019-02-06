@@ -4,8 +4,11 @@ using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class FilterByMissingValues
+    public class FilterRowsByMissingValues
     {
+        /// <summary>
+        /// Sample class showing how to use FilterRowsByMissingValues.
+        /// </summary>
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
