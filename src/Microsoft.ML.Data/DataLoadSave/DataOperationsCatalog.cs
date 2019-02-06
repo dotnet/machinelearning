@@ -105,11 +105,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FilterByColumn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByColumn.cs)]
+        /// [!code-csharp[FilterRowsByColumn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterRowsByColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView FilterByColumn(IDataView input, string columnName, double lowerBound = double.NegativeInfinity, double upperBound = double.PositiveInfinity)
+        public IDataView FilterRowsByColumn(IDataView input, string columnName, double lowerBound = double.NegativeInfinity, double upperBound = double.PositiveInfinity)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckNonEmpty(columnName, nameof(columnName));
@@ -137,11 +137,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FilterByKeyColumnFraction](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByKeyColumnFraction.cs)]
+        /// [!code-csharp[FilterRowsByKeyColumnFraction](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterRowsByKeyColumnFraction.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView FilterByKeyColumnFraction(IDataView input, string columnName, double lowerBound = 0, double upperBound = 1)
+        public IDataView FilterRowsByKeyColumnFraction(IDataView input, string columnName, double lowerBound = 0, double upperBound = 1)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckNonEmpty(columnName, nameof(columnName));
@@ -164,11 +164,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FilterByMissingValues](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByMissingValues.cs)]
+        /// [!code-csharp[FilterRowsByMissingValues](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterRowsByMissingValues.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView FilterByMissingValues(IDataView input, params string[] columns)
+        public IDataView FilterRowsByMissingValues(IDataView input, params string[] columns)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
@@ -180,7 +180,7 @@ namespace Microsoft.ML
         /// Shuffle the rows of <paramref name="input"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="Shuffle"/> will shuffle the rows of any input <see cref="IDataView"/> using a streaming approach.
+        /// <see cref="ShuffleRows"/> will shuffle the rows of any input <see cref="IDataView"/> using a streaming approach.
         /// In order to not load the entire dataset in memory, a pool of <paramref name="shufflePoolSize"/> rows will be used
         /// to randomly select rows to output. The pool is constructed from the first <paramref name="shufflePoolSize"/> rows
         /// in <paramref name="input"/>. Rows will then be randomly yielded from the pool and replaced with the next row from <paramref name="input"/>
@@ -192,18 +192,18 @@ namespace Microsoft.ML
         /// <param name="input">The input data.</param>
         /// <param name="seed">The random seed. If unspecified, the random state will be instead derived from the <see cref="MLContext"/>.</param>
         /// <param name="shufflePoolSize">The number of rows to hold in the pool. Setting this to 1 will turn off pool shuffling and
-        /// <see cref="Shuffle"/> will only perform a shuffle by reading <paramref name="input"/> in a random order.</param>
+        /// <see cref="ShuffleRows"/> will only perform a shuffle by reading <paramref name="input"/> in a random order.</param>
         /// <param name="shuffleSource">If <see langword="false"/>, the transform will not attempt to read <paramref name="input"/> in a random order and only use
         /// pooling to shuffle. This parameter has no effect if the <see cref="IDataView.CanShuffle"/> property of <paramref name="input"/> is <see langword="false"/>.
         /// </param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Shuffle](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/Shuffle.cs)]
+        /// [!code-csharp[ShuffleRows](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/ShuffleRows.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView Shuffle(IDataView input,
+        public IDataView ShuffleRows(IDataView input,
             int? seed = null,
             int shufflePoolSize = RowShufflingTransformer.Defaults.PoolRows,
             bool shuffleSource = !RowShufflingTransformer.Defaults.PoolOnly)

@@ -8,9 +8,9 @@ namespace Microsoft.ML.Samples.Dynamic
     using MulticlassClassificationExample = DatasetUtils.MulticlassClassificationExample;
 
     /// <summary>
-    /// Sample class showing how to use <see cref="DataOperationsCatalog.FilterByKeyColumnFraction"/>.
+    /// Sample class showing how to use FilterRowsByKeyColumnFraction.
     /// </summary>
-    public static class FilterByKeyColumnFraction
+    public static class FilterRowsByKeyColumnFraction
     {
         public static void Example()
         {
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  2 (1.13754, 0.4949968, 0.7227853, 0.8633928, 0.532589, 0.4867224, 1.02061, 0.4225179, 0.3868716, 0.2685189)
 
             // Now filter down to half the keys, choosing the lower half of values
-            var filteredData = mlContext.Data.FilterByKeyColumnFraction(transformedData, columnName: "Label", lowerBound: 0, upperBound: 0.5);
+            var filteredData = mlContext.Data.FilterRowsByKeyColumnFraction(transformedData, columnName: "Label", lowerBound: 0, upperBound: 0.5);
 
             // Look at the data and observe that values above 2 have been filtered out
             var filteredEnumerable = mlContext.CreateEnumerable<MulticlassWithKeyLabel>(filteredData, reuseRowObject: true);
