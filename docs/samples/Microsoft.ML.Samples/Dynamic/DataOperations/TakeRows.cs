@@ -7,7 +7,7 @@ namespace Microsoft.ML.Samples.Dynamic
     /// <summary>
     /// Sample class showing how to use Take.
     /// </summary>
-    public static class Take
+    public static class TakeRows
     {
         public static void Example()
         {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  1/11/2012       29
 
             // Take the first 5 rows in the dataset
-            var filteredData = mlContext.Data.Take(data, 5);
+            var filteredData = mlContext.Data.TakeRows(data, 5);
 
             // Look at the filtered data and observe that only the first 5 rows are in the resulting dataset.
             var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);

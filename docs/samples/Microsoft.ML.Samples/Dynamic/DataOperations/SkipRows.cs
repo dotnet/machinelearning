@@ -7,7 +7,7 @@ namespace Microsoft.ML.Samples.Dynamic
     /// <summary>
     /// Sample class showing how to use Skip.
     /// </summary>
-    public static class Skip
+    public static class SkipRows
     {
         public static void Example()
         {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  1/11/2012       29
 
             // Skip the first 5 rows in the dataset
-            var filteredData = mlContext.Data.Skip(data, 5);
+            var filteredData = mlContext.Data.SkipRows(data, 5);
 
             // Look at the filtered data and observe that the first 5 rows have been dropped
             var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);

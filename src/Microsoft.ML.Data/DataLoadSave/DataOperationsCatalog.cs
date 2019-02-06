@@ -226,11 +226,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Skip](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/Skip.cs)]
+        /// [!code-csharp[SkipRows](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/SkipRows.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView Skip(IDataView input, long count)
+        public IDataView SkipRows(IDataView input, long count)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
@@ -254,11 +254,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Take](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/Take.cs)]
+        /// [!code-csharp[TakeRows](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/TakeRows.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView Take(IDataView input, long count)
+        public IDataView TakeRows(IDataView input, long count)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
