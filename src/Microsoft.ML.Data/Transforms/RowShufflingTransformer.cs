@@ -41,8 +41,7 @@ namespace Microsoft.ML.Transforms
             public const bool ForceShuffle = false;
         }
 
-        [BestFriend]
-        internal sealed class Options
+        public sealed class Options
         {
             // REVIEW: A more intelligent heuristic, based on the expected size of the inputs, perhaps?
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
@@ -97,8 +96,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="poolRows">The pool will have this many rows</param>
         /// <param name="poolOnly">If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.</param>
         /// <param name="forceShuffle">If true, the transform will always provide a shuffled view.</param>
-        [BestFriend]
-        internal RowShufflingTransformer(IHostEnvironment env,
+        public RowShufflingTransformer(IHostEnvironment env,
             IDataView input,
             int poolRows = Defaults.PoolRows,
             bool poolOnly = Defaults.PoolOnly,
@@ -110,8 +108,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Constructor corresponding to SignatureDataTransform.
         /// </summary>
-        [BestFriend]
-        internal RowShufflingTransformer(IHostEnvironment env, Options args, IDataView input)
+        public RowShufflingTransformer(IHostEnvironment env, Options args, IDataView input)
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
@@ -153,8 +150,7 @@ namespace Microsoft.ML.Transforms
             _subsetInput = SelectCachableColumns(input, host);
         }
 
-        [BestFriend]
-        internal static RowShufflingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static RowShufflingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -227,8 +223,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to take a cursor, and get a shuffled version of this cursor.
         /// </summary>
-        [BestFriend]
-        internal static RowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, RowCursor cursor, Random rand)
+        public static RowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, RowCursor cursor, Random rand)
         {
             Contracts.CheckValue(provider, nameof(provider));
 

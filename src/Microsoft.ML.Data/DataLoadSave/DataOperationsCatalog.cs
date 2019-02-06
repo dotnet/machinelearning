@@ -46,7 +46,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public IDataView BootstrapSample(IDataView input,
-            uint? seed = null,
+            int? seed = null,
             bool complement = BootstrapSamplingTransformer.Defaults.Complement)
         {
             Environment.CheckValue(input, nameof(input));
@@ -54,7 +54,7 @@ namespace Microsoft.ML
                 Environment,
                 input,
                 complement: complement,
-                seed: seed,
+                seed: (uint?) seed,
                 shuffleInput: false,
                 poolSize: 0);
         }
@@ -165,8 +165,8 @@ namespace Microsoft.ML
         /// <param name="seed">The random seed. If unspecified, the random state will be instead derived from the <see cref="MLContext"/>.</param>
         /// <param name="shufflePoolSize">The number of rows to hold in the pool. Setting this to 1 will turn off pool shuffling and
         /// <see cref="Shuffle"/> will only perform a shuffle by reading <paramref name="input"/> in a random order.</param>
-        /// <param name="shuffleSource">If false, the transform will not attempt to read <paramref name="input"/> in a random order and only use
-        /// pooling to shuffle. This parameter has no effect if the <see cref="IDataView.CanShuffle"/> property of <paramref name="input"/> is false.
+        /// <param name="shuffleSource">If <see langword="false"/>, the transform will not attempt to read <paramref name="input"/> in a random order and only use
+        /// pooling to shuffle. This parameter has no effect if the <see cref="IDataView.CanShuffle"/> property of <paramref name="input"/> is <see langword="false"/>.
         /// </param>
         /// <example>
         /// <format type="text/markdown">
@@ -176,19 +176,19 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public IDataView Shuffle(IDataView input,
-            uint? seed = null,
+            int? seed = null,
             int shufflePoolSize = RowShufflingTransformer.Defaults.PoolRows,
             bool shuffleSource = !RowShufflingTransformer.Defaults.PoolOnly)
         {
             Environment.CheckValue(input, nameof(input));
-            Environment.CheckUserArg(shufflePoolSize > 0, nameof(shufflePoolSize), "Pool size must be positive");
+            Environment.CheckUserArg(shufflePoolSize > 0, nameof(shufflePoolSize), "Must be positive");
 
             var options = new RowShufflingTransformer.Options
             {
                 PoolRows = shufflePoolSize,
                 PoolOnly = !shuffleSource,
                 ForceShuffle = true,
-                ForceShuffleSeed = (int)seed
+                ForceShuffleSeed = seed
             };
 
             return new RowShufflingTransformer(Environment, options, input);
