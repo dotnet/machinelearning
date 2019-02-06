@@ -84,11 +84,11 @@ namespace Microsoft.ML
             => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnsToDrop);
 
         /// <summary>
-        /// ColumnSelectingEstimator is used to select a list of columns that user wants to keep from a given input.
+        /// Select a list of columns that user wants to keep.
         /// </summary>
         /// <remarks>
         /// <format type="text/markdown">
-        /// <see cref="SelectColumns"/> operates on the schema of an input IDataView,
+        /// <see cref="SelectColumns(TransformsCatalog, string[], bool)"/> operates on the schema of an input IDataView,
         /// either dropping unselected columns from the schema or keeping them but marking them as hidden in the schema. Keeping columns hidden
         /// is recommended when it is necessary to understand how the inputs of a pipeline map to outputs of the pipeline. This feature
         /// is useful, for example, in debugging a pipeline of transforms by allowing you to print out results from the middle of the pipeline.
@@ -97,7 +97,7 @@ namespace Microsoft.ML
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>
-        /// <param name="keepHidden">If true will keep hidden columns and false will remove hidden columns.</param>
+        /// <param name="keepHidden">If <see langword="true"/> will keep hidden columns and <see langword="false"/> will remove hidden columns.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -107,8 +107,28 @@ namespace Microsoft.ML
         /// </example>
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
             string[] keepColumns,
-            bool keepHidden = ColumnSelectingTransformer.Defaults.KeepHidden)
+            bool keepHidden)
             => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
                 keepColumns, null, keepHidden, ColumnSelectingTransformer.Defaults.IgnoreMissing);
+
+        /// <summary>
+        /// ColumnSelectingEstimator is used to select a list of columns that user wants to keep from a given input.
+        /// </summary>
+        /// <remarks>
+        /// <format type="text/markdown">
+        /// <see cref="SelectColumns(TransformsCatalog, string[])"/> operates on the schema of an input IDataView, dropping unselected columns from the schema.
+        /// </format>
+        /// </remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="keepColumns">The array of column names to keep.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectColumns](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/SelectColumns.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
+            params string[] keepColumns) => catalog.SelectColumns(keepColumns, false);
     }
 }
