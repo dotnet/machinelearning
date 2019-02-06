@@ -113,7 +113,7 @@ namespace Microsoft.ML.LightGBM
             }
             else
             {
-                for(int idx = min; idx <= max; ++idx)
+                for (int idx = min; idx <= max; ++idx)
                     constraints[idx] = constraintValue;
             }
         }

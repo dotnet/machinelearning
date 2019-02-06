@@ -13,7 +13,7 @@ namespace Microsoft.ML.RunTests
         {
             var range = Range.Parse("1-3");
             Assert.Equal(1, range.Min);
-            Assert.Equal(3, range.Max); 
+            Assert.Equal(3, range.Max);
         }
 
         [Fact]
@@ -21,7 +21,7 @@ namespace Microsoft.ML.RunTests
         {
             var range = Range.Parse("1");
             Assert.Equal(1, range.Min);
-            Assert.Equal(1, range.Max); 
+            Assert.Equal(1, range.Max);
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace Microsoft.ML.RunTests
         public void TestRangeParseMaxStar()
         {
             var range = Range.Parse("0-*");
-            Assert.Equal(0,range.Min);
+            Assert.Equal(0, range.Min);
             Assert.Null(range.Max);
         }
     }

@@ -375,21 +375,21 @@ namespace Microsoft.ML.LightGBM
         [Argument(ArgumentType.Multiple,
             HelpText = "Specifies the features to apply positive constraint. This is a 0 based index " +
             "specified using a range. The range is specified with a dash, for example, 0-2 will apply a positive " +
-            "constraint to first three features. The '*' character can be used to apply the range to the end of of the features "  +
+            "constraint to first three features. The '*' character can be used to apply the range to the end of of the features " +
             "so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to " +
             "the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting " +
             "the constraint to 4th, 5th and 6th indices, but will apply to all others.",
-            ShortName ="mp")]
+            ShortName = "mp")]
         public Range[] MonotonicPositive;
 
         [Argument(ArgumentType.Multiple,
             HelpText = "Specifies the features to apply the negative constraint. This is a 0 based index " +
             "specified using a range. The range is specified with a dash, for example, 0-2 will apply a negative " +
-            "constraint to first three features. The '*' character can be used to apply the range to the end of of the features "  +
+            "constraint to first three features. The '*' character can be used to apply the range to the end of of the features " +
             "so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to " +
             "the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting " +
             "the constraint to 4th, 5th and 6th indices, but will apply to all others.",
-            ShortName="mn")]
+            ShortName = "mn")]
         public Range[] MonotonicNegative;
 
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
