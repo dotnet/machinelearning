@@ -59,7 +59,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
             return new Median(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public sealed class MultiWeightedAverage : BaseMultiAverager, IWeightedAverager, ICanSaveModel
+    public sealed class MultiWeightedAverage : BaseMultiAverager, IWeightedAverager
     {
         public const string UserName = "Multi Weighted Average";
         public const string LoadName = "MultiWeightedAverage";
