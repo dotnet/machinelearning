@@ -234,7 +234,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public SsaChangePointEstimator(IHostEnvironment env, string outputColumnName,
+        internal SsaChangePointEstimator(IHostEnvironment env, string outputColumnName,
             int confidence,
             int changeHistoryLength,
             int trainingWindowSize,

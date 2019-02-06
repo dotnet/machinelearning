@@ -81,6 +81,10 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
     }
 
+    /// <summary>
+    /// The wrapper to the base class that implements the general anomaly detection transform based on Singular Spectrum modeling of the time-series.
+    /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
+    /// </summary>
     public class SsaAnomalyDetectionBaseWrapper : IStatefulTransformer, ICanSaveModel
     {
         public bool IsRowToRowMapper => Base.IsRowToRowMapper;

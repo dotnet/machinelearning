@@ -214,7 +214,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
-        public SsaSpikeEstimator(IHostEnvironment env,
+        internal SsaSpikeEstimator(IHostEnvironment env,
             string outputColumnName,
             int confidence,
             int pvalueHistoryLength,

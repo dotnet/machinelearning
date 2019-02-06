@@ -90,6 +90,10 @@ namespace Microsoft.ML.TimeSeries
                 return transformer is IStatefulTransformer ? ((IStatefulTransformer)transformer).Clone() : transformer;
         }
 
+        /// <summary>
+        /// Contructor for creating time series specific prediction engine. It allows update the time series model to be updated with the observations
+        /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
+        /// </summary>
         public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
             base(env, CloneTransformers(transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)

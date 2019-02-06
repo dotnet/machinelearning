@@ -58,11 +58,11 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new IidChangePointEstimator(env,
+                return new MLContext().Transforms.IidChangePointEstimator(
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _changeHistoryLength,
-                    inputNames[outCol.Input],
                     _martingale,
                     _eps);
             }
@@ -122,11 +122,11 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new IidSpikeEstimator(env,
+                return new MLContext().Transforms.IidSpikeEstimator(
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _pvalueHistoryLength,
-                    inputNames[outCol.Input],
                     _side);
             }
         }
@@ -201,13 +201,13 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new SsaChangePointEstimator(env,
+                return new MLContext().Transforms.SsaChangePointEstimator(
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _changeHistoryLength,
                     _trainingWindowSize,
                     _seasonalityWindowSize,
-                    inputNames[outCol.Input],
                     _errorFunction,
                     _martingale,
                     _eps);
@@ -283,13 +283,13 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new SsaSpikeEstimator(env,
+                return new MLContext().Transforms.SsaSpikeEstimator(
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _pvalueHistoryLength,
                     _trainingWindowSize,
                     _seasonalityWindowSize,
-                    inputNames[outCol.Input],
                     _side,
                     _errorFunction);
             }

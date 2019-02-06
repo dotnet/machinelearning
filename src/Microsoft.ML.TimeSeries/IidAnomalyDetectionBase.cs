@@ -12,6 +12,10 @@ using Microsoft.ML.TimeSeries;
 
 namespace Microsoft.ML.TimeSeriesProcessing
 {
+    /// <summary>
+    /// The wrapper to transform that computes the p-values and martingale scores for a supposedly i.i.d input sequence of floats. In other words, it assumes
+    /// the input sequence represents the raw anomaly score which might have been computed via another process.
+    /// </summary>
     public class IidAnomalyDetectionBaseWrapper : IStatefulTransformer, ICanSaveModel
     {
         public bool IsRowToRowMapper => Base.IsRowToRowMapper;
