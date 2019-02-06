@@ -33,8 +33,7 @@ namespace Microsoft.ML.Transforms
     [BestFriend]
     internal sealed class RowShufflingTransformer : RowToRowTransformBase
     {
-        [BestFriend]
-        internal static class Defaults
+        public static class Defaults
         {
             public const int PoolRows = 1000;
             public const bool PoolOnly = false;
