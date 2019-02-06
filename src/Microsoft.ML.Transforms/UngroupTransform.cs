@@ -45,7 +45,7 @@ namespace Microsoft.ML.Transforms
     // All metadata is preserved for the retained columns. For 'unrolled' columns, all known metadata
     // except slot names is preserved.
     /// <include file='doc.xml' path='doc/members/member[@name="Ungroup"]/*' />
-    public sealed class UngroupTransform : TransformBase
+    internal sealed class UngroupTransform : TransformBase
     {
         public const string Summary = "Un-groups vector columns into sequences of rows, inverse of Group transform";
         public const string LoaderSignature = "UngroupTransform";

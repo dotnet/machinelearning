@@ -57,7 +57,7 @@ namespace Microsoft.ML.Transforms
     /// Pete [Chair, Cup]
     /// </code></example>
     /// </remarks>
-    public sealed class GroupTransform : TransformBase
+    internal sealed class GroupTransform : TransformBase
     {
         internal const string Summary = "Groups values of a scalar column into a vector, by a contiguous group ID";
         internal const string UserName = "Group Transform";

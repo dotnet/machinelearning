@@ -1119,7 +1119,7 @@ namespace Microsoft.ML.Transforms
             _outputTypes = outputTuple.outputTypes;
         }
 
-        internal static TensorFlowTransformer.Options CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
+        private static TensorFlowTransformer.Options CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
         {
             var options = new TensorFlowTransformer.Options();
             options.ModelLocation = tensorFlowModel.ModelPath;

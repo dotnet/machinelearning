@@ -16,8 +16,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
-        /// <param name="inputColumnName"> The name of the model inputs.</param>
-        /// <param name="outputColumnName">The name of the requested model outputs.</param>
+        /// <param name="inputColumnName"> The name of the model input.</param>
+        /// <param name="outputColumnName">The name of the requested model output.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -55,9 +55,9 @@ namespace Microsoft.ML
         /// Scores a dataset using a pre-traiend <a href="https://www.tensorflow.org/">TensorFlow</a> model specified via <paramref name="tensorFlowModel"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
-        /// <param name="inputColumnName"> The name of the model inputs.</param>
-        /// <param name="outputColumnName">The name of the requested model outputs.</param>
+        /// <param name="tensorFlowModel">The pre-loaded TensorFlow model.</param>
+        /// <param name="inputColumnName"> The name of the model input.</param>
+        /// <param name="outputColumnName">The name of the requested model output.</param>
         public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             TensorFlowModelInfo tensorFlowModel,
             string outputColumnName,
@@ -68,7 +68,7 @@ namespace Microsoft.ML
         /// Scores a dataset using a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
+        /// <param name="tensorFlowModel">The pre-loaded TensorFlow model.</param>
         /// <param name="inputColumnNames"> The names of the model inputs.</param>
         /// <param name="outputColumnNames">The names of the requested model outputs.</param>
         /// <example>
@@ -99,7 +99,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="options">The <see cref="TensorFlowTransformer.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
-        /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
+        /// <param name="tensorFlowModel">The pre-loaded TensorFlow model.</param>
         public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
             TensorFlowTransformer.Options options,
             TensorFlowModelInfo tensorFlowModel)
