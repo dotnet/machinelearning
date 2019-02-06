@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using System.Reflection;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
@@ -22,9 +21,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> ResNet18(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            // Substring is  removing initial "file:///" from the codebase string.
-            string executingAssemblyLocation = Directory.GetParent(Assembly.GetExecutingAssembly().CodeBase.Substring(8)).FullName;
-            return ResNet18(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(executingAssemblyLocation, "DnnImageModels"));
+            return ResNet18(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(AssemblyPathHelpers.GetExecutingAssemblyLocation(), "DnnImageModels"));
         }
 
         /// <summary>

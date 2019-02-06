@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Microsoft.ML.DnnImageFeaturizer.AlexNet\AssemblyPathHelpers.cs" />
+    <None Include="**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj" />
   </ItemGroup>
   

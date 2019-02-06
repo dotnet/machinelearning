@@ -52,8 +52,9 @@ namespace Microsoft.ML.TestFramework
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
 #if NETFRAMEWORK
-            // Substring is  removing initial "file:///" from the codebase string.
-            var currentAssemblyLocation = new FileInfo(Directory.GetParent(typeof(BaseTestClass).Assembly.CodeBase.Substring(8)).FullName);
+            string codeBaseUri = typeof(BaseTestClass).Assembly.CodeBase;
+            string path = new Uri(codeBaseUri).AbsolutePath;
+            var currentAssemblyLocation = new FileInfo(Directory.GetParent(path).FullName);
 #else
             // There is an extra folder in the netfx path representing the runtime identifier.
             var currentAssemblyLocation = new FileInfo(typeof(BaseTestClass).Assembly.Location);
