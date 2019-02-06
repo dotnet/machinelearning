@@ -64,12 +64,19 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// Caching happens per-column. A column is only cached when it is first accessed.
-        /// In addition, <paramref name="columnsToPrefetch"/> are considered 'always needed', so all of them
-        /// will be cached whenever any data is requested.
+        /// In addition, <paramref name="columnsToPrefetch"/> are considered 'always needed', so these columns
+        /// will be cached the first time any data is requested.
         /// </remarks>
-        /// <param name="input">The data view to cache.</param>
-        /// <param name="columnsToPrefetch">The columns that must be cached whenever anything is cached. Empty array or null
-        /// is acceptable, it means that all columns are only cached at the first access.</param>
+        /// <param name="input">The input data.</param>
+        /// <param name="columnsToPrefetch">The columns that must be cached whenever anything is cached. An empty array or null
+        /// value means that columns are cached upon their first access.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Cache](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/Cache.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView Cache(IDataView input, params string[] columnsToPrefetch)
         {
             Environment.CheckValue(input, nameof(input));
