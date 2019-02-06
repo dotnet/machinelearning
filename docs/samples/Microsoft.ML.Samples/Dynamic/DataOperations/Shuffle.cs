@@ -5,7 +5,7 @@ using Microsoft.ML.SamplesUtils;
 namespace Microsoft.ML.Samples.Dynamic
 {
     /// <summary>
-    /// Sample class showing how to use <see cref="DataOperationsCatalog.Shuffle"/>.
+    /// Sample class showing how to use Shuffle.
     /// </summary>
     public static class Shuffle
     {
