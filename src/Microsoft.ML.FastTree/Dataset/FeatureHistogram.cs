@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;

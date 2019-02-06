@@ -12,7 +12,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Ensemble.EntryPoints;
+using Microsoft.ML.Ensemble;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.EntryPoints.JsonUtils;

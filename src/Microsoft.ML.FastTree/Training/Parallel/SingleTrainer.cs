@@ -15,9 +15,8 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    using Microsoft.ML.Trainers.FastTree.Internal;
-    using LeafSplitCandidates = Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
-    using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
+    using LeafSplitCandidates = LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     internal sealed class SingleTrainer : IParallelTraining
     {

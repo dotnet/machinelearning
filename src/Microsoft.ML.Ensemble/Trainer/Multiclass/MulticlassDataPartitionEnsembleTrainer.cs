@@ -9,7 +9,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;

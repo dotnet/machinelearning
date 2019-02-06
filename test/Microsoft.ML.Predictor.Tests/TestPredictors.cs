@@ -21,7 +21,6 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
     using Microsoft.ML.Trainers.FastTree;
-    using Microsoft.ML.Trainers.FastTree.Internal;
     using Microsoft.ML.Trainers.HalLearners;
     using Microsoft.ML.Trainers.Online;
     using Xunit;

@@ -12,7 +12,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(Options),
