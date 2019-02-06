@@ -142,7 +142,7 @@ namespace Microsoft.ML.StaticPipe
                     float? l2Const = null,
                     float? l1Threshold = null,
                     int? maxIterations = null,
-                    Action<LinearBinaryModelParameters, ParameterMixingCalibratedPredictor> onFit = null)
+                    Action<LinearBinaryModelParameters, ParameterMixingCalibratedPredictor<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -162,8 +162,8 @@ namespace Microsoft.ML.StaticPipe
                         {
                             // Under the default log-loss we assume a calibrated predictor.
                             var model = trans.Model;
-                            var cali = (ParameterMixingCalibratedPredictor)model;
-                            var pred = (LinearBinaryModelParameters)cali.SubPredictor;
+                            var cali = (ParameterMixingCalibratedPredictor<LinearBinaryModelParameters, PlattCalibrator>)model;
+                            var pred = cali.SubPredictor;
                             onFit(pred, cali);
                         });
                     }
@@ -198,7 +198,7 @@ namespace Microsoft.ML.StaticPipe
                     this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                     Scalar<bool> label, Vector<float> features, Scalar<float> weights,
                     SdcaBinaryTrainer.Options options,
-                    Action<LinearBinaryModelParameters, ParameterMixingCalibratedPredictor> onFit = null)
+                    Action<LinearBinaryModelParameters, ParameterMixingCalibratedPredictor<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -219,8 +219,8 @@ namespace Microsoft.ML.StaticPipe
                         {
                             // Under the default log-loss we assume a calibrated predictor.
                             var model = trans.Model;
-                            var cali = (ParameterMixingCalibratedPredictor)model;
-                            var pred = (LinearBinaryModelParameters)cali.SubPredictor;
+                            var cali = (ParameterMixingCalibratedPredictor<LinearBinaryModelParameters, PlattCalibrator>)model;
+                            var pred = cali.SubPredictor;
                             onFit(pred, cali);
                         });
                     }
@@ -281,8 +281,8 @@ namespace Microsoft.ML.StaticPipe
                         return trainer.WithOnFitDelegate(trans =>
                         {
                             var model = trans.Model;
-                            if (model is ParameterMixingCalibratedPredictor cali)
-                                onFit((LinearBinaryModelParameters)cali.SubPredictor);
+                            if (model is ParameterMixingCalibratedPredictor<LinearBinaryModelParameters, Calibrator.ICalibrator> cali)
+                                onFit(cali.SubPredictor);
                             else
                                 onFit((LinearBinaryModelParameters)model);
                         });
@@ -340,7 +340,7 @@ namespace Microsoft.ML.StaticPipe
                         return trainer.WithOnFitDelegate(trans =>
                         {
                             var model = trans.Model;
-                            if (model is ParameterMixingCalibratedPredictor cali)
+                            if (model is ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator> cali)
                                 onFit((LinearBinaryModelParameters)cali.SubPredictor);
                             else
                                 onFit((LinearBinaryModelParameters)model);

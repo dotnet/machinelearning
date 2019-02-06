@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
@@ -111,11 +112,11 @@ namespace Microsoft.ML.EntryPoints
         {
             Contracts.CheckValue(env, nameof(env));
             var predictor = Predictor;
-            var calibrated = predictor as CalibratedPredictorBase;
+            var calibrated = predictor as CalibratedPredictorBase<IPredictorProducing<float>,ICalibrator>;
             while (calibrated != null)
             {
                 predictor = calibrated.SubPredictor;
-                calibrated = predictor as CalibratedPredictorBase;
+                calibrated = predictor as CalibratedPredictorBase<IPredictorProducing<float>,ICalibrator>;
             }
             var canGetTrainingLabelNames = predictor as ICanGetTrainingLabelNames;
             if (canGetTrainingLabelNames != null)

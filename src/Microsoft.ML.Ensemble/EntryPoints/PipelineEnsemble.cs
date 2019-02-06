@@ -36,11 +36,11 @@ namespace Microsoft.ML.Ensemble.EntryPoints
                 out RoleMappedData rmd, out IPredictor predictor
 );
 
-            var calibrated = predictor as CalibratedPredictorBase;
+            var calibrated = predictor as CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>;
             while (calibrated != null)
             {
                 predictor = calibrated.SubPredictor;
-                calibrated = predictor as CalibratedPredictorBase;
+                calibrated = predictor as CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>;
             }
             var ensemble = predictor as SchemaBindablePipelineEnsembleBase;
             host.CheckUserArg(ensemble != null, nameof(input.PredictorModel.Predictor), "Predictor is not a pipeline ensemble predictor");

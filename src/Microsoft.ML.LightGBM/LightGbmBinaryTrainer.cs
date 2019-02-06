@@ -81,7 +81,7 @@ namespace Microsoft.ML.LightGBM
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
                 return predictor;
-            return new CalibratedPredictor(env, predictor, calibrator);
+            return new CalibratedPredictor<LightGbmBinaryModelParameters,ICalibrator>(env, predictor, calibrator);
         }
     }
 
@@ -129,7 +129,7 @@ namespace Microsoft.ML.LightGBM
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
             var pred = new LightGbmBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
             var cali = new PlattCalibrator(Host, -0.5, 0);
-            return new FeatureWeightsCalibratedPredictor(Host, pred, cali);
+            return new FeatureWeightsCalibratedPredictor<LightGbmBinaryModelParameters,PlattCalibrator>(Host, pred, cali);
         }
 
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)

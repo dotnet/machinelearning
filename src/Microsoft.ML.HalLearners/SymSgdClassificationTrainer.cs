@@ -170,11 +170,15 @@ namespace Microsoft.ML.Trainers.SymSgd
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
-                linInitPred = linInitPred ?? initPred as LinearModelParameters;
-                Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
+                var linearInitPred = initPred as LinearModelParameters;
+                if (initPred is CalibratedPredictorBase<LinearModelParameters,PlattCalibrator> calibrated)
+                    linearInitPred = calibrated.SubPredictor;
+                else if (initPred is ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator> mixed)
+                    linearInitPred = mixed.SubPredictor;
+                else
+                Host.CheckParam(context.InitialPredictor == null || linearInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
-                return TrainCore(ch, preparedData, linInitPred, weightSetCount);
+                return TrainCore(ch, preparedData, linearInitPred, weightSetCount);
             }
         }
 
@@ -202,7 +206,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
-            return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
+            return new ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator>(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
         protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, Schema trainSchema)

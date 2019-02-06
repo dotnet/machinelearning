@@ -31,7 +31,9 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class BinaryClassificationGamTrainer :
-    GamTrainerBase<BinaryClassificationGamTrainer.Options, BinaryPredictionTransformer<CalibratedPredictorBase>, CalibratedPredictorBase>
+        GamTrainerBase<BinaryClassificationGamTrainer.Options,
+        BinaryPredictionTransformer<CalibratedPredictorBase<BinaryClassificationGamModelParameters,PlattCalibrator>>,
+        CalibratedPredictorBase<BinaryClassificationGamModelParameters,PlattCalibrator>>
     {
         public sealed class Options : ArgumentsBase
         {
@@ -103,14 +105,13 @@ namespace Microsoft.ML.Trainers.FastTree
             Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = BlockingThreadPool.NumThreads }, actions);
             return boolArray;
         }
-
-        private protected override CalibratedPredictorBase TrainModelCore(TrainContext context)
+        private protected override CalibratedPredictorBase<BinaryClassificationGamModelParameters,PlattCalibrator> TrainModelCore(TrainContext context)
         {
             TrainBase(context);
             var predictor = new BinaryClassificationGamModelParameters(Host,
                 BinUpperBounds, BinEffects, MeanEffect, InputLength, FeatureMap);
             var calibrator = new PlattCalibrator(Host, -1.0 * _sigmoidParameter, 0);
-            return new CalibratedPredictor(Host, predictor, calibrator);
+            return new CalibratedPredictor<BinaryClassificationGamModelParameters,PlattCalibrator>(Host, predictor, calibrator);
         }
 
         protected override ObjectiveFunctionBase CreateObjectiveFunction()
@@ -139,10 +140,11 @@ namespace Microsoft.ML.Trainers.FastTree
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 
-        protected override BinaryPredictionTransformer<CalibratedPredictorBase> MakeTransformer(CalibratedPredictorBase model, Schema trainSchema)
-            => new BinaryPredictionTransformer<CalibratedPredictorBase>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<CalibratedPredictorBase<BinaryClassificationGamModelParameters,PlattCalibrator>>
+            MakeTransformer(CalibratedPredictorBase<BinaryClassificationGamModelParameters,PlattCalibrator> model, Schema trainSchema)
+            => new BinaryPredictionTransformer<CalibratedPredictorBase<BinaryClassificationGamModelParameters,PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<CalibratedPredictorBase> Train(IDataView trainData, IDataView validationData = null)
+        public BinaryPredictionTransformer<CalibratedPredictorBase<BinaryClassificationGamModelParameters,PlattCalibrator>> Train(IDataView trainData, IDataView validationData = null)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -207,7 +209,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
                 return predictor;
-            return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
+            return new SchemaBindableCalibratedPredictor<BinaryClassificationGamModelParameters,ICalibrator>(env, predictor, calibrator);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

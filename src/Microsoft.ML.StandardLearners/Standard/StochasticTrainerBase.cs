@@ -36,7 +36,7 @@ namespace Microsoft.ML.Learners
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
+                var linInitPred = (initPred as CalibratedPredictorBase<LinearModelParameters, Calibrator.ICalibrator>)?.SubPredictor;
                 linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");

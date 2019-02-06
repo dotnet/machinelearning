@@ -4,9 +4,11 @@
 
 using System.Collections.Generic;
 using Microsoft.ML;
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
 using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.FastTree.Internal;
 
 [assembly: LoadableClass(typeof(TreeEnsembleCombiner), null, typeof(SignatureModelCombiner), "Fast Tree Model Combiner", "FastTreeCombiner")]
@@ -49,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 var predictor = model;
                 _host.CheckValue(predictor, nameof(models), "One of the models is null");
 
-                var calibrated = predictor as CalibratedPredictorBase;
+                var calibrated = predictor as CalibratedPredictorBase<IPredictorProducing<float>,ICalibrator>;
                 double paramA = 1;
                 if (calibrated != null)
                 {
@@ -103,7 +105,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                         return new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null);
 
                     var cali = new PlattCalibrator(_host, -1, 0);
-                    return new FeatureWeightsCalibratedPredictor(_host, new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null), cali);
+                    return new FeatureWeightsCalibratedPredictor<IPredictorWithFeatureWeights<float>,ICalibrator>(_host, new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null), cali);
                 case PredictionKind.Regression:
                     return new FastTreeRegressionModelParameters(_host, ensemble, featureCount, null);
                 case PredictionKind.Ranking:

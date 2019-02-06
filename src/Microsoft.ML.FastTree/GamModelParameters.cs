@@ -876,12 +876,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 LoadModelObjects(ch, true, out rawPred, true, out schema, out loader);
                 bool hadCalibrator = false;
 
-                var calibrated = rawPred as CalibratedPredictorBase;
+                var calibrated = rawPred as CalibratedPredictorBase<GamModelParametersBase, ICalibrator>;
                 while (calibrated != null)
                 {
                     hadCalibrator = true;
                     rawPred = calibrated.SubPredictor;
-                    calibrated = rawPred as CalibratedPredictorBase;
+                    calibrated = rawPred as CalibratedPredictorBase<GamModelParametersBase, ICalibrator>;
                 }
                 var pred = rawPred as GamModelParametersBase;
                 ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));
