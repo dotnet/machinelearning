@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Samples.Dynamic.TensorFlow
 {
@@ -42,6 +43,16 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
                    separatorChar: ','
                );
 
+            // Load the TensorFlow model once.
+            //      - Use it for quering the schema for input and output in the model
+            //      - Use it for prediction in the pipeline.
+            var modelInfo = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
+            var schema = modelInfo.GetModelSchema();
+            var featuresType = (VectorType)schema["Features"].Type;
+            Console.WriteLine("Name: {0}, Type: {1}, Shape: (-1, {2})", "Features", featuresType.ItemType.RawType, featuresType.Dimensions[0]);
+            var predictionType = (VectorType)schema["Prediction/Softmax"].Type;
+            Console.WriteLine("Name: {0}, Type: {1}, Shape: (-1, {2})", "Prediction/Softmax", predictionType.ItemType.RawType, predictionType.Dimensions[0]);
+            
             // The model expects the input feature vector to be a fixed length vector.
             // In this sample, CustomMappingEstimator is used to resize variable length vector to fixed length vector.
             // The following ML.NET pipeline
@@ -62,7 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             var engine = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
                 .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new[] { ("VariableLenghtFeatures", "TokenizedWords") }))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
-                .Append(mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "Prediction/Softmax" }, new[] { "Features" }))
+                .Append(mlContext.Transforms.ScoreTensorFlowModel(modelInfo, new[] { "Prediction/Softmax" }, new[] { "Features" }))
                 .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
                 .Fit(dataView)
                 .CreatePredictionEngine<IMDBSentiment, OutputScores>(mlContext);
@@ -74,7 +85,11 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             Console.WriteLine("Is sentiment/review positive? {0}", prediction.Prediction[1] > 0.5 ? "Yes." : "No."); 
             Console.WriteLine("Prediction Confidence: {0}", prediction.Prediction[1].ToString("0.00"));
 
-            //// Expected output
+            /////////////////////////////////// Expected output ///////////////////////////////////
+            // 
+            // Name: Features, Type: System.Int32, Shape: (-1, 600)
+            // Name: Prediction/Softmax, Type: System.Single, Shape: (-1, 2)
+            // 
             // Number of classes: 2
             // Is sentiment/review positive ? Yes
             // Prediction Confidence: 0.65
