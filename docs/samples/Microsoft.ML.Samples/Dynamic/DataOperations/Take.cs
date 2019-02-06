@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Samples.Dynamic
 {
     /// <summary>
-    /// Sample class showing how to use Skip.
+    /// Sample class showing how to use Take.
     /// </summary>
     public static class Take
     {
