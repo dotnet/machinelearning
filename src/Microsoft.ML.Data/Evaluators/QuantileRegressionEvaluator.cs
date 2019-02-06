@@ -25,7 +25,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class QuantileRegressionEvaluator :
+    [BestFriend]
+    internal sealed class QuantileRegressionEvaluator :
         RegressionEvaluatorBase<QuantileRegressionEvaluator.Aggregator, VBuffer<Float>, VBuffer<Double>>
     {
         public sealed class Arguments : ArgumentsBase
@@ -457,7 +458,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class QuantileRegressionMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class QuantileRegressionMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {

@@ -22,7 +22,8 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class AnomalyDetectionEvaluator : EvaluatorBase<AnomalyDetectionEvaluator.Aggregator>
+    [BestFriend]
+    internal sealed class AnomalyDetectionEvaluator : EvaluatorBase<AnomalyDetectionEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -577,7 +578,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class AnomalyDetectionMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class AnomalyDetectionMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {

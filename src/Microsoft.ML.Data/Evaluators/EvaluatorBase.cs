@@ -17,7 +17,8 @@ namespace Microsoft.ML.Data
     ///  <see cref="GetPerInstanceMetricsCore"/>. Note that the input <see cref="RoleMappedData"/> is assumed to contain all the column
     /// roles needed for evaluation, including the score column.
     /// </summary>
-    public abstract partial class EvaluatorBase<TAgg> : IEvaluator
+    [BestFriend]
+    internal abstract partial class EvaluatorBase<TAgg> : IEvaluator
         where TAgg : EvaluatorBase<TAgg>.AggregatorBase
     {
         protected readonly IHost Host;
@@ -446,7 +447,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class RowToRowEvaluatorBase<TAgg> : EvaluatorBase<TAgg>
+    [BestFriend]
+    internal abstract class RowToRowEvaluatorBase<TAgg> : EvaluatorBase<TAgg>
         where TAgg : EvaluatorBase<TAgg>.AggregatorBase
     {
         [BestFriend]

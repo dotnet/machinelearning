@@ -28,7 +28,8 @@ using Microsoft.ML.Transforms.FeatureSelection;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class MultiClassClassifierEvaluator : RowToRowEvaluatorBase<MultiClassClassifierEvaluator.Aggregator>
+    [BestFriend]
+    internal sealed class MultiClassClassifierEvaluator : RowToRowEvaluatorBase<MultiClassClassifierEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -822,7 +823,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class MultiClassMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class MultiClassMamlEvaluator : MamlEvaluatorBase
     {
         public class Arguments : ArgumentsBase
         {

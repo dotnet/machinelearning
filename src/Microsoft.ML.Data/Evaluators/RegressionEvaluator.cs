@@ -24,7 +24,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class RegressionEvaluator :
+    [BestFriend]
+    internal sealed class RegressionEvaluator :
         RegressionEvaluatorBase<RegressionEvaluator.Aggregator, Float, Double>
     {
         public sealed class Arguments : ArgumentsBase
@@ -327,7 +328,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class RegressionMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class RegressionMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {
