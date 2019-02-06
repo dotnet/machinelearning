@@ -68,8 +68,8 @@ namespace Samples
                 }
 
                 ++iterationIndex;
-                PrintRegressionMetrics(iterationIndex, "validation metrics", iterationResult.Metrics);
-                PrintRegressionMetrics(iterationIndex, "test metrics      ", testMetrics);
+                PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, "validation", iterationResult.Metrics);
+                PrintRegressionMetrics(iterationIndex, iterationResult.TrainerName, "test", testMetrics);
                 Console.WriteLine();
             }
 
@@ -92,14 +92,14 @@ namespace Samples
             Console.ReadLine();
         }
 
-        static void PrintRegressionMetrics(int iteration, string typeOfMetrics, RegressionMetrics metrics)
+        static void PrintRegressionMetrics(int iteration, string trainerName, string typeOfMetrics, RegressionMetrics metrics)
         {
-            Console.WriteLine($"{iteration}       {typeOfMetrics}       {metrics.LossFn:0.##}        {metrics.RSquared:0.##}        {metrics.L1:#.##}        {metrics.L2:#.##}        {metrics.Rms:#.##}");
+            Console.WriteLine($"{iteration,-3}{trainerName, -35}{typeOfMetrics,-15}{metrics.LossFn,-8:0.##}{metrics.RSquared,-10:0.##}{metrics.L1,-15:#.##}{metrics.L2,-15:#.##}{metrics.Rms,-10:#.##}");
         }
 
         static void PrintActualVersusPredictedValue(int index, float fareAmount, float score)
         {
-            Console.WriteLine($"{index}         {fareAmount}            {score}");
+            Console.WriteLine($"{index,-5}{fareAmount,-20}{score,-20}");
         }
 
         static void PrintRegressionMetricsHeader()
@@ -107,7 +107,7 @@ namespace Samples
             Console.WriteLine($"*************************************************");
             Console.WriteLine($"*       Metrics for regression model      ");
             Console.WriteLine($"*------------------------------------------------");
-            Console.WriteLine($"iteration       type        LossFn      R2-Score   Absolute-loss  Squared-loss   RMS-loss");
+            Console.WriteLine($"{" ",-3}{"Trainer",-35}{"Type",-15}{"LossFn",-8}{"R2-Score",-10}{"Absolute-loss",-15}{"Squared-loss",-15}{"RMS-loss",-10}");
         }
 
         static void PrintActualVersusPredictedHeader()
@@ -115,7 +115,7 @@ namespace Samples
             Console.WriteLine($"*************************************************");
             Console.WriteLine($"*       Actual value Vs predicted value      ");
             Console.WriteLine($"*------------------------------------------------");
-            Console.WriteLine($"Row    ActualFareAmount  PredictedFareAmount");
+            Console.WriteLine($"{"Row",-5}{"ActualFareAmount",-20}{"PredictedFareAmount",-20}");
         }
     }
 }

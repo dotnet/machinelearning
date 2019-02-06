@@ -68,8 +68,8 @@ namespace Samples
                 }
 
                 ++iterationIndex;
-                PrintMulticlassClassificationMetrics(iterationIndex, "validation metrics", iterationResult.Metrics);
-                PrintMulticlassClassificationMetrics(iterationIndex, "test metrics      ", testMetrics);
+                PrintMulticlassClassificationMetrics(iterationIndex, iterationResult.TrainerName, "validation", iterationResult.Metrics);
+                PrintMulticlassClassificationMetrics(iterationIndex, iterationResult.TrainerName, "test", testMetrics);
                 Console.WriteLine();
             }
 
@@ -91,14 +91,14 @@ namespace Samples
             Console.ReadLine();
         }
 
-        static void PrintMulticlassClassificationMetrics(int iteration, string typeOfMetrics, MultiClassClassifierMetrics metrics)
+        static void PrintMulticlassClassificationMetrics(int iteration, string trainerName, string typeOfMetrics, MultiClassClassifierMetrics metrics)
         {
-            Console.WriteLine($"{iteration}       {typeOfMetrics}       {metrics.AccuracyMacro:0.####}        {metrics.AccuracyMicro:0.####}        {metrics.LogLossReduction:0.##}");
+            Console.WriteLine($"{iteration,-3}{trainerName,-35}{typeOfMetrics,-15}{metrics.AccuracyMacro,-15:0.####}{metrics.AccuracyMicro,-15:0.####}{metrics.LogLossReduction,-15:0.##}");
         }
 
         static void PrintActualVersusPredictedValue(int index, uint label, uint predictedLabel)
         {
-            Console.WriteLine($"{index}        {label}        {predictedLabel}");
+            Console.WriteLine($"{index,-5}{label,-15}{predictedLabel,15}");
         }
 
         static void PrintMulticlassClassificationMetricsHeader()
@@ -106,7 +106,7 @@ namespace Samples
             Console.WriteLine($"*************************************************");
             Console.WriteLine($"*       Metrics for multiclass classification model      ");
             Console.WriteLine($"*------------------------------------------------");
-            Console.WriteLine($"iteration   type        AccuracyMacro      AccuracyMicro    LogLossReduction");
+            Console.WriteLine($"{"  ",-3}{"Trainer",-35}{"Type",-15}{"AccuracyMacro",-15}{"AccuracyMicro",-15}{"LogLossReduction",-15}");
         }
 
         static void PrintActualVersusPredictedHeader()
@@ -114,7 +114,7 @@ namespace Samples
             Console.WriteLine($"*************************************************");
             Console.WriteLine($"*       Actual value Vs predicted value      ");
             Console.WriteLine($"*------------------------------------------------");
-            Console.WriteLine($"Row     Actual       Predicted");
+            Console.WriteLine($"{"Row",-5}{"Actual",-15}{"Predicted",15}");
         }
     }
 }

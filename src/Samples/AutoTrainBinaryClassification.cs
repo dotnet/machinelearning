@@ -63,8 +63,8 @@ namespace Samples
                 }
 
                 ++iterationIndex;
-                PrintBinaryClassificationMetrics(iterationIndex, "validation metrics", iterationResult.Metrics);
-                PrintBinaryClassificationMetrics(iterationIndex, "test metrics      ", testMetrics);
+                PrintBinaryClassificationMetrics(iterationIndex, iterationResult.TrainerName, "validation", iterationResult.Metrics);
+                PrintBinaryClassificationMetrics(iterationIndex, iterationResult.TrainerName, "test", testMetrics);
                 Console.WriteLine();
             }
 
@@ -87,14 +87,14 @@ namespace Samples
             Console.ReadLine();
         }
         
-        static void PrintBinaryClassificationMetrics(int iteration, string typeOfMetrics, BinaryClassificationMetrics metrics)
+        static void PrintBinaryClassificationMetrics(int iteration, string trainerName, string typeOfMetrics, BinaryClassificationMetrics metrics)
         {
-            Console.WriteLine($"{iteration}       {typeOfMetrics}       {metrics.Accuracy:P2}        {metrics.Auc:P2}        {metrics.F1Score:P2}        {metrics.PositivePrecision:#.##}        {metrics.PositiveRecall:#.##}");
+            Console.WriteLine($"{iteration,-3}{trainerName,-35}{typeOfMetrics,-15}{metrics.Accuracy,-15:P2}{metrics.Auc,-15:P2}{metrics.F1Score,-8:P2}{metrics.PositivePrecision,-15:#.##}{metrics.PositiveRecall,-12:#.##}");
         }
 
         static void PrintActualVersusPredictedValue(int index, bool label, float score)
         {
-            Console.WriteLine($"{index}        {label}        {(score == 0 ? false : true)}");
+            Console.WriteLine($"{index,-5}{label,-15}{(score == 0 ? false : true),-15}");
         }
 
         static void PrintBinaryClassificationMetricsHeader()
@@ -102,7 +102,7 @@ namespace Samples
             Console.WriteLine($"*************************************************");
             Console.WriteLine($"*       Metrics for binary classification model      ");
             Console.WriteLine($"*------------------------------------------------");
-            Console.WriteLine($"iteration   type        Accuracy      Auc    F1Score   PositivePrecision    PositiveRecall");
+            Console.WriteLine($"{" ",-3}{"Trainer",-35}{"Type",-15}{"Accuracy",-15}{"Auc",-15}{"F1Score",-8}{"P-Precision",-15}{"P-Recall",-12:#.##}");
         }
 
         static void PrintActualVersusPredictedHeader()
@@ -110,7 +110,7 @@ namespace Samples
             Console.WriteLine($"*************************************************");
             Console.WriteLine($"*       Actual value Vs predicted value      ");
             Console.WriteLine($"*------------------------------------------------");
-            Console.WriteLine($"Row    Actual Label  Predicted Label");
+            Console.WriteLine($"{"Row",-5}{"Actual",-15}{"Predicted",-15}");
         }
     }
 }

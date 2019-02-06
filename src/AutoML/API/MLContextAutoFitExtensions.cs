@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using System.Linq;
 
 namespace Microsoft.ML.Auto
 {
@@ -139,6 +140,7 @@ namespace Microsoft.ML.Auto
         public readonly T Metrics;
         public readonly ITransformer Model;
         public readonly Exception Exception;
+        public readonly string TrainerName;
         internal readonly Pipeline Pipeline;
 
         internal IterationResult(ITransformer model, T metrics, Pipeline pipeline, Exception exception)
@@ -147,6 +149,7 @@ namespace Microsoft.ML.Auto
             Metrics = metrics;
             Pipeline = pipeline;
             Exception = exception;
+            TrainerName = pipeline?.Nodes.Where(n => n.NodeType == PipelineNodeType.Trainer).Last().Name;
         }
     }
 }
