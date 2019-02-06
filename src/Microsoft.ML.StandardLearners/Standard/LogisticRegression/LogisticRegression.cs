@@ -13,8 +13,8 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LogisticRegression.Summary, typeof(LogisticRegression), typeof(LogisticRegression.Options),
@@ -26,7 +26,7 @@ using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(LogisticRegression), null, typeof(SignatureEntryPointModule), LogisticRegression.LoadNameValue)]
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />

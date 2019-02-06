@@ -13,7 +13,7 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 using Float = System.Single;
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Helper methods for linear predictors
