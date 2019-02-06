@@ -179,6 +179,33 @@ namespace Microsoft.ML
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
         /// </summary>
+        /// <typeparam name="TInputType">The key type.</typeparam>
+        /// <typeparam name="TOutputType">The value type.</typeparam>
+        /// <param name="catalog">The categorical transform's catalog</param>
+        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with values. This list must be the same length as values and
+        /// cannot contain duplicate keys.</param>
+        /// <param name="values">The list of values (an array) to pair with the keys for the mapping. This list must be equal to the same length as keys.</param>
+        /// <param name="columns">The columns to apply this transform on.</param>
+        /// <returns>An instance of the ValueMappingEstimator</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        /// ]]></format>
+        /// </example>
+        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
+            this TransformsCatalog.ConversionTransforms catalog,
+            IEnumerable<TInputType> keys,
+            IEnumerable<TOutputType[]> values,
+            params (string outputColumnName, string inputColumnName)[] columns)
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
+
+        /// <summary>
+        /// <see cref="ValueMappingEstimator"/>
+        /// </summary>
         /// <param name="catalog">The categorical transform's catalog</param>
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
         /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>

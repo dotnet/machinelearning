@@ -3546,7 +3546,7 @@ namespace Microsoft.ML.RunTests
                 Data = dataView,
                 Columns = new[] { new OneHotEncodingTransformer.Column { Name = "Categories", Source = "Categories" } }
             });
-            var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Arguments()
+            var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Options()
             {
                 Data = cat.OutputData,
                 Columns = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
