@@ -158,6 +158,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="value">The value to add.</param>
         /// <param name="destination">The destination to add the value to.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Add(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
@@ -184,6 +185,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="value">The value to add.</param>
         /// <param name="destination">The destination to add the value to.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Scale(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
@@ -213,6 +215,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="source">The source values.</param>
         /// <param name="destination">The destination.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Scale(float value, ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -247,6 +250,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="scale">The scale to add by.</param>
         /// <param name="addend">The added value.</param>
         /// <param name="destination">The destination.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScaleAdd(float scale, float addend, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
@@ -275,6 +279,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="source">The source values.</param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddScale(float scale, ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -308,6 +313,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="indices">The indices of value collection.</param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddScale(float scale, ReadOnlySpan<float> source, ReadOnlySpan<int> indices, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -344,6 +350,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="destination">The destination values.</param>
         /// <param name="result">A new collection of values to be returned.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddScaleCopy(float scale, ReadOnlySpan<float> source, ReadOnlySpan<float> destination, Span<float> result, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -377,6 +384,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="source">The source values.</param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Add(ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -409,6 +417,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="indices"></param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Add(ReadOnlySpan<float> source, ReadOnlySpan<int> indices, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -444,6 +453,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="right">The right element.</param>
         /// <param name="destination">The destination values.</param>
         /// <param name="count">The count of items.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MulElementWise(ReadOnlySpan<float> left, ReadOnlySpan<float> right, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -476,6 +486,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all items in <paramref name="source"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Sum(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -504,6 +515,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of the squares of all items in <paramref name="source"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SumSq(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -533,6 +545,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all items in <paramref name="source"/> by <paramref name="mean"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SumSq(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -561,6 +574,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all absolute value of the items in <paramref name="source"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SumAbs(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -590,6 +604,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all items by absolute value in <paramref name="source"/> subtracted by <paramref name="mean"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SumAbs(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -618,6 +633,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// </summary>
         /// <param name="source">The source values.</param>
         /// <returns>The max of all absolute value items in <paramref name="source"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float MaxAbs(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -651,6 +667,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
         /// <returns>The sum of all absolute value items in <paramref name="source"/> subtracted by <paramref name="mean"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float MaxAbsDiff(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -685,6 +702,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="right">The right span.</param>
         /// <param name="count">The count of items.</param>
         /// <returns>The dot product.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotProductDense(ReadOnlySpan<float> left, ReadOnlySpan<float> right, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -720,6 +738,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="indices">The indicies of the left span.</param>
         /// <param name="count">The count of items.</param>
         /// <returns>The dot product.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotProductSparse(ReadOnlySpan<float> left, ReadOnlySpan<float> right, ReadOnlySpan<int> indices, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -757,6 +776,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="right">The right span.</param>
         /// <param name="count">The count of items.</param>
         /// <returns>The squared distance value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float L2DistSquared(ReadOnlySpan<float> left, ReadOnlySpan<float> right, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -866,6 +886,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="threshold">The threshold value.</param>
         /// <param name="v">The v span.</param>
         /// <param name="w">The w span.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SdcaL1UpdateDense(float primalUpdate, int count, ReadOnlySpan<float> source, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(source);
@@ -905,6 +926,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="threshold">The threshold.</param>
         /// <param name="v">The v span.</param>
         /// <param name="w">The w span.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SdcaL1UpdateSparse(float primalUpdate, int count, ReadOnlySpan<float> source, ReadOnlySpan<int> indices, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(source);
