@@ -58,11 +58,13 @@ namespace Microsoft.ML.SamplesUtils
 
         /// <summary>
         /// Downloads sentiment_model from the dotnet/machinelearning-testdata repo.
+        /// </summary>
+        /// <remarks>
         /// The model is downloaded from
         /// https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model
         /// The model is in 'SavedModel' format. For further explanation on how was the `sentiment_model` created
         /// c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
-        /// </summary>
+        /// </remarks>
         public static string DownloadTensorFlowSentimentModel()
         {
             string remotePath = "https://github.com/dotnet/machinelearning-testdata/raw/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/";
