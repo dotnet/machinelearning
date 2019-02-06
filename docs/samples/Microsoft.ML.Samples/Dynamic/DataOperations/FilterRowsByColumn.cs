@@ -5,9 +5,9 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Samples.Dynamic
 {
     /// <summary>
-    /// Sample class showing how to use <see cref="DataOperationsCatalog.FilterByColumn"/>.
+    /// Sample class showing how to use FilterRowsByColumn.
     /// </summary>
-    public static class FilterByColumn
+    public static class FilterRowsByColumn
     {
         public static void Example()
         {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  1/11/2012       29
 
             // Filter the data by the values of the temperature. The lower bound is inclusive, the upper exclusive.
-            var filteredData = mlContext.Data.FilterByColumn(data, columnName: "Temperature", lowerBound: 34, upperBound: 37);
+            var filteredData = mlContext.Data.FilterRowsByColumn(data, columnName: "Temperature", lowerBound: 34, upperBound: 37);
 
             // Look at the filtered data and observe that values outside [34,37) have been dropped.
             var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
