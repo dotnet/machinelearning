@@ -221,5 +221,61 @@ namespace Microsoft.ML
 
             return new RowShufflingTransformer(Environment, options, input);
         }
+
+        /// <summary>
+        /// Skip <paramref name="count"/> rows in <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// Skips the first <paramref name="count"/> rows from <paramref name="input"/> and returns an <see cref="IDataView"/> with all other rows.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="count">Number of rows to skip.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SkipRows](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/SkipRows.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView SkipRows(IDataView input, long count)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
+
+            var options = new SkipTakeFilter.SkipArguments()
+            {
+                Count = count
+            };
+
+            return new SkipTakeFilter(Environment, options, input);
+        }
+
+        /// <summary>
+        /// Take <paramref name="count"/> rows from <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// Returns returns an <see cref="IDataView"/> with the first <paramref name="count"/> rows from <paramref name="input"/>.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="count">Number of rows to take.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[TakeRows](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/TakeRows.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView TakeRows(IDataView input, long count)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
+
+            var options = new SkipTakeFilter.TakeArguments()
+            {
+                Count = count
+            };
+
+            return new SkipTakeFilter(Environment, options, input);
+        }
     }
 }
