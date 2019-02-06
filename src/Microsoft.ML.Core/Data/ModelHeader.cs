@@ -10,7 +10,8 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Model
 {
-    [StructLayout(LayoutKind.Explicit, Size = ModelHeader.Size)]
+    [StructLayout(LayoutKind.Explicit, Size = Size)]
+    [BestFriend]
     internal struct ModelHeader
     {
         /// <summary>
