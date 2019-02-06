@@ -36,7 +36,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>
-        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog, params RandomFourierFeaturizingTransformer.ColumnInfo[] columns)
+        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog, params RandomFourierFeaturizingEstimator.ColumnInfo[] columns)
             => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>
-        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.ProjectionTransforms catalog, params LpNormalizingTransformer.LpNormColumnInfo[] columns)
+        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.ProjectionTransforms catalog, params LpNormalizingEstimator.LpNormColumnInfo[] columns)
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the gcn-normaliztion process for each column pair.</param>
-        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, params LpNormalizingTransformer.GcnColumnInfo[] columns)
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, params GlobalContrastNormalizingEstimator.GcnColumnInfo[] columns)
             => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

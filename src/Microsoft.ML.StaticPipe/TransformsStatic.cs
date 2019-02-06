@@ -1595,11 +1595,11 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new RandomFourierFeaturizingTransformer.ColumnInfo[toOutput.Length];
+                var infos = new RandomFourierFeaturizingEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new RandomFourierFeaturizingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
                 }
                 return new RandomFourierFeaturizingEstimator(env, infos);
             }
@@ -1640,11 +1640,11 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly PcaTransformer.ColumnInfo _colInfo;
+            private readonly PrincipalComponentAnalysisEstimator.ColumnInfo _colInfo;
 
             public Reconciler(string weightColumn, int rank, int overSampling, bool center, int? seed = null)
             {
-                _colInfo = new PcaTransformer.ColumnInfo(
+                _colInfo = new PrincipalComponentAnalysisEstimator.ColumnInfo(
                     null, null, weightColumn, rank, overSampling, center, seed);
             }
 
