@@ -133,7 +133,9 @@ namespace Microsoft.ML.Data
             GroupCol = ctx.LoadNonEmptyString();
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        internal virtual void SaveModel(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
 

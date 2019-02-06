@@ -140,7 +140,7 @@ namespace Microsoft.ML.Data
                 Metadata.Seal();
             }
 
-            public override void Save(ModelSaveContext ctx)
+            private protected override void SaveModel(ModelSaveContext ctx)
             {
                 Host.Assert(false, "Shouldn't serialize this!");
                 throw Host.ExceptNotSupp("Shouldn't serialize this");

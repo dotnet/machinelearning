@@ -510,7 +510,9 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected virtual void SaveModel(ModelSaveContext ctx)
         {
             // *** Binary format **
             // int: Id of the score column name
