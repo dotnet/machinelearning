@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new OneHotHashEncodingEstimator(Env, new[]{
+            var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
                     new OneHotHashEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
                     new OneHotHashEncodingEstimator.ColumnInfo("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
                     new OneHotHashEncodingEstimator.ColumnInfo("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind),
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 5.0f,6.0f}, D = 1.0f , E= new string[2]{"D","E"}, F="D"} };
 
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var bagPipe = new OneHotHashEncodingEstimator(Env,
+            var bagPipe = ML.Transforms.Categorical.OneHotHashEncoding(
                 new OneHotHashEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
                 new OneHotHashEncodingEstimator.ColumnInfo("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
                 new OneHotHashEncodingEstimator.ColumnInfo("CatC", "C", OneHotEncodingTransformer.OutputKind.Bag, invertHash: -1),
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
             var dataView = ML.Data.ReadFromEnumerable(data);
-            var pipe = new OneHotHashEncodingEstimator(Env, new[]{
+            var pipe = ML.Transforms.Categorical.OneHotHashEncoding(new[]{
                     new OneHotHashEncodingEstimator.ColumnInfo("CatHashA", "A"),
                     new OneHotHashEncodingEstimator.ColumnInfo("CatHashB", "B"),
                     new OneHotHashEncodingEstimator.ColumnInfo("CatHashC", "C")

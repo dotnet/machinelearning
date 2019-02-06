@@ -313,7 +313,7 @@ namespace Microsoft.ML.Data
             // standard column name.
             const string standardColumnArgName = "Columns";
             Contracts.Assert(nameof(ValueToKeyMappingTransformer.Options.Columns) == standardColumnArgName);
-            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Columns) == standardColumnArgName);
+            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Options.Columns) == standardColumnArgName);
 
             for (int iinfo = 0; iinfo < names.Length; iinfo++)
             {

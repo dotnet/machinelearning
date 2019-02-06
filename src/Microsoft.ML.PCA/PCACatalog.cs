@@ -33,7 +33,7 @@ namespace Microsoft.ML
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Input columns to apply PrincipalComponentAnalysis on.</param>
-        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog, params PcaTransformer.ColumnInfo[] columns)
+        public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog, params PrincipalComponentAnalysisEstimator.ColumnInfo[] columns)
             => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

@@ -45,7 +45,7 @@ namespace Microsoft.ML
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Concatenates two columns together.
+        /// Concatenates columns together.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>

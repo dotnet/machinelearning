@@ -15,9 +15,10 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(ColumnConcatenatingTransformer.Summary, typeof(IDataTransform), typeof(ColumnConcatenatingTransformer), typeof(ColumnConcatenatingTransformer.TaggedArguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(ColumnConcatenatingTransformer.Summary, typeof(IDataTransform), typeof(ColumnConcatenatingTransformer), typeof(ColumnConcatenatingTransformer.TaggedOptions), typeof(SignatureDataTransform),
     ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoadName, "ConcatTransform", DocName = "transform/ConcatTransform.md")]
 
 [assembly: LoadableClass(ColumnConcatenatingTransformer.Summary, typeof(IDataTransform), typeof(ColumnConcatenatingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -33,6 +34,10 @@ namespace Microsoft.ML.Data
 {
     using PfaType = PfaUtils.Type;
 
+    /// <summary>
+    /// Concatenates columns in an <see cref="IDataView"/> into one single column. Please see <see cref="ColumnConcatenatingEstimator"/> for
+    /// constructing <see cref="ColumnConcatenatingTransformer"/>.
+    /// </summary>
     public sealed class ColumnConcatenatingTransformer : RowToRowTransformerBase
     {
         internal const string Summary = "Concatenates one or more columns of the same item type.";
@@ -42,7 +47,7 @@ namespace Microsoft.ML.Data
         internal const string LoaderSignature = "ConcatTransform";
         internal const string LoaderSignatureOld = "ConcatFunction";
 
-        public sealed class Column : ManyToOneColumn
+        internal sealed class Column : ManyToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -60,7 +65,8 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public sealed class TaggedColumn
+        [BestFriend]
+        internal sealed class TaggedColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", ShortName = "name")]
             public string Name;
@@ -99,13 +105,13 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
-            public Arguments()
+            public Options()
             {
             }
 
-            public Arguments(string name, params string[] source)
+            public Options(string name, params string[] source)
             {
                 Columns = new[] { new Column()
                 {
@@ -119,14 +125,16 @@ namespace Microsoft.ML.Data
             public Column[] Columns;
         }
 
-        public sealed class TaggedArguments
+        [BestFriend]
+        internal sealed class TaggedOptions
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)",
                 Name = "Column", ShortName = "col", SortOrder = 1)]
             public TaggedColumn[] Columns;
         }
 
-        public sealed class ColumnInfo
+        [BestFriend]
+        internal sealed class ColumnInfo
         {
             public readonly string Name;
             private readonly (string name, string alias)[] _sources;
@@ -212,14 +220,18 @@ namespace Microsoft.ML.Data
 
         private readonly ColumnInfo[] _columns;
 
-        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+        /// <summary>
+        /// The names of the output and input column pairs for the transformation.
+        /// </summary>
+        public IReadOnlyCollection<(string outputColumnName, string[] inputColumnNames)> Columns
+            => _columns.Select(col => (outputColumnName: col.Name, inputColumnNames: col.Sources.Select(source => source.name).ToArray())).ToArray().AsReadOnly();
 
         /// <summary>
         /// Concatename columns in <paramref name="inputColumnNames"/> into one column <paramref name="outputColumnName"/>.
         /// Original columns are also preserved.
         /// The column types must match, and the output column type is always a vector.
         /// </summary>
-        public ColumnConcatenatingTransformer(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
+        internal ColumnConcatenatingTransformer(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
             : this(env, new ColumnInfo(outputColumnName, inputColumnNames))
         {
         }
@@ -227,7 +239,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Concatenates multiple groups of columns, each group is denoted by one of <paramref name="columns"/>.
         /// </summary>
-        public ColumnConcatenatingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
+        internal ColumnConcatenatingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnConcatenatingTransformer)))
         {
             Contracts.CheckValue(columns, nameof(columns));
@@ -357,17 +369,17 @@ namespace Microsoft.ML.Data
         ///<summary>
         /// Factory method for SignatureDataTransform.
         /// </summary>
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
-            env.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
+            env.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
-            for (int i = 0; i < args.Columns.Length; i++)
-                env.CheckUserArg(Utils.Size(args.Columns[i].Source) > 0, nameof(args.Columns));
+            for (int i = 0; i < options.Columns.Length; i++)
+                env.CheckUserArg(Utils.Size(options.Columns[i].Source) > 0, nameof(options.Columns));
 
-            var cols = args.Columns
+            var cols = options.Columns
                 .Select(c => new ColumnInfo(c.Name, c.Source))
                 .ToArray();
             var transformer = new ColumnConcatenatingTransformer(env, cols);
@@ -377,17 +389,17 @@ namespace Microsoft.ML.Data
         /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
         [BestFriend]
-        internal static IDataTransform Create(IHostEnvironment env, TaggedArguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, TaggedOptions options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
-            env.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
+            env.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
-            for (int i = 0; i < args.Columns.Length; i++)
-                env.CheckUserArg(Utils.Size(args.Columns[i].Source) > 0, nameof(args.Columns));
+            for (int i = 0; i < options.Columns.Length; i++)
+                env.CheckUserArg(Utils.Size(options.Columns[i].Source) > 0, nameof(options.Columns));
 
-            var cols = args.Columns
+            var cols = options.Columns
                 .Select(c => new ColumnInfo(c.Name, c.Source.Select(kvp => (kvp.Value, kvp.Key != "" ? kvp.Key : null))))
                 .ToArray();
             var transformer = new ColumnConcatenatingTransformer(env, cols);

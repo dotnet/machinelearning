@@ -153,7 +153,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestCommandLine()
         {
-            var env = new MLContext();
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=copy{col=B:A} in=f:\1.txt" }), (int)0);
         }
 

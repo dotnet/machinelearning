@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.Conversions
 {
     public sealed class KeyToBinaryVectorMappingTransformer : OneToOneTransformerBase
     {
-        public sealed class Arguments
+        internal sealed class Arguments
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
                 Name = "Column", ShortName = "col", SortOrder = 1)]

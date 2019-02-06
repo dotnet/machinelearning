@@ -36,7 +36,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashingTransformer.ColumnInfo[] columns)
+        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashingEstimator.ColumnInfo[] columns)
             => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="columns">The input column to map back to vectors.</param>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
-            params KeyToVectorMappingTransformer.ColumnInfo[] columns)
+            params KeyToVectorMappingEstimator.ColumnInfo[] columns)
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -173,6 +173,33 @@ namespace Microsoft.ML
             this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType> values,
+            params (string outputColumnName, string inputColumnName)[] columns)
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
+
+        /// <summary>
+        /// <see cref="ValueMappingEstimator"/>
+        /// </summary>
+        /// <typeparam name="TInputType">The key type.</typeparam>
+        /// <typeparam name="TOutputType">The value type.</typeparam>
+        /// <param name="catalog">The categorical transform's catalog</param>
+        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with values. This list must be the same length as values and
+        /// cannot contain duplicate keys.</param>
+        /// <param name="values">The list of values (an array) to pair with the keys for the mapping. This list must be equal to the same length as keys.</param>
+        /// <param name="columns">The columns to apply this transform on.</param>
+        /// <returns>An instance of the ValueMappingEstimator</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
+        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        /// ]]></format>
+        /// </example>
+        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
+            this TransformsCatalog.ConversionTransforms catalog,
+            IEnumerable<TInputType> keys,
+            IEnumerable<TOutputType[]> values,
             params (string outputColumnName, string inputColumnName)[] columns)
             => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
 

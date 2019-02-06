@@ -58,10 +58,10 @@ namespace Microsoft.ML.Tests.Transformers
                     new ValueToKeyMappingEstimator.ColumnInfo("TermC", "C", textKeyValues:true)
                 }).Fit(dataView).Transform(dataView);
 
-            var pipe = new KeyToVectorMappingEstimator(Env, new KeyToVectorMappingTransformer.ColumnInfo("CatA", "TermA", false),
-                new KeyToVectorMappingTransformer.ColumnInfo("CatB", "TermB", true),
-                new KeyToVectorMappingTransformer.ColumnInfo("CatC", "TermC", true),
-                new KeyToVectorMappingTransformer.ColumnInfo("CatCNonBag", "TermC", false));
+            var pipe = ML.Transforms.Conversion.MapKeyToVector(new KeyToVectorMappingEstimator.ColumnInfo("CatA", "TermA", false),
+                new KeyToVectorMappingEstimator.ColumnInfo("CatB", "TermB", true),
+                new KeyToVectorMappingEstimator.ColumnInfo("CatC", "TermC", true),
+                new KeyToVectorMappingEstimator.ColumnInfo("CatCNonBag", "TermC", false));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -121,15 +121,15 @@ namespace Microsoft.ML.Tests.Transformers
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
-            var pipe = new KeyToVectorMappingEstimator(Env,
-                 new KeyToVectorMappingTransformer.ColumnInfo("CatA", "TA", true),
-                 new KeyToVectorMappingTransformer.ColumnInfo("CatB", "TB", false),
-                 new KeyToVectorMappingTransformer.ColumnInfo("CatC", "TC", false),
-                 new KeyToVectorMappingTransformer.ColumnInfo("CatD", "TD", true),
-                 new KeyToVectorMappingTransformer.ColumnInfo("CatE", "TE", false),
-                 new KeyToVectorMappingTransformer.ColumnInfo("CatF", "TF", true),
-                 new KeyToVectorMappingTransformer.ColumnInfo("CatG", "TG", true),
-                 new KeyToVectorMappingTransformer.ColumnInfo("CatH", "TH", false)
+            var pipe = ML.Transforms.Conversion.MapKeyToVector(
+                 new KeyToVectorMappingEstimator.ColumnInfo("CatA", "TA", true),
+                 new KeyToVectorMappingEstimator.ColumnInfo("CatB", "TB", false),
+                 new KeyToVectorMappingEstimator.ColumnInfo("CatC", "TC", false),
+                 new KeyToVectorMappingEstimator.ColumnInfo("CatD", "TD", true),
+                 new KeyToVectorMappingEstimator.ColumnInfo("CatE", "TE", false),
+                 new KeyToVectorMappingEstimator.ColumnInfo("CatF", "TF", true),
+                 new KeyToVectorMappingEstimator.ColumnInfo("CatG", "TG", true),
+                 new KeyToVectorMappingEstimator.ColumnInfo("CatH", "TH", false)
                  );
 
             var result = pipe.Fit(dataView).Transform(dataView);
@@ -221,9 +221,9 @@ namespace Microsoft.ML.Tests.Transformers
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
-            var pipe = new KeyToVectorMappingEstimator(Env,
-                new KeyToVectorMappingTransformer.ColumnInfo("CatA", "TermA",false),
-                new KeyToVectorMappingTransformer.ColumnInfo("CatB", "TermB", true)
+            var pipe = ML.Transforms.Conversion.MapKeyToVector(
+                new KeyToVectorMappingEstimator.ColumnInfo("CatA", "TermA",false),
+                new KeyToVectorMappingEstimator.ColumnInfo("CatB", "TermB", true)
             );
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
