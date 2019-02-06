@@ -110,7 +110,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return nanValue;
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(WindowSize >= 1);
@@ -123,7 +123,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // Int32 lag
             // byte begin
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write(_lag);
             ctx.Writer.Write((byte)_begin);
         }

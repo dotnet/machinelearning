@@ -48,11 +48,11 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             ctx.CheckAtModel();
             Host.Assert(InitialWindowSize == 0);
-            base.Save(ctx);
+            base.SaveModel(ctx);
 
             // *** Binary format ***
             // <base>
