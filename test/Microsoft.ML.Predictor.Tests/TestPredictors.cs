@@ -586,7 +586,7 @@ namespace Microsoft.ML.RunTests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         [TestCategory("Regression")]
         [TestCategory("LightGBM")]
-        public void RegressorLightGBMRMonotoneTest()
+        public void RegressorLightGBMRMonotonicTest()
         {
             var regPredictors = new[] { TestLearners.LightGBMRegMonotonic };
             var regDatasets = new[] { TestDatasets.generatedRegressionDataset };

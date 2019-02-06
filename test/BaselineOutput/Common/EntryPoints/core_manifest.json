@@ -11607,14 +11607,121 @@
           }
         },
         {
-          "Name": "MonotoneConstraints",
+          "Name": "MonotonicPositive",
           "Type": {
             "Kind": "Array",
-            "ItemType": "String"
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Min",
+                  "Type": "Int",
+                  "Desc": "First index in the range",
+                  "Required": true,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": 0
+                },
+                {
+                  "Name": "Max",
+                  "Type": "Int",
+                  "Desc": "Last index in the range",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AutoEnd",
+                  "Type": "Bool",
+                  "Desc": "This range extends to the end of the line, but should be a fixed number of items",
+                  "Aliases": [
+                    "auto"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                },
+                {
+                  "Name": "AllOther",
+                  "Type": "Bool",
+                  "Desc": "This range includes only other indices not specified",
+                  "Aliases": [
+                    "other"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                }
+              ]
+            }
           },
-          "Desc": "Sets the constraints for monotonic features. This is a 0 based index for each feature in the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, then no constraint will be applied. The keyword of 'pos' or 'neg' without a range will apply the constraint to all features.",
+          "Desc": "Specifies the features to apply positive constraint. This is a 0 based index specified using a range. The range is specified with a dash, for example, 0-2 will apply a positive constraint to first three features. The '*' character can be used to apply the range to the end of of the features so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting the constraint to 4th, 5th and 6th indices, but will apply to all others.",
           "Aliases": [
-            "mc"
+            "mp"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "MonotonicNegative",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Min",
+                  "Type": "Int",
+                  "Desc": "First index in the range",
+                  "Required": true,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": 0
+                },
+                {
+                  "Name": "Max",
+                  "Type": "Int",
+                  "Desc": "Last index in the range",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AutoEnd",
+                  "Type": "Bool",
+                  "Desc": "This range extends to the end of the line, but should be a fixed number of items",
+                  "Aliases": [
+                    "auto"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                },
+                {
+                  "Name": "AllOther",
+                  "Type": "Bool",
+                  "Desc": "This range includes only other indices not specified",
+                  "Aliases": [
+                    "other"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                }
+              ]
+            }
+          },
+          "Desc": "Specifies the features to apply the negative constraint. This is a 0 based index specified using a range. The range is specified with a dash, for example, 0-2 will apply a negative constraint to first three features. The '*' character can be used to apply the range to the end of of the features so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting the constraint to 4th, 5th and 6th indices, but will apply to all others.",
+          "Aliases": [
+            "mn"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -12117,14 +12224,121 @@
           }
         },
         {
-          "Name": "MonotoneConstraints",
+          "Name": "MonotonicPositive",
           "Type": {
             "Kind": "Array",
-            "ItemType": "String"
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Min",
+                  "Type": "Int",
+                  "Desc": "First index in the range",
+                  "Required": true,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": 0
+                },
+                {
+                  "Name": "Max",
+                  "Type": "Int",
+                  "Desc": "Last index in the range",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AutoEnd",
+                  "Type": "Bool",
+                  "Desc": "This range extends to the end of the line, but should be a fixed number of items",
+                  "Aliases": [
+                    "auto"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                },
+                {
+                  "Name": "AllOther",
+                  "Type": "Bool",
+                  "Desc": "This range includes only other indices not specified",
+                  "Aliases": [
+                    "other"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                }
+              ]
+            }
           },
-          "Desc": "Sets the constraints for monotonic features. This is a 0 based index for each feature in the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, then no constraint will be applied. The keyword of 'pos' or 'neg' without a range will apply the constraint to all features.",
+          "Desc": "Specifies the features to apply positive constraint. This is a 0 based index specified using a range. The range is specified with a dash, for example, 0-2 will apply a positive constraint to first three features. The '*' character can be used to apply the range to the end of of the features so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting the constraint to 4th, 5th and 6th indices, but will apply to all others.",
           "Aliases": [
-            "mc"
+            "mp"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "MonotonicNegative",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Min",
+                  "Type": "Int",
+                  "Desc": "First index in the range",
+                  "Required": true,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": 0
+                },
+                {
+                  "Name": "Max",
+                  "Type": "Int",
+                  "Desc": "Last index in the range",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AutoEnd",
+                  "Type": "Bool",
+                  "Desc": "This range extends to the end of the line, but should be a fixed number of items",
+                  "Aliases": [
+                    "auto"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                },
+                {
+                  "Name": "AllOther",
+                  "Type": "Bool",
+                  "Desc": "This range includes only other indices not specified",
+                  "Aliases": [
+                    "other"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                }
+              ]
+            }
+          },
+          "Desc": "Specifies the features to apply the negative constraint. This is a 0 based index specified using a range. The range is specified with a dash, for example, 0-2 will apply a negative constraint to first three features. The '*' character can be used to apply the range to the end of of the features so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting the constraint to 4th, 5th and 6th indices, but will apply to all others.",
+          "Aliases": [
+            "mn"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -12627,14 +12841,121 @@
           }
         },
         {
-          "Name": "MonotoneConstraints",
+          "Name": "MonotonicPositive",
           "Type": {
             "Kind": "Array",
-            "ItemType": "String"
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Min",
+                  "Type": "Int",
+                  "Desc": "First index in the range",
+                  "Required": true,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": 0
+                },
+                {
+                  "Name": "Max",
+                  "Type": "Int",
+                  "Desc": "Last index in the range",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AutoEnd",
+                  "Type": "Bool",
+                  "Desc": "This range extends to the end of the line, but should be a fixed number of items",
+                  "Aliases": [
+                    "auto"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                },
+                {
+                  "Name": "AllOther",
+                  "Type": "Bool",
+                  "Desc": "This range includes only other indices not specified",
+                  "Aliases": [
+                    "other"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                }
+              ]
+            }
           },
-          "Desc": "Sets the constraints for monotonic features. This is a 0 based index for each feature in the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, then no constraint will be applied. The keyword of 'pos' or 'neg' without a range will apply the constraint to all features.",
+          "Desc": "Specifies the features to apply positive constraint. This is a 0 based index specified using a range. The range is specified with a dash, for example, 0-2 will apply a positive constraint to first three features. The '*' character can be used to apply the range to the end of of the features so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting the constraint to 4th, 5th and 6th indices, but will apply to all others.",
           "Aliases": [
-            "mc"
+            "mp"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "MonotonicNegative",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Min",
+                  "Type": "Int",
+                  "Desc": "First index in the range",
+                  "Required": true,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": 0
+                },
+                {
+                  "Name": "Max",
+                  "Type": "Int",
+                  "Desc": "Last index in the range",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AutoEnd",
+                  "Type": "Bool",
+                  "Desc": "This range extends to the end of the line, but should be a fixed number of items",
+                  "Aliases": [
+                    "auto"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                },
+                {
+                  "Name": "AllOther",
+                  "Type": "Bool",
+                  "Desc": "This range includes only other indices not specified",
+                  "Aliases": [
+                    "other"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                }
+              ]
+            }
+          },
+          "Desc": "Specifies the features to apply the negative constraint. This is a 0 based index specified using a range. The range is specified with a dash, for example, 0-2 will apply a negative constraint to first three features. The '*' character can be used to apply the range to the end of of the features so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting the constraint to 4th, 5th and 6th indices, but will apply to all others.",
+          "Aliases": [
+            "mn"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13137,14 +13458,121 @@
           }
         },
         {
-          "Name": "MonotoneConstraints",
+          "Name": "MonotonicPositive",
           "Type": {
             "Kind": "Array",
-            "ItemType": "String"
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Min",
+                  "Type": "Int",
+                  "Desc": "First index in the range",
+                  "Required": true,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": 0
+                },
+                {
+                  "Name": "Max",
+                  "Type": "Int",
+                  "Desc": "Last index in the range",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AutoEnd",
+                  "Type": "Bool",
+                  "Desc": "This range extends to the end of the line, but should be a fixed number of items",
+                  "Aliases": [
+                    "auto"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                },
+                {
+                  "Name": "AllOther",
+                  "Type": "Bool",
+                  "Desc": "This range includes only other indices not specified",
+                  "Aliases": [
+                    "other"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                }
+              ]
+            }
           },
-          "Desc": "Sets the constraints for monotonic features. This is a 0 based index for each feature in the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, then no constraint will be applied. The keyword of 'pos' or 'neg' without a range will apply the constraint to all features.",
+          "Desc": "Specifies the features to apply positive constraint. This is a 0 based index specified using a range. The range is specified with a dash, for example, 0-2 will apply a positive constraint to first three features. The '*' character can be used to apply the range to the end of of the features so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting the constraint to 4th, 5th and 6th indices, but will apply to all others.",
           "Aliases": [
-            "mc"
+            "mp"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "MonotonicNegative",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": {
+              "Kind": "Struct",
+              "Fields": [
+                {
+                  "Name": "Min",
+                  "Type": "Int",
+                  "Desc": "First index in the range",
+                  "Required": true,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": 0
+                },
+                {
+                  "Name": "Max",
+                  "Type": "Int",
+                  "Desc": "Last index in the range",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "AutoEnd",
+                  "Type": "Bool",
+                  "Desc": "This range extends to the end of the line, but should be a fixed number of items",
+                  "Aliases": [
+                    "auto"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                },
+                {
+                  "Name": "AllOther",
+                  "Type": "Bool",
+                  "Desc": "This range includes only other indices not specified",
+                  "Aliases": [
+                    "other"
+                  ],
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": false,
+                  "Default": false
+                }
+              ]
+            }
+          },
+          "Desc": "Specifies the features to apply the negative constraint. This is a 0 based index specified using a range. The range is specified with a dash, for example, 0-2 will apply a negative constraint to first three features. The '*' character can be used to apply the range to the end of of the features so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting the constraint to 4th, 5th and 6th indices, but will apply to all others.",
+          "Aliases": [
+            "mn"
           ],
           "Required": false,
           "SortOrder": 150.0,

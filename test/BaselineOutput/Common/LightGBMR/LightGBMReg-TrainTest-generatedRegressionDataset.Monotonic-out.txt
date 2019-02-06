@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=LightGBMR{nt=1 iter=50 v=+ booster=gbdt{l1=0.2 l2=0.2} lr=0.2 mil=10 nl=20 mc=pos:0 mc=neg:1} dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% out=%Output% seed=1
+maml.exe TrainTest test=%Data% tr=LightGBMR{nt=1 iter=50 v=+ booster=gbdt{l1=0.2 l2=0.2} lr=0.2 mil=10 nl=20 mp=0 mn=1} dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% out=%Output% seed=1
 Not adding a normalizer.
 Auto-tuning parameters: UseCat = False
 LightGBM objective=regression

@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
@@ -372,13 +373,24 @@ namespace Microsoft.ML.LightGBM
         public double CatL2 = 10;
 
         [Argument(ArgumentType.Multiple,
-            HelpText = "Sets the constraints for monotonic features. This is a 0 based index for each feature in " +
-            "the features column. A keyword of 'pos' for positive constraint or 'neg' for negative constraint is " +
-            "specified followed by a range. For example, pos:0-2 neg:3,5 will apply a positive constraint to the " +
-            "first three features and a negative constraint to the 4th and 6th feature. If feature index is not specified, " +
-            "then no constraint will be applied. The keyword of 'pos' or 'neg' without a range will apply the constraint to all features.",
-            ShortName="mc")]
-        public string[] MonotoneConstraints;
+            HelpText = "Specifies the features to apply positive constraint. This is a 0 based index " +
+            "specified using a range. The range is specified with a dash, for example, 0-2 will apply a positive " +
+            "constraint to first three features. The '*' character can be used to apply the range to the end of of the features "  +
+            "so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to " +
+            "the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting " +
+            "the constraint to 4th, 5th and 6th indices, but will apply to all others.",
+            ShortName ="mp")]
+        public Range[] MonotonicPositive;
+
+        [Argument(ArgumentType.Multiple,
+            HelpText = "Specifies the features to apply the negative constraint. This is a 0 based index " +
+            "specified using a range. The range is specified with a dash, for example, 0-2 will apply a negative " +
+            "constraint to first three features. The '*' character can be used to apply the range to the end of of the features "  +
+            "so 0-* will apply the constraint to all features, 4-* will start from the 5th feature and apply the constraint to " +
+            "the remaining feautres. Exclusion can also be done using a '~' instead of dash, a 3~5 for a range will exclude setting " +
+            "the constraint to 4th, 5th and 6th indices, but will apply to all others.",
+            ShortName="mn")]
+        public Range[] MonotonicNegative;
 
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
         public ISupportParallel ParallelTrainer = new SingleTrainerFactory();
@@ -437,7 +449,7 @@ namespace Microsoft.ML.LightGBM
             res[GetArgName(nameof(MaxCatThreshold))] = MaxCatThreshold;
             res[GetArgName(nameof(CatSmooth))] = CatSmooth;
             res[GetArgName(nameof(CatL2))] = CatL2;
-            res[GetArgName(nameof(MonotoneConstraints))] = (object)MonotoneConstraints;
+            res["monotone_constraints"] = (object)(MonotonicPositive, MonotonicNegative);
             return res;
         }
     }
