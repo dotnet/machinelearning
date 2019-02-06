@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  1 (0.9628896, 0.01686989, 0.2783295, 0.5877925, 0.324167, 0.974933, 0.9728873, 0.1322647, 0.1782212, 0.5446572)
 
             // Filter out any row with an NA value
-            var filteredData = mlContext.Data.FilterByMissingValues(data, columns: "Features");
+            var filteredData = mlContext.Data.FilterByMissingValues(data, "Features");
 
             // Take a look at the resulting dataset and note that the Feature vectors with NaNs are missing.
             var enumerable = mlContext.CreateEnumerable<DatasetUtils.FloatLabelFloatFeatureVectorSample>(filteredData, reuseRowObject: true);

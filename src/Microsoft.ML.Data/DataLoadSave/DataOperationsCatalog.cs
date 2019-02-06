@@ -95,7 +95,6 @@ namespace Microsoft.ML
         /// Drop rows where any column in <paramref name="columns"/> contains a missing value.
         /// </summary>
         /// <param name="input">The input data.</param>
-        /// <param name="complement">If true, keep only rows that contain missing values, and filter the rest.</param>
         /// <param name="columns">Name of the columns to filter on. If a row is has a missing value in any of
         /// these columns, it will be dropped from the dataset.</param>
         /// <example>
@@ -105,12 +104,12 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView FilterByMissingValues(IDataView input, bool complement = false, params string[] columns)
+        public IDataView FilterByMissingValues(IDataView input, params string[] columns)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
 
-            return new NAFilter(Environment, input, complement, columns);
+            return new NAFilter(Environment, input, complement: false, columns);
         }
     }
 }
