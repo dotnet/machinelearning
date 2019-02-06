@@ -33,17 +33,18 @@ using Microsoft.ML.Transforms.Projections;
 
 namespace Microsoft.ML.Transforms.Projections
 {
+    /// <summary>
+    /// Which vector whitening technique to use. ZCA whitening ensures that the average covariance between whitened
+    /// and original variables is maximal. In contrast, PCA whitening lead to maximally compressed whitened variables, as
+    /// measured by squared covariance.
+    /// </summary>
     public enum WhiteningKind
     {
-        /// <summary>
-        /// PCA whitening.
-        /// </summary>
+        /// <summary> PCA whitening.</summary>
         [TGUI(Label = "PCA whitening")]
         Pca,
 
-        /// <summary>
-        /// ZCA whitening.
-        /// </summary>
+        /// <summary> ZCA whitening.</summary>
         [TGUI(Label = "ZCA whitening")]
         Zca
     }
@@ -691,7 +692,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// </summary>
             public readonly string Name;
             /// <summary>
-            /// Name of column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// Name of column to transform.
             /// </summary>
             public readonly string InputColumnName;
             /// <summary>

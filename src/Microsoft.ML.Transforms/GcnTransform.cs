@@ -668,7 +668,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// </summary>
             public readonly string Name;
             /// <summary>
-            /// Name of column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// Name of column to transform.
             /// </summary>
             public readonly string InputColumnName;
             /// <summary>
@@ -736,7 +736,8 @@ namespace Microsoft.ML.Transforms.Projections
             }
         }
 
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const NormalizerKind NormKind = NormalizerKind.L2Norm;
             public const bool LpSubstractMean = false;

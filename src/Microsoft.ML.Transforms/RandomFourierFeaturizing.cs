@@ -32,7 +32,7 @@ using Microsoft.ML.Transforms.Projections;
 namespace Microsoft.ML.Transforms.Projections
 {
     /// <summary>
-    /// Maps vector columns to a random low-dimensional feature space.
+    /// Maps vector columns to a low -dimensional feature space.
     /// </summary>
     public sealed class RandomFourierFeaturizingTransformer : OneToOneTransformerBase
     {
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <summary>
-    /// Maps vector columns to a random low-dimensional feature space.
+    /// Maps vector columns to a low -dimensional feature space.
     /// </summary>
     public sealed class RandomFourierFeaturizingEstimator : IEstimator<RandomFourierFeaturizingTransformer>
     {
@@ -633,7 +633,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// </summary>
             public readonly string Name;
             /// <summary>
-            /// Name of the column to transform. If set to <see langword="null"/>, the value of the <see cref="Name"/> will be used as source.
+            /// Name of the column to transform.
             /// </summary>
             public readonly string InputColumnName;
             /// <summary>
@@ -678,7 +678,7 @@ namespace Microsoft.ML.Transforms.Projections
         private readonly ColumnInfo[] _columns;
 
         /// <summary>
-        /// Convinence constructor for simple one column case
+        /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
