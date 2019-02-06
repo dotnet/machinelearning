@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -106,6 +107,18 @@ namespace Microsoft.ML.Tests.Transformers
                 new ColumnConcatenatingTransformer.ColumnInfo("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
                 new ColumnConcatenatingTransformer.ColumnInfo("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
             data = concater.Transform(data);
+
+            // Test Columns property.
+            var columns = concater.Columns;
+            var colEnumerator = columns.GetEnumerator();
+            colEnumerator.MoveNext();
+            Assert.True(colEnumerator.Current.outputColumnName == "f2" && 
+                colEnumerator.Current.inputColumnNames[0] == "float1" && 
+                colEnumerator.Current.inputColumnNames[1] == "float1");
+            colEnumerator.MoveNext();
+            Assert.True(colEnumerator.Current.outputColumnName == "f3" &&
+                colEnumerator.Current.inputColumnNames[0] == "float4" &&
+                colEnumerator.Current.inputColumnNames[1] == "float1");
 
             ColumnType t;
             t = GetType(data.Schema, "f2");

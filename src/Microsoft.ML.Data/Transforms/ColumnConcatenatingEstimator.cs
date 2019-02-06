@@ -11,7 +11,10 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class ColumnConcatenatingEstimator : IEstimator<ITransformer>
+    /// <summary>
+    /// Concatenates columns in an <see cref="IDataView"/> into one single column. Estimator for the <see cref="ColumnConcatenatingTransformer"/>.
+    /// </summary>
+    public sealed class ColumnConcatenatingEstimator : IEstimator<ColumnConcatenatingTransformer>
     {
         private readonly IHost _host;
         private readonly string _name;
@@ -22,8 +25,8 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="outputColumnName">The name of the resulting column.</param>
-        /// <param name="inputColumnNames">The columns to concatenate together.</param>
-        public ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
+        /// <param name="inputColumnNames">The columns to concatenate into one single column.</param>
+        internal ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("ColumnConcatenatingEstimator ");
@@ -37,7 +40,10 @@ namespace Microsoft.ML.Transforms
             _source = inputColumnNames;
         }
 
-        public ITransformer Fit(IDataView input)
+        /// <summary>
+        /// Trains and returns a <see cref="ColumnConcatenatingTransformer"/>.
+        /// </summary>
+        public ColumnConcatenatingTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             return new ColumnConcatenatingTransformer(_host, _name, _source);
@@ -109,6 +115,10 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape.Column(name, vecKind, itemType, false, new SchemaShape(meta));
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));

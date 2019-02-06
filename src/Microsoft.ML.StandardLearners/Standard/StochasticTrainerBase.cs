@@ -73,7 +73,7 @@ namespace Microsoft.ML.Learners
                 idvToFeedTrain = idvToShuffle;
             else
             {
-                var shuffleArgs = new RowShufflingTransformer.Arguments
+                var shuffleArgs = new RowShufflingTransformer.Options
                 {
                     PoolOnly = false,
                     ForceShuffle = ShuffleData

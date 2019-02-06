@@ -21,7 +21,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Options), typeof(SignatureDataTransform),
     MissingValueReplacingTransformer.FriendlyName, MissingValueReplacingTransformer.LoadName, "NAReplace", MissingValueReplacingTransformer.ShortName, DocName = "transform/NAHandle.md")]
 
 [assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
     public sealed partial class MissingValueReplacingTransformer : OneToOneTransformerBase
     {
-        public enum ReplacementKind : byte
+        internal enum ReplacementKind : byte
         {
             // REVIEW: What should the full list of options for this transform be?
             DefaultValue = 0,
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Transforms
         // *mean: use domain value closest to the mean
         // Potentially also min/max; probably will not include median due to its relatively low value and high computational cost.
         // Note: Will need to support different replacement values for different slots to implement this.
-        public sealed class Column : OneToOneColumn
+        internal sealed class Column : OneToOneColumn
         {
             // REVIEW: Should flexibility for different replacement values for slots be introduced?
             [Argument(ArgumentType.AtMostOnce, HelpText = "Replacement value for NAs (uses default value if not given)", ShortName = "rep")]
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:rep:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms
             public bool ImputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot;
         }
 
-        public const string LoadName = "NAReplaceTransform";
+        internal const string LoadName = "NAReplaceTransform";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -174,47 +174,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        /// <summary>
-        /// Describes how the transformer handles one column pair.
-        /// </summary>
-        public sealed class ColumnInfo
-        {
-            public enum ReplacementMode : byte
-            {
-                DefaultValue = 0,
-                Mean = 1,
-                Minimum = 2,
-                Maximum = 3,
-            }
-
-            public readonly string Name;
-            public readonly string InputColumnName;
-            public readonly bool ImputeBySlot;
-            public readonly ReplacementMode Replacement;
-
-            /// <summary>
-            /// Describes how the transformer handles one column pair.
-            /// </summary>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="replacementMode">What to replace the missing value with.</param>
-            /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
-            /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
-            /// where imputation is always for the entire column.</param>
-            public ColumnInfo(string name, string inputColumnName = null, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
-                bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
-            {
-                Contracts.CheckNonWhiteSpace(name, nameof(name));
-                Name = name;
-                InputColumnName = inputColumnName ?? name;
-                ImputeBySlot = imputeBySlot;
-                Replacement = replacementMode;
-            }
-
-            internal string ReplacementString { get; set; }
-        }
-
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(MissingValueReplacingEstimator.ColumnInfo[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -243,7 +203,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptParam(nameof(inputSchema), reason);
         }
 
-        public MissingValueReplacingTransformer(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+        internal MissingValueReplacingTransformer(IHostEnvironment env, IDataView input, params MissingValueReplacingEstimator.ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueReplacingTransformer)), GetColumnPairs(columns))
         {
             // Check that all the input columns are present and correct.
@@ -310,7 +270,7 @@ namespace Microsoft.ML.Transforms
         /// Vectors default to by-slot imputation unless otherwise specified, except for unknown sized vectors
         /// which force across-slot imputation.
         /// </summary>
-        private void GetReplacementValues(IDataView input, ColumnInfo[] columns, out object[] repValues, out BitArray[] slotIsDefault, out ColumnType[] types)
+        private void GetReplacementValues(IDataView input, MissingValueReplacingEstimator.ColumnInfo[] columns, out object[] repValues, out BitArray[] slotIsDefault, out ColumnType[] types)
         {
             repValues = new object[columns.Length];
             slotIsDefault = new BitArray[columns.Length];
@@ -466,32 +426,32 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Columns, nameof(args.Columns));
-            var cols = new ColumnInfo[args.Columns.Length];
+            env.CheckValue(options.Columns, nameof(options.Columns));
+            var cols = new MissingValueReplacingEstimator.ColumnInfo[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Columns[i];
-                var kind = item.Kind ?? args.ReplacementKind;
+                var item = options.Columns[i];
+                var kind = item.Kind ?? options.ReplacementKind;
                 if (!Enum.IsDefined(typeof(ReplacementKind), kind))
-                    throw env.ExceptUserArg(nameof(args.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.Name);
+                    throw env.ExceptUserArg(nameof(options.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.Name);
 
-                cols[i] = new ColumnInfo(
+                cols[i] = new MissingValueReplacingEstimator.ColumnInfo(
                     item.Name,
                     item.Source,
-                    (ColumnInfo.ReplacementMode)(item.Kind ?? args.ReplacementKind),
-                    item.Slot ?? args.ImputeBySlot);
-                cols[i].ReplacementString = item.ReplacementString;
+                    (MissingValueReplacingEstimator.ColumnInfo.ReplacementMode)(item.Kind ?? options.ReplacementKind),
+                    item.Slot ?? options.ImputeBySlot,
+                    item.ReplacementString);
             };
             return new MissingValueReplacingTransformer(env, input, cols).MakeDataTransform(input);
         }
 
-        internal static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+        internal static IDataTransform Create(IHostEnvironment env, IDataView input, params MissingValueReplacingEstimator.ColumnInfo[] columns)
         {
             return new MissingValueReplacingTransformer(env, input, columns).MakeDataTransform(input);
         }
@@ -933,28 +893,107 @@ namespace Microsoft.ML.Transforms
 
     public sealed class MissingValueReplacingEstimator : IEstimator<MissingValueReplacingTransformer>
     {
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
-            public const MissingValueReplacingTransformer.ColumnInfo.ReplacementMode ReplacementMode = MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.DefaultValue;
+            public const ColumnInfo.ReplacementMode ReplacementMode = ColumnInfo.ReplacementMode.DefaultValue;
             public const bool ImputeBySlot = true;
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnInfo
+        {
+            /// <summary>
+            /// The possible ways to replace missing values.
+            /// </summary>
+            public enum ReplacementMode : byte
+            {
+                /// <summary>
+                /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
+                /// </summary>
+                DefaultValue = 0,
+                /// <summary>
+                /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
+                /// </summary>
+                Mean = 1,
+                /// <summary>
+                /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
+                /// </summary>
+                Minimum = 2,
+                /// <summary>
+                /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
+                /// </summary>
+                Maximum = 3,
+            }
+
+            /// <summary> Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
+            public readonly string Name;
+            /// <summary> Name of column to transform. </summary>
+            public readonly string InputColumnName;
+            /// <summary>
+            /// If true, per-slot imputation of replacement is performed.
+            /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+            /// where imputation is always for the entire column.
+            /// </summary>
+            public readonly bool ImputeBySlot;
+            /// <summary> How to replace the missing values.</summary>
+            public readonly ReplacementMode Replacement;
+            /// <summary> Replacement value for missing values (only used in entrypoing and command line API).</summary>
+            internal readonly string ReplacementString;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+            /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+            /// <param name="replacementMode">How to replace the missing values.</param>
+            /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
+            /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+            /// where imputation is always for the entire column.</param>
+            public ColumnInfo(string name, string inputColumnName = null, ReplacementMode replacementMode = Defaults.ReplacementMode,
+                bool imputeBySlot = Defaults.ImputeBySlot)
+            {
+                Contracts.CheckNonWhiteSpace(name, nameof(name));
+                Name = name;
+                InputColumnName = inputColumnName ?? name;
+                ImputeBySlot = imputeBySlot;
+                Replacement = replacementMode;
+            }
+
+            /// <summary>
+            /// This constructor is used internally to convert from <see cref="MissingValueReplacingTransformer.Options"/> to <see cref="ColumnInfo"/>
+            /// as we support <paramref name="replacementString"/> in command line and entrypoint API only.
+            /// </summary>
+            internal ColumnInfo(string name, string inputColumnName, ReplacementMode replacementMode, bool imputeBySlot, string replacementString)
+                : this(name, inputColumnName, replacementMode, imputeBySlot)
+            {
+                ReplacementString = replacementString;
+            }
+        }
+
         private readonly IHost _host;
-        private readonly MissingValueReplacingTransformer.ColumnInfo[] _columns;
+        private readonly ColumnInfo[] _columns;
 
-        public MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
-            : this(env, new MissingValueReplacingTransformer.ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, replacementKind))
-            {
+        internal MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
+            : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, replacementKind))
+        {
 
-            }
+        }
 
-            public MissingValueReplacingEstimator(IHostEnvironment env, params MissingValueReplacingTransformer.ColumnInfo[] columns)
-            {
-                Contracts.CheckValue(env, nameof(env));
-                _host = env.Register(nameof(MissingValueReplacingEstimator));
-                _columns = columns;
-            }
+        [BestFriend]
+        internal MissingValueReplacingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(MissingValueReplacingEstimator));
+            _columns = columns;
+        }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -979,7 +1018,9 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(result.Values);
         }
 
-            public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
-        }
-
+        /// <summary>
+        /// Trains and returns a <see cref="MissingValueReplacingTransformer"/>.
+        /// </summary>
+        public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
     }
+}

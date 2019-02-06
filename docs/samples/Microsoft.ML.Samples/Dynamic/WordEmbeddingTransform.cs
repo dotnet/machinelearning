@@ -62,7 +62,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Let's apply pretrained word embedding model GloVeTwitter25D.
             // 25D means each word mapped into 25 dimensional space, basically each word represented by 25 float values.
             var gloveWordEmbedding = ml.Transforms.Text.ExtractWordEmbeddings("GloveEmbeddings", "CleanWords",
-                WordEmbeddingsExtractingTransformer.PretrainedModelKind.GloVeTwitter25D);
+                WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D);
 
             // We also have option to apply custom word embedding models.
             // Let's first create one.

@@ -15,7 +15,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), typeof(RowShufflingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), typeof(RowShufflingTransformer.Options), typeof(SignatureDataTransform),
     "Shuffle Transform", "ShuffleTransform", "Shuffle", "shuf")]
 
 [assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms
         }
 
         [BestFriend]
-        internal sealed class Arguments
+        internal sealed class Options
         {
             // REVIEW: A more intelligent heuristic, based on the expected size of the inputs, perhaps?
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The pool will have this many rows", ShortName = "rows")]
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms
             int poolRows = Defaults.PoolRows,
             bool poolOnly = Defaults.PoolOnly,
             bool forceShuffle = Defaults.ForceShuffle)
-            : this(env, new Arguments() { PoolRows = poolRows, PoolOnly = poolOnly, ForceShuffle = forceShuffle }, input)
+            : this(env, new Options() { PoolRows = poolRows, PoolOnly = poolOnly, ForceShuffle = forceShuffle }, input)
         {
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
         /// Constructor corresponding to SignatureDataTransform.
         /// </summary>
         [BestFriend]
-        internal RowShufflingTransformer(IHostEnvironment env, Arguments args, IDataView input)
+        internal RowShufflingTransformer(IHostEnvironment env, Options args, IDataView input)
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));

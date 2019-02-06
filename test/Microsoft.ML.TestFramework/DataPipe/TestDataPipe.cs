@@ -1324,7 +1324,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1V", NumberType.Float, data);
             var srcView = builder.GetDataView();
 
-            var est = new LatentDirichletAllocationEstimator(Env, "F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
+            var est = ML.Transforms.Text.LatentDirichletAllocation("F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
             var ldaTransformer = est.Fit(srcView);
             var transformedData = ldaTransformer.Transform(srcView);
 
@@ -1362,6 +1362,7 @@ namespace Microsoft.ML.RunTests
         public void TestLdaTransformerEmptyDocumentException()
         {
             var builder = new ArrayDataViewBuilder(Env);
+            string colName = "Zeros";
             var data = new[]
             {
                 new[] {  (Float)0.0,  (Float)0.0,  (Float)0.0 },
@@ -1369,25 +1370,16 @@ namespace Microsoft.ML.RunTests
                 new[] {  (Float)0.0,  (Float)0.0,  (Float)0.0 },
             };
 
-            builder.AddColumn("Zeros", NumberType.Float, data);
+            builder.AddColumn(colName, NumberType.Float, data);
 
             var srcView = builder.GetDataView();
-            var col = new LatentDirichletAllocationTransformer.Column()
-            {
-                Source = "Zeros",
-            };
-            var args = new LatentDirichletAllocationTransformer.Arguments()
-            {
-                Columns = new[] { col }
-            };
-
             try
             {
-                var lda = new LatentDirichletAllocationEstimator(Env, "Zeros").Fit(srcView).Transform(srcView);
+                var lda = ML.Transforms.Text.LatentDirichletAllocation("Zeros").Fit(srcView).Transform(srcView);
             }
             catch (InvalidOperationException ex)
             {
-                Assert.Equal(ex.Message, string.Format("The specified documents are all empty in column '{0}'.", col.Source));
+                Assert.Equal(ex.Message, string.Format("The specified documents are all empty in column '{0}'.", colName));
                 return;
             }
 

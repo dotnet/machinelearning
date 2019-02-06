@@ -141,7 +141,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                 idvToFeedTrain = idvToShuffle;
             else
             {
-                var shuffleArgs = new RowShufflingTransformer.Arguments
+                var shuffleArgs = new RowShufflingTransformer.Options
                 {
                     PoolOnly = false,
                     ForceShuffle = _options.Shuffle
