@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms
     [BestFriend]
     internal sealed class RowShufflingTransformer : RowToRowTransformBase
     {
-        private static class Defaults
+        public static class Defaults
         {
             public const int PoolRows = 1000;
             public const bool PoolOnly = false;
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
+        /// Constructor corresponding to SignatureDataTransform.
         /// </summary>
         public RowShufflingTransformer(IHostEnvironment env, Options args, IDataView input)
             : base(env, RegistrationName, input)
