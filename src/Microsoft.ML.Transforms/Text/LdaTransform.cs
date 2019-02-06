@@ -990,7 +990,7 @@ namespace Microsoft.ML.Transforms.Text
             /// </summary>
             public readonly string Name;
             /// <summary>
-            /// Name of column to transform. If set to <see langword="null"/>, the value of the <cref see="Name"/> will be used as source.
+            /// Name of column to transform.
             /// </summary>
             public readonly string InputColumnName;
             /// <summary>
