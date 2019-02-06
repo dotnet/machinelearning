@@ -20,6 +20,8 @@ namespace Microsoft.ML.Internal.CpuMath
         // The count of bytes in a 32-bit float, corresponding to _cbAlign in AlignedArray
         private const int FloatAlignment = 4;
 
+        private const int MinVectorSize = 16;
+
         // If neither AVX nor SSE is supported, return basic alignment for a 4-byte float.
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         public static int GetVectorAlignment()
@@ -160,11 +162,11 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && destination.Length >= MinVectorSize)
             {
                 AvxIntrinsics.AddScalarU(value, destination);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && destination.Length >= MinVectorSize)
             {
                 SseIntrinsics.AddScalarU(value, destination);
             }
@@ -249,11 +251,11 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(destination);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && destination.Length >= MinVectorSize)
             {
                 AvxIntrinsics.ScaleAddU(scale, addend, destination);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && destination.Length >= MinVectorSize)
             {
                 SseIntrinsics.ScaleAddU(scale, addend, destination);
             }
@@ -281,11 +283,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 AvxIntrinsics.AddScaleU(scale, source, destination, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 SseIntrinsics.AddScaleU(scale, source, destination, count);
             }
@@ -316,11 +318,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < destination.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 AvxIntrinsics.AddScaleSU(scale, source, indices, destination, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 SseIntrinsics.AddScaleSU(scale, source, indices, destination, count);
             }
@@ -352,11 +354,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= destination.Length);
             Contracts.Assert(count <= result.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 AvxIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 SseIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
             }
@@ -383,11 +385,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 AvxIntrinsics.AddU(source, destination, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 SseIntrinsics.AddU(source, destination, count);
             }
@@ -417,11 +419,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < destination.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 AvxIntrinsics.AddSU(source, indices, destination, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 SseIntrinsics.AddSU(source, indices, destination, count);
             }
@@ -452,11 +454,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= destination.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 AvxIntrinsics.MulElementWiseU(left, right, destination, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 SseIntrinsics.MulElementWiseU(left, right, destination, count);
             }
@@ -506,11 +508,11 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && source.Length >= MinVectorSize)
             {
                 return AvxIntrinsics.SumSqU(source);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && source.Length >= MinVectorSize)
             {
                 return SseIntrinsics.SumSqU(source);
             }
@@ -535,11 +537,11 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && source.Length >= MinVectorSize)
             {
                 return (mean == 0) ? AvxIntrinsics.SumSqU(source) : AvxIntrinsics.SumSqDiffU(mean, source);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && source.Length >= MinVectorSize)
             {
                 return (mean == 0) ? SseIntrinsics.SumSqU(source) : SseIntrinsics.SumSqDiffU(mean, source);
             }
@@ -563,11 +565,11 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && source.Length >= MinVectorSize)
             {
                 return AvxIntrinsics.SumAbsU(source);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && source.Length >= MinVectorSize)
             {
                 return SseIntrinsics.SumAbsU(source);
             }
@@ -592,11 +594,11 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && source.Length >= MinVectorSize)
             {
                 return (mean == 0) ? AvxIntrinsics.SumAbsU(source) : AvxIntrinsics.SumAbsDiffU(mean, source);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && source.Length >= MinVectorSize)
             {
                 return (mean == 0) ? SseIntrinsics.SumAbsU(source) : SseIntrinsics.SumAbsDiffU(mean, source);
             }
@@ -620,11 +622,11 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && source.Length >= MinVectorSize)
             {
                 return AvxIntrinsics.MaxAbsU(source);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && source.Length >= MinVectorSize)
             {
                 return SseIntrinsics.MaxAbsU(source);
             }
@@ -653,11 +655,11 @@ namespace Microsoft.ML.Internal.CpuMath
         {
             Contracts.AssertNonEmpty(source);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && source.Length >= MinVectorSize)
             {
                 return AvxIntrinsics.MaxAbsDiffU(mean, source);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && source.Length >= MinVectorSize)
             {
                 return SseIntrinsics.MaxAbsDiffU(mean, source);
             }
@@ -691,11 +693,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(left.Length >= count);
             Contracts.Assert(right.Length >= count);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 return AvxIntrinsics.DotU(left, right, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 return SseIntrinsics.DotU(left, right, count);
             }
@@ -728,11 +730,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= indices.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 return AvxIntrinsics.DotSU(left, right, indices, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 return SseIntrinsics.DotSU(left, right, indices, count);
             }
@@ -763,11 +765,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= left.Length);
             Contracts.Assert(count <= right.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 return AvxIntrinsics.Dist2(left, right, count);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 return SseIntrinsics.Dist2(left, right, count);
             }
@@ -874,11 +876,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= v.Length);
             Contracts.Assert(count <= w.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 AvxIntrinsics.SdcaL1UpdateU(primalUpdate, count, source, threshold, v, w);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 SseIntrinsics.SdcaL1UpdateU(primalUpdate, count, source, threshold, v, w);
             }
@@ -915,11 +917,11 @@ namespace Microsoft.ML.Internal.CpuMath
             Contracts.Assert(count <= v.Length);
             Contracts.Assert(count <= w.Length);
 
-            if (Avx.IsSupported)
+            if (Avx.IsSupported && count >= MinVectorSize)
             {
                 AvxIntrinsics.SdcaL1UpdateSU(primalUpdate, count, source, indices, threshold, v, w);
             }
-            else if (Sse.IsSupported)
+            else if (Sse.IsSupported && count >= MinVectorSize)
             {
                 SseIntrinsics.SdcaL1UpdateSU(primalUpdate, count, source, indices, threshold, v, w);
             }
