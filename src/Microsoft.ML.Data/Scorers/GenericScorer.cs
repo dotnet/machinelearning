@@ -25,7 +25,8 @@ namespace Microsoft.ML.Data
     /// score set id metadata.
     /// </summary>
 
-    public sealed class GenericScorer : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
+    [BestFriend]
+    internal sealed class GenericScorer : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
     {
         public const string LoadName = "GenericScorer";
 

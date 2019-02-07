@@ -28,7 +28,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class MultiOutputRegressionEvaluator : RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>
+    [BestFriend]
+    internal sealed class MultiOutputRegressionEvaluator : RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>
     {
         public sealed class Arguments : ArgumentsBase
         {
@@ -370,7 +371,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class MultiOutputRegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class MultiOutputRegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "MultiRegPerInstance";
 
@@ -609,7 +610,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class MultiOutputRegressionMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class MultiOutputRegressionMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {

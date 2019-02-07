@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     /// underlying <see cref="ISchemaBoundRowMapper"/> should be exposed, as well as zero or more
     /// "derived" columns.
     /// </summary>
-    public abstract class RowToRowScorerBase : RowToRowMapperTransformBase, IDataScorerTransform
+    internal abstract class RowToRowScorerBase : RowToRowMapperTransformBase, IDataScorerTransform
     {
         [BestFriend]
         private protected abstract class BindingsBase : ScorerBindingsBase
@@ -301,7 +301,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class ScorerArgumentsBase
+    [BestFriend]
+    internal abstract class ScorerArgumentsBase
     {
         // Output columns.
 

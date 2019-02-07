@@ -28,7 +28,8 @@ using Microsoft.ML.Transforms.FeatureSelection;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class MultiClassClassifierEvaluator : RowToRowEvaluatorBase<MultiClassClassifierEvaluator.Aggregator>
+    [BestFriend]
+    internal sealed class MultiClassClassifierEvaluator : RowToRowEvaluatorBase<MultiClassClassifierEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -534,7 +535,7 @@ namespace Microsoft.ML.Data
 
     }
 
-    public sealed class MultiClassPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class MultiClassPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "MulticlassPerInstance";
         private static VersionInfo GetVersionInfo()
@@ -822,7 +823,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class MultiClassMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class MultiClassMamlEvaluator : MamlEvaluatorBase
     {
         public class Arguments : ArgumentsBase
         {
@@ -930,7 +932,7 @@ namespace Microsoft.ML.Data
                             idv.Schema[col].Name.Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
                         {
                             idv = new ChooseColumnsByIndexTransform(Host,
-                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = new[] { col } }, idv);
+                                new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = new[] { col } }, idv);
                             break;
                         }
                     }

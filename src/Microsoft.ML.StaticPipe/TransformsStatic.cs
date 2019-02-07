@@ -392,11 +392,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new KeyToBinaryVectorMappingTransformer.ColumnInfo[toOutput.Length];
+                var infos = new (string outputColumnName, string inputColumnName)[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToBinaryVectorMappingTransformer.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input]);
+                    infos[i] = (outputNames[toOutput[i]], inputNames[col.Input]);
                 }
                 return new KeyToBinaryVectorMappingEstimator(env, infos);
             }
@@ -933,11 +933,11 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new TypeConvertingTransformer.ColumnInfo[toOutput.Length];
+                var infos = new TypeConvertingEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingTransformer.ColumnInfo(outputNames[toOutput[i]], tcol.Kind, inputNames[tcol.Input]);
+                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind, inputNames[tcol.Input]);
                 }
                 return new TypeConvertingEstimator(env, infos);
             }

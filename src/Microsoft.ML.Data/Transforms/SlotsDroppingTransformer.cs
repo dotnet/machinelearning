@@ -16,7 +16,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.FeatureSelection;
 
-[assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(IDataTransform), typeof(SlotsDroppingTransformer), typeof(SlotsDroppingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(IDataTransform), typeof(SlotsDroppingTransformer), typeof(SlotsDroppingTransformer.Options), typeof(SignatureDataTransform),
     SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature, "DropSlots")]
 
 [assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(IDataTransform), typeof(SlotsDroppingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -37,14 +37,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
     /// </summary>
     public sealed class SlotsDroppingTransformer : OneToOneTransformerBase
     {
-        public sealed class Arguments
+        internal sealed class Options
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to drop the slots for",
                 Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
         }
 
-        public sealed class Column : OneToOneColumn
+        [BestFriend]
+        internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.Multiple, HelpText = "Source slot index range(s) of the column to drop")]
             public Range[] Slots;
@@ -112,7 +113,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
-        public sealed class Range
+        internal sealed class Range
         {
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
             public int Min;
@@ -191,7 +192,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <summary>
         /// Describes how the transformer handles one input-output column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        [BestFriend]
+        internal sealed class ColumnInfo
         {
             public readonly string Name;
             public readonly string InputColumnName;
@@ -258,7 +260,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
-        public SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int min = default, int? max = null)
+        internal SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int min = default, int? max = null)
             : this(env, new ColumnInfo(outputColumnName, inputColumnName, (min, max)))
         {
         }
@@ -268,7 +270,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Specifies the ranges of slots to drop for each column pair.</param>
-        public SlotsDroppingTransformer(IHostEnvironment env, params ColumnInfo[] columns)
+        internal SlotsDroppingTransformer(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -308,9 +310,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            var columns = args.Columns.Select(column => new ColumnInfo(column)).ToArray();
+            var columns = options.Columns.Select(column => new ColumnInfo(column)).ToArray();
             return new SlotsDroppingTransformer(env, columns).MakeDataTransform(input);
         }
 

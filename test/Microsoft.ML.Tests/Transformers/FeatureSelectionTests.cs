@@ -48,8 +48,8 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
-                    IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                    savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "bag_of_words_count", "bag_of_words_mi" });
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = ML.Transforms.SelectColumns("bag_of_words_count", "bag_of_words_mi").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, trans.Transform(data), 4);
+                var savedData = ML.Data.TakeRows(trans.Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
@@ -121,8 +121,8 @@ namespace Microsoft.ML.Tests.Transformers
                 new CountFeatureSelectingEstimator.ColumnInfo("VecFeatureSelectMissing690", "VectorDouble", minCount: 690),
                 new CountFeatureSelectingEstimator.ColumnInfo("VecFeatureSelectMissing100", "VectorDouble", minCount: 100)
             };
-            var est = new CountFeatureSelectingEstimator(ML, "FeatureSelect", "VectorFloat", minCount: 1)
-                .Append(new CountFeatureSelectingEstimator(ML, columns));
+            var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("FeatureSelect", "VectorFloat", count: 1)
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(columns));
 
             TestEstimatorCore(est, data);
 
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data).Transform(data), 4);
+                var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var pipe = new CountFeatureSelectingEstimator(ML, "FeatureSelect", "VectorFloat", minCount: 1);
+            var pipe = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("FeatureSelect", "VectorFloat", count: 1);
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -182,8 +182,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var est = new MutualInformationFeatureSelectingEstimator(ML, "FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label")
-                .Append(new MutualInformationFeatureSelectingEstimator(ML, labelColumn: "Label", slotsInOutput: 2, numBins: 100,
+            var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label")
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(labelColumn: "Label", slotsInOutput: 2, numBins: 100,
                     columns: new[] {
                         (name: "out1", source: "VectorFloat"),
                         (name: "out2", source: "VectorDouble")
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data).Transform(data), 4);
+                var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var pipe = new MutualInformationFeatureSelectingEstimator(ML, "FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label");
+            var pipe = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumn: "Label");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

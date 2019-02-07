@@ -399,14 +399,13 @@ namespace Microsoft.ML.Trainers.Recommender
     /// <summary>
     /// Trains a <see cref="MatrixFactorizationModelParameters"/>. It factorizes the training matrix into the product of two low-rank matrices.
     /// </summary>
-    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationModelParameters, GenericScorer>, ICanSaveModel
+    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationModelParameters>, ICanSaveModel
     {
         internal const string LoaderSignature = "MaFactPredXf";
         internal string MatrixColumnIndexColumnName { get; }
         internal string MatrixRowIndexColumnName { get; }
         internal ColumnType MatrixColumnIndexColumnType { get; }
         internal ColumnType MatrixRowIndexColumnType { get; }
-        protected override GenericScorer Scorer { get; set; }
 
         /// <summary>
         /// Build a transformer based on matrix factorization predictor (model) and the input schema (trainSchema). The created

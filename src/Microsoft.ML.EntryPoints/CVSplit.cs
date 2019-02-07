@@ -68,12 +68,12 @@ namespace Microsoft.ML.EntryPoints
             for (int i = 0; i < n; i++)
             {
                 var trainData = new RangeFilter(host,
-                    new RangeFilter.Arguments { Column = stratCol, Min = i * fraction, Max = (i + 1) * fraction, Complement = true }, data);
+                    new RangeFilter.Options { Column = stratCol, Min = i * fraction, Max = (i + 1) * fraction, Complement = true }, data);
                 output.TrainData[i] = ColumnSelectingTransformer.CreateDrop(host, trainData, stratCol);
 
                 var testData = new RangeFilter(host,
-                    new RangeFilter.Arguments { Column = stratCol, Min = i * fraction, Max = (i + 1) * fraction, Complement = false }, data);
-                output.TestData[i] = ColumnSelectingTransformer.CreateDrop(host, testData,  stratCol);
+                    new RangeFilter.Options { Column = stratCol, Min = i * fraction, Max = (i + 1) * fraction, Complement = false }, data);
+                output.TestData[i] = ColumnSelectingTransformer.CreateDrop(host, testData, stratCol);
             }
 
             return output;
