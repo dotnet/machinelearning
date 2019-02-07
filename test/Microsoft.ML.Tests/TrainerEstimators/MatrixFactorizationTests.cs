@@ -288,7 +288,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 NumIterations = 100,
                 NumThreads = 1, // To eliminate randomness, # of threads must be 1.
                 K = 32,
-                Eta = 0.5,
+                LearningRate = 0.5,
             };
 
             var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
