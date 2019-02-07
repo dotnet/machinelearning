@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Data;
+using Float = System.Single;
 
 namespace Microsoft.ML.Auto
 {
@@ -114,11 +113,11 @@ namespace Microsoft.ML.Auto
 
             // Set relevant random forest arguments.
             // Train random forest.
-            var trainer = new FastForestRegression(_context, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s =>
+            var trainer = _context.Regression.Trainers.FastForest(new FastForestRegression.Options()
             {
-                s.FeatureFraction = _args.SplitRatio;
-                s.NumTrees = _args.NumOfTrees;
-                s.MinDocumentsInLeafs = _args.NMinForSplit;
+                FeatureFraction = _args.SplitRatio,
+                NumTrees = _args.NumOfTrees,
+                MinDocumentsInLeafs = _args.NMinForSplit
             });
             var predictor = trainer.Train(data).Model;
 

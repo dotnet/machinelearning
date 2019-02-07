@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -21,7 +22,7 @@ namespace Samples
             MLContext mlContext = new MLContext(seed: 0);
 
             // STEP 1: Common data loading configuration
-            TextLoader textLoader = mlContext.Data.CreateTextReader(
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(
                                                        columns: new[]
                                                                    {
                                                                     new TextLoader.Column("Label", DataKind.Bool, 0),

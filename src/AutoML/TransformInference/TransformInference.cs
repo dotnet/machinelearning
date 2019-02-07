@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
@@ -260,7 +261,7 @@ namespace Microsoft.ML.Auto
 
                     foreach (var column in columns)
                     {
-                        if (!column.Type.ItemType().IsBool() || column.Purpose != ColumnPurpose.NumericFeature)
+                        if (!column.Type.GetItemType().IsBool() || column.Purpose != ColumnPurpose.NumericFeature)
                         {
                             continue;
                         }
@@ -284,7 +285,7 @@ namespace Microsoft.ML.Auto
 
                     foreach (var column in columns)
                     {
-                        if (!column.Type.ItemType().IsText() || column.Purpose != ColumnPurpose.TextFeature)
+                        if (!column.Type.GetItemType().IsText() || column.Purpose != ColumnPurpose.TextFeature)
                             continue;
 
                         var columnDestSuffix = "_tf";
@@ -305,7 +306,7 @@ namespace Microsoft.ML.Auto
                     var columnsWithMissing = new List<string>();
                     foreach (var column in columns)
                     {
-                        if (column.Type.ItemType() == NumberType.R4
+                        if (column.Type.GetItemType() == NumberType.R4
                             && column.Purpose == ColumnPurpose.NumericFeature
                             && column.Dimensions.HasMissing == true)
                         {
@@ -350,7 +351,7 @@ namespace Microsoft.ML.Auto
                         columnName.Append(column.ColumnName);
                         columnList.Add(columnName.ToString());
 
-                        if (column.Type.ItemType().IsText())
+                        if (column.Type.GetItemType().IsText())
                         {
                             colSpecTextOnly.Add(column.ColumnName);
                         }

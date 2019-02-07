@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateCreateTextReaderArgsNoColumns()
         {
             var input = new ColumnInferenceResult(new List<(TextLoader.Column, ColumnPurpose)>(),
-                false, false, "\t", false, false);
+                false, false, new[] { '\t' }, false, false);
             UserInputValidationUtil.ValidateCreateTextReaderArgs(input);
         }
 
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Auto.Test
         {
             var input = new ColumnInferenceResult(
                 new List<(TextLoader.Column, ColumnPurpose)>() { (null, ColumnPurpose.CategoricalFeature) },
-                false, false, "\t", false, false);
+                false, false, new[] { '\t' }, false, false);
             UserInputValidationUtil.ValidateCreateTextReaderArgs(input);
         }
 
@@ -44,8 +45,8 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateCreateTextReaderArgsColumnWithNullSoure()
         {
             var input = new ColumnInferenceResult(
-                new List<(TextLoader.Column, ColumnPurpose)>() { (new TextLoader.Column() { Name = "Column", Type = DataKind.R4 }, ColumnPurpose.CategoricalFeature) },
-                false, false, "\t", false, false);
+                new List<(TextLoader.Column, ColumnPurpose)>() { (new TextLoader.Column() { Name = "Column", Type = DataKind.R4 } , ColumnPurpose.CategoricalFeature) },
+                false, false, new[] { '\t' }, false, false);
             UserInputValidationUtil.ValidateCreateTextReaderArgs(input);
         }
 

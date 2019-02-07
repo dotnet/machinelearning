@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Auto
 {
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Auto
                 int? cardinality = null;
                 bool? hasMissing = null;
 
-                var itemType = column.Type.ItemType();
+                var itemType = column.Type.GetItemType();
 
                 // If categorical text feature, calculate cardinality
                 if (itemType.IsText() && purpose.Purpose == ColumnPurpose.CategoricalFeature)

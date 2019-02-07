@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.ML;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -23,7 +23,7 @@ namespace Microsoft.ML.CLI
 
             // For Version 0.1 It is required that the data set has header. 
             var columnInference = context.Data.InferColumns(options.TrainDataset.FullName, label, true, groupColumns: false);
-            var textLoader = context.Data.CreateTextReader(columnInference);
+            var textLoader = context.Data.CreateTextLoader(columnInference);
             var trainData = textLoader.Read(options.TrainDataset.FullName);
 
             var validationData = textLoader.Read(options.TestDataset.FullName);
@@ -120,7 +120,7 @@ namespace Microsoft.ML.CLI
                 Columns = columns,
                 Transforms = transforms,
                 HasHeader = columnInference.HasHeader,
-                Separator = columnInference.Separator,
+                Separator = columnInference.Separators.First(),
                 Trainer = trainer,
                 TaskType = options.MlTask.ToString(),
                 ClassLabels = classLabels,

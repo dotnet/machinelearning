@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Auto
 {
@@ -41,9 +41,9 @@ namespace Microsoft.ML.Auto
                 throw new ArgumentNullException($"Column inference result cannot be null", nameof(columnInferenceResult));
             }
 
-            if (string.IsNullOrEmpty(columnInferenceResult.Separator))
+            if (columnInferenceResult.Separators == null || !columnInferenceResult.Separators.Any())
             {
-                throw new ArgumentException($"Column inference result cannot have null or empty separator", nameof(columnInferenceResult));
+                throw new ArgumentException($"Column inference result cannot have null or empty separators", nameof(columnInferenceResult));
             }
 
             if (columnInferenceResult.Columns == null || !columnInferenceResult.Columns.Any())

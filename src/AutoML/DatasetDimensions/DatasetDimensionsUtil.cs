@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -14,7 +14,7 @@ namespace Microsoft.ML.Auto
         public static int GetTextColumnCardinality(IDataView data, int colIndex)
         {
             var seen = new HashSet<string>();
-            using (var cursor = data.GetRowCursor(x => x == colIndex))
+            using (var cursor = data.GetRowCursor(new[] { data.Schema[colIndex] }))
             {
                 var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colIndex);
                 while (cursor.MoveNext())
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Auto
 
         public static bool HasMissingNumericSingleValue(IDataView data, int colIndex)
         {
-            using (var cursor = data.GetRowCursor(x => x == colIndex))
+            using (var cursor = data.GetRowCursor(new[] { data.Schema[colIndex] }))
             {
                 var getter = cursor.GetGetter<Single>(colIndex);
                 var value = default(Single);
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Auto
 
         public static bool HasMissingNumericVector(IDataView data, int colIndex)
         {
-            using (var cursor = data.GetRowCursor(x => x == colIndex))
+            using (var cursor = data.GetRowCursor(new[] { data.Schema[colIndex] }))
             {
                 var getter = cursor.GetGetter<VBuffer<Single>>(colIndex);
                 var value = default(VBuffer<Single>);

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Auto
                     return _cachedData as T[];
 
                 var results = new List<T>();
-                using (var cursor = _data.GetRowCursor(id => id == _columnId))
+                using (var cursor = _data.GetRowCursor(new[] { _data.Schema[_columnId] }))
                 {
                     var getter = cursor.GetGetter<T>(_columnId);
                     while (cursor.MoveNext())
@@ -191,7 +192,7 @@ namespace Microsoft.ML.Auto
                     {
                         if (column.IsPurposeSuggested)
                             continue;
-                        if (column.Type.ItemType().IsNumber())
+                        if (column.Type.GetItemType().IsNumber())
                             column.SuggestedPurpose = ColumnPurpose.NumericFeature;
                     }
                 }
@@ -205,7 +206,7 @@ namespace Microsoft.ML.Auto
                     {
                         if (column.IsPurposeSuggested)
                             continue;
-                        if (column.Type.ItemType().IsBool())
+                        if (column.Type.GetItemType().IsBool())
                             column.SuggestedPurpose = ColumnPurpose.NumericFeature;
                     }
                 }
@@ -219,7 +220,7 @@ namespace Microsoft.ML.Auto
                     {
                         if (column.IsPurposeSuggested)
                             continue;
-                        if (column.Type.IsVector() && column.Type.ItemType().IsText())
+                        if (column.Type.IsVector() && column.Type.GetItemType().IsText())
                             column.SuggestedPurpose = ColumnPurpose.TextFeature;
                     }
                 }

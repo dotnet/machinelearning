@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -12,7 +13,7 @@ namespace Microsoft.ML.Auto
     public static class DataExtensions
     {
         // Delimiter, header, column datatype inference
-        public static ColumnInferenceResult InferColumns(this DataOperations catalog, string path, string label,
+        public static ColumnInferenceResult InferColumns(this DataOperationsCatalog catalog, string path, string label,
             bool hasHeader = false, char? separatorChar = null, bool? allowQuotedStrings = null, bool? supportSparse = null, bool trimWhitespace = false, bool groupColumns = true)
         {
             UserInputValidationUtil.ValidateInferColumnsArgs(path, label);
@@ -20,7 +21,7 @@ namespace Microsoft.ML.Auto
             return ColumnInferenceApi.InferColumns(mlContext, path, label, hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
         }
 
-        public static IDataView AutoRead(this DataOperations catalog, string path, string label,
+        public static IDataView AutoRead(this DataOperationsCatalog catalog, string path, string label,
             bool hasHeader = false, char? separatorChar = null, bool? allowQuotedStrings = null, bool? supportSparse = null, bool trimWhitespace = false, bool groupColumns = true)
         {
             UserInputValidationUtil.ValidateAutoReadArgs(path, label);
@@ -30,14 +31,14 @@ namespace Microsoft.ML.Auto
             return textLoader.Read(path);
         }
 
-        public static TextLoader CreateTextReader(this DataOperations catalog, ColumnInferenceResult columnInferenceResult)
+        public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog, ColumnInferenceResult columnInferenceResult)
         {
             UserInputValidationUtil.ValidateCreateTextReaderArgs(columnInferenceResult);
             return columnInferenceResult.BuildTextLoader();
         }
 
         // Task inference
-        public static MachineLearningTaskType InferTask(this DataOperations catalog, IDataView dataView)
+        public static MachineLearningTaskType InferTask(this DataOperationsCatalog catalog, IDataView dataView)
         {
             throw new NotImplementedException();
         }
@@ -55,17 +56,17 @@ namespace Microsoft.ML.Auto
         public readonly IEnumerable<(TextLoader.Column, ColumnPurpose)> Columns;
         public readonly bool AllowQuotedStrings;
         public readonly bool SupportSparse;
-        public readonly string Separator;
+        public readonly char[] Separators;
         public readonly bool HasHeader;
         public readonly bool TrimWhitespace;
 
         public ColumnInferenceResult(IEnumerable<(TextLoader.Column, ColumnPurpose)> columns,
-            bool allowQuotedStrings, bool supportSparse, string separator, bool hasHeader, bool trimWhitespace)
+            bool allowQuotedStrings, bool supportSparse, char[] separators, bool hasHeader, bool trimWhitespace)
         {
             Columns = columns;
             AllowQuotedStrings = allowQuotedStrings;
             SupportSparse = supportSparse;
-            Separator = separator;
+            Separators = separators;
             HasHeader = hasHeader;
             TrimWhitespace = trimWhitespace;
         }
@@ -78,7 +79,7 @@ namespace Microsoft.ML.Auto
                 AllowQuoting = AllowQuotedStrings,
                 AllowSparse = SupportSparse,
                 Column = Columns.Select(c => c.Item1).ToArray(),
-                Separator = Separator,
+                Separators = Separators,
                 HasHeader = HasHeader,
                 TrimWhitespace = TrimWhitespace
             });

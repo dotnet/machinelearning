@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -709,7 +709,7 @@ namespace Microsoft.ML.Auto.Test
             // assert Features column of type 'R4' exists
             var featuresCol = data.Schema.GetColumnOrNull(DefaultColumnNames.Features);
             Assert.IsNotNull(featuresCol);
-            Assert.AreEqual(NumberType.R4, featuresCol.Value.Type.ItemType());
+            Assert.AreEqual(NumberType.R4, featuresCol.Value.Type.GetItemType());
         }
 
         private static IDataView BuildDummyDataView(

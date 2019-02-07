@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Data;
+using static Microsoft.ML.Data.TextLoader;
 
 namespace Microsoft.ML.Auto
 {
@@ -25,19 +26,19 @@ namespace Microsoft.ML.Auto
             public string SuggestedName;
             public DataKind ItemKind;
             public ColumnPurpose Purpose;
-            public string ColumnRangeSelector;
+            public Range[] Ranges;
 
-            public GroupingColumn(string name, DataKind kind, ColumnPurpose purpose, string rangeSelector)
+            public GroupingColumn(string name, DataKind kind, ColumnPurpose purpose, Range[] ranges)
             {
                 SuggestedName = name;
                 ItemKind = kind;
                 Purpose = purpose;
-                ColumnRangeSelector = rangeSelector;
+                Ranges = ranges;
             }
 
             public TextLoader.Column GenerateTextLoaderColumn()
             {
-                return TextLoader.Column.Parse(string.Format("{0}:{1}:{2}", SuggestedName, ItemKind, ColumnRangeSelector));
+                return new TextLoader.Column(SuggestedName, ItemKind, Ranges);
             }
         }
 
@@ -71,10 +72,10 @@ namespace Microsoft.ML.Auto
             {
                 string name = (hasHeader && g.Count() == 1)
                     ? g.First().Item1.SuggestedName
-                    : GetName(g.Key.ItemType.RawKind(), g.Key.Purpose, result);
+                    : GetName(g.Key.ItemType.GetRawKind(), g.Key.Purpose, result);
 
-                string range = GetRange(g.Select(t => t.Item1.ColumnIndex).ToArray());
-                result.Add(new GroupingColumn(name, g.Key.ItemType.RawKind(), g.Key.Purpose, range));
+                var ranges = GetRanges(g.Select(t => t.Item1.ColumnIndex).ToArray());
+                result.Add(new GroupingColumn(name, g.Key.ItemType.GetRawKind(), g.Key.Purpose, ranges));
             }
 
             return result.ToArray();
@@ -122,33 +123,27 @@ namespace Microsoft.ML.Auto
         }
 
         /// <summary>
-        /// Generates a range selector from the array of indices.
+        /// Generates a collection of Ranges from indices.
         /// </summary>
-        private static string GetRange(int[] indices)
+        private static Range[] GetRanges(int[] indices)
         {
-            var sb = new StringBuilder();
-            var sorted = indices.OrderBy(x => x).ToArray();
-
-            sb.Append(indices[0]);
-            var prev = sorted[0];
-            var start = sorted[0];
-            for (int i = 1; i < sorted.Length; i++)
+            Array.Sort(indices);
+            var allRanges = new List<Range>();
+            var currRange = new Range(indices[0]);
+            for (int i = 1; i < indices.Length; i++)
             {
-                if (sorted[i] > prev + 1)
+                if (indices[i] == currRange.Max + 1)
                 {
-                    if (prev > start)
-                        sb.AppendFormat("-{0}", prev);
-                    start = sorted[i];
-                    sb.AppendFormat(",{0}", start);
+                    currRange.Max++;
                 }
-                prev = sorted[i];
+                else
+                {
+                    allRanges.Add(currRange);
+                    currRange = new Range(indices[i]);
+                }
             }
-            if (prev > start)
-            {
-                sb.AppendFormat("-{0}", prev);
-            }
-
-            return sb.ToString();
+            allRanges.Add(currRange);
+            return allRanges.ToArray();
         }
     }
 }

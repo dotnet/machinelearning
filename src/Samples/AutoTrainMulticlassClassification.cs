@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -21,10 +22,10 @@ namespace Samples
             MLContext mlContext = new MLContext(seed: 0);
 
             // STEP 1: Common data loading configuration
-            var textLoader = mlContext.Data.CreateTextReader(
+            var textLoader = mlContext.Data.CreateTextLoader(
                                                                 new TextLoader.Arguments()
                                                                 {
-                                                                    Separator = "\t",
+                                                                    Separators = new[] { '\t' },
                                                                     HasHeader = true,
                                                                     Column = new[]
                                                                     {

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Learners;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 
@@ -55,8 +54,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            Action<LightGbmArguments> argsFunc = TrainerExtensionUtil.CreateLightGbmArgsFunc(sweepParams);
-            return mlContext.MulticlassClassification.Trainers.LightGbm(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams);
+            return mlContext.MulticlassClassification.Trainers.LightGbm(options);
         }
     }
 
@@ -85,8 +84,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<SdcaMultiClassTrainer.Arguments>(sweepParams);
-            return mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<SdcaMultiClassTrainer.Options>(sweepParams);
+            return mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(options);
         }
     }
 
@@ -164,8 +163,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<MulticlassLogisticRegression.Arguments>(sweepParams);
-            return mlContext.MulticlassClassification.Trainers.LogisticRegression(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<MulticlassLogisticRegression.Options>(sweepParams);
+            return mlContext.MulticlassClassification.Trainers.LogisticRegression(options);
         }
     }
 }

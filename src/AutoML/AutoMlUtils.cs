@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Auto
@@ -26,8 +26,7 @@ namespace Microsoft.ML.Auto
         public static IDataView Take(this IDataView data, int count)
         {
             var context = new MLContext();
-            var filter = SkipTakeFilter.Create(context, new SkipTakeFilter.TakeArguments { Count = count }, data);
-            return new CacheDataView(context, filter, Enumerable.Range(0, data.Schema.Count).ToArray());
+            return TakeFilter.Create(context, data, count);
         }
 
         public static IDataView DropLastColumn(this IDataView data)
@@ -35,10 +34,10 @@ namespace Microsoft.ML.Auto
             return new MLContext().Transforms.DropColumns(data.Schema[data.Schema.Count - 1].Name).Fit(data).Transform(data);
         }
 
-        public static (IDataView testData, IDataView validationData) TestValidateSplit(this TrainContextBase context, IDataView trainData)
+        public static (IDataView testData, IDataView validationData) TestValidateSplit(this TrainCatalogBase catalog, IDataView trainData)
         {
             IDataView validationData;
-            (trainData, validationData) = context.TrainTestSplit(trainData);
+            (trainData, validationData) = catalog.TrainTestSplit(trainData);
             trainData = trainData.DropLastColumn();
             validationData = validationData.DropLastColumn();
             return (trainData, validationData);
@@ -47,8 +46,7 @@ namespace Microsoft.ML.Auto
         public static IDataView Skip(this IDataView data, int count)
         {
             var context = new MLContext();
-            var filter = SkipTakeFilter.Create(context, new SkipTakeFilter.SkipArguments { Count  = count }, data);
-            return new CacheDataView(context, filter, Enumerable.Range(0, data.Schema.Count).ToArray());
+            return SkipFilter.Create(context, data, count);
         }
 
         public static (string, ColumnType, ColumnPurpose, ColumnDimensions)[] GetColumnInfoTuples(MLContext context,

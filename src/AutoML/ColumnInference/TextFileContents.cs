@@ -18,13 +18,13 @@ namespace Microsoft.ML.Auto
         public class ColumnSplitResult
         {
             public readonly bool IsSuccess;
-            public readonly string Separator;
+            public readonly char? Separator;
             public readonly int ColumnCount;
 
             public bool AllowQuote { get; set; }
             public bool AllowSparse { get; set; }
 
-            public ColumnSplitResult(bool isSuccess, string separator, bool allowQuote, bool allowSparse, int columnCount)
+            public ColumnSplitResult(bool isSuccess, char? separator, bool allowQuote, bool allowSparse, int columnCount)
             {
                 IsSuccess = isSuccess;
                 Separator = separator;
@@ -59,8 +59,12 @@ namespace Microsoft.ML.Auto
             {
                 var args = new TextLoader.Arguments
                 {
-                    Column = new[] { TextLoader.Column.Parse("C:TX:0-**") },
-                    Separator = perm._sep.ToString(),
+                    Column = new[] { new TextLoader.Column() {
+                        Name = "C",
+                        Type = DataKind.TX,
+                        Source = new[] { new TextLoader.Range(0, null) }
+                    } },
+                    Separators = new[] { perm._sep },
                     AllowQuoting = perm._allowQuote,
                     AllowSparse = perm._allowSparse
                 };
@@ -77,13 +81,13 @@ namespace Microsoft.ML.Auto
         private static bool TryParseFile(TextLoader.Arguments args, IMultiStreamSource source, out ColumnSplitResult result)
         {
             result = null;
-            var textLoader = new TextLoader(new MLContext(), args);
+            var textLoader = new TextLoader(new MLContext(), args, source);
             var idv = textLoader.Read(source).Take(1000);
             var columnCounts = new List<int>();
             var column = idv.Schema["C"];
             var columnIndex = column.Index;
 
-            using (var cursor = idv.GetRowCursor(x => x == columnIndex))
+            using (var cursor = idv.GetRowCursor(new[] { idv.Schema[columnIndex] }))
             {
                 var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(columnIndex);
 
@@ -104,7 +108,7 @@ namespace Microsoft.ML.Auto
             // disallow single-column case
             if (mostCommon.Key <= 1) { return false; }
 
-            result = new ColumnSplitResult(true, args.Separator, args.AllowQuoting, args.AllowSparse, mostCommon.Key);
+            result = new ColumnSplitResult(true, args.Separators.First(), args.AllowQuoting, args.AllowSparse, mostCommon.Key);
             return true;
         }
     }

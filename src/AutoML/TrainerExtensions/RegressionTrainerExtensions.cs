@@ -22,8 +22,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastForestRegression.Arguments>(sweepParams);
-            return mlContext.Regression.Trainers.FastForest(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<FastForestRegression.Options>(sweepParams);
+            return mlContext.Regression.Trainers.FastForest(options);
         }
     }
 
@@ -36,8 +36,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastTreeRegressionTrainer.Arguments>(sweepParams);
-            return mlContext.Regression.Trainers.FastTree(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<FastTreeRegressionTrainer.Options>(sweepParams);
+            return mlContext.Regression.Trainers.FastTree(options);
         }
     }
 
@@ -50,8 +50,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastTreeTweedieTrainer.Arguments>(sweepParams);
-            return mlContext.Regression.Trainers.FastTreeTweedie(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<FastTreeTweedieTrainer.Options>(sweepParams);
+            return mlContext.Regression.Trainers.FastTreeTweedie(options);
         }
     }
 
@@ -64,8 +64,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateLightGbmArgsFunc(sweepParams);
-            return mlContext.Regression.Trainers.LightGbm(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams);
+            return mlContext.Regression.Trainers.LightGbm(options);
         }
     }
 
@@ -78,8 +78,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<AveragedLinearArguments>(sweepParams);
-            return mlContext.Regression.Trainers.OnlineGradientDescent(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<OnlineGradientDescentTrainer.Options>(sweepParams);
+            return mlContext.Regression.Trainers.OnlineGradientDescent(options);
         }
     }
 
@@ -92,8 +92,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<OlsLinearRegressionTrainer.Arguments>(sweepParams);
-            return mlContext.Regression.Trainers.OrdinaryLeastSquares(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<OlsLinearRegressionTrainer.Options>(sweepParams);
+            return mlContext.Regression.Trainers.OrdinaryLeastSquares(options);
         }
     }
 
@@ -106,8 +106,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<PoissonRegression.Arguments>(sweepParams);
-            return mlContext.Regression.Trainers.PoissonRegression(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<PoissonRegression.Options>(sweepParams);
+            return mlContext.Regression.Trainers.PoissonRegression(options);
         }
     }
 
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<SdcaRegressionTrainer.Arguments>(sweepParams);
-            return mlContext.Regression.Trainers.StochasticDualCoordinateAscent(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<SdcaRegressionTrainer.Options>(sweepParams);
+            return mlContext.Regression.Trainers.StochasticDualCoordinateAscent(options);
         }
     }
 }

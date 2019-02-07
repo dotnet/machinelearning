@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.LightGBM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,36 +42,30 @@ namespace Microsoft.ML.Auto
 
     internal static class TrainerExtensionUtil
     {
-        public static Action<T> CreateArgsFunc<T>(IEnumerable<SweepableParam> sweepParams)
+        public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams)
         {
-            Action<T> argsFunc = null;
-            if (sweepParams != null)
+            var options = Activator.CreateInstance<T>();
+            if(sweepParams != null)
             {
-                argsFunc = (args) =>
-                {
-                    UpdateFields(args, sweepParams);
-                };
+                UpdateFields(options, sweepParams);
             }
-            return argsFunc;
+            return options;
         }
 
         private static string[] _lightGbmTreeBoosterParamNames = new[] { "RegLambda", "RegAlpha" };
         private const string LightGbmTreeBoosterPropName = "Booster";
 
-        public static Action<LightGbmArguments> CreateLightGbmArgsFunc(IEnumerable<SweepableParam> sweepParams)
+        public static LightGBM.Options CreateLightGbmOptions(IEnumerable<SweepableParam> sweepParams)
         {
-            Action<LightGbmArguments> argsFunc = null;
-            if (sweepParams != null)
+            var options = new LightGBM.Options();
+            if(sweepParams != null)
             {
-                argsFunc = (args) =>
-                {
-                    var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
-                    var parentArgParams = sweepParams.Except(treeBoosterParams);
-                    UpdateFields(args, parentArgParams);
-                    UpdateFields(args.Booster, treeBoosterParams);
-                };
+                var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
+                var parentArgParams = sweepParams.Except(treeBoosterParams);
+                UpdateFields(options, parentArgParams);
+                UpdateFields(options.Booster, treeBoosterParams);
             }
-            return argsFunc;
+            return options;
         }
 
         public static IDictionary<string, object> BuildPipelineNodeProps(TrainerName trainerName, IEnumerable<SweepableParam> sweepParams)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Auto
             return vector.Size > 0;
         }
 
-        public static ColumnType ItemType(this ColumnType columnType)
+        public static ColumnType GetItemType(this ColumnType columnType)
         {
             var vector = columnType as VectorType;
             if (vector == null)
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Auto
             return vector.ItemType;
         }
 
-        public static DataKind RawKind(this ColumnType columnType)
+        public static DataKind GetRawKind(this ColumnType columnType)
         {
             columnType.RawType.TryGetDataKind(out var rawKind);
             return rawKind;

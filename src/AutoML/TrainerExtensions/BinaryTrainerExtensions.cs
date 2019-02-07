@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Training;
+using System.Collections.Generic;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Trainers.SymSgd;
-using System;
-using System.Collections.Generic;
-using Microsoft.ML.LightGBM;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Auto
 {
@@ -27,19 +25,16 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            Action<AveragedPerceptronTrainer.Arguments> argsFunc = null;
+            var options = new AveragedPerceptronTrainer.Options();
             if (sweepParams == null)
             {
-                argsFunc = (args) =>
-                {
-                    args.NumIterations = DefaultNumIterations;
-                };
+                options.NumIterations = DefaultNumIterations;
             }
             else
             {
-                argsFunc = TrainerExtensionUtil.CreateArgsFunc<AveragedPerceptronTrainer.Arguments>(sweepParams);
+                options = TrainerExtensionUtil.CreateOptions<AveragedPerceptronTrainer.Options>(sweepParams);
             }
-            return mlContext.BinaryClassification.Trainers.AveragedPerceptron(advancedSettings: argsFunc);
+            return mlContext.BinaryClassification.Trainers.AveragedPerceptron(options);
         }
     }
 
@@ -52,8 +47,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastForestClassification.Arguments>(sweepParams);
-            return mlContext.BinaryClassification.Trainers.FastForest(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<FastForestClassification.Options>(sweepParams);
+            return mlContext.BinaryClassification.Trainers.FastForest(options);
         }
     }
 
@@ -66,8 +61,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastTreeBinaryClassificationTrainer.Arguments>(sweepParams);
-            return mlContext.BinaryClassification.Trainers.FastTree(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<FastTreeBinaryClassificationTrainer.Options>(sweepParams);
+            return mlContext.BinaryClassification.Trainers.FastTree(options);
         }
     }
 
@@ -80,8 +75,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            Action<LightGbmArguments> argsFunc = TrainerExtensionUtil.CreateLightGbmArgsFunc(sweepParams);
-            return mlContext.BinaryClassification.Trainers.LightGbm(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateLightGbmOptions(sweepParams);
+            return mlContext.BinaryClassification.Trainers.LightGbm(options);
         }
     }
 
@@ -94,8 +89,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<LinearSvmTrainer.Arguments>(sweepParams);
-            return mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<LinearSvmTrainer.Options>(sweepParams);
+            return mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(options);
         }
     }
 
@@ -108,8 +103,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<SdcaBinaryTrainer.Arguments>(sweepParams);
-            return mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<SdcaBinaryTrainer.Options>(sweepParams);
+            return mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(options);
         }
     }
 
@@ -122,8 +117,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<LogisticRegression.Arguments>(sweepParams);
-            return mlContext.BinaryClassification.Trainers.LogisticRegression(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<LogisticRegression.Options>(sweepParams);
+            return mlContext.BinaryClassification.Trainers.LogisticRegression(options);
         }
     }
 
@@ -136,8 +131,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<StochasticGradientDescentClassificationTrainer.Arguments>(sweepParams);
-            return mlContext.BinaryClassification.Trainers.StochasticGradientDescent(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<StochasticGradientDescentClassificationTrainer.Options>(sweepParams);
+            return mlContext.BinaryClassification.Trainers.StochasticGradientDescent(options);
         }
     }
 
@@ -150,8 +145,8 @@ namespace Microsoft.ML.Auto
 
         public ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams)
         {
-            var argsFunc = TrainerExtensionUtil.CreateArgsFunc<SymSgdClassificationTrainer.Arguments>(sweepParams);
-            return mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(advancedSettings: argsFunc);
+            var options = TrainerExtensionUtil.CreateOptions<SymSgdClassificationTrainer.Options>(sweepParams);
+            return mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(options);
         }
     }
 }

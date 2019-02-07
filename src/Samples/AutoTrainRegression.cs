@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.ML;
-using Microsoft.ML.Data;
-using Microsoft.ML.Auto;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
+using Microsoft.ML.Auto;
+using Microsoft.ML.Data;
 
 namespace Samples
 {
@@ -22,7 +22,7 @@ namespace Samples
             MLContext mlContext = new MLContext(seed: 0);
 
             // STEP 1: Common data loading configuration
-            TextLoader textLoader = mlContext.Data.CreateTextReader(new[]
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(new[]
                                                                     {
                                                                         new TextLoader.Column("VendorId", DataKind.Text, 0),
                                                                         new TextLoader.Column("RateCode", DataKind.Text, 1),

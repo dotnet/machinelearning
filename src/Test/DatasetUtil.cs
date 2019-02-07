@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Net;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto.Test

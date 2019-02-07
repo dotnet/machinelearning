@@ -216,7 +216,7 @@ public string Path {get;set;}
 public string TestPath {get;set;}
 public IList<string> Columns {get;set;}
 public bool HasHeader {get;set;}
-public string Separator {get;set;}
+public char Separator {get;set;}
 public IList<string> Transforms {get;set;}
 public string Trainer {get;set;}
 public string TaskType {get;set;}

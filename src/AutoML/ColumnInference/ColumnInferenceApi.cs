@@ -23,13 +23,13 @@ namespace Microsoft.ML.Auto
             var typedLoaderArgs = new TextLoader.Arguments
             {
                 Column = loaderColumns,
-                Separator = splitInference.Separator,
+                Separators = new[] { splitInference.Separator.Value },
                 AllowSparse = splitInference.AllowSparse,
                 AllowQuoting = splitInference.AllowQuote,
                 HasHeader = hasHeader,
                 TrimWhitespace = trimWhitespace
             };
-            var textLoader = context.Data.CreateTextReader(typedLoaderArgs);
+            var textLoader = context.Data.CreateTextLoader(typedLoaderArgs);
             var dataView = textLoader.Read(path);
 
             var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, label);
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Auto
                     inferredColumns[i] = (loaderColumns[i], purposeInferenceResult[i].Purpose);
                 }
             }
-            return new ColumnInferenceResult(inferredColumns, splitInference.AllowQuote, splitInference.AllowSparse, splitInference.Separator, hasHeader, trimWhitespace);
+            return new ColumnInferenceResult(inferredColumns, splitInference.AllowQuote, splitInference.AllowSparse, new char[] { splitInference.Separator.Value }, hasHeader, trimWhitespace);
         }
 
         private static TextFileContents.ColumnSplitResult InferSplit(TextFileSample sample, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse)
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Auto
                 new ColumnTypeInference.Arguments
                 {
                     ColumnCount = splitInference.ColumnCount,
-                    Separator = splitInference.Separator,
+                    Separator = splitInference.Separator.Value,
                     AllowSparse = splitInference.AllowSparse,
                     AllowQuote = splitInference.AllowQuote,
                     HasHeader = hasHeader

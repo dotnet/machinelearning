@@ -87,7 +87,7 @@ namespace mlnet.Test
             {
                 (new TextLoader.Column(){ Name = "Label", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, Type = DataKind.Bool }, ColumnPurpose.Label),
             };
-            ColumnInferenceResult result = new ColumnInferenceResult(list, false, false, ",", true, true);
+            ColumnInferenceResult result = new ColumnInferenceResult(list, false, false, new[] { ',' }, true, true);
 
             CodeGenerator codeGenerator = new CodeGenerator(null, result);
             var actual = codeGenerator.GenerateClassLabels();
@@ -106,7 +106,7 @@ namespace mlnet.Test
                 (new TextLoader.Column(){ Name = "Label", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, Type = DataKind.Bool }, ColumnPurpose.Label),
                 (new TextLoader.Column(){ Name = "Features", Source = new TextLoader.Range[]{new TextLoader.Range(1) }, Type = DataKind.R4 }, ColumnPurpose.NumericFeature),
             };
-            ColumnInferenceResult result = new ColumnInferenceResult(list, false, false, ",", true, true);
+            ColumnInferenceResult result = new ColumnInferenceResult(list, false, false, new[] { ',' }, true, true);
 
             var context = new MLContext();
             var elementProperties = new Dictionary<string, object>();

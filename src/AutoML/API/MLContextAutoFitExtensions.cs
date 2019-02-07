@@ -4,16 +4,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using System.Linq;
 
 namespace Microsoft.ML.Auto
 {
     public static class RegressionExtensions
     {
-        public static IEnumerable<IterationResult<RegressionMetrics>> AutoFit(this RegressionContext context,
+        public static IEnumerable<IterationResult<RegressionMetrics>> AutoFit(this RegressionCatalog catalog,
             IDataView trainData,
             string label = DefaultColumnNames.Label,
             IDataView validationData = null,
@@ -24,11 +24,11 @@ namespace Microsoft.ML.Auto
             var settings = new AutoFitSettings();
             settings.StoppingCriteria.TimeOutInMinutes = timeoutInMinutes;
 
-            return AutoFit(context, trainData, label, validationData, settings,
+            return AutoFit(catalog, trainData, label, validationData, settings,
                 preFeaturizers, columnPurposes, null);
         }
         
-        internal static IEnumerable<IterationResult<RegressionMetrics>> AutoFit(this RegressionContext context,
+        internal static IEnumerable<IterationResult<RegressionMetrics>> AutoFit(this RegressionCatalog catalog,
             IDataView trainData,
             string label = DefaultColumnNames.Label,
             IDataView validationData = null,
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Auto
 
             if (validationData == null)
             {
-                (trainData, validationData) = context.TestValidateSplit(trainData);
+                (trainData, validationData) = catalog.TestValidateSplit(trainData);
             }
 
             // run autofit & get all pipelines run in that process
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Auto
 
     public static class BinaryClassificationExtensions
     {
-        public static IEnumerable<IterationResult<BinaryClassificationMetrics>> AutoFit(this BinaryClassificationContext context,
+        public static IEnumerable<IterationResult<BinaryClassificationMetrics>> AutoFit(this BinaryClassificationCatalog catalog,
             IDataView trainData,
             string label = DefaultColumnNames.Label,
             IDataView validationData = null,
@@ -66,11 +66,11 @@ namespace Microsoft.ML.Auto
             var settings = new AutoFitSettings();
             settings.StoppingCriteria.TimeOutInMinutes = timeoutInMinutes;
 
-            return AutoFit(context, trainData, label, validationData, settings,
+            return AutoFit(catalog, trainData, label, validationData, settings,
                 preFeaturizers, columnPurposes, null);
         }
 
-        internal static IEnumerable<IterationResult<BinaryClassificationMetrics>> AutoFit(this BinaryClassificationContext context,
+        internal static IEnumerable<IterationResult<BinaryClassificationMetrics>> AutoFit(this BinaryClassificationCatalog catalog,
             IDataView trainData,
             string label = DefaultColumnNames.Label,
             IDataView validationData = null,
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Auto
 
             if (validationData == null)
             {
-                (trainData, validationData) = context.TestValidateSplit(trainData);
+                (trainData, validationData) = catalog.TestValidateSplit(trainData);
             }
 
             // run autofit & get all pipelines run in that process
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Auto
 
     public static class MulticlassExtensions
     {
-        public static IEnumerable<IterationResult<MultiClassClassifierMetrics>> AutoFit(this MulticlassClassificationContext context,
+        public static IEnumerable<IterationResult<MultiClassClassifierMetrics>> AutoFit(this MulticlassClassificationCatalog catalog,
             IDataView trainData,
             string label = DefaultColumnNames.Label,
             IDataView validationData = null,
@@ -108,11 +108,11 @@ namespace Microsoft.ML.Auto
             var settings = new AutoFitSettings();
             settings.StoppingCriteria.TimeOutInMinutes = timeoutInMinutes;
 
-            return AutoFit(context, trainData, label, validationData, settings,
+            return AutoFit(catalog, trainData, label, validationData, settings,
                 preFeaturizers, columnPurposes, null);
         }
 
-        internal static IEnumerable<IterationResult<MultiClassClassifierMetrics>> AutoFit(this MulticlassClassificationContext context,
+        internal static IEnumerable<IterationResult<MultiClassClassifierMetrics>> AutoFit(this MulticlassClassificationCatalog catalog,
             IDataView trainData,
             string label = DefaultColumnNames.Label,
             IDataView validationData = null,
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Auto
 
             if (validationData == null)
             {
-                (trainData, validationData) = context.TestValidateSplit(trainData);
+                (trainData, validationData) = catalog.TestValidateSplit(trainData);
             }
             
             // run autofit & get all pipelines run in that process

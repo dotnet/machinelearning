@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Auto
 
         internal sealed class Arguments
         {
-            public string Separator;
+            public char Separator;
             public bool AllowSparse;
             public bool AllowQuote;
             public int ColumnCount;
@@ -244,8 +245,8 @@ namespace Microsoft.ML.Auto
             // read the file as the specified number of text columns
             var textLoaderArgs = new TextLoader.Arguments
             {
-                Column = new[] { TextLoader.Column.Parse(string.Format("C:TX:0-{0}", args.ColumnCount - 1)) },
-                Separator = args.Separator,
+                Column = new[] { new TextLoader.Column("C", DataKind.TX, 0, args.ColumnCount - 1) },
+                Separators = new[] { args.Separator },
                 AllowSparse = args.AllowSparse,
                 AllowQuoting = args.AllowQuote,
             };
@@ -256,7 +257,7 @@ namespace Microsoft.ML.Auto
             // read all the data into memory.
             // list items are rows of the dataset.
             var data = new List<ReadOnlyMemory<char>[]>();
-            using (var cursor = idv.GetRowCursor(col => true))
+            using (var cursor = idv.GetRowCursor(idv.Schema))
             {
                 var column = cursor.Schema.GetColumnOrNull("C");
                 int columnIndex = column.Value.Index;
@@ -364,9 +365,8 @@ namespace Microsoft.ML.Auto
             var loaderColumns = new List<TextLoader.Column>();
             foreach (var col in columns)
             {
-                var loaderColumn = TextLoader.Column.Parse(string.Format("{0}:{1}:{2}", col.SuggestedName, col.ItemType, col.ColumnIndex));
-                if (loaderColumn != null && loaderColumn.IsValid())
-                    loaderColumns.Add(loaderColumn);
+                var loaderColumn = new TextLoader.Column(col.SuggestedName, col.ItemType.GetRawKind(), col.ColumnIndex);
+                loaderColumns.Add(loaderColumn);
             }
             return loaderColumns.ToArray();
         }
