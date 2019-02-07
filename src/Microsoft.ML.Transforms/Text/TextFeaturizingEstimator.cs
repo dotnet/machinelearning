@@ -121,7 +121,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Advanced settings for the <see cref="TextFeaturizingEstimator"/>.
+        /// Advanced options for the <see cref="TextFeaturizingEstimator"/>.
         /// </summary>
         public sealed class Options
         {
