@@ -31,18 +31,16 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
         /// </summary>
-        /// <example>
-        /// Scalar column of <seealso cref="DataKind"/> I4 sourced from 2nd column
-        ///      col=ColumnName:I4:1
-        ///
-        /// Vector column of <seealso cref="DataKind"/> I4 that contains values from columns 1, 3 to 10
-        ///     col=ColumnName:I4:1,3-10
-        ///
-        /// Key range column of KeyType with underlying storage type U4 that contains values from columns 1, 3 to 10, that can go from 1 to 100 (0 reserved for out of range)
-        ///     col=ColumnName:U4[100]:1,3-10
-        /// </example>
         public sealed class Column
         {
+            // Examples of how a column is defined in command line API:
+            // Scalar column of <seealso cref="DataKind"/> I4 sourced from 2nd column
+            //      col=ColumnName:I4:1
+            // Vector column of <seealso cref="DataKind"/> I4 that contains values from columns 1, 3 to 10
+            //     col=ColumnName:I4:1,3-10
+            // Key range column of KeyType with underlying storage type U4 that contains values from columns 1, 3 to 10, that can go from 1 to 100 (0 reserved for out of range)
+            //     col=ColumnName:U4[100]:1,3-10
+
             /// <summary>
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
@@ -52,7 +50,7 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type">Type of the items in the column.</param>
+            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
             /// <param name="index">Index of the column.</param>
             public Column(string name, DataKind? type, int index)
                : this(name, type, new[] { new Range(index) }) { }
@@ -61,7 +59,7 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type">Type of the items in the column.</param>
+            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
             /// <param name="minIndex">The minimum inclusive index of the column.</param>
             /// <param name="maxIndex">The maximum-inclusive index of the column.</param>
             public Column(string name, DataKind? type, int minIndex, int maxIndex)
@@ -73,7 +71,7 @@ namespace Microsoft.ML.Data
             /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
             /// </summary>
             /// <param name="name">Name of the column.</param>
-            /// <param name="type">Type of the items in the column.</param>
+            /// <param name="type"><see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.</param>
             /// <param name="source">Source index range(s) of the column.</param>
             /// <param name="keyCount">For a key column, this defines the range of values.</param>
             public Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
@@ -94,7 +92,7 @@ namespace Microsoft.ML.Data
             public string Name;
 
             /// <summary>
-            /// Type of the items in the column.
+            /// <see cref="DataKind"/> of the items in the column. If <see langword="null"/> defaults to a float.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Type of the items in the column")]
             public DataKind? Type;
@@ -275,13 +273,13 @@ namespace Microsoft.ML.Data
             }
 
             /// <summary>
-            /// The minimum inclusive index of the column.
+            ///  The minimum index of the column, inclusive.
             /// </summary>
             [Argument(ArgumentType.Required, HelpText = "First index in the range")]
             public int Min;
 
             /// <summary>
-            /// The maximum-inclusive index of the column. If <see langword="null"/>
+            /// The maximum index of the column, inclusive. If <see langword="null"/>
             /// indicates that the <see cref="TextLoader"/> should auto-detect the legnth
             /// of the lines, and read untill the end.
             /// If max is specified, the fields <see cref="AutoEnd"/> and <see cref="VariableEnd"/> are ignored.
@@ -1301,6 +1299,21 @@ namespace Microsoft.ML.Data
             LDone:
                 return !error;
             }
+        }
+
+        /// <summary>
+        /// Checks whether the source contains the valid TextLoader.Arguments depiction.
+        /// </summary>
+        internal static bool FileContainsValidSchema(IHostEnvironment env, IMultiStreamSource files, out Options options)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var h = env.Register(RegistrationName);
+            h.CheckValue(files, nameof(files));
+            options = new Options();
+            Column[] cols;
+            bool error;
+            bool found = TryParseSchema(h, files, ref options, out cols, out error);
+            return found && !error && options.IsValid();
         }
 
         /// <summary>
