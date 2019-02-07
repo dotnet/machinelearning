@@ -30,7 +30,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class MultiClassClassifierScorer : PredictedLabelScorerBase
+    internal sealed class MultiClassClassifierScorer : PredictedLabelScorerBase
     {
         // REVIEW: consider outputting probabilities when multi-class classifiers distinguish
         // between scores and probabilities (using IDistributionPredictor)

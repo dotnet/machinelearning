@@ -283,7 +283,7 @@ namespace Microsoft.ML.FactorizationMachine
         }
     }
 
-    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters, BinaryClassifierScorer>, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters>, ICanSaveModel
     {
         public const string LoaderSignature = "FAFMPredXfer";
 
@@ -296,8 +296,6 @@ namespace Microsoft.ML.FactorizationMachine
         /// The type of the feature columns.
         /// </summary>
         public ColumnType[] FeatureColumnTypes { get; }
-
-        protected override BinaryClassifierScorer Scorer { get; set; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;

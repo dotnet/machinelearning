@@ -33,10 +33,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for transformers with no feature column, or more than one feature columns.
     /// </summary>
-    /// <typeparam name="TModel"></typeparam>
-    /// <typeparam name="TScorer">The Scorer used by this <see cref="IPredictionTransformer{TModel}"/></typeparam>
-    public abstract class PredictionTransformerBase<TModel, TScorer> : IPredictionTransformer<TModel>
-        where TScorer : RowToRowScorerBase
+    /// <typeparam name="TModel">The type of the model parameters used by this prediction transformer.</typeparam>
+    public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>
         where TModel : class
     {
         /// <summary>
@@ -55,7 +53,8 @@ namespace Microsoft.ML.Data
 
         public bool IsRowToRowMapper => true;
 
-        protected abstract TScorer Scorer { get; set; }
+        [BestFriend]
+        private protected RowToRowScorerBase Scorer { get; set; }
 
         [BestFriend]
         private protected PredictionTransformerBase(IHost host, TModel model, Schema trainSchema)
@@ -149,10 +148,8 @@ namespace Microsoft.ML.Data
     /// Those are all the transformers that work with one feature column.
     /// </summary>
     /// <typeparam name="TModel">The model used to transform the data.</typeparam>
-    /// <typeparam name="TScorer">The scorer used on this PredictionTransformer.</typeparam>
-    public abstract class SingleFeaturePredictionTransformerBase<TModel, TScorer> : PredictionTransformerBase<TModel, TScorer>, ISingleFeaturePredictionTransformer<TModel>, ICanSaveModel
+    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>, ICanSaveModel
         where TModel : class
-        where TScorer : RowToRowScorerBase
     {
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
@@ -164,10 +161,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         public ColumnType FeatureColumnType { get; }
 
-        protected override TScorer Scorer { get; set; }
-
         /// <summary>
-        /// Initializes a new reference of <see cref="SingleFeaturePredictionTransformerBase{TModel, TScorer}"/>.
+        /// Initializes a new reference of <see cref="SingleFeaturePredictionTransformerBase{TModel}"/>.
         /// </summary>
         /// <param name="host">The local instance of <see cref="IHost"/>.</param>
         /// <param name="model">The model used for scoring.</param>
@@ -230,7 +225,7 @@ namespace Microsoft.ML.Data
             ctx.SaveStringOrNull(FeatureColumn);
         }
 
-        protected virtual GenericScorer GetGenericScorer()
+        private protected GenericScorer GetGenericScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
             return new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
@@ -241,7 +236,7 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on anomaly detection tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, BinaryClassifierScorer>
+    public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         public readonly string ThresholdColumn;
@@ -310,7 +305,7 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on binary classification tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, BinaryClassifierScorer>
+    public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         public readonly string ThresholdColumn;
@@ -379,7 +374,7 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on multi-class classification tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class MulticlassPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, MultiClassClassifierScorer>
+    public sealed class MulticlassPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         private readonly string _trainLabelColumn;
@@ -441,7 +436,7 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on regression tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class RegressionPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, GenericScorer>
+    public sealed class RegressionPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         [BestFriend]
@@ -483,7 +478,7 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on ranking tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, GenericScorer>
+    public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
     where TModel : class
     {
         [BestFriend]
@@ -525,7 +520,7 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on clustering tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class ClusteringPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, ClusteringScorer>
+    public sealed class ClusteringPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         [BestFriend]
