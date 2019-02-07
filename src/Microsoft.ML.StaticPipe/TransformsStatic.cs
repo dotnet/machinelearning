@@ -127,8 +127,8 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="input">The name of the input column.</param>
+        /// <param name="labelColumn">The name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         /// <example>
@@ -145,8 +145,8 @@ namespace Microsoft.ML.StaticPipe
             int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="input">The name of the input column.</param>
+        /// <param name="labelColumn">The name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         /// <example>

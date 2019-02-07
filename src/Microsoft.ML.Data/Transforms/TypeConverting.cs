@@ -208,8 +208,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumnName">Name of the output column.</param>
-        /// <param name="inputColumnName">Name of the column to be transformed. If this is null '<paramref name="outputColumnName"/>' will be used.</param>
+        /// <param name="outputColumnName">The name of the output column.</param>
+        /// <param name="inputColumnName">The name of the column to be transformed. If this is null '<paramref name="outputColumnName"/>' will be used.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
         /// <param name="outputKeyCount">New key count if we work with key type.</param>
         public TypeConvertingTransformer(IHostEnvironment env, string outputColumnName, DataKind outputKind, string inputColumnName = null, KeyCount outputKeyCount = null)

@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="column">Name of the input column.</param>
+        /// <param name="column">The name of the input column.</param>
         /// <param name="lowerBound">Minimum value (0 to 1 for key types).</param>
         /// <param name="upperBound">Maximum value (0 to 1 for key types).</param>
         /// <param name="includeUpperBound">Whether to include the upper bound.</param>

@@ -89,8 +89,8 @@ namespace Microsoft.ML
         /// <seealso cref= "ImageLoadingEstimator" />
         /// </remarks >
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="inputColumnName">Name of the input column.</param>
-        /// <param name="outputColumnName">Name of the resulting output column.</param>
+        /// <param name="inputColumnName">The name of the input column.</param>
+        /// <param name="outputColumnName">The name of the resulting output column.</param>
         /// <param name="imageWidth">The transformed image width.</param>
         /// <param name="imageHeight">The transformed image height.</param>
         /// <param name="resizing"> The type of image resizing as specified in <see cref="ImageResizingEstimator.ResizingKind"/>.</param>
