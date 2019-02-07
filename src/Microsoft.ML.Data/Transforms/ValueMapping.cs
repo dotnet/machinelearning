@@ -331,8 +331,8 @@ namespace Microsoft.ML.Transforms.Conversions
         private ValueMap _valueMap;
         private byte[] _dataView;
 
-        public ColumnType ValueColumnType => _valueMap.ValueType;
-        public Schema.Metadata ValueColumnMetadata { get; }
+        internal ColumnType ValueColumnType => _valueMap.ValueType;
+        internal Schema.Metadata ValueColumnMetadata { get; }
 
         private static VersionInfo GetVersionInfo()
         {

@@ -19,7 +19,7 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SentimentAnalyzer"]/*' />
-    public static class SentimentAnalyzingTransformer
+    internal static class SentimentAnalyzingTransformer
     {
         public sealed class Arguments : TransformInputBase
         {

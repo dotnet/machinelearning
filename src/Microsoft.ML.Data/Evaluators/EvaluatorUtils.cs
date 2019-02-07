@@ -934,7 +934,7 @@ namespace Microsoft.ML.Data
                                  variableSizeVectorColumnName, vectorType);
 
                         // Drop the old column that does not have variable length.
-                        idv = idv = ColumnSelectingTransformer.CreateDrop(env, idv, variableSizeVectorColumnName);
+                        idv = ColumnSelectingTransformer.CreateDrop(env, idv, variableSizeVectorColumnName);
                     }
                     return idv;
                 };

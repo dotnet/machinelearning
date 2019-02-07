@@ -116,9 +116,9 @@ namespace Microsoft.ML
         /// Select a list of columns to keep in a given <see cref="IDataView"/>.
         /// </summary>
         /// <remarks>
-        /// <format type="text/markdown">
-        /// <see cref="SelectColumns(TransformsCatalog, string[])"/> operates on the schema of an input <see cref="IDataView"/>, dropping unselected columns from the schema.
-        /// </format>
+        /// <format type="text/markdown"><![CDATA[
+        /// <xref:Microsoft.ML.SelectColumns(TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.Data.DataView.IDataView>, dropping unselected columns from the schema.
+        /// ]]></format>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>

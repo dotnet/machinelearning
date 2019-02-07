@@ -122,7 +122,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// The SelectColumns Transforms allows the user to specify columns to drop or keep from a given input.
+    /// The <see cref="ColumnSelectingTransformer"/> allows the user to specify columns to drop or keep from a given input.
     /// </summary>
     public sealed class ColumnSelectingTransformer : ITransformer, ICanSaveModel
     {
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
-        /// is <c>false</c>, then an exception should be thrown. If the input schema is in any way
+        /// is <c>false</c>, then an exception is thrown. If the input schema is in any way
         /// unsuitable for constructing the mapper, an exception should likewise be thrown.
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>

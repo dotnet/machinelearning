@@ -101,10 +101,10 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="SkipTakeFilter"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="args">Options for the skip operation.</param>
+        /// <param name="options">Options for the skip operation.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>
-        public SkipTakeFilter(IHostEnvironment env, SkipArguments args, IDataView input)
-            : this(args.Count, Arguments.DefaultTake, env, input)
+        public SkipTakeFilter(IHostEnvironment env, SkipOptions options, IDataView input)
+            : this(options.Count, Options.DefaultTake, env, input)
         {
         }
 
@@ -112,10 +112,10 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="SkipTakeFilter"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="args">Options for the take operation.</param>
+        /// <param name="options">Options for the take operation.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>
-        public SkipTakeFilter(IHostEnvironment env, TakeArguments args, IDataView input)
-            : this(Arguments.DefaultSkip, args.Count, env, input)
+        public SkipTakeFilter(IHostEnvironment env, TakeOptions options, IDataView input)
+            : this(Options.DefaultSkip, options.Count, env, input)
         {
         }
 

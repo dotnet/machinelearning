@@ -157,11 +157,11 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The categorical transform's catalog</param>
-        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with values. This list must be the same length as values and
+        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with <paramref name="values"/>. The length of this list must be the same length as <paramref name="values"/> and
         /// cannot contain duplicate keys.</param>
-        /// <param name="values">The list of values to pair with the keys for the mapping. This list must be equal to the same length as keys.</param>
+        /// <param name="values">The list of values to pair with the keys for the mapping. The length of this list must be equal to the same length as <paramref name="keys"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns>An instance of the ValueMappingEstimator.</returns>
+        /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -184,12 +184,12 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The categorical transform's catalog</param>
-        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with values. This list must be the same length as values and
+        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with <paramref name="values"/>. The length of this list must be the same length as <paramref name="values"/> and
         /// cannot contain duplicate keys.</param>
-        /// <param name="values">The list of values to pair with the keys for the mapping. This list must be equal to the same length as keys.</param>
-        /// <param name="treatValuesAsKeyType">Specifies to treat the values as a <see cref="KeyType"/>.</param>
+        /// <param name="values">The list of values to pair with the keys for the mapping. The length of this list must be equal to the same length as <paramref name="keys"/>.</param>
+        /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyType"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns>An instance of the ValueMappingEstimator.</returns>
+        /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -210,11 +210,11 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The categorical transform's catalog</param>
-        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with values. This list must be the same length as values and
+        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with <paramref name="values"/>. The length of this list  must be the same length as <paramref name="values"/> and
         /// cannot contain duplicate keys.</param>
-        /// <param name="values">The list of values to pair with the keys for the mapping of TOutputType[].. This list must be equal to the same length as keys.</param>
+        /// <param name="values">The list of values to pair with the keys for the mapping of TOutputType[]. The length of this list  must be equal to the same length as <paramref name="keys"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns>An instance of the ValueMappingEstimator.</returns>
+        /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

@@ -38,7 +38,7 @@ namespace Microsoft.ML.Transforms
     public sealed class TensorFlowTransformer : RowToRowTransformerBase
     {
         /// <summary>
-        /// The settings for the <see cref="TensorFlowTransformer"/>.
+        /// The options for the <see cref="TensorFlowTransformer"/>.
         /// </summary>
         public sealed class Options : TransformInputBase
         {

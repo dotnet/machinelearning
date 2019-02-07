@@ -37,7 +37,7 @@ namespace Microsoft.ML.Scenarios
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
                     .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true))
-                    .Append(mlContext.Transforms.ScoreTensorFlowModel(model_location, new string[] { "Output" }, new[] { "Input" }))
+                    .Append(mlContext.Transforms.ScoreTensorFlowModel(model_location, "Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
                     .AppendCacheCheckpoint(mlContext)
