@@ -58,7 +58,9 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private const string RegistrationName = "KeyToBinary";
 
-        // The names of the output and input column pairs on which the transformation is performed.
+        /// <summary>
+        /// The names of the output and input column pairs on which the transformation is performed.
+        /// </summary>
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private string TestIsKey(ColumnType type)
