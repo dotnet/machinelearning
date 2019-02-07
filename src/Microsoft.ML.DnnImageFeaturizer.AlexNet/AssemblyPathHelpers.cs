@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using System.Reflection;
 
 namespace Microsoft.ML.Transforms
 {
@@ -12,7 +11,7 @@ namespace Microsoft.ML.Transforms
     {
         public static string GetExecutingAssemblyLocation()
         {
-            string codeBaseUri = Assembly.GetExecutingAssembly().CodeBase;
+            string codeBaseUri = typeof(AssemblyPathHelpers).Assembly.CodeBase;
             string path = new Uri(codeBaseUri).AbsolutePath;
             return Directory.GetParent(path).FullName;
         }
