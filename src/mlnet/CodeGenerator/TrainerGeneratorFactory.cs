@@ -12,6 +12,7 @@ namespace Microsoft.ML.CLI
     internal interface ITrainerGenerator
     {
         string GenerateTrainer();
+        string GenerateUsings();
     }
     internal static class TrainerGeneratorFactory
     {
@@ -33,19 +34,19 @@ namespace Microsoft.ML.CLI
                     case TrainerName.AveragedPerceptronBinary:
                         return new AveragedPerceptron(node);
                     case TrainerName.FastForestBinary:
+                        return new FastForestClassification(node);
                     case TrainerName.FastForestRegression:
-                        return new FastForest(node);
+                        return new FastForestRegression(node);
                     case TrainerName.FastTreeBinary:
+                        return new FastTreeClassification(node);
                     case TrainerName.FastTreeRegression:
-                        return new FastTree(node);
+                        return new FastTreeRegression(node);
                     case TrainerName.FastTreeTweedieRegression:
                         return new FastTreeTweedie(node);
-
                     case TrainerName.LinearSvmBinary:
                         return new LinearSvm(node);
                     case TrainerName.LogisticRegressionBinary:
-                    case TrainerName.LogisticRegressionMulti:
-                        return new LogisticRegression(node);
+                        return new LogisticRegressionBinary(node);
                     case TrainerName.OnlineGradientDescentRegression:
                         return new OnlineGradientDescentRegression(node);
                     case TrainerName.OrdinaryLeastSquaresRegression:
@@ -53,10 +54,11 @@ namespace Microsoft.ML.CLI
                     case TrainerName.PoissonRegression:
                         return new PoissonRegression(node);
                     case TrainerName.SdcaBinary:
-                    case TrainerName.SdcaMulti:
-                        return new StochasticDualCoordinateAscent(node);
+                        return new StochasticDualCoordinateAscentBinary(node);
+                    case TrainerName.SdcaRegression:
+                        return new StochasticDualCoordinateAscentRegression(node);
                     case TrainerName.StochasticGradientDescentBinary:
-                        return new StochasticGradientDescent(node);
+                        return new StochasticGradientDescentClassification(node);
                     case TrainerName.SymSgdBinary:
                         return new SymbolicStochasticGradientDescent(node);
                     default:

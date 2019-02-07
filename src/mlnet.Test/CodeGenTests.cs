@@ -24,9 +24,10 @@ namespace mlnet.Test
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
-            var actual = codeGenerator.GenerateTrainer();
+            var actual = codeGenerator.GenerateTrainerAndUsings();
             string expected = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumn:\"Label\",featureColumn:\"Features\");";
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected, actual.Item1);
+            Assert.IsNull(actual.Item2);
         }
 
         [TestMethod]
@@ -43,9 +44,11 @@ namespace mlnet.Test
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
-            var actual = codeGenerator.GenerateTrainer();
-            string expected = "LightGbm(new LightGbm.Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"});";
-            Assert.AreEqual(expected, actual);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainer = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"});";
+            string expectedUsing = "using Microsoft.ML.LightGBM;\r\n";
+            Assert.AreEqual(expectedTrainer, actual.Item1);
+            Assert.AreEqual(expectedUsing, actual.Item2);
         }
 
         [TestMethod]
@@ -56,9 +59,25 @@ namespace mlnet.Test
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
-            var actual = codeGenerator.GenerateTransforms();
+            var actual = codeGenerator.GenerateTransformsAndUsings();
             string expected = "Normalize(\"Label\",\"Label\")";
-            Assert.AreEqual(expected, actual[0]);
+            Assert.AreEqual(expected, actual[0].Item1);
+            Assert.IsNull(actual[0].Item2);
+        }
+
+        [TestMethod]
+        public void TransformGeneratorUsingTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>();
+            PipelineNode node = new PipelineNode("OneHotEncoding", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
+            var actual = codeGenerator.GenerateTransformsAndUsings();
+            string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnInfo(\"Label\",\"Label\")})";
+            var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
+            Assert.AreEqual(expectedTransform, actual[0].Item1);
+            Assert.AreEqual(expectedUsings, actual[0].Item2);
         }
 
         [TestMethod]
@@ -77,19 +96,6 @@ namespace mlnet.Test
 
             Assert.AreEqual(expected1, actual[0]);
             Assert.AreEqual(expected2, actual[1]);
-        }
-
-        [TestMethod]
-        public void GenerateUsingsBasicTest()
-        {
-            var context = new MLContext();
-            var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("TypeConverting", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
-            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
-            var actual = codeGenerator.GenerateUsings();
-            string expected = "using Microsoft.ML.Transforms.Conversions;\r\n";
-            Assert.AreEqual(expected, actual);
         }
 
         [TestMethod]
@@ -122,14 +128,16 @@ namespace mlnet.Test
 
             var elementProperties = new Dictionary<string, object>()
             {
-                {"TreeBooster", new CustomProperty(){Properties= new Dictionary<string, object>(), Name = "TreeBooster"} },
+                {"Booster", new CustomProperty(){Properties= new Dictionary<string, object>(), Name = "TreeBooster"} },
             };
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
-            var actual = codeGenerator.GenerateTrainer();
-            string expected = "LightGbm(new LightGbm.Options(){TreeBooster=new TreeBooster(){},LabelColumn=\"Label\",FeatureColumn=\"Features\"});";
-            Assert.AreEqual(expected, actual);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainer = "LightGbm(new Options(){Booster=new TreeBooster(){},LabelColumn=\"Label\",FeatureColumn=\"Features\"});";
+            var expectedUsings = "using Microsoft.ML.LightGBM;\r\n";
+            Assert.AreEqual(expectedTrainer, actual.Item1);
+            Assert.AreEqual(expectedUsings, actual.Item2);
 
         }
 

@@ -13,6 +13,8 @@ namespace Microsoft.ML.CLI
     internal interface ITransformGenerator
     {
         string GenerateTransformer();
+
+        string GenerateUsings();
     }
 
     internal static class TransformGeneratorFactory

@@ -15,6 +15,8 @@ namespace Microsoft.ML.CLI
         //abstract properties
         internal abstract string MethodName { get; }
 
+        internal abstract string Usings { get; }
+
         protected string[] inputColumns;
 
         protected string[] outputColumns;
@@ -47,5 +49,9 @@ namespace Microsoft.ML.CLI
 
         public abstract string GenerateTransformer();
 
+        public string GenerateUsings()
+        {
+            return Usings;
+        }
     }
 }

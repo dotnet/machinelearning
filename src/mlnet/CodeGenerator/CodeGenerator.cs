@@ -21,24 +21,25 @@ namespace Microsoft.ML.CLI
             this.pipeline = pipelineToDeconstruct;
             this.columnInferenceResult = columnInferenceResult;
         }
-        internal IList<string> GenerateTransforms()
+        internal IList<(string, string)> GenerateTransformsAndUsings()
         {
             var nodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Transform);
-            var results = new List<string>();
+            var results = new List<(string, string)>();
             foreach (var node in nodes)
             {
                 ITransformGenerator generator = TransformGeneratorFactory.GetInstance(node);
-                results.Add(generator.GenerateTransformer());
+                results.Add((generator.GenerateTransformer(), generator.GenerateUsings()));
             }
 
             return results;
         }
 
-        internal string GenerateTrainer()
+        internal (string, string) GenerateTrainerAndUsings()
         {
             ITrainerGenerator generator = TrainerGeneratorFactory.GetInstance(pipeline);
             var trainerString = generator.GenerateTrainer();
-            return trainerString;
+            var trainerUsings = generator.GenerateUsings();
+            return (trainerString, trainerUsings);
         }
 
         internal IList<string> GenerateClassLabels()
@@ -147,44 +148,6 @@ namespace Microsoft.ML.CLI
 
             var def = $"new Column(\"{column.Name}\",DataKind.{column.Type},{rangeBuilder.ToString()}),";
             return def;
-        }
-
-        internal string GenerateUsings()
-        {
-            var trainerNodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer);
-            var transformNodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Transform);
-
-            StringBuilder sb = new StringBuilder();
-
-            foreach (var node in trainerNodes)
-            {
-                if (Enum.TryParse<TrainerName>(node.Name, out TrainerName nodeName))
-                {
-                    if (nodeName == TrainerName.LightGbmBinary || nodeName == TrainerName.LightGbmMulti || nodeName == TrainerName.LightGbmRegression)
-                    {
-                        sb.Append("using Microsoft.ML.LightGBM;");
-                        sb.Append("\r\n");
-                    }
-                }
-            }
-
-            foreach (var node in transformNodes)
-            {
-                if (Enum.TryParse<EstimatorName>(node.Name, out EstimatorName nodeName))
-                {
-                    if (nodeName == EstimatorName.OneHotEncoding || nodeName == EstimatorName.OneHotHashEncoding)
-                    {
-                        sb.Append("using Microsoft.ML.Transforms.Categorical;");
-                        sb.Append("\r\n");
-                    }
-                    if (nodeName == EstimatorName.TypeConverting)
-                    {
-                        sb.Append("using Microsoft.ML.Transforms.Conversions;");
-                        sb.Append("\r\n");
-                    }
-                }
-            }
-            return sb.ToString();
         }
 
         private static string Normalize(string inputColumn)

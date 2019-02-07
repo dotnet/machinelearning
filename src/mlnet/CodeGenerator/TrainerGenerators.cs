@@ -15,7 +15,7 @@ namespace Microsoft.ML.CLI
             internal override string MethodName => "LightGbm";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "LightGbm.Options";
+            internal override string OptionsName => "Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -35,6 +35,8 @@ namespace Microsoft.ML.CLI
                 }
             }
 
+            internal override string Usings => "using Microsoft.ML.LightGBM;\r\n";
+
             public LightGbm(PipelineNode node) : base(node)
             {
             }
@@ -46,7 +48,7 @@ namespace Microsoft.ML.CLI
             internal override string MethodName => "AveragedPerceptron";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "AveragedPerceptron.Options";
+            internal override string OptionsName => "AveragedPerceptronTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -68,106 +70,107 @@ namespace Microsoft.ML.CLI
                 }
             }
 
+            internal override string Usings => "using Microsoft.ML.Trainers.Online;\r\n ";
+
             public AveragedPerceptron(PipelineNode node) : base(node)
             {
             }
         }
 
-        internal class FastForest : TrainerGeneratorBase
+        #region FastTree
+        internal abstract class FastTreeBase : TrainerGeneratorBase
+        {
+            internal override string Usings => "using Microsoft.ML.Trainers.FastTree;\r\n";
+
+            //The named parameters to the trainer.
+            internal override IDictionary<string, string> NamedParameters
+            {
+                get
+                {
+                    return
+                    new Dictionary<string, string>()
+                    {
+                        {"Weights","weights" },
+                        {"LabelColumn","labelColumn" },
+                        {"FeatureColumn","featureColumn" },
+                        {"LearningRate","learningRate" },
+                        {"NumLeaves","numLeaves" },
+                        {"NumTrees","numTrees" },
+                        {"MinDatapointsInLeaves","minDatapointsInLeaves" },
+                        };
+                }
+            }
+
+            public FastTreeBase(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class FastForestClassification : FastTreeBase
         {
             //ClassName of the trainer
             internal override string MethodName => "FastForest";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "FastForest.Options";
+            internal override string OptionsName => "FastForestClassification.Options";
 
-            //The named parameters to the trainer.
-            internal override IDictionary<string, string> NamedParameters
-            {
-                get
-                {
-                    return
-                    new Dictionary<string, string>()
-                    {
-                        {"Weights","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
-                        {"LearningRate","learningRate" },
-                        {"NumLeaves","numLeaves" },
-                        {"NumTrees","numTrees" },
-                        {"MinDatapointsInLeaves","minDatapointsInLeaves" },
-                        };
-                }
-            }
-
-            public FastForest(PipelineNode node) : base(node)
+            public FastForestClassification(PipelineNode node) : base(node)
             {
             }
         }
 
-        internal class FastTree : TrainerGeneratorBase
+        internal class FastForestRegression : FastTreeBase
+        {
+            //ClassName of the trainer
+            internal override string MethodName => "FastForest";
+
+            //ClassName of the options to trainer
+            internal override string OptionsName => "FastForestRegression.Options";
+
+            public FastForestRegression(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class FastTreeClassification : FastTreeBase
         {
             //ClassName of the trainer
             internal override string MethodName => "FastTree";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "FastTree.Options";
+            internal override string OptionsName => "FastTreeBinaryClassificationTrainer.Options";
 
-            //The named parameters to the trainer.
-            internal override IDictionary<string, string> NamedParameters
-            {
-                get
-                {
-                    return
-                    new Dictionary<string, string>()
-                    {
-                        {"WeightColumn","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
-                        {"LearningRate","learningRate" },
-                        {"NumLeaves","numLeaves" },
-                        {"NumTrees","numTrees" },
-                        {"MinDatapointsInLeaves","minDatapointsInLeaves" },
-                        };
-                }
-            }
-
-            public FastTree(PipelineNode node) : base(node)
+            public FastTreeClassification(PipelineNode node) : base(node)
             {
             }
         }
 
-        internal class FastTreeTweedie : TrainerGeneratorBase
+        internal class FastTreeRegression : FastTreeBase
+        {
+            //ClassName of the trainer
+            internal override string MethodName => "FastTree";
+
+            //ClassName of the options to trainer
+            internal override string OptionsName => "FastTreeRegressionTrainer.Options";
+
+            public FastTreeRegression(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class FastTreeTweedie : FastTreeBase
         {
             //ClassName of the trainer
             internal override string MethodName => "FastTreeTweedie";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "FastTreeTweedie.Options";
-
-            //The named parameters to the trainer.
-            internal override IDictionary<string, string> NamedParameters
-            {
-                get
-                {
-                    return
-                    new Dictionary<string, string>()
-                    {
-                        {"Weights","weights" },
-                        {"LabelColumn","labelColumn" },
-                        {"FeatureColumn","featureColumn" },
-                        {"LearningRate","learningRate" },
-                        {"NumLeaves","numLeaves" },
-                        {"NumTrees","numTrees" },
-                        {"MinDatapointsInLeaves","minDatapointsInLeaves" },
-                        };
-                }
-            }
+            internal override string OptionsName => "FastTreeTweedieTrainer.Options";
 
             public FastTreeTweedie(PipelineNode node) : base(node)
             {
             }
         }
+        #endregion
 
         internal class LinearSvm : TrainerGeneratorBase
         {
@@ -193,12 +196,14 @@ namespace Microsoft.ML.CLI
                 }
             }
 
+            internal override string Usings => "using Microsoft.ML.Trainers.Online;\r\n ";
+
             public LinearSvm(PipelineNode node) : base(node)
             {
             }
         }
 
-        internal class LogisticRegression : TrainerGeneratorBase
+        internal class LogisticRegressionBinary : TrainerGeneratorBase
         {
             //ClassName of the trainer
             internal override string MethodName => "LogisticRegression";
@@ -226,7 +231,9 @@ namespace Microsoft.ML.CLI
                 }
             }
 
-            public LogisticRegression(PipelineNode node) : base(node)
+            internal override string Usings => "using Microsoft.ML.Learners;\r\n";
+
+            public LogisticRegressionBinary(PipelineNode node) : base(node)
             {
             }
         }
@@ -237,7 +244,7 @@ namespace Microsoft.ML.CLI
             internal override string MethodName => "OnlineGradientDescent";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "OnlineGradientDescent.Options";
+            internal override string OptionsName => "OnlineGradientDescentTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -260,6 +267,8 @@ namespace Microsoft.ML.CLI
                 }
             }
 
+            internal override string Usings => "using Microsoft.ML.Trainers.Online;\r\n";
+
             public OnlineGradientDescentRegression(PipelineNode node) : base(node)
             {
             }
@@ -271,7 +280,7 @@ namespace Microsoft.ML.CLI
             internal override string MethodName => "OrdinaryLeastSquares";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "OrdinaryLeastSquares.Options";
+            internal override string OptionsName => "OlsLinearRegressionTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -287,6 +296,8 @@ namespace Microsoft.ML.CLI
                     };
                 }
             }
+
+            internal override string Usings => "using Microsoft.ML.Trainers.HalLearners;\r\n";
 
             public OrdinaryLeastSquaresRegression(PipelineNode node) : base(node)
             {
@@ -321,18 +332,18 @@ namespace Microsoft.ML.CLI
                 }
             }
 
+            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
+
             public PoissonRegression(PipelineNode node) : base(node)
             {
             }
         }
 
-        internal class StochasticDualCoordinateAscent : TrainerGeneratorBase
+        #region SDCA
+        internal abstract class StochasticDualCoordinateAscentBase : TrainerGeneratorBase
         {
             //ClassName of the trainer
             internal override string MethodName => "StochasticDualCoordinateAscent";
-
-            //ClassName of the options to trainer
-            internal override string OptionsName => "StochasticDualCoordinateAscent.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -353,18 +364,41 @@ namespace Microsoft.ML.CLI
                 }
             }
 
-            public StochasticDualCoordinateAscent(PipelineNode node) : base(node)
+            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
+
+            public StochasticDualCoordinateAscentBase(PipelineNode node) : base(node)
             {
             }
         }
 
-        internal class StochasticGradientDescent : TrainerGeneratorBase
+        internal class StochasticDualCoordinateAscentBinary : StochasticDualCoordinateAscentBase
+        {
+            //ClassName of the options to trainer
+            internal override string OptionsName => "SdcaBinaryTrainer.Options";
+
+            public StochasticDualCoordinateAscentBinary(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class StochasticDualCoordinateAscentRegression : StochasticDualCoordinateAscentBase
+        {
+            //ClassName of the options to trainer
+            internal override string OptionsName => "SdcaRegressionTrainer.Options";
+
+            public StochasticDualCoordinateAscentRegression(PipelineNode node) : base(node)
+            {
+            }
+        }
+        #endregion
+
+        internal class StochasticGradientDescentClassification : TrainerGeneratorBase
         {
             //ClassName of the trainer
             internal override string MethodName => "StochasticGradientDescent";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "StochasticGradientDescent.Options";
+            internal override string OptionsName => "StochasticGradientDescentClassificationTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -385,7 +419,9 @@ namespace Microsoft.ML.CLI
                 }
             }
 
-            public StochasticGradientDescent(PipelineNode node) : base(node)
+            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
+
+            public StochasticGradientDescentClassification(PipelineNode node) : base(node)
             {
             }
         }
@@ -411,6 +447,8 @@ namespace Microsoft.ML.CLI
                     };
                 }
             }
+
+            internal override string Usings => "using Microsoft.ML.Trainers.SymSgd;\r\n";
 
             public SymbolicStochasticGradientDescent(PipelineNode node) : base(node)
             {

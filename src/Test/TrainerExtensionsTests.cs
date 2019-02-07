@@ -73,8 +73,8 @@ namespace Microsoft.ML.Auto.Test
   ""MaxCatThreshold"": 16,
   ""CatSmooth"": 10,
   ""CatL2"": 0.5,
-  ""TreeBooster"": {
-    ""Name"": ""LightGbmArguments.TreeBooster.Arguments"",
+  ""Booster"": {
+    ""Name"": ""Options.TreeBooster.Arguments"",
     ""Properties"": {
       ""RegLambda"": 0.5,
       ""RegAlpha"": 0.5
@@ -114,8 +114,8 @@ namespace Microsoft.ML.Auto.Test
             {
                 {"NumBoostRound", 1 },
                 {"LearningRate", 1 },
-                {"TreeBooster", new CustomProperty() {
-                    Name = "Microsoft.ML.LightGBM.TreeBooster",
+                {"Booster", new CustomProperty() {
+                    Name = "Options.TreeBooster.Arguments",
                     Properties = new Dictionary<string, object>()
                     {
                         {"RegLambda", 1 },

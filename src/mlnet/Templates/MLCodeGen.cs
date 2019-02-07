@@ -36,6 +36,7 @@ using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using static Microsoft.ML.Data.TextLoader;
+using Microsoft.Data.DataView;
 ");
             this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
             this.Write("\r\n\r\n\r\nnamespace MlnetSample\r\n{\r\n    class Program\r\n    {\r\n        private static " +
@@ -81,7 +82,10 @@ using static Microsoft.ML.Data.TextLoader;
 			   if(i>0)
 			   { Write("\n                                    .Append(");
 			   }
-			   Write("mlContext.Transforms."+Transforms[i]); 
+			   Write("mlContext.Transforms."+Transforms[i]);
+			   if(i>0)
+			   { Write(")");
+			   }
             }
             this.Write(";\r\n");
 }
@@ -124,7 +128,7 @@ if("Regression".Equals(TaskType)){
 
         private static TextLoader GetTextLoader(MLContext mlContext)
         {
-            return mlContext.Data.CreateTextReader(
+            return mlContext.Data.CreateTextLoader(
                                                         columns: new[]
                                                                     {
 ");
@@ -151,7 +155,7 @@ if("Regression".Equals(TaskType)){
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = textLoader.Read(TrainDataPath);
 
-            var sample = trainingDataView.AsEnumerable<SampleClass>(mlContext, false).First();
+            var sample = mlContext.CreateEnumerable<SampleClass>(trainingDataView, false).First();
 
             ITransformer trainedModel;
             using (var stream = new FileStream(ModelPath, FileMode.Open, FileAccess.Read, FileShare.Read))

@@ -25,6 +25,7 @@ namespace Microsoft.ML.CLI
         internal abstract string OptionsName { get; }
         internal abstract string MethodName { get; }
         internal abstract IDictionary<string, string> NamedParameters { get; }
+        internal abstract string Usings { get; }
 
         /// <summary>
         /// Generates an instance of TrainerGenerator
@@ -136,5 +137,12 @@ namespace Microsoft.ML.CLI
             return sb.ToString();
         }
 
+        public string GenerateUsings()
+        {
+            if (hasAdvancedSettings)
+                return Usings;
+
+            return null;
+        }
     }
 }

@@ -57,7 +57,7 @@ namespace Microsoft.ML.Auto
         }
 
         private static string[] _lightGbmTreeBoosterParamNames = new[] { "RegLambda", "RegAlpha" };
-        private const string LightGbmTreeBoosterPropName = "TreeBooster";
+        private const string LightGbmTreeBoosterPropName = "Booster";
 
         public static Action<LightGbmArguments> CreateLightGbmArgsFunc(IEnumerable<SweepableParam> sweepParams)
         {
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Auto
             var parentArgParams = sweepParams.Except(treeBoosterParams);
 
             var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
-            var treeBoosterCustomProp = new CustomProperty("LightGbmArguments.TreeBooster.Arguments", treeBoosterProps);
+            var treeBoosterCustomProp = new CustomProperty("Options.TreeBooster.Arguments", treeBoosterProps);
 
             var props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
             props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;

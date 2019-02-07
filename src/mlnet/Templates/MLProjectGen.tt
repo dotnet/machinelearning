@@ -15,8 +15,8 @@
     <Compile Include="ConsoleHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="0.9.0" />
-    <PackageReference Include="Microsoft.ML.HalLearners" Version="0.9.0" />
-    <PackageReference Include="Microsoft.ML.LightGBM" Version="0.9.0" />
+    <PackageReference Include="Microsoft.ML" Version="0.10.0" />
+    <PackageReference Include="Microsoft.ML.HalLearners" Version="0.10.0" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="0.10.0" /> 
   </ItemGroup>
 </Project>

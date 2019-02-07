@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Core.Data;
@@ -86,18 +87,44 @@ namespace Microsoft.ML.CLI
         private static void RunCodeGen(Options options, ColumnInferenceResult columnInference, Pipeline pipelineToDeconstruct)
         {
             var codeGenerator = new CodeGenerator(pipelineToDeconstruct, columnInference);
+            var trainerAndUsings = codeGenerator.GenerateTrainerAndUsings();
+            var transformsAndUsings = codeGenerator.GenerateTransformsAndUsings();
+
+            //Get trainer code and its associated usings.
+            var trainer = trainerAndUsings.Item1;
+            var trainerUsings = trainerAndUsings.Item2;
+
+            //Get transforms code and its associated usings.
+            var transforms = transformsAndUsings.Select(t => t.Item1).ToList();
+            var transformUsings = transformsAndUsings.Select(t => t.Item2).ToList();
+
+            //Combine all using statements.
+            StringBuilder usings = new StringBuilder();
+            transformUsings.ForEach(t =>
+            {
+                if (t != null)
+                    usings.Append(t);
+            });
+            usings.Append(trainerUsings);
+
+            //Generate code for columns
+            var columns = codeGenerator.GenerateColumns();
+
+            //Generate code for prediction Class labels
+            var classLabels = codeGenerator.GenerateClassLabels();
+
             MLCodeGen codeGen = new MLCodeGen()
             {
                 Path = options.TrainDataset.FullName,
                 TestPath = options.TestDataset.FullName,
-                Columns = codeGenerator.GenerateColumns(),
-                Transforms = codeGenerator.GenerateTransforms(),
+                Columns = columns,
+                Transforms = transforms,
                 HasHeader = columnInference.HasHeader,
                 Separator = columnInference.Separator,
-                Trainer = codeGenerator.GenerateTrainer(),
+                Trainer = trainer,
                 TaskType = options.MlTask.ToString(),
-                ClassLabels = codeGenerator.GenerateClassLabels(),
-                GeneratedUsings = codeGenerator.GenerateUsings()
+                ClassLabels = classLabels,
+                GeneratedUsings = usings.ToString()
             };
 
             MLProjectGen csProjGenerator = new MLProjectGen();

@@ -17,6 +17,8 @@ namespace Microsoft.ML.CLI
 
         internal override string MethodName => "Normalize";
 
+        internal override string Usings => null;
+
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
@@ -24,9 +26,9 @@ namespace Microsoft.ML.CLI
             string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             sb.Append(MethodName);
             sb.Append("(");
-            sb.Append(inputColumn);
-            sb.Append(",");
             sb.Append(outputColumn);
+            sb.Append(",");
+            sb.Append(inputColumn);
             sb.Append(")");
             return sb.ToString();
         }
@@ -39,6 +41,8 @@ namespace Microsoft.ML.CLI
         }
 
         internal override string MethodName => "Categorical.OneHotEncoding";
+
+        internal override string Usings => "using Microsoft.ML.Transforms.Categorical;\r\n";
 
         private string ArgumentsName = "OneHotEncodingEstimator.ColumnInfo";
 
@@ -53,9 +57,9 @@ namespace Microsoft.ML.CLI
                 sb.Append("new ");
                 sb.Append(ArgumentsName);
                 sb.Append("(");
-                sb.Append(inputColumns[i]);
-                sb.Append(",");
                 sb.Append(outputColumns[i]);
+                sb.Append(",");
+                sb.Append(inputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -74,6 +78,8 @@ namespace Microsoft.ML.CLI
         }
 
         internal override string MethodName => "Concatenate";
+
+        internal override string Usings => null;
 
         public override string GenerateTransformer()
         {
@@ -105,6 +111,8 @@ namespace Microsoft.ML.CLI
 
         internal override string MethodName => "CopyColumns";
 
+        internal override string Usings => null;
+
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
@@ -128,6 +136,8 @@ namespace Microsoft.ML.CLI
 
         internal override string MethodName => "IndicateMissingValues";
 
+        internal override string Usings => null;
+
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
@@ -139,9 +149,9 @@ namespace Microsoft.ML.CLI
             for (int i = 0; i < inputColumns.Length; i++)
             {
                 sb.Append("(");
-                sb.Append(inputColumns[i]);
-                sb.Append(",");
                 sb.Append(outputColumns[i]);
+                sb.Append(",");
+                sb.Append(inputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -160,6 +170,8 @@ namespace Microsoft.ML.CLI
 
         internal override string MethodName => "Categorical.OneHotHashEncoding";
 
+        internal override string Usings => "using Microsoft.ML.Transforms.Categorical;\r\n";
+
         private string ArgumentsName = "OneHotHashEncodingEstimator.ColumnInfo";
 
         public override string GenerateTransformer()
@@ -173,9 +185,9 @@ namespace Microsoft.ML.CLI
                 sb.Append("new ");
                 sb.Append(ArgumentsName);
                 sb.Append("(");
-                sb.Append(inputColumns[i]);
-                sb.Append(",");
                 sb.Append(outputColumns[i]);
+                sb.Append(",");
+                sb.Append(inputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -194,6 +206,8 @@ namespace Microsoft.ML.CLI
         }
 
         internal override string MethodName => "Text.FeaturizeText";
+
+        internal override string Usings => null;
 
         public override string GenerateTransformer()
         {
@@ -218,6 +232,8 @@ namespace Microsoft.ML.CLI
 
         internal override string MethodName => "Conversion.ConvertType";
 
+        internal override string Usings => null;
+
         private string ArgumentsName = "TypeConvertingTransformer.ColumnInfo";
 
         public override string GenerateTransformer()
@@ -231,11 +247,11 @@ namespace Microsoft.ML.CLI
                 sb.Append("new ");
                 sb.Append(ArgumentsName);
                 sb.Append("(");
-                sb.Append(inputColumns[i]);
-                sb.Append(",");
                 sb.Append(outputColumns[i]);
                 sb.Append(",");
                 sb.Append("DataKind.R4");
+                sb.Append(",");
+                sb.Append(inputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -254,6 +270,8 @@ namespace Microsoft.ML.CLI
         }
 
         internal override string MethodName => "Conversion.MapValueToKey";
+
+        internal override string Usings => null;
 
         public override string GenerateTransformer()
         {

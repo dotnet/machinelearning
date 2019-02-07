@@ -14,6 +14,7 @@ using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using static Microsoft.ML.Data.TextLoader;
+using Microsoft.Data.DataView;
 <#= GeneratedUsings #>
 
 
@@ -59,7 +60,10 @@ namespace MlnetSample
 			   if(i>0)
 			   { Write("\n                                    .Append(");
 			   }
-			   Write("mlContext.Transforms."+Transforms[i]); 
+			   Write("mlContext.Transforms."+Transforms[i]);
+			   if(i>0)
+			   { Write(")");
+			   }
             }#>;
 <#}#>
 
@@ -97,7 +101,7 @@ else{#>
 
         private static TextLoader GetTextLoader(MLContext mlContext)
         {
-            return mlContext.Data.CreateTextReader(
+            return mlContext.Data.CreateTextLoader(
                                                         columns: new[]
                                                                     {
 <# foreach(var col in Columns) {#>
@@ -117,7 +121,7 @@ else{#>
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = textLoader.Read(TrainDataPath);
 
-            var sample = trainingDataView.AsEnumerable<SampleClass>(mlContext, false).First();
+            var sample = mlContext.CreateEnumerable<SampleClass>(trainingDataView, false).First();
 
             ITransformer trainedModel;
             using (var stream = new FileStream(ModelPath, FileMode.Open, FileAccess.Read, FileShare.Read))
