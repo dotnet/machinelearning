@@ -142,7 +142,7 @@ namespace Microsoft.ML.Scenarios
 
             var loader = mlContext.Data.ReadFromEnumerable(data);
 
-            var inputs = new string[]{"f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8","b"};
+            var inputs = new string[] { "f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "b" };
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
             var trans = new TensorFlowTransformer(mlContext, model_location, outputs, inputs).Transform(loader); ;
 
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Scenarios
                 var u8getter = cursor.GetGetter<VBuffer<byte>>(20);
                 var boolgetter = cursor.GetGetter<VBuffer<bool>>(21);
 
-               
+
                 VBuffer<double> f64 = default;
                 VBuffer<float> f32 = default;
                 VBuffer<long> i64 = default;
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Scenarios
             var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 32, 32, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractingTransformer(mlContext, "image_tensor", "ImageCropped", asFloat: false).Transform(cropped);
-            var tf = new TensorFlowTransformer(mlContext, modelLocation, 
+            var tf = new TensorFlowTransformer(mlContext, modelLocation,
                 new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" }, new[] { "image_tensor" }).Transform(pixels);
 
             tf.Schema.TryGetColumnIndex("image_tensor", out int input);
@@ -277,8 +277,8 @@ namespace Microsoft.ML.Scenarios
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(mlContext, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
-            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 224, 224 , "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractingTransformer(mlContext, "input","ImageCropped").Transform(cropped);
+            var cropped = new ImageResizingTransformer(mlContext, "ImageCropped", 224, 224, "ImageReal").Transform(images);
+            var pixels = new ImagePixelExtractingTransformer(mlContext, "input", "ImageCropped").Transform(cropped);
             var tf = new TensorFlowTransformer(mlContext, modelLocation, "softmax2_pre_activation", "input").Transform(pixels);
 
             tf.Schema.TryGetColumnIndex("input", out int input);
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Scenarios
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
-            var pipe = mlContext.Transforms.CopyColumns(("reshape_input","Placeholder"))
+            var pipe = mlContext.Transforms.CopyColumns(("reshape_input", "Placeholder"))
                 .Append(new TensorFlowEstimator(mlContext, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }, "mnist_model/frozen_saved_model.pb"))
                 .Append(mlContext.Transforms.Concatenate("Features", "Softmax", "dense/Relu"))
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     }))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
-                    .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel","Label", maxNumKeys: 10))
+                    .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel", "Label", maxNumKeys: 10))
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("KeyLabel", "Features"));
 
                 var trainedModel = pipe.Fit(trainData);
@@ -502,8 +502,8 @@ namespace Microsoft.ML.Scenarios
         {
             var expectedValues = new List<(double micro, double macro)>()
             {
-                (0.71304347826086956, 0.53197278911564627), 
-                (0.73304347826086956, 0.677551020408163) 
+                (0.71304347826086956, 0.53197278911564627),
+                (0.73304347826086956, 0.677551020408163)
             };
 
             ExecuteTFTransformMNISTConvTrainingTest(false, null, expectedValues);
@@ -571,12 +571,14 @@ namespace Microsoft.ML.Scenarios
                     }))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGBM.Options() {
-                        LabelColumn="Label", 
-                        FeatureColumn="Features", 
-                        Seed=1, 
-                        NThread=1, 
-                        NumBoostRound=1}));
+                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGBM.Options()
+                    {
+                        LabelColumn = "Label",
+                        FeatureColumn = "Features",
+                        Seed = 1,
+                        NThread = 1,
+                        NumBoostRound = 1
+                    }));
 
                 var trainedModel = pipe.Fit(preprocessedTrainData);
                 var predicted = trainedModel.Transform(preprocessedTestData);
@@ -584,9 +586,9 @@ namespace Microsoft.ML.Scenarios
 
                 // First group of checks. They check if the overall prediction quality is ok using a test set.
                 bool inRange = expectedValues.Any(exp =>
-                            (metrics.AccuracyMicro >= exp.micro - 0.1 && 
+                            (metrics.AccuracyMicro >= exp.micro - 0.1 &&
                              metrics.AccuracyMicro <= exp.micro + 0.1) &&
-                            (metrics.AccuracyMacro >= exp.macro - 0.1 && 
+                            (metrics.AccuracyMacro >= exp.macro - 0.1 &&
                              metrics.AccuracyMacro <= exp.macro + 0.1));
                 Assert.True(inRange, $"The AccuracyMicro of {metrics.AccuracyMicro} or the AccuracyMacro of {metrics.AccuracyMacro} did not fall within the expected range.");
 
@@ -758,7 +760,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
-            IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Output","Input").Transform(pixels);
+            IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Output", "Input").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
@@ -855,7 +857,7 @@ namespace Microsoft.ML.Scenarios
             var thrown = false;
             try
             {
-                IDataView trans = new TensorFlowTransformer(mlContext, modelLocation,  "Output", "Input").Transform(pixels);
+                IDataView trans = new TensorFlowTransformer(mlContext, modelLocation, "Output", "Input").Transform(pixels);
             }
             catch
             {
