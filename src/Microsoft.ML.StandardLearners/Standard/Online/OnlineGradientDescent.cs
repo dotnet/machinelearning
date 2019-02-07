@@ -93,8 +93,8 @@ namespace Microsoft.ML.Trainers.Online
         /// Trains a new <see cref="RegressionPredictionTransformer{LinearRegressionPredictor}"/>.
         /// </summary>
         /// <param name="env">The pricate instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">Name of the label column.</param>
-        /// <param name="featureColumn">Name of the feature column.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>

@@ -120,8 +120,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="classIndex">Label of the positive class.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="name">The name of the output column.</param>
+        /// <param name="source">The name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
         public LabelIndicatorTransform(IHostEnvironment env,
             IDataView input,
             int classIndex,
