@@ -5,9 +5,9 @@ using Microsoft.ML.SamplesUtils;
 namespace Microsoft.ML.Samples.Dynamic
 {
     /// <summary>
-    /// Sample class showing how to use Shuffle.
+    /// Sample class showing how to use ShuffleRows.
     /// </summary>
-    public static class Shuffle
+    public static class ShuffleRows
     {
         public static void Example()
         {
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  1/6/2012        35
 
             // Shuffle the dataset.
-            var shuffledData = mlContext.Data.Shuffle(data, seed: 123);
+            var shuffledData = mlContext.Data.ShuffleRows(data, seed: 123);
 
             // Look at the shuffled data and observe that the rows are in a randomized order.
             var enumerable = mlContext.CreateEnumerable<DatasetUtils.SampleTemperatureData>(shuffledData, reuseRowObject: true);

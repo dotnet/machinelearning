@@ -107,6 +107,35 @@ namespace Microsoft.ML.SamplesUtils
             return $"{path}{Path.DirectorySeparatorChar}images.tsv";
         }
 
+        /// <summary>
+        /// Downloads sentiment_model from the dotnet/machinelearning-testdata repo.
+        /// </summary>
+        /// <remarks>
+        /// The model is downloaded from
+        /// https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model
+        /// The model is in 'SavedModel' format. For further explanation on how was the `sentiment_model` created
+        /// c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
+        /// </remarks>
+        public static string DownloadTensorFlowSentimentModel()
+        {
+            string remotePath = "https://github.com/dotnet/machinelearning-testdata/raw/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/";
+
+            string path = "sentiment_model";
+            if(!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            string varPath = Path.Combine(path, "variables");
+            if (!Directory.Exists(varPath))
+                Directory.CreateDirectory(varPath);
+
+            Download(Path.Combine(remotePath, "saved_model.pb"), Path.Combine(path,"saved_model.pb"));
+            Download(Path.Combine(remotePath, "imdb_word_index.csv"), Path.Combine(path, "imdb_word_index.csv"));
+            Download(Path.Combine(remotePath, "variables", "variables.data-00000-of-00001"), Path.Combine(varPath, "variables.data-00000-of-00001"));
+            Download(Path.Combine(remotePath, "variables", "variables.index"), Path.Combine(varPath, "variables.index"));
+
+            return path;
+        }
+
         private static string Download(string baseGitPath, string dataFile)
         {
             using (WebClient client = new WebClient())
