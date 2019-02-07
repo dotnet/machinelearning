@@ -282,7 +282,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
                 savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "lpnorm", "gcnorm", "whitened" });
 
                 using (var fs = File.Create(outputPath))
@@ -314,9 +314,9 @@ namespace Microsoft.ML.Tests.Transformers
             var outputPath = GetOutputPath("NormalizerEstimator", "whitened.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "whitened1", "whitened2" });
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "whitened1", "whitened2" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
                 savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "lpNorm1", "lpNorm2" });
 
                 using (var fs = File.Create(outputPath))
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
                 savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "gcnNorm1", "gcnNorm2" });
 
                 using (var fs = File.Create(outputPath))

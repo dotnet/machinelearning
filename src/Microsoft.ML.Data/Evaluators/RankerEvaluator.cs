@@ -27,7 +27,8 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class RankerEvaluator : EvaluatorBase<RankerEvaluator.Aggregator>
+    [BestFriend]
+    internal sealed class RankerEvaluator : EvaluatorBase<RankerEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -836,7 +837,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class RankerMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class RankerMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {

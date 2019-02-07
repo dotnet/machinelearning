@@ -375,14 +375,13 @@ namespace Microsoft.ML.Trainers.Recommender
         }
     }
 
-    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationPredictor, GenericScorer>, ICanSaveModel
+    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationPredictor>, ICanSaveModel
     {
         public const string LoaderSignature = "MaFactPredXf";
         public string MatrixColumnIndexColumnName { get; }
         public string MatrixRowIndexColumnName { get; }
         public ColumnType MatrixColumnIndexColumnType { get; }
         public ColumnType MatrixRowIndexColumnType { get; }
-        protected override GenericScorer Scorer { get; set; }
 
         /// <summary>
         /// Build a transformer based on matrix factorization predictor (model) and the input schema (trainSchema). The created

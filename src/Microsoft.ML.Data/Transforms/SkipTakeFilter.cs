@@ -287,30 +287,4 @@ namespace Microsoft.ML.Transforms
             }
         }
     }
-
-    public static class SkipFilter
-    {
-        /// <summary>
-        /// A helper method to create <see cref="SkipTakeFilter"/> transform for skipping the number of rows defined by the <paramref name="count"/> parameter.
-        /// <see cref="SkipTakeFilter"/> when created with <see cref="SkipTakeFilter.SkipArguments"/> behaves as 'SkipFilter'.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="count">Number of rows to skip</param>
-        public static IDataView Create(IHostEnvironment env, IDataView input, long count = SkipTakeFilter.Arguments.DefaultSkip)
-            => SkipTakeFilter.Create(env, new SkipTakeFilter.SkipArguments() { Count = count }, input);
-    }
-
-    public static class TakeFilter
-    {
-        /// <summary>
-        /// A helper method to create <see cref="SkipTakeFilter"/> transform by taking the top rows defined by the <paramref name="count"/> parameter.
-        /// <see cref="SkipTakeFilter"/> when created with <see cref="SkipTakeFilter.TakeArguments"/> behaves as 'TakeFilter'.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">>Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="count">Number of rows to take</param>
-        public static IDataView Create(IHostEnvironment env, IDataView input, long count = SkipTakeFilter.Arguments.DefaultTake)
-            => SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments() { Count = count }, input);
-    }
 }

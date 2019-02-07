@@ -28,7 +28,8 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class BinaryClassifierEvaluator : RowToRowEvaluatorBase<BinaryClassifierEvaluator.Aggregator>
+    [BestFriend]
+    internal sealed class BinaryClassifierEvaluator : RowToRowEvaluatorBase<BinaryClassifierEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -866,7 +867,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class BinaryPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class BinaryPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "BinaryPerInstance";
         private static VersionInfo GetVersionInfo()
@@ -1116,7 +1117,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class BinaryClassifierMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class BinaryClassifierMamlEvaluator : MamlEvaluatorBase
     {
         public class Arguments : ArgumentsBase
         {

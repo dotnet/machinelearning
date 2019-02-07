@@ -10,7 +10,8 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
-    public abstract class RegressionLossEvaluatorBase<TAgg> : RowToRowEvaluatorBase<TAgg>
+    [BestFriend]
+    internal abstract class RegressionLossEvaluatorBase<TAgg> : RowToRowEvaluatorBase<TAgg>
         where TAgg : EvaluatorBase<TAgg>.AggregatorBase
     {
         public abstract class ArgumentsBase
@@ -35,7 +36,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class RegressionEvaluatorBase<TAgg, TScore, TMetrics> : RegressionLossEvaluatorBase<TAgg>
+    [BestFriend]
+    internal abstract class RegressionEvaluatorBase<TAgg, TScore, TMetrics> : RegressionLossEvaluatorBase<TAgg>
         where TAgg : RegressionEvaluatorBase<TAgg, TScore, TMetrics>.RegressionAggregatorBase
     {
         [BestFriend]

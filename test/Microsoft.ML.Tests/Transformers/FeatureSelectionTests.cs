@@ -48,8 +48,8 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
-                    IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                    savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "bag_of_words_count", "bag_of_words_mi" });
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "bag_of_words_count", "bag_of_words_mi" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, trans.Transform(data), 4);
+                var savedData = ML.Data.TakeRows(trans.Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data).Transform(data), 4);
+                var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ML, est.Fit(data).Transform(data), 4);
+                var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }

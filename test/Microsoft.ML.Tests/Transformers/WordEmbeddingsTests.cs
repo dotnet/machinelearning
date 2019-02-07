@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -25,7 +23,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestWordEmbeddings()
         {
             var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
-            var data = new TextLoader(Env,
+            var data = new TextLoader(ML,
                    new TextLoader.Arguments()
                    {
                        Separator = "\t",
@@ -47,15 +45,11 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(pipe, words, invalidInput: data);
 
             var outputPath = GetOutputPath("Text", "wordEmbeddings.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                IDataView savedData = TakeFilter.Create(Env, pipe.Fit(words).Transform(words), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "WordEmbeddings" });
+            var savedData = ML.Data.TakeRows(pipe.Fit(words).Transform(words), 4);
+            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "WordEmbeddings" });
 
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
-            }
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
             CheckEquality("Text", "wordEmbeddings.tsv");
             Done();
         }
@@ -64,7 +58,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestCustomWordEmbeddings()
         {
             var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
-            var data = new TextLoader(Env,
+            var data = new TextLoader(ML,
                    new TextLoader.Arguments()
                    {
                        Separator = "\t",
@@ -94,15 +88,11 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(pipe, words, invalidInput: data);
 
             var outputPath = GetOutputPath("Text", "customWordEmbeddings.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                IDataView savedData = TakeFilter.Create(Env, pipe.Fit(words).Transform(words), 10);
-                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "WordEmbeddings" , "CleanWords" });
+            var savedData = ML.Data.TakeRows(pipe.Fit(words).Transform(words), 10);
+            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "WordEmbeddings", "CleanWords" });
 
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
-            }
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
             CheckEquality("Text", "customWordEmbeddings.tsv");
             Done();
         }
