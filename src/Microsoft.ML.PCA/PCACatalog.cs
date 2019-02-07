@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Transforms.Projections;
+using static Microsoft.ML.Trainers.PCA.RandomizedPcaTrainer;
 
 namespace Microsoft.ML
 {
     public static class PcaCatalog
     {
-
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
@@ -35,5 +36,25 @@ namespace Microsoft.ML
         /// <param name="columns">Input columns to apply PrincipalComponentAnalysis on.</param>
         public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog, params PrincipalComponentAnalysisEstimator.ColumnInfo[] columns)
             => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+
+        public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
+            string featureColumn = DefaultColumnNames.Features,
+            string weights = null,
+            int rank = 20,
+            int oversampling = 20,
+            bool center = true,
+            int? seed = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new RandomizedPcaTrainer(env, featureColumn, weights, rank, oversampling, center, seed);
+        }
+
+        public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog, Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new RandomizedPcaTrainer(env, options);
+        }
     }
 }

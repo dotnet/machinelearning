@@ -564,4 +564,29 @@ namespace Microsoft.ML
             return eval.Evaluate(data, label, groupId, score);
         }
     }
+
+    /// <summary>
+    /// The central catalog for anomaly detection tasks and trainers.
+    /// </summary>
+    public sealed class AnomalyDetectionCatalog : TrainCatalogBase
+    {
+        /// <summary>
+        /// The list of trainers for anomaly detection.
+        /// </summary>
+        public AnomalyDetectionTrainers Trainers { get; }
+
+        internal AnomalyDetectionCatalog(IHostEnvironment env)
+            : base(env, nameof(AnomalyDetectionCatalog))
+        {
+            Trainers = new AnomalyDetectionTrainers(this);
+        }
+
+        public sealed class AnomalyDetectionTrainers : CatalogInstantiatorBase
+        {
+            internal AnomalyDetectionTrainers(AnomalyDetectionCatalog catalog)
+                : base(catalog)
+            {
+            }
+        }
+    }
 }
