@@ -21,10 +21,7 @@ namespace Microsoft.ML.Internal.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint GetLo(ulong uu)
         {
-            // REVIEW: Work around Dev10 Bug 884217: JIT64  -Silent bad codegen for accessing 4-byte parts of 8-byte locals
-            // http://vstfdevdiv:8080/WorkItemTracking/WorkItem.aspx?artifactMoniker=884217
-            // return (uint)uu;
-            return (uint)(uu & 0xFFFFFFFF);
+             return (uint)uu;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
