@@ -1509,8 +1509,8 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly Scalar<string>[] Inputs;
 
-            public OutPipelineColumn(IEnumerable<Scalar<string>> inputs, Action<Settings> advancedSettings)
-                : base(new Reconciler(advancedSettings), inputs.ToArray())
+            public OutPipelineColumn(IEnumerable<Scalar<string>> inputs, Options options)
+                : base(new Reconciler(options), inputs.ToArray())
             {
                 Inputs = inputs.ToArray();
             }
@@ -1518,11 +1518,11 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly Action<Settings> _settings;
+            private readonly Options _settings;
 
-            public Reconciler(Action<Settings> advancedSettings)
+            public Reconciler(Options options)
             {
-                _settings = advancedSettings;
+                _settings = options;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -1543,14 +1543,14 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Input data.</param>
         /// <param name="otherInputs">Additional data.</param>
-        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
+        /// <param name="options">Advanced transform settings.</param>
         /// <returns></returns>
-        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
+        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, TextFeaturizingEstimator.Options options = null)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValueOrNull(otherInputs);
             otherInputs = otherInputs ?? new Scalar<string>[0];
-            return new OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
+            return new OutPipelineColumn(new[] { input }.Concat(otherInputs), options);
         }
     }
 
