@@ -35,7 +35,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
             var data = GetTensorData();
             var idv = mlContext.Data.ReadFromEnumerable(data);
-            var pipeline = new OnnxScoringEstimator(mlContext, new[] { outputInfo.Key }, new[] { inputInfo.Key }, modelPath);
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelPath, new[] { outputInfo.Key }, new[] { inputInfo.Key });
 
             // Run the pipeline and get the transformed values
             var transformedValues = pipeline.Fit(idv).Transform(idv);

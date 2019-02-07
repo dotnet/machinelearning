@@ -52,7 +52,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = new ValueMappingEstimator<string, int>(mlContext, educationKeys, educationValues, ("EducationFeature", "Education"));
+            var pipeline = mlContext.Transforms.Conversion.ValueMap<string, int>(educationKeys, educationValues, ("EducationFeature", "Education"));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationFeature column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);

@@ -8,12 +8,12 @@
         <list type="number">
         <item>
           <description>
-            Scoring with pretrained TensorFlow model: In this mode, the transform extracts hidden layers&apos; values from a pre-trained Tensorflow model and uses outputs as features in ML.Net pipeline.
+            Scoring with pretrained <a href="https://www.tensorflow.org/">TensorFlow</a> model: In this mode, the transform extracts hidden layers&apos; values from a pre-trained Tensorflow model and uses outputs as features in ML.Net pipeline.
           </description>
         </item>
         <item>
           <description>
-            Retraining of TensorFlow model: In this mode, the transform retrains a TensorFlow model using the user data passed through ML.Net pipeline. Once the model is trained, it's outputs can be used as features for scoring.
+            Retraining of <a href="https://www.tensorflow.org/">TensorFlow</a> model: In this mode, the transform retrains a TensorFlow model using the user data passed through ML.Net pipeline. Once the model is trained, it's outputs can be used as features for scoring.
           </description>
         </item>
       </list>

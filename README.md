@@ -69,7 +69,7 @@ Here's an example of code to train a model to predict sentiment from text sample
 
 ```C#
 var mlContext = new MLContext();
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+var reader = mlContext.Data.CreateTextLoader(new TextLoader.Arguments
         {
         Column = new[] {
             new TextLoader.Column("SentimentText", DataKind.Text, 1),
@@ -79,7 +79,7 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
         Separator = ","
 });
 var data = reader.Read(dataPath);
-var learningPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
         .Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
 

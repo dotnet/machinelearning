@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -13,25 +12,31 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = mlContext.Data.ReadFromEnumerable(data);
+            var enumerableData = SamplesUtils.DatasetUtils.GetInfertData();
+            var data = mlContext.Data.ReadFromEnumerable(enumerableData);
 
-            // Preview of the data.
-            //
-            // Age    Case  Education  induced     parity  pooled.stratum  row_num  ...
-            // 26.0   1.0   0-5yrs      1.0         6.0       3.0      1.0  ...
-            // 42.0   1.0   0-5yrs      1.0         1.0       1.0      2.0  ...
-            // 39.0   1.0   0-5yrs      2.0         6.0       4.0      3.0  ...
-            // 34.0   1.0   0-5yrs      2.0         4.0       2.0      4.0  ...
-            // 35.0   1.0   6-11yrs     1.0         3.0       32.0     5.0  ...
+            // Before transformation, take a look at the dataset
+            Console.WriteLine($"Age\tCase\tEducation\tInduced\tParity\tPooledStratum");
+            foreach (var row in enumerableData)
+            {
+                Console.WriteLine($"{row.Age}\t{row.Case}\t{row.Education}\t{row.Induced}\t{row.Parity}\t{row.PooledStratum}");
+            }
+            Console.WriteLine();
+            // Expected output:
+            //  Age     Case    Education       Induced Parity  PooledStratum
+            //  26      1       0 - 5yrs        1       6       3
+            //  42      1       0 - 5yrs        1       1       1
+            //  39      1       12 + yrs        2       6       4
+            //  34      1       0 - 5yrs        2       4       2
+            //  35      1       6 - 11yrs       1       3       32
 
             // Select a subset of columns to keep.
-            var pipeline = mlContext.Transforms.SelectColumns(new string[] { "Age", "Education" });
+            var pipeline = mlContext.Transforms.SelectColumns("Age", "Education");
 
             // Now we can transform the data and look at the output to confirm the behavior of CopyColumns.
             // Don't forget that this operation doesn't actually evaluate data until we read the data below,
             // as transformations are lazy in ML.NET.
-            var transformedData = pipeline.Fit(trainData).Transform(trainData);
+            var transformedData = pipeline.Fit(data).Transform(data);
 
             // Print the number of columns in the schema
             Console.WriteLine($"There are {transformedData.Schema.Count} columns in the dataset.");
@@ -51,11 +56,11 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Expected output:
             //  Age and Education columns obtained post-transformation.
-            //  Age: 26 Education: 0 - 5yrs
-            //  Age: 42 Education: 0 - 5yrs
-            //  Age: 39 Education: 0 - 5yrs
-            //  Age: 34 Education: 0 - 5yrs
-            //  Age: 35 Education: 6 - 11yrs
+            //  Age: 26 Education: 0-5yrs
+            //  Age: 42 Education: 0-5yrs
+            //  Age: 39 Education: 12+yrs
+            //  Age: 34 Education: 0-5yrs
+            //  Age: 35 Education: 6-11yrs
         }
 
         private class SampleInfertDataTransformed

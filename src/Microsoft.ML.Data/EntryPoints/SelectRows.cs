@@ -15,7 +15,7 @@ namespace Microsoft.ML.EntryPoints
     internal static class SelectRows
     {
         [TlcModule.EntryPoint(Name = "Transforms.RowRangeFilter", Desc = RangeFilter.Summary, UserName = RangeFilter.UserName, ShortName = RangeFilter.LoaderSignature)]
-        public static CommonOutputs.TransformOutput FilterByRange(IHostEnvironment env, RangeFilter.Arguments input)
+        public static CommonOutputs.TransformOutput FilterByRange(IHostEnvironment env, RangeFilter.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RangeFilter.LoaderSignature);
@@ -28,7 +28,7 @@ namespace Microsoft.ML.EntryPoints
 
         [TlcModule.EntryPoint(Name = "Transforms.RowSkipFilter", Desc = SkipTakeFilter.SkipFilterSummary, UserName = SkipTakeFilter.SkipFilterUserName,
             ShortName = SkipTakeFilter.SkipFilterShortName)]
-        public static CommonOutputs.TransformOutput SkipFilter(IHostEnvironment env, SkipTakeFilter.SkipArguments input)
+        public static CommonOutputs.TransformOutput SkipFilter(IHostEnvironment env, SkipTakeFilter.SkipOptions input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("SkipFilter");
@@ -40,7 +40,7 @@ namespace Microsoft.ML.EntryPoints
 
         [TlcModule.EntryPoint(Name = "Transforms.RowTakeFilter", Desc = SkipTakeFilter.TakeFilterSummary, UserName = SkipTakeFilter.TakeFilterUserName,
             ShortName = SkipTakeFilter.TakeFilterShortName)]
-        public static CommonOutputs.TransformOutput TakeFilter(IHostEnvironment env, SkipTakeFilter.TakeArguments input)
+        public static CommonOutputs.TransformOutput TakeFilter(IHostEnvironment env, SkipTakeFilter.TakeOptions input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TakeFilter");
@@ -52,7 +52,7 @@ namespace Microsoft.ML.EntryPoints
 
         [TlcModule.EntryPoint(Name = "Transforms.RowSkipAndTakeFilter", Desc = SkipTakeFilter.SkipTakeFilterSummary,
             UserName = SkipTakeFilter.SkipTakeFilterUserName, ShortName = SkipTakeFilter.SkipTakeFilterShortName)]
-        public static CommonOutputs.TransformOutput SkipAndTakeFilter(IHostEnvironment env, SkipTakeFilter.Arguments input)
+        public static CommonOutputs.TransformOutput SkipAndTakeFilter(IHostEnvironment env, SkipTakeFilter.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("SkipTakeFilter");

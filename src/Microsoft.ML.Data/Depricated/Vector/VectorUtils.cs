@@ -17,7 +17,8 @@ namespace Microsoft.ML.Numeric
     /// as a constant, it might have the name <c>a</c> or <c>b</c> or <c>src</c>, but in a situation
     /// where the vector structure might be changed the parameter might have the name <c>dst</c>.
     /// </summary>
-    public static partial class VectorUtils
+    [BestFriend]
+    internal static partial class VectorUtils
     {
         public static Float DotProduct(Float[] a, Float[] b)
         {

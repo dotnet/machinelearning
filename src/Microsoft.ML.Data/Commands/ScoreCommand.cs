@@ -36,7 +36,8 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal delegate void SignatureDataScorer(IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema);
 
-    public delegate void SignatureBindableMapper(IPredictor predictor);
+    [BestFriend]
+    internal delegate void SignatureBindableMapper(IPredictor predictor);
 
     internal sealed class ScoreCommand : DataCommand.ImplBase<ScoreCommand.Arguments>
     {

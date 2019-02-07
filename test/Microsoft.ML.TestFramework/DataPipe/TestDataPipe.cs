@@ -834,7 +834,7 @@ namespace Microsoft.ML.RunTests
                     Check(tmp, "Parsing argsText failed!");
                     IDataView view2 = TextLoader.Create(Env, argsText, new MultiFileSource(dataPath));
 
-                    var argsConv = new TypeConvertingTransformer.Arguments();
+                    var argsConv = new TypeConvertingTransformer.Options();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label:U1[0-1]:Label" +
                         " col=Features:U2:Features" +
@@ -848,7 +848,7 @@ namespace Microsoft.ML.RunTests
                     Check(tmp, "Parsing argsConv failed!");
                     view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
 
-                    argsConv = new TypeConvertingTransformer.Arguments();
+                    argsConv = new TypeConvertingTransformer.Options();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label2:U2:Label col=Features2:Num:Features",
                         argsConv);
@@ -857,8 +857,8 @@ namespace Microsoft.ML.RunTests
 
                     var colsChoose = new[] { "Label", "Features", "Label2", "Features2", "A", "B", "C", "D", "E", "F" };
 
-                    IDataView view1 = ColumnSelectingTransformer.CreateKeep(Env, pipe, colsChoose);
-                    view2 = ColumnSelectingTransformer.CreateKeep(Env, view2, colsChoose);
+                    IDataView view1 = ML.Transforms.SelectColumns(colsChoose).Fit(pipe).Transform(pipe);
+                    view2 = ML.Transforms.SelectColumns(colsChoose).Fit(view2).Transform(view2);
 
                     CheckSameValues(view1, view2);
                 },
