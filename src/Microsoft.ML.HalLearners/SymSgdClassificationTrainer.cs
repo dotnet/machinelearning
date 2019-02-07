@@ -31,7 +31,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers.SymSgd
 {
-    using TPredictor = IPredictorWithFeatureWeights<float>;
+    using TPredictor = CalibratedPredictorBase<LinearBinaryModelParameters,PlattCalibrator>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
     public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
@@ -173,9 +173,9 @@ namespace Microsoft.ML.Trainers.SymSgd
                 var linearInitPred = initPred as LinearModelParameters;
                 if (initPred is CalibratedPredictorBase<LinearModelParameters,PlattCalibrator> calibrated)
                     linearInitPred = calibrated.SubPredictor;
-                else if (initPred is ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator> mixed)
+                else if (initPred is CalibratedPredictorBase<LinearBinaryModelParameters,PlattCalibrator> mixed)
                     linearInitPred = mixed.SubPredictor;
-                else
+
                 Host.CheckParam(context.InitialPredictor == null || linearInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
                 return TrainCore(ch, preparedData, linearInitPred, weightSetCount);

@@ -116,20 +116,41 @@ namespace Microsoft.ML.Internal.Calibration
         IPredictor Calibrate(IChannel ch, IDataView data, ICalibratorTrainer caliTrainer, int maxRows);
     }
 
-    public abstract class CalibratedPredictorBase<TSubPredictor,TCalibrator> :
+    /// <summary>
+    /// <see cref="IHasWeeklyTypedCalibratedPredictor"/> provides a weekly-typed way to access strongly-typed
+    /// <see cref="CalibratedPredictorBase{TSubPredictor, TCalibrator}.SubPredictor"/> and
+    /// <see cref="CalibratedPredictorBase{TSubPredictor, TCalibrator}.Calibrator"/>.
+    /// <see cref="IHasWeeklyTypedCalibratedPredictor"/> is commonly used in weekly-typed expressions. The
+    /// existence of this interface is just for supporting existing codebase, so we discourage its uses.
+    /// </summary>
+    [BestFriend]
+    internal interface IHasWeeklyTypedCalibratedPredictor
+    {
+        IPredictorProducing<float> WeeklyTypedSubPredictor { get; }
+        ICalibrator WeeklyTypedCalibrator { get; }
+    }
+
+    public abstract class CalibratedPredictorBase<TSubPredictor, TCalibrator> :
         IDistPredictorProducing<float, float>,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
         ICanSaveSummary,
-        ICanGetSummaryInKeyValuePairs
-        where TSubPredictor :  class, IPredictorProducing<float>
+        ICanGetSummaryInKeyValuePairs,
+        IHasWeeklyTypedCalibratedPredictor
+        where TSubPredictor : class, IPredictorProducing<float>
         where TCalibrator : class, ICalibrator
     {
         protected readonly IHost Host;
 
+        // Strongly-typed members.
         public TSubPredictor SubPredictor { get; }
         public TCalibrator Calibrator { get; }
+
+        // Type-unsafed accessors of strongly-typed members.
+        IPredictorProducing<float> IHasWeeklyTypedCalibratedPredictor.WeeklyTypedSubPredictor => SubPredictor;
+        ICalibrator IHasWeeklyTypedCalibratedPredictor.WeeklyTypedCalibrator => Calibrator;
+
         public PredictionKind PredictionKind => SubPredictor.PredictionKind;
 
         private protected CalibratedPredictorBase(IHostEnvironment env, string name, TSubPredictor predictor, TCalibrator calibrator)
@@ -140,6 +161,13 @@ namespace Microsoft.ML.Internal.Calibration
             Host.CheckValue(predictor, nameof(predictor));
             Host.CheckValue(calibrator, nameof(calibrator));
 
+            SubPredictor = predictor;
+            Calibrator = calibrator;
+        }
+
+        private CalibratedPredictorBase(IHost host, TSubPredictor predictor, TCalibrator calibrator)
+        {
+            Host = host;
             SubPredictor = predictor;
             Calibrator = calibrator;
         }

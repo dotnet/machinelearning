@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             var ensemble = new InternalTreeEnsemble();
             int modelCount = 0;
             int featureCount = -1;
-            bool binaryClassifier = false;
+            bool isFirstModelBinaryClassifier = false;
             foreach (var model in models)
             {
                 modelCount++;
@@ -51,16 +51,32 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 var predictor = model;
                 _host.CheckValue(predictor, nameof(models), "One of the models is null");
 
-                var calibrated = predictor as CalibratedPredictorBase<IPredictorProducing<float>,ICalibrator>;
                 double paramA = 1;
-                if (calibrated != null)
+                bool isBinaryClassifier = false;
                 {
-                    _host.Check(calibrated.Calibrator is PlattCalibrator,
-                        "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
-                    predictor = calibrated.SubPredictor;
-                    paramA = -(calibrated.Calibrator as PlattCalibrator).Slope;
+                    if (predictor is CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator> calibratedPredictor)
+                    {
+                        _host.Check(calibratedPredictor.Calibrator is PlattCalibrator,
+                            "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
+                        predictor = calibratedPredictor.SubPredictor;
+                        paramA = -calibratedPredictor.Calibrator.Slope;
+                        isBinaryClassifier = true;
+                    }
                 }
+
+                {
+                    if (predictor is CalibratedPredictorBase<BinaryClassificationGamModelParameters, PlattCalibrator> calibratedPredictor)
+                    {
+                        _host.Check(calibratedPredictor.Calibrator is PlattCalibrator,
+                            "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
+                        predictor = calibratedPredictor.SubPredictor;
+                        paramA = -calibratedPredictor.Calibrator.Slope;
+                        isBinaryClassifier = true;
+                    }
+                }
+
                 var tree = predictor as TreeEnsembleModelParameters;
+
                 if (tree == null)
                     throw _host.Except("Model is not a tree ensemble");
                 foreach (var t in tree.TrainedEnsemble.Trees)
@@ -80,12 +96,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
                 if (modelCount == 1)
                 {
-                    binaryClassifier = calibrated != null;
+                    isFirstModelBinaryClassifier = isBinaryClassifier;
                     featureCount = tree.InputType.GetValueCount();
                 }
                 else
                 {
-                    _host.Check((calibrated != null) == binaryClassifier, "Ensemble contains both calibrated and uncalibrated models");
+                    _host.Check(isBinaryClassifier == isFirstModelBinaryClassifier, "Ensemble contains both calibrated and uncalibrated models");
                     _host.Check(featureCount == tree.InputType.GetValueCount(), "Found models with different number of features");
                 }
             }
@@ -101,7 +117,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             switch (_kind)
             {
                 case PredictionKind.BinaryClassification:
-                    if (!binaryClassifier)
+                    if (!isFirstModelBinaryClassifier)
                         return new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null);
 
                     var cali = new PlattCalibrator(_host, -1, 0);

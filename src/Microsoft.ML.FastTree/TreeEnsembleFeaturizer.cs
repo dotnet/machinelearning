@@ -366,8 +366,8 @@ namespace Microsoft.ML.Data
             _host.CheckValue(args, nameof(args));
             _host.CheckValue(predictor, nameof(predictor));
 
-            if (predictor is CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)
-                predictor = ((CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)predictor).SubPredictor;
+            if (predictor is CalibratedPredictorBase<FastTreeBinaryModelParameters,PlattCalibrator>)
+                predictor = ((CalibratedPredictorBase<FastTreeBinaryModelParameters,PlattCalibrator>)predictor).SubPredictor;
             _ensemble = predictor as TreeEnsembleModelParameters;
             _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
 
