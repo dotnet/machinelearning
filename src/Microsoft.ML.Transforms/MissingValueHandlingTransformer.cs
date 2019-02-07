@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms
 
             var replaceCols = new List<MissingValueReplacingEstimator.ColumnInfo>();
             var naIndicatorCols = new List<MissingValueIndicatorTransformer.Column>();
-            var naConvCols = new List<TypeConvertingTransformer.ColumnInfo>();
+            var naConvCols = new List<TypeConvertingEstimator.ColumnInfo>();
             var concatCols = new List<ColumnConcatenatingTransformer.TaggedColumn>();
             var dropCols = new List<string>();
             var tmpIsMissingColNames = input.Schema.GetTempColumnNames(args.Columns.Length, "IsMissing");
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms
                     {
                         throw h.Except("Cannot get a DataKind for type '{0}'", replaceItemType.RawType);
                     }
-                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, replaceItemTypeKind, tmpIsMissingColName));
+                    naConvCols.Add(new TypeConvertingEstimator.ColumnInfo(tmpIsMissingColName, replaceItemTypeKind, tmpIsMissingColName));
                 }
 
                 // Add the NAReplaceTransform column.

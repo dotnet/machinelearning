@@ -16,7 +16,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms.FeatureSelection;
 
-[assembly: LoadableClass(MutualInformationFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectingEstimator), typeof(MutualInformationFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(MutualInformationFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectingEstimator), typeof(MutualInformationFeatureSelectingEstimator.Options), typeof(SignatureDataTransform),
     MutualInformationFeatureSelectingEstimator.UserName, "MutualInformationFeatureSelection", "MutualInformationFeatureSelectionTransform", MutualInformationFeatureSelectingEstimator.ShortName)]
 
 namespace Microsoft.ML.Transforms.FeatureSelection
@@ -31,14 +31,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         internal const string ShortName = "MIFeatureSelection";
         internal static string RegistrationName = "MutualInformationFeatureSelectionTransform";
 
-        public static class Defaults
+        [BestFriend]
+        internal static class Defaults
         {
             public const string LabelColumn = DefaultColumnNames.Label;
             public const int SlotsInOutput = 1000;
             public const int NumBins = 256;
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
             public string[] Columns;
@@ -75,7 +76,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// ]]>
         /// </format>
         /// </example>
-        public MutualInformationFeatureSelectingEstimator(IHostEnvironment env,
+        internal MutualInformationFeatureSelectingEstimator(IHostEnvironment env,
             string labelColumn = Defaults.LabelColumn,
             int slotsInOutput = Defaults.SlotsInOutput,
             int numBins = Defaults.NumBins,
@@ -109,12 +110,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// ]]>
         /// </format>
         /// </example>
-        public MutualInformationFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
+        internal MutualInformationFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             string labelColumn = Defaults.LabelColumn, int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
             : this(env, labelColumn, slotsInOutput, numBins, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="ITransformer"/>.
+        /// </summary>
         public ITransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
@@ -161,6 +165,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -186,19 +194,19 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
         /// </summary>
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
-            host.CheckValue(args, nameof(args));
+            host.CheckValue(options, nameof(options));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
-            host.CheckUserArg(args.SlotsInOutput > 0, nameof(args.SlotsInOutput));
-            host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
-            host.Check(args.NumBins > 1, "numBins must be greater than 1.");
+            host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
+            host.CheckUserArg(options.SlotsInOutput > 0, nameof(options.SlotsInOutput));
+            host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
+            host.Check(options.NumBins > 1, "numBins must be greater than 1.");
 
-            (string outputColumnName, string inputColumnName)[] cols = args.Columns.Select(col => (col, col)).ToArray();
-            return new MutualInformationFeatureSelectingEstimator(env, args.LabelColumn, args.SlotsInOutput, args.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
+            (string outputColumnName, string inputColumnName)[] cols = options.Columns.Select(col => (col, col)).ToArray();
+            return new MutualInformationFeatureSelectingEstimator(env, options.LabelColumn, options.SlotsInOutput, options.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
         }
 
         /// <summary>
@@ -369,14 +377,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 if (!schema.TryGetColumnIndex(labelColumnName, out int labelCol))
                 {
-                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.LabelColumn),
+                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.LabelColumn),
                         "Label column '{0}' not found", labelColumnName);
                 }
 
                 var labelType = schema[labelCol].Type;
                 if (!IsValidColumnType(labelType))
                 {
-                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.LabelColumn),
+                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.LabelColumn),
                         "Label column '{0}' does not have compatible type", labelColumnName);
                 }
 
@@ -387,20 +395,20 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     var colName = columns[i];
                     if (!schema.TryGetColumnIndex(colName, out int colSrc))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.Columns),
                             "Source column '{0}' not found", colName);
                     }
 
                     var colType = schema[colSrc].Type;
                     if (colType is VectorType vectorType && !vectorType.IsKnownSize)
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.Columns),
                             "Variable length column '{0}' is not allowed", colName);
                     }
 
                     if (!IsValidColumnType(colType.GetItemType()))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.Columns),
                             "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
                     }
 
