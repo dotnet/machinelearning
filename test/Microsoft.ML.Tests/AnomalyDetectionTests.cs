@@ -42,12 +42,13 @@ namespace Microsoft.ML.Tests
                 }
             });
 
-            var data = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
+            var trainData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
+            var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumn);
 
-            var transformer = pipeline.Fit(data);
-            var transformedData = transformer.Transform(data);
+            var transformer = pipeline.Fit(trainData);
+            var transformedData = transformer.Transform(testData);
         }
     }
 }
