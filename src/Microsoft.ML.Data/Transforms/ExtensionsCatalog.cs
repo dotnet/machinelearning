@@ -110,14 +110,15 @@ namespace Microsoft.ML
             string[] keepColumns,
             bool keepHidden)
             => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
-                keepColumns, null, keepHidden, ColumnSelectingTransformer.Defaults.IgnoreMissing);
+                keepColumns, null, keepHidden, ColumnSelectingEstimator.Defaults.IgnoreMissing);
 
         /// <summary>
         /// Select a list of columns to keep in a given <see cref="IDataView"/>.
         /// </summary>
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
-        /// <xref:Microsoft.ML.SelectColumns(TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.Data.DataView.IDataView>, dropping unselected columns from the schema.
+        /// <xref:Microsoft.ML.SelectColumns(Microsoft.ML.TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.Data.DataView.IDataView>,
+        /// dropping unselected columns from the schema.
         /// ]]></format>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
