@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.ML.InternalCodeAnalyzer
@@ -21,7 +20,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string Format = "The " + AttributeName + " should not be applied to publicly visible members.";
 
         private const string Description =
-            "The " + AttributeName + " attribute is only valid on internal identifiers.";
+            "The " + AttributeName + " attribute is not valid on public identifiers.";
 
         private static DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
@@ -34,69 +33,38 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSemanticModelAction(Analyze);
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
+            context.RegisterCompilationStartAction(CompilationStart);
         }
 
-        private void AnalyzeCore(SemanticModelAnalysisContext context, string attributeName)
+        private void CompilationStart(CompilationStartAnalysisContext context)
         {
-            var model = context.SemanticModel;
-            var comp = model.Compilation;
+            var list = new List<string> { AttributeName, "Microsoft.ML.Internal.CpuMath.Core.BestFriendAttribute" };
 
-            // Get the symbols of the key types we are analyzing. If we can't find it
-            // there is no point in going further.
-            var bestFriendAttributeType = comp.GetTypeByMetadataName(attributeName);
-            if (bestFriendAttributeType == null)
-                return;
-
-            foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes(n => !n.IsKind(SyntaxKind.UsingDirective)))
+            foreach (var attributeName in list)
             {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.ConstructorDeclaration:
-                    case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                        var declaredSymbol = model.GetDeclaredSymbol(node);
-                        if (declaredSymbol == null)
-                            continue;
+                var attribute = context.Compilation.GetTypeByMetadataName(attributeName);
 
-                        VerifySymbol(context, declaredSymbol, bestFriendAttributeType);
-                        break;
-                    case SyntaxKind.FieldDeclaration: // field declaration is a little more complicated as it needs to be decomposed
-                        foreach (var variable in ((FieldDeclarationSyntax)node).Declaration.Variables)
-                        {
-                            var fieldSymbol = model.GetDeclaredSymbol(variable);
-                            VerifySymbol(context, fieldSymbol, bestFriendAttributeType);
-                        }
-                        break;
-                    default:
-                        continue;
-                }
+                if (attribute == null)
+                    continue;
+                
+                context.RegisterSymbolAction(c => AnalyzeCore(c, attribute), SymbolKind.NamedType, SymbolKind.Method, SymbolKind.Field, SymbolKind.Property);
             }
         }
 
-        private static void VerifySymbol(SemanticModelAnalysisContext context, ISymbol symbol,
-            INamedTypeSymbol bestFriendAttributeType)
+        private void AnalyzeCore(SymbolAnalysisContext context, INamedTypeSymbol attributeType)
         {
-            if (symbol.DeclaredAccessibility != Accessibility.Public)
+            if (context.Symbol.DeclaredAccessibility != Accessibility.Public)
                 return;
 
-            var attribute = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass == bestFriendAttributeType);
-            if (attribute != null)
-            {
-                var diagnostic = Diagnostic.Create(Rule, attribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), symbol.Name);
-                context.ReportDiagnostic(diagnostic);
-            }
-        }
+            var attribute = context.Symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass == attributeType);
+            if (attribute == null)
+                return;
 
-        private void Analyze(SemanticModelAnalysisContext context)
-        {
-            AnalyzeCore(context, "Microsoft.ML.BestFriendAttribute");
-            AnalyzeCore(context, "Microsoft.ML.Internal.CpuMath.Core.BestFriendAttribute");
+            var diagnostic = Diagnostic.Create(Rule, attribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), context.Symbol.Name);
+            context.ReportDiagnostic(diagnostic);
         }
     }
 }
