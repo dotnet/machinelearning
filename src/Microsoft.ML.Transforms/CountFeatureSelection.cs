@@ -51,8 +51,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary> Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
+            /// <summary> Name of the column to transform.</summary>
             public readonly string InputColumnName;
+            /// <summary> If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</summary>
             public readonly long MinCount;
 
             /// <summary>

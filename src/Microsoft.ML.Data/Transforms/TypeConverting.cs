@@ -171,6 +171,9 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private const string RegistrationName = "Convert";
 
+        /// <summary>
+        /// A collection of <see cref="TypeConvertingEstimator.ColumnInfo"/> describing the settings of the transformation.
+        /// </summary>
         public IReadOnlyCollection<TypeConvertingEstimator.ColumnInfo> Columns => _columns.AsReadOnly();
 
         private readonly TypeConvertingEstimator.ColumnInfo[] _columns;
