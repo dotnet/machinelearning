@@ -470,7 +470,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This is a helper class for creating the per-instance IDV.
     /// </summary>
-    public abstract class PerInstanceEvaluatorBase : IRowMapper
+    [BestFriend]
+    internal abstract class PerInstanceEvaluatorBase : IRowMapper
     {
         protected readonly IHost Host;
         protected readonly string ScoreCol;

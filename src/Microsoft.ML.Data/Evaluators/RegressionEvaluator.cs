@@ -190,7 +190,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class RegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class RegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "RegressionPerInstance";
         private static VersionInfo GetVersionInfo()

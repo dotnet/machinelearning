@@ -562,7 +562,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class ClusteringPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class ClusteringPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "ClusteringPerInstance";
         private static VersionInfo GetVersionInfo()

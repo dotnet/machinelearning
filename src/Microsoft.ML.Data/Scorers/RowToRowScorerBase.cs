@@ -301,7 +301,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class ScorerArgumentsBase
+    [BestFriend]
+    internal abstract class ScorerArgumentsBase
     {
         // Output columns.
 

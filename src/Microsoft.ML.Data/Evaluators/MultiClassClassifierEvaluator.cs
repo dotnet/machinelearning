@@ -535,7 +535,7 @@ namespace Microsoft.ML.Data
 
     }
 
-    public sealed class MultiClassPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class MultiClassPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "MulticlassPerInstance";
         private static VersionInfo GetVersionInfo()

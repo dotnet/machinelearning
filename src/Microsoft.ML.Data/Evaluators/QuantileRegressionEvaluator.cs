@@ -258,7 +258,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class QuantileRegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class QuantileRegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "QuantileRegPerInstance";
         private static VersionInfo GetVersionInfo()

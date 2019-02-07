@@ -44,15 +44,25 @@ namespace Microsoft.ML.Data
 
         private protected IPredictor ModelAsPredictor => (IPredictor)Model;
 
-        protected const string DirModel = "Model";
-        protected const string DirTransSchema = "TrainSchema";
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected const string DirModel = "Model";
+        [BestFriend]
+        private protected const string DirTransSchema = "TrainSchema";
+        [BestFriend]
+        private protected readonly IHost Host;
         [BestFriend]
         private protected ISchemaBindableMapper BindableMapper;
         protected Schema TrainSchema;
 
         public bool IsRowToRowMapper => true;
 
+        /// <summary>
+        /// This class is more or less a thin wrapper over the <see cref="IDataScorerTransform"/> implementing
+        /// <see cref="RowToRowScorerBase"/>, which publicly is a deprecated concept as far as the public API is
+        /// concerned. Nonetheless, until we move all internal infrastructure to be truely transform based, we
+        /// retain this as a wrapper. Even though it is mutable, subclasses of this should set this only in
+        /// their constructor.
+        /// </summary>
         [BestFriend]
         private protected RowToRowScorerBase Scorer { get; set; }
 
@@ -107,7 +117,6 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="input">The input data.</param>
         /// <returns>The transformed <see cref="IDataView"/></returns>
-
         public IDataView Transform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
@@ -197,7 +206,12 @@ namespace Microsoft.ML.Data
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, ModelAsPredictor);
         }
 
-        public override Schema GetOutputSchema(Schema inputSchema)
+        /// <summary>
+        ///  Schema propagation for this prediction transformer.
+        /// </summary>
+        /// <param name="inputSchema">The input schema to attempt to map.</param>
+        /// <returns>The output schema of the data, given an input schema like <paramref name="inputSchema"/>.</returns>
+        public sealed override Schema GetOutputSchema(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -323,7 +337,7 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
-        public BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        internal BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
         {
             // *** Binary format ***
@@ -389,7 +403,7 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
-        public MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        internal MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), ctx)
         {
             // *** Binary format ***

@@ -867,7 +867,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class BinaryPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class BinaryPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "BinaryPerInstance";
         private static VersionInfo GetVersionInfo()

@@ -371,7 +371,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class MultiOutputRegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class MultiOutputRegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "MultiRegPerInstance";
 
