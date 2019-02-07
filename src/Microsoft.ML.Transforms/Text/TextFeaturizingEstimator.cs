@@ -120,18 +120,51 @@ namespace Microsoft.ML.Transforms.Text
             public TextNormKind VectorNormalizer = TextNormKind.L2;
         }
 
+        /// <summary>
+        /// Advanced settings for the <see cref="TextFeaturizingEstimator"/>.
+        /// </summary>
         public sealed class Options
         {
 #pragma warning disable MSML_NoInstanceInitializers // No initializers on instance fields or properties
+            /// <summary>
+            /// Dataset language.
+            /// </summary>
             public Language TextLanguage { get; set; } = DefaultLanguage;
+            /// <summary>
+            /// Casing used for the text.
+            /// </summary>
             public CaseNormalizationMode TextCase { get; set; } = CaseNormalizationMode.Lower;
+            /// <summary>
+            /// Whether to keep diacritical marks or remove them.
+            /// </summary>
             public bool KeepDiacritics { get; set; } = false;
+            /// <summary>
+            /// Whether to keep punctuation marks or remove them.
+            /// </summary>
             public bool KeepPunctuations { get; set; } = true;
+            /// <summary>
+            /// Whether to keep numbers or remove them.
+            /// </summary>
             public bool KeepNumbers { get; set; } = true;
+            /// <summary>
+            /// Whether to output the transformed text tokens as an additional column.
+            /// </summary>
             public bool OutputTokens { get; set; } = false;
+            /// <summary>
+            /// Vector Normalizer to use.
+            /// </summary>
             public TextNormKind VectorNormalizer { get; set; } = TextNormKind.L2;
+            /// <summary>
+            /// Whether to use stop remover or not.
+            /// </summary>
             public bool UseStopRemover { get; set; } = false;
+            /// <summary>
+            /// Whether to use char extractor or not.
+            /// </summary>
             public bool UseCharExtractor { get; set; } = true;
+            /// <summary>
+            /// Whether to use word extractor or not.
+            /// </summary>
             public bool UseWordExtractor { get; set; } = true;
 #pragma warning restore MSML_NoInstanceInitializers // No initializers on instance fields or properties
         }
@@ -254,7 +287,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string UserName = "Text Transform";
         internal const string LoaderSignature = "Text";
 
-        public const Language DefaultLanguage = Language.English;
+        internal const Language DefaultLanguage = Language.English;
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
@@ -287,6 +320,9 @@ namespace Microsoft.ML.Transforms.Text
                 _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="Transformer"/>.
+        /// </summary>
         public ITransformer Fit(IDataView input)
         {
             var h = _host;
@@ -462,7 +498,7 @@ namespace Microsoft.ML.Transforms.Text
             return new Transformer(_host, input, view);
         }
 
-        public static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
             => new Transformer(env, ctx);
 
         private static string GenerateColumnName(Schema schema, string srcName, string xfTag)
@@ -470,6 +506,10 @@ namespace Microsoft.ML.Transforms.Text
             return schema.GetTempColumnName(string.Format("{0}_{1}", srcName, xfTag));
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
