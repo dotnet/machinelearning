@@ -18,7 +18,7 @@ namespace Microsoft.ML.Transforms
             Desc = MissingValueDroppingTransformer.Summary,
             UserName = MissingValueDroppingTransformer.FriendlyName,
             ShortName = MissingValueDroppingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput Drop(IHostEnvironment env, MissingValueDroppingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput Drop(IHostEnvironment env, MissingValueDroppingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, MissingValueDroppingTransformer.ShortName, input);
             var xf = MissingValueDroppingTransformer.Create(h, input, input.Data);

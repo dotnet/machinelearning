@@ -834,7 +834,7 @@ namespace Microsoft.ML.RunTests
                     Check(tmp, "Parsing argsText failed!");
                     IDataView view2 = TextLoader.Create(Env, argsText, new MultiFileSource(dataPath));
 
-                    var argsConv = new TypeConvertingTransformer.Arguments();
+                    var argsConv = new TypeConvertingTransformer.Options();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label:U1[0-1]:Label" +
                         " col=Features:U2:Features" +
@@ -848,7 +848,7 @@ namespace Microsoft.ML.RunTests
                     Check(tmp, "Parsing argsConv failed!");
                     view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
 
-                    argsConv = new TypeConvertingTransformer.Arguments();
+                    argsConv = new TypeConvertingTransformer.Options();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label2:U2:Label col=Features2:Num:Features",
                         argsConv);
