@@ -500,17 +500,14 @@ namespace Microsoft.ML.Scenarios
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvTrainingTest()
         {
-            var expectedValues = new List<(double micro, double macro)>()
-            {
-                (0.71304347826086956, 0.53197278911564627),
-                (0.73304347826086956, 0.677551020408163)
-            };
+            double expectedMicro = 0.73304347826086956;
+            double expectedMacro = 0.677551020408163;
 
-            ExecuteTFTransformMNISTConvTrainingTest(false, null, expectedValues);
-            ExecuteTFTransformMNISTConvTrainingTest(true, 5, expectedValues);
+            ExecuteTFTransformMNISTConvTrainingTest(false, null, expectedMicro, expectedMacro);
+            ExecuteTFTransformMNISTConvTrainingTest(true, 5, expectedMicro, expectedMacro);
         }
 
-        private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, IEnumerable<(double micro, double macro)> expectedValues)
+        private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccuracy)
         {
             const string modelLocation = "mnist_conv_model";
             try
@@ -583,14 +580,8 @@ namespace Microsoft.ML.Scenarios
                 var trainedModel = pipe.Fit(preprocessedTrainData);
                 var predicted = trainedModel.Transform(preprocessedTestData);
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
-
-                // First group of checks. They check if the overall prediction quality is ok using a test set.
-                bool inRange = expectedValues.Any(exp =>
-                            (metrics.AccuracyMicro >= exp.micro - 0.1 &&
-                             metrics.AccuracyMicro <= exp.micro + 0.1) &&
-                            (metrics.AccuracyMacro >= exp.macro - 0.1 &&
-                             metrics.AccuracyMacro <= exp.macro + 0.1));
-                Assert.True(inRange, $"The AccuracyMicro of {metrics.AccuracyMicro} or the AccuracyMacro of {metrics.AccuracyMacro} did not fall within the expected range.");
+                Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
+                Assert.InRange(metrics.AccuracyMacro, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
 
                 // Create prediction function and test prediction
                 var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
