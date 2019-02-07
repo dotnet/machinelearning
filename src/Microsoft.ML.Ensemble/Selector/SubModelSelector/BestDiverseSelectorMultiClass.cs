@@ -43,8 +43,8 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 
         protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public override List<ModelDiversityMetric<VBuffer<Single>>> CalculateDiversityMeasure(IList<FeatureSubsetModel<TVectorPredictor>> models,
-            ConcurrentDictionary<FeatureSubsetModel<TVectorPredictor>, VBuffer<Single>[]> predictions)
+        public override List<ModelDiversityMetric<VBuffer<Single>>> CalculateDiversityMeasure(IList<FeatureSubsetModel<VBuffer<float>>> models,
+            ConcurrentDictionary<FeatureSubsetModel<VBuffer<float>>, VBuffer<Single>[]> predictions)
         {
             Host.Assert(models.Count > 1);
             Host.Assert(predictions.Count == models.Count);

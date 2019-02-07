@@ -49,7 +49,7 @@ namespace Microsoft.ML.Trainers
 
     public abstract class LinearTrainerBase<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+        where TModel : class
     {
         private const string RegisterName = nameof(LinearTrainerBase<TTransformer, TModel>);
 
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Trainers
                 idvToFeedTrain = idvToShuffle;
             else
             {
-                var shuffleArgs = new RowShufflingTransformer.Arguments
+                var shuffleArgs = new RowShufflingTransformer.Options
                 {
                     PoolOnly = false,
                     ForceShuffle = ShuffleData
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Trainers
 
     public abstract class SdcaTrainerBase<TArgs, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+        where TModel : class
         where TArgs : SdcaTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new()
     {
         // REVIEW: Making it even faster and more accurate:

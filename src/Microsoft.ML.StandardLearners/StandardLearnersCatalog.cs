@@ -14,6 +14,7 @@ namespace Microsoft.ML
 {
     using LROptions = LogisticRegression.Options;
     using SgdOptions = StochasticGradientDescentClassificationTrainer.Options;
+    using TLegacyPredictor = IPredictorProducing<float>;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -454,16 +455,21 @@ namespace Microsoft.ML
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        public static Ova OneVersusAll(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> binaryEstimator,
+        /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        public static Ova OneVersusAll<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumn = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
             ICalibratorTrainer calibrator = null,
             int maxCalibrationExamples = 1000000000,
             bool useProbabilities = true)
+            where TModel : class
         {
             Contracts.CheckValue(catalog, nameof(catalog));
-            return new Ova(CatalogUtils.GetEnvironment(catalog), binaryEstimator, labelColumn, imputeMissingLabelsAsNegative, calibrator, maxCalibrationExamples, useProbabilities);
+            var env = CatalogUtils.GetEnvironment(catalog);
+            if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
+                throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
+            return new Ova(env, est, labelColumn, imputeMissingLabelsAsNegative, calibrator, maxCalibrationExamples, useProbabilities);
         }
 
         /// <summary>
@@ -482,15 +488,20 @@ namespace Microsoft.ML
         /// <param name="labelColumn">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
-        public static Pkpd PairwiseCoupling(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> binaryEstimator,
+        /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        public static Pkpd PairwiseCoupling<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumn = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
             ICalibratorTrainer calibrator = null,
-            int maxCalibrationExamples = 1000000000)
+            int maxCalibrationExamples = 1_000_000_000)
+            where TModel : class
         {
             Contracts.CheckValue(catalog, nameof(catalog));
-            return new Pkpd(CatalogUtils.GetEnvironment(catalog), binaryEstimator, labelColumn, imputeMissingLabelsAsNegative, calibrator, maxCalibrationExamples);
+            var env = CatalogUtils.GetEnvironment(catalog);
+            if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
+                throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
+            return new Pkpd(env, est, labelColumn, imputeMissingLabelsAsNegative, calibrator, maxCalibrationExamples);
         }
 
         /// <summary>

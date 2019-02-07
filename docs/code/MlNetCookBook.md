@@ -782,7 +782,7 @@ var pipeline =
     // NLP pipeline 4: word embeddings.
     .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
     .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
-                WordEmbeddingsExtractingTransformer.PretrainedModelKind.GloVeTwitter25D));
+                WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D));
 
 // Let's train our pipeline, and then apply it to the same data.
 // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
@@ -885,7 +885,7 @@ IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "Features");
 
 // Append the OVA learner to the pipeline.
-dynamicPipe = dynamicPipe.Append(new Ova(mlContext, binaryTrainer));
+dynamicPipe = dynamicPipe.Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer));
 
 // At this point, we have a choice. We could continue working with the dynamically-typed pipeline, and
 // ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.

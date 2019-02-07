@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Get <see cref="Schema"/> for complete model. Every node in the TensorFlow model will be included in the <see cref="Schema"/> object.
         /// </summary>
-        internal Schema GetModelSchema()
+        public Schema GetModelSchema()
         {
             return TensorFlowUtils.GetModelSchema(_env, Session.Graph);
         }

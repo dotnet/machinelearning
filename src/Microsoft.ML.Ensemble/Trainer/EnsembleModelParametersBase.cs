@@ -13,19 +13,18 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble
 {
-    public abstract class EnsembleModelParametersBase<TPredictor, TOutput> : ModelParametersBase<TOutput>,
+    public abstract class EnsembleModelParametersBase<TOutput> : ModelParametersBase<TOutput>,
         IPredictorProducing<TOutput>, ICanSaveInTextFormat, ICanSaveSummary
-        where TPredictor : class, IPredictorProducing<TOutput>
     {
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
 
-        protected readonly FeatureSubsetModel<TPredictor>[] Models;
-        protected readonly IOutputCombiner<TOutput> Combiner;
-        protected readonly Single[] Weights;
+        private protected readonly FeatureSubsetModel<TOutput>[] Models;
+        private protected readonly IOutputCombiner<TOutput> Combiner;
+        private protected readonly Single[] Weights;
 
         private const uint VerOld = 0x00010002;
 
-        internal EnsembleModelParametersBase(IHostEnvironment env, string name, FeatureSubsetModel<TPredictor>[] models,
+        private protected EnsembleModelParametersBase(IHostEnvironment env, string name, FeatureSubsetModel<TOutput>[] models,
             IOutputCombiner<TOutput> combiner, Single[] weights)
             : base(env, name)
         {
@@ -38,7 +37,7 @@ namespace Microsoft.ML.Ensemble
             Weights = weights;
         }
 
-        protected EnsembleModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        private protected EnsembleModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
             // *** Binary format ***
@@ -62,13 +61,13 @@ namespace Microsoft.ML.Ensemble
             Host.CheckDecode(weightCount == 0 || weightCount == count);
             Weights = ctx.Reader.ReadFloatArray(weightCount);
 
-            Models = new FeatureSubsetModel<TPredictor>[count];
+            Models = new FeatureSubsetModel<TOutput>[count];
             var ver = ctx.Header.ModelVerWritten;
             for (int i = 0; i < count; i++)
             {
                 ctx.LoadModel<IPredictor, SignatureLoadModel>(Host, out IPredictor p, string.Format(SubPredictorFmt, i));
-                var predictor = p as TPredictor;
-                Host.Check(p != null, "Inner predictor type not compatible with the ensemble type.");
+                var predictor = p as IPredictorProducing<TOutput>;
+                Host.Check(predictor != null, "Inner predictor type not compatible with the ensemble type.");
                 var features = ctx.Reader.ReadBitArray();
                 int numMetrics = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numMetrics >= 0);
@@ -81,7 +80,7 @@ namespace Microsoft.ML.Ensemble
                         ctx.Reader.ReadBoolByte();
                     metrics[j] = new KeyValuePair<string, double>(metricName, metricValue);
                 }
-                Models[i] = new FeatureSubsetModel<TPredictor>(predictor, features, metrics);
+                Models[i] = new FeatureSubsetModel<TOutput>(predictor, features, metrics);
             }
             ctx.LoadModel<IOutputCombiner<TOutput>, SignatureLoadModel>(Host, out Combiner, @"Combiner");
         }

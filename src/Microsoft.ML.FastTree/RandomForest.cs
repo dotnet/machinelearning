@@ -10,7 +10,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     public abstract class RandomForestTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
         where TArgs : FastForestArgumentsBase, new()
-        where TModel : IPredictorProducing<float>
+        where TModel : class
         where TTransformer: ISingleFeaturePredictionTransformer<TModel>
     {
         private readonly bool _quantileEnabled;

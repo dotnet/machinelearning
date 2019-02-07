@@ -1,46 +1,21 @@
 ﻿using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class FeatureContributionCalculationTransform_RegressionExample
+    public class FeatureContributionCalculationTransform
     {
-        public static void FeatureContributionCalculationTransform_Regression()
+        public static void Example()
         {
-            // Downloading the dataset from github.com/dotnet/machinelearning.
-            // This will create a housing.txt file in the filesystem.
-            // You can open this file, if you want to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
-
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Step 1: Read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextLoader(
-                columns: new[]
-                    {
-                        new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
-                        new TextLoader.Column("CrimesPerCapita", DataKind.R4, 1),
-                        new TextLoader.Column("PercentResidental", DataKind.R4, 2),
-                        new TextLoader.Column("PercentNonRetail", DataKind.R4, 3),
-                        new TextLoader.Column("CharlesRiver", DataKind.R4, 4),
-                        new TextLoader.Column("NitricOxides", DataKind.R4, 5),
-                        new TextLoader.Column("RoomsPerDwelling", DataKind.R4, 6),
-                        new TextLoader.Column("PercentPre40s", DataKind.R4, 7),
-                        new TextLoader.Column("EmploymentDistance", DataKind.R4, 8),
-                        new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
-                        new TextLoader.Column("TaxRate", DataKind.R4, 10),
-                        new TextLoader.Column("TeacherRatio", DataKind.R4, 11),
-                    }, 
-                hasHeader: true
-            );
-            
-            // Read the data
-            var data = reader.Read(dataFile);
+            // Read the Housing regression dataset
+            var data = DatasetUtils.LoadHousingRegressionDataset(mlContext);
 
-            // Step 2: Pipeline
+            // Create a pipeline.
             // Concatenate the features to create a Feature vector.
             // Then append a linear model, setting the "MedianHomeValue" column as the label of the dataset,
             // the "Features" column produced by concatenation as the features column.

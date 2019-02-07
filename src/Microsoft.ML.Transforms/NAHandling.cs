@@ -18,7 +18,7 @@ namespace Microsoft.ML.Transforms
             Desc = MissingValueDroppingTransformer.Summary,
             UserName = MissingValueDroppingTransformer.FriendlyName,
             ShortName = MissingValueDroppingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput Drop(IHostEnvironment env, MissingValueDroppingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput Drop(IHostEnvironment env, MissingValueDroppingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, MissingValueDroppingTransformer.ShortName, input);
             var xf = MissingValueDroppingTransformer.Create(h, input, input.Data);
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Transforms
             Desc = MissingValueHandlingTransformer.Summary,
             UserName = MissingValueHandlingTransformer.FriendlyName,
             ShortName = MissingValueHandlingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput Handle(IHostEnvironment env, MissingValueHandlingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput Handle(IHostEnvironment env, MissingValueHandlingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAHandle", input);
             var xf = MissingValueHandlingTransformer.Create(h, input, input.Data);
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms
             Desc = MissingValueIndicatorTransformer.Summary,
             UserName = MissingValueIndicatorTransformer.FriendlyName,
             ShortName = MissingValueIndicatorTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput Indicator(IHostEnvironment env, MissingValueIndicatorTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput Indicator(IHostEnvironment env, MissingValueIndicatorTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAIndicator", input);
             var xf = new MissingValueIndicatorTransformer(h, input).Transform(input.Data);
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Transforms
             Desc = MissingValueReplacingTransformer.Summary,
             UserName = MissingValueReplacingTransformer.FriendlyName,
             ShortName = MissingValueReplacingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput Replace(IHostEnvironment env, MissingValueReplacingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput Replace(IHostEnvironment env, MissingValueReplacingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAReplace", input);
             var xf = MissingValueReplacingTransformer.Create(h, input, input.Data);

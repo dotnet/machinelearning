@@ -18,15 +18,15 @@ namespace Microsoft.ML.Learners
 {
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
 
-    public abstract class MetaMulticlassTrainer<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<TModel>
+    public abstract class MetaMulticlassTrainer<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<IPredictor>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+        where TModel : class
     {
         public abstract class ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor", ShortName = "p", SortOrder = 4, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
             [TGUI(Label = "Predictor Type", Description = "Type of underlying binary predictor")]
-            public IComponentFactory<TScalarTrainer> PredictorType;
+            internal IComponentFactory<TScalarTrainer> PredictorType;
 
             [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", SortOrder = 150, NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
             public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
@@ -43,19 +43,19 @@ namespace Microsoft.ML.Learners
         /// </summary>
         public readonly SchemaShape.Column LabelColumn;
 
-        protected readonly ArgumentsBase Args;
-        protected readonly IHost Host;
-        protected readonly ICalibratorTrainer Calibrator;
-        protected readonly TScalarTrainer Trainer;
+        private protected readonly ArgumentsBase Args;
+        private protected readonly IHost Host;
+        private protected readonly ICalibratorTrainer Calibrator;
+        private protected readonly TScalarTrainer Trainer;
 
         public PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        protected SchemaShape.Column[] OutputColumns;
+        private protected SchemaShape.Column[] OutputColumns;
 
         public TrainerInfo Info { get; }
 
         /// <summary>
-        /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the Arguments class.
+        /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the <see cref="ArgumentsBase"/> class.
         /// </summary>
         /// <param name="env">The private instance of the <see cref="IHostEnvironment"/>.</param>
         /// <param name="args">The legacy arguments <see cref="ArgumentsBase"/>class.</param>
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Learners
         /// </summary>
         /// <param name="context">The trainig context for this learner.</param>
         /// <returns>The trained model.</returns>
-        TModel ITrainer<TModel>.Train(TrainContext context)
+        IPredictor ITrainer<IPredictor>.Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Learners
 
             using (var ch = Host.Start("Training"))
             {
-                var pred = TrainCore(ch, data, count);
+                var pred = TrainCore(ch, data, count) as IPredictor;
                 ch.Check(pred != null, "Training did not result in a predictor");
                 return pred;
             }
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Learners
             return cols;
         }
 
-        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<IPredictor>)this).Train(context);
 
         /// <summary>
         /// Fits the data to the trainer.

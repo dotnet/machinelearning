@@ -100,6 +100,7 @@ namespace Microsoft.ML.Benchmarks
                 AllowQuoting = false,
                 AllowSparse = false
             };
+
             var loader = mlContext.Data.ReadFromTextFile(_sentimentDataPath, arguments);
             var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new List<string> { "SentimentText" }, 
                 new TextFeaturizingEstimator.Options { 
@@ -112,7 +113,8 @@ namespace Microsoft.ML.Benchmarks
                 }).Fit(loader).Transform(loader);
 
             var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
-                WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+                WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+
             // Train
             var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
             var predicted = trainer.Fit(trans);

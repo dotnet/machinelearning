@@ -834,7 +834,7 @@ namespace Microsoft.ML.RunTests
                     Check(tmp, "Parsing argsText failed!");
                     IDataView view2 = TextLoader.Create(Env, argsText, new MultiFileSource(dataPath));
 
-                    var argsConv = new TypeConvertingTransformer.Arguments();
+                    var argsConv = new TypeConvertingTransformer.Options();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label:U1[0-1]:Label" +
                         " col=Features:U2:Features" +
@@ -848,7 +848,7 @@ namespace Microsoft.ML.RunTests
                     Check(tmp, "Parsing argsConv failed!");
                     view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
 
-                    argsConv = new TypeConvertingTransformer.Arguments();
+                    argsConv = new TypeConvertingTransformer.Options();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label2:U2:Label col=Features2:Num:Features",
                         argsConv);
@@ -1104,7 +1104,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var hashTransform = new HashingTransformer(Env, new HashingTransformer.ColumnInfo("F1", "F1", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnInfo("F1", "F1", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -1135,7 +1135,7 @@ namespace Microsoft.ML.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var hashTransform = new HashingTransformer(Env, new HashingTransformer.ColumnInfo("F1V", "F1V", 5, 42)).Transform(srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingEstimator.ColumnInfo("F1V", "F1V", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursorForAllColumns())
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);
@@ -1324,7 +1324,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1V", NumberType.Float, data);
             var srcView = builder.GetDataView();
 
-            var est = new LatentDirichletAllocationEstimator(Env, "F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
+            var est = ML.Transforms.Text.LatentDirichletAllocation("F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
             var ldaTransformer = est.Fit(srcView);
             var transformedData = ldaTransformer.Transform(srcView);
 
@@ -1362,6 +1362,7 @@ namespace Microsoft.ML.RunTests
         public void TestLdaTransformerEmptyDocumentException()
         {
             var builder = new ArrayDataViewBuilder(Env);
+            string colName = "Zeros";
             var data = new[]
             {
                 new[] {  (Float)0.0,  (Float)0.0,  (Float)0.0 },
@@ -1369,25 +1370,16 @@ namespace Microsoft.ML.RunTests
                 new[] {  (Float)0.0,  (Float)0.0,  (Float)0.0 },
             };
 
-            builder.AddColumn("Zeros", NumberType.Float, data);
+            builder.AddColumn(colName, NumberType.Float, data);
 
             var srcView = builder.GetDataView();
-            var col = new LatentDirichletAllocationTransformer.Column()
-            {
-                Source = "Zeros",
-            };
-            var args = new LatentDirichletAllocationTransformer.Arguments()
-            {
-                Columns = new[] { col }
-            };
-
             try
             {
-                var lda = new LatentDirichletAllocationEstimator(Env, "Zeros").Fit(srcView).Transform(srcView);
+                var lda = ML.Transforms.Text.LatentDirichletAllocation("Zeros").Fit(srcView).Transform(srcView);
             }
             catch (InvalidOperationException ex)
             {
-                Assert.Equal(ex.Message, string.Format("The specified documents are all empty in column '{0}'.", col.Source));
+                Assert.Equal(ex.Message, string.Format("The specified documents are all empty in column '{0}'.", colName));
                 return;
             }
 

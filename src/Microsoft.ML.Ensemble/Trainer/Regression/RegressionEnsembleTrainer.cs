@@ -13,7 +13,9 @@ using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer) },
@@ -54,7 +56,11 @@ namespace Microsoft.ML.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => new OnlineGradientDescentTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features))
+                        env => {
+                            var trainerEstimator = new OnlineGradientDescentTrainer(env);
+                            return TrainerUtils.MapTrainerEstimatorToTrainer<OnlineGradientDescentTrainer,
+                                LinearRegressionModelParameters, LinearRegressionModelParameters>(env, trainerEstimator);
+                        })
                 };
             }
         }
@@ -77,7 +83,7 @@ namespace Microsoft.ML.Ensemble
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
+        private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {
             return new EnsembleModelParameters(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
@@ -91,7 +97,7 @@ namespace Microsoft.ML.Ensemble
             var p = models.First();
 
             var predictor = new EnsembleModelParameters(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
+                    models.Select(k => new FeatureSubsetModel<float>((TScalarPredictor)k)).ToArray(), combiner);
 
             return predictor;
         }
