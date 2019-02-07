@@ -197,7 +197,7 @@ namespace Microsoft.ML.Trainers
         private readonly bool _doNmf;
 
         public override PredictionKind PredictionKind => PredictionKind.Recommendation;
-        public const string LoadNameValue = "MatrixFactorization";
+        internal const string LoadNameValue = "MatrixFactorization";
 
         /// <summary>
         /// The row index, column index, and label columns needed to specify the training matrix. This trainer uses tuples of (row index, column index, label value) to specify a matrix.
@@ -427,6 +427,10 @@ namespace Microsoft.ML.Trainers
         /// <param name="input">The training data set.</param>
         public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Train(input);
 
+        /// <summary>
+        /// Schema propagation for transformers. Returns the output schema of the data, if
+        /// the input schema is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

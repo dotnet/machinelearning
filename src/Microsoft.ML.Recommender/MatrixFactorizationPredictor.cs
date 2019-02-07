@@ -64,10 +64,10 @@ namespace Microsoft.ML.Trainers.Recommender
             get { return PredictionKind.Recommendation; }
         }
 
-        public ColumnType OutputType { get { return NumberType.Float; } }
+        private ColumnType OutputType { get { return NumberType.Float; } }
 
-        public ColumnType MatrixColumnIndexType { get; }
-        public ColumnType MatrixRowIndexType { get; }
+        internal ColumnType MatrixColumnIndexType { get; }
+        internal ColumnType MatrixRowIndexType { get; }
 
         internal MatrixFactorizationPredictor(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyType matrixColumnIndexType, KeyType matrixRowIndexType)
         {
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <summary>
         /// Load model from the given context
         /// </summary>
-        public static MatrixFactorizationPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static MatrixFactorizationPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -377,11 +377,11 @@ namespace Microsoft.ML.Trainers.Recommender
 
     public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationPredictor, GenericScorer>, ICanSaveModel
     {
-        public const string LoaderSignature = "MaFactPredXf";
-        public string MatrixColumnIndexColumnName { get; }
-        public string MatrixRowIndexColumnName { get; }
-        public ColumnType MatrixColumnIndexColumnType { get; }
-        public ColumnType MatrixRowIndexColumnType { get; }
+        internal const string LoaderSignature = "MaFactPredXf";
+        internal string MatrixColumnIndexColumnName { get; }
+        internal string MatrixRowIndexColumnName { get; }
+        internal ColumnType MatrixColumnIndexColumnType { get; }
+        internal ColumnType MatrixRowIndexColumnType { get; }
         protected override GenericScorer Scorer { get; set; }
 
         /// <summary>
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>
         /// <param name="matrixRowIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixRowIndexKind"/> in matrix factorization world</param>
         /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>
-        public MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationPredictor model, Schema trainSchema,
+        internal MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationPredictor model, Schema trainSchema,
             string matrixColumnIndexColumnName, string matrixRowIndexColumnName, string scoreColumnNameSuffix = "")
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// The counter constructor of re-creating <see cref="MatrixFactorizationPredictionTransformer"/> from the context where
         /// the original transform is saved.
         /// </summary>
-        public MatrixFactorizationPredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
+        private MatrixFactorizationPredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
             : base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), ctx)
         {
             // *** Binary format ***

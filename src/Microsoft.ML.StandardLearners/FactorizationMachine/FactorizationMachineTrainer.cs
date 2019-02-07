@@ -511,6 +511,10 @@ namespace Microsoft.ML.FactorizationMachine
 
         public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Train(input);
 
+        /// <summary>
+        /// Schema propagation for transformers. Returns the output schema of the data, if
+        /// the input schema is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
 
