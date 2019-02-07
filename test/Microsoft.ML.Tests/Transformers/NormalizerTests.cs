@@ -283,7 +283,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic)Transform(data.AsDynamic), 4);
+                var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
                 savedData = ML.Transforms.SelectColumns("lpnorm", "gcnorm", "whitened").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))

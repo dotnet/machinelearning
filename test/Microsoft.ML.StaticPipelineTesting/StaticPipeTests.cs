@@ -415,9 +415,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Just for fun, let's also write out some of the lines of the data to the console.
             using (var stream = new MemoryStream())
             {
-                IDataView v = ML.Transforms.SelectColumns("r", "ncdf", "n", "b").Fit(tdata.AsDynamic).Transform(tdata.AsDynamic);
+                IDataView v = ml.Transforms.SelectColumns("r", "ncdf", "n", "b").Fit(tdata.AsDynamic).Transform(tdata.AsDynamic);
                 v = ml.Data.TakeRows(v, 10);
-                var saver = new TextSaver(env, new TextSaver.Arguments()
+                var saver = new TextSaver(ml, new TextSaver.Arguments()
                 {
                     Dense = true,
                     Separator = ",",
