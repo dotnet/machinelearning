@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void CategoricalHashStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)));
             var data = reader.Read(dataPath);
@@ -91,14 +91,10 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
 
             var outputPath = GetOutputPath("CategoricalHash", "featurized.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                var savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                var view = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "A", "B", "C", "D", "E", "F" });
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, view, fs, keepHidden: true);
-            }
+            var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
+            var view = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "A", "B", "C", "D", "E", "F" });
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(view, fs, headerRow: true, keepHidden: true);
 
             CheckEquality("CategoricalHash", "featurized.tsv");
             Done();
@@ -129,7 +125,6 @@ namespace Microsoft.ML.Tests.Transformers
             ValidateMetadata(bagResult);
             Done();
         }
-
 
         private void ValidateMetadata(IDataView result)
         {
@@ -224,9 +219,10 @@ namespace Microsoft.ML.Tests.Transformers
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
+            using (var ch = Env.Start("saving"))
             using (var ms = new MemoryStream())
             {
-                TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
+                TrainUtils.SaveModel(Env, ch, ms, null, resultRoles);
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
             }

@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Projections;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -52,21 +49,18 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestPcaEstimator()
         {
-            var data = TextLoaderStatic.CreateReader(_env,
+            var data = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(_dataSource);
 
             var est = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1);
             var outputPath = GetOutputPath("PCA", "pca.tsv");
-            using (var ch = _env.Start("save"))
-            {
-                IDataView savedData = TakeFilter.Create(_env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(_env, savedData, new[] { "pca" });
+            var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "pca" });
 
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, _saver, savedData, fs, keepHidden: true);
-            }
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
 
             CheckEquality("PCA", "pca.tsv", digitsOfPrecision: 4);
             Done();

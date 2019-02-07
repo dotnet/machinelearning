@@ -4,7 +4,6 @@
 
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -56,7 +55,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void NAReplaceStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -77,14 +76,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
             var outputPath = GetOutputPath("NAReplace", "featurized.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                var savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                var view = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "A", "B", "C", "D" });
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, view, fs, keepHidden: true);
-            }
+            var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
+            var view = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "A", "B", "C", "D" });
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(view, fs, headerRow: true, keepHidden: true);
 
             CheckEquality("NAReplace", "featurized.tsv");
             Done();
