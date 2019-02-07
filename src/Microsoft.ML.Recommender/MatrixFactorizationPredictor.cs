@@ -398,7 +398,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>
         public MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationPredictor model, Schema trainSchema,
             string matrixColumnIndexColumnName, string matrixRowIndexColumnName, string scoreColumnNameSuffix = "")
-            :base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
             Host.CheckNonEmpty(matrixColumnIndexColumnName, nameof(matrixRowIndexColumnName));
             Host.CheckNonEmpty(matrixColumnIndexColumnName, nameof(matrixRowIndexColumnName));
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// the original transform is saved.
         /// </summary>
         public MatrixFactorizationPredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
-            :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), ctx)
+            : base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), ctx)
         {
             // *** Binary format ***
             // <base info>

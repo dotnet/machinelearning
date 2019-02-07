@@ -76,7 +76,7 @@ namespace Microsoft.ML.Data
     /// </example>
     public sealed class FeatureContributionCalculatingTransformer : OneToOneTransformerBase
     {
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The predictor model to apply to data", SortOrder = 1)]
             public PredictorModel PredictorModel;
@@ -99,9 +99,9 @@ namespace Microsoft.ML.Data
         internal const string FriendlyName = "Feature Contribution Calculation";
         internal const string LoaderSignature = "FeatureContribution";
 
-        public readonly int Top;
-        public readonly int Bottom;
-        public readonly bool Normalize;
+        internal readonly int Top;
+        internal readonly int Bottom;
+        internal readonly bool Normalize;
 
         private readonly IFeatureContributionMapper _predictor;
 
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Data
         /// <param name="numNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
         /// Note that if there are fewer features with negative contributions than <paramref name="numNegativeContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
-        public FeatureContributionCalculatingTransformer(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
+        internal FeatureContributionCalculatingTransformer(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
             string featureColumn = DefaultColumnNames.Features,
             int numPositiveContributions = FeatureContributionCalculatingEstimator.Defaults.NumPositiveContributions,
             int numNegativeContributions = FeatureContributionCalculatingEstimator.Defaults.NumNegativeContributions,
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Data
         private readonly string _featureColumn;
         private readonly ICalculateFeatureContribution _predictor;
 
-        public static class Defaults
+        internal static class Defaults
         {
             public const int NumPositiveContributions = 10;
             public const int NumNegativeContributions = 10;
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Data
         /// <param name="numNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
         /// Note that if there are fewer features with negative contributions than <paramref name="numNegativeContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
-        public FeatureContributionCalculatingEstimator(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
+        internal FeatureContributionCalculatingEstimator(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
             string featureColumn = DefaultColumnNames.Features,
             int numPositiveContributions = Defaults.NumPositiveContributions,
             int numNegativeContributions = Defaults.NumNegativeContributions,
@@ -312,6 +312,10 @@ namespace Microsoft.ML.Data
             _predictor = modelParameters;
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             // Check that the featureColumn is present.
@@ -341,20 +345,20 @@ namespace Microsoft.ML.Data
         [TlcModule.EntryPoint(Name = "Transforms.FeatureContributionCalculationTransformer",
             Desc = FeatureContributionCalculatingTransformer.Summary,
             UserName = FeatureContributionCalculatingTransformer.FriendlyName)]
-        public static CommonOutputs.TransformOutput FeatureContributionCalculation(IHostEnvironment env, FeatureContributionCalculatingTransformer.Arguments args)
+        public static CommonOutputs.TransformOutput FeatureContributionCalculation(IHostEnvironment env, FeatureContributionCalculatingTransformer.Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(nameof(FeatureContributionCalculatingTransformer));
-            host.CheckValue(args, nameof(args));
-            EntryPointUtils.CheckInputArgs(host, args);
-            host.CheckValue(args.PredictorModel, nameof(args.PredictorModel));
+            host.CheckValue(options, nameof(options));
+            EntryPointUtils.CheckInputArgs(host, options);
+            host.CheckValue(options.PredictorModel, nameof(options.PredictorModel));
 
-            var predictor = args.PredictorModel.Predictor as ICalculateFeatureContribution;
+            var predictor = options.PredictorModel.Predictor as ICalculateFeatureContribution;
             if (predictor == null)
                 throw host.ExceptUserArg(nameof(predictor), "The provided model parameters do not support feature contribution calculation.");
-            var outData = new FeatureContributionCalculatingTransformer(host, predictor, args.FeatureColumn, args.Top, args.Bottom, args.Normalize).Transform(args.Data);
+            var outData = new FeatureContributionCalculatingTransformer(host, predictor, options.FeatureColumn, options.Top, options.Bottom, options.Normalize).Transform(options.Data);
 
-            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, args.Data), OutputData = outData};
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, options.Data), OutputData = outData};
         }
     }
 }

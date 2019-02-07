@@ -14,7 +14,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public abstract class BoostingFastTreeTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TArgs : BoostedTreeArgs, new()
-        where TModel : IPredictorProducing<Float>
+        where TModel : class
     {
         protected BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
         {

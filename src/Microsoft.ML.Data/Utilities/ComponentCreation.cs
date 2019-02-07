@@ -169,7 +169,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data transform from the arguments object.
         /// </summary>
-        public static IDataTransform CreateTransform<TArgs>(this IHostEnvironment env, TArgs arguments, IDataView source)
+        internal static IDataTransform CreateTransform<TArgs>(this IHostEnvironment env, TArgs arguments, IDataView source)
             where TArgs : class, new()
         {
             Contracts.CheckValue(env, nameof(env));
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Creates a data transform from the 'LoadName{settings}' string.
         /// </summary>
-        public static IDataTransform CreateTransform(this IHostEnvironment env, string settings, IDataView source)
+        internal static IDataTransform CreateTransform(this IHostEnvironment env, string settings, IDataView source)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(source, nameof(source));

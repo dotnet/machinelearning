@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.Transformers
                   .Append(ML.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));
             var words = est.Fit(data).Transform(data);
 
-            var pipe = ML.Transforms.Text.ExtractWordEmbeddings("WordEmbeddings", "CleanWords", modelKind: WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe);
+            var pipe = ML.Transforms.Text.ExtractWordEmbeddings("WordEmbeddings", "CleanWords", modelKind: WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe);
 
             TestEstimatorCore(pipe, words, invalidInput: data);
 

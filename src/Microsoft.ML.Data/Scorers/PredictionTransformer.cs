@@ -37,12 +37,14 @@ namespace Microsoft.ML.Data
     /// <typeparam name="TScorer">The Scorer used by this <see cref="IPredictionTransformer{TModel}"/></typeparam>
     public abstract class PredictionTransformerBase<TModel, TScorer> : IPredictionTransformer<TModel>
         where TScorer : RowToRowScorerBase
-        where TModel : class, IPredictor
+        where TModel : class
     {
         /// <summary>
         /// The model.
         /// </summary>
         public TModel Model { get; }
+
+        private protected IPredictor ModelAsPredictor => (IPredictor)Model;
 
         protected const string DirModel = "Model";
         protected const string DirTransSchema = "TrainSchema";
@@ -55,19 +57,22 @@ namespace Microsoft.ML.Data
 
         protected abstract TScorer Scorer { get; set; }
 
-        protected PredictionTransformerBase(IHost host, TModel model, Schema trainSchema)
+        [BestFriend]
+        private protected PredictionTransformerBase(IHost host, TModel model, Schema trainSchema)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
 
-            Host.CheckValue(trainSchema, nameof(trainSchema));
+            Host.CheckValue(model, nameof(model));
+            Host.CheckParam(model is IPredictor, nameof(model));
             Model = model;
 
             Host.CheckValue(trainSchema, nameof(trainSchema));
             TrainSchema = trainSchema;
         }
 
-        protected PredictionTransformerBase(IHost host, ModelLoadContext ctx)
+        [BestFriend]
+        private protected PredictionTransformerBase(IHost host, ModelLoadContext ctx)
         {
             Host = host;
 
@@ -146,7 +151,7 @@ namespace Microsoft.ML.Data
     /// <typeparam name="TModel">The model used to transform the data.</typeparam>
     /// <typeparam name="TScorer">The scorer used on this PredictionTransformer.</typeparam>
     public abstract class SingleFeaturePredictionTransformerBase<TModel, TScorer> : PredictionTransformerBase<TModel, TScorer>, ISingleFeaturePredictionTransformer<TModel>, ICanSaveModel
-        where TModel : class, IPredictor
+        where TModel : class
         where TScorer : RowToRowScorerBase
     {
         /// <summary>
@@ -168,7 +173,7 @@ namespace Microsoft.ML.Data
         /// <param name="model">The model used for scoring.</param>
         /// <param name="trainSchema">The schema of the training data.</param>
         /// <param name="featureColumn">The feature column name.</param>
-        public SingleFeaturePredictionTransformerBase(IHost host, TModel model, Schema trainSchema, string featureColumn)
+        private protected SingleFeaturePredictionTransformerBase(IHost host, TModel model, Schema trainSchema, string featureColumn)
             : base(host, model, trainSchema)
         {
             FeatureColumn = featureColumn;
@@ -179,10 +184,10 @@ namespace Microsoft.ML.Data
             else
                 FeatureColumnType = trainSchema[col].Type;
 
-            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, ModelAsPredictor);
         }
 
-        internal SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
+        private protected SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             FeatureColumn = ctx.LoadStringOrNull();
@@ -194,7 +199,7 @@ namespace Microsoft.ML.Data
             else
                 FeatureColumnType = TrainSchema[col].Type;
 
-            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, ModelAsPredictor);
         }
 
         public override Schema GetOutputSchema(Schema inputSchema)
@@ -237,12 +242,13 @@ namespace Microsoft.ML.Data
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
     public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, BinaryClassifierScorer>
-        where TModel : class, IPredictorProducing<float>
+        where TModel : class
     {
         public readonly string ThresholdColumn;
         public readonly float Threshold;
 
-        public AnomalyPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        [BestFriend]
+        internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)),model, inputSchema, featureColumn)
         {
@@ -253,8 +259,8 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
-        public AnomalyPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
+        internal AnomalyPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)), ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -305,12 +311,13 @@ namespace Microsoft.ML.Data
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
     public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, BinaryClassifierScorer>
-        where TModel : class, IPredictorProducing<float>
+        where TModel : class
     {
         public readonly string ThresholdColumn;
         public readonly float Threshold;
 
-        public BinaryPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        [BestFriend]
+        internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
@@ -373,11 +380,12 @@ namespace Microsoft.ML.Data
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
     public sealed class MulticlassPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, MultiClassClassifierScorer>
-        where TModel : class, IPredictorProducing<VBuffer<float>>
+        where TModel : class
     {
         private readonly string _trainLabelColumn;
 
-        public MulticlassPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn, string labelColumn)
+        [BestFriend]
+        internal MulticlassPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn, string labelColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckValueOrNull(labelColumn);
@@ -434,9 +442,10 @@ namespace Microsoft.ML.Data
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
     public sealed class RegressionPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, GenericScorer>
-        where TModel : class, IPredictorProducing<float>
+        where TModel : class
     {
-        public RegressionPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn)
+        [BestFriend]
+        internal RegressionPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Scorer = GetGenericScorer();
@@ -475,9 +484,10 @@ namespace Microsoft.ML.Data
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
     public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, GenericScorer>
-    where TModel : class, IPredictorProducing<float>
+    where TModel : class
     {
-        public RankingPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn)
+        [BestFriend]
+        internal RankingPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Scorer = GetGenericScorer();
@@ -516,9 +526,10 @@ namespace Microsoft.ML.Data
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
     public sealed class ClusteringPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, ClusteringScorer>
-        where TModel : class, IPredictorProducing<VBuffer<float>>
+        where TModel : class
     {
-        public ClusteringPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        [BestFriend]
+        internal ClusteringPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ClusteringPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
@@ -529,7 +540,7 @@ namespace Microsoft.ML.Data
             Scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        public ClusteringPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        internal ClusteringPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ClusteringPredictionTransformer<TModel>)), ctx)
         {
             // *** Binary format ***

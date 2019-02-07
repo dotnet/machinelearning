@@ -55,9 +55,9 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.ReadFromEnumerable(data);
             var generator = new GaussianFourierSampler.Arguments();
 
-            var pipe = new RandomFourierFeaturizingEstimator(Env, new[]{
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("RffA", 5, false, "A"),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("RffB", 10, true, "A", new LaplacianFourierSampler.Arguments())
+            var pipe = ML.Transforms.Projection.CreateRandomFourierFeatures(new[]{
+                    new RandomFourierFeaturizingEstimator.ColumnInfo("RffA", 5, false, "A"),
+                    new RandomFourierFeaturizingEstimator.ColumnInfo("RffB", 10, true, "A", new LaplacianFourierSampler.Arguments())
                 });
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidData, validForFitNotValidForTransformInput: validFitInvalidData);
@@ -111,9 +111,9 @@ namespace Microsoft.ML.Tests.Transformers
             };
             var dataView = ML.Data.ReadFromEnumerable(data);
 
-            var est = new RandomFourierFeaturizingEstimator(Env, new[]{
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("RffA", 5, false, "A"),
-                    new RandomFourierFeaturizingTransformer.ColumnInfo("RffB", 10, true, "A", new LaplacianFourierSampler.Arguments())
+            var est = ML.Transforms.Projection.CreateRandomFourierFeatures(new[]{
+                    new RandomFourierFeaturizingEstimator.ColumnInfo("RffA", 5, false, "A"),
+                    new RandomFourierFeaturizingEstimator.ColumnInfo("RffB", 10, true, "A", new LaplacianFourierSampler.Arguments())
                 });
             var result = est.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

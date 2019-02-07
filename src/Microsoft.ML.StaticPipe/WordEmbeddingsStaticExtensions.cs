@@ -15,7 +15,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">Vector of tokenized text.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
         /// <returns></returns>
-        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
+        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutColumn(input, modelKind);
@@ -34,7 +34,7 @@ namespace Microsoft.ML.StaticPipe
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(VarVector<string> input, WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
+            public OutColumn(VarVector<string> input, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
                 : base(new Reconciler(modelKind), input)
             {
                 Input = input;
@@ -49,10 +49,10 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly WordEmbeddingsExtractingTransformer.PretrainedModelKind? _modelKind;
+            private readonly WordEmbeddingsExtractingEstimator.PretrainedModelKind? _modelKind;
             private readonly string _customLookupTable;
 
-            public Reconciler(WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
+            public Reconciler(WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
             {
                 _modelKind = modelKind;
                 _customLookupTable = null;
@@ -72,11 +72,11 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var cols = new WordEmbeddingsExtractingTransformer.ColumnInfo[toOutput.Length];
+                var cols = new WordEmbeddingsExtractingEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (OutColumn)toOutput[i];
-                    cols[i] = new WordEmbeddingsExtractingTransformer.ColumnInfo(outputNames[outCol], inputNames[outCol.Input]);
+                    cols[i] = new WordEmbeddingsExtractingEstimator.ColumnInfo(outputNames[outCol], inputNames[outCol.Input]);
                 }
 
                 bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);

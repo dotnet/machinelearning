@@ -59,7 +59,7 @@ namespace Microsoft.ML.Transforms.Text
             LInf = 3
         }
 
-        public sealed class Column : ManyToOneColumn
+        internal sealed class Column : ManyToOneColumn
         {
             internal static Column Parse(string str)
             {
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// This class exposes <see cref="NgramExtractorTransform"/>/<see cref="NgramHashExtractingTransformer"/> arguments.
         /// </summary>
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "New column definition (optional form: name:srcs).", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column Columns;
@@ -328,11 +328,11 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.NeedsWordTokenizationTransform)
             {
-                var xfCols = new WordTokenizingTransformer.ColumnInfo[textCols.Length];
+                var xfCols = new WordTokenizingEstimator.ColumnInfo[textCols.Length];
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new WordTokenizingTransformer.ColumnInfo(GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"), textCols[i]);
+                    var col = new WordTokenizingEstimator.ColumnInfo(GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"), textCols[i]);
                     xfCols[i] = col;
                     wordTokCols[i] = col.Name;
                     tempCols.Add(col.Name);
@@ -344,12 +344,12 @@ namespace Microsoft.ML.Transforms.Text
             if (tparams.UsePredefinedStopWordRemover)
             {
                 Contracts.Assert(wordTokCols != null, "StopWords transform requires that word tokenization has been applied to the input text.");
-                var xfCols = new StopWordsRemovingTransformer.ColumnInfo[wordTokCols.Length];
+                var xfCols = new StopWordsRemovingEstimator.ColumnInfo[wordTokCols.Length];
                 var dstCols = new string[wordTokCols.Length];
                 for (int i = 0; i < wordTokCols.Length; i++)
                 {
                     var tempName = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
-                    var col = new StopWordsRemovingTransformer.ColumnInfo(tempName, wordTokCols[i], tparams.StopwordsLanguage);
+                    var col = new StopWordsRemovingEstimator.ColumnInfo(tempName, wordTokCols[i], tparams.StopwordsLanguage);
                     dstCols[i] = tempName;
                     tempCols.Add(tempName);
 
@@ -409,13 +409,13 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.VectorNormalizer != TextNormKind.None)
             {
-                var xfCols = new List<LpNormalizingTransformer.LpNormColumnInfo>(2);
+                var xfCols = new List<LpNormalizingEstimator.LpNormColumnInfo>(2);
 
                 if (charFeatureCol != null)
                 {
                     var dstCol = GenerateColumnName(view.Schema, charFeatureCol, "LpCharNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingTransformer.LpNormColumnInfo(dstCol, charFeatureCol, normalizerKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnInfo(dstCol, charFeatureCol, normalizerKind: tparams.LpNormalizerKind));
                     charFeatureCol = dstCol;
                 }
 
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, wordFeatureCol, "LpWordNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormalizingTransformer.LpNormColumnInfo(dstCol, wordFeatureCol, normalizerKind: tparams.LpNormalizerKind));
+                    xfCols.Add(new LpNormalizingEstimator.LpNormColumnInfo(dstCol, wordFeatureCol, normalizerKind: tparams.LpNormalizerKind));
                     wordFeatureCol = dstCol;
                 }
 
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
         {
             Action<Settings> settings = s =>
             {

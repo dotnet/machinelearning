@@ -14,19 +14,19 @@ using Microsoft.ML.EntryPoints;
 namespace Microsoft.ML.Ensemble.EntryPoints
 {
     [TlcModule.Component(Name = DisagreementDiversityMeasure.LoadName, FriendlyName = DisagreementDiversityMeasure.UserName)]
-    public sealed class DisagreementDiversityFactory : ISupportBinaryDiversityMeasureFactory
+    internal sealed class DisagreementDiversityFactory : ISupportBinaryDiversityMeasureFactory
     {
         public IBinaryDiversityMeasure CreateComponent(IHostEnvironment env) => new DisagreementDiversityMeasure();
     }
 
     [TlcModule.Component(Name = RegressionDisagreementDiversityMeasure.LoadName, FriendlyName = DisagreementDiversityMeasure.UserName)]
-    public sealed class RegressionDisagreementDiversityFactory : ISupportRegressionDiversityMeasureFactory
+    internal sealed class RegressionDisagreementDiversityFactory : ISupportRegressionDiversityMeasureFactory
     {
         public IRegressionDiversityMeasure CreateComponent(IHostEnvironment env) => new RegressionDisagreementDiversityMeasure();
     }
 
     [TlcModule.Component(Name = MultiDisagreementDiversityMeasure.LoadName, FriendlyName = DisagreementDiversityMeasure.UserName)]
-    public sealed class MultiDisagreementDiversityFactory : ISupportMulticlassDiversityMeasureFactory
+    internal sealed class MultiDisagreementDiversityFactory : ISupportMulticlassDiversityMeasureFactory
     {
         public IMulticlassDiversityMeasure CreateComponent(IHostEnvironment env) => new MultiDisagreementDiversityMeasure();
     }
