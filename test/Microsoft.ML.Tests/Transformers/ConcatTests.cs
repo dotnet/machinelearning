@@ -127,7 +127,7 @@ namespace Microsoft.ML.Tests.Transformers
             t = GetType(data.Schema, "f3");
             Assert.True(t is VectorType vt3 && vt3.ItemType == NumberType.R4 && vt3.Size == 5);
 
-            data = ColumnSelectingTransformer.CreateKeep(ML, data, new[] { "f2", "f3" });
+            data = ML.Transforms.SelectColumns("f2", "f3" ).Fit(data).Transform(data);
 
             var subdir = Path.Combine("Transform", "Concat");
             var outputPath = GetOutputPath(subdir, "Concat2.tsv");

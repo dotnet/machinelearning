@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var outputPath = GetOutputPath("Text", "wordEmbeddings.tsv");
             var savedData = ML.Data.TakeRows(pipe.Fit(words).Transform(words), 4);
-            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "WordEmbeddings" });
+            savedData = ML.Transforms.SelectColumns("WordEmbeddings").Fit(savedData).Transform(savedData);
 
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var outputPath = GetOutputPath("Text", "customWordEmbeddings.tsv");
             var savedData = ML.Data.TakeRows(pipe.Fit(words).Transform(words), 10);
-            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "WordEmbeddings", "CleanWords" });
+            savedData = ML.Transforms.SelectColumns("WordEmbeddings", "CleanWords").Fit(savedData).Transform(savedData);
 
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);

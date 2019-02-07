@@ -13,13 +13,13 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(SkipTakeFilter.SkipTakeFilterSummary, typeof(SkipTakeFilter), typeof(SkipTakeFilter.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(SkipTakeFilter.SkipTakeFilterSummary, typeof(SkipTakeFilter), typeof(SkipTakeFilter.Options), typeof(SignatureDataTransform),
     SkipTakeFilter.SkipTakeFilterUserName, "SkipTakeFilter", SkipTakeFilter.SkipTakeFilterShortName)]
 
-[assembly: LoadableClass(SkipTakeFilter.SkipFilterSummary, typeof(SkipTakeFilter), typeof(SkipTakeFilter.SkipArguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(SkipTakeFilter.SkipFilterSummary, typeof(SkipTakeFilter), typeof(SkipTakeFilter.SkipOptions), typeof(SignatureDataTransform),
     SkipTakeFilter.SkipFilterUserName, "SkipFilter", SkipTakeFilter.SkipFilterShortName)]
 
-[assembly: LoadableClass(SkipTakeFilter.TakeFilterSummary, typeof(SkipTakeFilter), typeof(SkipTakeFilter.TakeArguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(SkipTakeFilter.TakeFilterSummary, typeof(SkipTakeFilter), typeof(SkipTakeFilter.TakeOptions), typeof(SignatureDataTransform),
     SkipTakeFilter.TakeFilterUserName, "TakeFilter", SkipTakeFilter.TakeFilterShortName)]
 
 [assembly: LoadableClass(SkipTakeFilter.SkipTakeFilterSummary, typeof(SkipTakeFilter), null, typeof(SignatureLoadDataTransform),
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms
         public const string TakeFilterUserName = "Take Filter";
         public const string TakeFilterShortName = "Take";
 
-        public sealed class Arguments : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             internal const string SkipHelp = "Number of items to skip";
             internal const string TakeHelp = "Number of items to take";
@@ -61,16 +61,16 @@ namespace Microsoft.ML.Transforms
             public long? Take;
         }
 
-        public sealed class TakeArguments : TransformInputBase
+        public sealed class TakeOptions : TransformInputBase
         {
-            [Argument(ArgumentType.Required, HelpText = Arguments.TakeHelp, ShortName = "c,n,t", SortOrder = 1)]
-            public long Count = Arguments.DefaultTake;
+            [Argument(ArgumentType.Required, HelpText = Options.TakeHelp, ShortName = "c,n,t", SortOrder = 1)]
+            public long Count = Options.DefaultTake;
         }
 
-        public sealed class SkipArguments : TransformInputBase
+        public sealed class SkipOptions : TransformInputBase
         {
-            [Argument(ArgumentType.Required, HelpText = Arguments.SkipHelp, ShortName = "c,n,s", SortOrder = 1)]
-            public long Count = Arguments.DefaultSkip;
+            [Argument(ArgumentType.Required, HelpText = Options.SkipHelp, ShortName = "c,n,s", SortOrder = 1)]
+            public long Count = Options.DefaultSkip;
         }
 
         private static VersionInfo GetVersionInfo()
@@ -101,10 +101,10 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="SkipTakeFilter"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="args">Options for the skip operation.</param>
+        /// <param name="options">Options for the skip operation.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>
-        public SkipTakeFilter(IHostEnvironment env, SkipArguments args, IDataView input)
-            : this(args.Count, Arguments.DefaultTake, env, input)
+        public SkipTakeFilter(IHostEnvironment env, SkipOptions options, IDataView input)
+            : this(options.Count, Options.DefaultTake, env, input)
         {
         }
 
@@ -112,41 +112,41 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="SkipTakeFilter"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="args">Options for the take operation.</param>
+        /// <param name="options">Options for the take operation.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>
-        public SkipTakeFilter(IHostEnvironment env, TakeArguments args, IDataView input)
-            : this(Arguments.DefaultSkip, args.Count, env, input)
+        public SkipTakeFilter(IHostEnvironment env, TakeOptions options, IDataView input)
+            : this(Options.DefaultSkip, options.Count, env, input)
         {
         }
 
         IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
             => new SkipTakeFilter(_skip, _take, env, newSource);
 
-        public static SkipTakeFilter Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static SkipTakeFilter Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
-            long skip = args.Skip ?? Arguments.DefaultSkip;
-            long take = args.Take ?? Arguments.DefaultTake;
-            env.CheckUserArg(skip >= 0, nameof(args.Skip), "should be non-negative");
-            env.CheckUserArg(take >= 0, nameof(args.Take), "should be non-negative");
+            env.CheckValue(options, nameof(options));
+            long skip = options.Skip ?? Options.DefaultSkip;
+            long take = options.Take ?? Options.DefaultTake;
+            env.CheckUserArg(skip >= 0, nameof(options.Skip), "should be non-negative");
+            env.CheckUserArg(take >= 0, nameof(options.Take), "should be non-negative");
             return new SkipTakeFilter(skip, take, env, input);
         }
 
-        public static SkipTakeFilter Create(IHostEnvironment env, SkipArguments args, IDataView input)
+        public static SkipTakeFilter Create(IHostEnvironment env, SkipOptions options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
-            env.CheckUserArg(args.Count >= 0, nameof(args.Count), "should be non-negative");
-            return new SkipTakeFilter(args.Count, Arguments.DefaultTake, env, input);
+            env.CheckValue(options, nameof(options));
+            env.CheckUserArg(options.Count >= 0, nameof(options.Count), "should be non-negative");
+            return new SkipTakeFilter(options.Count, Options.DefaultTake, env, input);
         }
 
-        public static SkipTakeFilter Create(IHostEnvironment env, TakeArguments args, IDataView input)
+        public static SkipTakeFilter Create(IHostEnvironment env, TakeOptions options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
-            env.CheckUserArg(args.Count >= 0, nameof(args.Count), "should be non-negative");
-            return new SkipTakeFilter(Arguments.DefaultSkip, args.Count, env, input);
+            env.CheckValue(options, nameof(options));
+            env.CheckUserArg(options.Count >= 0, nameof(options.Count), "should be non-negative");
+            return new SkipTakeFilter(Options.DefaultSkip, options.Count, env, input);
         }
 
         /// <summary>Creates instance of class from context.</summary>

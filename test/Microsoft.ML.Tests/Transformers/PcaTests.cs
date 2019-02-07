@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = ML.Transforms.Projection.ProjectToPrincipalComponents("pca", "features", rank: 5, seed: 1);
             var outputPath = GetOutputPath("PCA", "pca.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "pca" });
+            savedData = ML.Transforms.SelectColumns("pca").Fit(savedData).Transform(savedData);
 
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);

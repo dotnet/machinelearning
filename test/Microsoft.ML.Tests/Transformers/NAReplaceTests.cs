@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
             var outputPath = GetOutputPath("NAReplace", "featurized.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
-            var view = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "A", "B", "C", "D" });
+            var view = ML.Transforms.SelectColumns("A", "B", "C", "D" ).Fit(savedData).Transform(savedData);
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(view, fs, headerRow: true, keepHidden: true);
 

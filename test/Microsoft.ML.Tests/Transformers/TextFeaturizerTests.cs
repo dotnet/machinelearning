@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
                 var savedData = ML.Data.TakeRows(feat.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "Data", "Data_TransformedText" });
+                savedData = ML.Transforms.SelectColumns("Data", "Data_TransformedText").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var outputPath = GetOutputPath("Text", "tokenized.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "text", "words", "chars" });
+            savedData = ML.Transforms.SelectColumns("text", "words", "chars").Fit(savedData).Transform(savedData);
 
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var outputPath = GetOutputPath("Text", "words_without_stopwords.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-            savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "text", "NoDefaultStopwords", "NoStopWords" });
+            savedData = ML.Transforms.SelectColumns("text", "NoDefaultStopwords", "NoStopWords").Fit(savedData).Transform(savedData);
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
 
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var outputPath = GetOutputPath("Text", "bag_of_words.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "text", "bag_of_words", "bag_of_wordshash" });
+            savedData = ML.Transforms.SelectColumns("text", "bag_of_words", "bag_of_wordshash").Fit(savedData).Transform(savedData);
 
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var outputPath = GetOutputPath("Text", "ngrams.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-            savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "text", "terms", "ngrams", "ngramshash" });
+            savedData = ML.Transforms.SelectColumns("text", "terms", "ngrams", "ngramshash").Fit(savedData).Transform(savedData);
 
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Tests.Transformers
                 var transformer = est.Fit(data.AsDynamic);
                 var transformedData = transformer.Transform(data.AsDynamic);
                 var savedData = ML.Data.TakeRows(transformedData, 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(env, savedData, new[] { "topics" });
+                savedData = ML.Transforms.SelectColumns("topics").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);

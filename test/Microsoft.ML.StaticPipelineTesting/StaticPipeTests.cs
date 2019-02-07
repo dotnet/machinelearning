@@ -415,7 +415,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Just for fun, let's also write out some of the lines of the data to the console.
             using (var stream = new MemoryStream())
             {
-                IDataView v = ColumnSelectingTransformer.CreateKeep(ml, tdata.AsDynamic, new[] { "r", "ncdf", "n", "b" });
+                IDataView v = ml.Transforms.SelectColumns("r", "ncdf", "n", "b").Fit(tdata.AsDynamic).Transform(tdata.AsDynamic);
                 v = ml.Data.TakeRows(v, 10);
                 var saver = new TextSaver(ml, new TextSaver.Arguments()
                 {

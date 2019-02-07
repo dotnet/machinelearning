@@ -242,7 +242,7 @@ namespace Microsoft.ML
             Environment.CheckValue(input, nameof(input));
             Environment.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
 
-            var options = new SkipTakeFilter.SkipArguments()
+            var options = new SkipTakeFilter.SkipOptions()
             {
                 Count = count
             };
@@ -270,7 +270,7 @@ namespace Microsoft.ML
             Environment.CheckValue(input, nameof(input));
             Environment.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
 
-            var options = new SkipTakeFilter.TakeArguments()
+            var options = new SkipTakeFilter.TakeOptions()
             {
                 Count = count
             };

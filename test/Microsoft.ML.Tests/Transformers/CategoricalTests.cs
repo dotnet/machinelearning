@@ -161,7 +161,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var outputPath = GetOutputPath("Categorical", "featurized.tsv");
             var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
-            var view = new ColumnSelectingTransformer(ML, new string[] { "A", "B", "C", "D", "E" }, null, false).Transform(savedData);
+            var view = ML.Transforms.SelectColumns("A", "B", "C", "D", "E").Fit(savedData).Transform(savedData);
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(view, fs, headerRow: true, keepHidden: true);
 

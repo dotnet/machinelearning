@@ -16,7 +16,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ColumnSelectingTransformer.Summary, typeof(IDataTransform), typeof(ColumnSelectingTransformer),
-                typeof(ColumnSelectingTransformer.Arguments), typeof(SignatureDataTransform),
+                typeof(ColumnSelectingTransformer.Options), typeof(SignatureDataTransform),
                 ColumnSelectingTransformer.UserName, "SelectColumns", "SelectColumnsTransform", ColumnSelectingTransformer.ShortName, DocName = "transform/SelectTransforms.md")]
 
 [assembly: LoadableClass(ColumnSelectingTransformer.Summary, typeof(IDataView), typeof(ColumnSelectingTransformer), null, typeof(SignatureLoadDataTransform),
@@ -40,6 +40,13 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class ColumnSelectingEstimator : TrivialEstimator<ColumnSelectingTransformer>
     {
+        [BestFriend]
+        internal static class Defaults
+        {
+            public const bool KeepHidden = false;
+            public const bool IgnoreMissing = false;
+        };
+
         private readonly Func<string, bool> _selectPredicate;
 
         /// <summary>
@@ -48,7 +55,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>
         private ColumnSelectingEstimator(IHostEnvironment env, params string[] keepColumns)
-            : this(env, keepColumns, null, ColumnSelectingTransformer.Defaults.KeepHidden, ColumnSelectingTransformer.Defaults.IgnoreMissing)
+            : this(env, keepColumns, null, Defaults.KeepHidden, Defaults.IgnoreMissing)
         { }
 
         /// <summary>
@@ -63,8 +70,8 @@ namespace Microsoft.ML.Transforms
         ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
         ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
         internal ColumnSelectingEstimator(IHostEnvironment env, string[] keepColumns,
-                                    string[] dropColumns, bool keepHidden = ColumnSelectingTransformer.Defaults.KeepHidden,
-                                    bool ignoreMissing = ColumnSelectingTransformer.Defaults.IgnoreMissing)
+                                    string[] dropColumns, bool keepHidden = Defaults.KeepHidden,
+                                    bool ignoreMissing = Defaults.IgnoreMissing)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnSelectingEstimator)),
                   new ColumnSelectingTransformer(env, keepColumns, dropColumns, keepHidden, ignoreMissing))
         {
@@ -78,7 +85,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="columnsToKeep">The array of column names to keep.</param>
-        public static ColumnSelectingEstimator KeepColumns(IHostEnvironment env, params string[] columnsToKeep)
+        internal static ColumnSelectingEstimator KeepColumns(IHostEnvironment env, params string[] columnsToKeep)
         {
             return new ColumnSelectingEstimator(env, columnsToKeep);
         }
@@ -89,12 +96,16 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="columnsToDrop">The array of column names to drop.</param>
-        public static ColumnSelectingEstimator DropColumns(IHostEnvironment env, params string[] columnsToDrop)
+        internal static ColumnSelectingEstimator DropColumns(IHostEnvironment env, params string[] columnsToDrop)
         {
             return new ColumnSelectingEstimator(env, null, columnsToDrop);
 
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -111,7 +122,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// The SelectColumns Transforms allows the user to specify columns to drop or keep from a given input.
+    /// The <see cref="ColumnSelectingTransformer"/> allows the user to specify columns to drop or keep from a given input.
     /// </summary>
     public sealed class ColumnSelectingTransformer : ITransformer, ICanSaveModel
     {
@@ -127,12 +138,6 @@ namespace Microsoft.ML.Transforms
 
         private readonly IHost _host;
         private string[] _selectedColumns;
-
-        internal static class Defaults
-        {
-            public const bool KeepHidden = false;
-            public const bool IgnoreMissing = false;
-        };
 
         public bool IsRowToRowMapper => true;
 
@@ -178,7 +183,7 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(ColumnSelectingTransformer).Assembly.FullName);
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "List of columns to keep.", ShortName = "keepcol", SortOrder = 1)]
             public string[] KeepColumns;
@@ -187,14 +192,14 @@ namespace Microsoft.ML.Transforms
             public string[] DropColumns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to keep or remove hidden columns.", ShortName = "hidden", SortOrder = 3)]
-            public bool KeepHidden = Defaults.KeepHidden;
+            public bool KeepHidden = ColumnSelectingEstimator.Defaults.KeepHidden;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to ignore columns that are missing from the input.", ShortName = "ignore", SortOrder = 4)]
-            public bool IgnoreMissing = Defaults.IgnoreMissing;
+            public bool IgnoreMissing = ColumnSelectingEstimator.Defaults.IgnoreMissing;
         }
 
-        public ColumnSelectingTransformer(IHostEnvironment env, string[] keepColumns, string[] dropColumns,
-                                        bool keepHidden = Defaults.KeepHidden, bool ignoreMissing = Defaults.IgnoreMissing)
+        internal ColumnSelectingTransformer(IHostEnvironment env, string[] keepColumns, string[] dropColumns,
+                                        bool keepHidden = ColumnSelectingEstimator.Defaults.KeepHidden, bool ignoreMissing = ColumnSelectingEstimator.Defaults.IgnoreMissing)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnSelectingTransformer));
             _host.CheckValueOrNull(keepColumns);
@@ -371,7 +376,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadDataTransform.
-        public static IDataView Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataView Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -395,26 +400,20 @@ namespace Microsoft.ML.Transforms
         }
 
         [BestFriend]
-        internal static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, string[] keepColumns, bool keepHidden = false)
-        {
-            var transform = new ColumnSelectingTransformer(env, keepColumns, null, keepHidden);
-            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
-        }
+        internal static IDataView CreateKeep(IHostEnvironment env, IDataView input, string[] keepColumns, bool keepHidden = false)
+            => new ColumnSelectingTransformer(env, keepColumns, null, keepHidden).Transform(input);
 
         [BestFriend]
-        internal static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
-        {
-            var transform = new ColumnSelectingTransformer(env, null, dropColumns);
-            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
-        }
+        internal static IDataView CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
+            => new ColumnSelectingTransformer(env, null, dropColumns).Transform(input);
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
-            var transform = new ColumnSelectingTransformer(env, args.KeepColumns, args.DropColumns,
-                                                            args.KeepHidden, args.IgnoreMissing);
+            env.CheckValue(options, nameof(options));
+            var transform = new ColumnSelectingTransformer(env, options.KeepColumns, options.DropColumns,
+                                                            options.KeepHidden, options.IgnoreMissing);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
@@ -431,7 +430,7 @@ namespace Microsoft.ML.Transforms
                 ctx.SaveNonEmptyString(_selectedColumns[i]);
         }
 
-        public static bool IsSchemaValid(IEnumerable<string> inputColumns,
+        internal static bool IsSchemaValid(IEnumerable<string> inputColumns,
                                          IEnumerable<string> selectColumns,
                                          out IEnumerable<string> invalidColumns)
         {
@@ -441,6 +440,10 @@ namespace Microsoft.ML.Transforms
             return missing.Count() == 0;
         }
 
+        /// <summary>
+        /// Schema propagation for transformers.
+        /// Returns the output schema of the data, if the input schema is like the one provided.
+        /// </summary>
         public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -453,6 +456,13 @@ namespace Microsoft.ML.Transforms
             return new Mapper(this, inputSchema).OutputSchema;
         }
 
+        /// <summary>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// is <c>false</c>, then an exception is thrown. If the input schema is in any way
+        /// unsuitable for constructing the mapper, an exception should likewise be thrown.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -467,6 +477,10 @@ namespace Microsoft.ML.Transforms
                                                   new EmptyDataView(_host, inputSchema));
         }
 
+        /// <summary>
+        /// Take the data in, make transformations, output the data.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
+        /// </summary>
         public IDataView Transform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));

@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
                 var savedData = ML.Data.TakeRows(est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "bag_of_words_count", "bag_of_words_mi" });
+                savedData = ML.Transforms.SelectColumns("bag_of_words_count", "bag_of_words_mi").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
