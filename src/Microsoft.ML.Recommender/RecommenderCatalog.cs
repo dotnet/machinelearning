@@ -55,7 +55,7 @@ namespace Microsoft.ML
             /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
             /// <param name="labelColumn">The name of the label column.</param>
-            /// <param name="approximationRank">Approximation rank.</param>
+            /// <param name="approximationRank">Rank of approximation matrixes.</param>
             /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
             /// <param name="numIterations">Number of training iterations.</param>
             /// <example>

@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators : TestDataPipeBase
     {
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
-        public void MatrixFactorization_Estimator()
+        public void MatrixFactorizationEstimator()
         {
             string labelColumnName = "Label";
             string matrixColumnIndexColumnName = "Col";
@@ -39,11 +39,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixRowIndexColumnName = matrixRowIndexColumnName,
                 LabelColumnName = labelColumnName,
                 NumIterations = 3,
-                NumThreads = 1, 
-                K = 4,
+                NumThreads = 1,
+                ApproximationRank = 4,
             };
 
-            var est = new MatrixFactorizationTrainer(Env, options);
+            var est = ML.Recommendation().Trainers.MatrixFactorization(options);
 
             TestEstimatorCore(est, data, invalidInput: invalidData);
 
@@ -68,19 +68,27 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
-            var options = new MatrixFactorizationTrainer.Options {
+            var options = new MatrixFactorizationTrainer.Options
+            {
                 MatrixColumnIndexColumnName = userColumnName,
                 MatrixRowIndexColumnName = itemColumnName,
                 LabelColumnName = labelColumnName,
                 NumIterations = 3,
                 NumThreads = 1, // To eliminate randomness, # of threads must be 1.
-                K = 7,
+                ApproximationRank = 7,
             };
 
             var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(data);
+
+            // Les's validate content of the model.
+            Assert.Equal(model.Model.ApproximationRank, options.ApproximationRank);
+            var leftMatrix = model.Model.GetLeftFactorMatrix();
+            var rightMatrix = model.Model.GetRightFactorMatrix();
+            Assert.Equal(leftMatrix.Length, model.Model.NumberOfRows * model.Model.ApproximationRank);
+            Assert.Equal(rightMatrix.Length, model.Model.NumberOfColumns * model.Model.ApproximationRank);
 
             // Read the test data set as an IDataView
             var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
@@ -197,7 +205,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 LabelColumnName = nameof(MatrixElement.Value),
                 NumIterations = 10,
                 NumThreads = 1, // To eliminate randomness, # of threads must be 1.
-                K = 32,
+                ApproximationRank = 32,
             };
 
             var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
@@ -287,7 +295,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 LabelColumnName = nameof(MatrixElement.Value),
                 NumIterations = 100,
                 NumThreads = 1, // To eliminate randomness, # of threads must be 1.
-                K = 32,
+                ApproximationRank = 32,
                 LearningRate = 0.5,
             };
 
@@ -409,7 +417,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 NumIterations = 100,
                 NumThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
-                K = 16,
+                ApproximationRank = 16,
                 Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
                 C = 0.15, // Desired value for matrix elements not specified in the input matrix.
             };

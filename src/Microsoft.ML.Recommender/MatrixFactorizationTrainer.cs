@@ -149,7 +149,7 @@ namespace Microsoft.ML.Trainers
             public double Lambda = Defaults.Lambda;
 
             /// <summary>
-            /// Approximation rank.
+            /// Rank of approximation matrixes.
             /// </summary>
             /// <remarks>
             /// If input data has size of m by n we would build two approximation matrixes m by k and k by n where k is approxiation rank.
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
         /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="approximationRank">Approximation rank.</param>
+        /// <param name="approximationRank">Rank of approximation matrixes.</param>
         /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
         /// <param name="numIterations">Number of training iterations.</param>
         [BestFriend]
