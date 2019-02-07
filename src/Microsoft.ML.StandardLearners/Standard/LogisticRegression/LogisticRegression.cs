@@ -32,8 +32,8 @@ namespace Microsoft.ML.Learners
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
     public sealed partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Options,
-        BinaryPredictionTransformer<ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator>>,
-        ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator>>
+        BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>,
+        CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         public const string LoadNameValue = "LogisticRegression";
         internal const string UserNameValue = "Logistic Regression";
@@ -124,11 +124,11 @@ namespace Microsoft.ML.Learners
             };
         }
 
-        protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator>>
-            MakeTransformer(ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator> model, Schema trainSchema)
-            => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>
+            MakeTransformer(CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> model, Schema trainSchema)
+            => new BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator>> Train(IDataView trainData, IPredictor initialPredictor = null)
+        public BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>> Train(IDataView trainData, IPredictor initialPredictor = null)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
@@ -381,16 +381,16 @@ namespace Microsoft.ML.Learners
             return opt;
         }
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator> srcPredictor)
+        protected override VBuffer<float> InitializeWeightsFromPredictor(CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
 
-            var pred = srcPredictor.SubPredictor as LinearBinaryModelParameters;
+            var pred = srcPredictor.SubModelParameters as LinearBinaryModelParameters;
             Contracts.AssertValue(pred);
             return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
-        protected override ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator> CreatePredictor()
+        protected override CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
             // Logistic regression is naturally calibrated to
             // output probabilities when transformed using
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Learners
             float bias = 0;
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
-            return new ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator>(Host,
+            return new ParameterMixingCalibratedPredictor<LinearBinaryModelParameters, PlattCalibrator>(Host,
                 new LinearBinaryModelParameters(Host, in weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }

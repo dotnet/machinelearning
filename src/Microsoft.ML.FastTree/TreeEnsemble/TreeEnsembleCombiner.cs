@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             var ensemble = new InternalTreeEnsemble();
             int modelCount = 0;
             int featureCount = -1;
-            bool isFirstModelBinaryClassifier = false;
+            bool binaryClassifier = false;
             foreach (var model in models)
             {
                 modelCount++;
@@ -51,29 +51,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 var predictor = model;
                 _host.CheckValue(predictor, nameof(models), "One of the models is null");
 
+                var calibrated = predictor as IWeeklyTypedCalibratedPredictor;
                 double paramA = 1;
-                bool isBinaryClassifier = false;
-                {
-                    if (predictor is CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator> calibratedPredictor)
-                    {
-                        _host.Check(calibratedPredictor.Calibrator is PlattCalibrator,
-                            "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
-                        predictor = calibratedPredictor.SubPredictor;
-                        paramA = -calibratedPredictor.Calibrator.Slope;
-                        isBinaryClassifier = true;
-                    }
-                }
+                if (calibrated != null)
+                    _host.Check(calibrated.WeeklyTypedCalibrator is PlattCalibrator,
+                        "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
 
-                {
-                    if (predictor is CalibratedPredictorBase<BinaryClassificationGamModelParameters, PlattCalibrator> calibratedPredictor)
-                    {
-                        _host.Check(calibratedPredictor.Calibrator is PlattCalibrator,
-                            "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
-                        predictor = calibratedPredictor.SubPredictor;
-                        paramA = -calibratedPredictor.Calibrator.Slope;
-                        isBinaryClassifier = true;
-                    }
-                }
+                predictor = calibrated.WeeklyTypedSubModelParameters;
+                paramA = -((PlattCalibrator)calibrated.WeeklyTypedCalibrator).Slope;
 
                 var tree = predictor as TreeEnsembleModelParameters;
 
@@ -96,12 +81,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
                 if (modelCount == 1)
                 {
-                    isFirstModelBinaryClassifier = isBinaryClassifier;
+                    binaryClassifier = calibrated != null;
                     featureCount = tree.InputType.GetValueCount();
                 }
                 else
                 {
-                    _host.Check(isBinaryClassifier == isFirstModelBinaryClassifier, "Ensemble contains both calibrated and uncalibrated models");
+                    _host.Check((calibrated != null) == binaryClassifier, "Ensemble contains both calibrated and uncalibrated models");
                     _host.Check(featureCount == tree.InputType.GetValueCount(), "Found models with different number of features");
                 }
             }
@@ -117,11 +102,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             switch (_kind)
             {
                 case PredictionKind.BinaryClassification:
-                    if (!isFirstModelBinaryClassifier)
+                    if (!binaryClassifier)
                         return new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null);
 
                     var cali = new PlattCalibrator(_host, -1, 0);
-                    return new FeatureWeightsCalibratedPredictor<IPredictorWithFeatureWeights<float>,ICalibrator>(_host, new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null), cali);
+                    var fastTreeModel = new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null);
+                    return new FeatureWeightsCalibratedPredictor<FastTreeBinaryModelParameters,PlattCalibrator>(_host, fastTreeModel, cali);
                 case PredictionKind.Regression:
                     return new FastTreeRegressionModelParameters(_host, ensemble, featureCount, null);
                 case PredictionKind.Ranking:

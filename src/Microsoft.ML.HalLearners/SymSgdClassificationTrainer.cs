@@ -168,16 +168,18 @@ namespace Microsoft.ML.Trainers.SymSgd
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))
             {
-                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
                 var linearInitPred = initPred as LinearModelParameters;
-                if (initPred is CalibratedPredictorBase<LinearModelParameters,PlattCalibrator> calibrated)
-                    linearInitPred = calibrated.SubPredictor;
-                else if (initPred is CalibratedPredictorBase<LinearBinaryModelParameters,PlattCalibrator> mixed)
-                    linearInitPred = mixed.SubPredictor;
+                if (linearInitPred == null)
+                    linearInitPred = ((initPred as IWeeklyTypedCalibratedPredictor)?.WeeklyTypedSubModelParameters) as LinearModelParameters;
 
-                Host.CheckParam(context.InitialPredictor == null || linearInitPred != null, nameof(context),
+                // If initial predictor is set, it must be a linear model or calibrated linear model. Otherwise, we throw.
+                // If initPred is null (i.e., not set), the following check will always be bypassed.
+                // If initPred is not null, then the following checks if a LinearModelParameters is loaded to linearInitPred.
+                Host.CheckParam(initPred == null || linearInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
+
+                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 return TrainCore(ch, preparedData, linearInitPred, weightSetCount);
             }
         }

@@ -366,8 +366,14 @@ namespace Microsoft.ML.Data
             _host.CheckValue(args, nameof(args));
             _host.CheckValue(predictor, nameof(predictor));
 
-            if (predictor is CalibratedPredictorBase<FastTreeBinaryModelParameters,PlattCalibrator>)
-                predictor = ((CalibratedPredictorBase<FastTreeBinaryModelParameters,PlattCalibrator>)predictor).SubPredictor;
+            // This function accepts models trained by FastTreeTrainer family. There are four types that "predictor" can be.
+            //  1. CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator>
+            //  2. FastTreeRankingModelParameters
+            //  3. FastTreeRegressionModelParameters
+            //  4. FastTreeTweedieModelParameters
+            // Only (1) needs a special cast right below because all others are derived from TreeEnsembleModelParameters.
+            if (predictor is CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator> calibrated)
+                predictor = calibrated.SubModelParameters;
             _ensemble = predictor as TreeEnsembleModelParameters;
             _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
 
@@ -581,8 +587,8 @@ namespace Microsoft.ML.Data
                     Contracts.Assert(data.Schema.Feature.HasValue);
 
                     // Make sure that the given predictor has the correct number of input features.
-                    if (predictor is CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)
-                        predictor = ((CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)predictor).SubPredictor;
+                    if (predictor is IWeeklyTypedCalibratedPredictor calibrated)
+                        predictor = calibrated.WeeklyTypedSubModelParameters;
                     // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
@@ -647,7 +653,7 @@ namespace Microsoft.ML.Data
 
                 // Make sure that the given predictor has the correct number of input features.
                 if (predictor is CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)
-                    predictor = ((CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)predictor).SubPredictor;
+                    predictor = ((CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)predictor).SubModelParameters;
                 // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;
@@ -661,7 +667,7 @@ namespace Microsoft.ML.Data
 
                 ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                 var bound = bindable.Bind(env, data.Schema);
-               return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
+                return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
             }
         }
 

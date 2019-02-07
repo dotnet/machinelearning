@@ -35,11 +35,11 @@ namespace Microsoft.ML.Ensemble.EntryPoints
                 new EmptyDataView(host, input.PredictorModel.TransformModel.InputSchema),
                 out RoleMappedData rmd, out IPredictor predictor);
 
-            var calibrated = predictor as IHasWeeklyTypedCalibratedPredictor;
+            var calibrated = predictor as IWeeklyTypedCalibratedPredictor;
             while (calibrated != null)
             {
-                predictor = calibrated.WeeklyTypedSubPredictor;
-                calibrated = predictor as IHasWeeklyTypedCalibratedPredictor;
+                predictor = calibrated.WeeklyTypedSubModelParameters;
+                calibrated = predictor as IWeeklyTypedCalibratedPredictor;
             }
             var ensemble = predictor as SchemaBindablePipelineEnsembleBase;
             host.CheckUserArg(ensemble != null, nameof(input.PredictorModel.Predictor), "Predictor is not a pipeline ensemble predictor");

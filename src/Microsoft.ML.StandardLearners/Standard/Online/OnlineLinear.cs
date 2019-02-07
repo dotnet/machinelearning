@@ -253,14 +253,19 @@ namespace Microsoft.ML.Trainers.Online
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor;
-            LinearModelParameters initLinearPred = null;
-            if (initPredictor is LinearModelParameters)
-                initLinearPred = (LinearModelParameters)initPredictor;
-            else if (initPredictor is CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>)
-                initLinearPred = ((CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>)initPredictor).SubPredictor;
-            Host.CheckParam(initPredictor == null || initLinearPred != null, nameof(context), "Not a linear predictor.");
-            var data = context.TrainingSet;
 
+            if (initPredictor is LinearModelParameters initLinearPred)
+                initLinearPred = (LinearModelParameters)initPredictor;
+            else if (initPredictor is CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> calibrated)
+                initLinearPred = calibrated.SubModelParameters;
+            else
+            {
+                initLinearPred = null;
+                Host.CheckParam(initPredictor == null || initLinearPred != null, nameof(context),
+                    "Initial predictor was not a linear predictor.");
+            }
+
+            var data = context.TrainingSet;
             data.CheckFeatureFloatVector(out int numFeatures);
             CheckLabels(data);
 

@@ -112,11 +112,11 @@ namespace Microsoft.ML.EntryPoints
         {
             Contracts.CheckValue(env, nameof(env));
             var predictor = Predictor;
-            var calibrated = predictor as CalibratedPredictorBase<IPredictorProducing<float>,ICalibrator>;
+            var calibrated = predictor as IWeeklyTypedCalibratedPredictor;
             while (calibrated != null)
             {
-                predictor = calibrated.SubPredictor;
-                calibrated = predictor as CalibratedPredictorBase<IPredictorProducing<float>,ICalibrator>;
+                predictor = calibrated.WeeklyTypedSubModelParameters;
+                calibrated = predictor as IWeeklyTypedCalibratedPredictor;
             }
             var canGetTrainingLabelNames = predictor as ICanGetTrainingLabelNames;
             if (canGetTrainingLabelNames != null)

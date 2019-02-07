@@ -6,7 +6,6 @@ using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
@@ -140,7 +139,7 @@ namespace Microsoft.ML.StaticPipe
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<CalibratedPredictorBase<FastTreeBinaryModelParameters,PlattCalibrator>> onFit = null)
+            Action<CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, onFit);
 
@@ -184,7 +183,7 @@ namespace Microsoft.ML.StaticPipe
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
             FastTreeBinaryClassificationTrainer.Options options,
-            Action<CalibratedPredictorBase<FastTreeBinaryModelParameters,PlattCalibrator>> onFit = null)
+            Action<CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValueOrNull(options);
             CheckUserValues(label, features, weights, onFit);

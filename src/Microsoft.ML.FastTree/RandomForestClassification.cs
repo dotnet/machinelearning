@@ -105,7 +105,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
                 return predictor;
-            return new SchemaBindableCalibratedPredictor<FastForestClassificationModelParameters,ICalibrator>(env, predictor, calibrator);
+            return new SchemaBindableCalibratedPredictor<FastForestClassificationModelParameters, ICalibrator>(env, predictor, calibrator);
         }
     }
 

@@ -117,43 +117,43 @@ namespace Microsoft.ML.Internal.Calibration
     }
 
     /// <summary>
-    /// <see cref="IHasWeeklyTypedCalibratedPredictor"/> provides a weekly-typed way to access strongly-typed
-    /// <see cref="CalibratedPredictorBase{TSubPredictor, TCalibrator}.SubPredictor"/> and
+    /// <see cref="IWeeklyTypedCalibratedPredictor"/> provides a weekly-typed way to access strongly-typed
+    /// <see cref="CalibratedPredictorBase{TSubPredictor, TCalibrator}.SubModelParameters"/> and
     /// <see cref="CalibratedPredictorBase{TSubPredictor, TCalibrator}.Calibrator"/>.
-    /// <see cref="IHasWeeklyTypedCalibratedPredictor"/> is commonly used in weekly-typed expressions. The
+    /// <see cref="IWeeklyTypedCalibratedPredictor"/> is commonly used in weekly-typed expressions. The
     /// existence of this interface is just for supporting existing codebase, so we discourage its uses.
     /// </summary>
     [BestFriend]
-    internal interface IHasWeeklyTypedCalibratedPredictor
+    internal interface IWeeklyTypedCalibratedPredictor
     {
-        IPredictorProducing<float> WeeklyTypedSubPredictor { get; }
+        IPredictorProducing<float> WeeklyTypedSubModelParameters { get; }
         ICalibrator WeeklyTypedCalibrator { get; }
     }
 
-    public abstract class CalibratedPredictorBase<TSubPredictor, TCalibrator> :
+    public abstract class CalibratedPredictorBase<TSubModelParameters, TCalibrator> :
         IDistPredictorProducing<float, float>,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
         ICanSaveSummary,
         ICanGetSummaryInKeyValuePairs,
-        IHasWeeklyTypedCalibratedPredictor
-        where TSubPredictor : class, IPredictorProducing<float>
+        IWeeklyTypedCalibratedPredictor
+        where TSubModelParameters : class, IPredictorProducing<float>
         where TCalibrator : class, ICalibrator
     {
         protected readonly IHost Host;
 
         // Strongly-typed members.
-        public TSubPredictor SubPredictor { get; }
+        public TSubModelParameters SubModelParameters { get; }
         public TCalibrator Calibrator { get; }
 
         // Type-unsafed accessors of strongly-typed members.
-        IPredictorProducing<float> IHasWeeklyTypedCalibratedPredictor.WeeklyTypedSubPredictor => SubPredictor;
-        ICalibrator IHasWeeklyTypedCalibratedPredictor.WeeklyTypedCalibrator => Calibrator;
+        IPredictorProducing<float> IWeeklyTypedCalibratedPredictor.WeeklyTypedSubModelParameters => SubModelParameters;
+        ICalibrator IWeeklyTypedCalibratedPredictor.WeeklyTypedCalibrator => Calibrator;
 
-        public PredictionKind PredictionKind => SubPredictor.PredictionKind;
+        public PredictionKind PredictionKind => SubModelParameters.PredictionKind;
 
-        private protected CalibratedPredictorBase(IHostEnvironment env, string name, TSubPredictor predictor, TCalibrator calibrator)
+        private protected CalibratedPredictorBase(IHostEnvironment env, string name, TSubModelParameters predictor, TCalibrator calibrator)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
@@ -161,28 +161,21 @@ namespace Microsoft.ML.Internal.Calibration
             Host.CheckValue(predictor, nameof(predictor));
             Host.CheckValue(calibrator, nameof(calibrator));
 
-            SubPredictor = predictor;
-            Calibrator = calibrator;
-        }
-
-        private CalibratedPredictorBase(IHost host, TSubPredictor predictor, TCalibrator calibrator)
-        {
-            Host = host;
-            SubPredictor = predictor;
+            SubModelParameters = predictor;
             Calibrator = calibrator;
         }
 
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.Check(calibrator == null, "Too many calibrators.");
-            var saver = SubPredictor as ICanSaveInIniFormat;
+            var saver = SubModelParameters as ICanSaveInIniFormat;
             saver?.SaveAsIni(writer, schema, Calibrator);
         }
 
         void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
-            var saver = SubPredictor as ICanSaveInTextFormat;
+            var saver = SubModelParameters as ICanSaveInTextFormat;
             if (saver != null)
                 saver.SaveAsText(writer, schema);
         }
@@ -190,7 +183,7 @@ namespace Microsoft.ML.Internal.Calibration
         void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
-            var saver = SubPredictor as ICanSaveInSourceCode;
+            var saver = SubModelParameters as ICanSaveInSourceCode;
             if (saver != null)
                 saver.SaveAsCode(writer, schema);
         }
@@ -198,7 +191,7 @@ namespace Microsoft.ML.Internal.Calibration
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
-            var saver = SubPredictor as ICanSaveSummary;
+            var saver = SubModelParameters as ICanSaveSummary;
             if (saver != null)
                 saver.SaveSummary(writer, schema);
         }
@@ -207,7 +200,7 @@ namespace Microsoft.ML.Internal.Calibration
         IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
-            var saver = SubPredictor as ICanGetSummaryInKeyValuePairs;
+            var saver = SubModelParameters as ICanGetSummaryInKeyValuePairs;
             if (saver != null)
                 return saver.GetSummaryInKeyValuePairs(schema);
 
@@ -216,14 +209,14 @@ namespace Microsoft.ML.Internal.Calibration
 
         private protected void SaveCore(ModelSaveContext ctx)
         {
-            ctx.SaveModel(SubPredictor, ModelFileUtils.DirPredictor);
+            ctx.SaveModel(SubModelParameters, ModelFileUtils.DirPredictor);
             ctx.SaveModel(Calibrator, @"Calibrator");
         }
 
-        private protected static TSubPredictor GetPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private protected static TSubModelParameters GetPredictor(IHostEnvironment env, ModelLoadContext ctx)
         {
-            TSubPredictor predictor;
-            ctx.LoadModel<TSubPredictor, SignatureLoadModel>(env, out predictor, ModelFileUtils.DirPredictor);
+            TSubModelParameters predictor;
+            ctx.LoadModel<TSubModelParameters, SignatureLoadModel>(env, out predictor, ModelFileUtils.DirPredictor);
             return predictor;
         }
 
@@ -235,7 +228,7 @@ namespace Microsoft.ML.Internal.Calibration
         }
     }
 
-    public abstract class ValueMapperCalibratedPredictorBase<TSubPredictor,TCalibrator> :
+    internal abstract class ValueMapperCalibratedPredictorBase<TSubPredictor,TCalibrator> :
         CalibratedPredictorBase<TSubPredictor,TCalibrator>,
         IValueMapperDist, IFeatureContributionMapper, ICalculateFeatureContribution,
         IDistCanSavePfa, IDistCanSaveOnnx
@@ -259,7 +252,7 @@ namespace Microsoft.ML.Internal.Calibration
         {
             Contracts.AssertValue(Host);
 
-            _mapper = SubPredictor as IValueMapper;
+            _mapper = SubModelParameters as IValueMapper;
             Host.Check(_mapper != null, "The predictor does not implement IValueMapper");
             Host.Check(_mapper.OutputType == NumberType.Float, "The output type of the predictor is expected to be float");
 
@@ -440,8 +433,8 @@ namespace Microsoft.ML.Internal.Calibration
         private FeatureWeightsCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
         {
-            Host.Check(SubPredictor is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
-            _featureWeights = (IPredictorWithFeatureWeights<float>)SubPredictor;
+            Host.Check(SubModelParameters is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
+            _featureWeights = (IPredictorWithFeatureWeights<float>)SubModelParameters;
         }
 
         private static FeatureWeightsCalibratedPredictor<TSubPredictor,TCalibrator> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -470,7 +463,7 @@ namespace Microsoft.ML.Internal.Calibration
     /// Encapsulates a predictor and a calibrator that implement <see cref="IParameterMixer"/>.
     /// Its implementation of <see cref="IParameterMixer.CombineParameters"/> combines both the predictors and the calibrators.
     /// </summary>
-    public sealed class ParameterMixingCalibratedPredictor<TSubPredictor,TCalibrator> :
+    internal sealed class ParameterMixingCalibratedPredictor<TSubPredictor,TCalibrator> :
         ValueMapperCalibratedPredictorBase<TSubPredictor,TCalibrator>,
         IParameterMixer<float>,
         IPredictorWithFeatureWeights<float>,
@@ -505,9 +498,9 @@ namespace Microsoft.ML.Internal.Calibration
         private ParameterMixingCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, GetPredictor(env, ctx), GetCalibrator(env, ctx))
         {
-            Host.Check(SubPredictor is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
-            Host.Check(SubPredictor is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
-            _featureWeights = SubPredictor;
+            Host.Check(SubModelParameters is IParameterMixer<float>, "Predictor does not implement " + nameof(IParameterMixer));
+            Host.Check(SubModelParameters is IPredictorWithFeatureWeights<float>, "Predictor does not implement " + nameof(IPredictorWithFeatureWeights<float>));
+            _featureWeights = SubModelParameters;
         }
 
         private static ParameterMixingCalibratedPredictor<TSubPredictor,TCalibrator> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -538,7 +531,7 @@ namespace Microsoft.ML.Internal.Calibration
                 {
                     var model = m as ParameterMixingCalibratedPredictor<TSubPredictor,TCalibrator>;
                     Contracts.Assert(model != null);
-                    return (IParameterMixer<float>)model.SubPredictor;
+                    return (IParameterMixer<float>)model.SubModelParameters;
                 }).ToArray();
             var calibrators = models.Select(
                 m =>
@@ -670,15 +663,15 @@ namespace Microsoft.ML.Internal.Calibration
         internal SchemaBindableCalibratedPredictor(IHostEnvironment env, TSubPredictor predictor, TCalibrator calibrator)
             : base(env, LoaderSignature, predictor, calibrator)
         {
-            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
-            _featureContribution = SubPredictor as IFeatureContributionMapper;
+            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubModelParameters);
+            _featureContribution = SubModelParameters as IFeatureContributionMapper;
         }
 
         private SchemaBindableCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, GetPredictor(env, ctx), GetCalibrator(env, ctx))
         {
-            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
-            _featureContribution = SubPredictor as IFeatureContributionMapper;
+            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubModelParameters);
+            _featureContribution = SubModelParameters as IFeatureContributionMapper;
         }
 
         private static SchemaBindableCalibratedPredictor<TSubPredictor,TCalibrator> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -916,7 +909,7 @@ namespace Microsoft.ML.Internal.Calibration
                 var p = predictor as CalibratedPredictorBase<TSubPredictor,TCalibrator>;
                 if (p == null)
                     break;
-                predictor = p.SubPredictor;
+                predictor = p.SubModelParameters;
             }
 
             var predWithFeatureScores = predictor as IPredictorWithFeatureWeights<float>;

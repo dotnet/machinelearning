@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var initPredictor = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent().Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
-            var withInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData, initialPredictor: initPredictor.Model as CalibratedPredictorBase<LinearBinaryModelParameters,PlattCalibrator>);
+            var withInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData, initialPredictor: initPredictor.Model as CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>);
             var outInitData = withInitPredictor.Transform(transformedData);
 
             var notInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData);

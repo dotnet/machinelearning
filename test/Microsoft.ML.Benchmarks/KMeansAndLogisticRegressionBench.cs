@@ -17,7 +17,7 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _dataPath = BaseTestClass.GetDataPath("adult.tiny.with-schema.txt");
 
         [Benchmark]
-        public ParameterMixingCalibratedPredictor<LinearBinaryModelParameters,PlattCalibrator> TrainKMeansAndLR()
+        public CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> TrainKMeansAndLR()
         {
             var ml = new MLContext(seed: 1);
             // Pipeline
