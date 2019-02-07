@@ -25,218 +25,179 @@ namespace mlnet.Templates
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("using System;\r\nusing System.IO;\r\nusing System.IO.Compression;\r\nusing System.Linq;" +
-                    "\r\nusing Microsoft.ML.Core.Data;\r\nusing System.Collections.Generic;\r\nusing Micros" +
-                    "oft.ML.Data;\r\nusing Microsoft.ML;\r\n\r\nusing System.Reflection;\r\n\r\nnamespace Mlnet" +
-                    "Sample\r\n{\r\n    public static class ConsoleHelper\r\n    {\r\n        public static v" +
-                    "oid PrintPrediction(string prediction)\r\n        {\r\n            Console.WriteLine" +
-                    "($\"*************************************************\");\r\n            Console.Wri" +
-                    "teLine($\"Predicted : {prediction}\");\r\n            Console.WriteLine($\"**********" +
-                    "***************************************\");\r\n        }\r\n\r\n        public static v" +
-                    "oid PrintRegressionPredictionVersusObserved(string predictionCount, string obser" +
-                    "vedCount)\r\n        {\r\n            Console.WriteLine($\"--------------------------" +
-                    "-----------------------\");\r\n            Console.WriteLine($\"Predicted : {predict" +
-                    "ionCount}\");\r\n            Console.WriteLine($\"Actual:     {observedCount}\");\r\n  " +
-                    "          Console.WriteLine($\"-------------------------------------------------\"" +
-                    ");\r\n        }\r\n\r\n        //(CDLTLL-Pending to Fix - Results --> ?)\r\n        //\r\n" +
-                    "        public static void PrintRegressionMetrics(string name, RegressionMetrics" +
-                    " metrics)\r\n        {\r\n            Console.WriteLine($\"**************************" +
-                    "***********************\");\r\n            Console.WriteLine($\"*       Metrics for " +
-                    "{name} regression model      \");\r\n            Console.WriteLine($\"*-------------" +
-                    "-----------------------------------\");\r\n            Console.WriteLine($\"*       " +
-                    "LossFn:        {metrics.LossFn:0.##}\");\r\n            Console.WriteLine($\"*      " +
-                    " R2 Score:      {metrics.RSquared:0.##}\");\r\n            Console.WriteLine($\"*   " +
-                    "    Absolute loss: {metrics.L1:#.##}\");\r\n            Console.WriteLine($\"*      " +
-                    " Squared loss:  {metrics.L2:#.##}\");\r\n            Console.WriteLine($\"*       RM" +
-                    "S loss:      {metrics.Rms:#.##}\");\r\n            Console.WriteLine($\"************" +
-                    "*************************************\");\r\n        }\r\n\r\n        public static voi" +
-                    "d PrintBinaryClassificationMetrics(string name, CalibratedBinaryClassificationMe" +
-                    "trics metrics)\r\n        {\r\n            Console.WriteLine($\"*********************" +
-                    "***************************************\");\r\n            Console.WriteLine($\"*   " +
-                    "    Metrics for {name} binary classification model      \");\r\n            Console" +
-                    ".WriteLine($\"*-----------------------------------------------------------\");\r\n  " +
-                    "          Console.WriteLine($\"*       Accuracy: {metrics.Accuracy:P2}\");\r\n      " +
-                    "      Console.WriteLine($\"*       Auc:      {metrics.Auc:P2}\");\r\n            Con" +
-                    "sole.WriteLine($\"*       Auprc:  {metrics.Auprc:P2}\");\r\n            Console.Writ" +
-                    "eLine($\"*       F1Score:  {metrics.F1Score:P2}\");\r\n            Console.WriteLine" +
-                    "($\"*       LogLoss:  {metrics.LogLoss:#.##}\");\r\n            Console.WriteLine($\"" +
-                    "*       LogLossReduction:  {metrics.LogLossReduction:#.##}\");\r\n            Conso" +
-                    "le.WriteLine($\"*       PositivePrecision:  {metrics.PositivePrecision:#.##}\");\r\n" +
-                    "            Console.WriteLine($\"*       PositiveRecall:  {metrics.PositiveRecall" +
-                    ":#.##}\");\r\n            Console.WriteLine($\"*       NegativePrecision:  {metrics." +
-                    "NegativePrecision:#.##}\");\r\n            Console.WriteLine($\"*       NegativeReca" +
-                    "ll:  {metrics.NegativeRecall:P2}\");\r\n            Console.WriteLine($\"***********" +
-                    "*************************************************\");\r\n        }\r\n\r\n        publi" +
-                    "c static void PrintMultiClassClassificationMetrics(string name, MultiClassClassi" +
-                    "fierMetrics metrics)\r\n        {\r\n            Console.WriteLine($\"***************" +
-                    "*********************************************\");\r\n            Console.WriteLine(" +
-                    "$\"*    Metrics for {name} multi-class classification model   \");\r\n            Co" +
-                    "nsole.WriteLine($\"*-----------------------------------------------------------\")" +
-                    ";\r\n            Console.WriteLine($\"    AccuracyMacro = {metrics.AccuracyMacro:0." +
-                    "####}, a value between 0 and 1, the closer to 1, the better\");\r\n            Cons" +
-                    "ole.WriteLine($\"    AccuracyMicro = {metrics.AccuracyMicro:0.####}, a value betw" +
-                    "een 0 and 1, the closer to 1, the better\");\r\n            Console.WriteLine($\"   " +
-                    " LogLoss = {metrics.LogLoss:0.####}, the closer to 0, the better\");\r\n           " +
-                    " Console.WriteLine($\"    LogLoss for class 1 = {metrics.PerClassLogLoss[0]:0.###" +
-                    "#}, the closer to 0, the better\");\r\n            Console.WriteLine($\"    LogLoss " +
-                    "for class 2 = {metrics.PerClassLogLoss[1]:0.####}, the closer to 0, the better\")" +
-                    ";\r\n            Console.WriteLine($\"    LogLoss for class 3 = {metrics.PerClassLo" +
-                    "gLoss[2]:0.####}, the closer to 0, the better\");\r\n            Console.WriteLine(" +
-                    "$\"************************************************************\");\r\n        }\r\n\r\n" +
-                    "        //(CDLTLL-Pending to Fix - Results --> ?)\r\n\r\n        public static void " +
-                    "PrintRegressionFoldsAverageMetrics(string algorithmName,\r\n                      " +
-                    "                                        (RegressionMetrics metrics,\r\n           " +
-                    "                                                    ITransformer model,\r\n       " +
-                    "                                                        IDataView scoredTestData" +
-                    ")[] crossValidationResults\r\n                                                    " +
-                    "         )\r\n        {\r\n            var L1 = crossValidationResults.Select(r => r" +
-                    ".metrics.L1);\r\n            var L2 = crossValidationResults.Select(r => r.metrics" +
-                    ".L2);\r\n            var RMS = crossValidationResults.Select(r => r.metrics.L1);\r\n" +
-                    "            var lossFunction = crossValidationResults.Select(r => r.metrics.Loss" +
-                    "Fn);\r\n            var R2 = crossValidationResults.Select(r => r.metrics.RSquared" +
-                    ");\r\n\r\n            Console.WriteLine($\"******************************************" +
-                    "*******************************************************************\");\r\n        " +
-                    "    Console.WriteLine($\"*       Metrics for {algorithmName} Regression model    " +
-                    "  \");\r\n            Console.WriteLine($\"*----------------------------------------" +
-                    "--------------------------------------------------------------------\");\r\n       " +
-                    "     Console.WriteLine($\"*       Average L1 Loss:    {L1.Average():0.###} \");\r\n " +
-                    "           Console.WriteLine($\"*       Average L2 Loss:    {L2.Average():0.###} " +
-                    " \");\r\n            Console.WriteLine($\"*       Average RMS:          {RMS.Average" +
-                    "():0.###}  \");\r\n            Console.WriteLine($\"*       Average Loss Function: {" +
-                    "lossFunction.Average():0.###}  \");\r\n            Console.WriteLine($\"*       Aver" +
-                    "age R-squared: {R2.Average():0.###}  \");\r\n            Console.WriteLine($\"******" +
+            this.Write("using System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Micro" +
+                    "soft.Data.DataView;\r\nusing Microsoft.ML.Core.Data;\r\nusing Microsoft.ML.Data;\r\n\r\n" +
+                    "namespace MlnetSample\r\n{\r\n    public static class ConsoleHelper\r\n    {\r\n        " +
+                    "public static void PrintPrediction(string prediction)\r\n        {\r\n            Co" +
+                    "nsole.WriteLine($\"*************************************************\");\r\n        " +
+                    "    Console.WriteLine($\"Predicted : {prediction}\");\r\n            Console.WriteLi" +
+                    "ne($\"*************************************************\");\r\n        }\r\n\r\n        " +
+                    "public static void PrintRegressionPredictionVersusObserved(string predictionCoun" +
+                    "t, string observedCount)\r\n        {\r\n            Console.WriteLine($\"-----------" +
+                    "--------------------------------------\");\r\n            Console.WriteLine($\"Predi" +
+                    "cted : {predictionCount}\");\r\n            Console.WriteLine($\"Actual:     {observ" +
+                    "edCount}\");\r\n            Console.WriteLine($\"-----------------------------------" +
+                    "--------------\");\r\n        }\r\n\r\n        //(CDLTLL-Pending to Fix - Results --> ?" +
+                    ")\r\n        //\r\n        public static void PrintRegressionMetrics(string name, Re" +
+                    "gressionMetrics metrics)\r\n        {\r\n            Console.WriteLine($\"***********" +
+                    "**************************************\");\r\n            Console.WriteLine($\"*    " +
+                    "   Metrics for {name} regression model      \");\r\n            Console.WriteLine($" +
+                    "\"*------------------------------------------------\");\r\n            Console.Write" +
+                    "Line($\"*       LossFn:        {metrics.LossFn:0.##}\");\r\n            Console.Writ" +
+                    "eLine($\"*       R2 Score:      {metrics.RSquared:0.##}\");\r\n            Console.W" +
+                    "riteLine($\"*       Absolute loss: {metrics.L1:#.##}\");\r\n            Console.Writ" +
+                    "eLine($\"*       Squared loss:  {metrics.L2:#.##}\");\r\n            Console.WriteLi" +
+                    "ne($\"*       RMS loss:      {metrics.Rms:#.##}\");\r\n            Console.WriteLine" +
+                    "($\"*************************************************\");\r\n        }\r\n\r\n        pu" +
+                    "blic static void PrintBinaryClassificationMetrics(string name, CalibratedBinaryC" +
+                    "lassificationMetrics metrics)\r\n        {\r\n            Console.WriteLine($\"******" +
+                    "******************************************************\");\r\n            Console.W" +
+                    "riteLine($\"*       Metrics for {name} binary classification model      \");\r\n    " +
+                    "        Console.WriteLine($\"*---------------------------------------------------" +
+                    "--------\");\r\n            Console.WriteLine($\"*       Accuracy: {metrics.Accuracy" +
+                    ":P2}\");\r\n            Console.WriteLine($\"*       Auc:      {metrics.Auc:P2}\");\r\n" +
+                    "            Console.WriteLine($\"*       Auprc:  {metrics.Auprc:P2}\");\r\n         " +
+                    "   Console.WriteLine($\"*       F1Score:  {metrics.F1Score:P2}\");\r\n            Co" +
+                    "nsole.WriteLine($\"*       LogLoss:  {metrics.LogLoss:#.##}\");\r\n            Conso" +
+                    "le.WriteLine($\"*       LogLossReduction:  {metrics.LogLossReduction:#.##}\");\r\n  " +
+                    "          Console.WriteLine($\"*       PositivePrecision:  {metrics.PositivePreci" +
+                    "sion:#.##}\");\r\n            Console.WriteLine($\"*       PositiveRecall:  {metrics" +
+                    ".PositiveRecall:#.##}\");\r\n            Console.WriteLine($\"*       NegativePrecis" +
+                    "ion:  {metrics.NegativePrecision:#.##}\");\r\n            Console.WriteLine($\"*    " +
+                    "   NegativeRecall:  {metrics.NegativeRecall:P2}\");\r\n            Console.WriteLin" +
+                    "e($\"************************************************************\");\r\n        }\r\n" +
+                    "\r\n        public static void PrintMultiClassClassificationMetrics(string name, M" +
+                    "ultiClassClassifierMetrics metrics)\r\n        {\r\n            Console.WriteLine($\"" +
+                    "************************************************************\");\r\n            Con" +
+                    "sole.WriteLine($\"*    Metrics for {name} multi-class classification model   \");\r" +
+                    "\n            Console.WriteLine($\"*----------------------------------------------" +
+                    "-------------\");\r\n            Console.WriteLine($\"    AccuracyMacro = {metrics.A" +
+                    "ccuracyMacro:0.####}, a value between 0 and 1, the closer to 1, the better\");\r\n " +
+                    "           Console.WriteLine($\"    AccuracyMicro = {metrics.AccuracyMicro:0.####" +
+                    "}, a value between 0 and 1, the closer to 1, the better\");\r\n            Console." +
+                    "WriteLine($\"    LogLoss = {metrics.LogLoss:0.####}, the closer to 0, the better\"" +
+                    ");\r\n            Console.WriteLine($\"    LogLoss for class 1 = {metrics.PerClassL" +
+                    "ogLoss[0]:0.####}, the closer to 0, the better\");\r\n            Console.WriteLine" +
+                    "($\"    LogLoss for class 2 = {metrics.PerClassLogLoss[1]:0.####}, the closer to " +
+                    "0, the better\");\r\n            Console.WriteLine($\"    LogLoss for class 3 = {met" +
+                    "rics.PerClassLogLoss[2]:0.####}, the closer to 0, the better\");\r\n            Con" +
+                    "sole.WriteLine($\"************************************************************\");" +
+                    "\r\n        }\r\n\r\n        //(CDLTLL-Pending to Fix - Results --> ?)\r\n\r\n        publ" +
+                    "ic static void PrintRegressionFoldsAverageMetrics(string algorithmName,\r\n       " +
+                    "                                                       (RegressionMetrics metric" +
+                    "s,\r\n                                                               ITransformer " +
+                    "model,\r\n                                                               IDataView" +
+                    " scoredTestData)[] crossValidationResults\r\n                                     " +
+                    "                        )\r\n        {\r\n            var L1 = crossValidationResult" +
+                    "s.Select(r => r.metrics.L1);\r\n            var L2 = crossValidationResults.Select" +
+                    "(r => r.metrics.L2);\r\n            var RMS = crossValidationResults.Select(r => r" +
+                    ".metrics.L1);\r\n            var lossFunction = crossValidationResults.Select(r =>" +
+                    " r.metrics.LossFn);\r\n            var R2 = crossValidationResults.Select(r => r.m" +
+                    "etrics.RSquared);\r\n\r\n            Console.WriteLine($\"***************************" +
                     "********************************************************************************" +
-                    "***********************\");\r\n        }\r\n\r\n        public static void PrintMulticl" +
-                    "assClassificationFoldsAverageMetrics(\r\n                                         " +
-                    "string algorithmName,\r\n                                         (MultiClassClass" +
-                    "ifierMetrics metrics,\r\n                                          ITransformer mo" +
-                    "del,\r\n                                          IDataView scoredTestData)[] cros" +
-                    "sValResults\r\n                                                                   " +
-                    "        )\r\n        {\r\n            var metricsInMultipleFolds = crossValResults.S" +
-                    "elect(r => r.metrics);\r\n\r\n            var microAccuracyValues = metricsInMultipl" +
-                    "eFolds.Select(m => m.AccuracyMicro);\r\n            var microAccuracyAverage = mic" +
-                    "roAccuracyValues.Average();\r\n            var microAccuraciesStdDeviation = Calcu" +
-                    "lateStandardDeviation(microAccuracyValues);\r\n            var microAccuraciesConf" +
-                    "idenceInterval95 = CalculateConfidenceInterval95(microAccuracyValues);\r\n\r\n      " +
-                    "      var macroAccuracyValues = metricsInMultipleFolds.Select(m => m.AccuracyMac" +
-                    "ro);\r\n            var macroAccuracyAverage = macroAccuracyValues.Average();\r\n   " +
-                    "         var macroAccuraciesStdDeviation = CalculateStandardDeviation(macroAccur" +
-                    "acyValues);\r\n            var macroAccuraciesConfidenceInterval95 = CalculateConf" +
-                    "idenceInterval95(macroAccuracyValues);\r\n\r\n            var logLossValues = metric" +
-                    "sInMultipleFolds.Select(m => m.LogLoss);\r\n            var logLossAverage = logLo" +
-                    "ssValues.Average();\r\n            var logLossStdDeviation = CalculateStandardDevi" +
-                    "ation(logLossValues);\r\n            var logLossConfidenceInterval95 = CalculateCo" +
-                    "nfidenceInterval95(logLossValues);\r\n\r\n            var logLossReductionValues = m" +
-                    "etricsInMultipleFolds.Select(m => m.LogLossReduction);\r\n            var logLossR" +
-                    "eductionAverage = logLossReductionValues.Average();\r\n            var logLossRedu" +
-                    "ctionStdDeviation = CalculateStandardDeviation(logLossReductionValues);\r\n       " +
-                    "     var logLossReductionConfidenceInterval95 = CalculateConfidenceInterval95(lo" +
-                    "gLossReductionValues);\r\n\r\n            Console.WriteLine($\"**********************" +
-                    "********************************************************************************" +
-                    "*******\");\r\n            Console.WriteLine($\"*       Metrics for {algorithmName} " +
-                    "Multi-class Classification model      \");\r\n            Console.WriteLine($\"*----" +
+                    "**\");\r\n            Console.WriteLine($\"*       Metrics for {algorithmName} Regre" +
+                    "ssion model      \");\r\n            Console.WriteLine($\"*-------------------------" +
                     "--------------------------------------------------------------------------------" +
-                    "------------------------\");\r\n            Console.WriteLine($\"*       Average Mic" +
-                    "roAccuracy:    {microAccuracyAverage:0.###}  - Standard deviation: ({microAccura" +
-                    "ciesStdDeviation:#.###})  - Confidence Interval 95%: ({microAccuraciesConfidence" +
-                    "Interval95:#.###})\");\r\n            Console.WriteLine($\"*       Average MacroAccu" +
-                    "racy:    {macroAccuracyAverage:0.###}  - Standard deviation: ({macroAccuraciesSt" +
-                    "dDeviation:#.###})  - Confidence Interval 95%: ({macroAccuraciesConfidenceInterv" +
-                    "al95:#.###})\");\r\n            Console.WriteLine($\"*       Average LogLoss:       " +
-                    "   {logLossAverage:#.###}  - Standard deviation: ({logLossStdDeviation:#.###})  " +
-                    "- Confidence Interval 95%: ({logLossConfidenceInterval95:#.###})\");\r\n           " +
-                    " Console.WriteLine($\"*       Average LogLossReduction: {logLossReductionAverage:" +
-                    "#.###}  - Standard deviation: ({logLossReductionStdDeviation:#.###})  - Confiden" +
-                    "ce Interval 95%: ({logLossReductionConfidenceInterval95:#.###})\");\r\n            " +
-                    "Console.WriteLine($\"************************************************************" +
-                    "*************************************************\");\r\n\r\n        }\r\n\r\n        pub" +
-                    "lic static double CalculateStandardDeviation(IEnumerable<double> values)\r\n      " +
-                    "  {\r\n            double average = values.Average();\r\n            double sumOfSqu" +
-                    "aresOfDifferences = values.Select(val => (val - average) * (val - average)).Sum(" +
-                    ");\r\n            double standardDeviation = Math.Sqrt(sumOfSquaresOfDifferences /" +
-                    " (values.Count() - 1));\r\n            return standardDeviation;\r\n        }\r\n\r\n   " +
-                    "     public static double CalculateConfidenceInterval95(IEnumerable<double> valu" +
-                    "es)\r\n        {\r\n            double confidenceInterval95 = 1.96 * CalculateStanda" +
-                    "rdDeviation(values) / Math.Sqrt((values.Count() - 1));\r\n            return confi" +
-                    "denceInterval95;\r\n        }\r\n\r\n        public static void PrintClusteringMetrics" +
-                    "(string name, ClusteringMetrics metrics)\r\n        {\r\n            Console.WriteLi" +
-                    "ne($\"*************************************************\");\r\n            Console.W" +
-                    "riteLine($\"*       Metrics for {name} clustering model      \");\r\n            Con" +
-                    "sole.WriteLine($\"*------------------------------------------------\");\r\n         " +
-                    "   Console.WriteLine($\"*       AvgMinScore: {metrics.AvgMinScore}\");\r\n          " +
-                    "  Console.WriteLine($\"*       DBI is: {metrics.Dbi}\");\r\n            Console.Writ" +
-                    "eLine($\"*************************************************\");\r\n        }\r\n\r\n     " +
-                    "   public static List<TObservation> PeekDataViewInConsole<TObservation>(MLContex" +
-                    "t mlContext, IDataView dataView, IEstimator<ITransformer> pipeline, int numberOf" +
-                    "Rows = 4)\r\n            where TObservation : class, new()\r\n        {\r\n           " +
-                    " string msg = string.Format(\"Peek data in DataView: Showing {0} rows with the co" +
-                    "lumns specified by TObservation class\", numberOfRows.ToString());\r\n            C" +
-                    "onsoleWriteHeader(msg);\r\n\r\n            //https://github.com/dotnet/machinelearni" +
-                    "ng/blob/master/docs/code/MlNetCookBook.md#how-do-i-look-at-the-intermediate-data" +
-                    "\r\n            var transformer = pipeline.Fit(dataView);\r\n            var transfo" +
-                    "rmedData = transformer.Transform(dataView);\r\n\r\n            // \'transformedData\' " +
-                    "is a \'promise\' of data, lazy-loading. Let\'s actually read it.\r\n            // Co" +
-                    "nvert to an enumerable of user-defined type.\r\n            var someRows = transfo" +
-                    "rmedData.AsEnumerable<TObservation>(mlContext, reuseRowObject: false)\r\n         " +
-                    "                                  // Take the specified number of rows\r\n        " +
-                    "                                   .Take(numberOfRows)\r\n                        " +
-                    "                   // Convert to List\r\n                                         " +
-                    "  .ToList();\r\n\r\n            someRows.ForEach(row =>\r\n            {\r\n            " +
-                    "    string lineToPrint = \"Row--> \";\r\n\r\n                var fieldsInRow = row.Get" +
-                    "Type().GetFields(BindingFlags.Instance |\r\n                                      " +
-                    "                    BindingFlags.Static |\r\n                                     " +
-                    "                     BindingFlags.NonPublic |\r\n                                 " +
-                    "                         BindingFlags.Public);\r\n                foreach (FieldIn" +
-                    "fo field in fieldsInRow)\r\n                {\r\n                    lineToPrint += " +
-                    "$\"| {field.Name}: {field.GetValue(row)}\";\r\n                }\r\n                Co" +
-                    "nsole.WriteLine(lineToPrint);\r\n            });\r\n\r\n            return someRows;\r\n" +
-                    "        }\r\n\r\n        public static List<float[]> PeekVectorColumnDataInConsole(M" +
-                    "LContext mlContext, string columnName, IDataView dataView, IEstimator<ITransform" +
-                    "er> pipeline, int numberOfRows = 4)\r\n        {\r\n            string msg = string." +
-                    "Format(\"Peek data in DataView: : Show {0} rows with just the \'{1}\' column\", numb" +
-                    "erOfRows, columnName);\r\n            ConsoleWriteHeader(msg);\r\n\r\n            var " +
-                    "transformer = pipeline.Fit(dataView);\r\n            var transformedData = transfo" +
-                    "rmer.Transform(dataView);\r\n\r\n            // Extract the \'Features\' column.\r\n    " +
-                    "        var someColumnData = transformedData.GetColumn<float[]>(mlContext, colum" +
-                    "nName)\r\n                                                        .Take(numberOfRo" +
-                    "ws).ToList();\r\n\r\n            // print to console the peeked rows\r\n            so" +
-                    "meColumnData.ForEach(row =>\r\n            {\r\n                String concatColumn " +
-                    "= String.Empty;\r\n                foreach (float f in row)\r\n                {\r\n  " +
-                    "                  concatColumn += f.ToString();\r\n                }\r\n            " +
-                    "    Console.WriteLine(concatColumn);\r\n            });\r\n\r\n            return some" +
-                    "ColumnData;\r\n        }\r\n\r\n        public static void ConsoleWriteHeader(params s" +
-                    "tring[] lines)\r\n        {\r\n            var defaultColor = Console.ForegroundColo" +
-                    "r;\r\n            Console.ForegroundColor = ConsoleColor.Yellow;\r\n            Cons" +
-                    "ole.WriteLine(\" \");\r\n            foreach (var line in lines)\r\n            {\r\n   " +
-                    "             Console.WriteLine(line);\r\n            }\r\n            var maxLength " +
-                    "= lines.Select(x => x.Length).Max();\r\n            Console.WriteLine(new string(\'" +
-                    "#\', maxLength));\r\n            Console.ForegroundColor = defaultColor;\r\n        }" +
-                    "\r\n\r\n        public static void ConsoleWriterSection(params string[] lines)\r\n    " +
-                    "    {\r\n            var defaultColor = Console.ForegroundColor;\r\n            Cons" +
-                    "ole.ForegroundColor = ConsoleColor.Blue;\r\n            Console.WriteLine(\" \");\r\n " +
-                    "           foreach (var line in lines)\r\n            {\r\n                Console.W" +
-                    "riteLine(line);\r\n            }\r\n            var maxLength = lines.Select(x => x." +
-                    "Length).Max();\r\n            Console.WriteLine(new string(\'-\', maxLength));\r\n    " +
-                    "        Console.ForegroundColor = defaultColor;\r\n        }\r\n\r\n        public sta" +
-                    "tic void ConsolePressAnyKey()\r\n        {\r\n            var defaultColor = Console" +
-                    ".ForegroundColor;\r\n            Console.ForegroundColor = ConsoleColor.Green;\r\n  " +
-                    "          Console.WriteLine(\" \");\r\n            Console.WriteLine(\"Press any key " +
-                    "to finish.\");\r\n            Console.ReadKey();\r\n        }\r\n\r\n        public stati" +
-                    "c void ConsoleWriteException(params string[] lines)\r\n        {\r\n            var " +
-                    "defaultColor = Console.ForegroundColor;\r\n            Console.ForegroundColor = C" +
-                    "onsoleColor.Red;\r\n            const string exceptionTitle = \"EXCEPTION\";\r\n      " +
-                    "      Console.WriteLine(\" \");\r\n            Console.WriteLine(exceptionTitle);\r\n " +
-                    "           Console.WriteLine(new string(\'#\', exceptionTitle.Length));\r\n         " +
-                    "   Console.ForegroundColor = defaultColor;\r\n            foreach (var line in lin" +
-                    "es)\r\n            {\r\n                Console.WriteLine(line);\r\n            }\r\n   " +
-                    "     }\r\n\r\n        public static void ConsoleWriteWarning(params string[] lines)\r" +
-                    "\n        {\r\n            var defaultColor = Console.ForegroundColor;\r\n           " +
-                    " Console.ForegroundColor = ConsoleColor.DarkMagenta;\r\n            const string w" +
-                    "arningTitle = \"WARNING\";\r\n            Console.WriteLine(\" \");\r\n            Conso" +
-                    "le.WriteLine(warningTitle);\r\n            Console.WriteLine(new string(\'#\', warni" +
-                    "ngTitle.Length));\r\n            Console.ForegroundColor = defaultColor;\r\n        " +
-                    "    foreach (var line in lines)\r\n            {\r\n                Console.WriteLin" +
-                    "e(line);\r\n            }\r\n        }\r\n\r\n    }\r\n}");
+                    "---\");\r\n            Console.WriteLine($\"*       Average L1 Loss:    {L1.Average(" +
+                    "):0.###} \");\r\n            Console.WriteLine($\"*       Average L2 Loss:    {L2.Av" +
+                    "erage():0.###}  \");\r\n            Console.WriteLine($\"*       Average RMS:       " +
+                    "   {RMS.Average():0.###}  \");\r\n            Console.WriteLine($\"*       Average L" +
+                    "oss Function: {lossFunction.Average():0.###}  \");\r\n            Console.WriteLine" +
+                    "($\"*       Average R-squared: {R2.Average():0.###}  \");\r\n            Console.Wri" +
+                    "teLine($\"***********************************************************************" +
+                    "**************************************\");\r\n        }\r\n\r\n        public static vo" +
+                    "id PrintMulticlassClassificationFoldsAverageMetrics(\r\n                          " +
+                    "               string algorithmName,\r\n                                         (" +
+                    "MultiClassClassifierMetrics metrics,\r\n                                          " +
+                    "ITransformer model,\r\n                                          IDataView scoredT" +
+                    "estData)[] crossValResults\r\n                                                    " +
+                    "                       )\r\n        {\r\n            var metricsInMultipleFolds = cr" +
+                    "ossValResults.Select(r => r.metrics);\r\n\r\n            var microAccuracyValues = m" +
+                    "etricsInMultipleFolds.Select(m => m.AccuracyMicro);\r\n            var microAccura" +
+                    "cyAverage = microAccuracyValues.Average();\r\n            var microAccuraciesStdDe" +
+                    "viation = CalculateStandardDeviation(microAccuracyValues);\r\n            var micr" +
+                    "oAccuraciesConfidenceInterval95 = CalculateConfidenceInterval95(microAccuracyVal" +
+                    "ues);\r\n\r\n            var macroAccuracyValues = metricsInMultipleFolds.Select(m =" +
+                    "> m.AccuracyMacro);\r\n            var macroAccuracyAverage = macroAccuracyValues." +
+                    "Average();\r\n            var macroAccuraciesStdDeviation = CalculateStandardDevia" +
+                    "tion(macroAccuracyValues);\r\n            var macroAccuraciesConfidenceInterval95 " +
+                    "= CalculateConfidenceInterval95(macroAccuracyValues);\r\n\r\n            var logLoss" +
+                    "Values = metricsInMultipleFolds.Select(m => m.LogLoss);\r\n            var logLoss" +
+                    "Average = logLossValues.Average();\r\n            var logLossStdDeviation = Calcul" +
+                    "ateStandardDeviation(logLossValues);\r\n            var logLossConfidenceInterval9" +
+                    "5 = CalculateConfidenceInterval95(logLossValues);\r\n\r\n            var logLossRedu" +
+                    "ctionValues = metricsInMultipleFolds.Select(m => m.LogLossReduction);\r\n         " +
+                    "   var logLossReductionAverage = logLossReductionValues.Average();\r\n            " +
+                    "var logLossReductionStdDeviation = CalculateStandardDeviation(logLossReductionVa" +
+                    "lues);\r\n            var logLossReductionConfidenceInterval95 = CalculateConfiden" +
+                    "ceInterval95(logLossReductionValues);\r\n\r\n            Console.WriteLine($\"*******" +
+                    "********************************************************************************" +
+                    "**********************\");\r\n            Console.WriteLine($\"*       Metrics for {" +
+                    "algorithmName} Multi-class Classification model      \");\r\n            Console.Wr" +
+                    "iteLine($\"*---------------------------------------------------------------------" +
+                    "---------------------------------------\");\r\n            Console.WriteLine($\"*   " +
+                    "    Average MicroAccuracy:    {microAccuracyAverage:0.###}  - Standard deviation" +
+                    ": ({microAccuraciesStdDeviation:#.###})  - Confidence Interval 95%: ({microAccur" +
+                    "aciesConfidenceInterval95:#.###})\");\r\n            Console.WriteLine($\"*       Av" +
+                    "erage MacroAccuracy:    {macroAccuracyAverage:0.###}  - Standard deviation: ({ma" +
+                    "croAccuraciesStdDeviation:#.###})  - Confidence Interval 95%: ({macroAccuraciesC" +
+                    "onfidenceInterval95:#.###})\");\r\n            Console.WriteLine($\"*       Average " +
+                    "LogLoss:          {logLossAverage:#.###}  - Standard deviation: ({logLossStdDevi" +
+                    "ation:#.###})  - Confidence Interval 95%: ({logLossConfidenceInterval95:#.###})\"" +
+                    ");\r\n            Console.WriteLine($\"*       Average LogLossReduction: {logLossRe" +
+                    "ductionAverage:#.###}  - Standard deviation: ({logLossReductionStdDeviation:#.##" +
+                    "#})  - Confidence Interval 95%: ({logLossReductionConfidenceInterval95:#.###})\")" +
+                    ";\r\n            Console.WriteLine($\"*********************************************" +
+                    "****************************************************************\");\r\n\r\n        }" +
+                    "\r\n\r\n        public static double CalculateStandardDeviation(IEnumerable<double> " +
+                    "values)\r\n        {\r\n            double average = values.Average();\r\n            " +
+                    "double sumOfSquaresOfDifferences = values.Select(val => (val - average) * (val -" +
+                    " average)).Sum();\r\n            double standardDeviation = Math.Sqrt(sumOfSquares" +
+                    "OfDifferences / (values.Count() - 1));\r\n            return standardDeviation;\r\n " +
+                    "       }\r\n\r\n        public static double CalculateConfidenceInterval95(IEnumerab" +
+                    "le<double> values)\r\n        {\r\n            double confidenceInterval95 = 1.96 * " +
+                    "CalculateStandardDeviation(values) / Math.Sqrt((values.Count() - 1));\r\n         " +
+                    "   return confidenceInterval95;\r\n        }\r\n\r\n        public static void PrintCl" +
+                    "usteringMetrics(string name, ClusteringMetrics metrics)\r\n        {\r\n            " +
+                    "Console.WriteLine($\"*************************************************\");\r\n      " +
+                    "      Console.WriteLine($\"*       Metrics for {name} clustering model      \");\r\n" +
+                    "            Console.WriteLine($\"*-----------------------------------------------" +
+                    "-\");\r\n            Console.WriteLine($\"*       AvgMinScore: {metrics.AvgMinScore}" +
+                    "\");\r\n            Console.WriteLine($\"*       DBI is: {metrics.Dbi}\");\r\n         " +
+                    "   Console.WriteLine($\"*************************************************\");\r\n   " +
+                    "     }\r\n\r\n        public static void ConsoleWriteHeader(params string[] lines)\r\n" +
+                    "        {\r\n            var defaultColor = Console.ForegroundColor;\r\n            " +
+                    "Console.ForegroundColor = ConsoleColor.Yellow;\r\n            Console.WriteLine(\" " +
+                    "\");\r\n            foreach (var line in lines)\r\n            {\r\n                Con" +
+                    "sole.WriteLine(line);\r\n            }\r\n            var maxLength = lines.Select(x" +
+                    " => x.Length).Max();\r\n            Console.WriteLine(new string(\'#\', maxLength));" +
+                    "\r\n            Console.ForegroundColor = defaultColor;\r\n        }\r\n\r\n        publ" +
+                    "ic static void ConsoleWriterSection(params string[] lines)\r\n        {\r\n         " +
+                    "   var defaultColor = Console.ForegroundColor;\r\n            Console.ForegroundCo" +
+                    "lor = ConsoleColor.Blue;\r\n            Console.WriteLine(\" \");\r\n            forea" +
+                    "ch (var line in lines)\r\n            {\r\n                Console.WriteLine(line);\r" +
+                    "\n            }\r\n            var maxLength = lines.Select(x => x.Length).Max();\r\n" +
+                    "            Console.WriteLine(new string(\'-\', maxLength));\r\n            Console." +
+                    "ForegroundColor = defaultColor;\r\n        }\r\n\r\n        public static void Console" +
+                    "PressAnyKey()\r\n        {\r\n            var defaultColor = Console.ForegroundColor" +
+                    ";\r\n            Console.ForegroundColor = ConsoleColor.Green;\r\n            Consol" +
+                    "e.WriteLine(\" \");\r\n            Console.WriteLine(\"Press any key to finish.\");\r\n " +
+                    "           Console.ReadKey();\r\n        }\r\n\r\n        public static void ConsoleWr" +
+                    "iteException(params string[] lines)\r\n        {\r\n            var defaultColor = C" +
+                    "onsole.ForegroundColor;\r\n            Console.ForegroundColor = ConsoleColor.Red;" +
+                    "\r\n            const string exceptionTitle = \"EXCEPTION\";\r\n            Console.Wr" +
+                    "iteLine(\" \");\r\n            Console.WriteLine(exceptionTitle);\r\n            Conso" +
+                    "le.WriteLine(new string(\'#\', exceptionTitle.Length));\r\n            Console.Foreg" +
+                    "roundColor = defaultColor;\r\n            foreach (var line in lines)\r\n           " +
+                    " {\r\n                Console.WriteLine(line);\r\n            }\r\n        }\r\n\r\n      " +
+                    "  public static void ConsoleWriteWarning(params string[] lines)\r\n        {\r\n    " +
+                    "        var defaultColor = Console.ForegroundColor;\r\n            Console.Foregro" +
+                    "undColor = ConsoleColor.DarkMagenta;\r\n            const string warningTitle = \"W" +
+                    "ARNING\";\r\n            Console.WriteLine(\" \");\r\n            Console.WriteLine(war" +
+                    "ningTitle);\r\n            Console.WriteLine(new string(\'#\', warningTitle.Length))" +
+                    ";\r\n            Console.ForegroundColor = defaultColor;\r\n            foreach (var" +
+                    " line in lines)\r\n            {\r\n                Console.WriteLine(line);\r\n      " +
+                    "      }\r\n        }\r\n\r\n    }\r\n}");
             return this.GenerationEnvironment.ToString();
         }
     }

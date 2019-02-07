@@ -34,7 +34,7 @@ namespace MlnetSample
 
             // Create, Train, Evaluate and Save a model
             BuildTrainEvaluateAndSaveModel(mlContext);
-            ConsoleHelper.ConsoleWriteHeader("=============== End of training processh ===============");
+            ConsoleHelper.ConsoleWriteHeader("=============== End of training process ===============");
 
             // Make a single test prediction loding the model from .ZIP file
             TestSinglePrediction(mlContext);
@@ -101,16 +101,19 @@ else{#>
 
         private static TextLoader GetTextLoader(MLContext mlContext)
         {
-            return mlContext.Data.CreateTextLoader(
-                                                        columns: new[]
-                                                                    {
+            return mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
+            {
+                Column = new[]{
 <# foreach(var col in Columns) {#>
-                                                                    <#= col #>
+                                  <#= col #>
 <# } #>
-                                                                    },                                                     
-                                                        hasHeader:<#= HasHeader.ToString().ToLowerInvariant() #>,
-                                                        separatorChar:'<#= Separator #>'
-                                                        );
+                              },                                                     
+                HasHeader = <#= HasHeader.ToString().ToLowerInvariant() #>,
+                Separators = new char[] {<# Write(string.Join(",", Separators.Select(t => "'" + t.ToString() + "'").ToArray())); #>},
+                AllowQuoting = <#= AllowQuotedStrings.ToString().ToLowerInvariant() #>,
+                TrimWhitespace = <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
+                AllowSparse = <#= SupportSparse.ToString().ToLowerInvariant() #>
+             });
         }
 
         // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
@@ -178,12 +181,13 @@ public string Path {get;set;}
 public string TestPath {get;set;}
 public IList<string> Columns {get;set;}
 public bool HasHeader {get;set;}
-public string Separator {get;set;}
+public char[] Separators {get;set;}
 public IList<string> Transforms {get;set;}
 public string Trainer {get;set;}
 public string TaskType {get;set;}
 public IList<string> ClassLabels {get;set;}
-public bool UsingLightGBM {get;set;}
-public bool UsingCategorical {get;set;}
 public string GeneratedUsings {get;set;}
+public bool AllowQuotedStrings {get;set;}
+public bool SupportSparse {get;set;}
+public bool TrimWhiteSpace {get;set;} 
 #>

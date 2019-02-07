@@ -4,15 +4,11 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 using System;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using Microsoft.ML.Core.Data;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML;
-
-using System.Reflection;
 
 namespace MlnetSample
 {
@@ -167,68 +163,6 @@ namespace MlnetSample
             Console.WriteLine($"*       AvgMinScore: {metrics.AvgMinScore}");
             Console.WriteLine($"*       DBI is: {metrics.Dbi}");
             Console.WriteLine($"*************************************************");
-        }
-
-        public static List<TObservation> PeekDataViewInConsole<TObservation>(MLContext mlContext, IDataView dataView, IEstimator<ITransformer> pipeline, int numberOfRows = 4)
-            where TObservation : class, new()
-        {
-            string msg = string.Format("Peek data in DataView: Showing {0} rows with the columns specified by TObservation class", numberOfRows.ToString());
-            ConsoleWriteHeader(msg);
-
-            //https://github.com/dotnet/machinelearning/blob/master/docs/code/MlNetCookBook.md#how-do-i-look-at-the-intermediate-data
-            var transformer = pipeline.Fit(dataView);
-            var transformedData = transformer.Transform(dataView);
-
-            // 'transformedData' is a 'promise' of data, lazy-loading. Let's actually read it.
-            // Convert to an enumerable of user-defined type.
-            var someRows = transformedData.AsEnumerable<TObservation>(mlContext, reuseRowObject: false)
-                                           // Take the specified number of rows
-                                           .Take(numberOfRows)
-                                           // Convert to List
-                                           .ToList();
-
-            someRows.ForEach(row =>
-            {
-                string lineToPrint = "Row--> ";
-
-                var fieldsInRow = row.GetType().GetFields(BindingFlags.Instance |
-                                                          BindingFlags.Static |
-                                                          BindingFlags.NonPublic |
-                                                          BindingFlags.Public);
-                foreach (FieldInfo field in fieldsInRow)
-                {
-                    lineToPrint += $"| {field.Name}: {field.GetValue(row)}";
-                }
-                Console.WriteLine(lineToPrint);
-            });
-
-            return someRows;
-        }
-
-        public static List<float[]> PeekVectorColumnDataInConsole(MLContext mlContext, string columnName, IDataView dataView, IEstimator<ITransformer> pipeline, int numberOfRows = 4)
-        {
-            string msg = string.Format("Peek data in DataView: : Show {0} rows with just the '{1}' column", numberOfRows, columnName);
-            ConsoleWriteHeader(msg);
-
-            var transformer = pipeline.Fit(dataView);
-            var transformedData = transformer.Transform(dataView);
-
-            // Extract the 'Features' column.
-            var someColumnData = transformedData.GetColumn<float[]>(mlContext, columnName)
-                                                        .Take(numberOfRows).ToList();
-
-            // print to console the peeked rows
-            someColumnData.ForEach(row =>
-            {
-                String concatColumn = String.Empty;
-                foreach (float f in row)
-                {
-                    concatColumn += f.ToString();
-                }
-                Console.WriteLine(concatColumn);
-            });
-
-            return someColumnData;
         }
 
         public static void ConsoleWriteHeader(params string[] lines)

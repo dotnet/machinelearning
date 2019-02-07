@@ -55,7 +55,7 @@ using Microsoft.Data.DataView;
 
             // Create, Train, Evaluate and Save a model
             BuildTrainEvaluateAndSaveModel(mlContext);
-            ConsoleHelper.ConsoleWriteHeader(""=============== End of training processh ==============="");
+            ConsoleHelper.ConsoleWriteHeader(""=============== End of training process ==============="");
 
             // Make a single test prediction loding the model from .ZIP file
             TestSinglePrediction(mlContext);
@@ -128,23 +128,28 @@ if("Regression".Equals(TaskType)){
 
         private static TextLoader GetTextLoader(MLContext mlContext)
         {
-            return mlContext.Data.CreateTextLoader(
-                                                        columns: new[]
-                                                                    {
+            return mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
+            {
+                Column = new[]{
 ");
  foreach(var col in Columns) {
-            this.Write("                                                                    ");
+            this.Write("                                  ");
             this.Write(this.ToStringHelper.ToStringWithCulture(col));
             this.Write("\r\n");
  } 
-            this.Write("                                                                    },           " +
-                    "                                          \r\n                                    " +
-                    "                    hasHeader:");
+            this.Write("                              },                                                 " +
+                    "    \r\n                HasHeader = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
-            this.Write(",\r\n                                                        separatorChar:\'");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Separator));
-            this.Write(@"'
-                                                        );
+            this.Write(",\r\n                Separators = new char[] {");
+ Write(string.Join(",", Separators.Select(t => "'" + t.ToString() + "'").ToArray())); 
+            this.Write("},\r\n                AllowQuoting = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuotedStrings.ToString().ToLowerInvariant()));
+            this.Write(",\r\n                TrimWhitespace = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TrimWhiteSpace.ToString().ToLowerInvariant()));
+            this.Write(" ,\r\n                AllowSparse = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(SupportSparse.ToString().ToLowerInvariant()));
+            this.Write(@"
+             });
         }
 
         // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
@@ -216,14 +221,15 @@ public string Path {get;set;}
 public string TestPath {get;set;}
 public IList<string> Columns {get;set;}
 public bool HasHeader {get;set;}
-public char Separator {get;set;}
+public char[] Separators {get;set;}
 public IList<string> Transforms {get;set;}
 public string Trainer {get;set;}
 public string TaskType {get;set;}
 public IList<string> ClassLabels {get;set;}
-public bool UsingLightGBM {get;set;}
-public bool UsingCategorical {get;set;}
 public string GeneratedUsings {get;set;}
+public bool AllowQuotedStrings {get;set;}
+public bool SupportSparse {get;set;}
+public bool TrimWhiteSpace {get;set;} 
 
     }
     #region Base class
