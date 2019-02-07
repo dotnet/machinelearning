@@ -15,10 +15,11 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Training
 {
     /// <summary>
-    /// Options for creating a row cursor from a RoleMappedData with specified standard columns active.
+    /// Options for creating a <see cref="TrainingCursorBase"/> from a <see cref="RoleMappedData"/> with specified standard columns active.
     /// </summary>
     [Flags]
-    public enum CursOpt : uint
+    [BestFriend]
+    internal enum CursOpt : uint
     {
         Weight = 0x01,
         Group = 0x02,
