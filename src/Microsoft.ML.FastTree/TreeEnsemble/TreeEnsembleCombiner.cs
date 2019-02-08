@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 var predictor = model;
                 _host.CheckValue(predictor, nameof(models), "One of the models is null");
 
-                var calibrated = predictor as IWeeklyTypedCalibratedPredictor;
+                var calibrated = predictor as IWeaklyTypedCalibratedPredictor;
                 double paramA = 1;
                 if (calibrated != null)
                     _host.Check(calibrated.WeeklyTypedCalibrator is PlattCalibrator,

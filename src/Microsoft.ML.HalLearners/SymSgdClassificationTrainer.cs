@@ -171,7 +171,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                 var initPred = context.InitialPredictor;
                 var linearInitPred = initPred as LinearModelParameters;
                 if (linearInitPred == null)
-                    linearInitPred = ((initPred as IWeeklyTypedCalibratedPredictor)?.WeeklyTypedSubModelParameters) as LinearModelParameters;
+                    linearInitPred = ((initPred as IWeaklyTypedCalibratedPredictor)?.WeeklyTypedSubModelParameters) as LinearModelParameters;
 
                 // If initial predictor is set, it must be a linear model or calibrated linear model. Otherwise, we throw.
                 // If initPred is null (i.e., not set), the following check will always be bypassed.

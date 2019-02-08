@@ -587,7 +587,7 @@ namespace Microsoft.ML.Data
                     Contracts.Assert(data.Schema.Feature.HasValue);
 
                     // Make sure that the given predictor has the correct number of input features.
-                    if (predictor is IWeeklyTypedCalibratedPredictor calibrated)
+                    if (predictor is IWeaklyTypedCalibratedPredictor calibrated)
                         predictor = calibrated.WeeklyTypedSubModelParameters;
                     // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.

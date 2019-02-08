@@ -117,14 +117,14 @@ namespace Microsoft.ML.Internal.Calibration
     }
 
     /// <summary>
-    /// <see cref="IWeeklyTypedCalibratedPredictor"/> provides a weekly-typed way to access strongly-typed
+    /// <see cref="IWeaklyTypedCalibratedPredictor"/> provides a weekly-typed way to access strongly-typed
     /// <see cref="CalibratedPredictorBase{TSubPredictor, TCalibrator}.SubModelParameters"/> and
     /// <see cref="CalibratedPredictorBase{TSubPredictor, TCalibrator}.Calibrator"/>.
-    /// <see cref="IWeeklyTypedCalibratedPredictor"/> is commonly used in weekly-typed expressions. The
+    /// <see cref="IWeaklyTypedCalibratedPredictor"/> is commonly used in weekly-typed expressions. The
     /// existence of this interface is just for supporting existing codebase, so we discourage its uses.
     /// </summary>
     [BestFriend]
-    internal interface IWeeklyTypedCalibratedPredictor
+    internal interface IWeaklyTypedCalibratedPredictor
     {
         IPredictorProducing<float> WeeklyTypedSubModelParameters { get; }
         ICalibrator WeeklyTypedCalibrator { get; }
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Internal.Calibration
         ICanSaveInSourceCode,
         ICanSaveSummary,
         ICanGetSummaryInKeyValuePairs,
-        IWeeklyTypedCalibratedPredictor
+        IWeaklyTypedCalibratedPredictor
         where TSubModelParameters : class, IPredictorProducing<float>
         where TCalibrator : class, ICalibrator
     {
@@ -148,8 +148,8 @@ namespace Microsoft.ML.Internal.Calibration
         public TCalibrator Calibrator { get; }
 
         // Type-unsafed accessors of strongly-typed members.
-        IPredictorProducing<float> IWeeklyTypedCalibratedPredictor.WeeklyTypedSubModelParameters => SubModelParameters;
-        ICalibrator IWeeklyTypedCalibratedPredictor.WeeklyTypedCalibrator => Calibrator;
+        IPredictorProducing<float> IWeaklyTypedCalibratedPredictor.WeeklyTypedSubModelParameters => SubModelParameters;
+        ICalibrator IWeaklyTypedCalibratedPredictor.WeeklyTypedCalibrator => Calibrator;
 
         public PredictionKind PredictionKind => SubModelParameters.PredictionKind;
 
