@@ -99,14 +99,14 @@ namespace Microsoft.ML.Trainers
             /// Used in traditional collaborative filtering problem with squared loss.
             /// </summary>
             /// <remarks>
-            /// See <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf">Equation</a>a> (1).
+            /// See <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf">Equation</a> (1).
             /// </remarks>
             SquareLossRegression = 0,
             /// <summary>
             /// Used in implicit-feedback recommendation problem.
             /// </summary>
             /// <remarks>
-            /// See <a href="http://yifanhu.net/PUB/cf.pdf">Equation</a>a> (3).
+            /// See <a href="http://yifanhu.net/PUB/cf.pdf">Equation</a> (3).
             /// </remarks>
             SquareLossOneClass = 12
         };
