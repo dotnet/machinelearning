@@ -91,8 +91,8 @@ namespace Microsoft.ML.Trainers.Recommender
             _host.CheckValue(matrixColumnIndexType, nameof(matrixColumnIndexType));
             _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));
             buffer.Get(out NumberOfRows, out NumberOfColumns, out ApproximationRank, out var leftFactorMatrix, out var rightFactorMatrix);
-            LeftFactorMatrix = Array.AsReadOnly<float>(leftFactorMatrix);
-            RightFactorMatrix = Array.AsReadOnly<float>(rightFactorMatrix);
+            LeftFactorMatrix = leftFactorMatrix;
+            RightFactorMatrix = rightFactorMatrix;
             _host.Assert(NumberOfColumns == matrixColumnIndexType.GetCountAsInt32(_host));
             _host.Assert(NumberOfRows == matrixRowIndexType.GetCountAsInt32(_host));
             _host.Assert(LeftFactorMatrix.Count == NumberOfRows * ApproximationRank);
