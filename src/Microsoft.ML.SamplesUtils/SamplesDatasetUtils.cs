@@ -81,6 +81,37 @@ namespace Microsoft.ML.SamplesUtils
         public static string DownloadAdultDataset()
             => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
 
+        public static IDataView LoadAdultDataset(MLContext mlContext)
+        {
+            // Download the file
+            string dataFile = DownloadAdultDataset();
+
+            // Define the columns to read
+            var reader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                    {
+                        new TextLoader.Column("age", DataKind.R4, 0),
+                        new TextLoader.Column("workclass", DataKind.TX, 1),
+                        new TextLoader.Column("fnlwgt", DataKind.R4, 2),
+                        new TextLoader.Column("education", DataKind.TX, 3),
+                        new TextLoader.Column("education-num", DataKind.R4, 4),
+                        new TextLoader.Column("marital-status", DataKind.TX, 5),
+                        new TextLoader.Column("occupation", DataKind.TX, 6),
+                        new TextLoader.Column("relationship", DataKind.TX, 7),
+                        new TextLoader.Column("ethnicity", DataKind.TX, 8),
+                        new TextLoader.Column("sex", DataKind.TX, 9),
+                        new TextLoader.Column("capital-gain", DataKind.R4, 10),
+                        new TextLoader.Column("capital-loss", DataKind.R4, 11),
+                        new TextLoader.Column("hours-per-week", DataKind.R4, 12),
+                        new TextLoader.Column("native-country", DataKind.R4, 13),
+                        new TextLoader.Column("IsOver50K", DataKind.BL, 14),
+                    },
+                separatorChar: ',',
+                hasHeader: true
+            );
+
+            return reader.Read(dataFile);
+        }
         /// <summary>
         /// Downloads the breast cancer dataset from the ML.NET repo.
         /// </summary>
