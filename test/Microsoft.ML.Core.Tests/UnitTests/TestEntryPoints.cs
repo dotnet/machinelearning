@@ -3383,8 +3383,8 @@ namespace Microsoft.ML.RunTests
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
             }
 
-            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 6);
-            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 4);
+            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 3);
             CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt", digitsOfPrecision: 3);
             CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt", digitsOfPrecision: 5);
             Done();
