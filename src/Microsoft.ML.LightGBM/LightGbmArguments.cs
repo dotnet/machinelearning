@@ -24,12 +24,13 @@ using Microsoft.ML.LightGBM;
 
 namespace Microsoft.ML.LightGBM
 {
-    public delegate void SignatureLightGBMBooster();
+    internal delegate void SignatureLightGBMBooster();
 
     [TlcModule.ComponentKind("BoosterParameterFunction")]
     public interface ISupportBoosterParameterFactory : IComponentFactory<IBoosterParameter>
     {
     }
+
     public interface IBoosterParameter
     {
         void UpdateParameters(Dictionary<string, object> res);
