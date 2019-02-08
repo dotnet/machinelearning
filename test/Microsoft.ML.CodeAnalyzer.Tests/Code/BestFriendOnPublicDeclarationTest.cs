@@ -52,7 +52,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 diag.CreateDiagnosticResult(29, 10, "PublicClass"),
                 diag.CreateDiagnosticResult(35, 6, "PublicStruct"),
                 diag.CreateDiagnosticResult(40, 6, "PublicEnum"),
-                diag.CreateDiagnosticResult(47, 6, "PublicInterface")
+                diag.CreateDiagnosticResult(47, 6, "PublicInterface"),
+                diag.CreateDiagnosticResult(102, 10, "PublicMethod")
             };
 
             VerifyDiagnosticResults(diags, analyzer, expected);

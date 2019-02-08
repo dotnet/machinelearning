@@ -94,4 +94,14 @@ namespace TestNamespace
     internal interface InternalInterface
     {
     }
+
+    // this should fail the diagnostic
+    // a repro for https://github.com/dotnet/machinelearning/pull/2434#discussion_r254770946
+    internal class InternalClassWithPublicMember
+    {
+        [BestFriend]
+        public void PublicMethod()
+        {
+        }
+    }
 }
