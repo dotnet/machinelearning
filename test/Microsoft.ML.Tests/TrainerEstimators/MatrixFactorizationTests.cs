@@ -89,10 +89,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var rightMatrix = model.Model.RightFactorMatrix;
             Assert.Equal(leftMatrix.Count, model.Model.NumberOfRows * model.Model.ApproximationRank);
             Assert.Equal(rightMatrix.Count, model.Model.NumberOfColumns * model.Model.ApproximationRank);
-            Assert.Equal(leftMatrix[0], (double)0.3091519,5);
-            Assert.Equal(leftMatrix[leftMatrix.Count - 1], (double)0.5639161,5);
-            Assert.Equal(rightMatrix[0], (double)0.243584976,5);
-            Assert.Equal(rightMatrix[rightMatrix.Count - 1], (double)0.380032182,5);
+            // MF produce different matrixes on different platforms, so at least test thier content on windows.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Assert.Equal(leftMatrix[0], (double)0.3091519, 5);
+                Assert.Equal(leftMatrix[leftMatrix.Count - 1], (double)0.5639161, 5);
+                Assert.Equal(rightMatrix[0], (double)0.243584976, 5);
+                Assert.Equal(rightMatrix[rightMatrix.Count - 1], (double)0.380032182, 5);
+            }
             // Read the test data set as an IDataView
             var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
