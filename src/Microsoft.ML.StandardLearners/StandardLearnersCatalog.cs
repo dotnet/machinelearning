@@ -222,6 +222,13 @@ namespace Microsoft.ML
         /// </param>
         /// <param name="l2RegularizerWeight">L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/AveragedPerceptron.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
@@ -241,7 +248,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a linear binary classification model trained with averaged perceptron trainer using advanced options.
-        /// For trainer details, please see the remarks for <see cref="AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
+        /// For usage details, please see <see cref="AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced trainer options.</param>
