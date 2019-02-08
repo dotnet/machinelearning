@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Microsoft.ML.Functional.Tests</AssemblyName>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <!-- We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <SignAssembly>false</SignAssembly>
+    <PublicSign>false</PublicSign>
   </PropertyGroup>
 
   <ItemGroup>
@@ -47,7 +47,7 @@
     <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="0.0.7-test" />
-    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="0.0.2-test" />
+    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="$(MicrosoftMLTensorFlowTestModelsVersion)" />
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
   </ItemGroup>
 </Project>

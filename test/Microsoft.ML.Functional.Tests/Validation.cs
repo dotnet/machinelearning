@@ -43,6 +43,10 @@ namespace Microsoft.ML.Functional.Tests
             Assert.IsType<TransformerChain<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>>>(cvResult[0].model);
             Assert.True(cvResult[0].scoredTestData is IDataView);
             Assert.Equal(5, cvResult.Length);
+
+            // And validate the metrics
+            foreach (var result in cvResult)
+                Common.CheckMetrics(result.metrics);
         }
     }
 }

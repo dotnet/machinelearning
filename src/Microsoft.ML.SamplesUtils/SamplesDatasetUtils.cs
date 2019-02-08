@@ -17,7 +17,12 @@ namespace Microsoft.ML.SamplesUtils
         /// Downloads the housing dataset from the ML.NET repo.
         /// </summary>
         public static string DownloadHousingRegressionDataset()
-        => Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", "housing.txt");
+        {
+            var fileName = "housing.txt";
+            if (!File.Exists(fileName))
+                Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", fileName);
+            return fileName;
+        }
 
         public static IDataView LoadHousingRegressionDataset(MLContext mlContext)
         {
