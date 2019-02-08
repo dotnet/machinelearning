@@ -49,11 +49,11 @@ namespace Microsoft.ML.EntryPoints
         [BestFriend]
         internal static IDataView GetSummaryAndStats(IHostEnvironment env, IPredictor predictor, RoleMappedSchema schema, out IDataView stats)
         {
-            var calibrated = predictor as IWeaklyTypedCalibratedPredictor;
+            var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             while (calibrated != null)
             {
-                predictor = calibrated.WeeklyTypedSubModelParameters;
-                calibrated = predictor as IWeaklyTypedCalibratedPredictor;
+                predictor = calibrated.WeeklyTypedSubModel;
+                calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             }
 
             IDataView summary = null;

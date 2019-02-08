@@ -32,8 +32,8 @@ namespace Microsoft.ML.Learners
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
     public sealed partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Options,
-        BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>,
-        CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>
+        BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
+        CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         public const string LoadNameValue = "LogisticRegression";
         internal const string UserNameValue = "Logistic Regression";
@@ -124,11 +124,11 @@ namespace Microsoft.ML.Learners
             };
         }
 
-        protected override BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>
-            MakeTransformer(CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> model, Schema trainSchema)
-            => new BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
+            MakeTransformer(CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> model, Schema trainSchema)
+            => new BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>> Train(IDataView trainData, IPredictor initialPredictor = null)
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> Train(IDataView trainData, IPredictor initialPredictor = null)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
@@ -381,16 +381,16 @@ namespace Microsoft.ML.Learners
             return opt;
         }
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> srcPredictor)
+        protected override VBuffer<float> InitializeWeightsFromPredictor(CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
 
-            var pred = srcPredictor.SubModelParameters as LinearBinaryModelParameters;
+            var pred = srcPredictor.SubModel as LinearBinaryModelParameters;
             Contracts.AssertValue(pred);
             return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
-        protected override CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor()
+        protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
             // Logistic regression is naturally calibrated to
             // output probabilities when transformed using
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Learners
             float bias = 0;
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
-            return new ParameterMixingCalibratedPredictor<LinearBinaryModelParameters, PlattCalibrator>(Host,
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host,
                 new LinearBinaryModelParameters(Host, in weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }

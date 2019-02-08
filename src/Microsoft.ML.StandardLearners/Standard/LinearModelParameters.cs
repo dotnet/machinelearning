@@ -467,8 +467,8 @@ namespace Microsoft.ML.Learners
             if (calibrator == null)
                 return predictor;
             if (calibrator is IParameterMixer)
-                return new ParameterMixingCalibratedPredictor<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
-            return new SchemaBindableCalibratedPredictor<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
+                return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
+            return new SchemaBindableCalibratedModelParameters<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

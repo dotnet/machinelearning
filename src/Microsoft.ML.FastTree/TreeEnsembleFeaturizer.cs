@@ -372,8 +372,8 @@ namespace Microsoft.ML.Data
             //  3. FastTreeRegressionModelParameters
             //  4. FastTreeTweedieModelParameters
             // Only (1) needs a special cast right below because all others are derived from TreeEnsembleModelParameters.
-            if (predictor is CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator> calibrated)
-                predictor = calibrated.SubModelParameters;
+            if (predictor is CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> calibrated)
+                predictor = calibrated.SubModel;
             _ensemble = predictor as TreeEnsembleModelParameters;
             _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
 
@@ -587,8 +587,8 @@ namespace Microsoft.ML.Data
                     Contracts.Assert(data.Schema.Feature.HasValue);
 
                     // Make sure that the given predictor has the correct number of input features.
-                    if (predictor is IWeaklyTypedCalibratedPredictor calibrated)
-                        predictor = calibrated.WeeklyTypedSubModelParameters;
+                    if (predictor is IWeaklyTypedCalibratedModelParameters calibrated)
+                        predictor = calibrated.WeeklyTypedSubModel;
                     // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
@@ -652,8 +652,8 @@ namespace Microsoft.ML.Data
                 ch.Assert(predictor == predictor2);
 
                 // Make sure that the given predictor has the correct number of input features.
-                if (predictor is CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)
-                    predictor = ((CalibratedPredictorBase<IPredictorProducing<float>, Calibrator.ICalibrator>)predictor).SubModelParameters;
+                if (predictor is CalibratedModelParametersBase<IPredictorProducing<float>, Calibrator.ICalibrator>)
+                    predictor = ((CalibratedModelParametersBase<IPredictorProducing<float>, Calibrator.ICalibrator>)predictor).SubModel;
                 // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;

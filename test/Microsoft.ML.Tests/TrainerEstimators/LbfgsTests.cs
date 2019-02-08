@@ -61,9 +61,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
             pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(new LogisticRegression.Options { ShowTrainingStats = true }));
-            var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>>;
+            var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
 
-            var linearModel = transformerChain.LastTransformer.Model.SubModelParameters as LinearBinaryModelParameters;
+            var linearModel = transformerChain.LastTransformer.Model.SubModel as LinearBinaryModelParameters;
             var stats = linearModel.Statistics;
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 
@@ -83,9 +83,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     StdComputer = new ComputeLRTrainingStdThroughHal(),
                 }));
 
-            var transformer = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator>>>;
+            var transformer = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
 
-            var linearModel = transformer.LastTransformer.Model.SubModelParameters as LinearBinaryModelParameters;
+            var linearModel = transformer.LastTransformer.Model.SubModel as LinearBinaryModelParameters;
             var stats = linearModel.Statistics;
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 

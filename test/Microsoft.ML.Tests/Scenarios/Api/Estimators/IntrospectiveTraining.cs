@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var trainer = ml.BinaryClassification.Trainers.FastTree(numLeaves: 5, numTrees: 3);
 
-            BinaryPredictionTransformer<CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator>> pred = null;
+            BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> pred = null;
 
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data);
 
             // Extract the learned GBDT model.
-            var treeCollection = pred.Model.SubModelParameters.TrainedTreeEnsemble;
+            var treeCollection = pred.Model.SubModel.TrainedTreeEnsemble;
 
             // Inspect properties in the extracted model.
             Assert.Equal(3, treeCollection.Trees.Count);

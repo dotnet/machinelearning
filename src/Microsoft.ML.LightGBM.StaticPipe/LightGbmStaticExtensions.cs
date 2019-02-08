@@ -131,7 +131,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = Options.Defaults.NumBoostRound,
-            Action<CalibratedPredictorBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
+            Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
 
@@ -168,7 +168,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
             Options options,
-            Action<CalibratedPredictorBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
+            Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, options, onFit);
 

@@ -256,8 +256,8 @@ namespace Microsoft.ML.Trainers.Online
 
             if (initPredictor is LinearModelParameters initLinearPred)
                 initLinearPred = (LinearModelParameters)initPredictor;
-            else if (initPredictor is CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> calibrated)
-                initLinearPred = calibrated.SubModelParameters;
+            else if (initPredictor is CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> calibrated)
+                initLinearPred = calibrated.SubModel;
             else
             {
                 initLinearPred = null;

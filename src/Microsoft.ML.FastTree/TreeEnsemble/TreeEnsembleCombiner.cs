@@ -51,13 +51,13 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 var predictor = model;
                 _host.CheckValue(predictor, nameof(models), "One of the models is null");
 
-                var calibrated = predictor as IWeaklyTypedCalibratedPredictor;
+                var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
                 double paramA = 1;
                 if (calibrated != null)
                     _host.Check(calibrated.WeeklyTypedCalibrator is PlattCalibrator,
                         "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
 
-                predictor = calibrated.WeeklyTypedSubModelParameters;
+                predictor = calibrated.WeeklyTypedSubModel;
                 paramA = -((PlattCalibrator)calibrated.WeeklyTypedCalibrator).Slope;
 
                 var tree = predictor as TreeEnsembleModelParameters;
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
                     var cali = new PlattCalibrator(_host, -1, 0);
                     var fastTreeModel = new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null);
-                    return new FeatureWeightsCalibratedPredictor<FastTreeBinaryModelParameters,PlattCalibrator>(_host, fastTreeModel, cali);
+                    return new FeatureWeightsCalibratedModelParameters<FastTreeBinaryModelParameters,PlattCalibrator>(_host, fastTreeModel, cali);
                 case PredictionKind.Regression:
                     return new FastTreeRegressionModelParameters(_host, ensemble, featureCount, null);
                 case PredictionKind.Ranking:

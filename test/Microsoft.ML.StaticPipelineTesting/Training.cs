@@ -117,7 +117,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
@@ -130,7 +130,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
             // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.SubModelParameters.Weights.Count);
+            Assert.Equal(9, pred.SubModel.Weights.Count);
 
             var data = model.Read(dataSource);
 
@@ -380,7 +380,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            CalibratedPredictorBase<FastTreeBinaryModelParameters, PlattCalibrator> pred = null;
+            CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.FastTree(r.label, r.features,
@@ -461,7 +461,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            CalibratedPredictorBase<LightGbmBinaryModelParameters, PlattCalibrator> pred = null;
+            CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LightGbm(r.label, r.features,
@@ -584,7 +584,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            CalibratedPredictorBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
@@ -597,7 +597,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.NotNull(pred);
 
             // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.SubModelParameters.Weights.Count);
+            Assert.Equal(9, pred.SubModel.Weights.Count);
 
             var data = model.Read(dataSource);
 
