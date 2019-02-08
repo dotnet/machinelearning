@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <!-- We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <SignAssembly>false</SignAssembly>
     <PublicSign>false</PublicSign>
