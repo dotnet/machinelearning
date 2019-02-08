@@ -111,6 +111,9 @@ namespace Microsoft.ML.Trainers
             SquareLossOneClass = 12
         };
 
+        /// <summary>
+        /// Advanced options for the <see cref="MatrixFactorizationTrainer"/>.
+        /// </summary>
         public sealed class Options
         {
             /// <summary>
