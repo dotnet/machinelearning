@@ -18,36 +18,71 @@ namespace Microsoft.ML.Trainers.Online
 {
     public abstract class AveragedLinearArguments : OnlineLinearArguments
     {
+        /// <summary>
+        /// <a href="tmpurl_lr">Learning rate</a>
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]
         [TlcModule.SweepableDiscreteParam("LearningRate", new object[] { 0.01, 0.1, 0.5, 1.0 })]
         public float LearningRate = AveragedDefaultArgs.LearningRate;
 
+        /// <summary>
+        /// <see langword="true" /> to decrease the <a href="tmpurl_lr">learning rate</a> as iterations progress; otherwise, <see langword="false" />.
+        /// Default is <see langword="false" />.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Decrease learning rate", ShortName = "decreaselr", SortOrder = 50)]
         [TGUI(Label = "Decrease Learning Rate", Description = "Decrease learning rate as iterations progress")]
         [TlcModule.SweepableDiscreteParam("DecreaseLearningRate", new object[] { false, true })]
         public bool DecreaseLearningRate = AveragedDefaultArgs.DecreaseLearningRate;
 
+        /// <summary>
+        /// Number of examples after which weights will be reset to the current average.
+        /// Default is <see langword="null" />, which disables this feature.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of examples after which weights will be reset to the current average", ShortName = "numreset")]
         public long? ResetWeightsAfterXExamples = null;
 
+        /// <summary>
+        /// <see langword="true" /> to update averaged weights only when loss is nonzero.
+        /// <see langword="false" /> to update averaged weights on every example.
+        /// Default is <see langword="true" />.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Instead of updating averaged weights on every example, only update when loss is nonzero", ShortName = "lazy")]
         public bool DoLazyUpdates = true;
 
+        /// <summary>
+        /// L2 weight for <a href='tmpurl_regularization'>regularization</a>.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]
         [TlcModule.SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f)]
         public float L2RegularizerWeight = AveragedDefaultArgs.L2RegularizerWeight;
 
+        /// <summary>
+        /// Extra weight given to more recent updates.
+        /// Default is 0, i.e. no extra gain.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Extra weight given to more recent updates", ShortName = "rg")]
         public float RecencyGain = 0;
 
+        /// <summary>
+        /// <see langword="true" /> means <see cref="RecencyGain"/> is multiplicative.
+        /// <see langword="false" /> means <see cref="RecencyGain"/> is additive.
+        /// Default is <see langword="false" />.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Whether Recency Gain is multiplicative (vs. additive)", ShortName = "rgm")]
         public bool RecencyGainMulti = false;
 
+        /// <summary>
+        /// <see langword="true" /> to do averaging; otherwise, <see langword="false" />.
+        /// Default is <see langword="true" />.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Do averaging?", ShortName = "avg")]
         public bool Averaged = true;
 
+        /// <summary>
+        /// The inexactness tolerance for averaging.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The inexactness tolerance for averaging", ShortName = "avgtol")]
         public float AveragedTolerance = (float)1e-2;
 

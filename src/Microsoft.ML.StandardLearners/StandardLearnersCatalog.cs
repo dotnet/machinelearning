@@ -191,16 +191,37 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer.
+        /// Predict a target using a linear binary classification model trained with averaged perceptron trainer.
         /// </summary>
+        /// <remarks>
+        /// Perceptron is a classification algorithm that makes its predictions based on a linear function.
+        /// For instance with feature values f0, f1,..., f_D-1, the prediction is given by the sign of sigma[0, D-1] (w_i * f_i), where w_0, w_1,..., w_D-1 are the weights computed by the algorithm.
+        ///
+        /// Perceptron is an online algorithm, i.e., it processes the instances in the training set one at a time.
+        /// The weights are initialized to be 0, or some random values. Then, for each example in the training set, the value of sigma[0, D-1] (w_i * f_i) is computed.
+        /// If this value has the same sign as the label of the current example, the weights remain the same.If they have opposite signs,
+        /// the weights vector is updated by either subtracting or adding (if the label is negative or positive, respectively) the feature vector of the current example,
+        /// multiplied by a factor 0 &lt; a &lt;= 1, called the learning rate.In a generalization of this algorithm, the weights are updated by adding the feature vector multiplied by the learning rate,
+        /// and by the gradient of some loss function (in the specific case described above, the loss is hinge-loss, whose gradient is 1 when it is non-zero).
+        ///
+        /// In Averaged Perceptron (AKA voted-perceptron), the weight vectors are stored,
+        /// together with a weight that counts the number of iterations it survived (this is equivalent to storing the weight vector after every iteration, regardless of whether it was updated or not).
+        /// The prediction is then calculated by taking the weighted average of all the sums sigma[0, D-1] (w_i * f_i) or the different weight vectors.
+        ///
+        /// For more information see <a href="https://en.wikipedia.org/wiki/Perceptron">Wikipedia entry for Perceptron</a>
+        /// or <a href="https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200">Large Margin Classification Using the Perceptron Algorithm</a>
+        /// </remarks>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumn">The name of the label column, or dependent variable.</param>
         /// <param name="featureColumn">The features, or independent variables.</param>
-        /// <param name="lossFunction">The custom loss.</param>
+        /// <param name="lossFunction">The custom <a href="tmpurl_loss">loss</a>. If <see langword="null"/>, hinge loss will be used resulting in max-margin averaged perceptron.</param>
         /// <param name="weights">The optional example weights.</param>
-        /// <param name="learningRate">The learning Rate.</param>
-        /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
+        /// <param name="learningRate"><a href="tmpurl_lr">Learning rate</a>.</param>
+        /// <param name="decreaseLearningRate">
+        /// <see langword="true" /> to decrease the <a href="tmpurl_calib">learning rate</a> as iterations progress; otherwise, <see langword="false" />.
+        /// Default is <see langword="false" />.
+        /// </param>
+        /// <param name="l2RegularizerWeight">L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
@@ -220,10 +241,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer.
+        /// Predict a target using a linear binary classification model trained with averaged perceptron trainer using advanced options.
+        /// For trainer details, please see the remarks for <see cref="AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced trainer options.</param>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, AveragedPerceptronTrainer.Options options)
         {

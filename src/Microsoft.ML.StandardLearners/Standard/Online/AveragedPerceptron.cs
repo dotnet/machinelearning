@@ -25,12 +25,10 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.Online
 {
-    // This is an averaged perceptron classifier.
-    // Configurable subcomponents:
-    //     - Loss function. By default, hinge loss (aka max-margin avgd perceptron)
-    //     - Feature normalization. By default, rescaling between min and max values for every feature
-    //     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
-    /// <include file='doc.xml' path='doc/members/member[@name="AP"]/*' />
+    /// <summary>
+    /// This is averaged perceptron trainer.
+    /// For usage details, please see <see cref="StandardLearnersCatalog.AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
+    /// </summary>
     public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
         public const string LoadNameValue = "AveragedPerceptron";
@@ -42,12 +40,21 @@ namespace Microsoft.ML.Trainers.Online
 
         public sealed class Options : AveragedLinearArguments
         {
+            /// <summary>
+            /// The custom <a href="tmpurl_loss">loss</a>. Default is hinge loss.
+            /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();
 
+            /// <summary>
+            /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
+            /// <summary>
+            /// The maximum number of examples to use when training the calibrator.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
 
