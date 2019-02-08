@@ -175,7 +175,7 @@ namespace Microsoft.ML.Data
                 _sources = inputColumnNames.ToArray();
             }
 
-            internal void Save(ModelSaveContext ctx)
+            public void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
                 // *** Binary format ***

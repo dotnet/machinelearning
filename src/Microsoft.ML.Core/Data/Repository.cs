@@ -12,6 +12,7 @@ namespace Microsoft.ML.Model
 {
     /// <summary>
     /// For saving a model into a repository.
+    /// Classes implementing <see cref="ICanSaveModel"/> should do an explicit implementation of <see cref="Save(ModelSaveContext)"/>.
     /// </summary>
     public interface ICanSaveModel
     {

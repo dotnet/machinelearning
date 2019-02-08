@@ -601,7 +601,7 @@ namespace Microsoft.ML.Data
         {
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-            _transform.SaveModel(ctx);
+            ((ICanSaveModel)_transform).Save(ctx);
         }
 
         public long? GetRowCount()
@@ -715,7 +715,7 @@ namespace Microsoft.ML.Data
                 _bindings = new Bindings(Host, input.Schema, false, LabelCol, ScoreCol, GroupCol, _truncationLevel);
             }
 
-            internal override void SaveModel(ModelSaveContext ctx)
+            private protected override void SaveModel(ModelSaveContext ctx)
             {
                 Host.AssertValue(ctx);
 

@@ -512,6 +512,9 @@ namespace Microsoft.ML.Data
 
         void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
 
+        /// <summary>
+        /// Derived class, for example A, should overwrite <see cref="SaveModel"/> so that ((<see cref="ICanSaveModel"/>)A).Save(ctx) can correctly dump A.
+        /// </summary>
         private protected virtual void SaveModel(ModelSaveContext ctx)
         {
             // *** Binary format **

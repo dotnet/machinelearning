@@ -135,7 +135,7 @@ namespace Microsoft.ML.Data
 
         void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
 
-        internal virtual void SaveModel(ModelSaveContext ctx)
+        private protected virtual void SaveModel(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
 
