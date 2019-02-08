@@ -36,7 +36,7 @@ namespace Microsoft.ML.Auto
             }
         }
         
-        public override string ToString() => $"{Trainer}+{string.Join("+", Transforms.Select(t => t.ToString()))}";
+        public override string ToString() => $"{string.Join(" xf=", this.Transforms)} tr={this.Trainer}";
 
         public override bool Equals(object obj)
         {

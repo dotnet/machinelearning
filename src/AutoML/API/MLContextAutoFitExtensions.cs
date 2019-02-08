@@ -141,14 +141,26 @@ namespace Microsoft.ML.Auto
         public readonly ITransformer Model;
         public readonly Exception Exception;
         public readonly string TrainerName;
-        internal readonly Pipeline Pipeline;
+        public readonly int RuntimeInSeconds;
 
-        internal IterationResult(ITransformer model, T metrics, Pipeline pipeline, Exception exception)
+        internal readonly Pipeline Pipeline;
+        internal readonly int PipelineInferenceTimeInSeconds;
+
+        internal IterationResult(
+            ITransformer model,
+            T metrics,
+            Pipeline pipeline,
+            Exception exception,
+            int runtimeInSeconds,
+            int pipelineInferenceTimeInSeconds)
         {
             Model = model;
             Metrics = metrics;
             Pipeline = pipeline;
             Exception = exception;
+            RuntimeInSeconds = runtimeInSeconds;
+            PipelineInferenceTimeInSeconds = pipelineInferenceTimeInSeconds;
+
             TrainerName = pipeline?.Nodes.Where(n => n.NodeType == PipelineNodeType.Trainer).Last().Name;
         }
     }

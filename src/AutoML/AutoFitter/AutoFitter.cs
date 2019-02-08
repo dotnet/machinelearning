@@ -67,26 +67,52 @@ namespace Microsoft.ML.Auto
 
             do
             {
-                // get next pipeline
-                var iterationsRemaining = (int)_settings.StoppingCriteria.MaxIterations - _history.Count;
-                var pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, iterationsRemaining, _optimizingMetricInfo.IsMaximizing);
+                SuggestedPipeline pipeline = null;
+                SuggestedPipelineResult<T> runResult = null;
 
-                // break if no candidates returned, means no valid pipeline available
-                if (pipeline == null)
+                try
                 {
-                    break;
+                    var iterationStopwatch = Stopwatch.StartNew();
+                    var getPiplelineStopwatch = Stopwatch.StartNew();
+
+                    // get next pipeline
+                    var iterationsRemaining = (int)_settings.StoppingCriteria.MaxIterations - _history.Count;
+                    pipeline = PipelineSuggester.GetNextInferredPipeline(_history, columns, _task, iterationsRemaining, _optimizingMetricInfo.IsMaximizing);
+
+                    getPiplelineStopwatch.Stop();
+
+                    // break if no candidates returned, means no valid pipeline available
+                    if (pipeline == null)
+                    {
+                        break;
+                    }
+
+                    // evaluate pipeline
+                    runResult = ProcessPipeline(pipeline);
+
+                    if (preprocessorTransform != null)
+                    {
+                        runResult.Model = preprocessorTransform.Append(runResult.Model);
+                    }
+
+                    runResult.RuntimeInSeconds = (int)iterationStopwatch.Elapsed.TotalSeconds;
+                    runResult.GetPipelineTimeInSeconds = (int)getPiplelineStopwatch.Elapsed.TotalSeconds;
                 }
-
-                // evaluate pipeline
-                SuggestedPipelineResult<T> runResult = ProcessPipeline(pipeline);
-
-                if (preprocessorTransform != null)
+                catch (Exception ex)
                 {
-                    runResult.Model = preprocessorTransform.Append(runResult.Model);
+                    WriteDebugLog(DebugStream.Exception, $"{pipeline?.Trainer} Crashed {ex}");
+
+                    if (runResult == null)
+                    {
+                        runResult = new SuggestedPipelineResult<T>(null, null, pipeline, -1, ex);
+                    }
+                    else
+                    {
+                        runResult = new SuggestedPipelineResult<T>(runResult.EvaluatedMetrics, runResult.Model, runResult.Pipeline, runResult.Score, ex);
+                    }
                 }
 
                 yield return runResult.ToIterationResult();
-
             } while (_history.Count < _settings.StoppingCriteria.MaxIterations &&
                     stopwatch.Elapsed.TotalMinutes < _settings.StoppingCriteria.TimeOutInMinutes);
         }
@@ -95,6 +121,10 @@ namespace Microsoft.ML.Auto
         {
             // run pipeline
             var stopwatch = Stopwatch.StartNew();
+
+            var commandLineStr = $"{string.Join(" xf=", pipeline.Transforms)} tr={pipeline.Trainer}";
+
+            WriteDebugLog(DebugStream.RunResult, $"Processing pipeline {commandLineStr}.");
 
             SuggestedPipelineResult<T> runResult;
             try

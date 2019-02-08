@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -34,6 +35,7 @@ namespace Microsoft.ML.Auto
 
             var availableTrainers = RecipeInference.AllowedTrainers(context, task, history.Count() + iterationsRemaining);
             var transforms = CalculateTransforms(context, columns, task);
+            //var transforms = TransformInferenceApi.InferTransforms(context, columns, task);
 
             // if we haven't run all pipelines once
             if (history.Count() < availableTrainers.Count())
@@ -209,7 +211,8 @@ namespace Microsoft.ML.Auto
             return true;
         }
 
-        private static IEnumerable<SuggestedTransform> CalculateTransforms(MLContext context,
+        private static IEnumerable<SuggestedTransform> CalculateTransforms(
+            MLContext context,
             (string, ColumnType, ColumnPurpose, ColumnDimensions)[] columns,
             TaskKind task)
         {
@@ -217,8 +220,7 @@ namespace Microsoft.ML.Auto
             // this is a work-around for ML.NET bug tracked by https://github.com/dotnet/machinelearning/issues/1969
             if (task == TaskKind.MulticlassClassification)
             {
-                var labelCol = columns.First(c => c.Item3 == ColumnPurpose.Label).Item1;
-                var transform = ValueToKeyMappingExtension.CreateSuggestedTransform(context, labelCol, labelCol);
+                var transform = ValueToKeyMappingExtension.CreateSuggestedTransform(context, DefaultColumnNames.Label, DefaultColumnNames.Label);
                 transforms.Add(transform);
             }
             return transforms;

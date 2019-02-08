@@ -37,6 +37,9 @@ namespace Microsoft.ML.Auto
         public ITransformer Model { get; set; }
         public Exception Exception { get; set; }
 
+        public int RuntimeInSeconds { get; set; }
+        public int GetPipelineTimeInSeconds { get; set; }
+
         public SuggestedPipelineResult(T evaluatedMetrics, ITransformer model, SuggestedPipeline pipeline, double score, Exception exception)
             : base(pipeline, score, exception == null)
         {
@@ -47,7 +50,9 @@ namespace Microsoft.ML.Auto
 
         public IterationResult<T> ToIterationResult()
         {
-            return new IterationResult<T>(Model, EvaluatedMetrics, Pipeline.ToPipeline(), Exception);
+            var ir = new IterationResult<T>(Model, EvaluatedMetrics, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, GetPipelineTimeInSeconds);
+
+            return ir;
         }
     }
 }

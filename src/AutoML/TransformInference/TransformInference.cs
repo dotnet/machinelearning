@@ -173,7 +173,7 @@ namespace Microsoft.ML.Auto
                         yield break;
 
                     var col = columns[lastLabelColId];
-                    
+
                     if (col.Type.IsText())
                     {
                         yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.Label);
