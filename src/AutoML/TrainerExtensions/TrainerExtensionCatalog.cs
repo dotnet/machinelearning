@@ -104,7 +104,7 @@ namespace Microsoft.ML.Auto
 
             learners.AddRange(new ITrainerExtension[] {
                 new LogisticRegressionBinaryExtension(),
-                //new FastForestBinaryExtension(),
+                new FastForestBinaryExtension(),
                 new SgdBinaryExtension()
             });
 
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Auto
 
             learners.AddRange(new ITrainerExtension[] {
                 new SgdOvaExtension(),
-                // new FastForestOvaExtension(),
+                new FastForestOvaExtension(),
                 new LogisticRegressionMultiExtension(),
             });
 
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Auto
             learners.AddRange(new ITrainerExtension[]
             {
                 new FastTreeTweedieRegressionExtension(),
-                // new FastForestRegressionExtension(),
+                new FastForestRegressionExtension(),
             });
 
             if(maxIterations < 100)

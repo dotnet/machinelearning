@@ -36,9 +36,16 @@ namespace Microsoft.ML.Auto
                 new SweepableLongParam("NumLeaves", 2, 128, isLogScale: true, stepSize: 4),
                 new SweepableDiscreteParam("MinDocumentsInLeafs", new object[] { 1, 10, 50 }),
                 new SweepableDiscreteParam("NumTrees", new object[] { 20, 100, 500 }),
+           };
+        }
+
+        private static IEnumerable<SweepableParam> BuildBoostedTreeArgsParams()
+        {
+            return BuildTreeArgsParams().Concat(new List<SweepableParam>()
+            {
                 new SweepableFloatParam("LearningRates", 0.025f, 0.4f, isLogScale: true),
                 new SweepableFloatParam("Shrinkage", 0.025f, 4f, isLogScale: true),
-           };
+            });
         }
 
         private static IEnumerable<SweepableParam> BuildLbfgsArgsParams()
@@ -66,12 +73,12 @@ namespace Microsoft.ML.Auto
 
         public static IEnumerable<SweepableParam> BuildFastTreeParams()
         {
-            return BuildTreeArgsParams();
+            return BuildBoostedTreeArgsParams();
         }
 
         public static IEnumerable<SweepableParam> BuildFastTreeTweedieParams()
         {
-            return BuildTreeArgsParams();
+            return BuildBoostedTreeArgsParams();
         }
 
         public static IEnumerable<SweepableParam> BuildLightGbmParams()

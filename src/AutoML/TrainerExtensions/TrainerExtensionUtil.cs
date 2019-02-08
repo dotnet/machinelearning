@@ -173,9 +173,7 @@ namespace Microsoft.ML.Auto
                 }
                 catch (Exception)
                 {
-                    // TODO: uncomment when this is resolved: https://github.com/dotnet/machinelearning/issues/1983
-                    // making this masked since otherwise we can't use this learner at all
-                    // throw new InvalidOperationException("cannot set learner parameter");
+                    throw new InvalidOperationException($"Cannot set parameter {param.Name} for {obj.GetType()}");
                 }
             }
         }
