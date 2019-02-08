@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.HalLearners;
 using Xunit;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public partial class ValidationScenarios
+    public class ValidationScenarios
     {
         /// <summary>
         /// Cross-validation: Have a mechanism to do cross validation, that is, you come up with
@@ -26,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 789);
 
             // Get the dataset, create a train and test
-            var data = DatasetUtils.LoadHousingRegressionDataset(mlContext);
+            var data = DatasetUtils.LoadHousingRegressionDataset(mlContext, BaseTestClass.GetDataPath("housing.txt"));
 
             // Create a pipeline to train on the sentiment data
             var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {

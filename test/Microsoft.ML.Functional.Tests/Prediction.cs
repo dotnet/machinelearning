@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.SamplesUtils;
+using Microsoft.ML.TestFramework;
 using Xunit;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public partial class PredictionScenarios
+    public class PredictionScenarios
     {
         /// <summary>
         /// Reconfigurable predictions: The following should be possible: A user trains a binary classifier,
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 789);
 
             // Get the dataset, create a train and test
-            var dataset = DatasetUtils.LoadHousingRegressionDataset(mlContext);
+            var dataset = DatasetUtils.LoadHousingRegressionDataset(mlContext, BaseTestClass.GetDataPath("housing.txt"));
             (var train, var test) = mlContext.BinaryClassification.TrainTestSplit(dataset, testFraction: 0.2);
 
             // Create a pipeline to train on the housing data
