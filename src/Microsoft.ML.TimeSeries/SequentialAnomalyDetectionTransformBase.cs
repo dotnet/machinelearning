@@ -57,7 +57,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// The score that should be thresholded to generate alerts.
     /// </summary>
-    public enum AlertingScore : byte
+    internal enum AlertingScore : byte
     {
         /// <summary>
         /// (RawScore) The raw anomaly score is thresholded.
@@ -76,7 +76,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// The base class that can be inherited by the 'Argument' classes in the derived classes containing the shared input parameters.
     /// </summary>
-    public abstract class ArgumentsBase
+    internal abstract class ArgumentsBase
     {
         [Argument(ArgumentType.Required, HelpText = "The name of the source column", ShortName = "src",
             SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]

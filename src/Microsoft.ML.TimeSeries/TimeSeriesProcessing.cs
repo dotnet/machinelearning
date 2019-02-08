@@ -27,25 +27,25 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.IidChangePointDetector.Summary, UserName = TimeSeriesProcessing.IidChangePointDetector.UserName, ShortName = TimeSeriesProcessing.IidChangePointDetector.ShortName)]
-        internal static CommonOutputs.TransformOutput IidChangePointDetector(IHostEnvironment env, IidChangePointDetector.Arguments input)
+        internal static CommonOutputs.TransformOutput IidChangePointDetector(IHostEnvironment env, IidChangePointDetector.Options options)
         {
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidChangePointDetector", input);
-            var view = new IidChangePointEstimator(h, input).Fit(input.Data).Transform(input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidChangePointDetector", options);
+            var view = new IidChangePointEstimator(h, options).Fit(options.Data).Transform(options.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModelImpl(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, options.Data),
                 OutputData = view
             };
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.IidSpikeDetector.Summary, UserName = TimeSeriesProcessing.IidSpikeDetector.UserName, ShortName = TimeSeriesProcessing.IidSpikeDetector.ShortName)]
-        internal static CommonOutputs.TransformOutput IidSpikeDetector(IHostEnvironment env, IidSpikeDetector.Arguments input)
+        internal static CommonOutputs.TransformOutput IidSpikeDetector(IHostEnvironment env, IidSpikeDetector.Options options)
         {
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidSpikeDetector", input);
-            var view = new IidSpikeEstimator(h, input).Fit(input.Data).Transform(input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidSpikeDetector", options);
+            var view = new IidSpikeEstimator(h, options).Fit(options.Data).Transform(options.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModelImpl(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, options.Data),
                 OutputData = view
             };
         }
@@ -87,25 +87,25 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.SsaChangePointDetector.Summary, UserName = TimeSeriesProcessing.SsaChangePointDetector.UserName, ShortName = TimeSeriesProcessing.SsaChangePointDetector.ShortName)]
-        internal static CommonOutputs.TransformOutput SsaChangePointDetector(IHostEnvironment env, SsaChangePointDetector.Arguments input)
+        internal static CommonOutputs.TransformOutput SsaChangePointDetector(IHostEnvironment env, SsaChangePointDetector.Options options)
         {
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaChangePointDetector", input);
-            var view = new SsaChangePointEstimator(h, input).Fit(input.Data).Transform(input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaChangePointDetector", options);
+            var view = new SsaChangePointEstimator(h, options).Fit(options.Data).Transform(options.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModelImpl(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, options.Data),
                 OutputData = view
             };
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.SsaSpikeDetector.Summary, UserName = TimeSeriesProcessing.SsaSpikeDetector.UserName, ShortName = TimeSeriesProcessing.SsaSpikeDetector.ShortName)]
-        internal static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Arguments input)
+        internal static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Options options)
         {
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaSpikeDetector", input);
-            var view = new SsaSpikeEstimator(h, input).Fit(input.Data).Transform(input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaSpikeDetector", options);
+            var view = new SsaSpikeEstimator(h, options).Fit(options.Data).Transform(options.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModelImpl(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, options.Data),
                 OutputData = view
             };
         }

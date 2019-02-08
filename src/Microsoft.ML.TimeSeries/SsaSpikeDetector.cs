@@ -14,7 +14,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
 
-[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Options), typeof(SignatureDataTransform),
     SsaSpikeDetector.UserName, SsaSpikeDetector.LoaderSignature, SsaSpikeDetector.ShortName)]
 
 [assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), null, typeof(SignatureLoadDataTransform),
@@ -39,7 +39,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         internal const string UserName = "SSA Spike Detection";
         internal const string ShortName = "spike";
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src",
                 SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
@@ -72,21 +72,21 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public ErrorFunction ErrorFunction = ErrorFunction.SignedDifference;
         }
 
-        private sealed class BaseArguments : SsaArguments
+        private sealed class BaseArguments : SsaOptions
         {
-            public BaseArguments(Arguments args)
+            public BaseArguments(Options options)
             {
-                Source = args.Source;
-                Name = args.Name;
-                Side = args.Side;
-                WindowSize = args.PvalueHistoryLength;
-                InitialWindowSize = args.TrainingWindowSize;
-                SeasonalWindowSize = args.SeasonalWindowSize;
-                AlertThreshold = 1 - args.Confidence / 100;
+                Source = options.Source;
+                Name = options.Name;
+                Side = options.Side;
+                WindowSize = options.PvalueHistoryLength;
+                InitialWindowSize = options.TrainingWindowSize;
+                SeasonalWindowSize = options.SeasonalWindowSize;
+                AlertThreshold = 1 - options.Confidence / 100;
                 AlertOn = AlertingScore.PValueScore;
                 DiscountFactor = 1;
                 IsAdaptive = false;
-                ErrorFunction = args.ErrorFunction;
+                ErrorFunction = options.ErrorFunction;
                 Martingale = MartingaleType.None;
             }
         }
@@ -102,24 +102,24 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 loaderAssemblyName: typeof(SsaSpikeDetector).Assembly.FullName);
         }
 
-        internal SsaSpikeDetector(IHostEnvironment env, Arguments args, IDataView input)
-            : base(new BaseArguments(args), LoaderSignature, env)
+        internal SsaSpikeDetector(IHostEnvironment env, Options options, IDataView input)
+            : base(new BaseArguments(options), LoaderSignature, env)
         {
-            Base.Model.Train(new RoleMappedData(input, null, Base.InputColumnName));
+            InternalTransform.Model.Train(new RoleMappedData(input, null, InternalTransform.InputColumnName));
         }
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            return new SsaSpikeDetector(env, args, input).MakeDataTransform(input);
+            return new SsaSpikeDetector(env, options, input).MakeDataTransform(input);
         }
 
-        internal SsaSpikeDetector(IHostEnvironment env, Arguments args)
-            : base(new BaseArguments(args), LoaderSignature, env)
+        internal SsaSpikeDetector(IHostEnvironment env, Options options)
+            : base(new BaseArguments(options), LoaderSignature, env)
         {
             // This constructor is empty.
         }
@@ -137,9 +137,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
         IStatefulTransformer IStatefulTransformer.Clone()
         {
             var clone = (SsaSpikeDetector)MemberwiseClone();
-            clone.Base.Model = clone.Base.Model.Clone();
-            clone.Base.StateRef = (SsaAnomalyDetectionBase.State)clone.Base.StateRef.Clone();
-            clone.Base.StateRef.InitState(clone.Base, Base.Host);
+            clone.InternalTransform.Model = clone.InternalTransform.Model.Clone();
+            clone.InternalTransform.StateRef = (SsaAnomalyDetectionBase.State)clone.InternalTransform.StateRef.Clone();
+            clone.InternalTransform.StateRef.InitState(clone.InternalTransform, InternalTransform.Host);
             return clone;
         }
 
@@ -159,20 +159,20 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            Base.Host.CheckDecode(Base.ThresholdScore == AlertingScore.PValueScore);
-            Base.Host.CheckDecode(Base.DiscountFactor == 1);
-            Base.Host.CheckDecode(Base.IsAdaptive == false);
+            InternalTransform.Host.CheckDecode(InternalTransform.ThresholdScore == AlertingScore.PValueScore);
+            InternalTransform.Host.CheckDecode(InternalTransform.DiscountFactor == 1);
+            InternalTransform.Host.CheckDecode(InternalTransform.IsAdaptive == false);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            Base.Host.CheckValue(ctx, nameof(ctx));
+            InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Base.Host.Assert(Base.ThresholdScore == AlertingScore.PValueScore);
-            Base.Host.Assert(Base.DiscountFactor == 1);
-            Base.Host.Assert(Base.IsAdaptive == false);
+            InternalTransform.Host.Assert(InternalTransform.ThresholdScore == AlertingScore.PValueScore);
+            InternalTransform.Host.Assert(InternalTransform.DiscountFactor == 1);
+            InternalTransform.Host.Assert(InternalTransform.IsAdaptive == false);
 
             // *** Binary format ***
             // <base>
@@ -199,7 +199,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
-        private readonly SsaSpikeDetector.Arguments _args;
+        private readonly SsaSpikeDetector.Options _options;
 
         /// <summary>
         /// Create a new instance of <see cref="SsaSpikeEstimator"/>
@@ -223,7 +223,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             string inputColumnName = null,
             AnomalySide side = AnomalySide.TwoSided,
             ErrorFunction errorFunction = ErrorFunction.SignedDifference)
-            : this(env, new SsaSpikeDetector.Arguments
+            : this(env, new SsaSpikeDetector.Options
                 {
                     Source = inputColumnName ?? outputColumnName,
                     Name = outputColumnName,
@@ -237,7 +237,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
         }
 
-        public SsaSpikeEstimator(IHostEnvironment env, SsaSpikeDetector.Arguments args)
+        internal SsaSpikeEstimator(IHostEnvironment env, SsaSpikeDetector.Options args)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaSpikeEstimator));
@@ -245,30 +245,37 @@ namespace Microsoft.ML.TimeSeriesProcessing
             _host.CheckNonEmpty(args.Name, nameof(args.Name));
             _host.CheckNonEmpty(args.Source, nameof(args.Source));
 
-            _args = args;
+            _options = args;
         }
 
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
         public SsaSpikeDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new SsaSpikeDetector(_host, _args, input);
+            return new SsaSpikeDetector(_host, _options, input);
         }
 
+        /// <summary>
+        /// Schema propagation for transformers.
+        /// Returns the output schema of the data, if the input schema is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryFindColumn(_args.Source, out var col))
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source);
+            if (!inputSchema.TryFindColumn(_options.Source, out var col))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source);
             if (col.ItemType != NumberType.R4)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source, "float", col.GetTypeString());
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            resultDic[_args.Name] = new SchemaShape.Column(
-                _args.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+            resultDic[_options.Name] = new SchemaShape.Column(
+                _options.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

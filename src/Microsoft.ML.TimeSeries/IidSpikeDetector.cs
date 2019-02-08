@@ -14,7 +14,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
 
-[assembly: LoadableClass(IidSpikeDetector.Summary, typeof(IDataTransform), typeof(IidSpikeDetector), typeof(IidSpikeDetector.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(IidSpikeDetector.Summary, typeof(IDataTransform), typeof(IidSpikeDetector), typeof(IidSpikeDetector.Options), typeof(SignatureDataTransform),
     IidSpikeDetector.UserName, IidSpikeDetector.LoaderSignature, IidSpikeDetector.ShortName)]
 
 [assembly: LoadableClass(IidSpikeDetector.Summary, typeof(IDataTransform), typeof(IidSpikeDetector), null, typeof(SignatureLoadDataTransform),
@@ -38,7 +38,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         internal const string UserName = "IID Spike Detection";
         internal const string ShortName = "ispike";
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src",
                 SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
@@ -63,24 +63,24 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
         private sealed class BaseArguments : ArgumentsBase
         {
-            public BaseArguments(Arguments args)
+            public BaseArguments(Options options)
             {
-                Source = args.Source;
-                Name = args.Name;
-                Side = args.Side;
-                WindowSize = args.PvalueHistoryLength;
-                AlertThreshold = 1 - args.Confidence / 100;
+                Source = options.Source;
+                Name = options.Name;
+                Side = options.Side;
+                WindowSize = options.PvalueHistoryLength;
+                AlertThreshold = 1 - options.Confidence / 100;
                 AlertOn = AlertingScore.PValueScore;
                 Martingale = MartingaleType.None;
             }
 
             public BaseArguments(IidSpikeDetector transform)
             {
-                Source = transform.Base.InputColumnName;
-                Name = transform.Base.OutputColumnName;
-                Side = transform.Base.Side;
-                WindowSize = transform.Base.WindowSize;
-                AlertThreshold = transform.Base.AlertThreshold;
+                Source = transform.InternalTransform.InputColumnName;
+                Name = transform.InternalTransform.OutputColumnName;
+                Side = transform.InternalTransform.Side;
+                WindowSize = transform.InternalTransform.WindowSize;
+                AlertThreshold = transform.InternalTransform.AlertThreshold;
                 AlertOn = AlertingScore.PValueScore;
                 Martingale = MartingaleType.None;
             }
@@ -98,7 +98,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -110,13 +110,13 @@ namespace Microsoft.ML.TimeSeriesProcessing
         IStatefulTransformer IStatefulTransformer.Clone()
         {
             var clone = (IidSpikeDetector)MemberwiseClone();
-            clone.Base.StateRef = (IidAnomalyDetectionBase.State)clone.Base.StateRef.Clone();
-            clone.Base.StateRef.InitState(clone.Base, Base.Host);
+            clone.InternalTransform.StateRef = (IidAnomalyDetectionBase.State)clone.InternalTransform.StateRef.Clone();
+            clone.InternalTransform.StateRef.InitState(clone.InternalTransform, InternalTransform.Host);
             return clone;
         }
 
-        internal IidSpikeDetector(IHostEnvironment env, Arguments args)
-            : base(new BaseArguments(args), LoaderSignature, env)
+        internal IidSpikeDetector(IHostEnvironment env, Options options)
+            : base(new BaseArguments(options), LoaderSignature, env)
         {
             // This constructor is empty.
         }
@@ -147,7 +147,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            Base.Host.CheckDecode(Base.ThresholdScore == AlertingScore.PValueScore);
+            InternalTransform.Host.CheckDecode(InternalTransform.ThresholdScore == AlertingScore.PValueScore);
         }
         private IidSpikeDetector(IHostEnvironment env, IidSpikeDetector transform)
            : base(new BaseArguments(transform), LoaderSignature, env)
@@ -156,11 +156,11 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            Base.Host.CheckValue(ctx, nameof(ctx));
+            InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Base.Host.Assert(Base.ThresholdScore == AlertingScore.PValueScore);
+            InternalTransform.Host.Assert(InternalTransform.ThresholdScore == AlertingScore.PValueScore);
 
             // *** Binary format ***
             // <base>
@@ -198,7 +198,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         internal IidSpikeEstimator(IHostEnvironment env, string outputColumnName, int confidence, int pvalueHistoryLength, string inputColumnName, AnomalySide side = AnomalySide.TwoSided)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
-                new IidSpikeDetector(env, new IidSpikeDetector.Arguments
+                new IidSpikeDetector(env, new IidSpikeDetector.Options
                 {
                     Name = outputColumnName,
                     Source = inputColumnName,
@@ -209,26 +209,30 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
         }
 
-        public IidSpikeEstimator(IHostEnvironment env, IidSpikeDetector.Arguments args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeEstimator)), new IidSpikeDetector(env, args))
+        internal IidSpikeEstimator(IHostEnvironment env, IidSpikeDetector.Options options)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeEstimator)), new IidSpikeDetector(env, options))
         {
         }
 
+        /// <summary>
+        /// Schema propagation for transformers.
+        /// Returns the output schema of the data, if the input schema is like the one provided.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryFindColumn(Transformer.Base.InputColumnName, out var col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.Base.InputColumnName);
+            if (!inputSchema.TryFindColumn(Transformer.InternalTransform.InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName);
             if (col.ItemType != NumberType.R4)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.Base.InputColumnName, "float", col.GetTypeString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            resultDic[Transformer.Base.OutputColumnName] = new SchemaShape.Column(
-                Transformer.Base.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+            resultDic[Transformer.InternalTransform.OutputColumnName] = new SchemaShape.Column(
+                Transformer.InternalTransform.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

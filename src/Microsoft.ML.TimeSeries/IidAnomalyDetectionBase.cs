@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -13,41 +14,79 @@ using Microsoft.ML.TimeSeries;
 namespace Microsoft.ML.TimeSeriesProcessing
 {
     /// <summary>
-    /// The wrapper to transform that computes the p-values and martingale scores for a supposedly i.i.d input sequence of floats. In other words, it assumes
+    /// The is the wrapper to <see cref="IidAnomalyDetectionBase"/> that computes the p-values and martingale scores for a supposedly i.i.d input sequence of floats. In other words, it assumes
     /// the input sequence represents the raw anomaly score which might have been computed via another process.
     /// </summary>
     public class IidAnomalyDetectionBaseWrapper : IStatefulTransformer, ICanSaveModel
     {
-        public bool IsRowToRowMapper => Base.IsRowToRowMapper;
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
+        public bool IsRowToRowMapper => InternalTransform.IsRowToRowMapper;
 
-        IStatefulTransformer IStatefulTransformer.Clone() => Base.Clone();
+        /// <summary>
+        /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
+        /// </summary>
+        /// <returns></returns>
+        IStatefulTransformer IStatefulTransformer.Clone() => InternalTransform.Clone();
 
-        public Schema GetOutputSchema(Schema inputSchema) => Base.GetOutputSchema(inputSchema);
+        /// <summary>
+        /// Schema propagation for transformers.
+        /// Returns the output schema of the data, if the input schema is like the one provided.
+        /// </summary>
+        public Schema GetOutputSchema(Schema inputSchema) => InternalTransform.GetOutputSchema(inputSchema);
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => Base.GetRowToRowMapper(inputSchema);
+        /// <summary>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// is <c>false</c>, then an exception should be thrown. If the input schema is in any way
+        /// unsuitable for constructing the mapper, an exception should likewise be thrown.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => InternalTransform.GetRowToRowMapper(inputSchema);
 
-        public IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema) => ((IStatefulTransformer)Base).GetStatefulRowToRowMapper(inputSchema);
+        /// <summary>
+        /// Same as <see cref="ITransformer.GetRowToRowMapper(Schema)"/> but also supports mechanism to save the state.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        public IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema) => ((IStatefulTransformer)InternalTransform).GetStatefulRowToRowMapper(inputSchema);
 
-        public IDataView Transform(IDataView input) => Base.Transform(input);
+        /// <summary>
+        /// Take the data in, make transformations, output the data.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
+        /// </summary>
+        public IDataView Transform(IDataView input) => InternalTransform.Transform(input);
 
+        /// <summary>
+        /// For saving a model into a repository.
+        /// </summary>
         public virtual void Save(ModelSaveContext ctx)
         {
-            Base.SaveThis(ctx);
+            InternalTransform.SaveThis(ctx);
         }
 
-        internal IStatefulRowMapper MakeRowMapper(Schema schema) => Base.MakeRowMapper(schema);
+        /// <summary>
+        /// Creates a row mapper from Schema.
+        /// </summary>
+        internal IStatefulRowMapper MakeRowMapper(Schema schema) => InternalTransform.MakeRowMapper(schema);
 
-        internal IDataTransform MakeDataTransform(IDataView input) => Base.MakeDataTransform(input);
+        /// <summary>
+        /// Creates an IDataTransform from an IDataView.
+        /// </summary>
+        internal IDataTransform MakeDataTransform(IDataView input) => InternalTransform.MakeDataTransform(input);
 
-        internal IidAnomalyDetectionBase Base;
-        public IidAnomalyDetectionBaseWrapper(ArgumentsBase args, string name, IHostEnvironment env)
+        internal IidAnomalyDetectionBase InternalTransform;
+
+        internal IidAnomalyDetectionBaseWrapper(ArgumentsBase args, string name, IHostEnvironment env)
         {
-            Base = new IidAnomalyDetectionBase(args, name, env, this);
+            InternalTransform = new IidAnomalyDetectionBase(args, name, env, this);
         }
 
-        public IidAnomalyDetectionBaseWrapper(IHostEnvironment env, ModelLoadContext ctx, string name)
+        internal IidAnomalyDetectionBaseWrapper(IHostEnvironment env, ModelLoadContext ctx, string name)
         {
-            Base = new IidAnomalyDetectionBase(env, ctx, name, this);
+            InternalTransform = new IidAnomalyDetectionBase(env, ctx, name, this);
         }
 
         /// <summary>

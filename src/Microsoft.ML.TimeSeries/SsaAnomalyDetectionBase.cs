@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -30,7 +31,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         public const string ErrorFunctionHelpText = "The error function should be either (0) SignedDifference, (1) AbsoluteDifference, (2) SignedProportion" +
                                                      " (3) AbsoluteProportion or (4) SquaredDifference.";
 
-        public static Double SignedDifference(Double actual, Double predicted)
+        public static double SignedDifference(double actual, Double predicted)
         {
             return actual - predicted;
         }
@@ -82,30 +83,70 @@ namespace Microsoft.ML.TimeSeriesProcessing
     }
 
     /// <summary>
-    /// The wrapper to the base class that implements the general anomaly detection transform based on Singular Spectrum modeling of the time-series.
+    /// The wrapper to <see cref="SsaAnomalyDetectionBase"/> that implements the general anomaly detection transform based on Singular Spectrum modeling of the time-series.
     /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
     public class SsaAnomalyDetectionBaseWrapper : IStatefulTransformer, ICanSaveModel
     {
-        public bool IsRowToRowMapper => Base.IsRowToRowMapper;
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
+        public bool IsRowToRowMapper => InternalTransform.IsRowToRowMapper;
 
-        IStatefulTransformer IStatefulTransformer.Clone() => Base.Clone();
+        /// <summary>
+        /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
+        /// </summary>
+        /// <returns></returns>
+        IStatefulTransformer IStatefulTransformer.Clone() => InternalTransform.Clone();
 
-        public Schema GetOutputSchema(Schema inputSchema) => Base.GetOutputSchema(inputSchema);
+        /// <summary>
+        /// Schema propagation for transformers.
+        /// Returns the output schema of the data, if the input schema is like the one provided.
+        /// </summary>
+        public Schema GetOutputSchema(Schema inputSchema) => InternalTransform.GetOutputSchema(inputSchema);
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => Base.GetRowToRowMapper(inputSchema);
+        /// <summary>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// is <c>false</c>, then an exception should be thrown. If the input schema is in any way
+        /// unsuitable for constructing the mapper, an exception should likewise be thrown.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => InternalTransform.GetRowToRowMapper(inputSchema);
 
-        public IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema) => ((IStatefulTransformer)Base).GetStatefulRowToRowMapper(inputSchema);
+        /// <summary>
+        /// Same as <see cref="ITransformer.GetRowToRowMapper(Schema)"/> but also supports mechanism to save the state.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        public IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema) => ((IStatefulTransformer)InternalTransform).GetStatefulRowToRowMapper(inputSchema);
 
-        public IDataView Transform(IDataView input) => Base.Transform(input);
+        /// <summary>
+        /// Take the data in, make transformations, output the data.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
+        /// </summary>
+        public IDataView Transform(IDataView input) => InternalTransform.Transform(input);
 
-        public virtual void Save(ModelSaveContext ctx) => Base.SaveThis(ctx);
+        /// <summary>
+        /// For saving a model into a repository.
+        /// </summary>
+        public virtual void Save(ModelSaveContext ctx) => InternalTransform.SaveThis(ctx);
 
-        internal IStatefulRowMapper MakeRowMapper(Schema schema) => Base.MakeRowMapper(schema);
+        /// <summary>
+        /// Creates a row mapper from Schema.
+        /// </summary>
+        internal IStatefulRowMapper MakeRowMapper(Schema schema) => InternalTransform.MakeRowMapper(schema);
 
-        internal IDataTransform MakeDataTransform(IDataView input) => Base.MakeDataTransform(input);
+        /// <summary>
+        /// Creates an IDataTransform from an IDataView.
+        /// </summary>
+        internal IDataTransform MakeDataTransform(IDataView input) => InternalTransform.MakeDataTransform(input);
 
-        public abstract class SsaArguments : ArgumentsBase
+        /// <summary>
+        /// Options for SSA Anomaly Detection.
+        /// </summary>
+        internal abstract class SsaOptions : ArgumentsBase
         {
             [Argument(ArgumentType.Required, HelpText = "The inner window size for SSA in [2, windowSize]", ShortName = "swnd", SortOrder = 11)]
             public int SeasonalWindowSize;
@@ -120,11 +161,17 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public bool IsAdaptive = false;
         }
 
-        internal SsaAnomalyDetectionBase Base;
+        internal SsaAnomalyDetectionBase InternalTransform;
 
-        public SsaAnomalyDetectionBaseWrapper(SsaArguments args, string name, IHostEnvironment env) { Base = new SsaAnomalyDetectionBase(args, name, env, this); }
+        internal SsaAnomalyDetectionBaseWrapper(SsaOptions options, string name, IHostEnvironment env)
+        {
+            InternalTransform = new SsaAnomalyDetectionBase(options, name, env, this);
+        }
 
-        public SsaAnomalyDetectionBaseWrapper(IHostEnvironment env, ModelLoadContext ctx, string name) { Base = new SsaAnomalyDetectionBase(env, ctx, name); }
+        internal SsaAnomalyDetectionBaseWrapper(IHostEnvironment env, ModelLoadContext ctx, string name)
+        {
+            InternalTransform = new SsaAnomalyDetectionBase(env, ctx, name);
+        }
 
         /// <summary>
         /// This base class that implements the general anomaly detection transform based on Singular Spectrum modeling of the time-series.
@@ -140,20 +187,20 @@ namespace Microsoft.ML.TimeSeriesProcessing
             internal readonly Func<Double, Double, Double> ErrorFunc;
             internal SequenceModelerBase<Single, Single> Model;
 
-            public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env, SsaAnomalyDetectionBaseWrapper parent)
-                : base(args.WindowSize, 0, args.Source, args.Name, name, env, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
+            public SsaAnomalyDetectionBase(SsaOptions options, string name, IHostEnvironment env, SsaAnomalyDetectionBaseWrapper parent)
+                : base(options.WindowSize, 0, options.Source, options.Name, name, env, options.Side, options.Martingale, options.AlertOn, options.PowerMartingaleEpsilon, options.AlertThreshold)
             {
-                Host.CheckUserArg(2 <= args.SeasonalWindowSize, nameof(args.SeasonalWindowSize), "Must be at least 2.");
-                Host.CheckUserArg(0 <= args.DiscountFactor && args.DiscountFactor <= 1, nameof(args.DiscountFactor), "Must be in the range [0, 1].");
-                Host.CheckUserArg(Enum.IsDefined(typeof(ErrorFunction), args.ErrorFunction), nameof(args.ErrorFunction), ErrorFunctionUtils.ErrorFunctionHelpText);
+                Host.CheckUserArg(2 <= options.SeasonalWindowSize, nameof(options.SeasonalWindowSize), "Must be at least 2.");
+                Host.CheckUserArg(0 <= options.DiscountFactor && options.DiscountFactor <= 1, nameof(options.DiscountFactor), "Must be in the range [0, 1].");
+                Host.CheckUserArg(Enum.IsDefined(typeof(ErrorFunction), options.ErrorFunction), nameof(options.ErrorFunction), ErrorFunctionUtils.ErrorFunctionHelpText);
 
-                SeasonalWindowSize = args.SeasonalWindowSize;
-                DiscountFactor = args.DiscountFactor;
-                ErrorFunction = args.ErrorFunction;
+                SeasonalWindowSize = options.SeasonalWindowSize;
+                DiscountFactor = options.DiscountFactor;
+                ErrorFunction = options.ErrorFunction;
                 ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
-                IsAdaptive = args.IsAdaptive;
+                IsAdaptive = options.IsAdaptive;
                 // Creating the master SSA model
-                Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
+                Model = new AdaptiveSingularSpectrumSequenceModeler(Host, options.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
                     DiscountFactor, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
 
                 StateRef = new State();
