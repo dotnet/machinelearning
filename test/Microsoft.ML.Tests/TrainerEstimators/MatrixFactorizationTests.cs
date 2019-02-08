@@ -85,10 +85,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Les's validate content of the model.
             Assert.Equal(model.Model.ApproximationRank, options.ApproximationRank);
-            var leftMatrix = model.Model.GetLeftFactorMatrix();
-            var rightMatrix = model.Model.GetRightFactorMatrix();
-            Assert.Equal(leftMatrix.Length, model.Model.NumberOfRows * model.Model.ApproximationRank);
-            Assert.Equal(rightMatrix.Length, model.Model.NumberOfColumns * model.Model.ApproximationRank);
+            var leftMatrix = model.Model.LeftFactorMatrix;
+            var rightMatrix = model.Model.RightFactorMatrix;
+            Assert.Equal(leftMatrix.Count, model.Model.NumberOfRows * model.Model.ApproximationRank);
+            Assert.Equal(rightMatrix.Count, model.Model.NumberOfColumns * model.Model.ApproximationRank);
 
             // Read the test data set as an IDataView
             var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));

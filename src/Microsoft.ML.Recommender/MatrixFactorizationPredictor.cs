@@ -57,35 +57,26 @@ namespace Microsoft.ML.Trainers.Recommender
         public readonly int NumberOfColumns;
         ///<summary> The rank of the factor matrices.</summary>
         public readonly int ApproximationRank;
-        // Packed NumberOfRows by ApproximationRank matrix.
-        private readonly float[] _leftFactorMatrix;
-        // Packed ApproximationRank by NumberOfColumns matrix.
-        private readonly float[] _rightFactorMatrix;
-
         /// <summary>
-        /// Returns left approximation matrix.
+        /// Left approximation matrix
         /// </summary>
-        /// <returns>Flattened into one-dimensional array with size equal to <see cref="NumberOfRows"/> * <see cref="ApproximationRank"/></returns>
-        public float[] GetLeftFactorMatrix()
-        {
-            float[] result = new float[NumberOfRows * ApproximationRank];
-            _leftFactorMatrix.CopyTo(result, 0);
-            return result;
-        }
+        /// <remarks>
+        /// This is two dimensional matrix with size of <see cref="NumberOfRows"/> * <see cref="ApproximationRank"/> flattened into one-dimensional matrix.
+        /// Row by row.
+        /// </remarks>
+        public readonly IReadOnlyList<float> LeftFactorMatrix;
         /// <summary>
-        /// Returns right approximation matrix.
+        /// Left approximation matrix
         /// </summary>
-        /// <returns>Flattened into one-dimensional array with size equal to <see cref="ApproximationRank"/> * <see cref="NumberOfColumns"/></returns>
-        public float[] GetRightFactorMatrix()
-        {
-            float[] result = new float[ApproximationRank* NumberOfColumns];
-            _rightFactorMatrix.CopyTo(result, 0);
-            return result;
-        }
+        /// <remarks>
+        /// This is two dimensional matrix with size of <see cref="ApproximationRank"/> * <see cref="NumberOfColumns"/> flattened into one-dimensional matrix.
+        /// Row by row.
+        /// </remarks>
+        public readonly IReadOnlyList<float> RightFactorMatrix;
 
         public PredictionKind PredictionKind => PredictionKind.Recommendation;
 
-        private ColumnType OutputType { get { return NumberType.Float; } }
+        private ColumnType OutputType => NumberType.Float;
 
         internal ColumnType MatrixColumnIndexType { get; }
         internal ColumnType MatrixRowIndexType { get; }
@@ -99,12 +90,13 @@ namespace Microsoft.ML.Trainers.Recommender
             _host.CheckValue(buffer, nameof(buffer));
             _host.CheckValue(matrixColumnIndexType, nameof(matrixColumnIndexType));
             _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));
-
-            buffer.Get(out NumberOfRows, out NumberOfColumns, out ApproximationRank, out _leftFactorMatrix, out _rightFactorMatrix);
+            buffer.Get(out NumberOfRows, out NumberOfColumns, out ApproximationRank, out var leftFactorMatrix, out var rightFactorMatrix);
+            LeftFactorMatrix = Array.AsReadOnly<float>(leftFactorMatrix);
+            RightFactorMatrix = Array.AsReadOnly<float>(rightFactorMatrix);
             _host.Assert(NumberOfColumns == matrixColumnIndexType.GetCountAsInt32(_host));
             _host.Assert(NumberOfRows == matrixRowIndexType.GetCountAsInt32(_host));
-            _host.Assert(_leftFactorMatrix.Length == NumberOfRows * ApproximationRank);
-            _host.Assert(_rightFactorMatrix.Length == ApproximationRank * NumberOfColumns);
+            _host.Assert(LeftFactorMatrix.Count == NumberOfRows * ApproximationRank);
+            _host.Assert(RightFactorMatrix.Count == ApproximationRank * NumberOfColumns);
 
             MatrixColumnIndexType = matrixColumnIndexType;
             MatrixRowIndexType = matrixRowIndexType;
@@ -142,8 +134,8 @@ namespace Microsoft.ML.Trainers.Recommender
             ApproximationRank = ctx.Reader.ReadInt32();
             _host.CheckDecode(ApproximationRank > 0);
 
-            _leftFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(NumberOfRows * ApproximationRank));
-            _rightFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(NumberOfColumns * ApproximationRank));
+            LeftFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(NumberOfRows * ApproximationRank));
+            RightFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(NumberOfColumns * ApproximationRank));
 
             MatrixColumnIndexType = new KeyType(typeof(uint), NumberOfColumns);
             MatrixRowIndexType = new KeyType(typeof(uint), NumberOfRows);
@@ -181,10 +173,10 @@ namespace Microsoft.ML.Trainers.Recommender
             ctx.Writer.Write(NumberOfRows);
             ctx.Writer.Write(NumberOfColumns);
             ctx.Writer.Write(ApproximationRank);
-            _host.Check(Utils.Size(_leftFactorMatrix) == NumberOfRows * ApproximationRank, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
-            _host.Check(Utils.Size(_rightFactorMatrix) == NumberOfColumns * ApproximationRank, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");
-            Utils.WriteSinglesNoCount(ctx.Writer, _leftFactorMatrix.AsSpan(0, _leftFactorMatrix.Length));
-            Utils.WriteSinglesNoCount(ctx.Writer, _rightFactorMatrix.AsSpan(0, _rightFactorMatrix.Length));
+            _host.Check(Utils.Size(LeftFactorMatrix) == NumberOfRows * ApproximationRank, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
+            _host.Check(Utils.Size(RightFactorMatrix) == NumberOfColumns * ApproximationRank, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");
+            Utils.WriteSinglesNoCount(ctx.Writer, LeftFactorMatrix as float[]);
+            Utils.WriteSinglesNoCount(ctx.Writer, RightFactorMatrix as float[]);
         }
 
         /// <summary>
@@ -194,18 +186,18 @@ namespace Microsoft.ML.Trainers.Recommender
         {
             writer.WriteLine("# Imputed matrix is P * Q'");
             writer.WriteLine("# P in R^({0} x {1}), rows correpond to Y item", NumberOfRows, ApproximationRank);
-            for (int i = 0; i < _leftFactorMatrix.Length; ++i)
+            for (int i = 0; i < LeftFactorMatrix.Count; ++i)
             {
-                writer.Write(_leftFactorMatrix[i].ToString("G"));
+                writer.Write(LeftFactorMatrix[i].ToString("G"));
                 if (i % ApproximationRank == ApproximationRank - 1)
                     writer.WriteLine();
                 else
                     writer.Write('\t');
             }
             writer.WriteLine("# Q in R^({0} x {1}), rows correpond to X item", NumberOfColumns, ApproximationRank);
-            for (int i = 0; i < _rightFactorMatrix.Length; ++i)
+            for (int i = 0; i < RightFactorMatrix.Count; ++i)
             {
-                writer.Write(_rightFactorMatrix[i].ToString("G"));
+                writer.Write(RightFactorMatrix[i].ToString("G"));
                 if (i % ApproximationRank == ApproximationRank - 1)
                     writer.WriteLine();
                 else
@@ -280,7 +272,7 @@ namespace Microsoft.ML.Trainers.Recommender
             // Starting position of the columnIndex-th column in the right factor factor matrix
             int columnOffset = columnIndex * ApproximationRank;
             for (int i = 0; i < ApproximationRank; i++)
-                score += _leftFactorMatrix[rowOffset + i] * _rightFactorMatrix[columnOffset + i];
+                score += LeftFactorMatrix[rowOffset + i] * RightFactorMatrix[columnOffset + i];
             return score;
         }
 

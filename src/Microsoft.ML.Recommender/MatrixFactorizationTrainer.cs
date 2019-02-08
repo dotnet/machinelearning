@@ -98,10 +98,16 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Used in traditional collaborative filtering problem with squared loss.
             /// </summary>
+            /// <remarks>
+            /// See <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf">Equation</a>a> (1).
+            /// </remarks>
             SquareLossRegression = 0,
             /// <summary>
             /// Used in implicit-feedback recommendation problem.
             /// </summary>
+            /// <remarks>
+            /// See <a href="http://yifanhu.net/PUB/cf.pdf">Equation</a>a> (3).
+            /// </remarks>
             SquareLossOneClass = 12
         };
 
@@ -139,10 +145,10 @@ namespace Microsoft.ML.Trainers
             /// Regularization parameter.
             /// </summary>
             /// <remarks>
-            /// It's the weight of factor matrices' norms in the objective function minimized by matrix factorization's algorithm. A small value could cause over-fitting.
+            /// It's the weight of factor matrices Frobenius norms in the objective function minimized by matrix factorization's algorithm. A small value could cause over-fitting.
             /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization parameter. " +
-                "It's the weight of factor matrices' norms in the objective function minimized by matrix factorization's algorithm. " +
+                "It's the weight of factor matrices Frobenius norms in the objective function minimized by matrix factorization's algorithm. " +
                 "A small value could cause over-fitting.")]
             [TGUI(SuggestedSweeps = "0.01,0.05,0.1,0.5,1")]
             [TlcModule.SweepableDiscreteParam("Lambda", new object[] { 0.01f, 0.05f, 0.1f, 0.5f, 1f })]
@@ -152,7 +158,7 @@ namespace Microsoft.ML.Trainers
             /// Rank of approximation matrixes.
             /// </summary>
             /// <remarks>
-            /// If input data has size of m by n we would build two approximation matrixes m by k and k by n where k is approxiation rank.
+            /// If input data has size of m-by-n we would build two approximation matrixes m-by-k and k-by-n where k is approximation rank.
             /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension (denoted by k). If the factorized matrix is m-by-n, " +
                 "two factor matrices found by matrix factorization are m-by-k and k-by-n, respectively. " +
@@ -215,7 +221,7 @@ namespace Microsoft.ML.Trainers
             public double C = Defaults.C;
 
             /// <summary>
-            /// Number of thread will be used during training. If unspecified all aviable threads will be use.
+            /// Number of threads will be used during training. If unspecified all aviable threads will be use.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t")]
             public int? NumThreads;
