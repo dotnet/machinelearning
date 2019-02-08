@@ -986,7 +986,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // The parameter that will be into the onFit method below. The obtained predictor will be assigned to this variable
             // so that we will be able to touch it.
-            MatrixFactorizationPredictor pred = null;
+            MatrixFactorizationModelParameters pred = null;
 
             // Create a statically-typed matrix factorization estimator. The MatrixFactorization's input and output defined in MatrixFactorizationStatic
             // tell what (aks a Scalar<float>) is expected. Notice that only one thread is used for deterministic outcome.
