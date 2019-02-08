@@ -101,6 +101,29 @@ namespace MlnetSample
             Console.WriteLine($"*************************************************************************************************************");
         }
 
+        public static void PrintBinaryClassificationFoldsAverageMetrics(
+                                         string algorithmName,
+                                         (BinaryClassificationMetrics metrics,
+                                          ITransformer model,
+                                          IDataView scoredTestData)[] crossValResults
+                                                                           )
+        {
+            var metricsInMultipleFolds = crossValResults.Select(r => r.metrics);
+
+            var AccuracyValues = metricsInMultipleFolds.Select(m => m.Accuracy);
+            var AccuracyAverage = AccuracyValues.Average();
+            var AccuraciesStdDeviation = CalculateStandardDeviation(AccuracyValues);
+            var AccuraciesConfidenceInterval95 = CalculateConfidenceInterval95(AccuracyValues);
+
+
+            Console.WriteLine($"*************************************************************************************************************");
+            Console.WriteLine($"*       Metrics for {algorithmName} Binary Classification model      ");
+            Console.WriteLine($"*------------------------------------------------------------------------------------------------------------");
+            Console.WriteLine($"*       Average Accuracy:    {AccuracyAverage:0.###}  - Standard deviation: ({AccuraciesStdDeviation:#.###})  - Confidence Interval 95%: ({AccuraciesConfidenceInterval95:#.###})");
+            Console.WriteLine($"*************************************************************************************************************");
+
+        }
+
         public static void PrintMulticlassClassificationFoldsAverageMetrics(
                                          string algorithmName,
                                          (MultiClassClassifierMetrics metrics,

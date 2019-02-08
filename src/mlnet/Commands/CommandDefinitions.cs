@@ -18,13 +18,11 @@ namespace Microsoft.ML.CLI
         {
             var newCommand = new System.CommandLine.Command("new", "ML.NET CLI tool for code generation",
 
-                            handler: CommandHandler.Create</*FileInfo,*/ FileInfo,/* FileInfo,*/ FileInfo, TaskKind, string>((/*FileInfo dataset,*/ FileInfo trainDataset, /*FileInfo validationDataset,*/ FileInfo testDataset, TaskKind mlTask, string labelColumnName) =>
+                            handler: CommandHandler.Create<FileInfo, FileInfo, TaskKind, string>((FileInfo trainDataset, FileInfo testDataset, TaskKind mlTask, string labelColumnName) =>
                                  {
                                      NewCommand.Run(new Options()
                                      {
-                                         /*Dataset = dataset,*/
                                          TrainDataset = trainDataset,
-                                         /*ValidationDataset = validationDataset,*/
                                          TestDataset = testDataset,
                                          MlTask = mlTask,
                                          LabelName = labelColumnName
@@ -32,9 +30,7 @@ namespace Microsoft.ML.CLI
 
                                  }))
             {
-                                //Dataset(),
                                 TrainDataset(),
-                                //ValidationDataset(),
                                 TestDataset(),
                                 MlTask(),
                                 LabelName(),
@@ -51,10 +47,6 @@ namespace Microsoft.ML.CLI
                 {
                     return "Option required : --train-dataset";
                 }
-                if (sym.Children["--test-dataset"] == null)
-                {
-                    return "Option required : --test-dataset";
-                }
                 if (sym.Children["--ml-task"] == null)
                 {
                     return "Option required : --ml-task";
@@ -69,21 +61,14 @@ namespace Microsoft.ML.CLI
 
             return newCommand;
 
-            //Option Dataset() =>
-            //   new Option("--dataset", "Dataset file path.",
-            //              new Argument<FileInfo>().ExistingOnly());
 
             Option TrainDataset() =>
                new Option("--train-dataset", "Train dataset file path.",
                           new Argument<FileInfo>().ExistingOnly());
 
-            //Option ValidationDataset() =>
-            //   new Option("--validation-dataset", "Test dataset file path.",
-            //              new Argument<FileInfo>().ExistingOnly());
-
             Option TestDataset() =>
                new Option("--test-dataset", "Test dataset file path.",
-                          new Argument<FileInfo>().ExistingOnly());
+                          new Argument<FileInfo>(defaultValue: default(FileInfo)).ExistingOnly());
 
             Option MlTask() =>
                new Option("--ml-task", "Type of ML task.",
@@ -92,27 +77,6 @@ namespace Microsoft.ML.CLI
             Option LabelName() =>
                new Option("--label-column-name", "Name of the label column.",
                           new Argument<string>());
-
-            //Option ColumnSeperator() =>
-            //   new Option("--column-separator", "Column separator in dataset file.",
-            //              new Argument<string>(defaultValue: default(string)));
-
-            //Option ExplorationTimeout() =>
-            //   new Option("--exploration-timeout", "Timeout for exploring the best models.",
-            //              new Argument<int>(defaultValue: 10));
-
-            //Option Name() =>
-            //   new Option("--name", "Name of the project file.",
-            //              new Argument<string>(defaultValue: "SampleProject"));
-
-            //Option ShowOutput() =>
-            //   new Option("--show-output", "Show output on the console",
-            //              new Argument<bool>(defaultValue: true));
-
-            //Option LabelIndex() =>
-            //  new Option("--label-column-index", "Index of the label column.",
-            //             new Argument<int>(defaultValue: -1));
-
 
         }
 

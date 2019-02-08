@@ -24,17 +24,21 @@ namespace Microsoft.ML.CLI
             // For Version 0.1 It is required that the data set has header. 
             var columnInference = context.Data.InferColumns(options.TrainDataset.FullName, label, true, groupColumns: false);
             var textLoader = context.Data.CreateTextLoader(columnInference);
-            var trainData = textLoader.Read(options.TrainDataset.FullName);
 
-            var validationData = textLoader.Read(options.TestDataset.FullName);
-            Pipeline pipelineToDeconstruct = null;
+            IDataView trainData = textLoader.Read(options.TrainDataset.FullName);
+            IDataView validationData = options.TestDataset == null ? null : textLoader.Read(options.TestDataset.FullName);
 
-            var result = ExploreModels(options, context, label, trainData, validationData, pipelineToDeconstruct);
-            pipelineToDeconstruct = result.Item1;
+            //Explore the models
+            Pipeline pipeline = null;
+            var result = ExploreModels(options, context, label, trainData, validationData, pipeline);
+
+            //Get the best pipeline
+            pipeline = result.Item1;
             var model = result.Item2;
+
             //Path can be overriden from args
             GenerateModel(model, @"./BestModel", "model.zip", context);
-            RunCodeGen(options, columnInference, pipelineToDeconstruct);
+            RunCodeGen(options, columnInference, pipeline);
         }
 
         private static void GenerateModel(ITransformer model, string ModelPath, string modelName, MLContext mlContext)
@@ -116,7 +120,7 @@ namespace Microsoft.ML.CLI
             MLCodeGen codeGen = new MLCodeGen()
             {
                 Path = options.TrainDataset.FullName,
-                TestPath = options.TestDataset.FullName,
+                TestPath = options.TestDataset?.FullName,
                 Columns = columns,
                 Transforms = transforms,
                 HasHeader = columnInference.HasHeader,

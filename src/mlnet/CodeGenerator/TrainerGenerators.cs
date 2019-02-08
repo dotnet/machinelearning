@@ -178,7 +178,7 @@ namespace Microsoft.ML.CLI
             internal override string MethodName => "LinearSupportVectorMachines";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "LinearSvm.Options";
+            internal override string OptionsName => "LinearSvmTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters

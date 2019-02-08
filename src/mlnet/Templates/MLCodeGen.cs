@@ -42,10 +42,13 @@ using Microsoft.Data.DataView;
             this.Write("\r\n\r\n\r\nnamespace MlnetSample\r\n{\r\n    class Program\r\n    {\r\n        private static " +
                     "string TrainDataPath = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(Path));
-            this.Write("\";\r\n        private static string TestDataPath = @\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Path));
-            this.Write(@""";
-        private static string ModelPath = @""./model.zip"";
+            this.Write("\";\r\n");
+if(!string.IsNullOrEmpty(TestPath)){ 
+            this.Write("        private static string TestDataPath = @\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TestPath));
+            this.Write("\"; ");
+ } 
+            this.Write(@"        private static string ModelPath = @""./model.zip"";
 
         static void Main(string[] args)
         {
@@ -67,16 +70,18 @@ using Microsoft.Data.DataView;
 
         private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)
         {
-            // STEP 1: Common data loading configuration
+            // Common data loading configuration
             TextLoader textLoader = GetTextLoader(mlContext);
 
             IDataView trainingDataView = textLoader.Read(TrainDataPath);
-            IDataView testDataView = textLoader.Read(TestDataPath);
-
 ");
+ if(!string.IsNullOrEmpty(TestPath)){ 
+            this.Write("            IDataView testDataView = textLoader.Read(TestDataPath);\r\n");
+ } 
+            this.Write("\r\n");
  if(Transforms.Count >0 ) {
-            this.Write("            // STEP 2: Common data process configuration with pipeline data trans" +
-                    "formations          \r\n\r\n            var dataProcessPipeline = ");
+            this.Write("            // Common data process configuration with pipeline data transformatio" +
+                    "ns          \r\n\r\n            var dataProcessPipeline = ");
  for(int i=0;i<Transforms.Count;i++) 
 			{ 
 			   if(i>0)
@@ -89,24 +94,25 @@ using Microsoft.Data.DataView;
             }
             this.Write(";\r\n");
 }
-            this.Write("\r\n            // STEP 3: Set the training algorithm, then create and config the m" +
-                    "odelBuilder  \r\n            var trainer = mlContext.");
+            this.Write("\r\n            // Set the training algorithm, then create and config the modelBuil" +
+                    "der  \r\n            var trainer = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Trainers.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Trainer));
-            this.Write(";\r\n\r\n            // STEP 4: Train the model fitting to the DataSet\r\n");
+            this.Write(";\r\n\r\n            // Train the model fitting to the DataSet\r\n");
  if(Transforms.Count >0 ) {
             this.Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n        " +
                     "    var trainedModel = trainingPipeline.Fit(trainingDataView);\r\n");
  }
 else{
-            this.Write("            var trainedModel = trainer.Fit(trainingDataView);\r\n");
+            this.Write("            var trainingPipeline = trainer;\r\n            var trainedModel = train" +
+                    "ingPipeline.Fit(trainingDataView);\r\n");
 }
-            this.Write(@"
-            // STEP 5: Evaluate the model and show accuracy stats
-            Console.WriteLine(""===== Evaluating Model's accuracy with Test data ====="");
-            var predictions = trainedModel.Transform(testDataView);
-            var metrics = mlContext.");
+ if(!string.IsNullOrEmpty(TestPath)){ 
+            this.Write("            // Evaluate the model and show accuracy stats\r\n            Console.Wr" +
+                    "iteLine(\"===== Evaluating Model\'s accuracy with Test data =====\");\r\n            " +
+                    "var predictions = trainedModel.Transform(testDataView);\r\n            var metrics" +
+                    " = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Evaluate(predictions, \"Label\", \"Score\");\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
@@ -116,8 +122,29 @@ if("BinaryClassification".Equals(TaskType)){
 if("Regression".Equals(TaskType)){ 
             this.Write("            ConsoleHelper.PrintRegressionMetrics(trainer.ToString(), metrics);\r\n");
 }
-            this.Write(@"            // STEP 6: Save/persist the trained model to a .ZIP file
-
+ } else{ 
+            this.Write(@"
+            // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
+            // in order to evaluate and get the model's accuracy metrics
+            Console.WriteLine(""=============== Cross-validating to get model's accuracy metrics ==============="");
+");
+if("BinaryClassification".Equals(TaskType)){ 
+            this.Write("            var crossValidationResults = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: 3, labe" +
+                    "lColumn:\"Label\");\r\n            ConsoleHelper.PrintBinaryClassificationFoldsAvera" +
+                    "geMetrics(trainer.ToString(), crossValidationResults);\r\n");
+}
+if("Regression".Equals(TaskType)){ 
+            this.Write("            var crossValidationResults = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numFolds: 3, labelColumn:\"Labe" +
+                    "l\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMetrics(trainer.ToStr" +
+                    "ing(), crossValidationResults);\r\n");
+}
+ } 
+            this.Write(@"
+            // Save/persist the trained model to a .ZIP file
             using (var fs = new FileStream(ModelPath, FileMode.Create, FileAccess.Write, FileShare.Write))
                 mlContext.Model.Save(trainedModel, fs);
 

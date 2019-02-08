@@ -23,7 +23,7 @@ namespace MlnetSample
     class Program
     {
         private static string TrainDataPath = @"<#= Path #>";
-        private static string TestDataPath = @"<#= Path #>";
+<#if(!string.IsNullOrEmpty(TestPath)){ #>        private static string TestDataPath = @"<#= TestPath #>"; <# } #>
         private static string ModelPath = @"./model.zip";
 
         static void Main(string[] args)
@@ -46,14 +46,16 @@ namespace MlnetSample
 
         private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)
         {
-            // STEP 1: Common data loading configuration
+            // Common data loading configuration
             TextLoader textLoader = GetTextLoader(mlContext);
 
             IDataView trainingDataView = textLoader.Read(TrainDataPath);
+<# if(!string.IsNullOrEmpty(TestPath)){ #>
             IDataView testDataView = textLoader.Read(TestDataPath);
+<# } #>
 
 <# if(Transforms.Count >0 ) {#>
-            // STEP 2: Common data process configuration with pipeline data transformations          
+            // Common data process configuration with pipeline data transformations          
 
             var dataProcessPipeline = <# for(int i=0;i<Transforms.Count;i++) 
 			{ 
@@ -67,30 +69,43 @@ namespace MlnetSample
             }#>;
 <#}#>
 
-            // STEP 3: Set the training algorithm, then create and config the modelBuilder  
+            // Set the training algorithm, then create and config the modelBuilder  
             var trainer = mlContext.<#= TaskType #>.Trainers.<#= Trainer #>;
 
-            // STEP 4: Train the model fitting to the DataSet
+            // Train the model fitting to the DataSet
 <# if(Transforms.Count >0 ) {#>
             var trainingPipeline = dataProcessPipeline.Append(trainer);
             var trainedModel = trainingPipeline.Fit(trainingDataView);
 <# }
 else{#>
-            var trainedModel = trainer.Fit(trainingDataView);
+            var trainingPipeline = trainer;
+            var trainedModel = trainingPipeline.Fit(trainingDataView);
 <#}#>
-
-            // STEP 5: Evaluate the model and show accuracy stats
+<# if(!string.IsNullOrEmpty(TestPath)){ #>
+            // Evaluate the model and show accuracy stats
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
             var predictions = trainedModel.Transform(testDataView);
             var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "Label", "Score");
 <#if("BinaryClassification".Equals(TaskType)){ #>
             ConsoleHelper.PrintBinaryClassificationMetrics(trainer.ToString(), metrics);
-<#}#>
-<#if("Regression".Equals(TaskType)){ #>
+<#}#><#if("Regression".Equals(TaskType)){ #>
             ConsoleHelper.PrintRegressionMetrics(trainer.ToString(), metrics);
 <#}#>
-            // STEP 6: Save/persist the trained model to a .ZIP file
+<# } else{ #>
 
+            // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
+            // in order to evaluate and get the model's accuracy metrics
+            Console.WriteLine("=============== Cross-validating to get model's accuracy metrics ===============");
+<#if("BinaryClassification".Equals(TaskType)){ #>
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: 3, labelColumn:"Label");
+            ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
+<#}#><#if("Regression".Equals(TaskType)){ #>
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: 3, labelColumn:"Label");
+            ConsoleHelper.PrintRegressionFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
+<#}#>
+<# } #>
+
+            // Save/persist the trained model to a .ZIP file
             using (var fs = new FileStream(ModelPath, FileMode.Create, FileAccess.Write, FileShare.Write))
                 mlContext.Model.Save(trainedModel, fs);
 
