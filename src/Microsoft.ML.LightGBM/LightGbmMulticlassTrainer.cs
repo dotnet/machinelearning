@@ -95,7 +95,7 @@ namespace Microsoft.ML.LightGBM
             {
                 var pred = CreateBinaryPredictor(i, innerArgs);
                 var cali = new PlattCalibrator(Host, -0.5, 0);
-                predictors[i] = new FeatureWeightsCalibratedPredictor(Host, pred, cali);
+                predictors[i] = new FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
             }
             string obj = (string)GetGbmParameters()["objective"];
             if (obj == "multiclass")

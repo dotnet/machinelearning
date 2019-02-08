@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
@@ -118,23 +117,20 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            LinearBinaryModelParameters pred = null;
-            ParameterMixingCalibratedPredictor cali = null;
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
                     new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
-                    onFit: (p, c) => { pred = p; cali = c; })));
+                    onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
             Assert.Null(pred);
-            Assert.Null(cali);
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
-            Assert.NotNull(cali);
             // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.Weights.Count);
+            Assert.Equal(9, pred.SubModel.Weights.Count);
 
             var data = model.Read(dataSource);
 
@@ -384,7 +380,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            IPredictorWithFeatureWeights<float> pred = null;
+            CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.FastTree(r.label, r.features,
@@ -400,7 +396,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // 9 input features, so we ought to have 9 weights.
             VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
+            ((IPredictorWithFeatureWeights<float>)pred).GetFeatureWeights(ref weights);
             Assert.Equal(9, weights.Length);
 
             var data = model.Read(dataSource);
@@ -465,7 +461,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            IPredictorWithFeatureWeights<float> pred = null;
+            CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LightGbm(r.label, r.features,
@@ -482,7 +478,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // 9 input features, so we ought to have 9 weights.
             VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
+            ((IHaveFeatureWeights)pred).GetFeatureWeights(ref weights);
             Assert.Equal(9, weights.Length);
 
             var data = model.Read(dataSource);
@@ -588,7 +584,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            IPredictorWithFeatureWeights<float> pred = null;
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
@@ -601,9 +597,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.NotNull(pred);
 
             // 9 input features, so we ought to have 9 weights.
-            VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
-            Assert.Equal(9, weights.Length);
+            Assert.Equal(9, pred.SubModel.Weights.Count);
 
             var data = model.Read(dataSource);
 

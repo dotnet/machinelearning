@@ -467,8 +467,8 @@ namespace Microsoft.ML.Learners
             if (calibrator == null)
                 return predictor;
             if (calibrator is IParameterMixer)
-                return new ParameterMixingCalibratedPredictor(env, predictor, calibrator);
-            return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
+                return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
+            return new SchemaBindableCalibratedModelParameters<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -546,8 +546,8 @@ namespace Microsoft.ML.Learners
 
     public abstract class RegressionModelParameters : LinearModelParameters
     {
-       public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
-            : base(env, name, in weights, bias)
+        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
+             : base(env, name, in weights, bias)
         {
         }
 

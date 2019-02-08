@@ -46,7 +46,7 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Options.Defaults.OptTol,
             int memorySize = Options.Defaults.MemorySize,
             bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
-            Action<ParameterMixingCalibratedPredictor> onFit = null)
+            Action<CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML.StaticPipe
             Vector<float> features,
             Scalar<float> weights,
             Options options,
-            Action<ParameterMixingCalibratedPredictor> onFit = null)
+            Action<CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
