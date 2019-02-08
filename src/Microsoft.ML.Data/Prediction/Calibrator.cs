@@ -132,12 +132,15 @@ namespace Microsoft.ML.Internal.Calibration
 
     /// <summary>
     /// Class for allowing a post-processing step, defined by <see cref="Calibrator"/>, to <see cref="SubModel"/>'s
-    /// output. For example, in binary classification, <see cref="Calibrator"/> can convert support vector machine's
-    /// output value to the probability of belonging to the positive (or negative) class. Detailed math materials
-    /// can be found at <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/plattprob.pdf">this paper</a>.
+    /// output.
     /// </summary>
     /// <typeparam name="TSubModel">Type being calibrated.</typeparam>
     /// <typeparam name="TCalibrator">Type used to calibrate.</typeparam>
+    /// <remarks>
+    /// For example, in binary classification, <see cref="Calibrator"/> can convert support vector machine's
+    /// output value to the probability of belonging to the positive (or negative) class. Detailed math materials
+    /// can be found at <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/plattprob.pdf">this paper</a>.
+    /// </remarks>
     public abstract class CalibratedModelParametersBase<TSubModel, TCalibrator> :
         IDistPredictorProducing<float, float>,
         ICanSaveInIniFormat,
