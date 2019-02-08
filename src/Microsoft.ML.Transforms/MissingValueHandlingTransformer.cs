@@ -244,7 +244,7 @@ namespace Microsoft.ML.Transforms
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)
-                output = ColumnSelectingTransformer.CreateDrop(h, output, dropCols.ToArray());
+                output = ColumnSelectingTransformer.CreateDrop(h, output, dropCols.ToArray()) as IDataTransform;
 
             return output;
         }

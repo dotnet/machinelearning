@@ -24,7 +24,7 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
-        private readonly MLContext _env = new MLContext(seed: 1);
+        private readonly MLContext mlContext = new MLContext(seed: 1);
 
         private readonly int[] _batchSizes = new int[] { 1, 2, 5 };
 
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Benchmarks
 
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
-            var reader = new TextLoader(_env,
+            var reader = new TextLoader(mlContext,
                     columns: new[]
                     {
                             new TextLoader.Column("Label", DataKind.R4, 0),
@@ -68,8 +68,8 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(dataPath);
 
-            var pipeline = new ColumnConcatenatingEstimator(_env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(_env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+            var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             return pipeline.Fit(data);
         }
@@ -100,20 +100,23 @@ namespace Microsoft.ML.Benchmarks
                 AllowQuoting = false,
                 AllowSparse = false
             };
-            var loader = _env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
-            var text = new TextFeaturizingEstimator(_env, "WordEmbeddings", "SentimentText", args =>
-            {
-                args.OutputTokens = true;
-                args.KeepPunctuations = false;
-                args.UseStopRemover = true;
-                args.VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None;
-                args.UseCharExtractor = false;
-                args.UseWordExtractor = false;
-            }).Fit(loader).Transform(loader);
-            var trans = _env.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText",
+
+            var loader = mlContext.Data.ReadFromTextFile(_sentimentDataPath, arguments);
+            var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new List<string> { "SentimentText" }, 
+                new TextFeaturizingEstimator.Options { 
+                    OutputTokens = true,
+                    KeepPunctuations = false,
+                    UseStopRemover = true,
+                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
+                    UseCharExtractor = false,
+                    UseWordExtractor = false,
+                }).Fit(loader).Transform(loader);
+
+            var trans = mlContext.Transforms.Text.ExtractWordEmbeddings("Features", "WordEmbeddings_TransformedText", 
                 WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe).Fit(text).Transform(text);
+
             // Train
-            var trainer = _env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
+            var trainer = mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }
@@ -122,10 +125,10 @@ namespace Microsoft.ML.Benchmarks
         public void SetupPredictBenchmarks()
         {
             _trainedModel = Train(_dataPath);
-            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(_env);
+            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
             _consumer.Consume(_predictionEngine.Predict(_example));
 
-            var reader = new TextLoader(_env,
+            var reader = new TextLoader(mlContext,
                     columns: new[]
                     {
                             new TextLoader.Column("Label", DataKind.R4, 0),
@@ -139,7 +142,7 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView testData = reader.Read(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MultiClassClassifierEvaluator(_env, new MultiClassClassifierEvaluator.Arguments());
+            var evaluator = new MultiClassClassifierEvaluator(mlContext, new MultiClassClassifierEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
 
             _batches = new IrisData[_batchSizes.Length][];
@@ -158,13 +161,13 @@ namespace Microsoft.ML.Benchmarks
         public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
         [Benchmark]
-        public void PredictIrisBatchOf1() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[0]));
+        public void PredictIrisBatchOf1() => _trainedModel.Transform(mlContext.Data.ReadFromEnumerable(_batches[0]));
 
         [Benchmark]
-        public void PredictIrisBatchOf2() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[1]));
+        public void PredictIrisBatchOf2() => _trainedModel.Transform(mlContext.Data.ReadFromEnumerable(_batches[1]));
 
         [Benchmark]
-        public void PredictIrisBatchOf5() => _trainedModel.Transform(_env.Data.ReadFromEnumerable(_batches[2]));
+        public void PredictIrisBatchOf5() => _trainedModel.Transform(mlContext.Data.ReadFromEnumerable(_batches[2]));
     }
 
     public class IrisData

@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms
             if (Utils.Size(columnsToDrop) == 0)
                 return data;
 
-            var args = new ChooseColumnsByIndexTransform.Arguments();
+            var args = new ChooseColumnsByIndexTransform.Options();
             args.Drop = true;
             args.Indices = columnsToDrop.ToArray();
             return new ChooseColumnsByIndexTransform(env, args, data);

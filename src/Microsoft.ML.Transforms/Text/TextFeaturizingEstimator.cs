@@ -120,26 +120,59 @@ namespace Microsoft.ML.Transforms.Text
             public TextNormKind VectorNormalizer = TextNormKind.L2;
         }
 
-        public sealed class Settings
+        /// <summary>
+        /// Advanced options for the <see cref="TextFeaturizingEstimator"/>.
+        /// </summary>
+        public sealed class Options
         {
 #pragma warning disable MSML_NoInstanceInitializers // No initializers on instance fields or properties
+            /// <summary>
+            /// Dataset language.
+            /// </summary>
             public Language TextLanguage { get; set; } = DefaultLanguage;
+            /// <summary>
+            /// Casing used for the text.
+            /// </summary>
             public CaseNormalizationMode TextCase { get; set; } = CaseNormalizationMode.Lower;
+            /// <summary>
+            /// Whether to keep diacritical marks or remove them.
+            /// </summary>
             public bool KeepDiacritics { get; set; } = false;
+            /// <summary>
+            /// Whether to keep punctuation marks or remove them.
+            /// </summary>
             public bool KeepPunctuations { get; set; } = true;
+            /// <summary>
+            /// Whether to keep numbers or remove them.
+            /// </summary>
             public bool KeepNumbers { get; set; } = true;
+            /// <summary>
+            /// Whether to output the transformed text tokens as an additional column.
+            /// </summary>
             public bool OutputTokens { get; set; } = false;
+            /// <summary>
+            /// Vector Normalizer to use.
+            /// </summary>
             public TextNormKind VectorNormalizer { get; set; } = TextNormKind.L2;
+            /// <summary>
+            /// Whether to use stop remover or not.
+            /// </summary>
             public bool UseStopRemover { get; set; } = false;
+            /// <summary>
+            /// Whether to use char extractor or not.
+            /// </summary>
             public bool UseCharExtractor { get; set; } = true;
+            /// <summary>
+            /// Whether to use word extractor or not.
+            /// </summary>
             public bool UseWordExtractor { get; set; } = true;
 #pragma warning restore MSML_NoInstanceInitializers // No initializers on instance fields or properties
         }
 
-        public readonly string OutputColumn;
+        internal readonly string OutputColumn;
         private readonly string[] _inputColumns;
-        public IReadOnlyCollection<string> InputColumns => _inputColumns.AsReadOnly();
-        public Settings AdvancedSettings { get; }
+        internal IReadOnlyCollection<string> InputColumns => _inputColumns.AsReadOnly();
+        internal Options OptionalSettings { get; }
 
         // These parameters are hardcoded for now.
         // REVIEW: expose them once sub-transforms are estimators.
@@ -232,18 +265,18 @@ namespace Microsoft.ML.Transforms.Text
             public TransformApplierParams(TextFeaturizingEstimator parent)
             {
                 var host = parent._host;
-                host.Check(Enum.IsDefined(typeof(Language), parent.AdvancedSettings.TextLanguage));
-                host.Check(Enum.IsDefined(typeof(CaseNormalizationMode), parent.AdvancedSettings.TextCase));
+                host.Check(Enum.IsDefined(typeof(Language), parent.OptionalSettings.TextLanguage));
+                host.Check(Enum.IsDefined(typeof(CaseNormalizationMode), parent.OptionalSettings.TextCase));
                 WordExtractorFactory = parent._wordFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
-                VectorNormalizer = parent.AdvancedSettings.VectorNormalizer;
-                Language = parent.AdvancedSettings.TextLanguage;
-                UsePredefinedStopWordRemover = parent.AdvancedSettings.UseStopRemover;
-                TextCase = parent.AdvancedSettings.TextCase;
-                KeepDiacritics = parent.AdvancedSettings.KeepDiacritics;
-                KeepPunctuations = parent.AdvancedSettings.KeepPunctuations;
-                KeepNumbers = parent.AdvancedSettings.KeepNumbers;
-                OutputTextTokens = parent.AdvancedSettings.OutputTokens;
+                VectorNormalizer = parent.OptionalSettings.VectorNormalizer;
+                Language = parent.OptionalSettings.TextLanguage;
+                UsePredefinedStopWordRemover = parent.OptionalSettings.UseStopRemover;
+                TextCase = parent.OptionalSettings.TextCase;
+                KeepDiacritics = parent.OptionalSettings.KeepDiacritics;
+                KeepPunctuations = parent.OptionalSettings.KeepPunctuations;
+                KeepNumbers = parent.OptionalSettings.KeepNumbers;
+                OutputTextTokens = parent.OptionalSettings.OutputTokens;
                 Dictionary = parent._dictionary;
             }
         }
@@ -254,18 +287,16 @@ namespace Microsoft.ML.Transforms.Text
         internal const string UserName = "Text Transform";
         internal const string LoaderSignature = "Text";
 
-        public const Language DefaultLanguage = Language.English;
+        internal const Language DefaultLanguage = Language.English;
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
-        public TextFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-            Action<Settings> advancedSettings = null)
-            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName }, advancedSettings)
+        internal TextFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
+            : this(env, outputColumnName, new[] { inputColumnName ?? outputColumnName })
         {
         }
 
-        public TextFeaturizingEstimator(IHostEnvironment env, string name, IEnumerable<string> source,
-            Action<Settings> advancedSettings = null)
+        internal TextFeaturizingEstimator(IHostEnvironment env, string name, IEnumerable<string> source, Options options = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TextFeaturizingEstimator));
@@ -273,21 +304,25 @@ namespace Microsoft.ML.Transforms.Text
             _host.CheckParam(source.Any(), nameof(source));
             _host.CheckParam(!source.Any(string.IsNullOrWhiteSpace), nameof(source));
             _host.CheckNonEmpty(name, nameof(name));
-            _host.CheckValueOrNull(advancedSettings);
+            _host.CheckValueOrNull(options);
 
             _inputColumns = source.ToArray();
             OutputColumn = name;
 
-            AdvancedSettings = new Settings();
-            advancedSettings?.Invoke(AdvancedSettings);
+            OptionalSettings = new Options();
+            if (options != null)
+                OptionalSettings = options;
 
             _dictionary = null;
-            if (AdvancedSettings.UseWordExtractor)
+            if (OptionalSettings.UseWordExtractor)
                 _wordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
-            if (AdvancedSettings.UseCharExtractor)
+            if (OptionalSettings.UseCharExtractor)
                 _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="Transformer"/>.
+        /// </summary>
         public ITransformer Fit(IDataView input)
         {
             var h = _host;
@@ -463,7 +498,7 @@ namespace Microsoft.ML.Transforms.Text
             return new Transformer(_host, input, view);
         }
 
-        public static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
             => new Transformer(env, ctx);
 
         private static string GenerateColumnName(Schema schema, string srcName, string xfTag)
@@ -471,6 +506,10 @@ namespace Microsoft.ML.Transforms.Text
             return schema.GetTempColumnName(string.Format("{0}_{1}", srcName, xfTag));
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -485,12 +524,12 @@ namespace Microsoft.ML.Transforms.Text
 
             var metadata = new List<SchemaShape.Column>(2);
             metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-            if (AdvancedSettings.VectorNormalizer != TextNormKind.None)
+            if (OptionalSettings.VectorNormalizer != TextNormKind.None)
                 metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
 
             result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false,
                 new SchemaShape(metadata));
-            if (AdvancedSettings.OutputTokens)
+            if (OptionalSettings.OutputTokens)
             {
                 string name = string.Format(TransformedTextColFormat, OutputColumn);
                 result[name] = new SchemaShape.Column(name, SchemaShape.Column.VectorKind.VariableVector, TextType.Instance, false);
@@ -502,18 +541,18 @@ namespace Microsoft.ML.Transforms.Text
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
         {
-            Action<Settings> settings = s =>
+            var settings = new Options
             {
-                s.TextLanguage = args.Language;
-                s.TextCase = args.TextCase;
-                s.KeepDiacritics = args.KeepDiacritics;
-                s.KeepPunctuations = args.KeepPunctuations;
-                s.KeepNumbers = args.KeepNumbers;
-                s.OutputTokens = args.OutputTokens;
-                s.VectorNormalizer = args.VectorNormalizer;
-                s.UseStopRemover = args.UsePredefinedStopWordRemover;
-                s.UseWordExtractor = args.WordFeatureExtractor != null;
-                s.UseCharExtractor = args.CharFeatureExtractor != null;
+                TextLanguage = args.Language,
+                TextCase = args.TextCase,
+                KeepDiacritics = args.KeepDiacritics,
+                KeepPunctuations = args.KeepPunctuations,
+                KeepNumbers = args.KeepNumbers,
+                OutputTokens = args.OutputTokens,
+                VectorNormalizer = args.VectorNormalizer,
+                UseStopRemover = args.UsePredefinedStopWordRemover,
+                UseWordExtractor = args.WordFeatureExtractor != null,
+                UseCharExtractor = args.CharFeatureExtractor != null,
             };
 
             var estimator = new TextFeaturizingEstimator(env, args.Columns.Name, args.Columns.Source ?? new[] { args.Columns.Name }, settings);
@@ -530,7 +569,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly IHost _host;
             private readonly IDataView _xf;
 
-            public Transformer(IHostEnvironment env, IDataView input, IDataView view)
+            internal Transformer(IHostEnvironment env, IDataView input, IDataView view)
             {
                 _host = env.Register(nameof(Transformer));
                 _xf = ApplyTransformUtils.ApplyAllTransformsToData(_host, view, new EmptyDataView(_host, input.Schema), input);

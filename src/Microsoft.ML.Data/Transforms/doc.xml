@@ -71,7 +71,7 @@
         Given a set of keys and values, the ValueMappingEstimator builds up a dictionary so that when given a specific key it will return a 
         specific value. The ValueMappingEstimator supports keys and values of different <see cref="System.Type"/> to support different data types.
         Examples for using a ValueMappingEstimator are:
-        <list>
+        <list type='bullet'>
           <item>
             <description>Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals')</description>
           </item>

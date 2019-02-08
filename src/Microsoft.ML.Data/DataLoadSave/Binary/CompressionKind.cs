@@ -12,14 +12,14 @@ namespace Microsoft.ML.Data.IO
     /// A code indicating the kind of compression. It is supposed that each kind of compression is totally
     /// sufficient to describe how a given stream should be decompressed.
     /// </summary>
-    public enum CompressionKind : byte
+    internal enum CompressionKind : byte
     {
         None = 0,    // No compression at all.
         Deflate = 1, // DEFLATE algorithm as in zlib's headerless/tailless compression.
         Default = Deflate
     }
 
-    public static class CompressionCodecExtension
+    internal static class CompressionCodecExtension
     {
         /// <summary>
         /// Generate an appropriate wrapping compressing stream for the codec. This

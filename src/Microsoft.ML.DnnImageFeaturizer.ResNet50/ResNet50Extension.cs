@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using System.Reflection;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
@@ -22,7 +21,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> ResNet50(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            return ResNet50(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
+            return ResNet50(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(AssemblyPathHelpers.GetExecutingAssemblyLocation(), "DnnImageModels"));
         }
 
         /// <summary>

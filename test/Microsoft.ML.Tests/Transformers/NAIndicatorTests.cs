@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void NAIndicatorFileOutput()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -102,10 +102,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             TestEstimatorCore(est, data, invalidInput: invalidData);
             var outputPath = GetOutputPath("NAIndicator", "featurized.tsv");
-            using (var ch = Env.Start("save"))
+            using (var ch = ((IHostEnvironment)ML).Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
+                var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }

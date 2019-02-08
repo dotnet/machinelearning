@@ -399,7 +399,7 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
                 chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
@@ -670,7 +670,7 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
                 chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
@@ -721,7 +721,7 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
                 chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }

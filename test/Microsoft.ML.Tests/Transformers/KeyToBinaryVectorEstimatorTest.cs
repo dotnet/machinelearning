@@ -52,8 +52,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new ValueToKeyMappingEstimator.ColumnInfo("TermC", "C", textKeyValues:true)
                 }).Fit(dataView).Transform(dataView);
 
-            var pipe = new KeyToBinaryVectorMappingEstimator(Env, new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatA", "TermA"),
-                new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatC", "TermC"));
+            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(("CatA", "TermA"), ("CatC", "TermC"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -107,11 +106,7 @@ namespace Microsoft.ML.Tests.Transformers
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
-            var pipe = new KeyToBinaryVectorMappingEstimator(Env,
-                 new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatA", "TA"),
-                 new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatB", "TB"),
-                 new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatC", "TC"),
-                 new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatD", "TD"));
+            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(("CatA", "TA"), ("CatB", "TB"), ("CatC", "TC"), ("CatD", "TD"));
 
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
@@ -161,11 +156,7 @@ namespace Microsoft.ML.Tests.Transformers
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
-            var pipe = new KeyToBinaryVectorMappingEstimator(Env,
-                new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatA", "TermA"),
-                new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatB", "TermB"),
-                new KeyToBinaryVectorMappingTransformer.ColumnInfo("CatC", "TermC")
-            );
+            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(("CatA", "TermA"), ("CatB", "TermB"), ("CatC", "TermC"));
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())

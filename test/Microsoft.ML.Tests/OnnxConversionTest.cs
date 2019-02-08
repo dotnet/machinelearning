@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests
                 // Step 3: Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = new OnnxScoringEstimator(mlContext, outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath, outputNames, inputNames);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
 
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Tests
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = new OnnxScoringEstimator(mlContext, outputNames, inputNames, onnxModelPath);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath, outputNames, inputNames);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
                 CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 3);

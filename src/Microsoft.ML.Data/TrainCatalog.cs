@@ -46,14 +46,14 @@ namespace Microsoft.ML
 
             EnsureStratificationColumn(ref data, ref stratificationColumn, seed);
 
-            var trainFilter = new RangeFilter(Host, new RangeFilter.Arguments()
+            var trainFilter = new RangeFilter(Host, new RangeFilter.Options()
             {
                 Column = stratificationColumn,
                 Min = 0,
                 Max = testFraction,
                 Complement = true
             }, data);
-            var testFilter = new RangeFilter(Host, new RangeFilter.Arguments()
+            var testFilter = new RangeFilter(Host, new RangeFilter.Options()
             {
                 Column = stratificationColumn,
                 Min = 0,
@@ -81,14 +81,14 @@ namespace Microsoft.ML
             Func<int, (IDataView scores, ITransformer model)> foldFunction =
                 fold =>
                 {
-                    var trainFilter = new RangeFilter(Host, new RangeFilter.Arguments
+                    var trainFilter = new RangeFilter(Host, new RangeFilter.Options
                     {
                         Column = stratificationColumn,
                         Min = (double)fold / numFolds,
                         Max = (double)(fold + 1) / numFolds,
                         Complement = true
                     }, data);
-                    var testFilter = new RangeFilter(Host, new RangeFilter.Arguments
+                    var testFilter = new RangeFilter(Host, new RangeFilter.Options
                     {
                         Column = stratificationColumn,
                         Min = (double)fold / numFolds,
