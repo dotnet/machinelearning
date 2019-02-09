@@ -700,7 +700,7 @@ namespace Microsoft.ML.ImageAnalytics
         ///</summary>
         /// <param name="env">The host environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>. Null means <paramref name="inputColumnName"/> is replaced.</param>
-        /// <param name="inputColumnName">Name of the input column.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="colors">What colors to extract.</param>
         /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the `RGB RGB` order, or leave them in the plannar form: of all red pixels,
         /// than all green, than all blue.</param>

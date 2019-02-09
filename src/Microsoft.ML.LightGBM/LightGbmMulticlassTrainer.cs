@@ -47,7 +47,7 @@ namespace Microsoft.ML.LightGBM
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of The label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weights">The name for the column containing the initial weight.</param>
+        /// <param name="weights">The name of the optional weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>

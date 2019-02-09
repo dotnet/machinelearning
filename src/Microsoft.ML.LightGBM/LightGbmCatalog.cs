@@ -17,9 +17,9 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
-        /// <param name="weights">The weights column.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the features column.</param>
+        /// <param name="weights">The name of the optional weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>

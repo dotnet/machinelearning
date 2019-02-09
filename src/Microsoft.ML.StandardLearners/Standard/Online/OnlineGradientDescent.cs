@@ -99,7 +99,7 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="weightsColumn">The name of the weights column.</param>
+        /// <param name="weightsColumn">The name of the optional weights column.</param>
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         internal OnlineGradientDescentTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
