@@ -44,21 +44,13 @@ namespace MlnetSample
             Console.WriteLine($"*************************************************");
         }
 
-        public static void PrintBinaryClassificationMetrics(string name, CalibratedBinaryClassificationMetrics metrics)
+        public static void PrintBinaryClassificationMetrics(string name, BinaryClassificationMetrics metrics)
         {
             Console.WriteLine($"************************************************************");
             Console.WriteLine($"*       Metrics for {name} binary classification model      ");
             Console.WriteLine($"*-----------------------------------------------------------");
             Console.WriteLine($"*       Accuracy: {metrics.Accuracy:P2}");
             Console.WriteLine($"*       Auc:      {metrics.Auc:P2}");
-            Console.WriteLine($"*       Auprc:  {metrics.Auprc:P2}");
-            Console.WriteLine($"*       F1Score:  {metrics.F1Score:P2}");
-            Console.WriteLine($"*       LogLoss:  {metrics.LogLoss:#.##}");
-            Console.WriteLine($"*       LogLossReduction:  {metrics.LogLossReduction:#.##}");
-            Console.WriteLine($"*       PositivePrecision:  {metrics.PositivePrecision:#.##}");
-            Console.WriteLine($"*       PositiveRecall:  {metrics.PositiveRecall:#.##}");
-            Console.WriteLine($"*       NegativePrecision:  {metrics.NegativePrecision:#.##}");
-            Console.WriteLine($"*       NegativeRecall:  {metrics.NegativeRecall:P2}");
             Console.WriteLine($"************************************************************");
         }
 

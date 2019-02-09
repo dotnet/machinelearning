@@ -46,7 +46,7 @@ using Microsoft.Data.DataView;
 if(!string.IsNullOrEmpty(TestPath)){ 
             this.Write("        private static string TestDataPath = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(TestPath));
-            this.Write("\"; ");
+            this.Write("\";\r\n");
  } 
             this.Write(@"        private static string ModelPath = @""./model.zip"";
 
@@ -111,16 +111,18 @@ else{
  if(!string.IsNullOrEmpty(TestPath)){ 
             this.Write("            // Evaluate the model and show accuracy stats\r\n            Console.Wr" +
                     "iteLine(\"===== Evaluating Model\'s accuracy with Test data =====\");\r\n            " +
-                    "var predictions = trainedModel.Transform(testDataView);\r\n            var metrics" +
-                    " = mlContext.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".Evaluate(predictions, \"Label\", \"Score\");\r\n");
+                    "var predictions = trainedModel.Transform(testDataView);\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("            ConsoleHelper.PrintBinaryClassificationMetrics(trainer.ToString(), me" +
-                    "trics);\r\n");
+            this.Write("            var metrics = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".EvaluateNonCalibrated(predictions, \"Label\", \"Score\");\r\n            ConsoleHelper" +
+                    ".PrintBinaryClassificationMetrics(trainer.ToString(), metrics);\r\n");
 }
 if("Regression".Equals(TaskType)){ 
-            this.Write("            ConsoleHelper.PrintRegressionMetrics(trainer.ToString(), metrics);\r\n");
+            this.Write("            var metrics = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".Evaluate(predictions, \"Label\", \"Score\");\r\n            ConsoleHelper.PrintRegress" +
+                    "ionMetrics(trainer.ToString(), metrics);\r\n");
 }
  } else{ 
             this.Write(@"
@@ -208,12 +210,8 @@ if("BinaryClassification".Equals(TaskType)){
 }else{
             this.Write("Score");
 }
-            this.Write("} ");
-if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("Probability: {resultprediction.Probability} ");
- } 
-            this.Write("\");\r\n            Console.WriteLine($\"============================================" +
-                    "======\");\r\n        }\r\n\r\n    }\r\n\r\n    public class SampleClass\r\n    {\r\n");
+            this.Write("}\");\r\n            Console.WriteLine($\"===========================================" +
+                    "=======\");\r\n        }\r\n\r\n    }\r\n\r\n    public class SampleClass\r\n    {\r\n");
 
 foreach(var label in ClassLabels)
 {
@@ -225,15 +223,9 @@ foreach(var label in ClassLabels)
 
             this.Write("    }\r\n\r\n    public class SamplePrediction\r\n    {\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
-            this.Write(@"        // ColumnName attribute is used to change the column name from
-        // its default value, which is the name of the field.
-        [ColumnName(""PredictedLabel"")]
-        public bool Prediction { get; set; }
-
-        // No need to specify ColumnName attribute, because the field
-        // name ""Probability"" is the column name we want.
-        public float Probability { get; set; }
-");
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
+                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
+                    "ctedLabel\")]\r\n        public bool Prediction { get; set; }\r\n\r\n");
  } 
 if("MultiClassClassification".Equals(TaskType)){ 
             this.Write("        public float[] Score { get; set; }\r\n");

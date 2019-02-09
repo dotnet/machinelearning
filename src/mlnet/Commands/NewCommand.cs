@@ -18,6 +18,11 @@ namespace Microsoft.ML.CLI
     {
         internal static void Run(Options options)
         {
+            if (options.MlTask == TaskKind.MulticlassClassification)
+            {
+                Console.WriteLine($"Unsupported ml-task: {options.MlTask}");
+            }
+
             var context = new MLContext();
             var label = options.LabelName;
 

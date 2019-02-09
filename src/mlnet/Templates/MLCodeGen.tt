@@ -23,7 +23,9 @@ namespace MlnetSample
     class Program
     {
         private static string TrainDataPath = @"<#= Path #>";
-<#if(!string.IsNullOrEmpty(TestPath)){ #>        private static string TestDataPath = @"<#= TestPath #>"; <# } #>
+<#if(!string.IsNullOrEmpty(TestPath)){ #>
+        private static string TestDataPath = @"<#= TestPath #>";
+<# } #>
         private static string ModelPath = @"./model.zip";
 
         static void Main(string[] args)
@@ -85,10 +87,11 @@ else{#>
             // Evaluate the model and show accuracy stats
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
             var predictions = trainedModel.Transform(testDataView);
-            var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "Label", "Score");
 <#if("BinaryClassification".Equals(TaskType)){ #>
+            var metrics = mlContext.<#= TaskType #>.EvaluateNonCalibrated(predictions, "Label", "Score");
             ConsoleHelper.PrintBinaryClassificationMetrics(trainer.ToString(), metrics);
 <#}#><#if("Regression".Equals(TaskType)){ #>
+            var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "Label", "Score");
             ConsoleHelper.PrintRegressionMetrics(trainer.ToString(), metrics);
 <#}#>
 <# } else{ #>
@@ -154,7 +157,7 @@ else{#>
             var resultprediction = predEngine.Predict(sample);
 
             Console.WriteLine($"=============== Single Prediction  ===============");
-            Console.WriteLine($"Input: {sample} | Prediction: {resultprediction.<#if("BinaryClassification".Equals(TaskType)){ #>Prediction<#}else{#>Score<#}#>} <#if("BinaryClassification".Equals(TaskType)){ #>Probability: {resultprediction.Probability} <# } #>");
+            Console.WriteLine($"Input: {sample} | Prediction: {resultprediction.<#if("BinaryClassification".Equals(TaskType)){ #>Prediction<#}else{#>Score<#}#>}");
             Console.WriteLine($"==================================================");
         }
 
@@ -179,9 +182,6 @@ foreach(var label in ClassLabels)
         [ColumnName("PredictedLabel")]
         public bool Prediction { get; set; }
 
-        // No need to specify ColumnName attribute, because the field
-        // name "Probability" is the column name we want.
-        public float Probability { get; set; }
 <# } #>
 <#if("MultiClassClassification".Equals(TaskType)){ #>
         public float[] Score { get; set; }
