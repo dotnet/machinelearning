@@ -283,7 +283,7 @@ namespace Microsoft.ML.FactorizationMachine
         }
     }
 
-    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters>, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters>
     {
         public const string LoaderSignature = "FAFMPredXfer";
 
@@ -387,7 +387,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// Saves the transformer to file.
         /// </summary>
         /// <param name="ctx">The <see cref="ModelSaveContext"/> that facilitates saving to the <see cref="Repository"/>.</param>
-        public void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

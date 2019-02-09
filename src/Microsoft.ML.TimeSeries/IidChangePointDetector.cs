@@ -175,7 +175,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -187,7 +187,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.

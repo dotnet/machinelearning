@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
 namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
@@ -267,7 +268,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
 
         private static readonly MetadataReference MSDataDataViewReference = RefFromType<IDataView>();
         private static readonly MetadataReference MLNetCoreReference = RefFromType<IHostEnvironment>();
-        private static readonly MetadataReference MLNetDataReference = RefFromType<Model.ModelLoadContext>();
+        private static readonly MetadataReference MLNetDataReference = RefFromType<MLContext>();
         private static readonly MetadataReference MLNetStaticPipeReference = RefFromType<CategoricalHashStaticExtensions.OneHotHashVectorOutputKind>();
 
         protected static MetadataReference RefFromType<TType>()

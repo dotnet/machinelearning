@@ -10,6 +10,12 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Model
 {
+    /// <summary>
+    /// Signature for a repository based model loader. This is the dual of <see cref="ICanSaveModel"/>.
+    /// </summary>
+    [BestFriend]
+    internal delegate void SignatureLoadModel(ModelLoadContext ctx);
+
     public sealed partial class ModelLoadContext : IDisposable
     {
         public const string ModelStreamName = "Model.key";

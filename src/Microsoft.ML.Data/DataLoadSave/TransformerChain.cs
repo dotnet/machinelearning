@@ -51,7 +51,7 @@ namespace Microsoft.ML.Data
     /// A chain of transformers (possibly empty) that end with a <typeparamref name="TLastTransformer"/>.
     /// For an empty chain, <typeparamref name="TLastTransformer"/> is always <see cref="ITransformer"/>.
     /// </summary>
-    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel, IEnumerable<ITransformer>, ITransformerChainAccessor
+    public sealed class TransformerChain<TLastTransformer> : ITransformer, IEnumerable<ITransformer>, ITransformerChainAccessor
     where TLastTransformer : class, ITransformer
     {
         private readonly ITransformer[] _transformers;
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Data
             return new TransformerChain<TNewLast>(_transformers.AppendElement(transformer), _scopes.AppendElement(scope));
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// The loading constructor of transformer chain. Reverse of <see cref="Save(ModelSaveContext)"/>.
+        /// The loading constructor of transformer chain. Reverse of <see cref="ICanSaveModel.Save"/>.
         /// </summary>
         internal TransformerChain(IHostEnvironment env, ModelLoadContext ctx)
         {

@@ -176,7 +176,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -196,7 +196,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // State: StateRef
             // AdaptiveSingularSpectrumSequenceModeler: _model
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write(SeasonalWindowSize);
             ctx.Writer.Write(DiscountFactor);
             ctx.Writer.Write((byte)ErrorFunction);

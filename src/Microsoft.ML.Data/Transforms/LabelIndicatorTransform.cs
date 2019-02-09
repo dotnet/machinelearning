@@ -98,7 +98,7 @@ namespace Microsoft.ML.Transforms
                 ch => new LabelIndicatorTransform(h, args, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

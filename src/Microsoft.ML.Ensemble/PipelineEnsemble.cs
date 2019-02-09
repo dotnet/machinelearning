@@ -482,7 +482,7 @@ namespace Microsoft.ML.Ensemble
                 _inputCols[i] = ctx.LoadNonEmptyString();
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

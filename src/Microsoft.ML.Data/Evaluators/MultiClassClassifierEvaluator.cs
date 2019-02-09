@@ -631,7 +631,7 @@ namespace Microsoft.ML.Data
             return new MultiClassPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Data
             // int: number of classes
             // int[]: Ids of the class names
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             Host.Assert(_numClasses > 0);
             ctx.Writer.Write(_numClasses);
             for (int i = 0; i < _numClasses; i++)

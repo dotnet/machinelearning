@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms.Projections
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
 
-            public void Save(ModelSaveContext ctx, string directoryName)
+            internal void Save(ModelSaveContext ctx, string directoryName)
             {
                 Contracts.AssertValue(ctx);
 
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Transforms.Projections
             return new RandomFourierFeaturizingTransformer(host, ctx);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
 

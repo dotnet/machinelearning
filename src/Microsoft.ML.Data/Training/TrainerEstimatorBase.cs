@@ -141,7 +141,6 @@ namespace Microsoft.ML.Training
             return MakeTransformer(pred, trainSet.Schema);
         }
 
-        [BestFriend]
         private protected abstract TModel TrainModelCore(TrainContext trainContext);
 
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);

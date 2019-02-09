@@ -16,7 +16,7 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
-    public sealed class MultiAverage : BaseMultiAverager, ICanSaveModel
+    public sealed class MultiAverage : BaseMultiAverager
     {
         public const string LoadName = "MultiAverage";
         public const string LoaderSignature = "MultiAverageCombiner";

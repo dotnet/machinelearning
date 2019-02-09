@@ -19,7 +19,7 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
-    public sealed class WeightedAverage : BaseAverager, IWeightedAverager, ICanSaveModel
+    public sealed class WeightedAverage : BaseAverager, IWeightedAverager
     {
         public const string UserName = "Weighted Average";
         public const string LoadName = "WeightedAverage";

@@ -510,7 +510,12 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        /// <summary>
+        /// Derived class, for example A, should overwrite <see cref="SaveModel"/> so that ((<see cref="ICanSaveModel"/>)A).Save(ctx) can correctly dump A.
+        /// </summary>
+        private protected virtual void SaveModel(ModelSaveContext ctx)
         {
             // *** Binary format **
             // int: Id of the score column name

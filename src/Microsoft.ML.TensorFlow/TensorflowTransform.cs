@@ -707,7 +707,7 @@ namespace Microsoft.ML.Transforms
 
         private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
             ctx.CheckAtModel();
@@ -872,7 +872,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             private class OutputCache
             {
