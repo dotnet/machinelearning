@@ -148,7 +148,7 @@ namespace Microsoft.ML.Data
                 ch => new SimplePartitionedPathParser(host, ctx));
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.SetVersionInfo(GetVersionInfo());
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Data
                 ch => new ParquetPartitionedPathParser(host, ctx));
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.SetVersionInfo(GetVersionInfo());

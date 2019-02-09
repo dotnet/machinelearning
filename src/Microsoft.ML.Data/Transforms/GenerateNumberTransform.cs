@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(useCounter, states, input, false, names);
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms
             return h.Apply("Loading Model", ch => new GenerateNumberTransform(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

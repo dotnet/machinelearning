@@ -75,6 +75,8 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// <summary>
         /// Implementation of <see cref="ICanSaveModel.Save(ModelSaveContext)"/>.
         /// </summary>
-        public abstract void Save(ModelSaveContext ctx);
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected abstract void SaveModel(ModelSaveContext ctx);
     }
 }

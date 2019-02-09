@@ -942,7 +942,7 @@ namespace Microsoft.ML.Data.IO
             return OpenStream(files);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

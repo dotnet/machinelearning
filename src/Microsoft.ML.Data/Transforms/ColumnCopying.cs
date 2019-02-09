@@ -166,7 +166,7 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             ctx.SetVersionInfo(GetVersionInfo());
             SaveColumns(ctx);

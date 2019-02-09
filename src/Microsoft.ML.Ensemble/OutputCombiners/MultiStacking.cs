@@ -20,7 +20,7 @@ using Microsoft.ML.Model;
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-    internal sealed class MultiStacking : BaseStacking<VBuffer<Single>>, ICanSaveModel, IMultiClassOutputCombiner
+    internal sealed class MultiStacking : BaseStacking<VBuffer<Single>>, IMultiClassOutputCombiner
     {
         public const string LoadName = "MultiStacking";
         public const string LoaderSignature = "MultiStackingCombiner";

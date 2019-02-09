@@ -263,7 +263,7 @@ namespace Microsoft.ML.Data
         private const int VersionAddedAliases = 0x00010002;
         private const int VersionTransformer = 0x00010003;
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -864,7 +864,7 @@ namespace Microsoft.ML.Data
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore() => _columns.Select(x => x.MakeSchemaColumn()).ToArray();
 
-            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {

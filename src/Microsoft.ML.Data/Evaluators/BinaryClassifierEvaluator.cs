@@ -948,7 +948,7 @@ namespace Microsoft.ML.Data
             return new BinaryPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -960,7 +960,7 @@ namespace Microsoft.ML.Data
             // float: _threshold
             // byte: _useRaw
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.SaveStringOrNull(_probCol);
             Contracts.Assert(FloatUtils.IsFinite(_threshold));
             ctx.Writer.Write(_threshold);

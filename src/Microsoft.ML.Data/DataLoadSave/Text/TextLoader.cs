@@ -834,7 +834,7 @@ namespace Microsoft.ML.Data
                 OutputSchema = ComputeOutputSchema();
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -1283,7 +1283,7 @@ namespace Microsoft.ML.Data
         internal static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
             => new TextLoader(env, args, fileSource).Read(fileSource);
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -1420,7 +1420,7 @@ namespace Microsoft.ML.Data
                 return Cursor.CreateSet(_reader, _files, active, n);
             }
 
-            public void Save(ModelSaveContext ctx) => _reader.Save(ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => ((ICanSaveModel)_reader).Save(ctx);
         }
     }
 }

@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms.Conversions
             _columns = columns.ToArray();
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

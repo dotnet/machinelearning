@@ -11,7 +11,7 @@ using Microsoft.ML.Numeric;
 
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
-    public abstract class BaseMultiCombiner : IMultiClassOutputCombiner
+    public abstract class BaseMultiCombiner : IMultiClassOutputCombiner, ICanSaveModel
     {
         protected readonly IHost Host;
 
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
             Normalize = ctx.Reader.ReadBoolByte();
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

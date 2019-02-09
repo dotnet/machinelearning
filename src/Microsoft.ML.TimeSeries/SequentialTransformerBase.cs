@@ -25,7 +25,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <typeparam name="TInput">The input type of the sequential processing.</typeparam>
     /// <typeparam name="TOutput">The dst type of the sequential processing.</typeparam>
     /// <typeparam name="TState">The state type of the sequential processing. Must be a class inherited from StateBase </typeparam>
-    public abstract class SequentialTransformerBase<TInput, TOutput, TState> : IStatefulTransformer, ICanSaveModel
+    public abstract class SequentialTransformerBase<TInput, TOutput, TState> : IStatefulTransformer
        where TState : SequentialTransformerBase<TInput, TOutput, TState>.StateBase, new()
     {
         /// <summary>
@@ -320,7 +320,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             OutputColumnType = bs.LoadTypeDescriptionOrNull(ctx.Reader.BaseStream);
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected virtual void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(InitialWindowSize >= 0);
@@ -450,9 +452,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
                 => new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
 
-            public override void Save(ModelSaveContext ctx)
+            private protected override void SaveModel(ModelSaveContext ctx)
             {
-                _parent.Save(ctx);
+                (_parent as ICanSaveModel).Save(ctx);
             }
 
             IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
@@ -637,7 +639,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return h.Apply("Loading Model", ch => new TimeSeriesRowToRowMapperTransform(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

@@ -200,7 +200,7 @@ namespace Microsoft.ML.Calibrator
 
         bool ITransformer.IsRowToRowMapper => true;
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.CheckAtModel();
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Calibrator
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
                => col => col == _scoreColIndex;
 
-            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {

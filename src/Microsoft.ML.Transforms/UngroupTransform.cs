@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms
             _ungroupBinding = UngroupBinding.Create(ctx, host, input.Schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Transforms
                 return new UngroupBinding(ectx, inputSchema, mode, pivotColumns);
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 _ectx.AssertValue(ctx);
 

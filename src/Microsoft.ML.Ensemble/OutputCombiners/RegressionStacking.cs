@@ -19,7 +19,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
 {
     using TScalarPredictor = IPredictorProducing<Single>;
 
-    internal sealed class RegressionStacking : BaseScalarStacking, IRegressionOutputCombiner, ICanSaveModel
+    internal sealed class RegressionStacking : BaseScalarStacking, IRegressionOutputCombiner
     {
         public const string LoadName = "RegressionStacking";
         public const string LoaderSignature = "RegressionStacking";

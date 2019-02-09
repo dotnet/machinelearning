@@ -134,7 +134,11 @@ namespace Microsoft.ML.Data
             return (IRowToRowMapper)Scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
         }
 
-        protected void SaveModel(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected abstract void SaveModel(ModelSaveContext ctx);
+
+        protected void SaveModelCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -157,7 +161,7 @@ namespace Microsoft.ML.Data
     /// Those are all the transformers that work with one feature column.
     /// </summary>
     /// <typeparam name="TModel">The model used to transform the data.</typeparam>
-    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>, ICanSaveModel
+    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
         /// <summary>
@@ -226,7 +230,7 @@ namespace Microsoft.ML.Data
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -235,7 +239,7 @@ namespace Microsoft.ML.Data
 
         protected virtual void SaveCore(ModelSaveContext ctx)
         {
-            SaveModel(ctx);
+            SaveModelCore(ctx);
             ctx.SaveStringOrNull(FeatureColumn);
         }
 
