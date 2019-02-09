@@ -76,6 +76,11 @@ namespace Microsoft.ML.Scenarios
 
         private class ShapeData
         {
+            // Data will be passed as 1-D vector.
+            // Intended data shape [5], model shape [None]
+            [VectorType(5)]
+            public float[] OneDim;
+
             // Data will be passed as flat vector.
             // Intended data shape [2,2], model shape [2, None]
             [VectorType(4)]
@@ -91,7 +96,7 @@ namespace Microsoft.ML.Scenarios
             [VectorType(12)]
             public float[] FourDim;
 
-            // Data will be passed as 3-D vector.
+            // Data will be passed as 4-D vector.
             // Intended data shape [2, 2, 2, 2], model shape [2, 2, 2, 2]
             [VectorType(2, 2, 2, 2)]
             public float[] FourDimKnown;
@@ -100,14 +105,16 @@ namespace Microsoft.ML.Scenarios
         private List<ShapeData> GetShapeData()
         {
             return new List<ShapeData>(new ShapeData[] {
-                        new ShapeData() {   TwoDim = new[] { 1.0f, 2.0f, 3.0f, 4.0f },
+                        new ShapeData() {   OneDim = new[] { 0.1f, 0.2f, 0.3f, 0.4f, 0.5f },
+                                            TwoDim = new[] { 1.0f, 2.0f, 3.0f, 4.0f },
                                             ThreeDim = new[] { 11.0f, 12.0f, 13.0f, 14.0f },
                                             FourDim = new[]{ 21.0f, 22.0f, 23.0f, 24.0f, 25.0f, 26.0f,
                                                              27.0f, 28.0f, 29.0f, 30.0f, 31.0f, 32.0f },
                                             FourDimKnown = new[]{ 41.0f , 42.0f, 43.0f, 44.0f, 45.0f, 46.0f, 47.0f, 48.0f,
                                                                   49.0f , 50.0f, 51.0f, 52.0f, 53.0f, 54.0f, 55.0f, 56.0f}
                                         },
-                        new ShapeData() { TwoDim = new[] { 101.0f, 102.0f, 103.0f, 104.0f },
+                        new ShapeData() {   OneDim = new[] { 100.1f, 100.2f, 100.3f, 100.4f, 100.5f },
+                                            TwoDim = new[] { 101.0f, 102.0f, 103.0f, 104.0f },
                                             ThreeDim = new[] { 111.0f, 112.0f, 113.0f, 114.0f },
                                             FourDim = new[]{ 121.0f, 122.0f, 123.0f, 124.0f, 125.0f, 126.0f,
                                                              127.0f, 128.0f, 129.0f, 130.0f, 131.0f, 132.0f},
@@ -125,19 +132,21 @@ namespace Microsoft.ML.Scenarios
             var data = GetShapeData();
             // Pipeline
             var loader = mlContext.Data.ReadFromEnumerable(data);
-            var inputs = new string[] { "TwoDim", "ThreeDim", "FourDim", "FourDimKnown" };
-            var outputs = new string[] { "o_TwoDim", "o_ThreeDim", "o_FourDim", "o_FourDimKnown" };
+            var inputs = new string[] { "OneDim", "TwoDim", "ThreeDim", "FourDim", "FourDimKnown" };
+            var outputs = new string[] { "o_OneDim", "o_TwoDim", "o_ThreeDim", "o_FourDim", "o_FourDimKnown" };
 
             var trans = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, outputs, inputs).Fit(loader).Transform(loader);
 
             using (var cursor = trans.GetRowCursorForAllColumns())
             {
-                var twoDimgetter = cursor.GetGetter<VBuffer<float>>(4);
-                var threeDimgetter = cursor.GetGetter<VBuffer<float>>(5);
-                var fourDimgetter = cursor.GetGetter<VBuffer<float>>(6);
-                var fourDimKnowngetter = cursor.GetGetter<VBuffer<float>>(7);
+                int outColIndex = 5;
+                var oneDimgetter = cursor.GetGetter<VBuffer<float>>(outColIndex);
+                var twoDimgetter = cursor.GetGetter<VBuffer<float>>(outColIndex + 1);
+                var threeDimgetter = cursor.GetGetter<VBuffer<float>>(outColIndex + 2);
+                var fourDimgetter = cursor.GetGetter<VBuffer<float>>(outColIndex + 3);
+                var fourDimKnowngetter = cursor.GetGetter<VBuffer<float>>(outColIndex + 4);
 
-
+                VBuffer<float> oneDim = default;
                 VBuffer<float> twoDim = default;
                 VBuffer<float> threeDim = default;
                 VBuffer<float> fourDim = default;
@@ -146,10 +155,15 @@ namespace Microsoft.ML.Scenarios
                 {
                     Assert.True(cursor.MoveNext());
 
+                    oneDimgetter(ref oneDim);
                     twoDimgetter(ref twoDim);
                     threeDimgetter(ref threeDim);
                     fourDimgetter(ref fourDim);
                     fourDimKnowngetter(ref fourDimKnown);
+
+                    var oneDimValues = oneDim.GetValues();
+                    Assert.Equal(sample.OneDim.Length, oneDimValues.Length);
+                    Assert.True(oneDimValues.SequenceEqual(sample.OneDim));
 
                     var twoDimValues = twoDim.GetValues();
                     Assert.Equal(sample.TwoDim.Length, twoDimValues.Length);
