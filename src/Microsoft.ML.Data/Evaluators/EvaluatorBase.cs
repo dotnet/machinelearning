@@ -17,7 +17,8 @@ namespace Microsoft.ML.Data
     ///  <see cref="GetPerInstanceMetricsCore"/>. Note that the input <see cref="RoleMappedData"/> is assumed to contain all the column
     /// roles needed for evaluation, including the score column.
     /// </summary>
-    public abstract partial class EvaluatorBase<TAgg> : IEvaluator
+    [BestFriend]
+    internal abstract partial class EvaluatorBase<TAgg> : IEvaluator
         where TAgg : EvaluatorBase<TAgg>.AggregatorBase
     {
         protected readonly IHost Host;
@@ -446,7 +447,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class RowToRowEvaluatorBase<TAgg> : EvaluatorBase<TAgg>
+    [BestFriend]
+    internal abstract class RowToRowEvaluatorBase<TAgg> : EvaluatorBase<TAgg>
         where TAgg : EvaluatorBase<TAgg>.AggregatorBase
     {
         [BestFriend]
@@ -468,7 +470,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This is a helper class for creating the per-instance IDV.
     /// </summary>
-    public abstract class PerInstanceEvaluatorBase : IRowMapper
+    [BestFriend]
+    internal abstract class PerInstanceEvaluatorBase : IRowMapper
     {
         protected readonly IHost Host;
         protected readonly string ScoreCol;
@@ -507,7 +510,12 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        /// <summary>
+        /// Derived class, for example A, should overwrite <see cref="SaveModel"/> so that ((<see cref="ICanSaveModel"/>)A).Save(ctx) can correctly dump A.
+        /// </summary>
+        private protected virtual void SaveModel(ModelSaveContext ctx)
         {
             // *** Binary format **
             // int: Id of the score column name

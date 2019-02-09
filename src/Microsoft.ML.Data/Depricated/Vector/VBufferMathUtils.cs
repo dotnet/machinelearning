@@ -13,7 +13,7 @@ namespace Microsoft.ML.Numeric
     //   parameters, parameter order, etc.
     using Float = System.Single;
 
-    public static partial class VectorUtils
+    internal static partial class VectorUtils
     {
         /// <summary>
         /// Returns the L2 norm squared of the vector (sum of squares of the components).

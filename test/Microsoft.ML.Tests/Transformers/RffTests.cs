@@ -5,9 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -68,7 +66,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void RffStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 VectorFloat: ctx.LoadFloat(1, 8),
                 Label: ctx.LoadFloat(0)
             ));
@@ -82,18 +80,12 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est.AsDynamic, data.AsDynamic);
 
             var outputPath = GetOutputPath("Rff", "featurized.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
-            }
+            var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
             CheckEquality("Rff", "featurized.tsv");
             Done();
         }
-
-
 
         [Fact]
         public void TestCommandLine()

@@ -29,7 +29,8 @@ namespace Microsoft.ML.Data
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
-    public sealed class ClusteringEvaluator : RowToRowEvaluatorBase<ClusteringEvaluator.Aggregator>
+    [BestFriend]
+    internal sealed class ClusteringEvaluator : RowToRowEvaluatorBase<ClusteringEvaluator.Aggregator>
     {
         public sealed class Arguments
         {
@@ -561,7 +562,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class ClusteringPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class ClusteringPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "ClusteringPerInstance";
         private static VersionInfo GetVersionInfo()
@@ -627,13 +628,13 @@ namespace Microsoft.ML.Data
             return new ClusteringPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             // *** Binary format **
             // base
             // int: number of clusters
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             Host.Assert(_numClusters > 0);
             ctx.Writer.Write(_numClusters);
         }
@@ -758,7 +759,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class ClusteringMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class ClusteringMamlEvaluator : MamlEvaluatorBase
     {
         public class Arguments : ArgumentsBase
         {

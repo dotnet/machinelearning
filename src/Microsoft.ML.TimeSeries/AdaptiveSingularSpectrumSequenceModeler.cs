@@ -465,7 +465,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             _xSmooth = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

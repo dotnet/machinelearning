@@ -4,6 +4,8 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.SymSgd;
 using Xunit;
@@ -35,7 +37,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var initPredictor = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent().Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
-            var withInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData, initialPredictor: initPredictor.Model);
+            var withInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData,
+                initialPredictor: initPredictor.Model as CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>);
             var outInitData = withInitPredictor.Transform(transformedData);
 
             var notInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData);

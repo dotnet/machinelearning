@@ -25,7 +25,8 @@ namespace Microsoft.ML.Data
     /// score set id metadata.
     /// </summary>
 
-    public sealed class GenericScorer : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
+    [BestFriend]
+    internal sealed class GenericScorer : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
     {
         public const string LoadName = "GenericScorer";
 
@@ -113,7 +114,7 @@ namespace Microsoft.ML.Data
                 return Create(env, bindable, input, roles, suffix, user: false);
             }
 
-            public override void Save(ModelSaveContext ctx)
+            internal override void SaveModel(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -204,7 +205,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
-            _bindings.Save(ctx);
+            _bindings.SaveModel(ctx);
         }
 
         void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)

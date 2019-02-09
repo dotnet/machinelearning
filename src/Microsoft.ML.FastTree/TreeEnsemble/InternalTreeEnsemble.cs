@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _firstInputInitializationContent = ctx.LoadStringOrNull();
         }
 
-        public void Save(ModelSaveContext ctx)
+        internal void Save(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // int: Number of trees

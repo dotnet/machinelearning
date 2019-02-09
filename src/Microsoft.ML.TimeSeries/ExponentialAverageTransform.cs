@@ -77,7 +77,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Host.CheckDecode(WindowSize == 1);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(WindowSize >= 1);
@@ -89,7 +89,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // <base>
             // Single _decay
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write(_decay);
         }
 

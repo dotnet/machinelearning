@@ -163,7 +163,7 @@ namespace Microsoft.ML.Data
                 return new RowMapper(env, this, schema);
             }
 
-            public void Save(ModelSaveContext ctx)
+            void ICanSaveModel.Save(ModelSaveContext ctx)
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 ctx.SetVersionInfo(GetVersionInfo());

@@ -24,7 +24,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class RegressionEvaluator :
+    [BestFriend]
+    internal sealed class RegressionEvaluator :
         RegressionEvaluatorBase<RegressionEvaluator.Aggregator, Float, Double>
     {
         public sealed class Arguments : ArgumentsBase
@@ -189,7 +190,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class RegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class RegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "RegressionPerInstance";
         private static VersionInfo GetVersionInfo()
@@ -233,7 +234,7 @@ namespace Microsoft.ML.Data
             return new RegressionPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -241,7 +242,7 @@ namespace Microsoft.ML.Data
 
             // *** Binary format **
             // base
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
@@ -327,7 +328,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class RegressionMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class RegressionMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {

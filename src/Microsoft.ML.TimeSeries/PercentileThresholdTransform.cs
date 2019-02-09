@@ -86,7 +86,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Host.CheckDecode(MinPercentile <= _percentile && _percentile <= MaxPercentile);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(MinPercentile <= _percentile && _percentile <= MaxPercentile);
@@ -98,7 +98,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // <base>
             // Double: _percentile
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write(_percentile);
         }
 

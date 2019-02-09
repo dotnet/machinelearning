@@ -15,7 +15,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 using Float = System.Single;
 
-[assembly: LoadableClass(GenerateNumberTransform.Summary, typeof(GenerateNumberTransform), typeof(GenerateNumberTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(GenerateNumberTransform.Summary, typeof(GenerateNumberTransform), typeof(GenerateNumberTransform.Options), typeof(SignatureDataTransform),
     GenerateNumberTransform.UserName, GenerateNumberTransform.LoadName, "GenerateNumber", GenerateNumberTransform.ShortName)]
 
 [assembly: LoadableClass(GenerateNumberTransform.Summary, typeof(GenerateNumberTransform), null, typeof(SignatureLoadDataTransform),
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms
             public const uint Seed = 42;
         }
 
-        public sealed class Arguments : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:seed)",
                 Name = "Column", ShortName = "col", SortOrder = 1)]
@@ -114,18 +114,18 @@ namespace Microsoft.ML.Transforms
                 States = states;
             }
 
-            public static Bindings Create(Arguments args, Schema input)
+            public static Bindings Create(Options options, Schema input)
             {
-                var names = new string[args.Columns.Length];
-                var useCounter = new bool[args.Columns.Length];
-                var states = new TauswortheHybrid.State[args.Columns.Length];
-                for (int i = 0; i < args.Columns.Length; i++)
+                var names = new string[options.Columns.Length];
+                var useCounter = new bool[options.Columns.Length];
+                var states = new TauswortheHybrid.State[options.Columns.Length];
+                for (int i = 0; i < options.Columns.Length; i++)
                 {
-                    var item = args.Columns[i];
+                    var item = options.Columns[i];
                     names[i] = item.Name;
-                    useCounter[i] = item.UseCounter ?? args.UseCounter;
+                    useCounter[i] = item.UseCounter ?? options.UseCounter;
                     if (!useCounter[i])
-                        states[i] = new TauswortheHybrid.State(item.Seed ?? args.Seed);
+                        states[i] = new TauswortheHybrid.State(item.Seed ?? options.Seed);
                 }
 
                 return new Bindings(useCounter, states, input, true, names);
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(useCounter, states, input, false, names);
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -270,20 +270,20 @@ namespace Microsoft.ML.Transforms
         /// <param name="seed">Seed to start random number generator.</param>
         /// <param name="useCounter">Use an auto-incremented integer starting at zero instead of a random number.</param>
         public GenerateNumberTransform(IHostEnvironment env, IDataView input, string name, uint? seed = null, bool useCounter = Defaults.UseCounter)
-            : this(env, new Arguments() { Columns = new[] { new Column() { Name = name } }, Seed = seed ?? Defaults.Seed, UseCounter = useCounter }, input)
+            : this(env, new Options() { Columns = new[] { new Column() { Name = name } }, Seed = seed ?? Defaults.Seed, UseCounter = useCounter }, input)
         {
         }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public GenerateNumberTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public GenerateNumberTransform(IHostEnvironment env, Options options, IDataView input)
             : base(env, RegistrationName, input)
         {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
+            Host.CheckValue(options, nameof(options));
+            Host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
-            _bindings = Bindings.Create(args, Source.Schema);
+            _bindings = Bindings.Create(options, Source.Schema);
         }
 
         private GenerateNumberTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms
             return h.Apply("Loading Model", ch => new GenerateNumberTransform(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -473,7 +473,7 @@ namespace Microsoft.ML.Transforms
     internal static class RandomNumberGenerator
     {
         [TlcModule.EntryPoint(Name = "Transforms.RandomNumberGenerator", Desc = GenerateNumberTransform.Summary, UserName = GenerateNumberTransform.UserName, ShortName = GenerateNumberTransform.ShortName)]
-        public static CommonOutputs.TransformOutput Generate(IHostEnvironment env, GenerateNumberTransform.Arguments input)
+        public static CommonOutputs.TransformOutput Generate(IHostEnvironment env, GenerateNumberTransform.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "GenerateNumber", input);
             var xf = new GenerateNumberTransform(h, input, input.Data);

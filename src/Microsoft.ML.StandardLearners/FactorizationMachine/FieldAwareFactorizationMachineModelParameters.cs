@@ -283,47 +283,43 @@ namespace Microsoft.ML.FactorizationMachine
         }
     }
 
-    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters, BinaryClassifierScorer>, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters>
     {
         public const string LoaderSignature = "FAFMPredXfer";
 
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        public string[] FeatureColumns { get; }
+        public IReadOnlyList<string> FeatureColumns { get; }
 
         /// <summary>
         /// The type of the feature columns.
         /// </summary>
-        public ColumnType[] FeatureColumnTypes { get; }
-
-        protected override BinaryClassifierScorer Scorer { get; set; }
+        public IReadOnlyList<ColumnType> FeatureColumnTypes { get; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;
 
-        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachineModelParameters model, Schema trainSchema,
+        internal FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachineModelParameters model, Schema trainSchema,
             string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
-            :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
+            : base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
         {
             Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
+            Host.CheckNonEmpty(featureColumns, nameof(featureColumns));
+
             _threshold = threshold;
             _thresholdColumn = thresholdColumn;
-
-            Host.CheckValue(featureColumns, nameof(featureColumns));
-            int featCount = featureColumns.Length;
-            Host.Check(featCount >= 0, "Empty features column.");
-
             FeatureColumns = featureColumns;
-            FeatureColumnTypes = new ColumnType[featCount];
+            var featureColumnTypes = new ColumnType[featureColumns.Length];
 
             int i = 0;
             foreach (var feat in featureColumns)
             {
                 if (!trainSchema.TryGetColumnIndex(feat, out int col))
                     throw Host.ExceptSchemaMismatch(nameof(featureColumns), "feature", feat);
-                FeatureColumnTypes[i++] = trainSchema[col].Type;
+                featureColumnTypes[i++] = trainSchema[col].Type;
             }
+            FeatureColumnTypes = featureColumnTypes;
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 
@@ -332,8 +328,8 @@ namespace Microsoft.ML.FactorizationMachine
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, trainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
-            :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), ctx)
+        internal FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -344,16 +340,18 @@ namespace Microsoft.ML.FactorizationMachine
             // count of feature columns. FAFM uses more than one.
             int featCount = Model.FieldCount;
 
-            FeatureColumns = new string[featCount];
-            FeatureColumnTypes = new ColumnType[featCount];
+            var featureColumns = new string[featCount];
+            var featureColumnTypes = new ColumnType[featCount];
 
             for (int i = 0; i < featCount; i++)
             {
-                FeatureColumns[i] = ctx.LoadString();
-                if (!TrainSchema.TryGetColumnIndex(FeatureColumns[i], out int col))
-                    throw Host.ExceptSchemaMismatch(nameof(FeatureColumns), "feature", FeatureColumns[i]);
-                FeatureColumnTypes[i] = TrainSchema[col].Type;
+                featureColumns[i] = ctx.LoadString();
+                if (!TrainSchema.TryGetColumnIndex(featureColumns[i], out int col))
+                    throw Host.ExceptSchemaMismatch(nameof(FeatureColumns), "feature", featureColumns[i]);
+                featureColumnTypes[i] = TrainSchema[col].Type;
             }
+            FeatureColumns = featureColumns;
+            FeatureColumnTypes = featureColumnTypes;
 
             _threshold = ctx.Reader.ReadSingle();
             _thresholdColumn = ctx.LoadString();
@@ -372,7 +370,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// <returns>The post transformation <see cref="Schema"/>.</returns>
         public override Schema GetOutputSchema(Schema inputSchema)
         {
-            for (int i = 0; i < FeatureColumns.Length; i++)
+            for (int i = 0; i < FeatureColumns.Count; i++)
             {
                 var feat = FeatureColumns[i];
                 if (!inputSchema.TryGetColumnIndex(feat, out int col))
@@ -389,7 +387,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// Saves the transformer to file.
         /// </summary>
         /// <param name="ctx">The <see cref="ModelSaveContext"/> that facilitates saving to the <see cref="Repository"/>.</param>
-        public void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

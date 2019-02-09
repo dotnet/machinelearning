@@ -8,11 +8,9 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Xunit;
@@ -134,13 +132,9 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(allTypesPipe, allTypesDataView);
 
             var outputPath = GetOutputPath("Convert", "Types.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                var savedData = TakeFilter.Create(Env, allTypesPipe.Fit(allTypesDataView).Transform(allTypesDataView), 2);
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
-            }
+            var savedData = ML.Data.TakeRows(allTypesPipe.Fit(allTypesDataView).Transform(allTypesDataView), 2);
+            using (var fs = File.Create(outputPath))
+                ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
 
             CheckEquality("Convert", "Types.tsv");
             Done();
@@ -268,9 +262,9 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("load"))
             {
                 using (var fs = File.OpenRead(modelPath))
-                     modelOld = ML.Model.Load(fs);
+                    modelOld = ML.Model.Load(fs);
             }
-            var outDataOld = modelOld.Transform(dataView); 
+            var outDataOld = modelOld.Transform(dataView);
 
             var modelNew = ML.Transforms.Conversion.ConvertType(new[] { new TypeConvertingEstimator.ColumnInfo("convertedKey",
                 DataKind.U8, "key", new KeyCount(4)) }).Fit(dataView);

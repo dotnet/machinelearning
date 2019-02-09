@@ -29,7 +29,7 @@ namespace Microsoft.ML.FastTree
         /// </summary>
         public IReadOnlyList<T> Trees { get; }
 
-        internal TreeEnsemble(IEnumerable<T> trees, IEnumerable<double> treeWeights, double bias)
+        private protected TreeEnsemble(IEnumerable<T> trees, IEnumerable<double> treeWeights, double bias)
         {
             Bias = bias;
             TreeWeights = treeWeights.ToList();

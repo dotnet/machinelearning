@@ -159,7 +159,7 @@ namespace Microsoft.ML.Transforms
             return h.Apply("Loading Model", ch => new RowShufflingTransformer(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms
             if (Utils.Size(columnsToDrop) == 0)
                 return data;
 
-            var args = new ChooseColumnsByIndexTransform.Arguments();
+            var args = new ChooseColumnsByIndexTransform.Options();
             args.Drop = true;
             args.Indices = columnsToDrop.ToArray();
             return new ChooseColumnsByIndexTransform(env, args, data);

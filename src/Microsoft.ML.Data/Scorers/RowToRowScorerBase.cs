@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     /// underlying <see cref="ISchemaBoundRowMapper"/> should be exposed, as well as zero or more
     /// "derived" columns.
     /// </summary>
-    public abstract class RowToRowScorerBase : RowToRowMapperTransformBase, IDataScorerTransform
+    internal abstract class RowToRowScorerBase : RowToRowMapperTransformBase, IDataScorerTransform
     {
         [BestFriend]
         private protected abstract class BindingsBase : ScorerBindingsBase
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Data
             ctx.LoadModel<ISchemaBindableMapper, SignatureLoadModel>(host, out Bindable, "SchemaBindableMapper");
         }
 
-        public sealed override void Save(ModelSaveContext ctx)
+        private protected sealed override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.CheckAtModel();
@@ -301,7 +301,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class ScorerArgumentsBase
+    [BestFriend]
+    internal abstract class ScorerArgumentsBase
     {
         // Output columns.
 
@@ -416,7 +417,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public abstract void Save(ModelSaveContext ctx);
+        internal abstract void SaveModel(ModelSaveContext ctx);
 
         protected override ColumnType GetColumnTypeCore(int iinfo)
         {

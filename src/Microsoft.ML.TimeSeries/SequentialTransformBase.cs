@@ -302,7 +302,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             _transform = CreateLambdaTransform(Host, input, OutputColumnName, InputColumnName, InitFunction, WindowSize > 0, ct);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(InitialWindowSize >= 0);

@@ -81,12 +81,14 @@ namespace Microsoft.ML.LightGBM
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
                 return predictor;
-            return new CalibratedPredictor(env, predictor, calibrator);
+            return new ValueMapperCalibratedModelParameters<LightGbmBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
-    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
+    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float,
+        BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
+        CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
     {
         internal const string UserName = "LightGBM Binary Classifier";
         internal const string LoadNameValue = "LightGBMBinary";
@@ -123,13 +125,13 @@ namespace Microsoft.ML.LightGBM
         {
         }
 
-        private protected override IPredictorWithFeatureWeights<float> CreatePredictor()
+        private protected override CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
             var pred = new LightGbmBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
             var cali = new PlattCalibrator(Host, -0.5, 0);
-            return new FeatureWeightsCalibratedPredictor(Host, pred, cali);
+            return new FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
         }
 
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
@@ -162,10 +164,11 @@ namespace Microsoft.ML.LightGBM
             };
         }
 
-        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, Schema trainSchema)
-         => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
+            MakeTransformer(CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> model, Schema trainSchema)
+         => new BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null)
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> Train(IDataView trainData, IDataView validationData = null)
             => TrainTransformer(trainData, validationData);
     }
 

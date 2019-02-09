@@ -25,7 +25,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class QuantileRegressionEvaluator :
+    [BestFriend]
+    internal sealed class QuantileRegressionEvaluator :
         RegressionEvaluatorBase<QuantileRegressionEvaluator.Aggregator, VBuffer<Float>, VBuffer<Double>>
     {
         public sealed class Arguments : ArgumentsBase
@@ -257,7 +258,7 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class QuantileRegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
+    internal sealed class QuantileRegressionPerInstanceEvaluator : PerInstanceEvaluatorBase
     {
         public const string LoaderSignature = "QuantileRegPerInstance";
         private static VersionInfo GetVersionInfo()
@@ -323,7 +324,7 @@ namespace Microsoft.ML.Data
             return new QuantileRegressionPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -334,7 +335,7 @@ namespace Microsoft.ML.Data
             // int: _scoreSize
             // int[]: Ids of the quantile names
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             Host.Assert(_scoreSize > 0);
             ctx.Writer.Write(_scoreSize);
             var quantiles = _quantiles.GetValues();
@@ -457,7 +458,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public sealed class QuantileRegressionMamlEvaluator : MamlEvaluatorBase
+    [BestFriend]
+    internal sealed class QuantileRegressionMamlEvaluator : MamlEvaluatorBase
     {
         public sealed class Arguments : ArgumentsBase
         {
@@ -520,7 +522,7 @@ namespace Microsoft.ML.Data
                     output = LambdaColumnMapper.Create(Host, "Quantile Regression", output, name, name, type, NumberType.R8,
                         (in VBuffer<Double> src, ref Double dst) => dst = src.GetItemOrDefault(index));
                     output = new ChooseColumnsByIndexTransform(Host,
-                        new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = new[] { i } }, output);
+                        new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = new[] { i } }, output);
                 }
             }
             return output;

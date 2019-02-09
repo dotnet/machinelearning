@@ -15,7 +15,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(GroupTransform.Summary, typeof(GroupTransform), typeof(GroupTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(GroupTransform.Summary, typeof(GroupTransform), typeof(GroupTransform.Options), typeof(SignatureDataTransform),
     GroupTransform.UserName, GroupTransform.ShortName)]
 
 [assembly: LoadableClass(GroupTransform.Summary, typeof(GroupTransform), null, typeof(SignatureLoadDataTransform),
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Transforms
     /// Pete [Chair, Cup]
     /// </code></example>
     /// </remarks>
-    public sealed class GroupTransform : TransformBase
+    internal sealed class GroupTransform : TransformBase
     {
         internal const string Summary = "Groups values of a scalar column into a vector, by a contiguous group ID";
         internal const string UserName = "Group Transform";
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms
 
         // REVIEW: it might be feasible to have columns that are constant throughout a group, without having to list them
         // as group keys.
-        public sealed class Arguments : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Columns to group by", Name = "GroupKey", ShortName = "g", SortOrder = 1,
                 Purpose = SpecialPurpose.ColumnSelector)]
@@ -104,17 +104,17 @@ namespace Microsoft.ML.Transforms
         /// <param name="groupKey">Columns to group by</param>
         /// <param name="columns">Columns to group together</param>
         public GroupTransform(IHostEnvironment env, IDataView input, string groupKey, params string[] columns)
-            : this(env, new Arguments() { GroupKeys = new[] { groupKey }, Columns = columns }, input)
+            : this(env, new Options() { GroupKeys = new[] { groupKey }, Columns = columns }, input)
         {
         }
 
-        public GroupTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public GroupTransform(IHostEnvironment env, Options options, IDataView input)
             : base(env, RegistrationName, input)
         {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.GroupKeys) > 0, nameof(args.GroupKeys), "There must be at least one group key");
+            Host.CheckValue(options, nameof(options));
+            Host.CheckUserArg(Utils.Size(options.GroupKeys) > 0, nameof(options.GroupKeys), "There must be at least one group key");
 
-            _groupBinding = new GroupBinding(Host, Source.Schema, args.GroupKeys, args.Columns ?? new string[0]);
+            _groupBinding = new GroupBinding(Host, Source.Schema, options.GroupKeys, options.Columns ?? new string[0]);
         }
 
         public static GroupTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Transforms
             _groupBinding = new GroupBinding(input.Schema, host, ctx);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -225,10 +225,10 @@ namespace Microsoft.ML.Transforms
                 _inputSchema = inputSchema;
 
                 _groupColumns = groupColumns;
-                GroupColumnIndexes = GetColumnIds(inputSchema, groupColumns, x => _ectx.ExceptUserArg(nameof(Arguments.GroupKeys), x));
+                GroupColumnIndexes = GetColumnIds(inputSchema, groupColumns, x => _ectx.ExceptUserArg(nameof(Options.GroupKeys), x));
 
                 _keepColumns = keepColumns;
-                KeepColumnIndexes = GetColumnIds(inputSchema, keepColumns, x => _ectx.ExceptUserArg(nameof(Arguments.Columns), x));
+                KeepColumnIndexes = GetColumnIds(inputSchema, keepColumns, x => _ectx.ExceptUserArg(nameof(Options.Columns), x));
 
                 // Compute output schema from the specified input schema.
                 OutputSchema = BuildOutputSchema(inputSchema);
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Transforms
                 return schemaBuilder.GetSchema();
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 _ectx.AssertValue(ctx);
 
@@ -655,7 +655,7 @@ namespace Microsoft.ML.Transforms
             Desc = GroupTransform.Summary,
             UserName = GroupTransform.UserName,
             ShortName = GroupTransform.ShortName)]
-        public static CommonOutputs.TransformOutput Group(IHostEnvironment env, GroupTransform.Arguments input)
+        public static CommonOutputs.TransformOutput Group(IHostEnvironment env, GroupTransform.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));

@@ -11,12 +11,10 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Model
 {
     /// <summary>
-    /// Signature for a repository based model loader. This is the dual of ICanSaveModel.
-    /// </summary>
-    public delegate void SignatureLoadModel(ModelLoadContext ctx);
-
-    /// <summary>
     /// For saving a model into a repository.
+    /// Classes implementing <see cref="ICanSaveModel"/> should do an explicit implementation of <see cref="Save(ModelSaveContext)"/>.
+    /// Classes inheriting <see cref="ICanSaveModel"/> from a base class should overwrite the function invoked by <see cref="Save(ModelSaveContext)"/>
+    /// in that base class, if there is one.
     /// </summary>
     public interface ICanSaveModel
     {
@@ -293,6 +291,8 @@ namespace Microsoft.ML.Model
 
     public sealed class RepositoryWriter : Repository
     {
+        private const string DirTrainingInfo = "TrainingInfo";
+
         private ZipArchive _archive;
         private Queue<KeyValuePair<string, Stream>> _closed;
 
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Model
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(stream, nameof(stream));
             var rep = new RepositoryWriter(stream, ectx, useFileSystem);
-            using (var ent = rep.CreateEntry(ModelFileUtils.DirTrainingInfo, "Version.txt"))
+            using (var ent = rep.CreateEntry(DirTrainingInfo, "Version.txt"))
             using (var writer = Utils.OpenWriter(ent.Stream))
                 writer.WriteLine(typeof(RepositoryWriter).Assembly.GetName().Version);
             return rep;

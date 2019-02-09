@@ -230,7 +230,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             _outputLength = GetOutputLength(ThresholdScore, Host);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -252,7 +252,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // Double: _powerMartingaleEpsilon
             // Double: _alertThreshold
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write((byte)Martingale);
             ctx.Writer.Write((byte)ThresholdScore);
             ctx.Writer.Write((byte)Side);
@@ -623,7 +623,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
                     return col => false;
             }
 
-            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {

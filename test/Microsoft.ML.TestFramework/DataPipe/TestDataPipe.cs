@@ -857,8 +857,8 @@ namespace Microsoft.ML.RunTests
 
                     var colsChoose = new[] { "Label", "Features", "Label2", "Features2", "A", "B", "C", "D", "E", "F" };
 
-                    IDataView view1 = ColumnSelectingTransformer.CreateKeep(Env, pipe, colsChoose);
-                    view2 = ColumnSelectingTransformer.CreateKeep(Env, view2, colsChoose);
+                    IDataView view1 = ML.Transforms.SelectColumns(colsChoose).Fit(pipe).Transform(pipe);
+                    view2 = ML.Transforms.SelectColumns(colsChoose).Fit(view2).Transform(view2);
 
                     CheckSameValues(view1, view2);
                 },
