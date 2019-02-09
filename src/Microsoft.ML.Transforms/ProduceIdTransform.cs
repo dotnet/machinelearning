@@ -27,7 +27,7 @@ namespace Microsoft.ML.Transforms
     /// some other file, then apply this transform to that dataview, it may of course have a different
     /// result. This is distinct from most transforms that produce results based on data alone.
     /// </summary>
-    public sealed class ProduceIdTransform : RowToRowTransformBase
+    internal sealed class ProduceIdTransform : RowToRowTransformBase
     {
         public sealed class Arguments
         {

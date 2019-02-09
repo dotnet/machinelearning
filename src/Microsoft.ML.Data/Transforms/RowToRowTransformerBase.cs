@@ -24,6 +24,7 @@ namespace Microsoft.ML.Data
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
         private protected abstract void SaveModel(ModelSaveContext ctx);
 
         public bool IsRowToRowMapper => true;

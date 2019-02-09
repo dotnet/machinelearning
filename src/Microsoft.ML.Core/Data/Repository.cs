@@ -13,6 +13,8 @@ namespace Microsoft.ML.Model
     /// <summary>
     /// For saving a model into a repository.
     /// Classes implementing <see cref="ICanSaveModel"/> should do an explicit implementation of <see cref="Save(ModelSaveContext)"/>.
+    /// Classes inheriting <see cref="ICanSaveModel"/> from a base class should overwrite the function invoked by <see cref="Save(ModelSaveContext)"/>
+    /// in that base class, if there is one.
     /// </summary>
     public interface ICanSaveModel
     {

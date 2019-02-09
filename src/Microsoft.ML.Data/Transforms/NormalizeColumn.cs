@@ -370,6 +370,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
             private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
@@ -487,6 +488,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
             private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
@@ -617,6 +619,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
             private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;

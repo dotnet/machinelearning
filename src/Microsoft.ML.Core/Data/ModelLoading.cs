@@ -11,9 +11,10 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Model
 {
     /// <summary>
-    /// Signature for a repository based model loader. This is the dual of ICanSaveModel.
+    /// Signature for a repository based model loader. This is the dual of <see cref="ICanSaveModel"/>.
     /// </summary>
-    public delegate void SignatureLoadModel(ModelLoadContext ctx);
+    [BestFriend]
+    internal delegate void SignatureLoadModel(ModelLoadContext ctx);
 
     public sealed partial class ModelLoadContext : IDisposable
     {
