@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.SamplesUtils;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.HalLearners;
 using Xunit;
@@ -20,16 +18,16 @@ namespace Microsoft.ML.Functional.Tests
         /// a data source (optionally with stratification column), come up with an instantiable transform
         /// and trainer pipeline, and it will handle (1) splitting up the data, (2) training the separate
         /// pipelines on in-fold data, (3) scoring on the out-fold data, (4) returning the set of
-        /// evaluations and optionally trained pipes. (People always want metrics out of xfold,
-        /// they sometimes want the actual models too.)
+        /// metrics, trained pipelines, and scored test data for each fold.
         /// </summary>
         [Fact]
         void CrossValidation()
         {
             var mlContext = new MLContext(seed: 789);
 
-            // Get the dataset, create a train and test
-            var data = DatasetUtils.LoadHousingRegressionDataset(mlContext, BaseTestClass.GetDataPath("housing.txt"));
+            // Get the dataset
+            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(), hasHeader: true)
+                .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
 
             // Create a pipeline to train on the sentiment data
             var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {

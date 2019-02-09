@@ -24,10 +24,10 @@ namespace Microsoft.ML.SamplesUtils
             return fileName;
         }
 
-        public static IDataView LoadHousingRegressionDataset(MLContext mlContext, string pathToDataset=null)
+        public static IDataView LoadHousingRegressionDataset(MLContext mlContext)
         {
             // Download the file
-            string dataFile = pathToDataset ?? DownloadHousingRegressionDataset();
+            string dataFile = DownloadHousingRegressionDataset();
 
             // Define the columns to read
             var reader = mlContext.Data.CreateTextLoader(
