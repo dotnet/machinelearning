@@ -121,14 +121,14 @@ namespace Microsoft.ML.SamplesUtils
             string remotePath = "https://github.com/dotnet/machinelearning-testdata/raw/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/";
 
             string path = "sentiment_model";
-            if(!Directory.Exists(path))
+            if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
             string varPath = Path.Combine(path, "variables");
             if (!Directory.Exists(varPath))
                 Directory.CreateDirectory(varPath);
 
-            Download(Path.Combine(remotePath, "saved_model.pb"), Path.Combine(path,"saved_model.pb"));
+            Download(Path.Combine(remotePath, "saved_model.pb"), Path.Combine(path, "saved_model.pb"));
             Download(Path.Combine(remotePath, "imdb_word_index.csv"), Path.Combine(path, "imdb_word_index.csv"));
             Download(Path.Combine(remotePath, "variables", "variables.data-00000-of-00001"), Path.Combine(varPath, "variables.data-00000-of-00001"));
             Download(Path.Combine(remotePath, "variables", "variables.index"), Path.Combine(varPath, "variables.index"));
@@ -221,7 +221,7 @@ namespace Microsoft.ML.SamplesUtils
 
         public class SampleTemperatureData
         {
-            public DateTime Date {get; set; }
+            public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
 
@@ -374,7 +374,7 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Features;
         }
 
-        public static  IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)
+        public static IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)
         {
             var rnd = new Random(0);
             var data = new List<BinaryLabelFloatFeatureVectorSample>();
@@ -405,7 +405,7 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Features;
         }
 
-        public static  IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount, double naRate = 0)
+        public static IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount, double naRate = 0)
         {
             var rnd = new Random(0);
             var data = new List<FloatLabelFloatFeatureVectorSample>();
@@ -446,17 +446,20 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Field2;
         }
 
-        public static  IEnumerable<FfmExample> GenerateFfmSamples(int exampleCount)
+        public static IEnumerable<FfmExample> GenerateFfmSamples(int exampleCount)
         {
             var rnd = new Random(0);
             var data = new List<FfmExample>();
             for (int i = 0; i < exampleCount; ++i)
             {
                 // Initialize an example with a random label and an empty feature vector.
-                var sample = new FfmExample() { Label = rnd.Next() % 2 == 0,
+                var sample = new FfmExample()
+                {
+                    Label = rnd.Next() % 2 == 0,
                     Field0 = new float[_simpleBinaryClassSampleFeatureLength],
                     Field1 = new float[_simpleBinaryClassSampleFeatureLength],
-                    Field2 = new float[_simpleBinaryClassSampleFeatureLength] };
+                    Field2 = new float[_simpleBinaryClassSampleFeatureLength]
+                };
                 // Fill feature vector according the assigned label.
                 for (int j = 0; j < 10; ++j)
                 {
@@ -545,6 +548,50 @@ namespace Microsoft.ML.SamplesUtils
                 examples.Add(example);
             }
             return examples;
+        }
+
+        // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
+        // Because in ML.NET key type's minimal value is zero, the first row index is always zero in C# data structure (e.g., MatrixColumnIndex=0
+        // and MatrixRowIndex=0 in MatrixElement below specifies the value at the upper-left corner in the training matrix). If user's row index
+        // starts with 1, their row index 1 would be mapped to the 2nd row in matrix factorization module and their first row may contain no values.
+        // This behavior is also true to column index.
+        private const int _synthesizedMatrixFirstColumnIndex = 1;
+        private const int _synthesizedMatrixFirstRowIndex = 1;
+        private const int _synthesizedMatrixColumnCount = 60;
+        private const int _synthesizedMatrixRowCount = 100;
+
+        // A data structure used to encode a single value in matrix
+        public class MatrixElement
+        {
+            // Matrix column index is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            public uint MatrixColumnIndex;
+            // Matrix row index is at most _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex.
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
+            public uint MatrixRowIndex;
+            // The value at the column MatrixColumnIndex and row MatrixRowIndex.
+            public float Value;
+        }
+
+        // A data structure used to encode prediction result. Comparing with MatrixElement, The field Value in MatrixElement is
+        // renamed to Score because Score is the default name of matrix factorization's output.
+        public class MatrixElementForScore
+        {
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            public uint MatrixColumnIndex;
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
+        // Create an in-memory matrix as a list of tuples (column index, row index, value).
+        public static List<MatrixElement> GetRecommendationData()
+        {
+            var dataMatrix = new List<MatrixElement>();
+            for (uint i = _synthesizedMatrixFirstColumnIndex; i < _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount; ++i)
+                for (uint j = _synthesizedMatrixFirstRowIndex; j < _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount; ++j)
+                    dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+            return dataMatrix;
         }
     }
 }

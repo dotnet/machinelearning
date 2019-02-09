@@ -31,7 +31,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers.SymSgd
 {
-    using TPredictor = IPredictorWithFeatureWeights<float>;
+    using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
     public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
@@ -168,13 +168,19 @@ namespace Microsoft.ML.Trainers.SymSgd
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))
             {
-                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
-                linInitPred = linInitPred ?? initPred as LinearModelParameters;
-                Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
+                var linearInitPred = initPred as LinearModelParameters;
+                if (linearInitPred == null)
+                    linearInitPred = ((initPred as IWeaklyTypedCalibratedModelParameters)?.WeeklyTypedSubModel) as LinearModelParameters;
+
+                // If initial predictor is set, it must be a linear model or calibrated linear model. Otherwise, we throw.
+                // If initPred is null (i.e., not set), the following check will always be bypassed.
+                // If initPred is not null, then the following checks if a LinearModelParameters is loaded to linearInitPred.
+                Host.CheckParam(initPred == null || linearInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
-                return TrainCore(ch, preparedData, linInitPred, weightSetCount);
+
+                var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
+                return TrainCore(ch, preparedData, linearInitPred, weightSetCount);
             }
         }
 
@@ -202,7 +208,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
-            return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters,PlattCalibrator>(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
         protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, Schema trainSchema)

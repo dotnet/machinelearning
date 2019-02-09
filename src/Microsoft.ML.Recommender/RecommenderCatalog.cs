@@ -55,11 +55,24 @@ namespace Microsoft.ML
             /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
             /// <param name="labelColumn">The name of the label column.</param>
+            /// <param name="approximationRank">Rank of approximation matrixes.</param>
+            /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
+            /// <param name="numIterations">Number of training iterations.</param>
+            /// <example>
+            /// <format type="text/markdown">
+            /// <![CDATA[
+            ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorization.cs)]
+            /// ]]></format>
+            /// </example>
             public MatrixFactorizationTrainer MatrixFactorization(
                 string matrixColumnIndexColumnName,
                 string matrixRowIndexColumnName,
-                string labelColumn = DefaultColumnNames.Label)
-                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn);
+                string labelColumn = DefaultColumnNames.Label,
+                int approximationRank = MatrixFactorizationTrainer.Defaults.ApproximationRank,
+                double learningRate = MatrixFactorizationTrainer.Defaults.LearningRate,
+                int numIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
+                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn,
+                        approximationRank, learningRate, numIterations);
 
             /// <summary>
             /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
@@ -74,7 +87,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs)]
+            ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorizationWithOptions.cs)]
             /// ]]></format>
             /// </example>
             public MatrixFactorizationTrainer MatrixFactorization(
