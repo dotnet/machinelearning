@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Microsoft.ML.Tests</AssemblyName>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
+    <SignAssembly>false</SignAssembly>
+    <PublicSign>false</PublicSign>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +26,6 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.TensorFlow.StaticPipe\Microsoft.ML.TensorFlow.StaticPipe.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Predictor.Tests\Microsoft.ML.Predictor.Tests.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
 
