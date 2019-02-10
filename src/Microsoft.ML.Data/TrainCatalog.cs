@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.Evaluators.Metrics;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 
@@ -587,6 +588,28 @@ namespace Microsoft.ML
                 : base(catalog)
             {
             }
+        }
+
+        /// <summary>
+        /// Evaluates scored anomaly detection data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public AnomalyDetectionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+            string predictedLabel = DefaultColumnNames.PredictedLabel)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var args = new AnomalyDetectionEvaluator.Arguments();
+
+            var eval = new AnomalyDetectionEvaluator(Host, args);
+            return eval.Evaluate(data, label, score, predictedLabel);
         }
     }
 }

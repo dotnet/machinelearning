@@ -38,6 +38,7 @@ namespace Microsoft.ML.Tests
                 Separator = "\t",
                 Columns = new[]
                 {
+                    new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) })
                 }
             });
@@ -45,10 +46,22 @@ namespace Microsoft.ML.Tests
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
-            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumn);
+            var pipeline = ML.AnomalyDetection.Trainers.RandomizedPca(featureColumn);
 
             var transformer = pipeline.Fit(trainData);
             var transformedData = transformer.Transform(testData);
+
+            // Evaluate
+            var metrics = ML.AnomalyDetection.Evaluate(transformedData);
+
+            Assert.Equal(0.99, metrics.Auc, 2);
+            Assert.Equal(0.90, metrics.DrAtK, 2);
+            Assert.Equal(0.90, metrics.DrAtPFpr, 2);
+            Assert.Equal(0.90, metrics.DrAtNumPos, 2);
+            Assert.Equal(10, metrics.NumAnomalies);
+            Assert.Equal(0.57, metrics.ThreshAtK, 2);
+            Assert.Equal(0.63, metrics.ThreshAtP, 2);
+            Assert.Equal(0.65, metrics.ThreshAtNumPos, 2);
         }
     }
 }
