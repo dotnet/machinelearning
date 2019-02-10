@@ -9,11 +9,10 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MulticlassDataPartitionEnsembleTrainer.Summary, typeof(MulticlassDataPartitionEnsembleTrainer),

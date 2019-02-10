@@ -15,7 +15,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// Note that <see cref="InternalRegressionTree"/> is shared between FastTree and LightGBM assemblies,
     /// so <see cref="InternalRegressionTree"/> has <see cref="BestFriendAttribute"/>.

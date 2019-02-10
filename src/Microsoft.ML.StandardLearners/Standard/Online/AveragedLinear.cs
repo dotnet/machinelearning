@@ -9,7 +9,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Numeric;
 
 // TODO: Check if it works properly if Averaged is set to false

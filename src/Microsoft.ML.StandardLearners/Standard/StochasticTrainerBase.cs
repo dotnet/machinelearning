@@ -10,7 +10,7 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     public abstract class StochasticTrainerBase<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>

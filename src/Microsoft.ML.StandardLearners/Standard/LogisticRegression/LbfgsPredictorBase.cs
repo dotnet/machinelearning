@@ -14,7 +14,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Training;
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     public abstract class LbfgsTrainerBase<TArgs, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>

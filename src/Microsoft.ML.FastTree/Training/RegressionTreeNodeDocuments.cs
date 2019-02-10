@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     // RegressionTreeNodeDocuments represents an association between a node in a regression
     // tree and documents belonging to that node.

@@ -16,8 +16,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
-using Microsoft.ML.Trainers.SymSgd;
+using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
@@ -29,7 +28,7 @@ using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), SymSgdClassificationTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Trainers.SymSgd
+namespace Microsoft.ML.Trainers.HalLearners
 {
     using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>;
 

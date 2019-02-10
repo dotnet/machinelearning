@@ -8,8 +8,8 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
 

@@ -4,10 +4,9 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.SymSgd;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
