@@ -24,6 +24,13 @@ namespace Microsoft.ML
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Light GBM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/LightGbm.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static LightGbmRegressorTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
