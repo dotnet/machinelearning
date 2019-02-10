@@ -5,14 +5,14 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers.Ensemble;
+using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
 
 [assembly: LoadableClass(typeof(MultiDisagreementDiversityMeasure), null, typeof(SignatureEnsembleDiversityMeasure),
     DisagreementDiversityMeasure.UserName, MultiDisagreementDiversityMeasure.LoadName)]
 
-namespace Microsoft.ML.Ensemble.Selector.DiversityMeasure
+namespace Microsoft.ML.Trainers.Ensemble.DiversityMeasure
 {
     internal sealed class MultiDisagreementDiversityMeasure : BaseDisagreementDiversityMeasure<VBuffer<Single>>, IMulticlassDiversityMeasure
     {

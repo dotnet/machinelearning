@@ -13,7 +13,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Training;
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>, ICanSaveModel
     {

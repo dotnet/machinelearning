@@ -4,13 +4,13 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: EntryPointModule(typeof(PipelineEnsemble))]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal static class PipelineEnsemble
     {

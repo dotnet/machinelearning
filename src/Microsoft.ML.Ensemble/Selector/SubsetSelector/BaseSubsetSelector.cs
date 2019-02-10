@@ -8,7 +8,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
 {
     internal abstract class BaseSubsetSelector<TArgs> : ISubsetSelector
         where TArgs : BaseSubsetSelector<TArgs>.ArgumentsBase
