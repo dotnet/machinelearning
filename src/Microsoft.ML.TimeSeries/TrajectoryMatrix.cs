@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// This class encapsulates the trajectory matrix of a time-series used in Singular Spectrum Analysis (SSA).

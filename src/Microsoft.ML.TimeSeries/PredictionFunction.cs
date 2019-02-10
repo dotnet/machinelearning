@@ -10,7 +10,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.TimeSeries
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     internal interface IStatefulRowToRowMapper : IRowToRowMapper
     {
