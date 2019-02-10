@@ -7,7 +7,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.HalLearners;
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     using Mkl = OlsLinearRegressionTrainer.Mkl;
 

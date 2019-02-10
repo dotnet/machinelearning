@@ -14,7 +14,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     [BestFriend]
     internal class InternalTreeEnsemble

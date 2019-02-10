@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.FastTree
 {

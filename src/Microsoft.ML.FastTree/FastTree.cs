@@ -23,7 +23,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;

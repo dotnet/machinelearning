@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.LightGBM
 {

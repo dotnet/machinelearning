@@ -8,12 +8,11 @@ using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(typeof(TreeEnsembleCombiner), null, typeof(SignatureModelCombiner), "Fast Tree Model Combiner", "FastTreeCombiner")]
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class TreeEnsembleCombiner : IModelCombiner
     {
