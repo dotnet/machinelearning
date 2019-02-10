@@ -765,9 +765,6 @@ namespace Microsoft.ML.RunTests
                 }
             });
             t.IsBackground = true;
-#if !CORECLR // CoreCLR does not support apartment state settings for threads.
-            t.SetApartmentState(ApartmentState.MTA);
-#endif
             t.Start();
             t.Join();
             if (inner != null)
@@ -790,11 +787,8 @@ namespace Microsoft.ML.RunTests
         protected static StreamWriter OpenWriter(string path, bool append = false, Encoding encoding = null, int bufferSize = 1024)
         {
             Contracts.CheckNonWhiteSpace(path, nameof(path));
-#if CORECLR
+
             return Utils.OpenWriter(File.Open(path, append ? FileMode.Append : FileMode.OpenOrCreate), encoding, bufferSize, false);
-#else
-            return new StreamWriter(path, append);
-#endif
         }
 
         /// <summary>
@@ -805,11 +799,8 @@ namespace Microsoft.ML.RunTests
         protected static StreamReader OpenReader(string path)
         {
             Contracts.CheckNonWhiteSpace(path, nameof(path));
-#if CORECLR
+
             return new StreamReader(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-#else
-            return new StreamReader(path);
-#endif
         }
 
         /// <summary>
