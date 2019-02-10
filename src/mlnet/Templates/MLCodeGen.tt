@@ -128,9 +128,9 @@ else{#>
                               },                                                     
                 HasHeader = <#= HasHeader.ToString().ToLowerInvariant() #>,
                 Separators = new char[] {<# Write(string.Join(",", Separators.Select(t => "'" + t.ToString() + "'").ToArray())); #>},
-                AllowQuoting = <#= AllowQuotedStrings.ToString().ToLowerInvariant() #>,
+                AllowQuoting = <#= AllowQuoting.ToString().ToLowerInvariant() #>,
                 TrimWhitespace = <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
-                AllowSparse = <#= SupportSparse.ToString().ToLowerInvariant() #>
+                AllowSparse = <#= AllowSparse.ToString().ToLowerInvariant() #>
              });
         }
 
@@ -202,7 +202,7 @@ public string Trainer {get;set;}
 public string TaskType {get;set;}
 public IList<string> ClassLabels {get;set;}
 public string GeneratedUsings {get;set;}
-public bool AllowQuotedStrings {get;set;}
-public bool SupportSparse {get;set;}
+public bool AllowQuoting {get;set;}
+public bool AllowSparse {get;set;}
 public bool TrimWhiteSpace {get;set;} 
 #>

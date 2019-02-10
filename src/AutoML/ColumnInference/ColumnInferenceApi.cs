@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 
@@ -9,12 +11,43 @@ namespace Microsoft.ML.Auto
 {
     internal static class ColumnInferenceApi
     {
-        public static ColumnInferenceResult InferColumns(MLContext context, string path, string label,
+        public static (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) InferColumns(MLContext context, string path, int labelColumnIndex,
             bool hasHeader, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
             var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
             var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader);
+
+            // If label column index > inferred # of columns, throw error
+            if (labelColumnIndex >= typeInference.Columns.Count())
+            {
+                throw new ArgumentOutOfRangeException(nameof(labelColumnIndex), $"Label column index ({labelColumnIndex}) is >= than # of inferred columns ({typeInference.Columns.Count()}).");
+            }
+
+            // if no column is named label,
+            // rename label column to default ML.NET label column name
+            if (!typeInference.Columns.Any(c => c.SuggestedName == DefaultColumnNames.Label))
+            {
+                typeInference.Columns[labelColumnIndex].SuggestedName = DefaultColumnNames.Label;
+            }
+
+            return InferColumns(context, path, typeInference.Columns[labelColumnIndex].SuggestedName, 
+                hasHeader, splitInference, typeInference, trimWhitespace, groupColumns);
+        }
+
+        public static (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) InferColumns(MLContext context, string path, string label,
+            char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
+        {
+            var sample = TextFileSample.CreateFromFullFile(path);
+            var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
+            var typeInference = InferColumnTypes(context, sample, splitInference, true);
+            return InferColumns(context, path, label, true, splitInference, typeInference, trimWhitespace, groupColumns);
+        }
+
+        public static (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) InferColumns(MLContext context, string path, string label, bool hasHeader,
+            TextFileContents.ColumnSplitResult splitInference, ColumnTypeInference.InferenceResult typeInference,
+            bool trimWhitespace, bool groupColumns)
+        {
             var loaderColumns = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns);
             if (!loaderColumns.Any(t => label.Equals(t.Name)))
             {
@@ -34,25 +67,34 @@ namespace Microsoft.ML.Auto
 
             var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, label);
 
-            (TextLoader.Column, ColumnPurpose Purpose)[] inferredColumns = null;
+            // start building result objects
+            IEnumerable<TextLoader.Column> columnResults = null;
+            IEnumerable<(string, ColumnPurpose)> purposeResults = null;
+
             // infer column grouping and generate column names
             if (groupColumns)
             {
                 var groupingResult = ColumnGroupingInference.InferGroupingAndNames(context, hasHeader,
                     typeInference.Columns, purposeInferenceResult);
 
-                // build result objects & return
-                inferredColumns = groupingResult.Select(c => (c.GenerateTextLoaderColumn(), c.Purpose)).ToArray();
+                columnResults = groupingResult.Select(c => c.GenerateTextLoaderColumn());
+                purposeResults = groupingResult.Select(c => (c.SuggestedName, c.Purpose));
             }
             else
             {
-                inferredColumns = new (TextLoader.Column, ColumnPurpose Purpose)[loaderColumns.Length];
-                for (int i = 0; i < loaderColumns.Length; i++)
-                {
-                    inferredColumns[i] = (loaderColumns[i], purposeInferenceResult[i].Purpose);
-                }
+                columnResults = loaderColumns;
+                purposeResults = purposeInferenceResult.Select(p => (dataView.Schema[p.ColumnIndex].Name, p.Purpose));
             }
-            return new ColumnInferenceResult(inferredColumns, splitInference.AllowQuote, splitInference.AllowSparse, new char[] { splitInference.Separator.Value }, hasHeader, trimWhitespace);
+
+            return (new TextLoader.Arguments()
+                {
+                    Column = columnResults.ToArray(),
+                    AllowQuoting = splitInference.AllowQuote,
+                    AllowSparse = splitInference.AllowSparse,
+                    Separators = new char[] { splitInference.Separator.Value },
+                    HasHeader = hasHeader,
+                    TrimWhitespace = trimWhitespace
+                }, purposeResults);
         }
 
         private static TextFileContents.ColumnSplitResult InferSplit(TextFileSample sample, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse)

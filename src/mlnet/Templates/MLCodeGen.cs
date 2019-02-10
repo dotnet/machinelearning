@@ -172,11 +172,11 @@ if("Regression".Equals(TaskType)){
             this.Write(",\r\n                Separators = new char[] {");
  Write(string.Join(",", Separators.Select(t => "'" + t.ToString() + "'").ToArray())); 
             this.Write("},\r\n                AllowQuoting = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuotedStrings.ToString().ToLowerInvariant()));
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
             this.Write(",\r\n                TrimWhitespace = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(TrimWhiteSpace.ToString().ToLowerInvariant()));
             this.Write(" ,\r\n                AllowSparse = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(SupportSparse.ToString().ToLowerInvariant()));
+            this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(@"
              });
         }
@@ -246,8 +246,8 @@ public string Trainer {get;set;}
 public string TaskType {get;set;}
 public IList<string> ClassLabels {get;set;}
 public string GeneratedUsings {get;set;}
-public bool AllowQuotedStrings {get;set;}
-public bool SupportSparse {get;set;}
+public bool AllowQuoting {get;set;}
+public bool AllowSparse {get;set;}
 public bool TrimWhiteSpace {get;set;} 
 
     }

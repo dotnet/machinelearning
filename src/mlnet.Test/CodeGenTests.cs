@@ -23,7 +23,7 @@ namespace mlnet.Test
             };
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null));
             var actual = codeGenerator.GenerateTrainerAndUsings();
             string expected = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumn:\"Label\",featureColumn:\"Features\");";
             Assert.AreEqual(expected, actual.Item1);
@@ -43,7 +43,7 @@ namespace mlnet.Test
             };
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null));
             var actual = codeGenerator.GenerateTrainerAndUsings();
             string expectedTrainer = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"});";
             string expectedUsing = "using Microsoft.ML.LightGBM;\r\n";
@@ -58,7 +58,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null));
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expected = "Normalize(\"Label\",\"Label\")";
             Assert.AreEqual(expected, actual[0].Item1);
@@ -72,7 +72,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("OneHotEncoding", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null));
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnInfo(\"Label\",\"Label\")})";
             var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
@@ -83,11 +83,25 @@ namespace mlnet.Test
         [TestMethod]
         public void ClassLabelGenerationBasicTest()
         {
-            List<(TextLoader.Column, ColumnPurpose)> list = new List<(TextLoader.Column, ColumnPurpose)>()
+            var columns = new TextLoader.Column[]
             {
-                (new TextLoader.Column(){ Name = "Label", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, Type = DataKind.Bool }, ColumnPurpose.Label),
+                new TextLoader.Column(){ Name = DefaultColumnNames.Label, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, Type = DataKind.Bool },
             };
-            ColumnInferenceResult result = new ColumnInferenceResult(list, false, false, new[] { ',' }, true, true);
+
+            var purposes = new List<(string, ColumnPurpose)>()
+            {
+                (DefaultColumnNames.Label, ColumnPurpose.Label),
+            };
+
+            var result = (new TextLoader.Arguments()
+                {
+                    Column = columns,
+                    AllowQuoting = false,
+                    AllowSparse = false,
+                    Separators = new[] { ',' },
+                    HasHeader = true,
+                    TrimWhitespace = true
+                }, purposes);
 
             CodeGenerator codeGenerator = new CodeGenerator(null, result);
             var actual = codeGenerator.GenerateClassLabels();
@@ -101,12 +115,27 @@ namespace mlnet.Test
         [TestMethod]
         public void ColumnGenerationTest()
         {
-            List<(TextLoader.Column, ColumnPurpose)> list = new List<(TextLoader.Column, ColumnPurpose)>()
+            var columns = new TextLoader.Column[]
             {
-                (new TextLoader.Column(){ Name = "Label", Source = new TextLoader.Range[]{new TextLoader.Range(0) }, Type = DataKind.Bool }, ColumnPurpose.Label),
-                (new TextLoader.Column(){ Name = "Features", Source = new TextLoader.Range[]{new TextLoader.Range(1) }, Type = DataKind.R4 }, ColumnPurpose.NumericFeature),
+                new TextLoader.Column(){ Name = DefaultColumnNames.Label, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, Type = DataKind.Bool },
+                new TextLoader.Column(){ Name = DefaultColumnNames.Features, Source = new TextLoader.Range[]{new TextLoader.Range(1) }, Type = DataKind.R4 },
             };
-            ColumnInferenceResult result = new ColumnInferenceResult(list, false, false, new[] { ',' }, true, true);
+
+            var purposes = new List<(string, ColumnPurpose)>()
+            {
+                (DefaultColumnNames.Label, ColumnPurpose.Label),
+                (DefaultColumnNames.Features, ColumnPurpose.NumericFeature),
+            };
+
+            var result = (new TextLoader.Arguments()
+                {
+                    Column = columns,
+                    AllowQuoting = false,
+                    AllowSparse = false,
+                    Separators = new[] { ',' },
+                    HasHeader = true,
+                    TrimWhitespace = true
+                }, purposes);
 
             var context = new MLContext();
             var elementProperties = new Dictionary<string, object>();
@@ -132,7 +161,7 @@ namespace mlnet.Test
             };
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null));
             var actual = codeGenerator.GenerateTrainerAndUsings();
             string expectedTrainer = "LightGbm(new Options(){Booster=new TreeBooster(){},LabelColumn=\"Label\",FeatureColumn=\"Features\"});";
             var expectedUsings = "using Microsoft.ML.LightGBM;\r\n";

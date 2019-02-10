@@ -8,16 +8,9 @@ namespace Microsoft.ML.Auto
 {
     public enum InferenceType
     {
-        Seperator,
-        Header,
-        Label,
-        Task,
         ColumnDataKind,
-        ColumnPurpose,
-        Tranform,
-        Trainer,
-        Hyperparams,
-        ColumnSplit
+        ColumnSplit,
+        Label,
     }
 
     public class InferenceException : Exception

@@ -14,9 +14,9 @@ namespace Microsoft.ML.CLI
     internal class CodeGenerator
     {
         private readonly Pipeline pipeline;
-        private readonly ColumnInferenceResult columnInferenceResult;
+        private readonly (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult;
 
-        public CodeGenerator(Pipeline pipelineToDeconstruct, ColumnInferenceResult columnInferenceResult)
+        public CodeGenerator(Pipeline pipelineToDeconstruct, (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult)
         {
             this.pipeline = pipelineToDeconstruct;
             this.columnInferenceResult = columnInferenceResult;
@@ -45,15 +45,14 @@ namespace Microsoft.ML.CLI
         internal IList<string> GenerateClassLabels()
         {
             IList<string> result = new List<string>();
-            foreach (var column in columnInferenceResult.Columns)
+            foreach (var column in columnInferenceResult.Item1.Column)
             {
                 StringBuilder sb = new StringBuilder();
-                var current = column.Item1;
-                int range = (current.Source[0].Max - current.Source[0].Min).Value;
+                int range = (column.Source[0].Max - column.Source[0].Min).Value;
                 bool isArray = range > 0;
                 sb.Append(Symbols.PublicSymbol);
                 sb.Append(Symbols.Space);
-                switch (current.Type)
+                switch (column.Type)
                 {
                     case Microsoft.ML.Data.DataKind.TX:
                         sb.Append(Symbols.StringSymbol);
@@ -80,21 +79,21 @@ namespace Microsoft.ML.CLI
                         sb.Append(Symbols.UlongSymbol);
                         break;
                     default:
-                        throw new ArgumentException($"The data type '{current.Type}' is not handled currently.");
+                        throw new ArgumentException($"The data type '{column.Type}' is not handled currently.");
 
                 }
 
                 if (range > 0)
                 {
-                    result.Add("[ColumnName(\"" + current.Name + "\"), VectorType(" + (range + 1) + ")]");
+                    result.Add((string)("[ColumnName(\"" + column.Name + "\"), VectorType(" + (range + 1) + ")]"));
                     sb.Append("[]");
                 }
                 else
                 {
-                    result.Add("[ColumnName(\"" + current.Name + "\")]");
+                    result.Add((string)("[ColumnName(\"" + column.Name + "\")]"));
                 }
                 sb.Append(" ");
-                sb.Append(Normalize(current.Name));
+                sb.Append(Normalize(column.Name));
                 sb.Append("{get; set;}");
                 result.Add(sb.ToString());
                 result.Add("\r\n");
@@ -105,9 +104,9 @@ namespace Microsoft.ML.CLI
         internal IList<string> GenerateColumns()
         {
             var result = new List<string>();
-            foreach (var column in columnInferenceResult.Columns)
+            foreach (var column in columnInferenceResult.Item1.Column)
             {
-                result.Add(ConstructColumnDefinition(column.Item1));
+                result.Add(ConstructColumnDefinition(column));
             }
             return result;
         }

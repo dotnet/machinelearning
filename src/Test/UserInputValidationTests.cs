@@ -16,52 +16,6 @@ namespace Microsoft.ML.Auto.Test
     {
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void ValidateCreateTextReaderArgsNullInput()
-        {
-            UserInputValidationUtil.ValidateCreateTextReaderArgs(null);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void ValidateCreateTextReaderArgsNoColumns()
-        {
-            var input = new ColumnInferenceResult(new List<(TextLoader.Column, ColumnPurpose)>(),
-                false, false, new[] { '\t' }, false, false);
-            UserInputValidationUtil.ValidateCreateTextReaderArgs(input);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void ValidateCreateTextReaderArgsNullColumn()
-        {
-            var input = new ColumnInferenceResult(
-                new List<(TextLoader.Column, ColumnPurpose)>() { (null, ColumnPurpose.CategoricalFeature) },
-                false, false, new[] { '\t' }, false, false);
-            UserInputValidationUtil.ValidateCreateTextReaderArgs(input);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void ValidateCreateTextReaderArgsColumnWithNullSoure()
-        {
-            var input = new ColumnInferenceResult(
-                new List<(TextLoader.Column, ColumnPurpose)>() { (new TextLoader.Column() { Name = "Column", Type = DataKind.R4 } , ColumnPurpose.CategoricalFeature) },
-                false, false, new[] { '\t' }, false, false);
-            UserInputValidationUtil.ValidateCreateTextReaderArgs(input);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void ValidateCreateTextReaderArgsNullSeparator()
-        {
-            var input = new ColumnInferenceResult(
-                new List<(TextLoader.Column, ColumnPurpose)>() { (new TextLoader.Column("Column", DataKind.R4, 4), ColumnPurpose.CategoricalFeature) },
-                false, false, null, false, false);
-            UserInputValidationUtil.ValidateCreateTextReaderArgs(input);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ValidateAutoFitNullTrainData()
         {
             UserInputValidationUtil.ValidateAutoFitArgs(null, DatasetUtil.UciAdultLabel,
@@ -236,6 +190,19 @@ namespace Microsoft.ML.Auto.Test
             const string emptyFilePath = "empty";
             File.Create(emptyFilePath).Dispose();
             UserInputValidationUtil.ValidateInferColumnsArgs(emptyFilePath, "Label");
+        }
+
+        [TestMethod]
+        public void ValidateOkayInferColsLabelIndex()
+        {
+            UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.DownloadUciAdultDataset(), 0);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void ValidateInferColsNegativeLabelIndex()
+        {
+            UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.DownloadUciAdultDataset(), -1);
         }
     }
 }

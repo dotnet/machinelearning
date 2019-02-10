@@ -15,8 +15,8 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
-            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.UciAdultLabel, true);
-            var textLoader = context.Data.CreateTextLoader(columnInference);
+            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.UciAdultLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(100);
             trainData = trainData.Skip(100);
@@ -38,8 +38,8 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadTrivialDataset();
-            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.TrivialDatasetLabel, true);
-            var textLoader = context.Data.CreateTextLoader(columnInference);
+            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.TrivialDatasetLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(20);
             trainData = trainData.Skip(20);
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var dataPath = DatasetUtil.DownloadMlNetGeneratedRegressionDataset();
-            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel, true);
-            var textLoader = context.Data.CreateTextLoader(columnInference);
+            var columnInference = context.Data.InferColumns(dataPath, DatasetUtil.MlNetGeneratedRegressionLabel);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
             var trainData = textLoader.Read(dataPath);
             var validationData = trainData.Take(20);
             trainData = trainData.Skip(20);

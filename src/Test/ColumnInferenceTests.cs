@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.ML.Auto.Test
@@ -11,14 +13,14 @@ namespace Microsoft.ML.Auto.Test
         {
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext();
-            var columnInferenceWithoutGrouping = context.Data.InferColumns(dataPath, DatasetUtil.UciAdultLabel, true, groupColumns: false);
-            foreach (var col in columnInferenceWithoutGrouping.Columns)
+            var columnInferenceWithoutGrouping = context.Data.InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: false);
+            foreach (var col in columnInferenceWithoutGrouping.TextLoaderArgs.Column)
             {
-                Assert.IsFalse(col.Item1.Source.Length > 1 || col.Item1.Source[0].Min != col.Item1.Source[0].Max);
+                Assert.IsFalse(col.Source.Length > 1 || col.Source[0].Min != col.Source[0].Max);
             }
 
-            var columnInferenceWithGrouping = context.Data.InferColumns(dataPath, DatasetUtil.UciAdultLabel, true, groupColumns: true);
-            Assert.IsTrue(columnInferenceWithGrouping.Columns.Count() < columnInferenceWithoutGrouping.Columns.Count());
+            var columnInferenceWithGrouping = context.Data.InferColumns(dataPath, DatasetUtil.UciAdultLabel, groupColumns: true);
+            Assert.IsTrue(columnInferenceWithGrouping.TextLoaderArgs.Column.Count() < columnInferenceWithoutGrouping.TextLoaderArgs.Column.Count());
         }
 
         [TestMethod]
@@ -26,7 +28,39 @@ namespace Microsoft.ML.Auto.Test
         {
             var dataPath = DatasetUtil.DownloadUciAdultDataset();
             var context = new MLContext();
-            Assert.ThrowsException<InferenceException>(new System.Action(() => context.Data.InferColumns(dataPath, "Junk", true, groupColumns: false)));
+            Assert.ThrowsException<InferenceException>(new System.Action(() => context.Data.InferColumns(dataPath, "Junk", groupColumns: false)));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void InferColumnsLabelIndexOutOfBounds()
+        {
+            new MLContext().Data.InferColumns(DatasetUtil.DownloadUciAdultDataset(), 100);
+        }
+
+        [TestMethod]
+        public void InferColumnsLabelIndex()
+        {
+            var result = new MLContext().Data.InferColumns(DatasetUtil.DownloadUciAdultDataset(), 14, hasHeader: true);
+            Assert.AreEqual(true, result.TextLoaderArgs.HasHeader);
+            var labelCol = result.TextLoaderArgs.Column.First(c => c.Source[0].Min == 14 && c.Source[0].Max == 14);
+            Assert.AreEqual("hours_per_week", labelCol.Name);
+            var labelPurposes = result.ColumnPurpopses.Where(c => c.Purpose == ColumnPurpose.Label);
+            Assert.AreEqual(1, labelPurposes.Count());
+            Assert.AreEqual("hours_per_week", labelPurposes.First().Name);
+        }
+
+        [TestMethod]
+        public void InferColumnsLabelIndexNoHeaders()
+        {
+            var result = new MLContext().Data.InferColumns(DatasetUtil.DownloadIrisDataset(), DatasetUtil.IrisDatasetLabelColIndex);
+            Assert.AreEqual(false, result.TextLoaderArgs.HasHeader);
+            var labelCol = result.TextLoaderArgs.Column.First(c => c.Source[0].Min == DatasetUtil.IrisDatasetLabelColIndex &&
+                c.Source[0].Max == DatasetUtil.IrisDatasetLabelColIndex);
+            Assert.AreEqual(DefaultColumnNames.Label, labelCol.Name);
+            var labelPurposes = result.ColumnPurpopses.Where(c => c.Purpose == ColumnPurpose.Label);
+            Assert.AreEqual(1, labelPurposes.Count());
+            Assert.AreEqual(DefaultColumnNames.Label, labelPurposes.First().Name);
         }
     }
 }

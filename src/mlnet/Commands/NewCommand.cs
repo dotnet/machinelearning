@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,8 +28,8 @@ namespace Microsoft.ML.CLI
             var label = options.LabelName;
 
             // For Version 0.1 It is required that the data set has header. 
-            var columnInference = context.Data.InferColumns(options.TrainDataset.FullName, label, true, groupColumns: false);
-            var textLoader = context.Data.CreateTextLoader(columnInference);
+            var columnInference = context.Data.InferColumns(options.TrainDataset.FullName, label, groupColumns: false);
+            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
 
             IDataView trainData = textLoader.Read(options.TrainDataset.FullName);
             IDataView validationData = options.TestDataset == null ? null : textLoader.Read(options.TestDataset.FullName);
@@ -93,7 +94,7 @@ namespace Microsoft.ML.CLI
             return (pipelineToDeconstruct, model);
         }
 
-        private static void RunCodeGen(Options options, ColumnInferenceResult columnInference, Pipeline pipelineToDeconstruct)
+        private static void RunCodeGen(Options options, (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) columnInference, Pipeline pipelineToDeconstruct)
         {
             var codeGenerator = new CodeGenerator(pipelineToDeconstruct, columnInference);
             var trainerAndUsings = codeGenerator.GenerateTrainerAndUsings();
@@ -128,11 +129,11 @@ namespace Microsoft.ML.CLI
                 TestPath = options.TestDataset?.FullName,
                 Columns = columns,
                 Transforms = transforms,
-                HasHeader = columnInference.HasHeader,
-                Separators = columnInference.Separators,
-                AllowQuotedStrings = columnInference.AllowQuotedStrings,
-                SupportSparse = columnInference.SupportSparse,
-                TrimWhiteSpace = columnInference.TrimWhitespace,
+                HasHeader = columnInference.Item1.HasHeader,
+                Separators = columnInference.Item1.Separators,
+                AllowQuoting = columnInference.Item1.AllowQuoting,
+                AllowSparse = columnInference.Item1.AllowSparse,
+                TrimWhiteSpace = columnInference.Item1.TrimWhitespace,
                 Trainer = trainer,
                 TaskType = options.MlTask.ToString(),
                 ClassLabels = classLabels,

@@ -70,11 +70,12 @@ namespace Microsoft.ML.Auto
             public ReadOnlyMemory<char>[] RawData { get { return _data; } }
         }
 
-        public readonly struct Column
+        public struct Column
         {
             public readonly int ColumnIndex;
-            public readonly string SuggestedName;
             public readonly PrimitiveType ItemType;
+
+            public string SuggestedName;
 
             public Column(int columnIndex, string suggestedName, PrimitiveType itemType)
             {

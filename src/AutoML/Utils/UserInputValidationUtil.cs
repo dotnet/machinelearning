@@ -17,7 +17,7 @@ namespace Microsoft.ML.Auto
         {
             ValidateTrainData(trainData);
             ValidateValidationData(trainData, validationData);
-            ValidateLabel(trainData, validationData, label);
+            ValidateLabel(trainData, label);
             ValidateSettings(settings);
             ValidatePurposeOverrides(trainData, validationData, label, purposeOverrides);
         }
@@ -28,49 +28,27 @@ namespace Microsoft.ML.Auto
             ValidatePath(path);
         }
 
+        public static void ValidateInferColumnsArgs(string path, int labelColumnIndex)
+        {
+            ValidateLabelColumnIndex(labelColumnIndex);
+            ValidatePath(path);
+        }
+
         public static void ValidateAutoReadArgs(string path, string label)
         {
             ValidateLabel(label);
             ValidatePath(path);
         }
 
-        public static void ValidateCreateTextReaderArgs(ColumnInferenceResult columnInferenceResult)
-        {
-            if(columnInferenceResult == null)
-            {
-                throw new ArgumentNullException($"Column inference result cannot be null", nameof(columnInferenceResult));
-            }
-
-            if (columnInferenceResult.Separators == null || !columnInferenceResult.Separators.Any())
-            {
-                throw new ArgumentException($"Column inference result cannot have null or empty separators", nameof(columnInferenceResult));
-            }
-
-            if (columnInferenceResult.Columns == null || !columnInferenceResult.Columns.Any())
-            {
-                throw new ArgumentException($"Column inference result must contain at least one column", nameof(columnInferenceResult));
-            }
-            
-            if(columnInferenceResult.Columns.Any(c => c.Item1 == null))
-            {
-                throw new ArgumentException($"Column inference result cannot contain null columns", nameof(columnInferenceResult));
-            }
-
-            if (columnInferenceResult.Columns.Any(c => c.Item1.Name == null || c.Item1.Type == null || c.Item1.Source == null))
-            {
-                throw new ArgumentException($"Column inference result cannot contain a column that has a null name, type, or source", nameof(columnInferenceResult));
-            }
-        }
-
         private static void ValidateTrainData(IDataView trainData)
         {
             if(trainData == null)
             {
-                throw new ArgumentNullException("Training data cannot be null", nameof(trainData));
+                throw new ArgumentNullException(nameof(trainData), "Training data cannot be null");
             }
         }
 
-        private static void ValidateLabel(IDataView trainData, IDataView validationData, string label)
+        private static void ValidateLabel(IDataView trainData, string label)
         {
             ValidateLabel(label);
 
@@ -84,7 +62,15 @@ namespace Microsoft.ML.Auto
         {
             if (label == null)
             {
-                throw new ArgumentNullException("Provided label cannot be null", nameof(label));
+                throw new ArgumentNullException(nameof(label), "Provided label cannot be null");
+            }
+        }
+
+        private static void ValidateLabelColumnIndex(int labelColumnIndex)
+        {
+            if (labelColumnIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(labelColumnIndex), $"Provided label column index ({labelColumnIndex}) must be non-negative.");
             }
         }
 
@@ -92,7 +78,7 @@ namespace Microsoft.ML.Auto
         {
             if (path == null)
             {
-                throw new ArgumentNullException("Provided path cannot be null", nameof(path));
+                throw new ArgumentNullException(nameof(path), "Provided path cannot be null");
             }
 
             var fileInfo = new FileInfo(path);
@@ -148,7 +134,7 @@ namespace Microsoft.ML.Auto
 
             if(settings.StoppingCriteria.MaxIterations <= 0)
             {
-                throw new ArgumentOutOfRangeException("Max iterations must be > 0", nameof(settings));
+                throw new ArgumentOutOfRangeException(nameof(settings), "Max iterations must be > 0");
             }
         }
 

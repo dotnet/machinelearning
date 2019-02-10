@@ -15,6 +15,7 @@ namespace Microsoft.ML.Auto.Test
         public const string UciAdultLabel = DefaultColumnNames.Label;
         public const string TrivialDatasetLabel = DefaultColumnNames.Label;
         public const string MlNetGeneratedRegressionLabel = "target";
+        public const int IrisDatasetLabelColIndex = 0;
 
         private static IDataView _uciAdultDataView;
 
@@ -22,8 +23,11 @@ namespace Microsoft.ML.Auto.Test
         {
             if(_uciAdultDataView == null)
             {
+                var context = new MLContext();
                 var uciAdultDataFile = DownloadUciAdultDataset();
-                _uciAdultDataView = (new MLContext()).Data.AutoRead(uciAdultDataFile, UciAdultLabel, true);
+                var columnInferenceResult = context.Data.InferColumns(uciAdultDataFile, UciAdultLabel);
+                var textLoader = context.Data.CreateTextLoader(columnInferenceResult.TextLoaderArgs);
+                _uciAdultDataView = textLoader.Read(uciAdultDataFile);
             }
             return _uciAdultDataView;
         }
@@ -37,6 +41,9 @@ namespace Microsoft.ML.Auto.Test
 
         public static string DownloadMlNetGeneratedRegressionDataset() =>
             DownloadIfNotExists("https://raw.githubusercontent.com/dotnet/machinelearning/e78971ea6fd736038b4c355b840e5cbabae8cb55/test/data/generated_regression_dataset.csv", "mlnet_generated_regression.dataset");
+
+        public static string DownloadIrisDataset() =>
+            DownloadIfNotExists("https://raw.githubusercontent.com/dotnet/machinelearning/54596ac/test/data/iris.txt", "iris.dataset");
 
         private static string DownloadIfNotExists(string baseGitPath, string dataFile)
         {
