@@ -221,9 +221,9 @@ namespace Microsoft.ML.StaticPipe
             var results = catalog.CrossValidateNonCalibrated(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
-                    x.metrics,
-                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.scoredTestData, estimator.Shape)))
+                    x.Metrics,
+                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
+                    new DataView<TOutShape>(env, x.Scores, estimator.Shape)))
                 .ToArray();
         }
 

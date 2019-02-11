@@ -43,7 +43,7 @@ namespace Microsoft.ML
             /// </summary>
             /// <param name="trainSet">Training set.</param>
             /// <param name="testSet">Testing set.</param>
-            public TrainTestData(IDataView trainSet, IDataView testSet)
+            internal TrainTestData(IDataView trainSet, IDataView testSet)
             {
                 TrainSet = trainSet;
                 TestSet = testSet;
@@ -98,7 +98,7 @@ namespace Microsoft.ML
             /// </summary>
             public readonly ITransformer Model;
             /// <summary>
-            /// <see cref="IDataView"/> for scored fold.
+            /// Scored test set with <see cref="Model"/> for this fold.
             /// </summary>
             public readonly IDataView Scores;
             /// <summary>
@@ -113,11 +113,14 @@ namespace Microsoft.ML
                 Fold = fold;
             }
         }
-
+        /// <summary>
+        /// Results of running crossvalidation.
+        /// </summary>
+        /// <typeparam name="T">Type of metric class</typeparam>
         public class CrossValidationResult<T> where T : class
         {
             /// <summary>
-            /// Metrics for cross validation fold.
+            /// Metrics for this cross validation fold.
             /// </summary>
             public readonly T Metrics;
             /// <summary>
@@ -125,7 +128,7 @@ namespace Microsoft.ML
             /// </summary>
             public readonly ITransformer Model;
             /// <summary>
-            /// <see cref="IDataView"/> for scored fold.
+            /// Scored test set with <see cref="Model"/> for this fold.
             /// </summary>
             public readonly IDataView Scores;
             /// <summary>
@@ -133,7 +136,7 @@ namespace Microsoft.ML
             /// </summary>
             public readonly int Fold;
 
-            public CrossValidationResult(ITransformer model, T metrics, IDataView scores, int fold)
+            internal CrossValidationResult(ITransformer model, T metrics, IDataView scores, int fold)
             {
                 Model = model;
                 Metrics = metrics;
@@ -341,13 +344,14 @@ namespace Microsoft.ML
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (BinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
+        public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
-            return result.Select(x => (EvaluateNonCalibrated(x.Scores, labelColumn), x.Model, x.Scores)).ToArray();
+            return result.Select(x => new CrossValidationResult<BinaryClassificationMetrics>(x.Model,
+                EvaluateNonCalibrated(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
 
         /// <summary>
