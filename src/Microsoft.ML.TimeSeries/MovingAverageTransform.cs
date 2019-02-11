@@ -23,7 +23,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// MovingAverageTransform is a weighted average of the values in
     /// the sliding window.
     /// </summary>
-    public sealed class MovingAverageTransform : SequentialTransformBase<Single, Single, MovingAverageTransform.State>
+    internal sealed class MovingAverageTransform : SequentialTransformBase<Single, Single, MovingAverageTransform.State>
     {
         public const string Summary = "Applies a moving average on a time series. Only finite values are taken into account.";
         public const string LoaderSignature = "MovingAverageTransform";

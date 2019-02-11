@@ -56,18 +56,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Setup IidSpikeDetector arguments
             var inputColumnName = nameof(SsaSpikeData.Value);
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
-            var args = new SsaSpikeDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                          // The confidence for spike detection in the range [0, 100]
-                PvalueHistoryLength = 8,                  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
-                TrainingWindowSize = TrainingSize,        // The number of points from the beginning of the sequence used for training.
-                SeasonalWindowSize = SeasonalitySize + 1  // An upper bound on the largest relevant seasonality in the input time series."
-            };
 
             // The transformed data.
-            var transformedData = new SsaSpikeEstimator(ml, args).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.SsaSpikeEstimator(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of SsaSpikePrediction.
             var predictionColumn = ml.CreateEnumerable<SsaSpikePrediction>(transformedData, reuseRowObject: false);
@@ -127,18 +118,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Setup IidSpikeDetector arguments
             var inputColumnName = nameof(SsaSpikeData.Value);
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
-            var args = new SsaSpikeDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                          // The confidence for spike detection in the range [0, 100]
-                PvalueHistoryLength = 8,                  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
-                TrainingWindowSize = TrainingSize,        // The number of points from the beginning of the sequence used for training.
-                SeasonalWindowSize = SeasonalitySize + 1  // An upper bound on the largest relevant seasonality in the input time series."
-            };
 
             // Train the change point detector.
-            ITransformer model = new SsaSpikeEstimator(ml, args).Fit(dataView);
+            ITransformer model = ml.Transforms.SsaChangePointEstimator(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
             var engine = model.CreateTimeSeriesPredictionFunction<SsaSpikeData, SsaSpikePrediction>(ml);
