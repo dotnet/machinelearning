@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.HalLearners;
 using Xunit;
+using static Microsoft.ML.RunTests.TestDataViewBase;
 
 namespace Microsoft.ML.Functional.Tests
 {
@@ -23,7 +25,7 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         void CrossValidation()
         {
-            var mlContext = new MLContext(seed: 789);
+            var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Get the dataset
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(), hasHeader: true)
@@ -48,6 +50,46 @@ namespace Microsoft.ML.Functional.Tests
             // And validate the metrics
             foreach (var result in cvResult)
                 Common.CheckMetrics(result.metrics);
+        }
+
+        /// <summary>
+        /// Train with validation set.
+        /// </summary>
+        [Fact]
+        public void TrainWithValidationSet()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            // Get the dataset
+            var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(), hasHeader: true)
+                .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
+            (var trainData, var validData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
+
+            // Create a pipeline to train on the sentiment data
+            var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
+                    "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling",
+                    "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio"})
+                .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
+                .AppendCacheCheckpoint(mlContext) as IEstimator<ITransformer>;
+            var preprocessor = pipeline.Fit(trainData);
+            var transformedValidData = preprocessor.Transform(validData);
+
+            // Todo #2502: Allow fitting a model with a validation set
+            // Train model with validation set.
+            // Note for #2502: There is no way below to specify a validation set for the learner
+            pipeline = pipeline.Append(mlContext.Regression.Trainers.FastTree(numTrees: 2));
+            // Note for #2502: Nor is there a way to specify a validation set in the Fit
+            var model = pipeline.Fit(trainData);
+
+            // Score the data sets
+            var scoredTrainData = model.Transform(trainData);
+            var scoredValidData = model.Transform(validData);
+
+            var trainMetrics = mlContext.Regression.Evaluate(scoredTrainData);
+            var validMetrics = mlContext.Regression.Evaluate(scoredValidData);
+
+            Common.CheckMetrics(trainMetrics);
+            Common.CheckMetrics(validMetrics);
         }
     }
 }
