@@ -25,22 +25,27 @@ Please feel free to search this page and use any code that suits your needs.
 
 ### List of recipes
 
-- [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
-- [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
-- [How do I debug my experiment or preview my pipeline?](#how-do-i-debug-my-experiment-or-preview-my-pipeline)
-- [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
-- [How do I train a regression model?](#how-do-i-train-a-regression-model)
-- [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
-- [How do I save and load the model?](#how-do-i-save-and-load-the-model)
-- [How do I use the model to make one prediction?](#how-do-i-use-the-model-to-make-one-prediction)
-- [What if my training data is not in a text file?](#what-if-my-training-data-is-not-in-a-text-file)
-- [I want to look at my model's coefficients](#i-want-to-look-at-my-models-coefficients)
-- [What is normalization and why do I need to care?](#what-is-normalization-and-why-do-i-need-to-care)
-- [How do I train my model on categorical data?](#how-do-i-train-my-model-on-categorical-data)
-- [How do I train my model on textual data?](#how-do-i-train-my-model-on-textual-data)
-- [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
-- [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
-- [How can I define my own transformation of data?](#how-can-i-define-my-own-transformation-of-data)
+- [ML.NET Cookbook](#mlnet-cookbook)
+  - [How to use this cookbook](#how-to-use-this-cookbook)
+    - [List of recipes](#list-of-recipes)
+    - [General questions about the samples](#general-questions-about-the-samples)
+  - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
+  - [How do I load data from multiple files?](#how-do-i-load-data-from-multiple-files)
+  - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
+  - [How do I debug my experiment or preview my pipeline?](#how-do-i-debug-my-experiment-or-preview-my-pipeline)
+  - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
+  - [How do I train a regression model?](#how-do-i-train-a-regression-model)
+  - [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
+  - [How do I save and load the model?](#how-do-i-save-and-load-the-model)
+  - [How do I use the model to make one prediction?](#how-do-i-use-the-model-to-make-one-prediction)
+  - [What if my training data is not in a text file?](#what-if-my-training-data-is-not-in-a-text-file)
+  - [I want to look at my model's coefficients](#i-want-to-look-at-my-models-coefficients)
+  - [What is normalization and why do I need to care?](#what-is-normalization-and-why-do-i-need-to-care)
+  - [How do I train my model on categorical data?](#how-do-i-train-my-model-on-categorical-data)
+  - [How do I train my model on textual data?](#how-do-i-train-my-model-on-textual-data)
+  - [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
+  - [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
+  - [How can I define my own transformation of data?](#how-can-i-define-my-own-transformation-of-data)
 
 ### General questions about the samples
 
@@ -688,11 +693,11 @@ var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take
 // Build several alternative featurization pipelines.
 var pipeline =
     // Convert each categorical feature into one-hot encoding independently.
-    mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot")
+    mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
     // Convert all categorical features into indices, and build a 'word bag' of these.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalBag", CategoricalTransform.OutputKind.Bag))
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", CategoricalTransform.OutputKind.Bag))
     // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("Workclass", "WorkclassOneHot"))
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
     .Append(mlContext.Transforms.FeatureSelection.CountFeatureSelectingEstimator("WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
 
 // Let's train our pipeline, and then apply it to the same data.
