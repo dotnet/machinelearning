@@ -32,7 +32,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// This class implements the change point detector transform for an i.i.d. sequence based on adaptive kernel density estimation and martingales.
     /// </summary>
-    public sealed class IidChangePointDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer, ICanSaveModel
+    public sealed class IidChangePointDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
         internal const string Summary = "This transform detects the change-points in an i.i.d. sequence using adaptive kernel density estimation and martingales.";
         internal const string LoaderSignature = "IidChangePointDetector";
@@ -174,7 +174,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
         }
 
-        private protected override void SaveModel(ModelSaveContext ctx)
+        public override void Save(ModelSaveContext ctx)
         {
             InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -186,7 +186,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            base.SaveModel(ctx);
+            base.Save(ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.

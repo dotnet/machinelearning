@@ -350,7 +350,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
                         return col => false;
                 }
 
-                public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+                public void Save(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
                 public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
                 {

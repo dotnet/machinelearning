@@ -257,7 +257,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             private protected override void SaveModel(ModelSaveContext ctx)
             {
-                Parent.SaveModel(ctx);
+                Parent.Save(ctx);
             }
 
             internal void SaveThis(ModelSaveContext ctx)

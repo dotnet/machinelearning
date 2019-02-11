@@ -131,14 +131,14 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             private protected override void SaveModel(ModelSaveContext ctx)
             {
-                Parent.SaveModel(ctx);
+                Parent.Save(ctx);
             }
 
             internal void SaveThis(ModelSaveContext ctx)
             {
                 ctx.CheckAtModel();
                 Host.Assert(InitialWindowSize == 0);
-                base.Save(ctx);
+                base.SaveModel(ctx);
 
                 // *** Binary format ***
                 // <base>
