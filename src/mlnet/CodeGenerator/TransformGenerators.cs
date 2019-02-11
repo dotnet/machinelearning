@@ -232,7 +232,7 @@ namespace Microsoft.ML.CLI
 
         internal override string MethodName => "Conversion.ConvertType";
 
-        internal override string Usings => null;
+        internal override string Usings => "using Microsoft.ML.Transforms.Conversions;\r\n";
 
         private string ArgumentsName = "TypeConvertingTransformer.ColumnInfo";
 
@@ -271,7 +271,7 @@ namespace Microsoft.ML.CLI
 
         internal override string MethodName => "Conversion.MapValueToKey";
 
-        internal override string Usings => null;
+        internal override string Usings => "using Microsoft.ML.Transforms.Conversions;\r\n";
 
         public override string GenerateTransformer()
         {
