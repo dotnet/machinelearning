@@ -100,22 +100,25 @@ namespace Microsoft.ML.CLI
             var trainerAndUsings = codeGenerator.GenerateTrainerAndUsings();
             var transformsAndUsings = codeGenerator.GenerateTransformsAndUsings();
 
+            //Capture all the usings
+            var usings = new List<string>();
+
             //Get trainer code and its associated usings.
             var trainer = trainerAndUsings.Item1;
-            var trainerUsings = trainerAndUsings.Item2;
+            usings.Add(trainerAndUsings.Item2);
 
-            //Get transforms code and its associated usings.
+            //Get transforms code and its associated (unique) usings.
             var transforms = transformsAndUsings.Select(t => t.Item1).ToList();
-            var transformUsings = transformsAndUsings.Select(t => t.Item2).ToList();
+            usings.AddRange(transformsAndUsings.Select(t => t.Item2));
+            usings = usings.Distinct().ToList();
 
-            //Combine all using statements.
-            StringBuilder usings = new StringBuilder();
-            transformUsings.ForEach(t =>
+            //Combine all using statements to actual text.
+            StringBuilder usingsBuilder = new StringBuilder();
+            usings.ForEach(t =>
             {
                 if (t != null)
-                    usings.Append(t);
+                    usingsBuilder.Append(t);
             });
-            usings.Append(trainerUsings);
 
             //Generate code for columns
             var columns = codeGenerator.GenerateColumns();
@@ -137,7 +140,7 @@ namespace Microsoft.ML.CLI
                 Trainer = trainer,
                 TaskType = options.MlTask.ToString(),
                 ClassLabels = classLabels,
-                GeneratedUsings = usings.ToString()
+                GeneratedUsings = usingsBuilder.ToString()
             };
 
             MLProjectGen csProjGenerator = new MLProjectGen();
