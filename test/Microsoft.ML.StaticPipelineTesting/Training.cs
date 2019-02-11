@@ -119,8 +119,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
-                    new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaCalibrated(r.label, r.features, null,
+                    new SdcaCalibratedBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);

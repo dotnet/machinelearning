@@ -136,6 +136,52 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Predict a target using a logistic regression model trained with the SDCA trainer.
+        /// </summary>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
+        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="l2Const">The L2 regularization hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs)]
+        /// ]]></format>
+        /// </example>
+        public static SdcaCalibratedBinaryTrainer StochasticDualCoordinateAscentCalibrated(
+                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+                string labelColumn = DefaultColumnNames.Label,
+                string featureColumn = DefaultColumnNames.Features,
+                string weights = null,
+                float? l2Const = null,
+                float? l1Threshold = null,
+                int? maxIterations = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SdcaCalibratedBinaryTrainer(env, labelColumn, featureColumn, weights, l2Const, l1Threshold, maxIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the SDCA trainer.
+        /// </summary>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static SdcaCalibratedBinaryTrainer StochasticDualCoordinateAscentCalibrated(
+                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+                SdcaCalibratedBinaryTrainer.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SdcaCalibratedBinaryTrainer(env, options);
+        }
+
+        /// <summary>
         /// Predict a target using a linear binary classification model trained with the SDCA trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>

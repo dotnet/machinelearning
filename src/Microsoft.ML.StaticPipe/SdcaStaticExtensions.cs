@@ -135,7 +135,7 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCABinaryClassification.cs)]
         /// ]]></format>
         /// </example>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) SdcaCalibrated(
                     this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                     Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
                     float? l2Const = null,
@@ -154,14 +154,12 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaBinaryTrainer(env, labelName, featuresName, weightsName, loss: new LogLoss(), l2Const, l1Threshold, maxIterations);
+                    var trainer = new SdcaCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, l2Const, l1Threshold, maxIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
                         {
-                            // Under the default log-loss we assume a calibrated predictor.
-                            var pred = trans.Model;
-                            onFit((CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>)pred);
+                            onFit(trans.Model);
                         });
                     }
                     return trainer;
@@ -191,10 +189,10 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCABinaryClassification.cs)]
         /// ]]></format>
         /// </example>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) SdcaCalibrated(
                     this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                     Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-                    SdcaBinaryTrainer.Options options,
+                    SdcaCalibratedBinaryTrainer.Options options,
                     Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -209,14 +207,12 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
 
-                    var trainer = new SdcaBinaryTrainer(env, options);
+                    var trainer = new SdcaCalibratedBinaryTrainer(env, options);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
                         {
-                            // Under the default log-loss we assume a calibrated predictor.
-                            var pred = trans.Model;
-                            onFit((ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>)pred);
+                            onFit(trans.Model);
                         });
                     }
                     return trainer;
@@ -265,8 +261,6 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
             Contracts.CheckValueOrNull(onFit);
 
-            bool hasProbs = loss is LogLoss;
-
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
@@ -275,15 +269,11 @@ namespace Microsoft.ML.StaticPipe
                     {
                         return trainer.WithOnFitDelegate(trans =>
                         {
-                            var model = trans.Model;
-                            if (model is ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator> cali)
-                                onFit(cali.SubModel);
-                            else
-                                onFit((LinearBinaryModelParameters)model);
+                            onFit(trans.Model);
                         });
                     }
                     return trainer;
-                }, label, features, weights, hasProbs);
+                }, label, features, weights);
 
             return rec.Output;
         }
@@ -308,8 +298,7 @@ namespace Microsoft.ML.StaticPipe
         /// from negative to positive infinity), and the predicted label.</returns>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                Scalar<bool> label, Vector<float> features,
-                Scalar<float> weights,
+                Scalar<bool> label, Vector<float> features, Scalar<float> weights,
                 ISupportSdcaClassificationLoss loss,
                 SdcaBinaryTrainer.Options options,
                 Action<LinearBinaryModelParameters> onFit = null
@@ -320,8 +309,6 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValueOrNull(weights);
             Contracts.CheckValueOrNull(options);
             Contracts.CheckValueOrNull(onFit);
-
-            bool hasProbs = loss is LogLoss;
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
@@ -334,15 +321,11 @@ namespace Microsoft.ML.StaticPipe
                     {
                         return trainer.WithOnFitDelegate(trans =>
                         {
-                            var model = trans.Model;
-                            if (model is ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator> cali)
-                                onFit(cali.SubModel);
-                            else
-                                onFit((LinearBinaryModelParameters)model);
+                            onFit(trans.Model);
                         });
                     }
                     return trainer;
-                }, label, features, weights, hasProbs);
+                }, label, features, weights);
 
             return rec.Output;
         }

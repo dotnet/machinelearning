@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
             var transformedData = pipe.Fit(dataView).Transform(dataView);
 
-            var initPredictor = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent().Fit(transformedData);
+            var initPredictor = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentCalibrated().Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
             var withInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData,

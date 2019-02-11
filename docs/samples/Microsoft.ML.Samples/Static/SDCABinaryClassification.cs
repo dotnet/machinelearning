@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
@@ -74,7 +73,7 @@ namespace Microsoft.ML.Samples.Static
                 .Append(row => (
                         Features: row.Features.Normalize(),
                         Label: row.Label,
-                        Score: mlContext.BinaryClassification.Trainers.Sdca(
+                        Score: mlContext.BinaryClassification.Trainers.SdcaCalibrated(
                             row.Label,
                             row.Features,
                             l1Threshold: 0.25f,
