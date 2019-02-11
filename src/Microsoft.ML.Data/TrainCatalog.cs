@@ -89,7 +89,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Results for specific cross validation fold.
+        /// Results for specific cross-validation fold.
         /// </summary>
         protected internal struct CrossValidationResult
         {
@@ -114,23 +114,23 @@ namespace Microsoft.ML
             }
         }
         /// <summary>
-        /// Results of running crossvalidation.
+        /// Results of running cross-validation.
         /// </summary>
-        /// <typeparam name="T">Type of metric class</typeparam>
-        public class CrossValidationResult<T> where T : class
+        /// <typeparam name="T">Type of metric class.</typeparam>
+        public sealed class CrossValidationResult<T> where T : class
         {
             /// <summary>
-            /// Metrics for this cross validation fold.
+            /// Metrics for this cross-validation fold.
             /// </summary>
             public readonly T Metrics;
             /// <summary>
-            /// Model trained during cross validation fold.
+            /// Model trained during cross-validation fold.
             /// </summary>
             public readonly ITransformer Model;
             /// <summary>
-            /// Scored test set with <see cref="Model"/> for this fold.
+            /// The scored hold-out set for this fold.
             /// </summary>
-            public readonly IDataView Scores;
+            public readonly IDataView ScoredHoldOutSet;
             /// <summary>
             /// Fold number.
             /// </summary>
@@ -140,7 +140,7 @@ namespace Microsoft.ML
             {
                 Model = model;
                 Metrics = metrics;
-                Scores = scores;
+                ScoredHoldOutSet = scores;
                 Fold = fold;
             }
         }

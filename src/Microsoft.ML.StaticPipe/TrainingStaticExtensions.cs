@@ -107,7 +107,7 @@ namespace Microsoft.ML.StaticPipe
             return results.Select(x => (
                     x.Metrics,
                     new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.Scores, estimator.Shape)))
+                    new DataView<TOutShape>(env, x.ScoredHoldOutSet, estimator.Shape)))
                 .ToArray();
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.ML.StaticPipe
             return results.Select(x => (
                     x.Metrics,
                     new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.Scores, estimator.Shape)))
+                    new DataView<TOutShape>(env, x.ScoredHoldOutSet, estimator.Shape)))
                 .ToArray();
         }
 
@@ -223,7 +223,7 @@ namespace Microsoft.ML.StaticPipe
             return results.Select(x => (
                     x.Metrics,
                     new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.Scores, estimator.Shape)))
+                    new DataView<TOutShape>(env, x.ScoredHoldOutSet, estimator.Shape)))
                 .ToArray();
         }
 
@@ -281,7 +281,7 @@ namespace Microsoft.ML.StaticPipe
             return results.Select(x => (
                     x.Metrics,
                     new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.Scores, estimator.Shape)))
+                    new DataView<TOutShape>(env, x.ScoredHoldOutSet, estimator.Shape)))
                 .ToArray();
         }
     }
