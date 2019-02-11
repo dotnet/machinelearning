@@ -22,7 +22,7 @@ phases:
     _UseEsrpSigning: true
     _TeamName: DotNetCore
   queue:
-    name: DotNetCore-Build
+    name: dotnet-internal-temp
     demands: 
       - agent.os -equals Windows_NT
   steps:
@@ -51,7 +51,7 @@ phases:
     _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
     _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
   queue:
-    name: DotNetCore-Build
+    name: dotnet-internal-temp
     demands: 
       - agent.os -equals Windows_NT
   steps:
@@ -65,7 +65,7 @@ phases:
       command: push 
       packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg
       nuGetFeedType: internal 
-      feedPublish: MachineLearning
+      feedPublish: dotnet-internal
     
   # Terminate all dotnet build processes.
   - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
