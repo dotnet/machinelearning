@@ -258,15 +258,15 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
         }
 
-        internal SsaChangePointEstimator(IHostEnvironment env, SsaChangePointDetector.Options args)
+        internal SsaChangePointEstimator(IHostEnvironment env, SsaChangePointDetector.Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaChangePointEstimator));
 
-            _host.CheckNonEmpty(args.Name, nameof(args.Name));
-            _host.CheckNonEmpty(args.Source, nameof(args.Source));
+            _host.CheckNonEmpty(options.Name, nameof(options.Name));
+            _host.CheckNonEmpty(options.Source, nameof(options.Source));
 
-            _options = args;
+            _options = options;
         }
 
         /// <summary>

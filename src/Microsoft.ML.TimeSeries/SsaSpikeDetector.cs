@@ -237,15 +237,15 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
         }
 
-        internal SsaSpikeEstimator(IHostEnvironment env, SsaSpikeDetector.Options args)
+        internal SsaSpikeEstimator(IHostEnvironment env, SsaSpikeDetector.Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaSpikeEstimator));
 
-            _host.CheckNonEmpty(args.Name, nameof(args.Name));
-            _host.CheckNonEmpty(args.Source, nameof(args.Source));
+            _host.CheckNonEmpty(options.Name, nameof(options.Name));
+            _host.CheckNonEmpty(options.Source, nameof(options.Source));
 
-            _options = args;
+            _options = options;
         }
 
         /// <summary>

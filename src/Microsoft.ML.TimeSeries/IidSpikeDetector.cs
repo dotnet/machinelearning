@@ -98,13 +98,13 @@ namespace Microsoft.ML.TimeSeriesProcessing
         }
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            return new IidSpikeDetector(env, args).MakeDataTransform(input);
+            return new IidSpikeDetector(env, options).MakeDataTransform(input);
         }
 
         IStatefulTransformer IStatefulTransformer.Clone()
@@ -141,7 +141,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return new IidSpikeDetector(env, ctx);
         }
 
-        public IidSpikeDetector(IHostEnvironment env, ModelLoadContext ctx)
+        internal IidSpikeDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***
@@ -149,6 +149,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             InternalTransform.Host.CheckDecode(InternalTransform.ThresholdScore == AlertingScore.PValueScore);
         }
+
         private IidSpikeDetector(IHostEnvironment env, IidSpikeDetector transform)
            : base(new BaseArguments(transform), LoaderSignature, env)
         {
