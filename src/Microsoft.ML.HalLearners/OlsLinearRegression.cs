@@ -751,29 +751,6 @@ namespace Microsoft.ML.Trainers.HalLearners
                 }
             }
         }
-        /// <summary>
-        /// Returns model coefficents.
-        /// </summary>
-        /// <param name="coefficents"></param>
-        public void GetCoefficents(ref VBuffer<float> coefficents)
-        {
-            if (PValues == null)
-            {
-                base.GetFeatureWeights(ref coefficents);
-                return;
-            }
-
-            var size = PValues.Count - 1;
-            var editor = VBufferEditor.Create(ref coefficents, size);
-            for (int i = 0; i < size; i++)
-            {
-                var score = -(float)Math.Log(PValues[i + 1]);
-                if (score > float.MaxValue)
-                    score = float.MaxValue;
-                editor.Values[i] = score;
-            }
-            coefficents = editor.Commit();
-        }
     }
 }
 

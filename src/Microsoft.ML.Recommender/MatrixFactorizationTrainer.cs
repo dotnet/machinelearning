@@ -226,7 +226,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of threads will be used during training. If unspecified all aviable threads will be use.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t,numthreads")]
             public int? NumberOfThreads;
 
             /// <summary>

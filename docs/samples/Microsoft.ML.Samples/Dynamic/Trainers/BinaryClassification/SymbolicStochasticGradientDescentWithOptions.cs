@@ -24,7 +24,7 @@
             // Get DefaultBinaryPipine for adult dataset and append SymSGD to it.
             var pipeline = SamplesUtils.DatasetUtils.DefaultBinaryPipeline(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(
-                    new Trainers.SymSgd.SymSgdClassificationTrainer.Options()
+                    new Trainers.HalLearners.SymSgdClassificationTrainer.Options()
                     {
                         LabelColumn = "IsOver50K",
                         LearningRate = 0.2f,
