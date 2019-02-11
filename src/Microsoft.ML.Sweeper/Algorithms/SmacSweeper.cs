@@ -13,7 +13,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Sweeper;
 using Microsoft.ML.Sweeper.Algorithms;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(SmacSweeper), typeof(SmacSweeper.Arguments), typeof(SignatureSweeper),

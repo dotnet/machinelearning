@@ -8,7 +8,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     internal static class FastTreeIniFileUtils
     {

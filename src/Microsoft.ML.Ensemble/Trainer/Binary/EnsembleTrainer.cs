@@ -8,11 +8,10 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Training;
 

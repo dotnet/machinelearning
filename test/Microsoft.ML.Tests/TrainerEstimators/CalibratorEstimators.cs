@@ -6,8 +6,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Learners;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

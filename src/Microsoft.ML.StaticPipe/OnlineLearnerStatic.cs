@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Learners;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 
 namespace Microsoft.ML.StaticPipe

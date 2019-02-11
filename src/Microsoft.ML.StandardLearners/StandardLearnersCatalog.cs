@@ -5,7 +5,6 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Training;
@@ -293,7 +292,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="labelColumn">The label column name, or dependent variable.</param>
@@ -302,7 +301,7 @@ namespace Microsoft.ML
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -327,7 +326,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
@@ -341,7 +340,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
@@ -350,7 +349,7 @@ namespace Microsoft.ML
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         public static PoissonRegression PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
@@ -368,7 +367,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
@@ -382,7 +381,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="MulticlassLogisticRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
@@ -391,7 +390,7 @@ namespace Microsoft.ML
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
@@ -409,7 +408,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="MulticlassLogisticRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>

@@ -13,7 +13,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(Options),

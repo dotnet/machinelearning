@@ -667,15 +667,6 @@ namespace Microsoft.ML.Transforms
                 var tfInput = new TFOutput(session.Graph[inputs[i]]);
                 tfInputTypes[i] = tfInput.OutputType;
                 tfInputShapes[i] = session.Graph.GetTensorShape(tfInput);
-                if (tfInputShapes[i].NumDimensions != -1)
-                {
-                    var newShape = new long[tfInputShapes[i].NumDimensions];
-                    newShape[0] = tfInputShapes[i][0] == -1 ? BatchSize : tfInputShapes[i][0];
-
-                    for (int j = 1; j < tfInputShapes[i].NumDimensions; j++)
-                        newShape[j] = tfInputShapes[i][j];
-                    tfInputShapes[i] = new TFShape(newShape);
-                }
             }
             return (tfInputTypes, tfInputShapes);
         }
@@ -698,7 +689,14 @@ namespace Microsoft.ML.Transforms
             {
                 var tfOutput = new TFOutput(session.Graph[outputs[i]]);
                 var shape = session.Graph.GetTensorShape(tfOutput);
+
+                // The transformer can only retreive the output as fixed length vector with shape of kind [-1, d1, d2, d3, ...]
+                // i.e. the first dimension (if unknown) is assumed to be batch dimension.
+                // If there are other dimension that are unknown the transformer will return a variable length vector.
+                // This is the work around in absence of reshape transformer.
                 int[] dims = shape.NumDimensions > 0 ? shape.ToIntArray().Skip(shape[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
+                for (int j = 0; j < dims.Length; j++)
+                    dims[j] = dims[j] == -1 ? 0 : dims[j];
                 var type = TensorFlowUtils.Tf2MlNetType(tfOutput.OutputType);
                 outputTypes[i] = new VectorType(type, dims);
                 tfOutputTypes[i] = tfOutput.OutputType;
@@ -837,14 +835,22 @@ namespace Microsoft.ML.Transforms
                     var originalShape = _parent.TFInputShapes[i];
                     var shape = originalShape.ToIntArray();
 
-                    var colTypeDims = vecType.Dimensions.Prepend(1).Select(dim => (long)dim).ToArray();
+                    var colTypeDims = vecType.Dimensions.Select(dim => (long)dim).ToArray();
                     if (shape == null)
                         _fullySpecifiedShapes[i] = new TFShape(colTypeDims);
-                    else if (vecType.Dimensions.Length == 1)
+                    else
                     {
                         // If the column is one dimension we make sure that the total size of the TF shape matches.
                         // Compute the total size of the known dimensions of the shape.
-                        int valCount = shape.Where(x => x > 0).Aggregate((x, y) => x * y);
+                        int valCount = 1;
+                        int numOfUnkDim = 0;
+                        foreach (var s in shape)
+                        {
+                            if (s > 0)
+                                valCount *= s;
+                            else
+                                numOfUnkDim++;
+                        }
                         // The column length should be divisible by this, so that the other dimensions can be integral.
                         int typeValueCount = type.GetValueCount();
                         if (typeValueCount % valCount != 0)
@@ -853,25 +859,14 @@ namespace Microsoft.ML.Transforms
                         // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
                         // in a single value for the unknown shapes. For example, if the shape is [?,?,3], then there should exist a value
                         // d such that d*d*3 is equal to the length of the input column.
-                        var d = originalShape.NumDimensions > 2 ? Math.Pow(typeValueCount / valCount, 1.0 / (originalShape.NumDimensions - 2)) : 1;
-                        if (originalShape.NumDimensions > 2 && d - (int)d != 0)
+                        var d = numOfUnkDim > 0 ? Math.Pow(typeValueCount / valCount, 1.0 / numOfUnkDim) : 0;
+                        if (d - (int)d != 0)
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
                         // Fill in the unknown dimensions.
                         var l = new long[originalShape.NumDimensions];
                         for (int ishape = 0; ishape < originalShape.NumDimensions; ishape++)
                             l[ishape] = originalShape[ishape] == -1 ? (int)d : originalShape[ishape];
-                        _fullySpecifiedShapes[i] = new TFShape(l);
-                    }
-                    else
-                    {
-                        if (shape.Select((dim, j) => dim != -1 && dim != colTypeDims[j]).Any(b => b))
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is {vecType.ToString()}.");
-
-                        // Fill in the unknown dimensions.
-                        var l = new long[originalShape.NumDimensions];
-                        for (int ishape = 0; ishape < originalShape.NumDimensions; ishape++)
-                            l[ishape] = originalShape[ishape] == -1 ? colTypeDims[ishape] : originalShape[ishape];
                         _fullySpecifiedShapes[i] = new TFShape(l);
                     }
                 }

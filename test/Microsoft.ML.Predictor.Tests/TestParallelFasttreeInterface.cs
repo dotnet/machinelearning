@@ -6,7 +6,7 @@ using System;
 using Microsoft.ML;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 using Xunit.Abstractions;
 

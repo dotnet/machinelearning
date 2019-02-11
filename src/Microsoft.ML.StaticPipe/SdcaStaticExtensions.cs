@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Learners;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers;
 
