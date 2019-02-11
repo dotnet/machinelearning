@@ -41,6 +41,7 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
 - [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
 - [How can I define my own transformation of data?](#how-can-i-define-my-own-transformation-of-data)
+
 ### General questions about the samples
 
 As this document is reviewed, we found that certain general clarifications are in order about all the samples together. We try to address them in this section.
