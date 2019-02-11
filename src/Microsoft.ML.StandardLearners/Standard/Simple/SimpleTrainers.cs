@@ -14,13 +14,13 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Arguments),
+[assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
     RandomTrainer.UserNameValue,
     RandomTrainer.LoadNameValue,
     "random")]
 
-[assembly: LoadableClass(RandomTrainer.Summary, typeof(PriorTrainer), typeof(PriorTrainer.Arguments),
+[assembly: LoadableClass(RandomTrainer.Summary, typeof(PriorTrainer), typeof(PriorTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
     PriorTrainer.UserNameValue,
     PriorTrainer.LoadNameValue,
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers
         internal const string UserNameValue = "Random Predictor";
         internal const string Summary = "A toy predictor that returns a random value.";
 
-        public sealed class Arguments
+        public sealed class Options
         {
         }
 
@@ -58,15 +58,15 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Initializes RandomTrainer object.
         /// </summary>
-        public RandomTrainer(IHostEnvironment env)
+        internal RandomTrainer(IHostEnvironment env)
             : base(env, LoadNameValue)
         {
         }
 
-        public RandomTrainer(IHostEnvironment env, Arguments args)
+        internal RandomTrainer(IHostEnvironment env, Options options)
             : base(env, LoadNameValue)
         {
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
         }
 
         public BinaryPredictionTransformer<RandomModelParameters> Fit(IDataView input)
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Trainers
         internal const string LoadNameValue = "PriorPredictor";
         internal const string UserNameValue = "Prior Predictor";
 
-        public sealed class Arguments
+        internal sealed class Options
         {
         }
 
@@ -254,16 +254,16 @@ namespace Microsoft.ML.Trainers
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        public PriorTrainer(IHostEnvironment env, Arguments args)
+        internal PriorTrainer(IHostEnvironment env, Options options)
             : base(env, LoadNameValue)
         {
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
         }
 
         /// <summary>
         /// Initializes PriorTrainer object.
         /// </summary>
-        public PriorTrainer(IHost host, String labelColumn, String weightColunn = null)
+        internal PriorTrainer(IHost host, String labelColumn, String weightColunn = null)
             : base(host, LoadNameValue)
         {
             Contracts.CheckValue(labelColumn, nameof(labelColumn));

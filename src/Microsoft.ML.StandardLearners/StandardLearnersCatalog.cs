@@ -578,5 +578,30 @@ namespace Microsoft.ML
 
             return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), options);
         }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmTrainer"/> trainer.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
+        /// and all the negative examples are on the other.
+        /// </para>
+        /// <para>
+        /// After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the
+        /// margin, i.e., the minimal distance between it and the instances.
+        /// </para>
+        /// </remarks>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            LinearSvmTrainer.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            Contracts.CheckValue(options, nameof(options));
+
+            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), options);
+        }
     }
 }

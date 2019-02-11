@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data
     // It needs to become internal.
     public sealed class TransformWrapper : ITransformer
     {
-        public const string LoaderSignature = "TransformWrapper";
+        internal const string LoaderSignature = "TransformWrapper";
         private const string TransformDirTemplate = "Step_{0:000}";
 
         private readonly IHost _host;
