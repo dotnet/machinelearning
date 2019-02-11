@@ -7,31 +7,42 @@ using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Data.Evaluators.Metrics
 {
+    /// <summary>
+    /// Evaluation results for anomaly detection.
+    /// </summary>
     public sealed class AnomalyDetectionMetrics
     {
+        /// <summary>
+        /// Gets the area under the ROC curve.
+        /// </summary>
+        /// <remarks>
+        /// The area under the ROC curve is equal to the probability that the algorithm ranks
+        /// a randomly chosen positive instance higher than a randomly chosen negative one
+        /// (assuming 'positive' ranks higher than 'negative').
+        /// </remarks>
         public double Auc { get; }
+
+        /// <summary>
+        /// Detection rate at k false positives.
+        /// </summary>
         public double DrAtK { get; }
+        /// <summary>
+        /// Detection rate at fraction p false positives.
+        /// </summary>
         public double DrAtPFpr { get; }
+        /// <summary>
+        /// Detection rate at number of anomalies.
+        /// </summary>
         public double DrAtNumPos { get; }
-        public double NumAnomalies { get; }
-        public double ThreshAtK { get; }
-        public double ThreshAtP { get; }
-        public double ThreshAtNumPos { get; }
 
         internal AnomalyDetectionMetrics(IExceptionContext ectx, Row overallResult)
         {
-            long FetchInt(string name) => RowCursorUtils.Fetch<long>(ectx, overallResult, name);
-            float FetchFloat(string name) => RowCursorUtils.Fetch<float>(ectx, overallResult, name);
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
 
             Auc = FetchDouble(BinaryClassifierEvaluator.Auc);
             DrAtK = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
             DrAtPFpr = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr);
             DrAtNumPos = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos);
-            NumAnomalies = FetchInt(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies);
-            ThreshAtK = FetchFloat(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK);
-            ThreshAtP = FetchFloat(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP);
-            ThreshAtNumPos = FetchFloat(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
         }
     }
 }

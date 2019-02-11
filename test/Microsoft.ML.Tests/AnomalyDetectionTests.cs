@@ -58,10 +58,6 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.90, metrics.DrAtK, 2);
             Assert.Equal(0.90, metrics.DrAtPFpr, 2);
             Assert.Equal(0.90, metrics.DrAtNumPos, 2);
-            Assert.Equal(10, metrics.NumAnomalies);
-            Assert.Equal(0.57, metrics.ThreshAtK, 2);
-            Assert.Equal(0.63, metrics.ThreshAtP, 2);
-            Assert.Equal(0.65, metrics.ThreshAtNumPos, 2);
         }
     }
 }

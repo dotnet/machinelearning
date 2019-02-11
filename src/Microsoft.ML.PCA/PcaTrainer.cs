@@ -54,19 +54,26 @@ namespace Microsoft.ML.Trainers.PCA
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40,80")]
             [TlcModule.SweepableDiscreteParam("Rank", new object[] { 10, 20, 40, 80 })]
-            public int Rank = 20;
+            public int Rank = Defaults.NumComponents;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Oversampling parameter for randomized PCA training", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40")]
             [TlcModule.SweepableDiscreteParam("Oversampling", new object[] { 10, 20, 40 })]
-            public int Oversampling = 20;
+            public int Oversampling = Defaults.OversamplingParameters;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", ShortName = "center")]
             [TlcModule.SweepableDiscreteParam("Center", null, isBool: true)]
-            public bool Center = true;
+            public bool Center = Defaults.IsCenteredZeroMean;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation", ShortName = "seed")]
             public int? Seed;
+
+            internal static class Defaults
+            {
+                public const int NumComponents = 20;
+                public const int OversamplingParameters = 20;
+                public const bool IsCenteredZeroMean = true;
+            }
         }
 
         private readonly int _rank;
@@ -94,9 +101,9 @@ namespace Microsoft.ML.Trainers.PCA
         internal RandomizedPcaTrainer(IHostEnvironment env,
             string features,
             string weights = null,
-            int rank = 20,
-            int oversampling = 20,
-            bool center = true,
+            int rank = Options.Defaults.NumComponents,
+            int oversampling = Options.Defaults.OversamplingParameters,
+            bool center = Options.Defaults.IsCenteredZeroMean,
             int? seed = null)
             : this(env, null, features, weights, rank, oversampling, center, seed)
         {

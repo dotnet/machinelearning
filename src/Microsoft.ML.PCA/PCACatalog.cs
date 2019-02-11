@@ -37,12 +37,22 @@ namespace Microsoft.ML
         public static PrincipalComponentAnalysisEstimator ProjectToPrincipalComponents(this TransformsCatalog.ProjectionTransforms catalog, params PrincipalComponentAnalysisEstimator.ColumnInfo[] columns)
             => new PrincipalComponentAnalysisEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
+        /// <summary>
+        /// Trains an approximate PCA using Randomized SVD algorithm.
+        /// </summary>
+        /// <param name="catalog">The anomaly detection catalog trainer object.</param>
+        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="rank">The number of components in the PCA.</param>
+        /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
+        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="seed">The seed for random number generation.</param>
         public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            int rank = 20,
-            int oversampling = 20,
-            bool center = true,
+            int rank = Options.Defaults.NumComponents,
+            int oversampling = Options.Defaults.OversamplingParameters,
+            bool center = Options.Defaults.IsCenteredZeroMean,
             int? seed = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -50,6 +60,11 @@ namespace Microsoft.ML
             return new RandomizedPcaTrainer(env, featureColumn, weights, rank, oversampling, center, seed);
         }
 
+        /// <summary>
+        /// Trains an approximate PCA using Randomized SVD algorithm.
+        /// </summary>
+        /// <param name="catalog">The anomaly detection catalog trainer object.</param>
+        /// <param name="options">Advanced options to the algorithm.</param>
         public static RandomizedPcaTrainer RandomizedPca(this AnomalyDetectionCatalog.AnomalyDetectionTrainers catalog, Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));

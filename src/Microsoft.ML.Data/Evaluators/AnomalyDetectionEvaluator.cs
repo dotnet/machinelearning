@@ -586,7 +586,8 @@ namespace Microsoft.ML.Data
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these outputs.</returns>
-        public AnomalyDetectionMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
+        internal AnomalyDetectionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+            string predictedLabel = DefaultColumnNames.PredictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
