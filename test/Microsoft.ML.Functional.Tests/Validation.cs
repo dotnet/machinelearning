@@ -65,21 +65,24 @@ namespace Microsoft.ML.Functional.Tests
                 .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
             (var trainData, var validData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
 
-            // Create a pipeline to train on the sentiment data
+            // Create a pipeline to featurize the dataset
             var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
                     "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling",
                     "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio"})
                 .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
                 .AppendCacheCheckpoint(mlContext) as IEstimator<ITransformer>;
-            var preprocessor = pipeline.Fit(trainData);
-            var transformedValidData = preprocessor.Transform(validData);
 
-            // Todo #2502: Allow fitting a model with a validation set
-            // Train model with validation set.
-            // Note for #2502: There is no way below to specify a validation set for the learner
-            pipeline = pipeline.Append(mlContext.Regression.Trainers.FastTree(numTrees: 2));
-            // Note for #2502: Nor is there a way to specify a validation set in the Fit
-            var model = pipeline.Fit(trainData);
+            // Preprocess the datasets
+            var preprocessor = pipeline.Fit(trainData);
+            var preprocessedTrainData = preprocessor.Transform(trainData);
+            var preprocessedValidData = preprocessor.Transform(validData);
+
+            // Train the model with a validation set
+            var trainedModel = mlContext.Regression.Trainers.FastTree(numTrees: 2)
+                .Train(trainData: preprocessedTrainData, validationData: preprocessedValidData);
+
+            // Combine the model
+            var model = preprocessor.Append(trainedModel);
 
             // Score the data sets
             var scoredTrainData = model.Transform(trainData);
