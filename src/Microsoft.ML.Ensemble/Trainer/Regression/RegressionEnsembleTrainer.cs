@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Ensemble.Selector;
