@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -222,20 +223,23 @@ namespace Microsoft.ML.EntryPoints
                 return true;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
 
                 var transform = _chain as IDataTransform;
-                var pred = predicate;
+                var cols = dependingColumns;
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
-                    pred = mapper.GetDependencies(pred);
+                    dependingColumns = dependingColumns.Union(mapper.GetDependencies(cols));
                     transform = transform.Source as IDataTransform;
                 }
-                return pred;
+                return dependingColumns;
             }
 
             public DataViewSchema InputSchema => _rootSchema;
@@ -252,13 +256,15 @@ namespace Microsoft.ML.EntryPoints
                 var actives = new List<Func<int, bool>>();
                 var transform = _chain as IDataTransform;
                 var activeCur = active;
+                var activeCurCol = InputSchema.Where(col => active(col.Index));
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
                     mappers.Add(mapper);
                     actives.Add(activeCur);
-                    activeCur = mapper.GetDependencies(activeCur);
+                    activeCurCol = mapper.GetDependencies(activeCurCol);
+                    activeCur = c => activeCurCol.Any(col => col.Index == c);
                     transform = transform.Source as IDataTransform;
                 }
                 mappers.Reverse();

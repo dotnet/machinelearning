@@ -644,13 +644,10 @@ namespace Microsoft.ML.Transforms
 
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.AssertValueOrNull(rand);
 
                 // Build out the active state for the input
-                var inputPred = GetDependencies(predicate);
-                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
-
+                var inputCols = ((IRowToRowMapper)this).GetDependencies(columnsNeeded);
                 var inputRowCursor = Source.GetRowCursor(inputCols, rand);
 
                 // Build the active state for the output
@@ -660,12 +657,10 @@ namespace Microsoft.ML.Transforms
 
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.CheckValueOrNull(rand);
 
                 // Build out the active state for the input
-                var inputPred = GetDependencies(predicate);
-                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+                var inputCols = ((IRowToRowMapper)this).GetDependencies(columnsNeeded);
                 var inputs = Source.GetRowCursorSet(inputCols, n, rand);
 
                 // Build out the acitve state for the output
@@ -677,6 +672,24 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < inputs.Length; i++)
                     cursors[i] = new Cursor(_host, _mapper, inputs[i], active);
                 return cursors;
+            }
+
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> columns)
+            {
+                var activeOutput = RowCursorUtils.FromColumnsToPredicate(columns, _mapper.OutputSchema);
+
+                var active = new bool[_mapper.InputSchema.Count];
+                var columnCount = _mapper.OutputSchema.Count;
+                for (int colIdx = 0; colIdx < columnCount; ++colIdx)
+                {
+                    if (activeOutput(colIdx))
+                        active[_mapper.GetInputIndex(colIdx)] = true;
+                }
+
+                return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx) => _transform.SaveModel(ctx);

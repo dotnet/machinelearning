@@ -593,6 +593,16 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// The given predicate maps from output column index to whether the column is active.
+        /// This builds an array of bools of length ColumnCount containing the results of calling
+        /// predicate on each column index.
+        /// </summary>
+        public bool[] GetActive(IEnumerable<Schema.Column> columns)
+        {
+            return Utils.BuildArray(ColumnCount, columns);
+        }
+
+        /// <summary>
+        /// The given predicate maps from output column index to whether the column is active.
         /// This builds an array of bools of length Input.ColumnCount containing the results of calling
         /// predicate on the output column index corresponding to each input column index.
         /// </summary>
@@ -609,6 +619,19 @@ namespace Microsoft.ML.Data
                     active[src] = true;
             }
             return active;
+        }
+
+        /// <summary>
+        /// The given predicate maps from output column index to whether the column is active.
+        /// This builds an array of bools of length Input.ColumnCount containing the results of calling
+        /// predicate on the output column index corresponding to each input column index.
+        /// </summary>
+        public bool[] GetActiveInput(IEnumerable<Schema.Column> inputColumns)
+        {
+            Contracts.AssertValue(inputColumns);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(inputColumns, AsSchema);
+
+            return GetActiveInput(predicate);
         }
 
         /// <summary>
@@ -764,6 +787,18 @@ namespace Microsoft.ML.Data
                     active[src] = true;
             }
             return active;
+        }
+
+        /// <summary>
+        /// The given predicate maps from output column index to whether the column is active.
+        /// This builds an array of bools of length Input.ColumnCount containing the results of calling
+        /// predicate on the output column index corresponding to each input column index.
+        /// </summary>
+        public bool[] GetActiveInput(IEnumerable<Schema.Column> activeColumns)
+        {
+            Contracts.AssertValue(activeColumns);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(activeColumns, Schema);
+            return GetActiveInput(predicate);
         }
     }
 

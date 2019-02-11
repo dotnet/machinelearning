@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
@@ -214,14 +215,15 @@ namespace Microsoft.ML.Data
                 OutputSchema = outputSchema;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return col => col == InputRoleMappedSchema.Feature.Value.Index;
-                }
-                return col => false;
+                if (dependingColumns.Count() == 0 || !InputRoleMappedSchema.Feature.HasValue)
+                    return Enumerable.Empty<Schema.Column>();
+
+                return InputSchema.Where(col => col.Name.Equals(InputRoleMappedSchema.Feature?.Name));
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -497,14 +499,16 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i) && InputRoleMappedSchema.Feature?.Index is int idx)
-                        return col => col == idx;
-                }
-                return col => false;
+
+                if (dependingColumns.Count() == 0 || !InputRoleMappedSchema.Feature.HasValue)
+                    return Enumerable.Empty<Schema.Column>();
+
+                return InputSchema.Where(col => col.Name.Equals(InputRoleMappedSchema.Feature?.Name));
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

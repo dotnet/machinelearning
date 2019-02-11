@@ -327,7 +327,11 @@ namespace Microsoft.ML.Data
                     return builder.ToSchema();
                 }
 
-                public Func<int, bool> GetDependencies(Func<int, bool> predicate) => _mapper.GetDependencies(predicate);
+                /// <summary>
+                /// Given a set of columns, return the input columns that are needed to generate those output columns.
+                /// </summary>
+                IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+                => _mapper.GetDependencies(dependingColumns);
 
                 public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles() => _mapper.GetInputColumnRoles();
 

@@ -477,14 +477,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public override DataViewSchema OutputSchema => _bindings.Schema;
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return col => true;
-                }
-                return col => false;
+                var columnNames = dependingColumns.Select(col => col.Name);
+                return InputSchema.Where(col => columnNames.Contains(col.Name));
             }
 
             public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
@@ -689,6 +688,29 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return active;
         }
 
+        /// <summary>
+        /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
+        /// a predicate for the needed active input columns, and a predicate for the needed active
+        /// output columns.
+        /// </summary>
+        private IEnumerable<Schema.Column> GetActive(Func<int, bool> predicate)
+        {
+            int n = _bindings.Schema.Count;
+            var active = Utils.BuildArray(n, predicate);
+            Contracts.Assert(active.Length == n);
+
+            var activeInput = _bindings.GetActiveInput(predicate);
+            Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
+
+            // Get a predicate that determines which outputs are active.
+            var predicateOut = GetActiveOutputColumns(active);
+
+            // Now map those to active input columns.
+            var predicateIn = _mapper.GetDependencies(predicateOut);
+
+            return _bindings.Schema.Where(col => col.Index < activeInput.Length && (activeInput[col.Index] || predicateIn(col.Index)));
+        }
+
         private Func<int, bool> GetActiveOutputColumns(bool[] active)
         {
             Contracts.AssertValue(active);
@@ -761,11 +783,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
         }
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+        /// <summary>
+        /// Given a set of columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
         {
-            Func<int, bool> predicateInput;
-            GetActive(predicate, out predicateInput);
-            return predicateInput;
+            var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
+            return GetActive(predicate);
         }
 
         DataViewSchema IRowToRowMapper.InputSchema => Source.Schema;

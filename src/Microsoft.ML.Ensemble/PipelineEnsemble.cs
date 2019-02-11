@@ -90,14 +90,14 @@ namespace Microsoft.ML.Trainers.Ensemble
                 }
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return col => _inputColIndices.Contains(col);
-                }
-                return col => false;
+                var columnNames = dependingColumns.Select(col => col.Name);
+
+                return InputSchema.Where(col => columnNames.Contains(col.Name) && _inputColIndices.Contains(col.Index));
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -139,7 +139,10 @@ namespace Microsoft.ML.Trainers.Ensemble
                     {
                         // First get the output row from the pipelines. The input predicate of the predictor
                         // is the output predicate of the pipeline.
-                        var inputPredicate = Mappers[i].GetDependencies(mapperPredicate);
+                        var mapperColumns = Mappers[i].OutputSchema.Where(col => mapperPredicate(col.Index));
+                        var inputColumns = Mappers[i].GetDependencies(mapperColumns);
+
+                        Func<int, bool> inputPredicate = c => BoundPipelines[i].OutputSchema.Count() < c;
                         var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.
@@ -184,7 +187,9 @@ namespace Microsoft.ML.Trainers.Ensemble
                     }
                     var weightCol = Mappers[i].InputRoleMappedSchema.Weight.Value;
                     // The weight should be in the output row of the i'th pipeline if it exists.
-                    var inputPredicate = Mappers[i].GetDependencies(col => col == weightCol.Index);
+                    var inputColumns = Mappers[i].GetDependencies(Enumerable.Repeat(weightCol, 1));
+
+                    Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
                     var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
                     disposer = pipelineRow.Dispose;
                     return pipelineRow.GetGetter<float>(weightCol.Index);

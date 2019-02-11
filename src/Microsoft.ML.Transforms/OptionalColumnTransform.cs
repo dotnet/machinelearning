@@ -213,6 +213,19 @@ namespace Microsoft.ML.Transforms
 
                 return col => 0 <= col && col < active.Length && active[col];
             }
+
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
+            {
+                Contracts.AssertValue(dependingColumns);
+
+                var active = GetActiveInput(dependingColumns);
+                Contracts.Assert(active.Count() == Input.Count);
+
+                return Input.Where(c => c.Index < active.Length && active[c.Index]);
+            }
         }
 
         internal const string Summary = "If the source column does not exist after deserialization," +
@@ -343,10 +356,8 @@ namespace Microsoft.ML.Transforms
             return new DataViewRowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
-        protected override Func<int, bool> GetDependenciesCore(Func<int, bool> predicate)
-        {
-            return _bindings.GetDependencies(predicate);
-        }
+        protected override IEnumerable<Schema.Column> GetDependenciesCore(IEnumerable<Schema.Column> dependingColumns)
+            => _bindings.GetDependencies(dependingColumns);
 
         protected override int MapColumnIndex(out bool isSrc, int col)
         {
