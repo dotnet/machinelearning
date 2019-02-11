@@ -23,7 +23,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// PercentileThresholdTransform is a sequential transform that decides whether the current value of the time-series belongs to the 'percentile' % of the top values in
     /// the sliding window. The output of the transform will be a boolean flag.
     /// </summary>
-    public sealed class PercentileThresholdTransform : SequentialTransformBase<Single, bool, PercentileThresholdTransform.State>
+    internal sealed class PercentileThresholdTransform : SequentialTransformBase<Single, bool, PercentileThresholdTransform.State>
     {
         public const string Summary = "Detects the values of time-series that are in the top percentile of the sliding window.";
         public const string LoaderSignature = "PercentThrTransform";

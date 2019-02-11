@@ -22,13 +22,14 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// ExponentialAverageTransform is a weighted average of the values: ExpAvg(y_t) = a * y_t + (1-a) * ExpAvg(y_(t-1)).
     /// </summary>
-    public sealed class ExponentialAverageTransform : SequentialTransformBase<Single, Single, ExponentialAverageTransform.State>
+    internal sealed class ExponentialAverageTransform : SequentialTransformBase<Single, Single, ExponentialAverageTransform.State>
     {
         public const string Summary = "Applies a Exponential average on a time series.";
         public const string LoaderSignature = "ExpAverageTransform";
         public const string UserName = "Exponential Average Transform";
         public const string ShortName = "ExpAvg";
 
+#pragma warning disable 0649
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The name of the source column", ShortName = "src",
@@ -43,6 +44,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 ShortName = "d", SortOrder = 4)]
             public Single Decay = 0.9f;
         }
+#pragma warning restore 0649
 
         private static VersionInfo GetVersionInfo()
         {
