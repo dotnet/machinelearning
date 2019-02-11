@@ -7,7 +7,7 @@
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
-  <Import Project="build/ExternalBenchmarkDataFiles.props" />
+  <!-- <Import Project="build/ExternalBenchmarkDataFiles.props" /> -->
   <Import Project="$(ToolsDir)VersionTools.targets" Condition="Exists('$(ToolsDir)VersionTools.targets')" />
   <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <PropertyGroup>
@@ -67,7 +67,7 @@
     <Message Importance="High" Text="Building packages ..." />
 
     <ItemGroup>
-      <PkgProject Include="pkg\**\*.nupkgproj" />
+      <PkgProject Include="src\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
     </ItemGroup>
 
     <MSBuild Projects="@(PkgProject)"
@@ -76,14 +76,14 @@
              Targets="Pack" />
   </Target>
   
-  <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'">
+  <!-- <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'">
     <BenchmarkFile Update="@(BenchmarkFile)">
       <Url>https://aka.ms/mlnet-resources/benchmarks/%(Identity)</Url>
       <DestinationFile>$(MSBuildThisFileDirectory)/test/data/external/%(Identity)</DestinationFile>
     </BenchmarkFile>
 
-    <!-- <TestFile Include="@(BenchmarkFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" /> -->
-  </ItemGroup>
+    <TestFile Include="@(BenchmarkFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" />
+  </ItemGroup> -->
 
   <!-- <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />

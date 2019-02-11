@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AutoML\AutoML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
     <ProjectReference Include="..\mlnet\mlnet.csproj" />
   </ItemGroup>
 

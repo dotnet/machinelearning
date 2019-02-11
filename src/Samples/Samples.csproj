@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AutoML\AutoML.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
   </ItemGroup>
 
 </Project>

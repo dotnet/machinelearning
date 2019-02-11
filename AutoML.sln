@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoML", "src\AutoML\AutoML.csproj", "{B3727729-3DF8-47E0-8710-9B41DAF55817}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Auto", "src\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj", "{B3727729-3DF8-47E0-8710-9B41DAF55817}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples", "src\Samples\Samples.csproj", "{64A7294E-A2C7-4499-8F0B-4BB074047C6B}"
 EndProject

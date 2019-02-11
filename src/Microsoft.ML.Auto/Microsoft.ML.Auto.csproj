@@ -19,4 +19,20 @@
     <PackageReference Include="Microsoft.ML.HalLearners" Version="0.10.0" />
     <PackageReference Include="Microsoft.ML.LightGBM" Version="0.10.0" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <Authors>Microsoft</Authors>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
+    <PackageIconUrl>https://aka.ms/mlnetlogo</PackageIconUrl>
+    <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>
+    <!-- space separated -->
+    <PackageTags>ML.NET ML Machine Learning AutoML</PackageTags>
+    <AssemblyName>Microsoft.ML.Auto</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">
+    <Content Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="" />
+    <Content Include="$(RepoRoot)\LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
 </Project>
