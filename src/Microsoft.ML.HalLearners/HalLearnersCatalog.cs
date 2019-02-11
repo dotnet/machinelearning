@@ -20,13 +20,20 @@ namespace Microsoft.ML
         /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
-        /// <param name="weights">The weights column.</param>
+        /// <param name="labelColumn">The name of label column.</param>
+        /// <param name="featureColumn">The name of feature column.</param>
+        /// <param name="weightColumn">The name of weight column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/OrdinaryLeastSquares.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weights = null)
+            string weightColumn = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -34,7 +41,7 @@ namespace Microsoft.ML
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
-                WeightColumn = weights != null ? Optional<string>.Explicit(weights) : Optional<string>.Implicit(DefaultColumnNames.Weight)
+                WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight)
             };
 
             return new OlsLinearRegressionTrainer(env, options);
@@ -45,6 +52,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="OlsLinearRegressionTrainer.Options"/>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/OrdinaryLeastSquaresWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static OlsLinearRegressionTrainer OrdinaryLeastSquares(
             this RegressionCatalog.RegressionTrainers catalog,
             OlsLinearRegressionTrainer.Options options)
@@ -62,9 +76,18 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumn">The labelColumn column.</param>
         /// <param name="featureColumn">The features column.</param>
+        /// <param name="numberOfIterations">Number of training iterations.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SymbolicStochasticGradientDescent.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features)
+            string featureColumn = DefaultColumnNames.Features,
+            int numberOfIterations = SymSgdClassificationTrainer.Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -83,6 +106,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="SymSgdClassificationTrainer.Options"/>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SymbolicStochasticGradientDescentWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             SymSgdClassificationTrainer.Options options)
@@ -107,7 +137,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ProjectionTransforms.cs?range=1-6,12-112)]
+        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Projection/VectorWhiten.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -124,6 +154,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Projection/VectorWhitenWithColumnInfo.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params VectorWhiteningEstimator.ColumnInfo[] columns)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 

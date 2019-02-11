@@ -5,10 +5,12 @@ using static Microsoft.ML.SamplesUtils.DatasetUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class MatrixFactorizationExample
+    public sealed partial class MatrixFactorization
     {
-        // This example first creates in-memory data and then use it to train a matrix factorization mode with default parameters. Afterward, quality metrics are reported.
-        public static void MatrixFactorization()
+        /// <summary>
+        /// This example require installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.Recommender/">Microsoft.ML.Recommender</a>
+        /// </summary>
+        public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
