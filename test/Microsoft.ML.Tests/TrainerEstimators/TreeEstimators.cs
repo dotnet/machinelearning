@@ -331,7 +331,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 floatLabels[i] = labels[i];
 
             // Allocate LightGBM data container (called Dataset in LightGBM world).
-            var gbmDataSet = new Dataset(sampleValueGroupedByColumn, sampleIndicesGroupedByColumn, _columnNumber, sampleNonZeroCntPerColumn, _rowNumber, _rowNumber, "", floatLabels);
+            var gbmDataSet = new LightGBM.Dataset(sampleValueGroupedByColumn, sampleIndicesGroupedByColumn, _columnNumber, sampleNonZeroCntPerColumn, _rowNumber, _rowNumber, "", floatLabels);
 
             // Push training examples into LightGBM data container.
             gbmDataSet.PushRows(dataMatrix, _rowNumber, _columnNumber, 0);

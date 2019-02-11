@@ -6,8 +6,8 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Learners;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -17,7 +17,7 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _dataPath = BaseTestClass.GetDataPath("adult.tiny.with-schema.txt");
 
         [Benchmark]
-        public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
+        public CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> TrainKMeansAndLR()
         {
             var ml = new MLContext(seed: 1);
             // Pipeline

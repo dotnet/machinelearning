@@ -7,7 +7,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Float = System.Single;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     internal class InternalQuantileRegressionTree : InternalRegressionTree
     {
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _instanceWeights = buffer.ToDoubleArray(ref position);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        internal override void Save(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // double[]: Labels Distribution.

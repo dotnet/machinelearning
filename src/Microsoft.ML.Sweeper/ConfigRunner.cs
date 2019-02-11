@@ -12,7 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Sweeper;
 
-using ResultProcessorInternal = Microsoft.ML.Internal.Internallearn.ResultProcessor;
+using ResultProcessorInternal = Microsoft.ML.ResultProcessor;
 
 [assembly: LoadableClass(typeof(LocalExeConfigRunner), typeof(LocalExeConfigRunner.Arguments), typeof(SignatureConfigRunner),
     "Local Sweep Config Runner", "Local")]

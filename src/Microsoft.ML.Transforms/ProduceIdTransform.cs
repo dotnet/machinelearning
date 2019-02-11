@@ -27,7 +27,7 @@ namespace Microsoft.ML.Transforms
     /// some other file, then apply this transform to that dataview, it may of course have a different
     /// result. This is distinct from most transforms that produce results based on data alone.
     /// </summary>
-    public sealed class ProduceIdTransform : RowToRowTransformBase
+    internal sealed class ProduceIdTransform : RowToRowTransformBase
     {
         public sealed class Arguments
         {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(input, true, name);
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms
             return h.Apply("Loading Model", ch => new ProduceIdTransform(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

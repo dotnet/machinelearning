@@ -15,7 +15,6 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Options),
@@ -96,7 +95,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
                 return predictor;
-            return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
+            return new SchemaBindableCalibratedModelParameters<FastTreeBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -104,7 +103,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
     /// <include file = 'doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer :
-        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Options, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
+        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Options,
+        BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>,
+        CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
         /// The LoadName for the assembly containing the trainer.
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        private protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
+        private protected override CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -185,7 +186,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // BinaryClassificationObjectiveFunction.GetGradientInOneQuery being consistent with the
             // description in section 6 of the paper.
             var cali = new PlattCalibrator(Host, -1 * _sigmoidParameter, 0);
-            return new FeatureWeightsCalibratedPredictor(Host, pred, cali);
+            return new FeatureWeightsCalibratedModelParameters<FastTreeBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
         }
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
@@ -273,10 +274,11 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, Schema trainSchema)
-        => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> MakeTransformer(
+            CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> model, Schema trainSchema)
+            => new BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null)
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> Train(IDataView trainData, IDataView validationData = null)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

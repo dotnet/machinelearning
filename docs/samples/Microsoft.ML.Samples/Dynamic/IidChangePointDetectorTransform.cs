@@ -54,16 +54,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(ChangePointPrediction.Prediction);
             string inputColumnName = nameof(IidChangePointData.Value);
-            var args = new IidChangePointDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = Size / 4, // The length of the sliding window on p-values for computing the martingale score. 
-            };
 
             // The transformed data.
-            var transformedData = new IidChangePointEstimator(ml, args).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
             var predictionColumn = ml.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
@@ -119,16 +112,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(ChangePointPrediction.Prediction);
             string inputColumnName = nameof(IidChangePointData.Value);
-            var args = new IidChangePointDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = Size / 4, // The length of the sliding window on p-values for computing the martingale score. 
-            };
 
             // Time Series model.
-            ITransformer model = new IidChangePointEstimator(ml, args).Fit(dataView);
+            ITransformer model = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidChangePointData, ChangePointPrediction>(ml);

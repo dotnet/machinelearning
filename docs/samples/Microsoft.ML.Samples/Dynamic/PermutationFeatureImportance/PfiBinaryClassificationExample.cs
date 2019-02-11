@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
 {
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             var linearPredictor = model.LastTransformer;
             // Linear models for binary classification are wrapped by a calibrator as a generic predictor
             //  To access it directly, we must extract it out and cast it to the proper class
-            var weights = PfiHelper.GetLinearModelWeights(linearPredictor.Model.SubPredictor as LinearBinaryModelParameters);
+            var weights = PfiHelper.GetLinearModelWeights(linearPredictor.Model.SubModel as LinearBinaryModelParameters);
 
             // Compute the permutation metrics using the properly normalized data.
             var transformedData = model.Transform(data);

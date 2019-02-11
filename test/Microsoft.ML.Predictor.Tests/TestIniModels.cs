@@ -580,8 +580,8 @@ namespace Microsoft.ML.RunTests
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
 
-            var calibratedPredictor = model.LastTransformer.Model as CalibratedPredictor;
-            var predictor = calibratedPredictor.SubPredictor as ICanSaveInIniFormat;
+            var calibratedPredictor = model.LastTransformer.Model;
+            var predictor = calibratedPredictor.SubModel as ICanSaveInIniFormat;
             string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
 
             using (Stream iniStream = File.Create(modelIniPath))

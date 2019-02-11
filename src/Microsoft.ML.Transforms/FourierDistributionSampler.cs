@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms
             _host.CheckDecode(FloatUtils.IsFinite(_gamma));
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms
             _host.CheckDecode(FloatUtils.IsFinite(_a));
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             ctx.SetVersionInfo(GetVersionInfo());
 

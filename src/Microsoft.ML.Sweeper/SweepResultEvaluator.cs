@@ -8,7 +8,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Sweeper;
-using ResultProcessor = Microsoft.ML.Internal.Internallearn.ResultProcessor;
+using ResultProcessor = Microsoft.ML.ResultProcessor;
 
 [assembly: LoadableClass(typeof(InternalSweepResultEvaluator), typeof(InternalSweepResultEvaluator.Arguments), typeof(SignatureSweepResultEvaluator),
     "TLC Sweep Result Evaluator", "TlcEvaluator", "Tlc")]

@@ -96,7 +96,7 @@ namespace Microsoft.ML.Data
                 _conv = conv;
             }
 
-            public override void Save(ModelSaveContext ctx)
+            private protected override void SaveModel(ModelSaveContext ctx)
             {
                 Host.Assert(false, "Shouldn't serialize this!");
                 throw Host.ExceptNotSupp("Shouldn't serialize this");

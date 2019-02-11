@@ -16,7 +16,7 @@ using Microsoft.ML.Model;
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
     using TScalarPredictor = IPredictorProducing<Single>;
-    internal sealed class Stacking : BaseScalarStacking, IBinaryOutputCombiner, ICanSaveModel
+    internal sealed class Stacking : BaseScalarStacking, IBinaryOutputCombiner
     {
         public const string UserName = "Stacking";
         public const string LoadName = "Stacking";

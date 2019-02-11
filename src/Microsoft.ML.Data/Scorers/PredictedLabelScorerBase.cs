@@ -160,7 +160,7 @@ namespace Microsoft.ML.Data
                 return new BindingsImpl(input, rowMapper, suffix, scoreKind, false, scoreColIndex, predColType);
             }
 
-            public override void Save(ModelSaveContext ctx)
+            internal override void SaveModel(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Data
         private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
-            Bindings.Save(ctx);
+            Bindings.SaveModel(ctx);
         }
 
         void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)

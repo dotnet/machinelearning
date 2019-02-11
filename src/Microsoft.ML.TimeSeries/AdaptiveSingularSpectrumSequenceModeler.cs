@@ -24,9 +24,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// This class implements basic Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
     /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    public sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>
+    internal sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>
     {
-        public const string LoaderSignature = "SSAModel";
+        internal const string LoaderSignature = "SSAModel";
 
         public enum RankSelectionMethod
         {
@@ -35,7 +35,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Fast
         }
 
-        public sealed class SsaForecastResult : ForecastResultBase<Single>
+        internal sealed class SsaForecastResult : ForecastResultBase<Single>
         {
             public VBuffer<Single> ForecastStandardDeviation;
             public VBuffer<Single> UpperBound;
@@ -465,7 +465,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             _xSmooth = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -1517,7 +1517,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// </summary>
         /// <param name="forecast">The input forecast object</param>
         /// <param name="confidenceLevel">The confidence level in [0, 1)</param>
-        public static void ComputeForecastIntervals(ref SsaForecastResult forecast, Single confidenceLevel = 0.95f)
+        internal static void ComputeForecastIntervals(ref SsaForecastResult forecast, Single confidenceLevel = 0.95f)
         {
             Contracts.CheckParam(0 <= confidenceLevel && confidenceLevel < 1, nameof(confidenceLevel), "The confidence level must be in [0, 1).");
             Contracts.CheckValue(forecast, nameof(forecast));

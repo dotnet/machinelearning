@@ -158,7 +158,24 @@ namespace Microsoft.ML.RunTests
             name = "housing",
             trainFilename = "housing.txt",
             testFilename = "housing.txt",
-            loaderSettings = "loader=Text{col=Label:0 col=Features:~ header=+}"
+            loaderSettings = "loader=Text{col=Label:0 col=Features:~ header=+}",
+            GetLoaderColumns = () =>
+            {
+                return new[] {
+                    new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
+                    new TextLoader.Column("CrimesPerCapita", DataKind.R4, 1),
+                    new TextLoader.Column("PercentResidental", DataKind.R4, 2),
+                    new TextLoader.Column("PercentNonRetail", DataKind.R4, 3),
+                    new TextLoader.Column("CharlesRiver", DataKind.R4, 4),
+                    new TextLoader.Column("NitricOxides", DataKind.R4, 5),
+                    new TextLoader.Column("RoomsPerDwelling", DataKind.R4, 6),
+                    new TextLoader.Column("PercentPre40s", DataKind.R4, 7),
+                    new TextLoader.Column("EmploymentDistance", DataKind.R4, 8),
+                    new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
+                    new TextLoader.Column("TaxRate", DataKind.R4, 10),
+                    new TextLoader.Column("TeacherRatio", DataKind.R4, 11),
+                };
+            }
         };
 
         public static TestDataset generatedRegressionDatasetmacro = new TestDataset

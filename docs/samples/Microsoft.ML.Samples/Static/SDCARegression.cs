@@ -1,7 +1,7 @@
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.Learners;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Static
 {

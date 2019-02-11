@@ -234,7 +234,7 @@ namespace Microsoft.ML.Data
             return new RegressionPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Data
 
             // *** Binary format **
             // base
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)

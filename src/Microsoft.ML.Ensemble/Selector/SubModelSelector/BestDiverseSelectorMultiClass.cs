@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Ensemble.Selector.SubModelSelector;
@@ -20,8 +19,6 @@ using Microsoft.ML.Internal.Internallearn;
 
 namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
-    using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-
     internal sealed class BestDiverseSelectorMultiClass : BaseDiverseSelector<VBuffer<Single>, IDiversityMeasure<VBuffer<Single>>>, IMulticlassSubModelSelector
     {
         public const string UserName = "Best Diverse Selector";

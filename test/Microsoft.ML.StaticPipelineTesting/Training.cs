@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
@@ -11,11 +10,9 @@ using Microsoft.ML.Data;
 using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Learners;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.LightGBM.StaticPipe;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -118,23 +115,20 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            LinearBinaryModelParameters pred = null;
-            ParameterMixingCalibratedPredictor cali = null;
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
                     new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
-                    onFit: (p, c) => { pred = p; cali = c; })));
+                    onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
             Assert.Null(pred);
-            Assert.Null(cali);
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
-            Assert.NotNull(cali);
             // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.Weights.Count);
+            Assert.Equal(9, pred.SubModel.Weights.Count);
 
             var data = model.Read(dataSource);
 
@@ -384,7 +378,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            IPredictorWithFeatureWeights<float> pred = null;
+            CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.FastTree(r.label, r.features,
@@ -400,7 +394,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // 9 input features, so we ought to have 9 weights.
             VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
+            ((IPredictorWithFeatureWeights<float>)pred).GetFeatureWeights(ref weights);
             Assert.Equal(9, weights.Length);
 
             var data = model.Read(dataSource);
@@ -465,7 +459,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            IPredictorWithFeatureWeights<float> pred = null;
+            CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LightGbm(r.label, r.features,
@@ -482,7 +476,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // 9 input features, so we ought to have 9 weights.
             VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
+            ((IHaveFeatureWeights)pred).GetFeatureWeights(ref weights);
             Assert.Equal(9, weights.Length);
 
             var data = model.Read(dataSource);
@@ -588,7 +582,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            IPredictorWithFeatureWeights<float> pred = null;
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
@@ -601,9 +595,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.NotNull(pred);
 
             // 9 input features, so we ought to have 9 weights.
-            VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
-            Assert.Equal(9, weights.Length);
+            Assert.Equal(9, pred.SubModel.Weights.Count);
 
             var data = model.Read(dataSource);
 
@@ -992,7 +984,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // The parameter that will be into the onFit method below. The obtained predictor will be assigned to this variable
             // so that we will be able to touch it.
-            MatrixFactorizationPredictor pred = null;
+            MatrixFactorizationModelParameters pred = null;
 
             // Create a statically-typed matrix factorization estimator. The MatrixFactorization's input and output defined in MatrixFactorizationStatic
             // tell what (aks a Scalar<float>) is expected. Notice that only one thread is used for deterministic outcome.
@@ -1033,7 +1025,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Create in-memory examples as C# native class.
-            var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
+            var examples = SamplesUtils.DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
             var dataView = mlContext.Data.ReadFromEnumerable(examples);
@@ -1085,7 +1077,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(0.86309523809523814, metrics.AccuracyMicro, 6);
 
             // Convert prediction in ML.NET format to native C# class.
-            var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
+            var nativePredictions = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
 
             // Get schema object of the prediction. It contains metadata such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA").
@@ -1093,7 +1085,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Retrieve the mapping from labels to label indexes.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>();
-            schema[nameof(DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
+            schema[nameof(SamplesUtils.DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
             var nativeLabels = labelBuffer.DenseValues().ToList(); // nativeLabels[nativePrediction.PredictedLabelIndex-1] is the original label indexed by nativePrediction.PredictedLabelIndex.
 
             // Show prediction result for the 3rd example.
