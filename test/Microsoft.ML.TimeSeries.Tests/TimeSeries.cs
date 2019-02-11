@@ -4,6 +4,7 @@
 
 using System.IO;
 using System.Linq;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.TimeSeriesProcessing;
 using Xunit;
 using Xunit.Abstractions;
@@ -70,7 +71,7 @@ namespace Microsoft.ML.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void SavePipeSsaSpikeNoData()
         {
             string pathData = DeleteOutputPath("SavePipe", "SsaSpikeNoData.txt");

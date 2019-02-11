@@ -12,6 +12,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.StaticPipe;
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         void TestSimpleCase()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
@@ -96,7 +97,7 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
@@ -132,7 +133,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [TensorFlowFact]
         void TestCommandLine()
         {
             // typeof helps to load the TensorFlowTransformer type.
@@ -140,7 +141,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }), (int)0);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TestTensorFlowStatic()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
@@ -182,7 +183,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [TensorFlowFact]
         public void TestTensorFlowStaticWithSchema()
         {
             const string modelLocation = "cifar_model/frozen_model.pb";

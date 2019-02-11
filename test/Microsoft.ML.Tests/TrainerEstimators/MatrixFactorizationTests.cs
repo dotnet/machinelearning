@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -17,8 +18,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
-        public void MatrixFactorizationEstimator()
+        [MatrixFactorizationFact]
+        public void MatrixFactorization_Estimator()
         {
             string labelColumnName = "Label";
             string matrixColumnIndexColumnName = "Col";
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        [MatrixFactorizationFact]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
@@ -189,7 +190,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        [MatrixFactorizationFact]
         public void MatrixFactorizationInMemoryData()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
@@ -278,7 +279,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        [MatrixFactorizationFact]
         public void MatrixFactorizationInMemoryDataZeroBaseIndex()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
@@ -392,7 +393,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        [MatrixFactorizationFact]
         public void OneClassMatrixFactorizationInMemoryDataZeroBaseIndex()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
@@ -464,7 +465,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        [MatrixFactorizationFact]
         public void MatrixFactorizationBackCompat()
         {
             // This test is meant to check backwards compatibility after the change that removed Min and Contiguous from KeyType.
