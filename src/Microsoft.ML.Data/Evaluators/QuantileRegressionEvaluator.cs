@@ -324,7 +324,7 @@ namespace Microsoft.ML.Data
             return new QuantileRegressionPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Data
             // int: _scoreSize
             // int[]: Ids of the quantile names
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             Host.Assert(_scoreSize > 0);
             ctx.Writer.Write(_scoreSize);
             var quantiles = _quantiles.GetValues();

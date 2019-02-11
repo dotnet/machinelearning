@@ -14,7 +14,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     [BestFriend]
     internal class InternalTreeEnsemble
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _firstInputInitializationContent = ctx.LoadStringOrNull();
         }
 
-        public void Save(ModelSaveContext ctx)
+        internal void Save(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // int: Number of trees

@@ -14,11 +14,11 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
 // This is for deserialization from a model repository.
@@ -36,7 +36,7 @@ using Newtonsoft.Json.Linq;
     "Poisson Regression Executor",
     PoissonRegressionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     public abstract class LinearModelParameters : ModelParametersBase<float>,
         IValueMapper,

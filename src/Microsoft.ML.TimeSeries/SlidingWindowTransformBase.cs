@@ -22,7 +22,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// and l is the delay.
     /// </summary>
 
-    public abstract class SlidingWindowTransformBase<TInput> : SequentialTransformBase<TInput, VBuffer<TInput>, SlidingWindowTransformBase<TInput>.StateSlide>
+    internal abstract class SlidingWindowTransformBase<TInput> : SequentialTransformBase<TInput, VBuffer<TInput>, SlidingWindowTransformBase<TInput>.StateSlide>
     {
         /// <summary>
         /// Defines what should be done about the first rows.
@@ -110,7 +110,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return nanValue;
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(WindowSize >= 1);
@@ -123,7 +123,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // Int32 lag
             // byte begin
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write(_lag);
             ctx.Writer.Write((byte)_begin);
         }

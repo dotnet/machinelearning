@@ -5,4 +5,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.ML;
 
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.TimeSeries.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Core.Tests" + PublicKey.TestValue)]
+
+[assembly: WantsToBeBestFriends]

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Ensemble.Selector.SubsetSelector

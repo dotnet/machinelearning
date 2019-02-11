@@ -5,7 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;

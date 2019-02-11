@@ -23,7 +23,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// PValueTransform is a sequential transform that computes the empirical p-value of the current value in the series based on the other values in
     /// the sliding window.
     /// </summary>
-    public sealed class PValueTransform : SequentialTransformBase<Single, Single, PValueTransform.State>
+    internal sealed class PValueTransform : SequentialTransformBase<Single, Single, PValueTransform.State>
     {
         internal const string Summary = "This P-Value transform calculates the p-value of the current input in the sequence with regard to the values in the sliding window.";
         public const string LoaderSignature = "PValueTransform";
@@ -91,7 +91,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Host.CheckDecode(WindowSize >= 1);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(WindowSize >= 1);
@@ -103,7 +103,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // int: _percentile
             // byte: _isPositiveSide
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write(_seed);
             ctx.Writer.WriteBoolByte(_isPositiveSide);
         }

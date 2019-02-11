@@ -223,7 +223,7 @@ namespace Microsoft.ML.Data
             return h.Apply("Loading Model", ch => new ChooseColumnsByIndexTransform(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

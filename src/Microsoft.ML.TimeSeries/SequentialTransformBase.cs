@@ -38,7 +38,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <typeparam name="TInput">The input type of the sequential processing.</typeparam>
     /// <typeparam name="TOutput">The dst type of the sequential processing.</typeparam>
     /// <typeparam name="TState">The state type of the sequential processing. Must be a class inherited from StateBase </typeparam>
-    public abstract class SequentialTransformBase<TInput, TOutput, TState> : TransformBase
+    internal abstract class SequentialTransformBase<TInput, TOutput, TState> : TransformBase
        where TState : SequentialTransformBase<TInput, TOutput, TState>.StateBase, new()
     {
         /// <summary>
@@ -302,7 +302,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             _transform = CreateLambdaTransform(Host, input, OutputColumnName, InputColumnName, InitFunction, WindowSize > 0, ct);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(InitialWindowSize >= 0);

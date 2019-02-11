@@ -369,7 +369,9 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public abstract void Save(ModelSaveContext ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+            private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
             public bool CanSaveOnnx(OnnxContext ctx) => true;
@@ -485,7 +487,9 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public abstract void Save(ModelSaveContext ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+            private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
 
@@ -614,7 +618,9 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public abstract void Save(ModelSaveContext ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+            private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
 

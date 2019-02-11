@@ -13,9 +13,8 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.TimeSeriesProcessing;
-using static Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
-[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Options), typeof(SignatureDataTransform),
     SsaSpikeDetector.UserName, SsaSpikeDetector.LoaderSignature, SsaSpikeDetector.ShortName)]
 
 [assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), null, typeof(SignatureLoadDataTransform),
@@ -33,14 +32,14 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// This class implements the spike detector transform based on Singular Spectrum modeling of the time-series.
     /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    public sealed class SsaSpikeDetector : SsaAnomalyDetectionBase
+    public sealed class SsaSpikeDetector : SsaAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
         internal const string Summary = "This transform detects the spikes in a seasonal time-series using Singular Spectrum Analysis (SSA).";
-        public const string LoaderSignature = "SsaSpikeDetector";
-        public const string UserName = "SSA Spike Detection";
-        public const string ShortName = "spike";
+        internal const string LoaderSignature = "SsaSpikeDetector";
+        internal const string UserName = "SSA Spike Detection";
+        internal const string ShortName = "spike";
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src",
                 SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
@@ -70,24 +69,24 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public int SeasonalWindowSize = 10;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The function used to compute the error between the expected and the observed value.", ShortName = "err", SortOrder = 103)]
-            public ErrorFunctionUtils.ErrorFunction ErrorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference;
+            public ErrorFunction ErrorFunction = ErrorFunction.SignedDifference;
         }
 
-        private sealed class BaseArguments : SsaArguments
+        private sealed class BaseArguments : SsaOptions
         {
-            public BaseArguments(Arguments args)
+            public BaseArguments(Options options)
             {
-                Source = args.Source;
-                Name = args.Name;
-                Side = args.Side;
-                WindowSize = args.PvalueHistoryLength;
-                InitialWindowSize = args.TrainingWindowSize;
-                SeasonalWindowSize = args.SeasonalWindowSize;
-                AlertThreshold = 1 - args.Confidence / 100;
-                AlertOn = SequentialAnomalyDetectionTransformBase<float, State>.AlertingScore.PValueScore;
+                Source = options.Source;
+                Name = options.Name;
+                Side = options.Side;
+                WindowSize = options.PvalueHistoryLength;
+                InitialWindowSize = options.TrainingWindowSize;
+                SeasonalWindowSize = options.SeasonalWindowSize;
+                AlertThreshold = 1 - options.Confidence / 100;
+                AlertOn = AlertingScore.PValueScore;
                 DiscountFactor = 1;
                 IsAdaptive = false;
-                ErrorFunction = args.ErrorFunction;
+                ErrorFunction = options.ErrorFunction;
                 Martingale = MartingaleType.None;
             }
         }
@@ -103,24 +102,24 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 loaderAssemblyName: typeof(SsaSpikeDetector).Assembly.FullName);
         }
 
-        internal SsaSpikeDetector(IHostEnvironment env, Arguments args, IDataView input)
-            : base(new BaseArguments(args), LoaderSignature, env)
+        internal SsaSpikeDetector(IHostEnvironment env, Options options, IDataView input)
+            : base(new BaseArguments(options), LoaderSignature, env)
         {
-            Model.Train(new RoleMappedData(input, null, InputColumnName));
+            InternalTransform.Model.Train(new RoleMappedData(input, null, InternalTransform.InputColumnName));
         }
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            return new SsaSpikeDetector(env, args, input).MakeDataTransform(input);
+            return new SsaSpikeDetector(env, options, input).MakeDataTransform(input);
         }
 
-        internal SsaSpikeDetector(IHostEnvironment env, Arguments args)
-            : base(new BaseArguments(args), LoaderSignature, env)
+        internal SsaSpikeDetector(IHostEnvironment env, Options options)
+            : base(new BaseArguments(options), LoaderSignature, env)
         {
             // This constructor is empty.
         }
@@ -135,12 +134,12 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return new SsaSpikeDetector(env, ctx).MakeDataTransform(input);
         }
 
-        internal override IStatefulTransformer Clone()
+        IStatefulTransformer IStatefulTransformer.Clone()
         {
             var clone = (SsaSpikeDetector)MemberwiseClone();
-            clone.Model = clone.Model.Clone();
-            clone.StateRef = (State)clone.StateRef.Clone();
-            clone.StateRef.InitState(clone, Host);
+            clone.InternalTransform.Model = clone.InternalTransform.Model.Clone();
+            clone.InternalTransform.StateRef = (SsaAnomalyDetectionBase.State)clone.InternalTransform.StateRef.Clone();
+            clone.InternalTransform.StateRef.InitState(clone.InternalTransform, InternalTransform.Host);
             return clone;
         }
 
@@ -160,20 +159,20 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
 
-            Host.CheckDecode(ThresholdScore == AlertingScore.PValueScore);
-            Host.CheckDecode(DiscountFactor == 1);
-            Host.CheckDecode(IsAdaptive == false);
+            InternalTransform.Host.CheckDecode(InternalTransform.ThresholdScore == AlertingScore.PValueScore);
+            InternalTransform.Host.CheckDecode(InternalTransform.DiscountFactor == 1);
+            InternalTransform.Host.CheckDecode(InternalTransform.IsAdaptive == false);
         }
 
         public override void Save(ModelSaveContext ctx)
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Host.Assert(ThresholdScore == AlertingScore.PValueScore);
-            Host.Assert(DiscountFactor == 1);
-            Host.Assert(IsAdaptive == false);
+            InternalTransform.Host.Assert(InternalTransform.ThresholdScore == AlertingScore.PValueScore);
+            InternalTransform.Host.Assert(InternalTransform.DiscountFactor == 1);
+            InternalTransform.Host.Assert(InternalTransform.IsAdaptive == false);
 
             // *** Binary format ***
             // <base>
@@ -200,7 +199,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
-        private readonly SsaSpikeDetector.Arguments _args;
+        private readonly SsaSpikeDetector.Options _options;
 
         /// <summary>
         /// Create a new instance of <see cref="SsaSpikeEstimator"/>
@@ -215,7 +214,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
         /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
-        public SsaSpikeEstimator(IHostEnvironment env,
+        internal SsaSpikeEstimator(IHostEnvironment env,
             string outputColumnName,
             int confidence,
             int pvalueHistoryLength,
@@ -223,8 +222,8 @@ namespace Microsoft.ML.TimeSeriesProcessing
             int seasonalityWindowSize,
             string inputColumnName = null,
             AnomalySide side = AnomalySide.TwoSided,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
-            : this(env, new SsaSpikeDetector.Arguments
+            ErrorFunction errorFunction = ErrorFunction.SignedDifference)
+            : this(env, new SsaSpikeDetector.Options
                 {
                     Source = inputColumnName ?? outputColumnName,
                     Name = outputColumnName,
@@ -238,38 +237,45 @@ namespace Microsoft.ML.TimeSeriesProcessing
         {
         }
 
-        public SsaSpikeEstimator(IHostEnvironment env, SsaSpikeDetector.Arguments args)
+        internal SsaSpikeEstimator(IHostEnvironment env, SsaSpikeDetector.Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaSpikeEstimator));
 
-            _host.CheckNonEmpty(args.Name, nameof(args.Name));
-            _host.CheckNonEmpty(args.Source, nameof(args.Source));
+            _host.CheckNonEmpty(options.Name, nameof(options.Name));
+            _host.CheckNonEmpty(options.Source, nameof(options.Source));
 
-            _args = args;
+            _options = options;
         }
 
+        /// <summary>
+        /// Train and return a transformer.
+        /// </summary>
         public SsaSpikeDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new SsaSpikeDetector(_host, _args, input);
+            return new SsaSpikeDetector(_host, _options, input);
         }
 
+        /// <summary>
+        /// Schema propagation for transformers.
+        /// Returns the output schema of the data, if the input schema is like the one provided.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryFindColumn(_args.Source, out var col))
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source);
+            if (!inputSchema.TryFindColumn(_options.Source, out var col))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source);
             if (col.ItemType != NumberType.R4)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source, "float", col.GetTypeString());
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            resultDic[_args.Name] = new SchemaShape.Column(
-                _args.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+            resultDic[_options.Name] = new SchemaShape.Column(
+                _options.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

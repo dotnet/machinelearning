@@ -155,7 +155,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <summary>
         /// Save model to the given context
         /// </summary>
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Trainers.Recommender
     /// <summary>
     /// Trains a <see cref="MatrixFactorizationModelParameters"/>. It factorizes the training matrix into the product of two low-rank matrices.
     /// </summary>
-    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationModelParameters>, ICanSaveModel
+    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationModelParameters>
     {
         internal const string LoaderSignature = "MaFactPredXf";
         internal string MatrixColumnIndexColumnName { get; }
@@ -488,7 +488,7 @@ namespace Microsoft.ML.Trainers.Recommender
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

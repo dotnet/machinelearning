@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void FastForestRegressionIntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
             var dataView = ml.Data.ReadFromEnumerable(data);
 
             RegressionPredictionTransformer<FastForestRegressionModelParameters> pred = null;

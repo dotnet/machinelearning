@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < size / 2; i++)
                 data.Add(new Data((float)(5 + i * 1.1)));
 
-            var args = new IidChangePointDetector.Arguments()
+            var args = new IidChangePointDetector.Options()
             {
                 Confidence = 80,
                 Source = "Value",
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Tests
             List<Data> data = new List<Data>();
             var dataView = env.Data.ReadFromEnumerable(data);
 
-            var args = new SsaChangePointDetector.Arguments()
+            var args = new SsaChangePointDetector.Options()
             {
                 Confidence = 95,
                 Source = "Value",
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tests
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
-                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
+                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Options()
                 {
                     Confidence = 95,
                     Source = "Value",
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Tests
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
-                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
+                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Options()
                 {
                     Confidence = 95,
                     Source = "Value",

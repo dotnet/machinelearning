@@ -7,7 +7,7 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
-    public abstract class BaseAverager : IBinaryOutputCombiner
+    public abstract class BaseAverager : IBinaryOutputCombiner, ICanSaveModel
     {
         protected readonly IHost Host;
         public BaseAverager(IHostEnvironment env, string name)
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
             Host.CheckDecode(cbFloat == sizeof(Single));
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

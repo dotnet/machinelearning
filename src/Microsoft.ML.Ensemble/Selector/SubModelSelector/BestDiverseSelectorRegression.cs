@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Ensemble.Selector.SubModelSelector;
@@ -19,8 +18,6 @@ using Microsoft.ML.Internal.Internallearn;
 
 namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
-    using TScalarPredictor = IPredictorProducing<Single>;
-
     internal sealed class BestDiverseSelectorRegression : BaseDiverseSelector<Single, RegressionDisagreementDiversityMeasure>, IRegressionSubModelSelector
     {
         public const string UserName = "Best Diverse Selector";

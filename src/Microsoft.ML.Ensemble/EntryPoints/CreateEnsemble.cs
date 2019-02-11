@@ -11,14 +11,13 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(typeof(void), typeof(EnsembleCreator), null, typeof(SignatureEntryPointModule), "CreateEnsemble")]
 
-namespace Microsoft.ML.EntryPoints
+namespace Microsoft.ML.Ensemble
 {
     /// <summary>
     /// A component to combine given models into an ensemble model.

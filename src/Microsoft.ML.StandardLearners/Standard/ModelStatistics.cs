@@ -12,15 +12,15 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers;
 
 // This is for deserialization from a model repository.
 [assembly: LoadableClass(typeof(LinearModelStatistics), null, typeof(SignatureLoadModel),
     "Linear Model Statistics",
     LinearModelStatistics.LoaderSignature)]
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Represents a coefficient statistics object.
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Learners
             return new LinearModelStatistics(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(ctx, nameof(ctx));

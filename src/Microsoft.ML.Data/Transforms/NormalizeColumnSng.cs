@@ -570,7 +570,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         value = (input - Offset) * Scale;
                     }
 
-                    public override void Save(ModelSaveContext ctx)
+                    private protected override void SaveModel(ModelSaveContext ctx)
                     {
                         AffineNormSerializationUtils.SaveModel(ctx, 1, null, new[] { Scale }, new[] { Offset }, saveText: true);
                     }
@@ -629,7 +629,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return new ImplVec(host, scales, offsets, (offsets != null && nz.Count < cv / 2) ? nz.ToArray() : null);
                     }
 
-                    public override void Save(ModelSaveContext ctx)
+                    private protected override void SaveModel(ModelSaveContext ctx)
                     {
                         AffineNormSerializationUtils.SaveModel(ctx, Scale.Length, null, Scale, Offset, saveText: true);
                     }
@@ -896,7 +896,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         value = CdfUtils.Cdf(val, Mean, Stddev);
                     }
 
-                    public override void Save(ModelSaveContext ctx)
+                    private protected override void SaveModel(ModelSaveContext ctx)
                     {
                         Contracts.AssertValue(ctx);
                         ctx.CheckAtModel();
@@ -951,7 +951,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return new ImplVec(host, mean, stddev, useLog);
                     }
 
-                    public override void Save(ModelSaveContext ctx)
+                    private protected override void SaveModel(ModelSaveContext ctx)
                     {
                         Contracts.AssertValue(ctx);
                         ctx.CheckAtModel();
@@ -1076,7 +1076,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return new ImplOne(host, binUpperBounds[0], fixZero);
                     }
 
-                    public override void Save(ModelSaveContext ctx)
+                    private protected override void SaveModel(ModelSaveContext ctx)
                     {
                         Contracts.AssertValue(ctx);
                         ctx.CheckAtModel();
@@ -1162,7 +1162,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return new ImplVec(host, binUpperBounds, fixZero);
                     }
 
-                    public override void Save(ModelSaveContext ctx)
+                    private protected override void SaveModel(ModelSaveContext ctx)
                     {
                         Contracts.AssertValue(ctx);
                         ctx.CheckAtModel();

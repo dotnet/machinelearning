@@ -19,7 +19,7 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="IDataView"/>.</typeparam>
     /// <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
-    public sealed class CustomMappingTransformer<TSrc, TDst> : ITransformer, ICanSaveModel
+    public sealed class CustomMappingTransformer<TSrc, TDst> : ITransformer
         where TSrc : class, new()
         where TDst : class, new()
     {
@@ -60,7 +60,8 @@ namespace Microsoft.ML.Transforms
             AddedSchema = outSchema;
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+        internal void SaveModel(ModelSaveContext ctx)
         {
             if (_contractName == null)
                 throw _host.Except("Empty contract name for a transform: the transform cannot be saved");
@@ -174,8 +175,8 @@ namespace Microsoft.ML.Transforms
                 return Enumerable.Range(0, dstRow.Schema.Count).Select(x => new Schema.DetachedColumn(dstRow.Schema[x])).ToArray();
             }
 
-            public void Save(ModelSaveContext ctx)
-                => _parent.Save(ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx)
+                => _parent.SaveModel(ctx);
 
             public ITransformer GetTransformer()
             {

@@ -27,7 +27,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// This class does not explicitly store the trajectory matrix though. Furthermore, since the trajectory matrix is
     /// a Hankel matrix, its multiplication by an arbitrary vector is implemented efficiently using the Discrete Fast Fourier Transform.
     /// </summary>
-    public sealed class TrajectoryMatrix
+    internal sealed class TrajectoryMatrix
     {
         /// <summary>
         /// The time series data

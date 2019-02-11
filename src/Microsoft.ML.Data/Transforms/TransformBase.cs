@@ -43,7 +43,9 @@ namespace Microsoft.ML.Data
             Source = input;
         }
 
-        public abstract void Save(ModelSaveContext ctx);
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected abstract void SaveModel(ModelSaveContext ctx);
 
         public abstract long? GetRowCount();
 
@@ -388,7 +390,7 @@ namespace Microsoft.ML.Data
                 return new Bindings(parent, infos, inputSchema, false, names);
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 

@@ -407,7 +407,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new ValueMapperCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -528,7 +528,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -698,7 +698,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new SchemaBindableCalibratedModelParameters<TSubModel, TCalibrator>(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.CheckAtModel();
@@ -1488,7 +1488,7 @@ namespace Microsoft.ML.Internal.Calibration
             return new PlattCalibrator(env, ctx);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

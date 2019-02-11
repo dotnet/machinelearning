@@ -19,7 +19,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// Outputs a sliding window on a time series of type Single.
     /// </summary>
-    public sealed class SlidingWindowTransform : SlidingWindowTransformBase<Single>
+    internal sealed class SlidingWindowTransform : SlidingWindowTransformBase<Single>
     {
         public const string Summary = "Returns the last values for a time series [y(t-d-l+1), y(t-d-l+2), ..., y(t-l-1), y(t-l)] where d is the size of the window, l the lag and y is a Float.";
         public const string LoaderSignature = "SlideWinTransform";
@@ -49,7 +49,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // <base>
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -57,7 +57,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             // *** Binary format ***
             // <base>
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
     }
 }

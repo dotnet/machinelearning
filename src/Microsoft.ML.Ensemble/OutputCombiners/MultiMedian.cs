@@ -19,7 +19,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public sealed class MultiMedian : BaseMultiCombiner, ICanSaveModel
+    public sealed class MultiMedian : BaseMultiCombiner
     {
         public const string LoadName = "MultiMedian";
         public const string LoaderSignature = "MultiMedianCombiner";

@@ -17,14 +17,12 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.Ensemble;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
-    using Microsoft.ML.Learners;
     using Microsoft.ML.LightGBM;
     using Microsoft.ML.TestFramework;
+    using Microsoft.ML.Trainers;
     using Microsoft.ML.Trainers.FastTree;
-    using Microsoft.ML.Trainers.FastTree.Internal;
+    using Microsoft.ML.Trainers.HalLearners;
     using Microsoft.ML.Trainers.Online;
-    using Microsoft.ML.Trainers.SymSgd;
-    using Microsoft.ML.Transforms.Categorical;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;

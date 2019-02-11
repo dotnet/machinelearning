@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     public abstract class DcgPermutationComparer : IComparer<int>
     {

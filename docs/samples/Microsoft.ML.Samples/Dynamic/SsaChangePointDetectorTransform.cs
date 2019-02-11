@@ -49,19 +49,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Setup SsaChangePointDetector arguments
             var inputColumnName = nameof(SsaChangePointData.Value);
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
-            var args = new SsaChangePointDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                          // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = 8,                  // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes.
-                TrainingWindowSize = TrainingSize,        // The number of points from the beginning of the sequence used for training.
-                SeasonalWindowSize = SeasonalitySize + 1  // An upper bound on the largest relevant seasonality in the input time series."
-
-            };
 
             // The transformed data.
-            var transformedData = new SsaChangePointEstimator(ml, args).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.SsaChangePointEstimator(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
             var predictionColumn = ml.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
@@ -120,19 +110,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Setup SsaChangePointDetector arguments
             var inputColumnName = nameof(SsaChangePointData.Value);
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
-            var args = new SsaChangePointDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                         // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = 8,                 // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes. 
-                TrainingWindowSize = TrainingSize,       // The number of points from the beginning of the sequence used for training.
-                SeasonalWindowSize = SeasonalitySize + 1 // An upper bound on the largest relevant seasonality in the input time series."
-
-            };
 
             // Train the change point detector.
-            ITransformer model = new SsaChangePointEstimator(ml, args).Fit(dataView);
+            ITransformer model = ml.Transforms.SsaChangePointEstimator(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
             var engine = model.CreateTimeSeriesPredictionFunction<SsaChangePointData, ChangePointPrediction>(ml);

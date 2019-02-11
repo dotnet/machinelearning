@@ -51,16 +51,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(IidSpikePrediction.Prediction);
             string inputColumnName = nameof(IidSpikeData.Value);
-            var args = new IidSpikeDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
-            };
 
             // The transformed data.
-            var transformedData = new IidSpikeEstimator(ml, args).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.IidSpikeEstimator(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of IidSpikePrediction.
             var predictionColumn = ml.CreateEnumerable<IidSpikePrediction>(transformedData, reuseRowObject: false);
@@ -108,16 +101,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(IidSpikePrediction.Prediction);
             string inputColumnName = nameof(IidSpikeData.Value);
-            var args = new IidSpikeDetector.Arguments()
-            {
-                Source = inputColumnName,
-                Name = outputColumnName,
-                Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
-            };
-
             // The transformed model.
-            ITransformer model = new IidSpikeEstimator(ml, args).Fit(dataView);
+            ITransformer model = ml.Transforms.IidChangePointEstimator(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidSpikeData, IidSpikePrediction>(ml);

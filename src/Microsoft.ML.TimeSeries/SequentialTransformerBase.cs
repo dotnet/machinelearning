@@ -18,20 +18,22 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.TimeSeriesProcessing
 {
+
     /// <summary>
     /// The base class for sequential processing transforms. This class implements the basic sliding window buffering. The derived classes need to specify the transform logic,
     /// the initialization logic and the learning logic via implementing the abstract methods TransformCore(), InitializeStateCore() and LearnStateFromDataCore(), respectively
     /// </summary>
     /// <typeparam name="TInput">The input type of the sequential processing.</typeparam>
     /// <typeparam name="TOutput">The dst type of the sequential processing.</typeparam>
-    /// <typeparam name="TState">The state type of the sequential processing. Must be a class inherited from StateBase </typeparam>
-    public abstract class SequentialTransformerBase<TInput, TOutput, TState> : IStatefulTransformer, ICanSaveModel
-       where TState : SequentialTransformerBase<TInput, TOutput, TState>.StateBase, new()
+    /// <typeparam name="TState">The dst type of the sequential processing.</typeparam>
+    internal abstract class SequentialTransformerBase<TInput, TOutput, TState> : IStatefulTransformer
+        where TState : SequentialTransformerBase<TInput, TOutput, TState>.StateBase, new()
     {
+
         /// <summary>
         /// The base class for encapsulating the State object for sequential processing. This class implements a windowed buffer.
         /// </summary>
-        public abstract class StateBase
+        internal class StateBase
         {
             // Ideally this class should be private. However, due to the current constraints with the LambdaTransform, we need to have
             // access to the state class when inheriting from SequentialTransformerBase.
@@ -61,7 +63,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             /// </summary>
             protected long RowCounter { get; private set; }
 
-            private protected StateBase()
+            public StateBase()
             {
             }
 
@@ -204,7 +206,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             /// The abstract method that specifies the NA value for the dst type.
             /// </summary>
             /// <returns></returns>
-            private protected abstract void SetNaOutput(ref TOutput dst);
+            private protected virtual void SetNaOutput(ref TOutput dst) { }
 
             /// <summary>
             /// The abstract method that realizes the main logic for the transform.
@@ -213,41 +215,52 @@ namespace Microsoft.ML.TimeSeriesProcessing
             /// <param name="dst">A reference to the dst object.</param>
             /// <param name="windowedBuffer">A reference to the windowed buffer.</param>
             /// <param name="iteration">A long number that indicates the number of times TransformCore has been called so far (starting value = 0).</param>
-            private protected abstract void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst);
+            private protected virtual void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst)
+            {
+
+            }
 
             /// <summary>
             /// The abstract method that realizes the logic for initializing the state object.
             /// </summary>
-            private protected abstract void InitializeStateCore(bool disk = false);
+            private protected virtual void InitializeStateCore(bool disk = false)
+            {
+
+            }
 
             /// <summary>
             /// The abstract method that realizes the logic for learning the parameters and the initial state object from data.
             /// </summary>
             /// <param name="data">A queue of data points used for training</param>
-            private protected abstract void LearnStateFromDataCore(FixedSizeQueue<TInput> data);
-
-            public abstract void Consume(TInput value);
-
-            public StateBase Clone()
+            private protected virtual void LearnStateFromDataCore(FixedSizeQueue<TInput> data)
             {
-                var clone = (StateBase)MemberwiseClone();
+            }
+
+            public virtual void Consume(TInput value)
+            {
+
+            }
+
+            public TState Clone()
+            {
+                var clone = (TState)MemberwiseClone();
                 CloneCore(clone);
                 return clone;
             }
 
-            private protected virtual void CloneCore(StateBase state)
+            private protected virtual void CloneCore(TState state)
             {
                 state.WindowedBuffer = WindowedBuffer.Clone();
                 state.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
             }
         }
 
-        private protected readonly IHost Host;
+        internal readonly IHost Host;
 
         /// <summary>
         /// The window size for buffering.
         /// </summary>
-        private protected readonly int WindowSize;
+        internal readonly int WindowSize;
 
         /// <summary>
         /// The number of datapoints from the beginning of the sequence that are used for learning the initial state.
@@ -260,7 +273,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
         public bool IsRowToRowMapper => false;
 
-        public TState StateRef { get; set; }
+        internal TState StateRef { get; set; }
 
         public int StateRefCount;
 
@@ -320,7 +333,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             OutputColumnType = bs.LoadTypeDescriptionOrNull(ctx.Reader.BaseStream);
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected virtual void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(InitialWindowSize >= 0);
@@ -344,9 +359,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
         public abstract Schema GetOutputSchema(Schema inputSchema);
 
-        private protected abstract IStatefulRowMapper MakeRowMapper(Schema schema);
+        internal abstract IStatefulRowMapper MakeRowMapper(Schema schema);
 
-        private protected SequentialDataTransform MakeDataTransform(IDataView input)
+        internal SequentialDataTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
             return new SequentialDataTransform(Host, this, input, MakeRowMapper(input.Schema));
@@ -450,9 +465,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
                 => new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
 
-            public override void Save(ModelSaveContext ctx)
+            private protected override void SaveModel(ModelSaveContext ctx)
             {
-                _parent.Save(ctx);
+                (_parent as ICanSaveModel).Save(ctx);
             }
 
             IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
@@ -637,7 +652,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return h.Apply("Loading Model", ch => new TimeSeriesRowToRowMapperTransform(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

@@ -18,8 +18,17 @@ namespace Microsoft.ML.TimeSeries
 
     internal interface IStatefulTransformer : ITransformer
     {
+        /// <summary>
+        /// Same as <see cref="ITransformer.GetRowToRowMapper(Schema)"/> but also supports mechanism to save the state.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
         IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema);
 
+        /// <summary>
+        /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
+        /// </summary>
+        /// <returns></returns>
         IStatefulTransformer Clone();
     }
 
@@ -90,6 +99,10 @@ namespace Microsoft.ML.TimeSeries
                 return transformer is IStatefulTransformer ? ((IStatefulTransformer)transformer).Clone() : transformer;
         }
 
+        /// <summary>
+        /// Contructor for creating time series specific prediction engine. It allows update the time series model to be updated with the observations
+        /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
+        /// </summary>
         public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
             base(env, CloneTransformers(transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
@@ -200,7 +213,7 @@ namespace Microsoft.ML.TimeSeries
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }
 
-        protected override Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        private protected override Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(IsRowToRowMapper(transformer), nameof(transformer), "Must be a row to row mapper or " + nameof(IStatefulTransformer));
