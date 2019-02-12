@@ -6,10 +6,10 @@ using System;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(MultiStacking), typeof(MultiStacking.Arguments), typeof(SignatureCombiner),
    Stacking.UserName, MultiStacking.LoadName)]
@@ -17,7 +17,7 @@ using Microsoft.ML.Model;
 [assembly: LoadableClass(typeof(MultiStacking), null, typeof(SignatureLoadModel),
     Stacking.UserName, MultiStacking.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
     internal sealed class MultiStacking : BaseStacking<VBuffer<Single>>, IMultiClassOutputCombiner

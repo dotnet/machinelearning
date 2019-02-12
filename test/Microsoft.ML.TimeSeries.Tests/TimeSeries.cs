@@ -5,7 +5,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 using Xunit.Abstractions;
 

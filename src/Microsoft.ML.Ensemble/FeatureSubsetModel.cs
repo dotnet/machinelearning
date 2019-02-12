@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class FeatureSubsetModel<TOutput>
     {

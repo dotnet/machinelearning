@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// The base container class for the forecast result on a sequence of type <typeparamref name="T"/>.
