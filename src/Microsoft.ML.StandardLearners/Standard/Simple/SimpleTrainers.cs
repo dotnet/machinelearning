@@ -234,7 +234,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Learns the prior distribution for 0/1 class labels and just outputs that.
+    /// Learns the prior distribution for 0/1 class labels and outputs that.
     /// </summary>
     public sealed class PriorTrainer : TrainerBase<PriorModelParameters>,
         ITrainerEstimator<BinaryPredictionTransformer<PriorModelParameters>, PriorModelParameters>
@@ -263,8 +263,8 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Initializes PriorTrainer object.
         /// </summary>
-        internal PriorTrainer(IHost host, String labelColumn, String weightColunn = null)
-            : base(host, LoadNameValue)
+        internal PriorTrainer(IHostEnvironment env, String labelColumn, String weightColunn = null)
+            : base(env, LoadNameValue)
         {
             Contracts.CheckValue(labelColumn, nameof(labelColumn));
             Contracts.CheckValueOrNull(weightColunn);
