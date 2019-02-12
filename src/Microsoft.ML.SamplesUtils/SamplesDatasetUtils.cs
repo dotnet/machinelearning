@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using Microsoft.Data.DataView;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
@@ -81,7 +82,7 @@ namespace Microsoft.ML.SamplesUtils
         public static string DownloadAdultDataset()
             => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
 
-        public static IDataView LoadAdultDataset(MLContext mlContext)
+        public static IDataView LoadFeaturizedAdultDataset(MLContext mlContext)
         {
             // Download the file
             string dataFile = DownloadAdultDataset();
@@ -110,8 +111,28 @@ namespace Microsoft.ML.SamplesUtils
                 hasHeader: true
             );
 
-            return reader.Read(dataFile);
+            // Create data featurizing pipeline
+            var pipeline =
+                // Convert categorical features to one-hot vectors
+                mlContext.Transforms.Categorical.OneHotEncoding("workclass")
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("education"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("marital-status"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("occupation"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("relationship"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("ethnicity"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("native-country"))
+                // Combine all features into one feature vector
+                .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
+                    "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
+                    "capital-gain", "capital-loss", "hours-per-week"))
+                // Min-max normalized all the features
+                .Append(mlContext.Transforms.Normalize("Features"));
+
+            var data = reader.Read(dataFile);
+            var featurizedData = pipeline.Fit(data).Transform(data);
+            return featurizedData;
         }
+
         /// <summary>
         /// Downloads the breast cancer dataset from the ML.NET repo.
         /// </summary>

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
         [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
-        public int NumIterations = OnlineDefaultArgs.NumIterations;
+        public int NumberOfIterations = OnlineDefaultArgs.NumIterations;
 
         /// <summary>
         /// Initial weights and bias, comma-separated.
@@ -36,12 +36,16 @@ namespace Microsoft.ML.Trainers.Online
         public string InitialWeights;
 
         /// <summary>
-        /// Initial weights scale.
+        /// Initial weights and bias scale.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts", SortOrder = 140)]
+        /// <value>
+        /// This property is only used if the provided value is positive and <see cref="InitialWeights"/> is not specified.
+        /// The weights and bias will be randomly selected from InitialWeights * [-0.5,0.5] interval with uniform distribution.
+        /// </value>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts, initWtsDiameter", SortOrder = 140)]
         [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
         [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
-        public float InitWtsDiameter = 0;
+        public float InitialWeightsDiameter = 0;
 
         /// <summary>
         /// <see langword="true" /> to shuffle data for each training iteration; otherwise, <see langword="false" />.
@@ -50,12 +54,6 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf")]
         [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
         public bool Shuffle = true;
-
-        /// <summary>
-        /// Size of cache when trained in Scope.
-        /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Size of cache when trained in Scope", ShortName = "cache")]
-        public int StreamingCacheSize = 1000000;
 
         [BestFriend]
         internal class OnlineDefaultArgs
@@ -151,13 +149,13 @@ namespace Microsoft.ML.Trainers.Online
                     Weights = new VBuffer<float>(numFeatures, weightValues);
                     Bias = float.Parse(weightStr[numFeatures], CultureInfo.InvariantCulture);
                 }
-                else if (parent.Args.InitWtsDiameter > 0)
+                else if (parent.Args.InitialWeightsDiameter > 0)
                 {
                     var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        weightValues[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
+                        weightValues[i] = parent.Args.InitialWeightsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
                     Weights = new VBuffer<float>(numFeatures, weightValues);
-                    Bias = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
+                    Bias = parent.Args.InitialWeightsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
                 }
                 else if (numFeatures <= 1000)
                     Weights = VBufferUtils.CreateDense<float>(numFeatures);
@@ -255,9 +253,8 @@ namespace Microsoft.ML.Trainers.Online
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.InitialWeights))
         {
             Contracts.CheckValue(args, nameof(args));
-            Contracts.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), UserErrorPositive);
-            Contracts.CheckUserArg(args.InitWtsDiameter >= 0, nameof(args.InitWtsDiameter), UserErrorNonNegative);
-            Contracts.CheckUserArg(args.StreamingCacheSize > 0, nameof(args.StreamingCacheSize), UserErrorPositive);
+            Contracts.CheckUserArg(args.NumberOfIterations > 0, nameof(args.NumberOfIterations), UserErrorPositive);
+            Contracts.CheckUserArg(args.InitialWeightsDiameter >= 0, nameof(args.InitialWeightsDiameter), UserErrorNonNegative);
 
             Args = args;
             Name = name;
@@ -307,7 +304,7 @@ namespace Microsoft.ML.Trainers.Online
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             long numBad = 0;
-            while (state.Iteration < Args.NumIterations)
+            while (state.Iteration < Args.NumberOfIterations)
             {
                 state.BeginIteration(ch);
 
@@ -325,7 +322,7 @@ namespace Microsoft.ML.Trainers.Online
             {
                 ch.Warning(
                     "Skipped {0} instances with missing features during training (over {1} iterations; {2} inst/iter)",
-                    numBad, Args.NumIterations, numBad / Args.NumIterations);
+                    numBad, Args.NumberOfIterations, numBad / Args.NumberOfIterations);
             }
         }
 

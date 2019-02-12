@@ -240,7 +240,7 @@ namespace Microsoft.ML.Trainers.Online
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
                 InitialWeights = weightsColumn,
-                NumIterations = numIterations,
+                NumberOfIterations = numIterations,
             })
         {
         }

@@ -194,11 +194,12 @@ namespace Microsoft.ML
         /// Predict a target using a linear binary classification model trained with averaged perceptron trainer.
         /// </summary>
         /// <remarks>
-        /// Perceptron is a classification algorithm that makes its predictions based on a linear function.
-        /// For instance with feature values f0, f1,..., f_D-1, the prediction is given by the sign of sigma[0, D-1] (w_i * f_i), where w_0, w_1,..., w_D-1 are the weights computed by the algorithm.
+        /// Perceptron is a classification algorithm that makes its predictions by finding a separating hyperplane.
+        /// For instance, with feature values f0, f1,..., f_D-1, the prediction is given by determining what side of the hyperplane the point falls into.
+        /// That is the same as the sign of sigma[0, D-1] (w_i * f_i), where w_0, w_1,..., w_D-1 are the weights computed by the algorithm.
         ///
-        /// Perceptron is an online algorithm, i.e., it processes the instances in the training set one at a time.
-        /// The weights are initialized to be 0, or some random values. Then, for each example in the training set, the value of sigma[0, D-1] (w_i * f_i) is computed.
+        /// The perceptron is an online algorithm, which means it processes the instances in the training set one at a time.
+        /// It starts with a set of initial weights (zero, random, or initialized from a previous learner). Then, for each example in the training set, the weighted sum of the features (sigma[0, D-1] (w_i * f_i)) is computed.
         /// If this value has the same sign as the label of the current example, the weights remain the same.If they have opposite signs,
         /// the weights vector is updated by either subtracting or adding (if the label is negative or positive, respectively) the feature vector of the current example,
         /// multiplied by a factor 0 &lt; a &lt;= 1, called the learning rate.In a generalization of this algorithm, the weights are updated by adding the feature vector multiplied by the learning rate,
@@ -218,7 +219,7 @@ namespace Microsoft.ML
         /// <param name="weights">The optional example weights.</param>
         /// <param name="learningRate"><a href="tmpurl_lr">Learning rate</a>.</param>
         /// <param name="decreaseLearningRate">
-        /// <see langword="true" /> to decrease the <a href="tmpurl_calib">learning rate</a> as iterations progress; otherwise, <see langword="false" />.
+        /// <see langword="true" /> to decrease the <paramref name="learningRate"/> as iterations progress; otherwise, <see langword="false" />.
         /// Default is <see langword="false" />.
         /// </param>
         /// <param name="l2RegularizerWeight">L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
@@ -252,7 +253,7 @@ namespace Microsoft.ML
         /// For usage details, please see <see cref="AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="options">Advanced trainer options.</param>
+        /// <param name="options">Trainer options.</param>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, AveragedPerceptronTrainer.Options options)
         {

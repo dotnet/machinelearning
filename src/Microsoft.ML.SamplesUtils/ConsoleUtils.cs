@@ -5,9 +5,16 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
 {
+    /// <summary>
+    /// Utilities for creating console outputs in samples' code.
+    /// </summary>
     public static class ConsoleUtils
     {
-        public static void PrintBinaryClassificationMetrics(BinaryClassificationMetrics metrics)
+        /// <summary>
+        /// Pretty-print BinaryClassificationMetrics objects.
+        /// </summary>
+        /// <param name="metrics">Binary classification metrics.</param>
+        public static void PrintMetrics(BinaryClassificationMetrics metrics)
         {
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.Auc:F2}");
