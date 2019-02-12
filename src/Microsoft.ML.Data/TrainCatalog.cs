@@ -26,6 +26,31 @@ namespace Microsoft.ML
         internal IHostEnvironment Environment => Host;
 
         /// <summary>
+        /// A pair of datasets, for the train and test set.
+        /// </summary>
+        public struct TrainTestData
+        {
+            /// <summary>
+            /// Training set.
+            /// </summary>
+            public readonly IDataView TrainSet;
+            /// <summary>
+            /// Testing set.
+            /// </summary>
+            public readonly IDataView TestSet;
+            /// <summary>
+            /// Create pair of datasets.
+            /// </summary>
+            /// <param name="trainSet">Training set.</param>
+            /// <param name="testSet">Testing set.</param>
+            internal TrainTestData(IDataView trainSet, IDataView testSet)
+            {
+                TrainSet = trainSet;
+                TestSet = testSet;
+            }
+        }
+
+        /// <summary>
         /// Split the dataset into the train set and test set according to the given fraction.
         /// Respects the <paramref name="stratificationColumn"/> if provided.
         /// </summary>
@@ -37,8 +62,7 @@ namespace Microsoft.ML
         /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
-        /// <returns>A pair of datasets, for the train and test set.</returns>
-        public (IDataView trainSet, IDataView testSet) TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null, uint? seed = null)
+        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
@@ -61,14 +85,71 @@ namespace Microsoft.ML
                 Complement = false
             }, data);
 
-            return (trainFilter, testFilter);
+            return new TrainTestData(trainFilter, testFilter);
+        }
+
+        /// <summary>
+        /// Results for specific cross-validation fold.
+        /// </summary>
+        protected internal struct CrossValidationResult
+        {
+            /// <summary>
+            /// Model trained during cross validation fold.
+            /// </summary>
+            public readonly ITransformer Model;
+            /// <summary>
+            /// Scored test set with <see cref="Model"/> for this fold.
+            /// </summary>
+            public readonly IDataView Scores;
+            /// <summary>
+            /// Fold number.
+            /// </summary>
+            public readonly int Fold;
+
+            public CrossValidationResult(ITransformer model, IDataView scores, int fold)
+            {
+                Model = model;
+                Scores = scores;
+                Fold = fold;
+            }
+        }
+        /// <summary>
+        /// Results of running cross-validation.
+        /// </summary>
+        /// <typeparam name="T">Type of metric class.</typeparam>
+        public sealed class CrossValidationResult<T> where T : class
+        {
+            /// <summary>
+            /// Metrics for this cross-validation fold.
+            /// </summary>
+            public readonly T Metrics;
+            /// <summary>
+            /// Model trained during cross-validation fold.
+            /// </summary>
+            public readonly ITransformer Model;
+            /// <summary>
+            /// The scored hold-out set for this fold.
+            /// </summary>
+            public readonly IDataView ScoredHoldOutSet;
+            /// <summary>
+            /// Fold number.
+            /// </summary>
+            public readonly int Fold;
+
+            internal CrossValidationResult(ITransformer model, T metrics, IDataView scores, int fold)
+            {
+                Model = model;
+                Metrics = metrics;
+                ScoredHoldOutSet = scores;
+                Fold = fold;
+            }
         }
 
         /// <summary>
         /// Train the <paramref name="estimator"/> on <paramref name="numFolds"/> folds of the data sequentially.
         /// Return each model and each scored test dataset.
         /// </summary>
-        protected internal (IDataView scoredTestSet, ITransformer model)[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
+        protected internal CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
             int numFolds, string stratificationColumn, uint? seed = null)
         {
             Host.CheckValue(data, nameof(data));
@@ -78,7 +159,7 @@ namespace Microsoft.ML
 
             EnsureStratificationColumn(ref data, ref stratificationColumn, seed);
 
-            Func<int, (IDataView scores, ITransformer model)> foldFunction =
+            Func<int, CrossValidationResult> foldFunction =
                 fold =>
                 {
                     var trainFilter = new RangeFilter(Host, new RangeFilter.Options
@@ -98,17 +179,17 @@ namespace Microsoft.ML
 
                     var model = estimator.Fit(trainFilter);
                     var scoredTest = model.Transform(testFilter);
-                    return (scoredTest, model);
+                    return new CrossValidationResult(model, scoredTest, fold);
                 };
 
             // Sequential per-fold training.
             // REVIEW: we could have a parallel implementation here. We would need to
             // spawn off a separate host per fold in that case.
-            var result = new List<(IDataView scores, ITransformer model)>();
+            var result = new CrossValidationResult[numFolds];
             for (int fold = 0; fold < numFolds; fold++)
-                result.Add(foldFunction(fold));
+                result[fold] = foldFunction(fold);
 
-            return result.ToArray();
+            return result;
         }
 
         protected internal TrainCatalogBase(IHostEnvironment env, string registrationName)
@@ -263,13 +344,14 @@ namespace Microsoft.ML
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (BinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
+        public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
-            return result.Select(x => (EvaluateNonCalibrated(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+            return result.Select(x => new CrossValidationResult<BinaryClassificationMetrics>(x.Model,
+                EvaluateNonCalibrated(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
 
         /// <summary>
@@ -287,13 +369,14 @@ namespace Microsoft.ML
         /// train to the test set.</remarks>
         /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (CalibratedBinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public CrossValidationResult<CalibratedBinaryClassificationMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
-            return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+            return result.Select(x => new CrossValidationResult<CalibratedBinaryClassificationMetrics>(x.Model,
+                Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
     }
 
@@ -369,12 +452,13 @@ namespace Microsoft.ML
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (ClusteringMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null,
             string stratificationColumn = null, uint? seed = null)
         {
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
-            return result.Select(x => (Evaluate(x.scoredTestSet, label: labelColumn, features: featuresColumn), x.model, x.scoredTestSet)).ToArray();
+            return result.Select(x => new CrossValidationResult<ClusteringMetrics>(x.Model,
+                Evaluate(x.Scores, label: labelColumn, features: featuresColumn), x.Scores, x.Fold)).ToArray();
         }
     }
 
@@ -444,13 +528,14 @@ namespace Microsoft.ML
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (MultiClassClassifierMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public CrossValidationResult<MultiClassClassifierMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
-            return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+            return result.Select(x => new CrossValidationResult<MultiClassClassifierMetrics>(x.Model,
+                Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
     }
 
@@ -511,13 +596,14 @@ namespace Microsoft.ML
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (RegressionMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public CrossValidationResult<RegressionMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
-            return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+            return result.Select(x => new CrossValidationResult<RegressionMetrics>(x.Model,
+                Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
     }
 

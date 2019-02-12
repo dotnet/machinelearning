@@ -43,7 +43,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var data = reader.Read(dataFile);
 
             // Split the dataset into two parts: one used for training, the other to train the calibrator
-            var (trainData, calibratorTrainingData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Featurize the text column through the FeaturizeText API. 
             // Then append the StochasticDualCoordinateAscentBinary binary classifier, setting the "Label" column as the label of the dataset, and 
@@ -56,12 +56,12 @@ namespace Microsoft.ML.Samples.Dynamic
                         loss: new HingeLoss())); // By specifying loss: new HingeLoss(), StochasticDualCoordinateAscent will train a support vector machine (SVM).
 
             // Fit the pipeline, and get a transformer that knows how to score new data.  
-            var transformer = pipeline.Fit(trainData);
+            var transformer = pipeline.Fit(split.TrainSet);
             IPredictor model = transformer.LastTransformer.Model;
 
             // Let's score the new data. The score will give us a numerical estimation of the chance that the particular sample 
             // bears positive sentiment. This estimate is relative to the numbers obtained. 
-            var scoredData = transformer.Transform(calibratorTrainingData);
+            var scoredData = transformer.Transform(split.TestSet);
             var scoredDataPreview = scoredData.Preview();
 
             PrintRowViewValues(scoredDataPreview);
