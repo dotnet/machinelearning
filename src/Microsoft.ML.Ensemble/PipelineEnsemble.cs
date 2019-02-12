@@ -99,6 +99,8 @@ namespace Microsoft.ML.Trainers.Ensemble
                     return Enumerable.Empty<Schema.Column>();
 
                 return InputSchema.Where(col => _inputColIndices.Contains(col.Index));
+
+                //return Enumerable.Repeat(InputSchema.First(col => _inputColIndices.Contains(col.Index)), 1);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -108,11 +110,11 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
             {
-                var scoreGetter = CreateScoreGetter(input, predicate, out Action disposer);
+                var scoreGetter = CreateScoreGetter(input, out Action disposer);
                 return new SimpleRow(OutputSchema, input, new[] { scoreGetter }, disposer);
             }
 
-            internal abstract Delegate CreateScoreGetter(DataViewRow input, Func<int, bool> mapperPredicate, out Action disposer);
+            internal abstract Delegate CreateScoreGetter(DataViewRow input, out Action disposer);
         }
 
         // A generic base class for pipeline ensembles. This class contains the combiner.
@@ -128,19 +130,16 @@ namespace Microsoft.ML.Trainers.Ensemble
                     _combiner = parent.Combiner;
                 }
 
-                internal override Delegate CreateScoreGetter(DataViewRow input, Func<int, bool> mapperPredicate, out Action disposer)
+                internal override Delegate CreateScoreGetter(DataViewRow input, out Action disposer)
                 {
                     disposer = null;
-
-                    if (!mapperPredicate(0))
-                        return null;
 
                     var getters = new ValueGetter<T>[Mappers.Length];
                     for (int i = 0; i < Mappers.Length; i++)
                     {
                         // First get the output row from the pipelines. The input predicate of the predictor
                         // is the output predicate of the pipeline.
-                        var mapperColumns = Mappers[i].OutputSchema.Where(col => mapperPredicate(col.Index));
+                        var mapperColumns = Mappers[i].OutputSchema.Where(col => col.Name == DefaultColumnNames.Score);
                         var inputColumns = Mappers[i].GetDependencies(mapperColumns);
 
                         Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
@@ -336,7 +335,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     var bound = new Bound(this, new RoleMappedSchema(data.Schema));
                     using (var curs = data.GetRowCursorForAllColumns())
                     {
-                        var scoreGetter = (ValueGetter<Single>)bound.CreateScoreGetter(curs, col => true, out Action disposer);
+                        var scoreGetter = (ValueGetter<Single>)bound.CreateScoreGetter(curs, out Action disposer);
 
                         // We assume that we can use the label column of the first predictor, since if the labels are not identical
                         // then the whole model is garbage anyway.

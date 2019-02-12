@@ -256,15 +256,13 @@ namespace Microsoft.ML.EntryPoints
                 var actives = new List<Func<int, bool>>();
                 var transform = _chain as IDataTransform;
                 var activeCur = active;
-                var activeCurCol = OutputSchema.Where(col => active(col.Index));
-
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
                     mappers.Add(mapper);
                     actives.Add(activeCur);
-                    activeCurCol = mapper.GetDependencies(activeCurCol);
+                    var activeCurCol = mapper.GetDependencies(mapper.OutputSchema.Where(col => activeCur(col.Index)));
                     activeCur = c => activeCurCol.Any(col => col.Index == c);
                     transform = transform.Source as IDataTransform;
                 }

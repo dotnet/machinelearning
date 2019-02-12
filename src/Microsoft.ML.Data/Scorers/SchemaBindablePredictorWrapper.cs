@@ -223,7 +223,7 @@ namespace Microsoft.ML.Data
                 if (dependingColumns.Count() == 0 || !InputRoleMappedSchema.Feature.HasValue)
                     return Enumerable.Empty<Schema.Column>();
 
-                return InputSchema.Where(col => col.Name.Equals(InputRoleMappedSchema.Feature?.Name));
+                return InputSchema.Where(col => col.Index == InputRoleMappedSchema.Feature.Value.Index);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Data
                 if (dependingColumns.Count() == 0 || !InputRoleMappedSchema.Feature.HasValue)
                     return Enumerable.Empty<Schema.Column>();
 
-                return InputSchema.Where(col => col.Name.Equals(InputRoleMappedSchema.Feature?.Name));
+                return InputSchema.Where(col => col.Index == InputRoleMappedSchema.Feature.Value.Index);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
