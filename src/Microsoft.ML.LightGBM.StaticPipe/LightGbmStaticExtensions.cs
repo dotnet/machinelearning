@@ -38,7 +38,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[LightGBM](~/../docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LightGBMRegression.cs)]
+        ///  [!code-csharp[LightGBM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBMRegression.cs)]
         /// ]]></format>
         /// </example>
         public static Scalar<float> LightGbm(this RegressionCatalog.RegressionTrainers catalog,
@@ -122,7 +122,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[LightGBM](~/../docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LightGBMBinaryClassification.cs)]
+        ///  [!code-csharp[LightGBM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBMBinaryClassification.cs)]
         /// ]]></format>
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
@@ -296,7 +296,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LightGBMMulticlassClassification.cs)]
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBMMulticlassWithInMemoryData.cs)]
         /// ]]>
         /// </format>
         /// </example>
