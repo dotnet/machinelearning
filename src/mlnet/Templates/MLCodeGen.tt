@@ -100,10 +100,10 @@ else{#>
             // in order to evaluate and get the model's accuracy metrics
             Console.WriteLine("=============== Cross-validating to get model's accuracy metrics ===============");
 <#if("BinaryClassification".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: 3, labelColumn:"Label");
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"Label");
             ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
 <#}#><#if("Regression".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: 3, labelColumn:"Label");
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"Label");
             ConsoleHelper.PrintRegressionFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
 <#}#>
 <# } #>
@@ -205,4 +205,5 @@ public string GeneratedUsings {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool TrimWhiteSpace {get;set;} 
+public int Kfolds {get;set;} = 5;
 #>

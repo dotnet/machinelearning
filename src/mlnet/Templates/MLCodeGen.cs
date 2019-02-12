@@ -133,16 +133,18 @@ if("Regression".Equals(TaskType)){
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("            var crossValidationResults = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: 3, labe" +
-                    "lColumn:\"Label\");\r\n            ConsoleHelper.PrintBinaryClassificationFoldsAvera" +
-                    "geMetrics(trainer.ToString(), crossValidationResults);\r\n");
+            this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
+            this.Write(", labelColumn:\"Label\");\r\n            ConsoleHelper.PrintBinaryClassificationFolds" +
+                    "AverageMetrics(trainer.ToString(), crossValidationResults);\r\n");
 }
 if("Regression".Equals(TaskType)){ 
             this.Write("            var crossValidationResults = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numFolds: 3, labelColumn:\"Labe" +
-                    "l\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMetrics(trainer.ToStr" +
-                    "ing(), crossValidationResults);\r\n");
+            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numFolds: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
+            this.Write(", labelColumn:\"Label\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMet" +
+                    "rics(trainer.ToString(), crossValidationResults);\r\n");
 }
  } 
             this.Write(@"
@@ -249,6 +251,7 @@ public string GeneratedUsings {get;set;}
 public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool TrimWhiteSpace {get;set;} 
+public int Kfolds {get;set;} = 5;
 
     }
     #region Base class
