@@ -52,12 +52,10 @@ namespace Microsoft.ML.Tests
             var transformedData = transformer.Transform(testData);
 
             // Evaluate
-            var metrics = ML.AnomalyDetection.Evaluate(transformedData);
+            var metrics = ML.AnomalyDetection.Evaluate(transformedData, k: 10);
 
-            Assert.Equal(0.99, metrics.Auc, 2);
+            Assert.Equal(0.98558, metrics.Auc, 5);
             Assert.Equal(0.90, metrics.DrAtK, 2);
-            Assert.Equal(0.90, metrics.DrAtPFpr, 2);
-            Assert.Equal(0.90, metrics.DrAtNumPos, 2);
         }
     }
 }

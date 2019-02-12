@@ -23,26 +23,24 @@ namespace Microsoft.ML.Data.Evaluators.Metrics
         public double Auc { get; }
 
         /// <summary>
-        /// Detection rate at k false positives.
+        /// Detection rate at K false positives.
         /// </summary>
+        /// <remarks>
+        /// This is computed as follows:
+        /// 1.Sort the test examples by the output of the anomaly detector in descending order of scores.
+        /// 2.Among the top K False Positives,  compute ratio :  (True Positive @ K)  / (Total anomalies in test data)
+        /// Example confusion matrix for anomaly detection:
+        ///                            Anomalies (in test data)  | Non-Anomalies (in test data)
+        ///  Predicted Anomalies     :         TP                |           FP
+        ///  Predicted Non-Anomalies :         FN                |           TN
+        ///  </remarks>
         public double DrAtK { get; }
-        /// <summary>
-        /// Detection rate at fraction p false positives.
-        /// </summary>
-        public double DrAtPFpr { get; }
-        /// <summary>
-        /// Detection rate at number of anomalies.
-        /// </summary>
-        public double DrAtNumPos { get; }
 
         internal AnomalyDetectionMetrics(IExceptionContext ectx, Row overallResult)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-
             Auc = FetchDouble(BinaryClassifierEvaluator.Auc);
             DrAtK = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
-            DrAtPFpr = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr);
-            DrAtNumPos = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos);
         }
     }
 }

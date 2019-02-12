@@ -597,9 +597,10 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        /// <param name="k">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DrAtK"/> metric. </param>
+        /// <returns>Evaluation results.</returns>
         public AnomalyDetectionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
-            string predictedLabel = DefaultColumnNames.PredictedLabel)
+            string predictedLabel = DefaultColumnNames.PredictedLabel, int k = 10)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -607,6 +608,7 @@ namespace Microsoft.ML
             Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
             var args = new AnomalyDetectionEvaluator.Arguments();
+            args.K = k;
 
             var eval = new AnomalyDetectionEvaluator(Host, args);
             return eval.Evaluate(data, label, score, predictedLabel);
