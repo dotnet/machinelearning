@@ -47,9 +47,9 @@ namespace Microsoft.ML.LightGBM
                 loaderAssemblyName: typeof(LightGbmBinaryModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010002;
-        protected override uint VerDefaultValueSerialized => 0x00010004;
-        protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        internal override uint VerNumFeaturesSerialized => 0x00010002;
+        internal override uint VerDefaultValueSerialized => 0x00010004;
+        internal override uint VerCategoricalSplitSerialized => 0x00010005;
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         internal LightGbmBinaryModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
@@ -57,7 +57,7 @@ namespace Microsoft.ML.LightGBM
         {
         }
 
-        private LightGbmBinaryModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        internal LightGbmBinaryModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
         {
         }

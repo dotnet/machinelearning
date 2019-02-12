@@ -67,11 +67,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastForestClassificationModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010003;
+        internal override uint VerNumFeaturesSerialized => 0x00010003;
 
-        protected override uint VerDefaultValueSerialized => 0x00010005;
+        internal override uint VerDefaultValueSerialized => 0x00010005;
 
-        protected override uint VerCategoricalSplitSerialized => 0x00010006;
+        internal override uint VerCategoricalSplitSerialized => 0x00010006;
 
         /// <summary>
         /// The type of prediction for this trainer.
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, FastTreeTrainerOptions);
         }
 
-        protected override void PrepareLabels(IChannel ch)
+        internal override void PrepareLabels(IChannel ch)
         {
             // REVIEW: Historically FastTree has this test as >= 1. TLC however
             // generally uses > 0. Consider changing FastTree to be consistent.

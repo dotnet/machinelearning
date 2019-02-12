@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.FastTree
             );
         }
 
-        protected override void DefinePruningTest()
+        internal override void DefinePruningTest()
         {
             var validTest = new BinaryClassificationTest(ValidSetScore,
                 ConvertTargetsToBool(ValidSet.Targets), _sigmoidParameter);

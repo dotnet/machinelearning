@@ -14,11 +14,11 @@ namespace Microsoft.ML.Trainers.FastTree
         where TArgs : BoostedTreeArgs, new()
         where TModel : class
     {
-        protected BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
+        internal BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
         {
         }
 
-        protected BoostingFastTreeTrainerBase(IHostEnvironment env,
+        internal BoostingFastTreeTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Trainers.FastTree
             FastTreeTrainerOptions.LearningRates = learningRate;
         }
 
-        protected override void CheckArgs(IChannel ch)
+        internal override void CheckArgs(IChannel ch)
         {
             if (FastTreeTrainerOptions.OptimizationAlgorithm == BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent)
                 FastTreeTrainerOptions.UseLineSearch = true;
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return new BestStepRegressionGradientWrapper();
         }
 
-        protected override bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStoppingRule, ref int bestIteration)
+        internal override bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStoppingRule, ref int bestIteration)
         {
             if (FastTreeTrainerOptions.EarlyStoppingRule == null)
                 return false;
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return shouldStop;
         }
 
-        protected override int GetBestIteration(IChannel ch)
+        internal override int GetBestIteration(IChannel ch)
         {
             int bestIteration = Ensemble.NumTrees;
             if (!FastTreeTrainerOptions.WriteLastEnsemble && PruningTest != null)
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Retrieves max tree output if best regression step option is active or returns negative value otherwise.
         /// </summary>
-        protected double BsrMaxTreeOutput()
+        internal double BsrMaxTreeOutput()
         {
             if (FastTreeTrainerOptions.BestStepRankingRegressionTrees)
                 return FastTreeTrainerOptions.MaxTreeOutput;
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return -1;
         }
 
-        protected override bool ShouldRandomStartOptimizer()
+        internal override bool ShouldRandomStartOptimizer()
         {
             return FastTreeTrainerOptions.RandomStart;
         }

@@ -62,11 +62,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastTreeBinaryModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010002;
+        internal override uint VerNumFeaturesSerialized => 0x00010002;
 
-        protected override uint VerDefaultValueSerialized => 0x00010004;
+        internal override uint VerDefaultValueSerialized => 0x00010004;
 
-        protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        internal override uint VerCategoricalSplitSerialized => 0x00010005;
 
         internal FastTreeBinaryModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return set.Ratings.Select(x => x >= 1);
         }
 
-        protected override void PrepareLabels(IChannel ch)
+        internal override void PrepareLabels(IChannel ch)
         {
             _trainSetLabels = GetClassificationLabelsFromRatings(TrainSet).ToArray(TrainSet.NumDocs);
             //Here we set regression labels to what is in bin file if the values were not overriden with floats
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);
         }
 
-        protected override void InitializeTests()
+        internal override void InitializeTests()
         {
             //Always compute training L1/L2 errors
             TrainTest = new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);

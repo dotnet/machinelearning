@@ -79,7 +79,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
         }
 
-        protected override void DefinePruningTest()
+        internal override void DefinePruningTest()
         {
             var validTest = new RegressionTest(ValidSetScore, Args.PruningMetrics);
             // Because we specify pruning metrics as L2 by default, the results array will have 1 value

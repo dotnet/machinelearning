@@ -110,7 +110,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private const string RegisterName = "GamTraining";
 
         //Parameters of training
-        protected readonly TArgs Args;
+        internal readonly TArgs Args;
         private readonly double _gainConfidenceInSquaredStandardDeviations;
         private readonly double _entropyCoefficient;
 
@@ -120,12 +120,12 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Whether a validation set was passed in
         /// </summary>
-        protected bool HasValidSet => ValidSet != null;
+        internal bool HasValidSet => ValidSet != null;
         internal ScoreTracker TrainSetScore;
         internal ScoreTracker ValidSetScore;
         internal TestHistory PruningTest;
-        protected int PruningLossIndex;
-        protected int InputLength;
+        internal int PruningLossIndex;
+        internal int InputLength;
         private LeastSquaresRegressionTreeLearner.LeafSplitCandidates _leafSplitCandidates;
         private SufficientStatsBase[] _histogram;
         private ILeafSplitStatisticsCalculator _leafSplitHelper;
@@ -136,10 +136,10 @@ namespace Microsoft.ML.Trainers.FastTree
         private SubGraph _subGraph;
 
         //Results of training
-        protected double MeanEffect;
-        protected double[][] BinEffects;
-        protected double[][] BinUpperBounds;
-        protected int[] FeatureMap;
+        internal double MeanEffect;
+        internal double[][] BinEffects;
+        internal double[][] BinUpperBounds;
+        internal int[] FeatureMap;
 
         public override TrainerInfo Info { get; }
         private protected virtual bool NeedCalibration => false;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ValidSetScore = new ScoreTracker("valid", ValidSet, null);
         }
 
-        protected abstract void DefinePruningTest();
+        internal abstract void DefinePruningTest();
 
         private protected abstract void CheckLabel(RoleMappedData data);
 
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Process bins such that only bin upper bounds and bin effects remain where
         /// the effect changes.
         /// </summary>
-        protected void CreateEfficientBinning()
+        internal void CreateEfficientBinning()
         {
             BinUpperBounds = new double[TrainSet.NumFeatures][];
             var newBinEffects = new List<double>();
