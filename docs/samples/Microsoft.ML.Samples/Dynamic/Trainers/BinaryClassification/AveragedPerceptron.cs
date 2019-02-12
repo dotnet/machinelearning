@@ -19,27 +19,28 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Create data training pipeline
-            var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron("IsOver50K", "Features");
+            var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
+                                        "IsOver50K", "Features", numIterations: 10);
 
             // Fit this pipeline to the training data
-            var model = pipeline.Fit(trainData);
+            var model = pipeline.Fit(trainTestData.TrainSet);
 
             // Evaluate how the model is doing on the test data
-            var dataWithPredictions = model.Transform(testData);
+            var dataWithPredictions = model.Transform(trainTestData.TestSet);
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions, "IsOver50K");
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Output:
-            // Accuracy: 0.85
-            // AUC: 0.90
-            // F1 Score: 0.66
-            // Negative Precision: 0.89
+            // Accuracy: 0.86
+            // AUC: 0.91
+            // F1 Score: 0.68
+            // Negative Precision: 0.90
             // Negative Recall: 0.91
-            // Positive Precision: 0.69
-            // Positive Recall: 0.63
+            // Positive Precision: 0.70
+            // Positive Recall: 0.66
         }
     }
 }

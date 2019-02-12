@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Define the trainer options
             var options = new AveragedPerceptronTrainer.Options()
@@ -38,10 +38,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron(options);
 
             // Fit this pipeline to the training data
-            var model = pipeline.Fit(trainData);
+            var model = pipeline.Fit(trainTestData.TrainSet);
 
             // Evaluate how the model is doing on the test data
-            var dataWithPredictions = model.Transform(testData);
+            var dataWithPredictions = model.Transform(trainTestData.TestSet);
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions, "IsOver50K");
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
