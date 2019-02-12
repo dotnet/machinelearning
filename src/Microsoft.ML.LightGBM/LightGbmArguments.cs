@@ -55,7 +55,7 @@ namespace Microsoft.ML.LightGBM
             /// <summary>
             /// Update the parameters by specific Booster, will update parameters into "res" directly.
             /// </summary>
-            public virtual void UpdateParameters(Dictionary<string, object> res)
+            internal virtual void UpdateParameters(Dictionary<string, object> res)
             {
                 FieldInfo[] fields = Args.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var field in fields)
@@ -68,6 +68,8 @@ namespace Microsoft.ML.LightGBM
                     res[GetArgName(field.Name)] = field.GetValue(Args);
                 }
             }
+
+            void IBoosterParameter.UpdateParameters(Dictionary<string, object> res) => UpdateParameters(res);
         }
 
         private static string GetArgName(string name)
@@ -93,14 +95,13 @@ namespace Microsoft.ML.LightGBM
         [BestFriend]
         internal static class Defaults
         {
-            [BestFriend]
-            internal const int NumBoostRound = 100;
+            public const int NumBoostRound = 100;
         }
 
         public sealed class TreeBooster : BoosterParameter<TreeBooster.Arguments>
         {
             public const string Name = "gbdt";
-            public const string FriendlyName = "Tree Booster";
+            internal const string FriendlyName = "Tree Booster";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Traditional Gradient Boosting Decision Tree.")]
             public class Arguments : ISupportBoosterParameterFactory
@@ -165,7 +166,9 @@ namespace Microsoft.ML.LightGBM
                     " A typical value to consider: sum(negative cases) / sum(positive cases).")]
                 public double ScalePosWeight = 1;
 
-                public virtual IBoosterParameter CreateComponent(IHostEnvironment env) => new TreeBooster(this);
+                internal virtual IBoosterParameter CreateComponent(IHostEnvironment env) => new TreeBooster(this);
+
+                IBoosterParameter IComponentFactory<IBoosterParameter>.CreateComponent(IHostEnvironment env) => CreateComponent(env);
             }
 
             public TreeBooster(Arguments args)
@@ -178,7 +181,7 @@ namespace Microsoft.ML.LightGBM
                 Contracts.CheckUserArg(Args.ScalePosWeight > 0 && Args.ScalePosWeight <= 1, nameof(Args.ScalePosWeight), "must be in (0,1].");
             }
 
-            public override void UpdateParameters(Dictionary<string, object> res)
+            internal override void UpdateParameters(Dictionary<string, object> res)
             {
                 base.UpdateParameters(res);
                 res["boosting_type"] = Name;
@@ -188,7 +191,7 @@ namespace Microsoft.ML.LightGBM
         public class DartBooster : BoosterParameter<DartBooster.Arguments>
         {
             public const string Name = "dart";
-            public const string FriendlyName = "Tree Dropout Tree Booster";
+            internal const string FriendlyName = "Tree Dropout Tree Booster";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
             public class Arguments : TreeBooster.Arguments
@@ -211,7 +214,7 @@ namespace Microsoft.ML.LightGBM
                 [Argument(ArgumentType.AtMostOnce, HelpText = "True will enable uniform drop.")]
                 public bool UniformDrop = false;
 
-                public override IBoosterParameter CreateComponent(IHostEnvironment env) => new DartBooster(this);
+                internal override IBoosterParameter CreateComponent(IHostEnvironment env) => new DartBooster(this);
             }
 
             public DartBooster(Arguments args)
@@ -222,7 +225,7 @@ namespace Microsoft.ML.LightGBM
                 Contracts.CheckUserArg(Args.SkipDrop >= 0 && Args.SkipDrop < 1, nameof(Args.SkipDrop), "must be in [0,1).");
             }
 
-            public override void UpdateParameters(Dictionary<string, object> res)
+            internal override void UpdateParameters(Dictionary<string, object> res)
             {
                 base.UpdateParameters(res);
                 res["boosting_type"] = Name;
@@ -232,7 +235,7 @@ namespace Microsoft.ML.LightGBM
         public class GossBooster : BoosterParameter<GossBooster.Arguments>
         {
             public const string Name = "goss";
-            public const string FriendlyName = "Gradient-based One-Size Sampling";
+            internal const string FriendlyName = "Gradient-based One-Size Sampling";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Gradient-based One-Side Sampling.")]
             public class Arguments : TreeBooster.Arguments
@@ -248,7 +251,7 @@ namespace Microsoft.ML.LightGBM
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
                 public double OtherRate = 0.1;
 
-                public override IBoosterParameter CreateComponent(IHostEnvironment env) => new GossBooster(this);
+                internal override IBoosterParameter CreateComponent(IHostEnvironment env) => new GossBooster(this);
             }
 
             public GossBooster(Arguments args)
@@ -259,7 +262,7 @@ namespace Microsoft.ML.LightGBM
                 Contracts.Check(Args.TopRate + Args.OtherRate <= 1, "Sum of topRate and otherRate cannot be larger than 1.");
             }
 
-            public override void UpdateParameters(Dictionary<string, object> res)
+            internal override void UpdateParameters(Dictionary<string, object> res)
             {
                 base.UpdateParameters(res);
                 res["boosting_type"] = Name;
@@ -373,7 +376,7 @@ namespace Microsoft.ML.LightGBM
         public double CatL2 = 10;
 
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
-        public ISupportParallel ParallelTrainer = new SingleTrainerFactory();
+        internal ISupportParallel ParallelTrainer = new SingleTrainerFactory();
 
         internal Dictionary<string, object> ToDictionary(IHost host)
         {

@@ -3,11 +3,11 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic.LightGBM
+namespace Microsoft.ML.Samples.Dynamic.Trainers
 {
     class LightGbmMulticlassClassification
     {
-        public static void LightGbmMulticlassClassificationExample()
+        public static void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
@@ -18,6 +18,13 @@ namespace Microsoft.ML.Samples.Dynamic.LightGBM
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
             var dataView = mlContext.Data.ReadFromEnumerable(examples);
+
+            //////////////////// Data Preview ////////////////////
+            // Label    Features
+            // AA       0.7262433,0.8173254,0.7680227,0.5581612,0.2060332,0.5588848,0.9060271,0.4421779,0.9775497,0.2737045
+            // BB       0.4919063,0.6673147,0.8326591,0.6695119,1.182151,0.230367,1.06237,1.195347,0.8771811,0.5145918
+            // CC       1.216908,1.248052,1.391902,0.4326252,1.099942,0.9262842,1.334019,1.08762,0.9468155,0.4811099
+            // DD       0.7871246,1.053327,0.8971719,1.588544,1.242697,1.362964,0.6303943,0.9810045,0.9431419,1.557455
 
             // Create a pipeline. 
             //  - Convert the string labels into key types.
@@ -37,24 +44,22 @@ namespace Microsoft.ML.Samples.Dynamic.LightGBM
             // Do prediction on the test set.
             var dataWithPredictions = model.Transform(testingData);
 
-            // Evaluate the trained model is the test set.
+            // Evaluate the trained model using the test set.
             var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, label: "LabelIndex");
 
-            // Check if metrics are resonable.
-            Console.WriteLine("Macro accuracy: {0}, Micro accuracy: {1}.", 0.863482146891263, 0.86309523809523814);
+            // Check if metrics are reasonable.
+            Console.WriteLine("Macro accuracy: {0}, Micro accuracy: {1}.", metrics.AccuracyMacro, metrics.AccuracyMicro);
+            // Console output:
+            //   Macro accuracy: 0.863482146891263, Micro accuracy: 0.863095238095238.
 
-            // Convert prediction in ML.NET format to native C# class.
+            // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>
             var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
 
             // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
-            // (e.g., 1) to its actual label (e.g., "AA"). The call to "AsDynamic" converts our statically-typed pipeline into
-            // a dynamically-typed one only for extracting metadata. In the future, metadata in statically-typed pipeline should
-            // be accessible without dynamically-typed things.
-            var schema = dataWithPredictions.Schema;
-
-            // Retrieve the mapping from labels to label indexes.
+            // (e.g., 1) to its actual label (e.g., "AA").
+            // The metadata can be used to get all the unique labels used during training.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>();
-            schema[nameof(DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
+            dataWithPredictions.Schema["PredictedLabelIndex"].GetKeyValues(ref labelBuffer);
             // nativeLabels is { "AA" , "BB", "CC", "DD" }
             var nativeLabels = labelBuffer.DenseValues().ToArray(); // nativeLabels[nativePrediction.PredictedLabelIndex - 1] is the original label indexed by nativePrediction.PredictedLabelIndex.
 
@@ -67,14 +72,13 @@ namespace Microsoft.ML.Samples.Dynamic.LightGBM
                 nativeLabels[(int)nativePrediction.PredictedLabelIndex - 1],
                 nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex - 1]);
 
-            var expectedProbabilities = new float[] { 0.922597349f, 0.07508608f, 0.00221699756f, 9.95488E-05f };
             // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
             // Console output:
             //  The probability of being class "AA" is 0.922597349.
             //  The probability of being class "BB" is 0.07508608.
             //  The probability of being class "CC" is 0.00221699756.
             //  The probability of being class "DD" is 9.95488E-05.
-            for (int i = 0; i < labelBuffer.Length; ++i)
+            for (int i = 0; i < nativeLabels.Length; ++i)
                 Console.WriteLine("The probability of being class {0} is {1}.", nativeLabels[i], nativePrediction.Scores[i]);
         }
     }

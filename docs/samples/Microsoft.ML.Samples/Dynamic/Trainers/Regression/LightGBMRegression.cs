@@ -1,11 +1,11 @@
 ﻿using System;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic.LightGBM
+namespace Microsoft.ML.Samples.Dynamic.Trainers
 {
     class LightGbmRegression
     {
-        public static void LightGbmRegressionExample()
+        public static void Example()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
             // this will create a housing.txt file in the filsystem this code will run
@@ -49,13 +49,12 @@ namespace Microsoft.ML.Samples.Dynamic.LightGBM
             // Fit this pipeline to the training data
             var model = pipeline.Fit(trainData);
 
-            // Check the weights that the model learned
+            // Get the feature importance based on the information gain used during training.
             VBuffer<float> weights = default;
             model.Model.GetFeatureWeights(ref weights);
-
             var weightsValues = weights.GetValues();
             Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = 0.1898361
-            Console.WriteLine($"weight 1 - {weightsValues[5]}"); // RoomsPerDwelling (weight 1) = 1
+            Console.WriteLine($"weight 5 - {weightsValues[5]}"); // RoomsPerDwelling (weight 5) = 1
 
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);
