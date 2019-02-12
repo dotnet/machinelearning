@@ -41,6 +41,24 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
+    name: Windows_Mono
+    buildScript: build.cmd
+    customMatrixes:
+      Build_Debug_netfx:
+        _configuration: Debug-netfx
+        _config_short: DM
+        _includeBenchmarkData: false
+        _runTestsTarget: MonoRunTests
+      Build_Release_netfx:
+        _configuration: Release-netfx
+        _config_short: RM
+        _includeBenchmarkData: false
+        _runTestsTarget: MonoRunTests
+    queue:
+      name: Hosted VS2017
+
+- template: /build/ci/phase-template.yml
+  parameters:
     name: Windows_NetFx
     buildScript: build.cmd
     customMatrixes:

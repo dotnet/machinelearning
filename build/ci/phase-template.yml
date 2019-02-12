@@ -5,6 +5,7 @@ parameters:
   queue: {}
   customMatrixes: ''
   codeCoverage: false
+  runTestsTarget: runtests
 
 phases:
   - phase: ${{ parameters.name }}
@@ -13,6 +14,7 @@ phases:
       _phaseName: ${{ parameters.name }}
       _arch: ${{ parameters.architecture }}
       _codeCoverage: ${{ parameters.codeCoverage }}
+      _runTestsTarget: ${{ parameters.runTestsTarget }}
     queue:
       timeoutInMinutes: 45
       parallel: 99
@@ -37,7 +39,7 @@ phases:
     - ${{ if eq(parameters.name, 'MacOS') }}:
       - script: brew update && brew install libomp mono-libgdiplus gettext && brew link gettext --force
         displayName: Install runtime dependencies
-    - script: $(_buildScript) -$(_configuration) -runtests -coverage=$(_codeCoverage)
+    - script: $(_buildScript) -$(_configuration) -$(_runTestsTarget) -coverage=$(_codeCoverage)
       displayName: Run Tests.
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /p:CodeCovToken=$(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io

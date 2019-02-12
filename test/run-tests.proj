@@ -6,11 +6,33 @@
     <Project Include="$(MSBuildThisFileDirectory)**\*.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ExeProjectName Include="Microsoft.ML.CodeAnalyzer.Tests" />
+    <ExeProjectName Include="Microsoft.ML.Benchmarks" />
+    <ExeProjectName Include="Microsoft.ML.CpuMath.PerformanceTests" />
+    <ExeProjectName Include="Microsoft.ML.CpuMath.UnitTests.netcoreapp" />
+    <ExeProjectName Include="RemoteExecutorConsoleApp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TestDll Include="@(Project->'$(BinDir)AnyCPU.$(Configuration)\%(Filename)\$(TargetFramework)\$(RuntimeIdentifier)\%(Filename).dll')"/>
+    <TestDll Remove="@(ExeProjectName->'$(BinDir)AnyCPU.$(Configuration)\%(Identity)\$(TargetFramework)\$(RuntimeIdentifier)\%(Identity).dll')" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <MonoVSTestConsolePath>$(PackagesDir)\microsoft.testplatform\15.9.0\tools\net451\Common7\IDE\Extensions\TestPlatform\vstest.console.exe</MonoVSTestConsolePath>
+  </PropertyGroup>
+  
   <Target Name="RunTests">
     <Message Importance="High" Text="Running tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
              Properties="VSTestNoBuild=true" />
+  </Target>
+
+  <Target Name="MonoRunTests"> 
+    <Message Importance="High" Text="Running Tests On Mono @(TestDll->'%(Identity)', ' ')" />
+    <Exec Command="mono $(MonoVSTestConsolePath) @(TestDll->'%(Identity)', ' ')" />
   </Target>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
