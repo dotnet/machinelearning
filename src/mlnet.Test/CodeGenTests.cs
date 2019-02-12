@@ -25,7 +25,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null));
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expected = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumn:\"Label\",featureColumn:\"Features\");";
+            string expected = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumn:\"Label\",featureColumn:\"Features\")";
             Assert.AreEqual(expected, actual.Item1);
             Assert.IsNull(actual.Item2);
         }
@@ -45,7 +45,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null));
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainer = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"});";
+            string expectedTrainer = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             string expectedUsing = "using Microsoft.ML.LightGBM;\r\n";
             Assert.AreEqual(expectedTrainer, actual.Item1);
             Assert.AreEqual(expectedUsing, actual.Item2);
@@ -163,7 +163,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null));
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainer = "LightGbm(new Options(){Booster=new TreeBooster(){},LabelColumn=\"Label\",FeatureColumn=\"Features\"});";
+            string expectedTrainer = "LightGbm(new Options(){Booster=new TreeBooster(){},LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             var expectedUsings = "using Microsoft.ML.LightGBM;\r\n";
             Assert.AreEqual(expectedTrainer, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);

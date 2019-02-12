@@ -133,7 +133,7 @@ namespace Microsoft.ML.CLI
             {
                 sb.Append(AppendArguments(arguments, ":"));
             }
-            sb.Append(");");
+            sb.Append(")");
             return sb.ToString();
         }
 
