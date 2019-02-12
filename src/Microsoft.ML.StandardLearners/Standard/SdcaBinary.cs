@@ -1399,30 +1399,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public abstract class SdcaBinaryTrainerBase<TModelParameters> : SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.Options, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
+    public abstract class SdcaBinaryTrainerBase<TModelParameters> : SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
         where TModelParameters : class, IPredictorProducing<float>
     {
-        public sealed class Options : ArgumentsBase
-        {
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
-            public float PositiveInstanceWeight = 1;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            internal int MaxCalibrationExamples = 1000000;
-
-            internal override void Check(IHostEnvironment env)
-            {
-                base.Check(env);
-                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Weight for positive instances must be positive");
-            }
-        }
-
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
 
@@ -1435,6 +1414,18 @@ namespace Microsoft.ML.Trainers
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public override TrainerInfo Info { get; }
+
+        public class BinaryArgumentBase : ArgumentsBase
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
+            public float PositiveInstanceWeight = 1;
+
+            internal override void Check(IHostEnvironment env)
+            {
+                base.Check(env);
+                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Weight for positive instances must be positive");
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="SdcaBinaryTrainerBase{TModelParameters}"/>
@@ -1460,19 +1451,19 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? Args.LossFunction.CreateComponent(env);
+            _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
+            Info = new TrainerInfo(calibration: false);
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        protected SdcaBinaryTrainerBase(IHostEnvironment env, Options options)
+        protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
-            _loss = options.LossFunction.CreateComponent(env);
+            _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
+            Info = new TrainerInfo(calibration: false);
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
@@ -1528,6 +1519,13 @@ namespace Microsoft.ML.Trainers
         internal const string LoadNameValue = "SDCALR";
         internal const string UserNameValue = "Fast Linear (SA-SDCA) Logistic Regression";
 
+        /// <summary>
+        /// Configuration to training logistic regression using SDCA.
+        /// </summary>
+        public sealed class Options : BinaryArgumentBase
+        {
+        }
+
         internal SdcaCalibratedBinaryTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -1540,7 +1538,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaCalibratedBinaryTrainer(IHostEnvironment env, Options options)
-            : base(env, options)
+            : base(env, options, new LogLoss())
         {
         }
 
@@ -1583,6 +1581,15 @@ namespace Microsoft.ML.Trainers
         internal const string LoadNameValue = "SDCA";
         internal const string UserNameValue = "Fast Linear (SA-SDCA)";
 
+        /// <summary>
+        /// General Configuration to training linear model using SDCA.
+        /// </summary>
+        public sealed class Options : BinaryArgumentBase
+        {
+            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+        }
+
         internal SdcaBinaryTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -1596,7 +1603,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaBinaryTrainer(IHostEnvironment env, Options options)
-            : base(env, options)
+            : base(env, options, options.LossFunction.CreateComponent(env))
         {
         }
 
@@ -2025,8 +2032,23 @@ namespace Microsoft.ML.Trainers
 
             return LearnerEntryPointsUtils.Train<SdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new SdcaBinaryTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                maxCalibrationExamples: input.MaxCalibrationExamples);
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+        }
+
+        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentCalibratedBinaryClassifier",
+            Desc = "Train logistic regression using SDCA.",
+            UserName = SdcaCalibratedBinaryTrainer.UserNameValue,
+            ShortName = SdcaCalibratedBinaryTrainer.LoadNameValue)]
+        internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, SdcaCalibratedBinaryTrainer.Options input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("TrainSDCA");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+
+            return LearnerEntryPointsUtils.Train<SdcaCalibratedBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new SdcaCalibratedBinaryTrainer(host, input),
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
     }
 }

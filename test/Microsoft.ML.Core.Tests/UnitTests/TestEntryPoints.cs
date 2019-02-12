@@ -733,6 +733,42 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
+        public void EntryPointSdcaCalibratedBinary()
+        {
+            var dataView = GetBreastCancerDataView();
+
+            var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = 3 });
+
+            var lrModel = LogisticRegression.TrainBinary(Env, new LogisticRegression.Options { TrainingData = splitOutput.TestData[0] }).PredictorModel;
+            var calibratedLrModel = Calibrate.FixedPlatt(Env,
+                new Calibrate.FixedPlattInput { Data = splitOutput.TestData[1], UncalibratedPredictorModel = lrModel }).PredictorModel;
+
+            var scored1 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = lrModel }).ScoredData;
+            scored1 = ScoreModel.SelectColumns(Env, new ScoreModel.ScoreColumnSelectorInput() { Data = scored1, ExtraColumns = new[] { "Label" } }).OutputData;
+
+            var scored2 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = calibratedLrModel }).ScoredData;
+            scored2 = ScoreModel.SelectColumns(Env, new ScoreModel.ScoreColumnSelectorInput() { Data = scored2, ExtraColumns = new[] { "Label" } }).OutputData;
+
+            Assert.Equal(4, scored1.Schema.Count);
+            CheckSameValues(scored1, scored2);
+
+            var input = new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[1], UncalibratedPredictorModel = lrModel };
+            calibratedLrModel = Calibrate.Platt(Env, input).PredictorModel;
+            calibratedLrModel = Calibrate.Naive(Env, input).PredictorModel;
+            calibratedLrModel = Calibrate.Pav(Env, input).PredictorModel;
+
+            // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
+            var fastForest = new FastForestClassification(Env, "Label", "Features");
+            var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
+            var ffModel = new PredictorModelImpl(Env, rmd, splitOutput.TrainData[0], fastForest.Train(rmd));
+            var calibratedFfModel = Calibrate.Platt(Env,
+                new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = ffModel }).PredictorModel;
+            var twiceCalibratedFfModel = Calibrate.Platt(Env,
+                new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = calibratedFfModel }).PredictorModel;
+            var scoredFf = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = twiceCalibratedFfModel }).ScoredData;
+        }
+
+        [Fact]
         public void EntryPointPipelineEnsemble()
         {
             var dataView = GetBreastCancerDataView();
@@ -3987,11 +4023,6 @@ namespace Microsoft.ML.RunTests
                                 }
                             },
                             'PositiveInstanceWeight': 1.0,
-                            'Calibrator': {
-                                'Name': 'PlattCalibrator',
-                                'Settings': {}
-                            },
-                            'MaxCalibrationExamples': 1000000,
                             'L2Const': null,
                             'L1Threshold': null,
                             'NumThreads': 1,
@@ -4750,18 +4781,9 @@ namespace Microsoft.ML.RunTests
                                         'Model': '$Var_14976738a67940a58cfeffdf795a74c1'
                                     }
                                 }, {
-                                    'Name': 'Trainers.StochasticDualCoordinateAscentBinaryClassifier',
+                                    'Name': 'Trainers.StochasticDualCoordinateAscentCalibratedBinaryClassifier',
                                     'Inputs': {
-                                        'LossFunction': {
-                                            'Name': 'LogLoss',
-                                            'Settings': {}
-                                        },
                                         'PositiveInstanceWeight': 1.0,
-                                        'Calibrator': {
-                                            'Name': 'PlattCalibrator',
-                                            'Settings': {}
-                                        },
-                                        'MaxCalibrationExamples': 1000000,
                                         'L2Const': null,
                                         'L1Threshold': null,
                                         'NumThreads': 1,
@@ -5261,18 +5283,8 @@ namespace Microsoft.ML.RunTests
                         'Name': 'Models.OneVersusAll',
                         'Inputs': {
                             'Nodes': [{
-                                    'Name': 'Trainers.StochasticDualCoordinateAscentBinaryClassifier',
+                                    'Name': 'Trainers.StochasticDualCoordinateAscentCalibratedBinaryClassifier',
                                     'Inputs': {
-                                        'LossFunction': {
-                                            'Name': 'LogLoss',
-                                            'Settings': {}
-                                        },
-                                        'PositiveInstanceWeight': 1.0,
-                                        'Calibrator': {
-                                            'Name': 'PlattCalibrator',
-                                            'Settings': {}
-                                        },
-                                        'MaxCalibrationExamples': 1000000,
                                         'L2Const': null,
                                         'L1Threshold': null,
                                         'NumThreads': 1,
