@@ -59,12 +59,14 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
+            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
-            Console.WriteLine($"L1 - {metrics.L1}");    // 4.9669731
-            Console.WriteLine($"L2 - {metrics.L2}");    // 51.37296
-            Console.WriteLine($"LossFunction - {metrics.LossFn}");  // 51.37296
-            Console.WriteLine($"RMS - {metrics.Rms}");              // 7.167493
-            Console.WriteLine($"RSquared - {metrics.RSquared}");    // 0.079478
+            // Output
+            // L1: 4.97
+            // L2: 51.37
+            // LossFunction: 51.37
+            // RMS: 7.17
+            // RSquared: 0.08
         }
     }
 }

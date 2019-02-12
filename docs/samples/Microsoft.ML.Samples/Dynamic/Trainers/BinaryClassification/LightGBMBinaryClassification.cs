@@ -47,7 +47,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers
             var dataWithPredictions = model.Transform(testData);
 
             var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, "IsOver50K");
-            SamplesUtils.ConsoleUtils.PrintBinaryClassificationMetrics(metrics);
+            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Output:
             // Accuracy: 0.84
