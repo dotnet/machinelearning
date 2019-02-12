@@ -56,15 +56,16 @@ namespace Microsoft.ML.Data
         /// </summary>
         ITransformer GetTransformer();
     }
-
-    public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, Schema schema);
+    [BestFriend]
+    internal delegate void SignatureLoadRowMapper(ModelLoadContext ctx, Schema schema);
 
     /// <summary>
     /// This class is a transform that can add any number of output columns, that depend on any number of input columns.
     /// It does so with the help of an <see cref="IRowMapper"/>, that is given a schema in its constructor, and has methods
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
-    public sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
+    [BestFriend]
+    internal sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
         ITransformCanSaveOnnx, ITransformCanSavePfa, ITransformTemplate
     {
         private readonly IRowMapper _mapper;
@@ -92,8 +93,7 @@ namespace Microsoft.ML.Data
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
-        [BestFriend]
-        internal RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<Schema, IRowMapper> mapperFactory)
+        public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<Schema, IRowMapper> mapperFactory)
             : base(env, RegistrationName, input)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -103,8 +103,7 @@ namespace Microsoft.ML.Data
             _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
 
-        [BestFriend]
-        internal static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
+        public static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));

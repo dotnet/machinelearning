@@ -18,7 +18,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for transforms.
     /// </summary>
-    public abstract class TransformBase : IDataTransform
+    [BestFriend]
+    internal abstract class TransformBase : IDataTransform
     {
         protected readonly IHost Host;
 
@@ -104,7 +105,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for transforms that map single input row to single output row.
     /// </summary>
-    public abstract class RowToRowTransformBase : TransformBase
+    [BestFriend]
+    internal abstract class RowToRowTransformBase : TransformBase
     {
         protected RowToRowTransformBase(IHostEnvironment env, string name, IDataView input)
             : base(env, name, input)
@@ -150,7 +152,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public abstract class RowToRowMapperTransformBase : RowToRowTransformBase, IRowToRowMapper
+    [BestFriend]
+    internal abstract class RowToRowMapperTransformBase : RowToRowTransformBase, IRowToRowMapper
     {
         protected RowToRowMapperTransformBase(IHostEnvironment env, string name, IDataView input)
             : base(env, name, input)
@@ -244,7 +247,8 @@ namespace Microsoft.ML.Data
     /// on multiple input columns.
     /// This class provides the implementation of ISchema and IRowCursor.
     /// </summary>
-    public abstract class OneToOneTransformBase : RowToRowMapperTransformBase, ITransposeDataView, ITransformCanSavePfa,
+    [BestFriend]
+    internal abstract class OneToOneTransformBase : RowToRowMapperTransformBase, ITransposeDataView, ITransformCanSavePfa,
         ITransformCanSaveOnnx
     {
         /// <summary>
