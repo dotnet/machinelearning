@@ -22,6 +22,7 @@ using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Trainers.PCA;

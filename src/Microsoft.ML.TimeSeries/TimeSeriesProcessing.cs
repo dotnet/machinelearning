@@ -113,7 +113,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         [TlcModule.EntryPoint(Desc = TimeSeries.SsaSpikeDetector.Summary,
             UserName = TimeSeries.SsaSpikeDetector.UserName,
             ShortName = TimeSeries.SsaSpikeDetector.ShortName)]
-        public static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Arguments input)
+        public static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Options options)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaSpikeDetector", options);
             var view = new SsaSpikeEstimator(h, options).Fit(options.Data).Transform(options.Data);
