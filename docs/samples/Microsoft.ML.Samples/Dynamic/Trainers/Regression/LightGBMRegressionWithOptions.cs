@@ -1,9 +1,11 @@
 ﻿using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.LightGBM;
+using static Microsoft.ML.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    class LightGbmRegression
+    class LightGbmRegressionWithOptions
     {
         public static void Example()
         {
@@ -26,8 +28,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 HasHeader = true,
                 Columns = new[]
                {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("Features", DataKind.R4, 1, 6)
+                    new TextLoader.Column("LabelColumn", DataKind.R4, 0),
+                    new TextLoader.Column("FeaturesColumn", DataKind.R4, 1, 6)
                 }
             });
 
@@ -39,12 +41,23 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var (trainData, testData) = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.1);
 
-            // Create the estimator, here we only need LightGbm trainer 
-            // as data is already processed in a form consumable by the trainer
-            var pipeline = mlContext.Regression.Trainers.LightGbm(
-                                            numLeaves: 4,
-                                            minDataPerLeaf: 6,
-                                            learningRate: 0.001);
+            // Create a pipeline with LightGbm estimator with advanced options,
+            // here we only need LightGbm trainer as data is already processed
+            // in a form consumable by the trainer
+            var options = new Options
+            {
+                LabelColumn = "LabelColumn",
+                FeatureColumn = "FeaturesColumn",
+                NumLeaves = 4,
+                MinDataPerLeaf = 6,
+                LearningRate = 0.001,
+                Booster = new GossBooster.Arguments
+                {
+                    TopRate = 0.3,
+                    OtherRate = 0.2
+                }
+            };
+            var pipeline = mlContext.Regression.Trainers.LightGbm(options);
 
             // Fit this pipeline to the training data
             var model = pipeline.Fit(trainData);
@@ -58,7 +71,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);
-            var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
+            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, "LabelColumn");
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Output

@@ -1,8 +1,10 @@
-﻿using Microsoft.ML.Transforms.Categorical;
+﻿using Microsoft.ML.LightGBM;
+using Microsoft.ML.Transforms.Categorical;
+using static Microsoft.ML.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class LightGbmBinaryClassification
+    class LightGbmBinaryClassificationWithOptions
     {
         public static void Example()
         {
@@ -15,7 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Leave out 10% of data for testing
             var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(dataview, testFraction: 0.1);
 
-            // Create the Estimator
+            // Create the pipeline with LightGbm Estimator using advanced options
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding(new OneHotEncodingEstimator.ColumnInfo[]
                 {
                     new OneHotEncodingEstimator.ColumnInfo("marital-status"),
@@ -36,7 +38,17 @@ namespace Microsoft.ML.Samples.Dynamic
                                                         "hours-per-week",
                                                         "native-country"))
             .Append(mlContext.Transforms.Normalize("Features"))
-            .Append(mlContext.BinaryClassification.Trainers.LightGbm("IsOver50K", "Features"));
+            .Append(mlContext.BinaryClassification.Trainers.LightGbm(
+                new Options
+                {
+                    LabelColumn = "IsOver50K",
+                    FeatureColumn = "Features",
+                    Booster = new GossBooster.Arguments
+                    {
+                        TopRate = 0.3,
+                        OtherRate = 0.2
+                    }
+                }));
 
             // Fit this Pipeline to the Training Data
             var model = pipeline.Fit(trainData);
@@ -52,9 +64,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // AUC: 0.88
             // F1 Score: 0.62
             // Negative Precision: 0.88
-            // Negative Recall: 0.91
-            // Positive Precision: 0.68
-            // Positive Recall: 0.59
+            // Negative Recall: 0.92
+            // Positive Precision: 0.67
+            // Positive Recall: 0.58
         }
     }
 }

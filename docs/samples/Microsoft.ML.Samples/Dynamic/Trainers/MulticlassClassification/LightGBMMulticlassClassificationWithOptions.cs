@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.LightGBM;
 using Microsoft.ML.SamplesUtils;
+using static Microsoft.ML.LightGBM.Options;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    class LightGbmMulticlassClassification
+    class LightGbmMulticlassClassificationWithOptions
     {
         public static void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(seed: 0);
 
             // Create in-memory examples as C# native class.
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
@@ -28,9 +30,18 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Create a pipeline. 
             //  - Convert the string labels into key types.
-            //  - Apply LightGbm multiclass trainer
+            //  - Apply LightGbm multiclass trainer with advanced options
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
-                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(labelColumn: "LabelIndex"))
+                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Options
+                        {
+                            LabelColumn = "LabelIndex",
+                            FeatureColumn = "Features",
+                            Booster = new DartBooster.Arguments
+                            {
+                                DropRate = 0.15,
+                                XgboostDartMode = false
+                            }
+                        }))
                         .Append(mlContext.Transforms.Conversion.MapValueToKey("PredictedLabelIndex", "PredictedLabel"))
                         .Append(mlContext.Transforms.CopyColumns("Scores", "Score"));
 
@@ -50,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Check if metrics are reasonable.
             Console.WriteLine($"Macro accuracy: {metrics.AccuracyMacro:F4}, Micro accuracy: {metrics.AccuracyMicro:F4}.");
             // Console output:
-            //   Macro accuracy: 0.8635, Micro accuracy: 0.8631.
+            //   Macro accuracy: 0.8562, Micro accuracy: 0.8552.
 
             // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>
             var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
@@ -67,16 +78,16 @@ namespace Microsoft.ML.Samples.Dynamic
             // Show prediction result for the 3rd example.
             var nativePrediction = nativePredictions[2];
             // Console output:
-            //   Our predicted label to this example is "AA" with probability 0.9226.
+            //   Our predicted label to this example is AA with probability 0.9592.
             Console.WriteLine($"Our predicted label to this example is {nativeLabels[(int)nativePrediction.PredictedLabelIndex - 1]} " +
                 $"with probability {nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex - 1]:F4}.");
 
             // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
             // Console output:
-            //  The probability of being class "AA" is 0.9226.
-            //  The probability of being class "BB" is 0.0751.
-            //  The probability of being class "CC" is 0.0022.
-            //  The probability of being class "DD" is 0.0001.
+            //  The probability of being class AA is 0.9592.
+            //  The probability of being class BB is 0.0392.
+            //  The probability of being class CC is 0.0015.
+            //  The probability of being class DD is 0.0002.
             for (int i = 0; i < nativeLabels.Length; ++i)
                 Console.WriteLine($"The probability of being class {nativeLabels[i]} is {nativePrediction.Scores[i]:F4}.");
         }
