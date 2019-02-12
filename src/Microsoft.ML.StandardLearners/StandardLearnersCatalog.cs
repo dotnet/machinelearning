@@ -137,6 +137,8 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a logistic regression model trained with the SDCA trainer.
+        /// The trained model can produce probablity via feeding output value of the linear
+        /// function to a <see cref="PlattCalibrator"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
@@ -148,7 +150,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs)]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCACalibrated.cs)]
         /// ]]></format>
         /// </example>
         public static SdcaCalibratedBinaryTrainer StochasticDualCoordinateAscentCalibrated(
@@ -166,7 +168,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the SDCA trainer.
+        /// Predict a target using a logistic regression model trained with the SDCA trainer.
+        /// The trained model can produce probablity via feeding output value of the linear
+        /// function to a <see cref="PlattCalibrator"/>. Comparing with <see cref="StochasticDualCoordinateAscentCalibrated(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float?, float?, int?)"/>,
+        /// this function allows more advanced settings via accepting <see cref="SdcaCalibratedBinaryTrainer.Options"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
