@@ -1,4 +1,4 @@
-maml.exe CV tr=SDCA{maxIterations=5 checkFreq=9 nt=1} threads=- dout=%Output% data=%Data% seed=1
+maml.exe CV tr=SDCALR{maxIterations=5 checkFreq=9 nt=1} threads=- dout=%Output% data=%Data% seed=1
 Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
 Using 1 thread to train.
 Warning: Skipped 8 instances with missing features/label during training

@@ -3,7 +3,7 @@ Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=
 Using 1 thread to train.
 Warning: Skipped 16 instances with missing features/label during training
 Using model from last iteration.
-Training calibrator.
+Not training a calibrator because it is not needed.
 Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
 TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
 Confusion table
@@ -15,9 +15,9 @@ TRUTH     ||======================
           ||======================
 Precision ||   0.9655 |   0.9667 |
 OVERALL 0/1 ACCURACY: 0.966325
-LOG LOSS/instance:  0.118542
+LOG LOSS/instance:      NaN
 Test-set entropy (prior Log-Loss/instance): 0.934003
-LOG-LOSS REDUCTION (RIG): 87.308128
+LOG-LOSS REDUCTION (RIG): 0.000000
 AUC:                0.995816
 
 OVERALL RESULTS
@@ -28,12 +28,13 @@ Positive precision: 0.965517 (0.0000)
 Positive recall:    0.937238 (0.0000)
 Negative precision: 0.966741 (0.0000)
 Negative recall:    0.981982 (0.0000)
-Log-loss:           0.118542 (0.0000)
-Log-loss reduction: 87.308128 (0.0000)
+Log-loss:               NaN (0.0000)
+Log-loss reduction: 0.000000 (0.0000)
 F1 Score:           0.951168 (0.0000)
 AUPRC:              0.991045 (0.0000)
 
 ---------------------------------------
+Warning: Data does not contain a probability column. Will not output the Log-loss column
 Physical memory usage(MB): %Number%
 Virtual memory usage(MB): %Number%
 %DateTime%	 Time elapsed(s): %Number%
