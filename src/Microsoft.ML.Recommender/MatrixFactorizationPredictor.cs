@@ -339,10 +339,10 @@ namespace Microsoft.ML.Trainers.Recommender
             /// </summary>
             public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                var columnNames = dependingColumns.Select(col => col.Name);
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<Schema.Column>();
 
-                return InputSchema.Where(col => columnNames.Contains(col.Name) && (
-                                        col.Index == _matrixColumnIndexColumnIndex || col.Index == _matrixRowIndexCololumnIndex));
+                return InputSchema.Where(col => col.Index == _matrixColumnIndexColumnIndex || col.Index == _matrixRowIndexCololumnIndex);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

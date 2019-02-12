@@ -236,7 +236,7 @@ namespace Microsoft.ML.EntryPoints
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
-                    dependingColumns = dependingColumns.Union(mapper.GetDependencies(cols));
+                    dependingColumns = mapper.GetDependencies(cols);
                     transform = transform.Source as IDataTransform;
                 }
                 return dependingColumns;
@@ -256,7 +256,8 @@ namespace Microsoft.ML.EntryPoints
                 var actives = new List<Func<int, bool>>();
                 var transform = _chain as IDataTransform;
                 var activeCur = active;
-                var activeCurCol = InputSchema.Where(col => active(col.Index));
+                var activeCurCol = OutputSchema.Where(col => active(col.Index));
+
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;

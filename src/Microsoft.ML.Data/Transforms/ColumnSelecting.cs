@@ -674,6 +674,8 @@ namespace Microsoft.ML.Transforms
                 return cursors;
             }
 
+            void ICanSaveModel.Save(ModelSaveContext ctx) => _transform.SaveModel(ctx);
+
             /// <summary>
             /// Given a set of columns, return the input columns that are needed to generate those output columns.
             /// </summary>
@@ -692,22 +694,7 @@ namespace Microsoft.ML.Transforms
                 return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }
 
-            void ICanSaveModel.Save(ModelSaveContext ctx) => _transform.SaveModel(ctx);
-
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
-            {
-                var active = new bool[_mapper.InputSchema.Count];
-                var columnCount = _mapper.OutputSchema.Count;
-                for (int colIdx = 0; colIdx < columnCount; ++colIdx)
-                {
-                    if (activeOutput(colIdx))
-                        active[_mapper.GetInputIndex(colIdx)] = true;
-                }
-
-                return col => active[col];
-            }
-
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            public Row GetRow(DataViewRow input, Func<int, bool> active)
             {
                 return new RowImpl(input, _mapper);
             }

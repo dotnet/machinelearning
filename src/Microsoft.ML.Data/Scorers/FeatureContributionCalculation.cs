@@ -353,7 +353,12 @@ namespace Microsoft.ML.Data
             /// Returns the input columns needed for the requested output columns.
             /// </summary>
             IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
-            => Enumerable.Repeat(FeatureColumn, 1);
+            {
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<Schema.Column>();
+
+                return Enumerable.Repeat(FeatureColumn, 1);
+            }
 
             public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
             {

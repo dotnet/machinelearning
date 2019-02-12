@@ -695,20 +695,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         private IEnumerable<Schema.Column> GetActive(Func<int, bool> predicate)
         {
-            int n = _bindings.Schema.Count;
-            var active = Utils.BuildArray(n, predicate);
-            Contracts.Assert(active.Length == n);
+            Func<int, bool> predicateInput;
 
-            var activeInput = _bindings.GetActiveInput(predicate);
-            Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
-
-            // Get a predicate that determines which outputs are active.
-            var predicateOut = GetActiveOutputColumns(active);
-
-            // Now map those to active input columns.
-            var predicateIn = _mapper.GetDependencies(predicateOut);
-
-            return _bindings.Schema.Where(col => col.Index < activeInput.Length && (activeInput[col.Index] || predicateIn(col.Index)));
+            var active = GetActive(predicate, out predicateInput);
+            return _bindings.Schema.Where(col => predicateInput(col.Index));
         }
 
         private Func<int, bool> GetActiveOutputColumns(bool[] active)

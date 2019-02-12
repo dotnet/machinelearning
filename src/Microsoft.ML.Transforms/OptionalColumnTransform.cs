@@ -220,11 +220,10 @@ namespace Microsoft.ML.Transforms
             public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
                 Contracts.AssertValue(dependingColumns);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, AsSchema);
+                Func<int, bool> dependencies = GetDependencies(predicate);
 
-                var active = GetActiveInput(dependingColumns);
-                Contracts.Assert(active.Count() == Input.Count);
-
-                return Input.Where(c => c.Index < active.Length && active[c.Index]);
+                return Input.Where(c => dependencies(c.Index));
             }
         }
 

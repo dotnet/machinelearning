@@ -95,9 +95,10 @@ namespace Microsoft.ML.Trainers.Ensemble
             /// </summary>
             IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                var columnNames = dependingColumns.Select(col => col.Name);
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<Schema.Column>();
 
-                return InputSchema.Where(col => columnNames.Contains(col.Name) && _inputColIndices.Contains(col.Index));
+                return InputSchema.Where(col => _inputColIndices.Contains(col.Index));
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -142,7 +143,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                         var mapperColumns = Mappers[i].OutputSchema.Where(col => mapperPredicate(col.Index));
                         var inputColumns = Mappers[i].GetDependencies(mapperColumns);
 
-                        Func<int, bool> inputPredicate = c => BoundPipelines[i].OutputSchema.Count() < c;
+                        Func<int, bool> inputPredicate = c => inputColumns.Any(col => col.Index == c);
                         var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.

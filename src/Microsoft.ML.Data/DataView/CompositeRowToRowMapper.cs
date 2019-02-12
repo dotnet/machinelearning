@@ -44,7 +44,7 @@ namespace Microsoft.ML.Data
         IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> columnsNeeded)
         {
             for (int i = InnerMappers.Length - 1; i >= 0; --i)
-                columnsNeeded = columnsNeeded.Union(InnerMappers[i].GetDependencies(columnsNeeded));
+                columnsNeeded = InnerMappers[i].GetDependencies(columnsNeeded);
 
             return columnsNeeded;
         }

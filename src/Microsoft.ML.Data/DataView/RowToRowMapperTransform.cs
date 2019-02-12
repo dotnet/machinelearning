@@ -161,8 +161,8 @@ namespace Microsoft.ML.Data
             var predicateIn = _mapper.GetDependencies(predicateOut);
 
             // Combine the two sets of input columns.
-            inputColumns = _bindings.InputSchema.Where(col => (col.Index < activeInput.Length && activeInput[col.Index])
-                                              || predicateIn(col.Index));
+            inputColumns = _bindings.InputSchema.Where(col => col.Index < activeInput.Length
+                                            && (activeInput[col.Index]|| predicateIn(col.Index)));
 
             return active;
         }
