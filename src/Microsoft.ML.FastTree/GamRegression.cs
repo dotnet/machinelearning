@@ -74,7 +74,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new RegressionGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, InputLength, FeatureMap);
         }
 
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
+        internal override ObjectiveFunctionBase CreateObjectiveFunction()
         {
             return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
         }

@@ -116,7 +116,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        internal override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return new ObjectiveImpl(TrainSet, FastTreeTrainerOptions);
         }
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override Test ConstructTestForTrainingData()
+        internal override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }

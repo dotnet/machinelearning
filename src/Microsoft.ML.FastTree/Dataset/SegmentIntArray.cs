@@ -565,7 +565,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 #endif // USE_FASTTREENATIVE
 
-        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        internal override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             using (Timer.Time(TimerEvent.SumupSegment))
             {

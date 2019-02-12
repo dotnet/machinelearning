@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.FastTree
                        FastTreeTrainerOptions.MinDocsPercentageForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinDocsForCategoricalSplit, FastTreeTrainerOptions.Bias);
         }
 
-        public abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase
+        internal abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase
         {
             protected RandomForestObjectiveFunction(Dataset trainData, TArgs args, double maxStepSize)
                 : base(trainData,

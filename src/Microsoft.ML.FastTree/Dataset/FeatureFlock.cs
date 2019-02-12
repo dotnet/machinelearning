@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// are then used in <see cref="LeastSquaresRegressionTreeLearner"/> to find splitting on which bin will yield the
     /// best least squares solution
     /// </summary>
-    public readonly struct PerBinStats
+    internal readonly struct PerBinStats
     {
         /// <summary>Sum of all target values in a partition for the bin.</summary>
         public readonly Double SumTargets;
@@ -967,7 +967,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <see cref="Dataset.MapFeatureToFlockAndSubFeature"/> to see some details of this
     /// dataset-wide versus flock-wide feature index.
     /// </summary>
-    public abstract class FeatureFlockBase
+    internal abstract class FeatureFlockBase
     {
         /// <summary>
         /// The number of features contained within this flock.

@@ -8,7 +8,7 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML
 {
-    public sealed class QuantileStatistics : IQuantileDistribution<float>
+    internal sealed class QuantileStatistics : IQuantileDistribution<float>
     {
         private readonly float[] _data;
         private readonly float[] _weights;

@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ValueMapperCalibratedModelParameters<BinaryClassificationGamModelParameters, PlattCalibrator>(Host, predictor, calibrator);
         }
 
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
+        internal override ObjectiveFunctionBase CreateObjectiveFunction()
         {
             return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(
                 TrainSet,

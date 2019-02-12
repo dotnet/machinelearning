@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return optimizationAlgorithm;
         }
 
-        protected override IGradientAdjuster MakeGradientWrapper(IChannel ch)
+        internal override IGradientAdjuster MakeGradientWrapper(IChannel ch)
         {
             if (!FastTreeTrainerOptions.BestStepRankingRegressionTrees)
                 return base.MakeGradientWrapper(ch);

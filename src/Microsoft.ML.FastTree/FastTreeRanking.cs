@@ -183,7 +183,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        internal override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return new LambdaRankObjectiveFunction(TrainSet, TrainSet.Ratings, FastTreeTrainerOptions, ParallelTraining);
         }
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return optimizationAlgorithm;
         }
 
-        protected override BaggingProvider CreateBaggingProvider()
+        internal override BaggingProvider CreateBaggingProvider()
         {
             Host.Assert(FastTreeTrainerOptions.BaggingSize > 0);
             return new RankingBaggingProvider(TrainSet, FastTreeTrainerOptions.NumLeaves, FastTreeTrainerOptions.RngSeed, FastTreeTrainerOptions.BaggingTrainFraction);
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override Test ConstructTestForTrainingData()
+        internal override Test ConstructTestForTrainingData()
         {
             return new NdcgTest(ConstructScoreTracker(TrainSet), TrainSet.Ratings, FastTreeTrainerOptions.SortingAlgorithm);
         }

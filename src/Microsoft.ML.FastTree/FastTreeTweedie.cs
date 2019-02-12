@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        internal override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return new ObjectiveImpl(TrainSet, FastTreeTrainerOptions);
         }
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // Intentionally empty.
         }
 
-        protected override Test ConstructTestForTrainingData()
+        internal override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }

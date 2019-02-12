@@ -188,7 +188,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FeatureWeightsCalibratedModelParameters<FastTreeBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        internal override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return new ObjectiveImpl(
                 TrainSet,
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Trainers.FastTree
             //Here we set regression labels to what is in bin file if the values were not overriden with floats
         }
 
-        protected override Test ConstructTestForTrainingData()
+        internal override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);
         }

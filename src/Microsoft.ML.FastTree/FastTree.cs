@@ -64,24 +64,24 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected RoleMappedData TestData;
         private protected IParallelTraining ParallelTraining;
         private protected OptimizationAlgorithm OptimizationAlgorithm;
-        protected Dataset TrainSet;
-        protected Dataset ValidSet;
+        internal Dataset TrainSet;
+        internal Dataset ValidSet;
         /// <summary>
         /// Data sets used to evaluate the prediction scores produced the trained model during the triaining process.
         /// </summary>
-        protected Dataset[] TestSets;
+        internal Dataset[] TestSets;
         protected int[] FeatureMap;
         /// <summary>
         /// In the training process, <see cref="TrainSet"/>, <see cref="ValidSet"/>, <see cref="TestSets"/> would be
         /// converted into <see cref="Tests"/> for efficient model evaluation.
         /// </summary>
-        protected List<Test> Tests;
-        protected TestHistory PruningTest;
+        internal List<Test> Tests;
+        internal TestHistory PruningTest;
         protected int[] CategoricalFeatures;
 
         // Test for early stopping.
-        protected Test TrainTest;
-        protected Test ValidTest;
+        internal Test TrainTest;
+        internal Test ValidTest;
 
         protected double[] InitTrainScores;
         protected double[] InitValidScores;
@@ -171,13 +171,13 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract void InitializeTests();
 
-        protected abstract Test ConstructTestForTrainingData();
+        internal abstract Test ConstructTestForTrainingData();
 
         private protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
 
         private protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
-        protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
+        internal abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
 
         protected virtual Float GetMaxLabel()
         {
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Creates weights wrapping (possibly, trivial) for gradient target values.
         /// </summary>
-        protected virtual IGradientAdjuster MakeGradientWrapper(IChannel ch)
+        internal virtual IGradientAdjuster MakeGradientWrapper(IChannel ch)
         {
             if (AreSamplesWeighted(ch))
                 return new QueryWeightsGradientWrapper();
@@ -600,7 +600,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 #endif
 
-        protected virtual BaggingProvider CreateBaggingProvider()
+        internal virtual BaggingProvider CreateBaggingProvider()
         {
             Contracts.Assert(FastTreeTrainerOptions.BaggingSize > 0);
             return new BaggingProvider(TrainSet, FastTreeTrainerOptions.NumLeaves, FastTreeTrainerOptions.RngSeed, FastTreeTrainerOptions.BaggingTrainFraction);
@@ -831,7 +831,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ch.Trace("{0}", FastTreeTrainerOptions);
         }
 
-        protected ScoreTracker ConstructScoreTracker(Dataset set)
+        internal ScoreTracker ConstructScoreTracker(Dataset set)
         {
             // If not found contruct one
             ScoreTracker st = null;

@@ -194,7 +194,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastForestClassificationModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        internal override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, FastTreeTrainerOptions);
         }
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _trainSetLabels = TrainSet.Ratings.Select(x => x >= 1).ToArray(TrainSet.NumDocs);
         }
 
-        protected override Test ConstructTestForTrainingData()
+        internal override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, 1);
         }

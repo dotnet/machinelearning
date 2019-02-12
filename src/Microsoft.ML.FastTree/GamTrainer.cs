@@ -115,15 +115,15 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly double _entropyCoefficient;
 
         //Dataset information
-        protected Dataset TrainSet;
-        protected Dataset ValidSet;
+        internal Dataset TrainSet;
+        internal Dataset ValidSet;
         /// <summary>
         /// Whether a validation set was passed in
         /// </summary>
         protected bool HasValidSet => ValidSet != null;
-        protected ScoreTracker TrainSetScore;
-        protected ScoreTracker ValidSetScore;
-        protected TestHistory PruningTest;
+        internal ScoreTracker TrainSetScore;
+        internal ScoreTracker ValidSetScore;
+        internal TestHistory PruningTest;
         protected int PruningLossIndex;
         protected int InputLength;
         private LeastSquaresRegressionTreeLearner.LeafSplitCandidates _leafSplitCandidates;
@@ -595,7 +595,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ThreadTaskManager.Initialize(numThreads);
         }
 
-        protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
+        internal abstract ObjectiveFunctionBase CreateObjectiveFunction();
 
         private class LeafSplitHelper : ILeafSplitStatisticsCalculator
         {

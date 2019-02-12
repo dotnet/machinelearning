@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public class BaggingProvider
+    internal class BaggingProvider
     {
         protected Dataset CompleteTrainingSet;
         protected DocumentPartitioning CurrentTrainPartition;
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     //REVIEW: Should FastTree binary application have instances bagging or query bagging?
-    public class RankingBaggingProvider : BaggingProvider
+    internal class RankingBaggingProvider : BaggingProvider
     {
         public RankingBaggingProvider(Dataset completeTrainingSet, int maxLeaves, int randomSeed, double trainFraction) :
             base(completeTrainingSet, maxLeaves, randomSeed, trainFraction)

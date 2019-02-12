@@ -211,12 +211,12 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        internal override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return ObjectiveFunctionImplBase.Create(TrainSet, FastTreeTrainerOptions);
         }
 
-        protected override Test ConstructTestForTrainingData()
+        internal override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }
