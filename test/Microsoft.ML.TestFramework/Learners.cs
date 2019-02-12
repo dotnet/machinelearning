@@ -59,14 +59,14 @@ namespace Microsoft.ML.RunTests
         // New.
         public static PredictorAndArgs binarySdca = new PredictorAndArgs
         {
-            Trainer = new SubComponent("SDCA", "maxIterations=5 checkFreq=9 nt=1"),
+            Trainer = new SubComponent("SDCALR", "maxIterations=5 checkFreq=9 nt=1"),
             Tag = "BinarySDCA"
         };
 
         // New.
         public static PredictorAndArgs binarySdcaL1 = new PredictorAndArgs
         {
-            Trainer = new SubComponent("SDCA", "l2=1e-06 l1=0.5 maxIterations=5 checkFreq=9 nt=1"),
+            Trainer = new SubComponent("SDCALR", "l2=1e-06 l1=0.5 maxIterations=5 checkFreq=9 nt=1"),
             Tag = "BinarySDCA-L1"
         };
 

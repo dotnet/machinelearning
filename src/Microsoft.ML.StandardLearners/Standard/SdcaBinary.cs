@@ -2013,7 +2013,7 @@ namespace Microsoft.ML.Trainers
     internal static partial class Sdca
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
-            Desc = "Train an SDCA binary model.",
+            Desc = "Train a linear model to binary classification using SDCA.",
             UserName = SdcaBinaryTrainer.UserNameValue,
             ShortName = SdcaBinaryTrainer.LoadNameValue)]
         internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, SdcaBinaryTrainer.Options input)

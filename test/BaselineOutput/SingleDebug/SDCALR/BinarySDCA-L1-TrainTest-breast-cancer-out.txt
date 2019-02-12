@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=SDCA{l2=1e-06 l1=0.5 maxIterations=5 checkFreq=9 nt=1} dout=%Output% data=%Data% out=%Output% seed=1
+maml.exe TrainTest test=%Data% tr=SDCALR{l2=1e-06 l1=0.5 maxIterations=5 checkFreq=9 nt=1} dout=%Output% data=%Data% out=%Output% seed=1
 Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
 Using 1 thread to train.
 Warning: Skipped 16 instances with missing features/label during training
