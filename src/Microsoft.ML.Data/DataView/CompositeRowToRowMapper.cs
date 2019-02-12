@@ -78,7 +78,7 @@ namespace Microsoft.ML.Data
             for (int i = deps.Length - 1; i >= 1; --i)
             {
                 var outputColumns = InnerMappers[i].OutputSchema.Where(c => deps[i](c.Index));
-                var cols = InnerMappers[i].GetDependencies(outputColumns);
+                var cols = InnerMappers[i].GetDependencies(outputColumns).ToArray();
                 deps[i - 1] = c => cols.Count() > 0 ? cols.Any(col => col.Index == c) : false;
             }
 

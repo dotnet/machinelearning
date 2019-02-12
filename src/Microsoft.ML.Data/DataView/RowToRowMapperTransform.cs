@@ -237,7 +237,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Given a set of columns, return the input columns that are needed to generate those output columns.
+        /// Given a set of output columns, return the input columns that are needed to generate those output columns.
         /// </summary>
         IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
         {

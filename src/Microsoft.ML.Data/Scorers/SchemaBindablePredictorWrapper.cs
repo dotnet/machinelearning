@@ -220,7 +220,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                if (dependingColumns.Count() == 0 || !InputRoleMappedSchema.Feature.HasValue)
+                if (!InputRoleMappedSchema.Feature.HasValue || dependingColumns.Count() == 0)
                     return Enumerable.Empty<Schema.Column>();
 
                 return InputSchema.Where(col => col.Index == InputRoleMappedSchema.Feature.Value.Index);

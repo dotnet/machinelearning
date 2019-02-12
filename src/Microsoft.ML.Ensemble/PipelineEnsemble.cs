@@ -99,8 +99,6 @@ namespace Microsoft.ML.Trainers.Ensemble
                     return Enumerable.Empty<Schema.Column>();
 
                 return InputSchema.Where(col => _inputColIndices.Contains(col.Index));
-
-                //return Enumerable.Repeat(InputSchema.First(col => _inputColIndices.Contains(col.Index)), 1);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

@@ -684,12 +684,8 @@ namespace Microsoft.ML.Transforms
                 var activeOutput = RowCursorUtils.FromColumnsToPredicate(columns, _mapper.OutputSchema);
 
                 var active = new bool[_mapper.InputSchema.Count];
-                var columnCount = _mapper.OutputSchema.Count;
-                for (int colIdx = 0; colIdx < columnCount; ++colIdx)
-                {
-                    if (activeOutput(colIdx))
-                        active[_mapper.GetInputIndex(colIdx)] = true;
-                }
+                foreach (var column in columns)
+                        active[_mapper.GetInputIndex(column.Index)] = true;
 
                 return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }

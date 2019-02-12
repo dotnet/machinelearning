@@ -620,8 +620,6 @@ namespace Microsoft.ML.Internal.Calibration
             /// </summary>
             IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                var columnNames = dependingColumns.Select(col => col.Name);
-
                 if (dependingColumns.Count() > 0)
                     return _predictor.GetDependencies(OutputSchema);
 
