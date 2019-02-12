@@ -4306,7 +4306,7 @@
           }
         },
         {
-          "Name": "NumIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
@@ -4325,11 +4325,12 @@
           }
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "initWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -4467,18 +4468,6 @@
               true
             ]
           }
-        },
-        {
-          "Name": "StreamingCacheSize",
-          "Type": "Int",
-          "Desc": "Size of cache when trained in Scope",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
         }
       ],
       "Outputs": [
@@ -13247,7 +13236,7 @@
           }
         },
         {
-          "Name": "NumIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
@@ -13266,11 +13255,12 @@
           }
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "initWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -13352,18 +13342,6 @@
               true
             ]
           }
-        },
-        {
-          "Name": "StreamingCacheSize",
-          "Type": "Int",
-          "Desc": "Size of cache when trained in Scope",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
         },
         {
           "Name": "BatchSize",
@@ -14272,7 +14250,7 @@
           }
         },
         {
-          "Name": "NumIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
@@ -14291,11 +14269,12 @@
           }
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "initWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -14410,18 +14389,6 @@
               true
             ]
           }
-        },
-        {
-          "Name": "StreamingCacheSize",
-          "Type": "Int",
-          "Desc": "Size of cache when trained in Scope",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
         }
       ],
       "Outputs": [
