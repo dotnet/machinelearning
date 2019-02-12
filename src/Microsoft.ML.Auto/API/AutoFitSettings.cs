@@ -9,7 +9,7 @@ namespace Microsoft.ML.Auto
 {
     internal static class AutoFitDefaults
     {
-        public const uint TimeOutInMinutes = 24 * 60;
+        public const uint TimeoutInSeconds = 60 * 60;
         public const uint MaxIterations = 1000;
     }
 
@@ -32,12 +32,12 @@ namespace Microsoft.ML.Auto
         internal bool DisableSubSampling;
         internal bool DisableCaching;
         internal bool ExternalizeTraining;
-        internal TraceLevel TraceLevel; 
+        internal TraceLevel TraceLevel;
     }
 
     internal class ExperimentStoppingCriteria
     {
-        public uint TimeOutInMinutes = AutoFitDefaults.TimeOutInMinutes;
+        public uint TimeoutInSeconds = AutoFitDefaults.TimeoutInSeconds;
         public uint MaxIterations = AutoFitDefaults.MaxIterations;
         internal bool StopAfterConverging;
         internal double ExperimentExitScore;

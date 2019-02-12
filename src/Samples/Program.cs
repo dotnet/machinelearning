@@ -12,6 +12,12 @@ namespace Samples
         {
             try
             {
+                Cancellation.Run();
+                Console.Clear();
+
+                ProgressHandler.Run();
+                Console.Clear();
+
                 AutoTrainRegression.Run();
                 Console.Clear();
 
@@ -20,10 +26,7 @@ namespace Samples
 
                 AutoTrainMulticlassClassification.Run();
                 Console.Clear();
-
-                EarlyStopping.Run();
-                Console.Clear();
-
+                
                 Console.WriteLine("Done");
             }
             catch (Exception ex)

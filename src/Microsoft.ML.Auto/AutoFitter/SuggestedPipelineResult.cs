@@ -38,7 +38,7 @@ namespace Microsoft.ML.Auto
         public Exception Exception { get; set; }
 
         public int RuntimeInSeconds { get; set; }
-        public int GetPipelineTimeInSeconds { get; set; }
+        public int PipelineInferenceTimeInSeconds { get; set; }
 
         public SuggestedPipelineResult(T evaluatedMetrics, ITransformer model, SuggestedPipeline pipeline, double score, Exception exception)
             : base(pipeline, score, exception == null)
@@ -48,11 +48,9 @@ namespace Microsoft.ML.Auto
             Exception = exception;
         }
 
-        public IterationResult<T> ToIterationResult()
+        public AutoFitRunResult<T> ToIterationResult()
         {
-            var ir = new IterationResult<T>(Model, EvaluatedMetrics, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, GetPipelineTimeInSeconds);
-
-            return ir;
+            return new AutoFitRunResult<T>(Model, EvaluatedMetrics, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
         }
     }
 }

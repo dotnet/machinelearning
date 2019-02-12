@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
@@ -24,9 +25,13 @@ namespace Microsoft.ML.Auto
         private readonly AutoFitSettings _settings;
         private readonly TaskKind _task;
         private readonly IEstimator<ITransformer> _preFeaturizers;
+        private readonly CancellationToken _cancellationToken;
+        private readonly IProgress<AutoFitRunResult<T>> _progressCallback;
 
         private IDataView _trainData;
         private IDataView _validationData;
+
+        List<AutoFitRunResult<T>> iterationResults = new List<AutoFitRunResult<T>>();
 
         public AutoFitter(TaskKind task, 
             IDataView trainData,
@@ -36,6 +41,8 @@ namespace Microsoft.ML.Auto
             IEstimator<ITransformer> preFeaturizers,
             IEnumerable<(string, ColumnPurpose)> purposeOverrides,
             OptimizingMetric metric,
+            CancellationToken cancellationToken,
+            IProgress<AutoFitRunResult<T>> progressCallback,
             IDebugLogger debugLogger)
         {
             _debugLogger = debugLogger;
@@ -49,9 +56,11 @@ namespace Microsoft.ML.Auto
             _task = task;
             _validationData = validationData;
             _preFeaturizers = preFeaturizers;
+            _cancellationToken = cancellationToken;
+            _progressCallback = progressCallback;
         }
 
-        public IEnumerable<IterationResult<T>> Fit()
+        public List<AutoFitRunResult<T>> Fit()
         {
             ITransformer preprocessorTransform = null;
             if (_preFeaturizers != null)
@@ -96,25 +105,34 @@ namespace Microsoft.ML.Auto
                     }
 
                     runResult.RuntimeInSeconds = (int)iterationStopwatch.Elapsed.TotalSeconds;
-                    runResult.GetPipelineTimeInSeconds = (int)getPiplelineStopwatch.Elapsed.TotalSeconds;
+                    runResult.PipelineInferenceTimeInSeconds = (int)getPiplelineStopwatch.Elapsed.TotalSeconds;
                 }
                 catch (Exception ex)
                 {
                     WriteDebugLog(DebugStream.Exception, $"{pipeline?.Trainer} Crashed {ex}");
-
-                    if (runResult == null)
-                    {
-                        runResult = new SuggestedPipelineResult<T>(null, null, pipeline, -1, ex);
-                    }
-                    else
-                    {
-                        runResult = new SuggestedPipelineResult<T>(runResult.EvaluatedMetrics, runResult.Model, runResult.Pipeline, runResult.Score, ex);
-                    }
+                    runResult = new SuggestedPipelineResult<T>(null, null, pipeline, -1, ex);
                 }
 
-                yield return runResult.ToIterationResult();
-            } while (_history.Count < _settings.StoppingCriteria.MaxIterations &&
-                    stopwatch.Elapsed.TotalMinutes < _settings.StoppingCriteria.TimeOutInMinutes);
+                var iterationResult = runResult.ToIterationResult();
+                ReportProgress(iterationResult);
+                iterationResults.Add(iterationResult);
+            } while (!_cancellationToken.IsCancellationRequested &&
+                    _history.Count < _settings.StoppingCriteria.MaxIterations &&
+                    stopwatch.Elapsed.TotalMinutes < _settings.StoppingCriteria.TimeoutInSeconds);
+
+            return iterationResults;
+        }
+
+        private void ReportProgress(AutoFitRunResult<T> iterationResult)
+        {
+            try
+            {
+                _progressCallback?.Report(iterationResult);
+            }
+            catch (Exception ex)
+            {
+                WriteDebugLog(DebugStream.Exception, $"Progress report callback reported exception {ex}");
+            }
         }
 
         private SuggestedPipelineResult<T> ProcessPipeline(SuggestedPipeline pipeline)

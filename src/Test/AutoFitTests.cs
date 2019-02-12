@@ -26,7 +26,7 @@ namespace Microsoft.ML.Auto.Test
                     StoppingCriteria = new ExperimentStoppingCriteria()
                     {
                         MaxIterations = 2,
-                        TimeOutInMinutes = 1000000000
+                        TimeoutInSeconds = 1000000000
                     }
                 }, debugLogger: null);
 
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Auto.Test
                     StoppingCriteria = new ExperimentStoppingCriteria()
                     {
                         MaxIterations = 1,
-                        TimeOutInMinutes = 1000000000
+                        TimeoutInSeconds = 1000000000
                     }
                 }, debugLogger: null);
 
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Auto.Test
                     StoppingCriteria = new ExperimentStoppingCriteria()
                     {
                         MaxIterations = 1,
-                        TimeOutInMinutes = 1000000000
+                        TimeoutInSeconds = 1000000000
                     }
                 }, debugLogger: null);
 

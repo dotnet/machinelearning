@@ -70,8 +70,7 @@ namespace Microsoft.ML.CLI
             if (options.MlTask == TaskKind.BinaryClassification)
             {
                 var result = context.BinaryClassification.AutoFit(trainData, label, validationData, 10);
-                result = result.OrderByDescending(t => t.Metrics.Accuracy);
-                var bestIteration = result.FirstOrDefault();
+                var bestIteration = result.Best();
                 pipelineToDeconstruct = bestIteration.Pipeline;
                 model = bestIteration.Model;
             }
@@ -79,8 +78,7 @@ namespace Microsoft.ML.CLI
             if (options.MlTask == TaskKind.Regression)
             {
                 var result = context.Regression.AutoFit(trainData, label, validationData, 10);
-                result = result.OrderByDescending(t => t.Metrics.RSquared);
-                var bestIteration = result.FirstOrDefault();
+                var bestIteration = result.Best();
                 pipelineToDeconstruct = bestIteration.Pipeline;
                 model = bestIteration.Model;
             }

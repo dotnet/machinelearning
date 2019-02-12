@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
@@ -9,7 +9,7 @@ using Microsoft.ML.Data;
 
 namespace Samples
 {
-    static class AutoTrainRegression
+    static class Cancellation
     {
         private static string BaseDatasetsLocation = @"../../../../src/Samples/Data";
         private static string TrainDataPath = $"{BaseDatasetsLocation}/taxi-fare-train.csv";
@@ -22,7 +22,7 @@ namespace Samples
             //Create ML Context with seed for repeteable/deterministic results
             MLContext mlContext = new MLContext(seed: 0);
 
-            // STEP 1: Common data loading configuration
+            // STEP 1: Infer columns
             var columnInference = mlContext.Data.InferColumns(TrainDataPath, LabelColumnName, ',');
 
             // STEP 2: Load data
@@ -30,22 +30,20 @@ namespace Samples
             IDataView trainDataView = textLoader.Read(TrainDataPath);
             IDataView testDataView = textLoader.Read(TestDataPath);
 
-            // STEP 3: Auto featurize, auto train and auto hyperparameter tuning
+            int cancelAfterInSeconds = 20;
+            CancellationTokenSource cts = new CancellationTokenSource();
+            cts.CancelAfter(cancelAfterInSeconds * 1000);
+
+            Stopwatch watch = Stopwatch.StartNew();
+
+            // STEP 3: Autofit with a cancellation token
             Console.WriteLine($"Invoking Regression.AutoFit");
-            var autoFitResults = mlContext.Regression.AutoFit(trainDataView, LabelColumnName, timeoutInSeconds:1);
-            
-            // STEP 4: Compare and print actual value vs predicted value for top 5 rows from validation data
-            var best = autoFitResults.Best();
-            Console.WriteLine($"RSquared of best model from validation data {best.Metrics.RSquared}");
+            var autoFitResults = mlContext.Regression.AutoFit(trainDataView,
+                                                        LabelColumnName,
+                                                        timeoutInSeconds: 1,
+                                                        cancellationToken: cts.Token);
 
-            // STEP 5: Evaluate test data
-            IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
-            var testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: DefaultColumnNames.Label, DefaultColumnNames.Score);
-            Console.WriteLine($"RSquared of best model from test data {best.Metrics.RSquared}");
-
-            // STEP 6: Save the best model for later deployment and inferencing
-            using (var fs = File.Create(ModelPath))
-                best.Model.SaveTo(mlContext, fs);
+            Console.WriteLine($"{autoFitResults.Count} models were returned after {cancelAfterInSeconds} seconds");
 
             Console.WriteLine("Press any key to continue..");
             Console.ReadLine();
