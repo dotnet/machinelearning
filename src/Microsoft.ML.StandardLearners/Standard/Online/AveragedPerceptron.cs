@@ -26,8 +26,10 @@ namespace Microsoft.ML.Trainers.Online
 {
     /// <summary>
     /// This is averaged perceptron trainer.
-    /// For usage details, please see <see cref="StandardLearnersCatalog.AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
     /// </summary>
+    /// <remarks>
+    /// For usage details, please see <see cref="StandardLearnersCatalog.AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
+    /// </remarks>
     public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
         public const string LoadNameValue = "AveragedPerceptron";
@@ -40,7 +42,7 @@ namespace Microsoft.ML.Trainers.Online
         public sealed class Options : AveragedLinearArguments
         {
             /// <summary>
-            /// The custom <a href="tmpurl_loss">loss</a>. Default is hinge loss.
+            /// The custom <a href="tmpurl_loss">loss</a>.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();
@@ -107,9 +109,9 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weights">The optional name of the weights column.</param>
         /// <param name="learningRate">The learning rate. </param>
-        /// <param name="decreaseLearningRate">Wheather to decrease learning rate as iterations progress.</param>
+        /// <param name="decreaseLearningRate">Whether to decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
-        /// <param name="numIterations">The number of training iteraitons.</param>
+        /// <param name="numIterations">The number of training iterations.</param>
         internal AveragedPerceptronTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -127,7 +129,7 @@ namespace Microsoft.ML.Trainers.Online
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
                 L2RegularizerWeight = l2RegularizerWeight,
-                NumIterations = numIterations,
+                NumberOfIterations = numIterations,
                 LossFunction = new TrivialFactory(lossFunction ?? new HingeLoss())
             })
         {
