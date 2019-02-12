@@ -12,7 +12,7 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class TreeEnsembleCombiner : IModelCombiner
+    internal sealed class TreeEnsembleCombiner : IModelCombiner
     {
         private readonly IHost _host;
         private readonly PredictionKind _kind;
