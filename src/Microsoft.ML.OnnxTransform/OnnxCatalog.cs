@@ -63,7 +63,7 @@ namespace Microsoft.ML
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
-        /// Applies a pre-trained DNN model to featurize an image.
+        /// Creates a new instance of <see cref="DnnImageFeaturizerEstimator"/> which applies a pre-trained DNN model to featurize an image.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">The name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
