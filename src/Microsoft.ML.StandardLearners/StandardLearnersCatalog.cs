@@ -254,6 +254,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/AveragedPerceptronWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, AveragedPerceptronTrainer.Options options)
         {
