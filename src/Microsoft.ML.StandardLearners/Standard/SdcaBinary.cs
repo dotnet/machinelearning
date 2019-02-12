@@ -2026,7 +2026,7 @@ namespace Microsoft.ML.Trainers
             return LearnerEntryPointsUtils.Train<SdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new SdcaBinaryTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
+                maxCalibrationExamples: input.MaxCalibrationExamples);
         }
     }
 }
