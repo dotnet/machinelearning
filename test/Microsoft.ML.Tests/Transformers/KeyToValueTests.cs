@@ -97,9 +97,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             TestEstimatorCore(est.AsDynamic, data2.AsDynamic, invalidInput: data.AsDynamic);
 
+            var data2Transformed = est.Fit(data2).Transform(data2).AsDynamic;
             // Check that term and ToValue are round-trippable.
-            var dataLeft = ColumnSelectingTransformer.CreateKeep(Env, data.AsDynamic, new[] { "ScalarString", "VectorString" });
-            var dataRight = ColumnSelectingTransformer.CreateKeep(Env, est.Fit(data2).Transform(data2).AsDynamic, new[] { "ScalarString", "VectorString" });
+            var dataLeft = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data.AsDynamic).Transform(data.AsDynamic);
+            var dataRight = ML.Transforms.SelectColumns(new[] { "ScalarString", "VectorString" }).Fit(data2Transformed).Transform(data2Transformed);
 
             CheckSameSchemas(dataLeft.Schema, dataRight.Schema);
             CheckSameValues(dataLeft, dataRight);

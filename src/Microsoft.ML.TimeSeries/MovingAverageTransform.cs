@@ -10,20 +10,20 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(MovingAverageTransform.Summary, typeof(MovingAverageTransform), typeof(MovingAverageTransform.Arguments), typeof(SignatureDataTransform),
     "Moving Average Transform", MovingAverageTransform.LoaderSignature, "MoAv")]
 [assembly: LoadableClass(MovingAverageTransform.Summary, typeof(MovingAverageTransform), null, typeof(SignatureLoadDataTransform),
     "Moving Average Transform", MovingAverageTransform.LoaderSignature)]
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// MovingAverageTransform is a weighted average of the values in
     /// the sliding window.
     /// </summary>
-    public sealed class MovingAverageTransform : SequentialTransformBase<Single, Single, MovingAverageTransform.State>
+    internal sealed class MovingAverageTransform : SequentialTransformBase<Single, Single, MovingAverageTransform.State>
     {
         public const string Summary = "Applies a moving average on a time series. Only finite values are taken into account.";
         public const string LoaderSignature = "MovingAverageTransform";
@@ -94,7 +94,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Host.CheckDecode(_weights == null || Utils.Size(_weights) == WindowSize + 1 - _lag);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(WindowSize >= 1);
@@ -107,7 +107,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             // int: _lag
             // Single[]: _weights
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.Write(_lag);
             Host.Assert(_weights == null || Utils.Size(_weights) == WindowSize + 1 - _lag);
             ctx.Writer.WriteSingleArray(_weights);

@@ -19,7 +19,7 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SentimentAnalyzer"]/*' />
-    public static class SentimentAnalyzingTransformer
+    internal static class SentimentAnalyzingTransformer
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Transforms.Text
             input = copyTransformer.Transform(input);
 
             // 8. Drop the temporary column with the score created in (4).
-            return ColumnSelectingTransformer.CreateDrop(env, input, scoreTempName);
+            return ColumnSelectingTransformer.CreateDrop(env, input, scoreTempName) as IDataTransform;
         }
 
         /// <summary>

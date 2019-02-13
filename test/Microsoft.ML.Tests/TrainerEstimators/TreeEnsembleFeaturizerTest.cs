@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
-using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers.FastTree;
 using System;
 using System.Linq;
+using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
+using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -18,7 +17,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TreeEnsembleFeaturizerOutputSchemaTest()
         {
             // Create data set
-            var data = DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(1000).ToList();
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(1000).ToList();
             var dataView = ML.Data.ReadFromEnumerable(data);
 
             // Define a tree model whose trees will be extracted to construct a tree featurizer.
@@ -38,8 +37,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // To get output schema, we need to create RoleMappedSchema for calling Bind(...).
             var roleMappedSchema = new RoleMappedSchema(dataView.Schema,
-                label: nameof(DatasetUtils.BinaryLabelFloatFeatureVectorSample.Label),
-                feature: nameof(DatasetUtils.BinaryLabelFloatFeatureVectorSample.Features));
+                label: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample.Label),
+                feature: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample.Features));
 
             // Retrieve output schema. 
             var boundMapper = (treeFeaturizer as ISchemaBindableMapper).Bind(Env, roleMappedSchema);

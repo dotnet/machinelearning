@@ -4,7 +4,7 @@
 
 using System.Linq;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
     /// A feature flock for a set of features where per example at most one of the features has a

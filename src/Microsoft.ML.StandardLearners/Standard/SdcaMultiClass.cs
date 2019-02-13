@@ -14,7 +14,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
@@ -32,9 +31,9 @@ namespace Microsoft.ML.Trainers
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
     public class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Options, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
-        public const string LoadNameValue = "SDCAMC";
-        public const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
-        public const string ShortName = "sasdcamc";
+        internal const string LoadNameValue = "SDCAMC";
+        internal const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
+        internal const string ShortName = "sasdcamc";
         internal const string Summary = "The SDCA linear multi-class classification trainer.";
 
         public sealed class Options : ArgumentsBase

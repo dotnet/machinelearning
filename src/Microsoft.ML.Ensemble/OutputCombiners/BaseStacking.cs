@@ -13,9 +13,9 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Training;
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    internal abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>
+    internal abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>, ICanSaveModel
     {
         public abstract class ArgumentsBase
         {
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
             CheckMeta();
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Host.Check(Meta != null, "Can't save an untrained Stacking combiner");
             Host.CheckValue(ctx, nameof(ctx));

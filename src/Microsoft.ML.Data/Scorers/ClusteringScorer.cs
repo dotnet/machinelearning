@@ -21,7 +21,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class ClusteringScorer : PredictedLabelScorerBase
+    internal sealed class ClusteringScorer : PredictedLabelScorerBase
     {
         public sealed class Arguments : ScorerArgumentsBase
         {

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
     /// Class for scorers that compute on additional "PredictedLabel" column from the score column.
     /// Currently, this scorer is used for binary classification, multi-class classification, and clustering.
     /// </summary>
-    public abstract class PredictedLabelScorerBase : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
+    internal abstract class PredictedLabelScorerBase : RowToRowScorerBase, ITransformCanSavePfa, ITransformCanSaveOnnx
     {
         public abstract class ThresholdArgumentsBase : ScorerArgumentsBase
         {
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Data
                 return new BindingsImpl(input, rowMapper, suffix, scoreKind, false, scoreColIndex, predColType);
             }
 
-            public override void Save(ModelSaveContext ctx)
+            internal override void SaveModel(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Data
         private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
-            Bindings.Save(ctx);
+            Bindings.SaveModel(ctx);
         }
 
         void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)

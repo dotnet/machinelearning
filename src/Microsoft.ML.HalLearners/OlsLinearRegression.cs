@@ -15,7 +15,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Training;

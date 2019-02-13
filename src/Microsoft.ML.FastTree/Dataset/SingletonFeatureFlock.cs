@@ -5,7 +5,7 @@
 using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
     /// The singleton feature flock is the simplest possible sort of flock, that is, a flock

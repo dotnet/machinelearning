@@ -399,7 +399,7 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
                 chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
@@ -670,7 +670,7 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
                 chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
@@ -721,7 +721,7 @@ namespace Microsoft.ML.RunTests
             if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
-                var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
+                var chooseargs = new ChooseColumnsByIndexTransform.Options();
                 chooseargs.Indices = savable.ToArray();
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
@@ -1096,23 +1096,6 @@ namespace Microsoft.ML.RunTests
                     return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
             }
 
-#if !CORECLR // REVIEW: Port Picture type to CoreTLC.
-            if (type is PictureType)
-            {
-                var g1 = r1.GetGetter<Picture>(col);
-                var g2 = r2.GetGetter<Picture>(col);
-                Picture v1 = null;
-                Picture v2 = null;
-                return
-                    () =>
-                    {
-                        g1(ref v1);
-                        g2(ref v2);
-                        return ComparePicture(v1, v2);
-                    };
-            }
-#endif
-
             throw Contracts.Except("Unknown type in GetColumnComparer: '{0}'", type);
         }
 
@@ -1250,36 +1233,5 @@ namespace Microsoft.ML.RunTests
             vecNGetter(ref fvn);
             Assert.True(CompareVec(in fv, in fvn, size, compare));
         }
-
-#if !CORECLR
-        // REVIEW: Port Picture type to Core TLC.
-        protected bool ComparePicture(Picture v1, Picture v2)
-        {
-            if (v1 == null || v2 == null)
-                return v1 == v2;
-
-            var p1 = v1.Contents.Pixels;
-            var p2 = v2.Contents.Pixels;
-
-            if (p1.Width != p2.Width)
-                return false;
-            if (p1.Height != p2.Height)
-                return false;
-            if (p1.PixelFormat != p2.PixelFormat)
-                return false;
-
-            for (int y = 0; y < p1.Height; y++)
-            {
-                for (int x = 0; x < p1.Width; x++)
-                {
-                    var x1 = p1.GetPixel(x, y);
-                    var x2 = p2.GetPixel(x, y);
-                    if (x1 != x2)
-                        return false;
-                }
-            }
-            return true;
-        }
-#endif
     }
 }

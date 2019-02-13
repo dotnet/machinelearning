@@ -48,7 +48,7 @@ namespace Microsoft.ML
 
             using (var env = new LocalEnvironment(conc: 1))
             {
-                var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments { Count = maxTrainingRows }, data);
+                var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeOptions { Count = maxTrainingRows }, data);
                 return new DataDebuggerPreview(estimator.Fit(trainData).Transform(data), maxRows);
             }
         }

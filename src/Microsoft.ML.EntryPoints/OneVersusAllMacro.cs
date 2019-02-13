@@ -53,7 +53,7 @@ namespace Microsoft.ML.EntryPoints
             Contracts.AssertValue(macroNodes);
 
             // Convert label into T,F based on k.
-            var labelIndicatorArgs = new LabelIndicatorTransform.Arguments();
+            var labelIndicatorArgs = new LabelIndicatorTransform.Options();
             labelIndicatorArgs.ClassIndex = k;
             labelIndicatorArgs.Columns = new[] { new LabelIndicatorTransform.Column() { Name = label, Source = label } };
 

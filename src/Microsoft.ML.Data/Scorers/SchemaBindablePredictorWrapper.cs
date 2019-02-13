@@ -76,7 +76,9 @@ namespace Microsoft.ML.Data
             ScoreType = GetScoreType(Predictor, out ValueMapper);
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected virtual void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -283,11 +285,11 @@ namespace Microsoft.ML.Data
             return new SchemaBindablePredictorWrapper(env, ctx);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.SetVersionInfo(GetVersionInfo());
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         private protected override void SaveAsPfaCore(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
@@ -390,11 +392,11 @@ namespace Microsoft.ML.Data
             return new SchemaBindableBinaryPredictorWrapper(env, ctx);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.SetVersionInfo(GetVersionInfo());
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         private protected override void SaveAsPfaCore(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
@@ -631,7 +633,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckDecode(Utils.Size(_quantiles) > 0);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.SetVersionInfo(GetVersionInfo());
@@ -641,7 +643,7 @@ namespace Microsoft.ML.Data
             // int: the number of quantiles
             // double[]: the quantiles
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             ctx.Writer.WriteDoubleArray(_quantiles);
         }
 

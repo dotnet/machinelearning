@@ -16,7 +16,7 @@ namespace Microsoft.ML.Transforms
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount",
             Desc = CountFeatureSelectingEstimator.Summary,
             UserName = CountFeatureSelectingEstimator.UserName)]
-        public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectingEstimator.Arguments input)
+        public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectingEstimator.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CountSelect");
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms
             Desc = MutualInformationFeatureSelectingEstimator.Summary,
             UserName = MutualInformationFeatureSelectingEstimator.UserName,
             ShortName = MutualInformationFeatureSelectingEstimator.ShortName)]
-        public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectingEstimator.Arguments input)
+        public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectingEstimator.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("MutualInformationSelect");

@@ -11,7 +11,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(Options),
@@ -76,9 +75,9 @@ namespace Microsoft.ML.LightGBM
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, RankingPredictionTransformer<LightGbmRankingModelParameters>, LightGbmRankingModelParameters>
     {
-        public const string UserName = "LightGBM Ranking";
-        public const string LoadNameValue = "LightGBMRanking";
-        public const string ShortName = "LightGBMRank";
+        internal const string UserName = "LightGBM Ranking";
+        internal const string LoadNameValue = "LightGBMRanking";
+        internal const string ShortName = "LightGBMRank";
 
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 

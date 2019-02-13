@@ -387,11 +387,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void NormalizerWithOnFit()
         {
-            var env = new MLContext(0);
+            var ml = new MLContext(0);
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoaderStatic.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(ml,
                 c => c.LoadFloat(0, 2),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -415,9 +415,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Just for fun, let's also write out some of the lines of the data to the console.
             using (var stream = new MemoryStream())
             {
-                IDataView v = ColumnSelectingTransformer.CreateKeep(env, tdata.AsDynamic, new[] { "r", "ncdf", "n", "b" });
-                v = TakeFilter.Create(env, v, 10);
-                var saver = new TextSaver(env, new TextSaver.Arguments()
+                IDataView v = ml.Transforms.SelectColumns("r", "ncdf", "n", "b").Fit(tdata.AsDynamic).Transform(tdata.AsDynamic);
+                v = ml.Data.TakeRows(v, 10);
+                var saver = new TextSaver(ml, new TextSaver.Arguments()
                 {
                     Dense = true,
                     Separator = ",",
@@ -770,10 +770,10 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void NAIndicatorStatic()
         {
-            var env = new MLContext(0);
+            var ml = new MLContext(0);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ml, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -790,12 +790,12 @@ namespace Microsoft.ML.StaticPipelineTesting
                    D: row.VectorDoulbe.IsMissingValue()
                    ));
 
-            IDataView newData = TakeFilter.Create(env, est.Fit(data).Transform(data).AsDynamic, 4);
+            IDataView newData = ml.Data.TakeRows(est.Fit(data).Transform(data).AsDynamic, 4);
             Assert.NotNull(newData);
-            bool[] ScalarFloat = newData.GetColumn<bool>(env, "A").ToArray();
-            bool[] ScalarDouble = newData.GetColumn<bool>(env, "B").ToArray();
-            bool[][] VectorFloat = newData.GetColumn<bool[]>(env, "C").ToArray();
-            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(env, "D").ToArray();
+            bool[] ScalarFloat = newData.GetColumn<bool>(ml, "A").ToArray();
+            bool[] ScalarDouble = newData.GetColumn<bool>(ml, "B").ToArray();
+            bool[][] VectorFloat = newData.GetColumn<bool[]>(ml, "C").ToArray();
+            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(ml, "D").ToArray();
 
             Assert.NotNull(ScalarFloat);
             Assert.NotNull(ScalarDouble);

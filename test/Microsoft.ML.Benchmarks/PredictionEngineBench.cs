@@ -72,8 +72,8 @@ namespace Microsoft.ML.Benchmarks
 
             string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
 
-            var env = new MLContext(seed: 1, conc: 1);
-            var reader = new TextLoader(env, columns: new[]
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var reader = new TextLoader(mlContext, columns: new[]
                         {
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("SentimentText", DataKind.Text, 1)
@@ -83,13 +83,13 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(_sentimentDataPath);
 
-            var pipeline = new TextFeaturizingEstimator(env, "Features", "SentimentText")
-                .Append(env.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
+                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
                     new SdcaBinaryTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
-            _sentimentModel = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(env);
+            _sentimentModel = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(mlContext);
         }
 
         [GlobalSetup(Target = nameof(MakeBreastCancerPredictions))]

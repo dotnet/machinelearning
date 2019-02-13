@@ -14,7 +14,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FastTreeTweedieTrainer.Summary, typeof(FastTreeTweedieTrainer), typeof(FastTreeTweedieTrainer.Options),
@@ -150,7 +149,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="set">The dataset</param>
         /// <returns>The list of regression targets, or null if <paramref name="set"/> was null</returns>
-        public static float[] GetDatasetRegressionLabels(Dataset set)
+        internal static float[] GetDatasetRegressionLabels(Dataset set)
         {
             if (set == null)
                 return null;

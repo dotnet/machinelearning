@@ -10,6 +10,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms.Conversions;
 using Xunit;
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGBMBinaryEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -128,7 +129,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGbmRankingTrainer TrainerEstimator test 
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGBMRankerEstimator()
         {
             var (pipe, dataView) = GetRankingPipeline();
@@ -161,7 +162,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGbmRegressorTrainer TrainerEstimator test 
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGBMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
@@ -237,7 +238,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGbmMulticlass TrainerEstimator test 
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGbmMultiClassEstimator()
         {
             var (pipeline, dataView) = GetMultiClassPipeline();
@@ -331,7 +332,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 floatLabels[i] = labels[i];
 
             // Allocate LightGBM data container (called Dataset in LightGBM world).
-            var gbmDataSet = new Dataset(sampleValueGroupedByColumn, sampleIndicesGroupedByColumn, _columnNumber, sampleNonZeroCntPerColumn, _rowNumber, _rowNumber, "", floatLabels);
+            var gbmDataSet = new LightGBM.Dataset(sampleValueGroupedByColumn, sampleIndicesGroupedByColumn, _columnNumber, sampleNonZeroCntPerColumn, _rowNumber, _rowNumber, "", floatLabels);
 
             // Push training examples into LightGBM data container.
             gbmDataSet.PushRows(dataMatrix, _rowNumber, _columnNumber, 0);
@@ -369,7 +370,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGbmMultiClassEstimatorCompareOva()
         {
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
@@ -401,7 +402,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGbmMultiClassEstimatorCompareSoftMax()
         {
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
@@ -430,7 +431,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGbmInDifferentCulture()
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;

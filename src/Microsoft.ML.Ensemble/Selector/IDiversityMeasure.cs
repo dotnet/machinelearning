@@ -6,10 +6,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
 
-namespace Microsoft.ML.Ensemble.Selector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal interface IDiversityMeasure<TOutput>
     {

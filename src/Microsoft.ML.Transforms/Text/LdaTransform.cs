@@ -340,7 +340,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
                 long memBlockSize = 0;
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Transforms.Text
                 });
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

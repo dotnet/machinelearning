@@ -18,7 +18,6 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(GamModelParametersBase.VisualizationCommand), typeof(GamModelParametersBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
@@ -876,12 +875,17 @@ namespace Microsoft.ML.Trainers.FastTree
                 LoadModelObjects(ch, true, out rawPred, true, out schema, out loader);
                 bool hadCalibrator = false;
 
-                var calibrated = rawPred as CalibratedPredictorBase;
+                // The rawPred has two possible types:
+                //  1. CalibratedPredictorBase<BinaryClassificationGamModelParameters, PlattCalibrator>
+                //  2. RegressionGamModelParameters
+                // For (1), the trained model, GamModelParametersBase, is a field we need to extract. For (2),
+                // we don't need to do anything because RegressionGamModelParameters is derived from GamModelParametersBase.
+                var calibrated = rawPred as CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>;
                 while (calibrated != null)
                 {
                     hadCalibrator = true;
-                    rawPred = calibrated.SubPredictor;
-                    calibrated = rawPred as CalibratedPredictorBase;
+                    rawPred = calibrated.SubModel;
+                    calibrated = rawPred as CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>;
                 }
                 var pred = rawPred as GamModelParametersBase;
                 ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));

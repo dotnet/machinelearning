@@ -22,7 +22,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class LabelConvertTransform : OneToOneTransformBase
+    [BestFriend]
+    internal sealed class LabelConvertTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Transforms
                 });
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

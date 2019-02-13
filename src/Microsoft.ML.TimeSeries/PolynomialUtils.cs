@@ -8,9 +8,9 @@ using System.Linq;
 using System.Numerics;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
-    public static class PolynomialUtils
+    internal static class PolynomialUtils
     {
         // Part 1: Computing the polynomial real and complex roots from its real coefficients
 

@@ -253,7 +253,7 @@ namespace Microsoft.ML.Data
                 ch => new PartitionedFileLoader(host, ctx, files));
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

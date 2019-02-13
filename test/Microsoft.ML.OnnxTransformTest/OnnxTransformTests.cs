@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.StaticPipe;
@@ -21,24 +22,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-
-    /// <summary>
-    /// A Fact attribute for Onnx unit tests. Onnxruntime only supported
-    /// on Windows, Linux (Ubuntu 16.04) and 64-bit platforms.
-    /// </summary>
-    public class OnnxFact : FactAttribute
-    {
-        public OnnxFact()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
-                !Environment.Is64BitProcess)
-            {
-                Skip = "Require 64 bit and Windows or Linux (Ubuntu 16.04).";
-            }
-        }
-    }
-
     public class OnnxTransformTests : TestDataPipeBase
     {
         private const int inputSize = 150528;
@@ -120,7 +103,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = new OnnxScoringEstimator(Env, new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile);
+            var pipe = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "softmaxout_1" }, new[] { "data_0" });
 
             var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
@@ -137,16 +120,12 @@ namespace Microsoft.ML.Tests
             catch (ArgumentOutOfRangeException) { }
             catch (InvalidOperationException) { }
         }
-
-        // x86 not supported
-        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))]
+ 
+        [OnnxTheory]
         [InlineData(null, false)]
         [InlineData(null, true)]
         void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
 
@@ -160,7 +139,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = new[] { "data_0" };
             var outputNames = new[] { "softmaxout_1" };
-            var est = new OnnxScoringEstimator(Env, outputNames, inputNames, modelFile, gpuDeviceId, fallbackToCpu);
+            var est = ML.Transforms.ApplyOnnxModel(modelFile, outputNames, inputNames, gpuDeviceId, fallbackToCpu);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -265,7 +244,7 @@ namespace Microsoft.ML.Tests
                         }
                     });
 
-                var onnx = new OnnxTransformer(env, "softmaxout_1", modelFile, "data_0").Transform(dataView);
+                var onnx = ML.Transforms.ApplyOnnxModel(modelFile, "softmaxout_1", "data_0").Fit(dataView).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
 
@@ -298,7 +277,7 @@ namespace Microsoft.ML.Tests
                             inb = new float[] {1,2,3,4,5}
                         }
                     });
-                var onnx = new OnnxTransformer(env, new[] { "outa", "outb" }, new[] { "ina", "inb" }, modelFile).Transform(dataView);
+                var onnx = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "outa", "outb" }, new[] { "ina", "inb" }).Fit(dataView).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
@@ -336,7 +315,7 @@ namespace Microsoft.ML.Tests
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, 1.2f }},
                 };
             var idv = mlContext.Data.ReadFromEnumerable(data);
-            var pipeline = new OnnxScoringEstimator(mlContext, modelFile);
+            var pipeline = ML.Transforms.ApplyOnnxModel(modelFile);
             var transformedValues = pipeline.Fit(idv).Transform(idv);
             var predictions = mlContext.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();
 

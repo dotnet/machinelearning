@@ -43,6 +43,8 @@
   <PropertyGroup>
     <BenchmarkDotNetVersion>0.11.3</BenchmarkDotNetVersion>
     <MicrosoftMLTestModelsPackageVersion>0.0.3-test</MicrosoftMLTestModelsPackageVersion>
+    <MicrosoftMLTensorFlowTestModelsVersion>0.0.10-test</MicrosoftMLTensorFlowTestModelsVersion>
+    <MicrosoftMLOnnxTestModelsVersion>0.0.4-test</MicrosoftMLOnnxTestModelsVersion>
   </PropertyGroup>
 
 </Project>

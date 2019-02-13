@@ -87,8 +87,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Create a <see cref="KeyToValueMappingTransformer"/> that takes and transforms one column.
         /// </summary>
-        internal KeyToValueMappingTransformer(IHostEnvironment env, string columnName)
-            : this(env, (columnName, columnName))
+        internal KeyToValueMappingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
+            : this(env, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -507,8 +507,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
     public sealed class KeyToValueMappingEstimator : TrivialEstimator<KeyToValueMappingTransformer>
     {
-        internal KeyToValueMappingEstimator(IHostEnvironment env, string columnName)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columnName))
+        internal KeyToValueMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
 

@@ -27,7 +27,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// <summary>
     /// Transform which takes one or many columns with vectors in them and transform them to <see cref="ImageType"/> representation.
     /// </summary>
-    public sealed class VectorToImageTransform : OneToOneTransformBase
+    internal sealed class VectorToImageTransform : OneToOneTransformBase
     {
         public class Column : OneToOneColumn
         {
@@ -195,7 +195,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Interleave = ctx.Reader.ReadBoolByte();
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -306,7 +306,7 @@ namespace Microsoft.ML.ImageAnalytics
                 });
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

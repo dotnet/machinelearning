@@ -110,7 +110,7 @@ namespace Microsoft.ML.Data
                 return col => active[col];
             }
 
-            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
         }
     }
 }

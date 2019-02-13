@@ -26,7 +26,7 @@ using Microsoft.ML.Transforms.Conversions;
 namespace Microsoft.ML.Transforms.Categorical
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
-    public sealed class OneHotEncodingTransformer : ITransformer, ICanSaveModel
+    public sealed class OneHotEncodingTransformer : ITransformer
     {
         public enum OutputKind : byte
         {
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
-        public void Save(ModelSaveContext ctx) => _transformer.Save(ctx);
+        void ICanSaveModel.Save(ModelSaveContext ctx) => (_transformer as ICanSaveModel).Save(ctx);
 
         public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
 
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms.Categorical
             IEstimator<ITransformer> toBinVector = null;
             IEstimator<ITransformer> toVector = null;
             if (binaryCols.Count > 0)
-                toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName)).ToArray());
+                toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => (x.outputColumnName, x.inputColumnName)).ToArray());
             if (cols.Count > 0)
                 toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingEstimator.ColumnInfo(x.outputColumnName, x.inputColumnName, x.bag)).ToArray());
 

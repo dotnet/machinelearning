@@ -880,7 +880,7 @@ namespace Microsoft.ML.Data
                 var idv = dv;
                 if (hidden.Count > 0)
                 {
-                    var args = new ChooseColumnsByIndexTransform.Arguments();
+                    var args = new ChooseColumnsByIndexTransform.Options();
                     args.Drop = true;
                     args.Indices = hidden.ToArray();
                     idv = new ChooseColumnsByIndexTransform(env, args, idv);
@@ -910,12 +910,12 @@ namespace Microsoft.ML.Data
 
                         idv = new KeyToValueMappingTransformer(env, keyCol).Transform(idv);
                         var hidden = FindHiddenColumns(idv.Schema, keyCol);
-                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = hidden.ToArray() }, idv);
+                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = hidden.ToArray() }, idv);
                     }
                     foreach (var keyCol in firstDvKeyNoNamesColumns)
                     {
                         var hidden = FindHiddenColumns(idv.Schema, keyCol.Key);
-                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = hidden.ToArray() }, idv);
+                        idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = hidden.ToArray() }, idv);
                     }
                     return idv;
                 };

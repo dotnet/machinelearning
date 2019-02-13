@@ -16,7 +16,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 using Float = System.Single;
 
-[assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Options), typeof(SignatureDataTransform),
     RangeFilter.UserName, "RangeFilter")]
 
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), null, typeof(SignatureLoadDataTransform),
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms
     [BestFriend]
     internal sealed class RangeFilter : FilterBase
     {
-        public sealed class Arguments : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column", ShortName = "col", SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
             public string Column;
@@ -91,46 +91,46 @@ namespace Microsoft.ML.Transforms
         /// <param name="upperBound">Maximum value (0 to 1 for key types).</param>
         /// <param name="includeUpperBound">Whether to include the upper bound.</param>
         public RangeFilter(IHostEnvironment env, IDataView input, string column, Double lowerBound, Double upperBound, bool includeUpperBound)
-            : this(env, new Arguments() { Column = column, Min = lowerBound, Max = upperBound, IncludeMax = includeUpperBound }, input)
+            : this(env, new Options() { Column = column, Min = lowerBound, Max = upperBound, IncludeMax = includeUpperBound }, input)
         {
         }
 
-        public RangeFilter(IHostEnvironment env, Arguments args, IDataView input)
+        public RangeFilter(IHostEnvironment env, Options options, IDataView input)
             : base(env, RegistrationName, input)
         {
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
             var schema = Source.Schema;
-            if (!schema.TryGetColumnIndex(args.Column, out _index))
-                throw Host.ExceptUserArg(nameof(args.Column), "Source column '{0}' not found", args.Column);
+            if (!schema.TryGetColumnIndex(options.Column, out _index))
+                throw Host.ExceptUserArg(nameof(options.Column), "Source column '{0}' not found", options.Column);
 
             using (var ch = Host.Start("Checking parameters"))
             {
                 _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
-                    throw ch.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible type", args.Column);
+                    throw ch.ExceptUserArg(nameof(options.Column), "Column '{0}' does not have compatible type", options.Column);
                 if (_type is KeyType)
                 {
-                    if (args.Min < 0)
+                    if (options.Min < 0)
                     {
                         ch.Warning("specified min less than zero, will be ignored");
-                        args.Min = null;
+                        options.Min = null;
                     }
-                    if (args.Max > 1)
+                    if (options.Max > 1)
                     {
                         ch.Warning("specified max greater than one, will be ignored");
-                        args.Max = null;
+                        options.Max = null;
                     }
                 }
-                if (args.Min == null && args.Max == null)
-                    throw ch.ExceptUserArg(nameof(args.Min), "At least one of min and max must be specified.");
-                _min = args.Min ?? Double.NegativeInfinity;
-                _max = args.Max ?? Double.PositiveInfinity;
+                if (options.Min == null && options.Max == null)
+                    throw ch.ExceptUserArg(nameof(options.Min), "At least one of min and max must be specified.");
+                _min = options.Min ?? Double.NegativeInfinity;
+                _max = options.Max ?? Double.PositiveInfinity;
                 if (!(_min <= _max))
-                    throw ch.ExceptUserArg(nameof(args.Min), "min must be less than or equal to max");
-                _complement = args.Complement;
-                _includeMin = args.IncludeMin;
-                _includeMax = args.IncludeMax ?? (args.Max == null || (_type is KeyType && _max >= 1));
+                    throw ch.ExceptUserArg(nameof(options.Min), "min must be less than or equal to max");
+                _complement = options.Complement;
+                _includeMin = options.IncludeMin;
+                _includeMax = options.IncludeMax ?? (options.Max == null || (_type is KeyType && _max >= 1));
             }
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Transforms
             return h.Apply("Loading Model", ch => new RangeFilter(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

@@ -5,18 +5,18 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(MultiAverage), typeof(MultiAverage.Arguments), typeof(SignatureCombiner),
     Average.UserName, MultiAverage.LoadName)]
 [assembly: LoadableClass(typeof(MultiAverage), null, typeof(SignatureLoadModel), Average.UserName,
     MultiAverage.LoadName, MultiAverage.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class MultiAverage : BaseMultiAverager, ICanSaveModel
+    public sealed class MultiAverage : BaseMultiAverager
     {
         public const string LoadName = "MultiAverage";
         public const string LoaderSignature = "MultiAverageCombiner";

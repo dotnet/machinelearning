@@ -13,7 +13,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for transformer which produce new columns, but doesn't affect existing ones.
     /// </summary>
-    public abstract class RowToRowTransformerBase : ITransformer, ICanSaveModel
+    public abstract class RowToRowTransformerBase : ITransformer
     {
         protected readonly IHost Host;
 
@@ -23,7 +23,9 @@ namespace Microsoft.ML.Data
             Host = host;
         }
 
-        public abstract void Save(ModelSaveContext ctx);
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected abstract void SaveModel(ModelSaveContext ctx);
 
         public bool IsRowToRowMapper => true;
 
@@ -45,7 +47,8 @@ namespace Microsoft.ML.Data
 
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
 
-        protected RowToRowMapperTransform MakeDataTransform(IDataView input)
+        [BestFriend]
+        private protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
             return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);
@@ -109,7 +112,9 @@ namespace Microsoft.ML.Data
             [BestFriend]
             private protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput);
 
-            public abstract void Save(ModelSaveContext ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+            private protected abstract void SaveModel(ModelSaveContext ctx);
 
             public ITransformer GetTransformer() => _parent;
         }
