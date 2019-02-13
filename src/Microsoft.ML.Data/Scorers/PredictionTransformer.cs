@@ -54,6 +54,10 @@ namespace Microsoft.ML.Data
         private protected ISchemaBindableMapper BindableMapper;
         protected Schema TrainSchema;
 
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
         public bool IsRowToRowMapper => true;
 
         /// <summary>

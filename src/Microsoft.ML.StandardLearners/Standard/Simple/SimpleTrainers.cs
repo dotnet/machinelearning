@@ -38,7 +38,6 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// A trainer that trains a predictor that returns random values
     /// </summary>
-
     public sealed class RandomTrainer : TrainerBase<RandomModelParameters>,
         ITrainerEstimator<BinaryPredictionTransformer<RandomModelParameters>, RandomModelParameters>
     {
@@ -46,13 +45,19 @@ namespace Microsoft.ML.Trainers
         internal const string UserNameValue = "Random Predictor";
         internal const string Summary = "A toy predictor that returns a random value.";
 
-        public sealed class Options
+        internal sealed class Options
         {
         }
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
+
+        /// <summary>
+        /// Auxiliary information about the trainer in terms of its capabilities
+        /// and requirements.
+        /// </summary>
         public override TrainerInfo Info => _info;
 
         /// <summary>
@@ -69,6 +74,9 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(options, nameof(options));
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="ITransformer"/>.
+        /// </summary>
         public BinaryPredictionTransformer<RandomModelParameters> Fit(IDataView input)
         {
             RoleMappedData trainRoles = new RoleMappedData(input);
@@ -82,6 +90,10 @@ namespace Microsoft.ML.Trainers
             return new RandomModelParameters(Host, Host.Rand.Next());
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -127,6 +139,7 @@ namespace Microsoft.ML.Trainers
         private readonly object _instanceLock;
         private readonly Random _random;
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private readonly ColumnType _inputType;
@@ -139,7 +152,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="seed">The random seed.</param>
-        public RandomModelParameters(IHostEnvironment env, int seed)
+        internal RandomModelParameters(IHostEnvironment env, int seed)
             : base(env, LoaderSignature)
         {
             _seed = seed;
@@ -249,9 +262,15 @@ namespace Microsoft.ML.Trainers
         private readonly String _labelColumnName;
         private readonly String _weightColumnName;
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
+
+        /// <summary>
+        /// Auxiliary information about the trainer in terms of its capabilities
+        /// and requirements.
+        /// </summary>
         public override TrainerInfo Info => _info;
 
         internal PriorTrainer(IHostEnvironment env, Options options)
@@ -273,6 +292,9 @@ namespace Microsoft.ML.Trainers
             _weightColumnName = weightColunn != null ? weightColunn : null;
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="ITransformer"/>.
+        /// </summary>
         public BinaryPredictionTransformer<PriorModelParameters> Fit(IDataView input)
         {
             RoleMappedData trainRoles = new RoleMappedData(input, feature: null, label: _labelColumnName, weight: _weightColumnName);
@@ -332,6 +354,10 @@ namespace Microsoft.ML.Trainers
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
             => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -376,7 +402,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="prob">The probability of the positive class.</param>
-        public PriorModelParameters(IHostEnvironment env, float prob)
+        internal PriorModelParameters(IHostEnvironment env, float prob)
             : base(env, LoaderSignature)
         {
             Host.Check(!float.IsNaN(prob));

@@ -242,6 +242,7 @@ namespace Microsoft.ML.Trainers
         private readonly TDistPredictor[] _predictors;
         private readonly IValueMapperDist[] _mappers;
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         private readonly VectorType _inputType;
         private readonly ColumnType _outputType;

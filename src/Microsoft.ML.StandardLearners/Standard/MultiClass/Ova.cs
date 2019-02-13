@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
@@ -54,6 +55,9 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         internal sealed class Options : ArgumentsBase
         {
+            /// <summary>
+            /// Whether to use probabilities (vs. raw outputs) to identify top-score category.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use probability or margins to determine max", ShortName = "useprob")]
             [TGUI(Label = "Use Probability", Description = "Use probabilities (vs. raw outputs) to identify top-score category")]
             public bool UseProbabilities = true;
@@ -169,6 +173,7 @@ namespace Microsoft.ML.Trainers
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         public override MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView input)
         {
             var roles = new KeyValuePair<CR, string>[1];
@@ -227,6 +232,7 @@ namespace Microsoft.ML.Trainers
 
         public ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         /// <summary>

@@ -580,8 +580,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a random binary classification model <see cref="RandomTrainer"/>.
+        /// Predict a target using the random binary classification model <see cref="RandomTrainer"/>.
         /// </summary>
+        /// <remarks>
+        /// This trainer can be used as a baseline for other more sophisticated mdels.
+        /// </remarks>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         public static RandomTrainer Random(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog)
         {
@@ -592,6 +595,10 @@ namespace Microsoft.ML
         /// <summary>
         /// Predict a target using a binary classification model trained with <see cref="PriorTrainer"/> trainer.
         /// </summary>
+        /// <remarks>
+        /// This trainer uses the proportion of a label in the training set as the probability of that label.
+        /// This trainer is often used as a baseline for other more sophisticated mdels.
+        /// </remarks>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumn">The name of the label column. </param>
         /// <param name="weightsColumn">The optional name of the weights column.</param>

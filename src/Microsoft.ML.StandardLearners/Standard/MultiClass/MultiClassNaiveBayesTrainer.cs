@@ -39,9 +39,15 @@ namespace Microsoft.ML.Trainers
         {
         }
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
+
+        /// <summary>
+        /// Auxiliary information about the trainer in terms of its capabilities
+        /// and requirements.
+        /// </summary>
         public override TrainerInfo Info => _info;
 
         /// <summary>
@@ -201,6 +207,7 @@ namespace Microsoft.ML.Trainers
         private readonly VectorType _inputType;
         private readonly VectorType _outputType;
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         ColumnType IValueMapper.InputType => _inputType;
