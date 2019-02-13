@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
@@ -22,9 +22,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void OVAWithAllConstructorArgs()
         {
             var (pipeline, data) = GetMultiClassPipeline();
-            var calibrator = new PlattCalibratorTrainer(Env);
+            var calibrator = new PlattCalibratorEstimator(Env);
             var averagePerceptron = ML.BinaryClassification.Trainers.AveragedPerceptron(
-                new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null });
+                new AveragedPerceptronTrainer.Options { Shuffle = true });
 
             var ova = ML.MulticlassClassification.Trainers.OneVersusAll(averagePerceptron, imputeMissingLabelsAsNegative: true,
                 calibrator: calibrator, maxCalibrationExamples: 10000, useProbabilities: true);
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetMultiClassPipeline();
             var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1, Calibrator = null });
+                new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
 
             pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer, useProbabilities: false))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));

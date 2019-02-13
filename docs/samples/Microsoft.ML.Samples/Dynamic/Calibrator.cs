@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Linq;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
@@ -75,7 +79,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's train a calibrator estimator on this scored dataset. The trained calibrator estimator produces a transformer
             // that can transform the scored data by adding a new column names "Probability". 
-            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, model, "Sentiment", "Features");
+            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, "Sentiment", "Score");
             var calibratorTransformer = calibratorEstimator.Fit(scoredData);
 
             // Transform the scored data with a calibrator transfomer by adding a new column names "Probability". 
