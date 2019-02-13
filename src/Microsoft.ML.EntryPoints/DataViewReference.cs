@@ -11,7 +11,7 @@ using Microsoft.ML.EntryPoints;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public class DataViewReference
+    internal static class DataViewReference
     {
         public sealed class Input
         {
