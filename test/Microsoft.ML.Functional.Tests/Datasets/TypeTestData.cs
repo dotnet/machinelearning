@@ -4,11 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML;
 using Microsoft.ML.Data;
-using Xunit;
 
 namespace Microsoft.ML.Functional.Tests.Datasets
 {
@@ -21,56 +18,59 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     /// </remarks>
     internal sealed class TypeTestData
     {
+        private const int _numFeatures = 10;
+
         [LoadColumn(0)]
         public bool Label { get; set; }
 
-        [LoadColumn(1, 5), VectorType(5)]
-        public float[] Features { get; set; }
-
-        [LoadColumn(6)]
+        [LoadColumn(1)]
         public sbyte I1 { get; set; }
 
-        [LoadColumn(7)]
+        [LoadColumn(2)]
         public byte U1 { get; set; }
 
-        [LoadColumn(8)]
+        [LoadColumn(3)]
         public short I2 { get; set; }
 
-        [LoadColumn(9)]
+        [LoadColumn(4)]
         public ushort U2 { get; set; }
 
-        [LoadColumn(10)]
+        [LoadColumn(5)]
         public int I4 { get; set; }
 
-        [LoadColumn(11)]
+        [LoadColumn(6)]
         public uint U4 { get; set; }
 
-        [LoadColumn(12)]
+        [LoadColumn(7)]
         public long I8 { get; set; }
 
-        [LoadColumn(13)]
+        [LoadColumn(8)]
         public ulong U8 { get; set; }
 
-        [LoadColumn(14)]
+        [LoadColumn(9)]
         public float R4 { get; set; }
 
-        [LoadColumn(15)]
+        [LoadColumn(10)]
         public double R8 { get; set; }
 
-        [LoadColumn(16)]
+        [LoadColumn(11)]
         public ReadOnlyMemory<char> Tx { get; set; }
 
-        [LoadColumn(17)]
+        [LoadColumn(12)]
         public TimeSpan Ts { get; set; }
 
-        [LoadColumn(18)]
+        [LoadColumn(13)]
         public DateTime Dt { get; set; }
 
-        [LoadColumn(19)]
+        [LoadColumn(14)]
         public DateTimeOffset Dz { get; set; }
 
-        [LoadColumn(20)]
+        [LoadColumn(15)]
         public RowId Ug { get; set; }
+
+        [LoadColumn(16, 16 + _numFeatures - 1), VectorType(_numFeatures)]
+        public float[] Features { get; set; }
+
 
         /// <summary>
         /// Get the text loader for the <see cref="TypeTestData"/> dataset.
@@ -83,22 +83,22 @@ namespace Microsoft.ML.Functional.Tests.Datasets
             return mlContext.Data.CreateTextLoader(
                     new[] {
                         new TextLoader.Column("Label", DataKind.Bool, 0),
-                        new TextLoader.Column("Features", DataKind.R4, 1, 5),
-                        new TextLoader.Column("I1", DataKind.I1, 6),
-                        new TextLoader.Column("U1", DataKind.U1, 7),
-                        new TextLoader.Column("I2", DataKind.I2, 8),
-                        new TextLoader.Column("U2", DataKind.U2, 9),
-                        new TextLoader.Column("I4", DataKind.I4, 10),
-                        new TextLoader.Column("U4", DataKind.U4, 11),
-                        new TextLoader.Column("I8", DataKind.I8, 12),
-                        new TextLoader.Column("U8", DataKind.U8, 13),
-                        new TextLoader.Column("R4", DataKind.R4, 14),
-                        new TextLoader.Column("R8", DataKind.R8, 15),
-                        new TextLoader.Column("Tx", DataKind.TX, 16),
-                        new TextLoader.Column("Ts", DataKind.TS, 17),
-                        new TextLoader.Column("Dt", DataKind.DT, 18),
-                        new TextLoader.Column("Dz", DataKind.DZ, 19),
-                        new TextLoader.Column("Ug", DataKind.UG, 20),
+                        new TextLoader.Column("I1", DataKind.I1, 1),
+                        new TextLoader.Column("U1", DataKind.U1, 2),
+                        new TextLoader.Column("I2", DataKind.I2, 3),
+                        new TextLoader.Column("U2", DataKind.U2, 4),
+                        new TextLoader.Column("I4", DataKind.I4, 5),
+                        new TextLoader.Column("U4", DataKind.U4, 6),
+                        new TextLoader.Column("I8", DataKind.I8, 7),
+                        new TextLoader.Column("U8", DataKind.U8, 8),
+                        new TextLoader.Column("R4", DataKind.R4, 9),
+                        new TextLoader.Column("R8", DataKind.R8, 10),
+                        new TextLoader.Column("Tx", DataKind.TX, 11),
+                        new TextLoader.Column("Ts", DataKind.TS, 12),
+                        new TextLoader.Column("Dt", DataKind.DT, 13),
+                        new TextLoader.Column("Dz", DataKind.DZ, 14),
+                        new TextLoader.Column("Ug", DataKind.UG, 15),
+                        new TextLoader.Column("Features", DataKind.R4, 16, 16 + _numFeatures-1),
                     },
                     hasHeader: true,
                     separatorChar: separator);
@@ -132,13 +132,6 @@ namespace Microsoft.ML.Functional.Tests.Datasets
             return new TypeTestData
             {
                 Label = rng.NextDouble() > 0.5,
-                Features = new float[] {
-                        (float)rng.NextDouble(),
-                        (float)rng.NextDouble(),
-                        (float)rng.NextDouble(),
-                        (float)rng.NextDouble(),
-                        (float)rng.NextDouble()
-                    },
                 I1 = (sbyte)rng.Next(),
                 U1 = (byte)rng.Next(),
                 I2 = (short)rng.Next(),
@@ -153,7 +146,8 @@ namespace Microsoft.ML.Functional.Tests.Datasets
                 Ts = TimeSpan.FromSeconds(rng.NextDouble() * (1 + rng.Next())),
                 Dt = DateTime.FromOADate(rng.Next(657435, 2958465)),
                 Dz = DateTimeOffset.FromUnixTimeSeconds((long)(rng.NextDouble() * (1 + rng.Next()))),
-                Ug = new RowId((ulong)rng.Next(), (ulong)rng.Next())
+                Ug = new RowId((ulong)rng.Next(), (ulong)rng.Next()),
+                Features = GetRandomFloatArray(rng, _numFeatures),
             };
         }
 
@@ -163,6 +157,14 @@ namespace Microsoft.ML.Functional.Tests.Datasets
             for (int i = 0; i < length; i++)
                 chars[i] = (char)(32 + rng.Next(0, 94)); // From space to ~.
             return new ReadOnlyMemory<char>(chars);
+        }
+
+        private static float[] GetRandomFloatArray(Random rng, int length)
+        {
+            var floatArray = new float[length];
+            for (int i = 0; i < length; i++)
+                floatArray[i] = (float)rng.NextDouble();
+            return floatArray;
         }
     }
 }
