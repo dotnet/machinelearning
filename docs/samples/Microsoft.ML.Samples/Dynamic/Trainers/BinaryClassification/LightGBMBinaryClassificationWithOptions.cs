@@ -7,7 +7,7 @@ namespace Microsoft.ML.Samples.Dynamic
     class LightGbmBinaryClassificationWithOptions
     {
         /// <summary>
-        /// This example require installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>
+        /// This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>
         /// </summary>
         public static void Example()
         {
