@@ -7,12 +7,10 @@ using System.IO;
 using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {

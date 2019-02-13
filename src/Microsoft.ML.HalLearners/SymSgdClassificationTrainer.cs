@@ -9,7 +9,6 @@ using System.Security;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
@@ -30,7 +29,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers.HalLearners
 {
-    using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>;
+    using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
     public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>

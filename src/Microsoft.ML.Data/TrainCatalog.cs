@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
@@ -190,7 +188,8 @@ namespace Microsoft.ML
             return result;
         }
 
-        protected internal TrainCatalogBase(IHostEnvironment env, string registrationName)
+        [BestFriend]
+        private protected TrainCatalogBase(IHostEnvironment env, string registrationName)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(registrationName, nameof(registrationName));
