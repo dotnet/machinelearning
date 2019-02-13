@@ -7,8 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Core.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// A set of 'requirements' to the incoming schema, as well as a set of 'promises' of the outgoing schema.
@@ -263,7 +264,7 @@ namespace Microsoft.ML.Core.Data
     /// The transformer is a component that transforms data.
     /// It also supports 'schema propagation' to answer the question of 'how will the data with this schema look, after you transform it?'.
     /// </summary>
-    public interface ITransformer
+    public interface ITransformer : ICanSaveModel
     {
         /// <summary>
         /// Schema propagation for transformers.

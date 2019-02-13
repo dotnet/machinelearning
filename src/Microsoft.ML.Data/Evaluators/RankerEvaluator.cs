@@ -597,11 +597,11 @@ namespace Microsoft.ML.Data
             return h.Apply("Loading Model", ch => new RankerPerInstanceTransform(h, ctx, input));
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-            _transform.Save(ctx);
+            ((ICanSaveModel)_transform).Save(ctx);
         }
 
         public long? GetRowCount()
@@ -715,7 +715,7 @@ namespace Microsoft.ML.Data
                 _bindings = new Bindings(Host, input.Schema, false, LabelCol, ScoreCol, GroupCol, _truncationLevel);
             }
 
-            public override void Save(ModelSaveContext ctx)
+            private protected override void SaveModel(ModelSaveContext ctx)
             {
                 Host.AssertValue(ctx);
 
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Data
                 // int: _labelGains.Length
                 // double[]: _labelGains
 
-                base.Save(ctx);
+                base.SaveModel(ctx);
                 Host.Assert(0 < _truncationLevel && _truncationLevel < 100);
                 ctx.Writer.Write(_truncationLevel);
                 ctx.Writer.WriteDoubleArray(_labelGains);

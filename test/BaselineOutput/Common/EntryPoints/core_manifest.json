@@ -11607,6 +11607,15 @@
           }
         },
         {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -12100,6 +12109,15 @@
               10
             ]
           }
+        },
+        {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
         },
         {
           "Name": "ParallelTrainer",
@@ -12597,6 +12615,15 @@
           }
         },
         {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -13090,6 +13117,15 @@
               10
             ]
           }
+        },
+        {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
         },
         {
           "Name": "ParallelTrainer",

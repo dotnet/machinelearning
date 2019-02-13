@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -124,7 +123,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// The <see cref="ColumnSelectingTransformer"/> allows the user to specify columns to drop or keep from a given input.
     /// </summary>
-    public sealed class ColumnSelectingTransformer : ITransformer, ICanSaveModel
+    public sealed class ColumnSelectingTransformer : ITransformer
     {
         internal const string Summary = "Selects which columns from the dataset to keep.";
         internal const string UserName = "Select Columns Transform";
@@ -417,7 +416,9 @@ namespace Microsoft.ML.Transforms
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        internal void SaveModel(ModelSaveContext ctx)
         {
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -678,7 +679,7 @@ namespace Microsoft.ML.Transforms
                 return cursors;
             }
 
-            public void Save(ModelSaveContext ctx) => _transform.Save(ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => _transform.SaveModel(ctx);
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {

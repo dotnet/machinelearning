@@ -10,6 +10,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Normalizers;
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Scenarios
             public float[] b;
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var modelLocation = "model_matmul/frozen_saved_model.pb";
@@ -74,6 +75,117 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
+        private class ShapeData
+        {
+            // Data will be passed as 1-D vector.
+            // Intended data shape [5], model shape [None]
+            [VectorType(5)]
+            public float[] OneDim;
+
+            // Data will be passed as flat vector.
+            // Intended data shape [2,2], model shape [2, None]
+            [VectorType(4)]
+            public float[] TwoDim;
+
+            // Data will be passed as 3-D vector.
+            // Intended data shape [1, 2, 2], model shape [1, None, 2]
+            [VectorType(1, 2, 2)]
+            public float[] ThreeDim;
+
+            // Data will be passed as flat vector.
+            // Intended data shape [1, 2, 2, 3], model shape [1, None, None, 3]
+            [VectorType(12)]
+            public float[] FourDim;
+
+            // Data will be passed as 4-D vector.
+            // Intended data shape [2, 2, 2, 2], model shape [2, 2, 2, 2]
+            [VectorType(2, 2, 2, 2)]
+            public float[] FourDimKnown;
+        }
+
+        private List<ShapeData> GetShapeData()
+        {
+            return new List<ShapeData>(new ShapeData[] {
+                        new ShapeData() {   OneDim = new[] { 0.1f, 0.2f, 0.3f, 0.4f, 0.5f },
+                                            TwoDim = new[] { 1.0f, 2.0f, 3.0f, 4.0f },
+                                            ThreeDim = new[] { 11.0f, 12.0f, 13.0f, 14.0f },
+                                            FourDim = new[]{ 21.0f, 22.0f, 23.0f, 24.0f, 25.0f, 26.0f,
+                                                             27.0f, 28.0f, 29.0f, 30.0f, 31.0f, 32.0f },
+                                            FourDimKnown = new[]{ 41.0f , 42.0f, 43.0f, 44.0f, 45.0f, 46.0f, 47.0f, 48.0f,
+                                                                  49.0f , 50.0f, 51.0f, 52.0f, 53.0f, 54.0f, 55.0f, 56.0f}
+                                        },
+                        new ShapeData() {   OneDim = new[] { 100.1f, 100.2f, 100.3f, 100.4f, 100.5f },
+                                            TwoDim = new[] { 101.0f, 102.0f, 103.0f, 104.0f },
+                                            ThreeDim = new[] { 111.0f, 112.0f, 113.0f, 114.0f },
+                                            FourDim = new[]{ 121.0f, 122.0f, 123.0f, 124.0f, 125.0f, 126.0f,
+                                                             127.0f, 128.0f, 129.0f, 130.0f, 131.0f, 132.0f},
+                                            FourDimKnown = new[]{ 141.0f , 142.0f, 143.0f, 144.0f, 145.0f, 146.0f, 147.0f, 148.0f,
+                                                                  149.0f , 150.0f, 151.0f, 152.0f, 153.0f, 154.0f, 155.0f, 156.0f }
+                                        }
+                });
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        public void TensorFlowTransformInputShapeTest()
+        {
+            var modelLocation = "model_shape_test";
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var data = GetShapeData();
+            // Pipeline
+            var loader = mlContext.Data.ReadFromEnumerable(data);
+            var inputs = new string[] { "OneDim", "TwoDim", "ThreeDim", "FourDim", "FourDimKnown" };
+            var outputs = new string[] { "o_OneDim", "o_TwoDim", "o_ThreeDim", "o_FourDim", "o_FourDimKnown" };
+
+            var trans = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, outputs, inputs).Fit(loader).Transform(loader);
+
+            using (var cursor = trans.GetRowCursorForAllColumns())
+            {
+                int outColIndex = 5;
+                var oneDimgetter = cursor.GetGetter<VBuffer<float>>(outColIndex);
+                var twoDimgetter = cursor.GetGetter<VBuffer<float>>(outColIndex + 1);
+                var threeDimgetter = cursor.GetGetter<VBuffer<float>>(outColIndex + 2);
+                var fourDimgetter = cursor.GetGetter<VBuffer<float>>(outColIndex + 3);
+                var fourDimKnowngetter = cursor.GetGetter<VBuffer<float>>(outColIndex + 4);
+
+                VBuffer<float> oneDim = default;
+                VBuffer<float> twoDim = default;
+                VBuffer<float> threeDim = default;
+                VBuffer<float> fourDim = default;
+                VBuffer<float> fourDimKnown = default;
+                foreach (var sample in data)
+                {
+                    Assert.True(cursor.MoveNext());
+
+                    oneDimgetter(ref oneDim);
+                    twoDimgetter(ref twoDim);
+                    threeDimgetter(ref threeDim);
+                    fourDimgetter(ref fourDim);
+                    fourDimKnowngetter(ref fourDimKnown);
+
+                    var oneDimValues = oneDim.GetValues();
+                    Assert.Equal(sample.OneDim.Length, oneDimValues.Length);
+                    Assert.True(oneDimValues.SequenceEqual(sample.OneDim));
+
+                    var twoDimValues = twoDim.GetValues();
+                    Assert.Equal(sample.TwoDim.Length, twoDimValues.Length);
+                    Assert.True(twoDimValues.SequenceEqual(sample.TwoDim));
+
+                    var threeDimValues = threeDim.GetValues();
+                    Assert.Equal(sample.ThreeDim.Length, threeDimValues.Length);
+                    Assert.True(threeDimValues.SequenceEqual(sample.ThreeDim));
+
+                    var fourDimValues = fourDim.GetValues();
+                    Assert.Equal(sample.FourDim.Length, fourDimValues.Length);
+                    Assert.True(fourDimValues.SequenceEqual(sample.FourDim));
+
+                    var fourDimKnownValues = fourDimKnown.GetValues();
+                    Assert.Equal(sample.FourDimKnown.Length, fourDimKnownValues.Length);
+                    Assert.True(fourDimKnownValues.SequenceEqual(sample.FourDimKnown));
+                }
+                Assert.False(cursor.MoveNext());
+            }
+        }
+
         private class TypesData
         {
             [VectorType(2)]
@@ -103,7 +215,7 @@ namespace Microsoft.ML.Scenarios
         /// <summary>
         /// Test to ensure the supported datatypes can passed to TensorFlow .
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowTransformInputOutputTypesTest()
         {
             // This an identity model which returns the same output as input.
@@ -142,7 +254,7 @@ namespace Microsoft.ML.Scenarios
 
             var loader = mlContext.Data.ReadFromEnumerable(data);
 
-            var inputs = new string[]{"f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8","b"};
+            var inputs = new string[] { "f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "b" };
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
             var trans = mlContext.Transforms.ScoreTensorFlowModel(model_location, outputs, inputs).Fit(loader).Transform(loader); ;
 
@@ -160,7 +272,7 @@ namespace Microsoft.ML.Scenarios
                 var u8getter = cursor.GetGetter<VBuffer<byte>>(20);
                 var boolgetter = cursor.GetGetter<VBuffer<bool>>(21);
 
-               
+
                 VBuffer<double> f64 = default;
                 VBuffer<float> f32 = default;
                 VBuffer<long> i64 = default;
@@ -297,7 +409,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowInputsOutputsSchemaTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
@@ -374,7 +486,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowTransformMNISTConvTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
@@ -412,7 +524,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowTransformMNISTLRTrainingTest()
         {
             const double expectedMicroAccuracy = 0.72173913043478266;
@@ -433,7 +545,7 @@ namespace Microsoft.ML.Scenarios
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("OneHotLabel", "Label")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumn("Features", "Placeholder")))
-                    .Append(mlContext.Transforms.TensorFlow(new TensorFlowTransformer.Options()
+                    .Append(mlContext.Transforms.TensorFlow(new TensorFlowEstimator.Options()
                     {
                         ModelLocation = model_location,
                         InputColumns = new[] { "Features" },
@@ -449,7 +561,7 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     }))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
-                    .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel","Label", maxNumKeys: 10))
+                    .Append(mlContext.Transforms.Conversion.MapValueToKey("KeyLabel", "Label", maxNumKeys: 10))
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("KeyLabel", "Features"));
 
                 var trainedModel = pipe.Fit(trainData);
@@ -497,14 +609,17 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowTransformMNISTConvTrainingTest()
         {
-            ExecuteTFTransformMNISTConvTrainingTest(false, null, 0.74782608695652175, 0.608843537414966);
-            ExecuteTFTransformMNISTConvTrainingTest(true, 5, 0.75652173913043474, 0.610204081632653);
+            double expectedMicro = 0.73304347826086956;
+            double expectedMacro = 0.677551020408163;
+
+            ExecuteTFTransformMNISTConvTrainingTest(false, null, expectedMicro, expectedMacro);
+            ExecuteTFTransformMNISTConvTrainingTest(true, 5, expectedMicro, expectedMacro);
         }
 
-        private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
+        private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccuracy)
         {
             const string modelLocation = "mnist_conv_model";
             try
@@ -547,7 +662,7 @@ namespace Microsoft.ML.Scenarios
                 }
 
                 var pipe = mlContext.Transforms.CopyColumns(("Features", "Placeholder"))
-                    .Append(mlContext.Transforms.TensorFlow(new TensorFlowTransformer.Options()
+                    .Append(mlContext.Transforms.TensorFlow(new TensorFlowEstimator.Options()
                     {
                         ModelLocation = modelLocation,
                         InputColumns = new[] { "Features" },
@@ -565,15 +680,20 @@ namespace Microsoft.ML.Scenarios
                     }))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
+                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGBM.Options()
+                    {
+                        LabelColumn = "Label",
+                        FeatureColumn = "Features",
+                        Seed = 1,
+                        NThread = 1,
+                        NumBoostRound = 1
+                    }));
 
                 var trainedModel = pipe.Fit(preprocessedTrainData);
                 var predicted = trainedModel.Transform(preprocessedTestData);
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
-
-                // First group of checks. They check if the overall prediction quality is ok using a test set.
-                Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy - .01, expectedMicroAccuracy + .01);
-                Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy - .01, expectedMicroAccuracy + .01);
+                Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy - 0.1, expectedMicroAccuracy + 0.1);
+                Assert.InRange(metrics.AccuracyMacro, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
 
                 // Create prediction function and test prediction
                 var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
@@ -582,7 +702,7 @@ namespace Microsoft.ML.Scenarios
 
                 var prediction = predictFunction.Predict(oneSample);
 
-                Assert.Equal(5, GetMaxIndexForOnePrediction(prediction));
+                Assert.Equal(2, GetMaxIndexForOnePrediction(prediction));
             }
             finally
             {
@@ -592,7 +712,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowTransformMNISTConvSavedModelTest()
         {
             // This test trains a multi-class classifier pipeline where a pre-trained Tenroflow model is used for featurization.
@@ -715,7 +835,7 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowTransformCifar()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
@@ -761,7 +881,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowTransformCifarSavedModel()
         {
             var modelLocation = "cifar_saved_model";
@@ -803,7 +923,7 @@ namespace Microsoft.ML.Scenarios
         }
 
         // This test has been created as result of https://github.com/dotnet/machinelearning/issues/2156.
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [TensorFlowFact]
         public void TensorFlowGettingSchemaMultipleTimes()
         {
             var modelLocation = "cifar_saved_model";
@@ -816,7 +936,7 @@ namespace Microsoft.ML.Scenarios
         }
 
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [TensorFlowFact]
         public void TensorFlowTransformCifarInvalidShape()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
@@ -861,7 +981,7 @@ namespace Microsoft.ML.Scenarios
             public float[] Prediction;
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [TensorFlowFact]
         public void TensorFlowSentimentClassificationTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);

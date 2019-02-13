@@ -14,11 +14,11 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
 // This is for deserialization from a model repository.
@@ -36,7 +36,7 @@ using Newtonsoft.Json.Linq;
     "Poisson Regression Executor",
     PoissonRegressionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     public abstract class LinearModelParameters : ModelParametersBase<float>,
         IValueMapper,
@@ -467,8 +467,8 @@ namespace Microsoft.ML.Learners
             if (calibrator == null)
                 return predictor;
             if (calibrator is IParameterMixer)
-                return new ParameterMixingCalibratedPredictor(env, predictor, calibrator);
-            return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
+                return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
+            return new SchemaBindableCalibratedModelParameters<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -546,8 +546,8 @@ namespace Microsoft.ML.Learners
 
     public abstract class RegressionModelParameters : LinearModelParameters
     {
-       public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
-            : base(env, name, in weights, bias)
+        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
+             : base(env, name, in weights, bias)
         {
         }
 

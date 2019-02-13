@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Training;
@@ -293,7 +293,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="labelColumn">The label column name, or dependent variable.</param>
@@ -302,7 +302,7 @@ namespace Microsoft.ML
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Trainers.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -327,7 +327,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
@@ -341,7 +341,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
@@ -350,7 +350,7 @@ namespace Microsoft.ML
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegression"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         public static PoissonRegression PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
@@ -368,7 +368,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
@@ -382,7 +382,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="MulticlassLogisticRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
@@ -391,7 +391,7 @@ namespace Microsoft.ML
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Trainers.MulticlassLogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
@@ -409,7 +409,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="MulticlassLogisticRegression"/> trainer.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
@@ -439,6 +439,26 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Works via the <see cref="IHaveCalibratorTrainer"/> shim interface to extract from the calibrating training
+        /// estimator the internal <see cref="ICalibratorTrainer"/> object. Note that this should be a temporary measure,
+        /// since the trainers should really be changed to actually work over estimators.
+        /// </summary>
+        /// <param name="ectx">The exception context.</param>
+        /// <param name="calibratorEstimator">The estimator out of which we should try to extract the calibrator trainer.</param>
+        /// <returns>The calibrator trainer.</returns>
+        private static ICalibratorTrainer GetCalibratorTrainerOrThrow(IExceptionContext ectx, IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibratorEstimator)
+        {
+            Contracts.AssertValue(ectx);
+            ectx.AssertValueOrNull(calibratorEstimator);
+            if (calibratorEstimator == null)
+                return null;
+            if (calibratorEstimator is IHaveCalibratorTrainer haveCalibratorTrainer)
+                return haveCalibratorTrainer.CalibratorTrainer;
+            throw ectx.ExceptParam(nameof(calibratorEstimator),
+                "Calibrator estimator was not of a type usable in this context.");
+        }
+
+        /// <summary>
         /// Predicts a target using a linear multiclass classification model trained with the <see cref="Ova"/>.
         /// </summary>
         /// <remarks>
@@ -460,7 +480,7 @@ namespace Microsoft.ML
             ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumn = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
-            ICalibratorTrainer calibrator = null,
+            IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
             int maxCalibrationExamples = 1000000000,
             bool useProbabilities = true)
             where TModel : class
@@ -469,7 +489,7 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new Ova(env, est, labelColumn, imputeMissingLabelsAsNegative, calibrator, maxCalibrationExamples, useProbabilities);
+            return new Ova(env, est, labelColumn, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maxCalibrationExamples, useProbabilities);
         }
 
         /// <summary>
@@ -493,7 +513,7 @@ namespace Microsoft.ML
             ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumn = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
-            ICalibratorTrainer calibrator = null,
+            IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
             int maxCalibrationExamples = 1_000_000_000)
             where TModel : class
         {
@@ -501,7 +521,7 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new Pkpd(env, est, labelColumn, imputeMissingLabelsAsNegative, calibrator, maxCalibrationExamples);
+            return new Pkpd(env, est, labelColumn, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maxCalibrationExamples);
         }
 
         /// <summary>
@@ -556,6 +576,49 @@ namespace Microsoft.ML
             Contracts.CheckValue(options, nameof(options));
 
             return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), options);
+        }
+
+        /// <summary>
+        /// Predict a target using the random binary classification model <see cref="RandomTrainer"/>.
+        /// </summary>
+        /// <remarks>
+        /// This trainer can be used as a baseline for other more sophisticated mdels.
+        /// </remarks>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/RandomTrainerSample.cs)]
+        /// ]]></format>
+        /// </example>
+        public static RandomTrainer Random(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            return new RandomTrainer(CatalogUtils.GetEnvironment(catalog), new RandomTrainer.Options());
+        }
+
+        /// <summary>
+        /// Predict a target using a binary classification model trained with <see cref="PriorTrainer"/> trainer.
+        /// </summary>
+        /// <remarks>
+        /// This trainer uses the proportion of a label in the training set as the probability of that label.
+        /// This trainer is often used as a baseline for other more sophisticated mdels.
+        /// </remarks>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="weightsColumn">The optional name of the weights column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/PriorTrainerSample.cs)]
+        /// ]]></format>
+        /// </example>
+        public static PriorTrainer Prior(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string labelColumn = DefaultColumnNames.Label,
+            string weightsColumn = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            return new PriorTrainer(CatalogUtils.GetEnvironment(catalog), labelColumn, weightsColumn);
         }
     }
 }

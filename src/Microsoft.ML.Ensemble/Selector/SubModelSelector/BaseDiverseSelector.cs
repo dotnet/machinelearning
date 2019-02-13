@@ -6,11 +6,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
 using Microsoft.ML.Training;
 
-namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
 {
     internal abstract class BaseDiverseSelector<TOutput, TDiversityMetric> : SubModelDataSelector<TOutput>
         where TDiversityMetric : class, IDiversityMeasure<TOutput>

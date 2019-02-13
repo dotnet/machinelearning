@@ -21,7 +21,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class MissingValueIndicatorTransform : OneToOneTransformBase
+    internal sealed class MissingValueIndicatorTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
                 });
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

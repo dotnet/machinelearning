@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.StaticPipe.Runtime;
 

@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -834,7 +833,7 @@ namespace Microsoft.ML.Data
                 OutputSchema = ComputeOutputSchema();
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -905,7 +904,7 @@ namespace Microsoft.ML.Data
 
         internal const string Summary = "Loads text data file.";
 
-        public const string LoaderSignature = "TextLoader";
+        internal const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
         private const uint VersionNoMinCount = 0x0001000C;
@@ -1283,7 +1282,7 @@ namespace Microsoft.ML.Data
         internal static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
             => new TextLoader(env, args, fileSource).Read(fileSource);
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -1420,7 +1419,7 @@ namespace Microsoft.ML.Data
                 return Cursor.CreateSet(_reader, _files, active, n);
             }
 
-            public void Save(ModelSaveContext ctx) => _reader.Save(ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => ((ICanSaveModel)_reader).Save(ctx);
         }
     }
 }

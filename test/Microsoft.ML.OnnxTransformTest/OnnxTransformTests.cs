@@ -6,39 +6,19 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-
-    /// <summary>
-    /// A Fact attribute for Onnx unit tests. Onnxruntime only supported
-    /// on Windows, Linux (Ubuntu 16.04) and 64-bit platforms.
-    /// </summary>
-    public class OnnxFact : FactAttribute
-    {
-        public OnnxFact()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
-                !Environment.Is64BitProcess)
-            {
-                Skip = "Require 64 bit and Windows or Linux (Ubuntu 16.04).";
-            }
-        }
-    }
-
     public class OnnxTransformTests : TestDataPipeBase
     {
         private const int inputSize = 150528;
@@ -137,16 +117,12 @@ namespace Microsoft.ML.Tests
             catch (ArgumentOutOfRangeException) { }
             catch (InvalidOperationException) { }
         }
-
-        // x86 not supported
-        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))]
+ 
+        [OnnxTheory]
         [InlineData(null, false)]
         [InlineData(null, true)]
         void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             var modelFile = "squeezenet/00000001/model.onnx";
             var samplevector = GetSampleArrayData();
 

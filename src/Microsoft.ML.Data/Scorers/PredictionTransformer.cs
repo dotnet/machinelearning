@@ -54,6 +54,10 @@ namespace Microsoft.ML.Data
         private protected ISchemaBindableMapper BindableMapper;
         protected Schema TrainSchema;
 
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
         public bool IsRowToRowMapper => true;
 
         /// <summary>
@@ -134,7 +138,11 @@ namespace Microsoft.ML.Data
             return (IRowToRowMapper)Scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
         }
 
-        protected void SaveModel(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected abstract void SaveModel(ModelSaveContext ctx);
+
+        protected void SaveModelCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -157,7 +165,7 @@ namespace Microsoft.ML.Data
     /// Those are all the transformers that work with one feature column.
     /// </summary>
     /// <typeparam name="TModel">The model used to transform the data.</typeparam>
-    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>, ICanSaveModel
+    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
         /// <summary>
@@ -226,7 +234,7 @@ namespace Microsoft.ML.Data
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -235,7 +243,7 @@ namespace Microsoft.ML.Data
 
         protected virtual void SaveCore(ModelSaveContext ctx)
         {
-            SaveModel(ctx);
+            SaveModelCore(ctx);
             ctx.SaveStringOrNull(FeatureColumn);
         }
 
@@ -253,8 +261,8 @@ namespace Microsoft.ML.Data
     public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        internal readonly string ThresholdColumn;
+        internal readonly float Threshold;
 
         [BestFriend]
         internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
@@ -322,8 +330,8 @@ namespace Microsoft.ML.Data
     public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        internal readonly string ThresholdColumn;
+        internal readonly float Threshold;
 
         [BestFriend]
         internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,

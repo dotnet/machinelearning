@@ -165,7 +165,7 @@ namespace Microsoft.ML.Data
                 return h.Apply("Loading Model", ch => new LabelNameBindableMapper(h, ctx));
             }
 
-            public void Save(ModelSaveContext ctx)
+            void ICanSaveModel.Save(ModelSaveContext ctx)
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 ctx.CheckAtModel();

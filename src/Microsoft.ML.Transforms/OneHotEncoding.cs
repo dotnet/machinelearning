@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -26,7 +25,7 @@ using Microsoft.ML.Transforms.Conversions;
 namespace Microsoft.ML.Transforms.Categorical
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
-    public sealed class OneHotEncodingTransformer : ITransformer, ICanSaveModel
+    public sealed class OneHotEncodingTransformer : ITransformer
     {
         public enum OutputKind : byte
         {
@@ -165,7 +164,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
-        public void Save(ModelSaveContext ctx) => _transformer.Save(ctx);
+        void ICanSaveModel.Save(ModelSaveContext ctx) => (_transformer as ICanSaveModel).Save(ctx);
 
         public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
 

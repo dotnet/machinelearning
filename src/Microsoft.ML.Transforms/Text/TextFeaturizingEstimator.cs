@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
@@ -562,7 +561,7 @@ namespace Microsoft.ML.Transforms.Text
             return estimator.Fit(data).Transform(data) as IDataTransform;
         }
 
-        private sealed class Transformer : ITransformer, ICanSaveModel
+        private sealed class Transformer : ITransformer
         {
             private const string TransformDirTemplate = "Step_{0:000}";
 
@@ -607,7 +606,7 @@ namespace Microsoft.ML.Transforms.Text
                 return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
             }
 
-            public void Save(ModelSaveContext ctx)
+            void ICanSaveModel.Save(ModelSaveContext ctx)
             {
                 _host.CheckValue(ctx, nameof(ctx));
                 ctx.CheckAtModel();

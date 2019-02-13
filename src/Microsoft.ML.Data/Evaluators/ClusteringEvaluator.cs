@@ -628,13 +628,13 @@ namespace Microsoft.ML.Data
             return new ClusteringPerInstanceEvaluator(env, ctx, schema);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             // *** Binary format **
             // base
             // int: number of clusters
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
             Host.Assert(_numClusters > 0);
             ctx.Writer.Write(_numClusters);
         }

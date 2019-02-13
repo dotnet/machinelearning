@@ -3,14 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.StaticPipe
 {
-    using IidBase = Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
-    using SsaBase = Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
     /// <summary>
     /// Static API extension methods for <see cref="IidChangePointEstimator"/>.
@@ -25,7 +22,7 @@ namespace Microsoft.ML.StaticPipe
                 Scalar<float> input,
                 int confidence,
                 int changeHistoryLength,
-                IidBase.MartingaleType martingale,
+                MartingaleType martingale,
                 double eps)
                 : base(new Reconciler(confidence, changeHistoryLength, martingale, eps), input)
             {
@@ -37,13 +34,13 @@ namespace Microsoft.ML.StaticPipe
         {
             private readonly int _confidence;
             private readonly int _changeHistoryLength;
-            private readonly IidBase.MartingaleType _martingale;
+            private readonly MartingaleType _martingale;
             private readonly double _eps;
 
             public Reconciler(
                 int confidence,
                 int changeHistoryLength,
-                IidBase.MartingaleType martingale,
+                MartingaleType martingale,
                 double eps)
             {
                 _confidence = confidence;
@@ -60,11 +57,11 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new IidChangePointEstimator(env,
+                return new MLContext().Transforms.IidChangePointEstimator(
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _changeHistoryLength,
-                    inputNames[outCol.Input],
                     _martingale,
                     _eps);
             }
@@ -77,7 +74,7 @@ namespace Microsoft.ML.StaticPipe
             this Scalar<float> input,
             int confidence,
             int changeHistoryLength,
-            IidBase.MartingaleType martingale = IidBase.MartingaleType.Power,
+            MartingaleType martingale = MartingaleType.Power,
             double eps = 0.1) => new OutColumn(input, confidence, changeHistoryLength, martingale, eps);
     }
 
@@ -93,7 +90,7 @@ namespace Microsoft.ML.StaticPipe
             public OutColumn(Scalar<float> input,
                 int confidence,
                 int pvalueHistoryLength,
-                IidBase.AnomalySide side)
+                AnomalySide side)
                 : base(new Reconciler(confidence, pvalueHistoryLength, side), input)
             {
                 Input = input;
@@ -104,12 +101,12 @@ namespace Microsoft.ML.StaticPipe
         {
             private readonly int _confidence;
             private readonly int _pvalueHistoryLength;
-            private readonly IidBase.AnomalySide _side;
+            private readonly AnomalySide _side;
 
             public Reconciler(
                 int confidence,
                 int pvalueHistoryLength,
-                IidBase.AnomalySide side)
+                AnomalySide side)
             {
                 _confidence = confidence;
                 _pvalueHistoryLength = pvalueHistoryLength;
@@ -124,11 +121,11 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new IidSpikeEstimator(env,
+                return new MLContext().Transforms.IidSpikeEstimator(
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _pvalueHistoryLength,
-                    inputNames[outCol.Input],
                     _side);
             }
         }
@@ -140,7 +137,7 @@ namespace Microsoft.ML.StaticPipe
             this Scalar<float> input,
             int confidence,
             int pvalueHistoryLength,
-            IidBase.AnomalySide side = IidBase.AnomalySide.TwoSided
+            AnomalySide side = AnomalySide.TwoSided
             ) => new OutColumn(input, confidence, pvalueHistoryLength, side);
     }
 
@@ -158,8 +155,8 @@ namespace Microsoft.ML.StaticPipe
                 int changeHistoryLength,
                 int trainingWindowSize,
                 int seasonalityWindowSize,
-                ErrorFunctionUtils.ErrorFunction errorFunction,
-                SsaBase.MartingaleType martingale,
+                ErrorFunction errorFunction,
+                MartingaleType martingale,
                 double eps)
                 : base(new Reconciler(confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, errorFunction, martingale, eps), input)
             {
@@ -173,8 +170,8 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _changeHistoryLength;
             private readonly int _trainingWindowSize;
             private readonly int _seasonalityWindowSize;
-            private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
-            private readonly SsaBase.MartingaleType _martingale;
+            private readonly ErrorFunction _errorFunction;
+            private readonly MartingaleType _martingale;
             private readonly double _eps;
 
             public Reconciler(
@@ -182,8 +179,8 @@ namespace Microsoft.ML.StaticPipe
                 int changeHistoryLength,
                 int trainingWindowSize,
                 int seasonalityWindowSize,
-                ErrorFunctionUtils.ErrorFunction errorFunction,
-                SsaBase.MartingaleType martingale,
+                ErrorFunction errorFunction,
+                MartingaleType martingale,
                 double eps)
             {
                 _confidence = confidence;
@@ -203,13 +200,13 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new SsaChangePointEstimator(env,
+                return new MLContext().Transforms.SsaChangePointEstimator(
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _changeHistoryLength,
                     _trainingWindowSize,
                     _seasonalityWindowSize,
-                    inputNames[outCol.Input],
                     _errorFunction,
                     _martingale,
                     _eps);
@@ -225,8 +222,8 @@ namespace Microsoft.ML.StaticPipe
             int changeHistoryLength,
             int trainingWindowSize,
             int seasonalityWindowSize,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
-            SsaBase.MartingaleType martingale = SsaBase.MartingaleType.Power,
+            ErrorFunction errorFunction = ErrorFunction.SignedDifference,
+            MartingaleType martingale = MartingaleType.Power,
             double eps = 0.1) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, errorFunction, martingale, eps);
     }
 
@@ -244,8 +241,8 @@ namespace Microsoft.ML.StaticPipe
                 int pvalueHistoryLength,
                 int trainingWindowSize,
                 int seasonalityWindowSize,
-                SsaBase.AnomalySide side,
-                ErrorFunctionUtils.ErrorFunction errorFunction)
+                AnomalySide side,
+                ErrorFunction errorFunction)
                 : base(new Reconciler(confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction), input)
             {
                 Input = input;
@@ -258,16 +255,16 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _pvalueHistoryLength;
             private readonly int _trainingWindowSize;
             private readonly int _seasonalityWindowSize;
-            private readonly SsaBase.AnomalySide _side;
-            private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
+            private readonly AnomalySide _side;
+            private readonly ErrorFunction _errorFunction;
 
             public Reconciler(
                 int confidence,
                 int pvalueHistoryLength,
                 int trainingWindowSize,
                 int seasonalityWindowSize,
-                SsaBase.AnomalySide side,
-                ErrorFunctionUtils.ErrorFunction errorFunction)
+                AnomalySide side,
+                ErrorFunction errorFunction)
             {
                 _confidence = confidence;
                 _pvalueHistoryLength = pvalueHistoryLength;
@@ -285,13 +282,13 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new SsaSpikeEstimator(env,
+                return new MLContext().Transforms.SsaSpikeEstimator(
                     outputNames[outCol],
+                    inputNames[outCol.Input],
                     _confidence,
                     _pvalueHistoryLength,
                     _trainingWindowSize,
                     _seasonalityWindowSize,
-                    inputNames[outCol.Input],
                     _side,
                     _errorFunction);
             }
@@ -306,8 +303,8 @@ namespace Microsoft.ML.StaticPipe
             int changeHistoryLength,
             int trainingWindowSize,
             int seasonalityWindowSize,
-            SsaBase.AnomalySide side = SsaBase.AnomalySide.TwoSided,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference
+            AnomalySide side = AnomalySide.TwoSided,
+            ErrorFunction errorFunction = ErrorFunction.SignedDifference
             ) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction);
 
     }

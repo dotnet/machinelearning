@@ -5,16 +5,16 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.SubsetSelector;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble;
+using Microsoft.ML.Trainers.Ensemble.SubsetSelector;
 
 [assembly: LoadableClass(typeof(AllInstanceSelector), typeof(AllInstanceSelector.Arguments),
     typeof(SignatureEnsembleDataSelector), AllInstanceSelector.UserName, AllInstanceSelector.LoadName)]
 
 [assembly: EntryPointModule(typeof(AllInstanceSelector))]
 
-namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
 {
     internal sealed class AllInstanceSelector : BaseSubsetSelector<AllInstanceSelector.Arguments>
     {

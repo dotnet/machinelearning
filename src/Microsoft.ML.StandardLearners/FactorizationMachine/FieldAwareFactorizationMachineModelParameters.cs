@@ -283,19 +283,19 @@ namespace Microsoft.ML.FactorizationMachine
         }
     }
 
-    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters>, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters>
     {
-        public const string LoaderSignature = "FAFMPredXfer";
+        internal const string LoaderSignature = "FAFMPredXfer";
 
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        public IReadOnlyList<string> FeatureColumns { get; }
+        internal IReadOnlyList<string> FeatureColumns { get; }
 
         /// <summary>
         /// The type of the feature columns.
         /// </summary>
-        public IReadOnlyList<ColumnType> FeatureColumnTypes { get; }
+        internal IReadOnlyList<ColumnType> FeatureColumnTypes { get; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;
@@ -387,7 +387,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// Saves the transformer to file.
         /// </summary>
         /// <param name="ctx">The <see cref="ModelSaveContext"/> that facilitates saving to the <see cref="Repository"/>.</param>
-        public void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();

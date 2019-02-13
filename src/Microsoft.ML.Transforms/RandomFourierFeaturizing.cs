@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
@@ -162,7 +161,7 @@ namespace Microsoft.ML.Transforms.Projections
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
 
-            public void Save(ModelSaveContext ctx, string directoryName)
+            internal void Save(ModelSaveContext ctx, string directoryName)
             {
                 Contracts.AssertValue(ctx);
 
@@ -463,7 +462,7 @@ namespace Microsoft.ML.Transforms.Projections
             return new RandomFourierFeaturizingTransformer(host, ctx);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
 

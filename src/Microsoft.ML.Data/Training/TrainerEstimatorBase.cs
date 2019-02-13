@@ -4,7 +4,6 @@
 
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Training
@@ -141,7 +140,6 @@ namespace Microsoft.ML.Training
             return MakeTransformer(pred, trainSet.Schema);
         }
 
-        [BestFriend]
         private protected abstract TModel TrainModelCore(TrainContext trainContext);
 
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);

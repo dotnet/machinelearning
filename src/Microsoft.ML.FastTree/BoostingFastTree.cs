@@ -4,9 +4,7 @@
 
 using System;
 using System.Linq;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree

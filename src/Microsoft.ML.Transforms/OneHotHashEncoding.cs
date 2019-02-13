@@ -8,7 +8,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -24,7 +23,7 @@ namespace Microsoft.ML.Transforms.Categorical
     /// <summary>
     /// Produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.
     /// </summary>
-    public sealed class OneHotHashEncodingTransformer : ITransformer, ICanSaveModel
+    public sealed class OneHotHashEncodingTransformer : ITransformer
     {
         internal sealed class Column : OneToOneColumn
         {
@@ -189,7 +188,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// </summary>
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
-        public void Save(ModelSaveContext ctx) => _transformer.Save(ctx);
+        void ICanSaveModel.Save(ModelSaveContext ctx) => (_transformer as ICanSaveModel).Save(ctx);
 
         /// <summary>
         /// Whether a call to <see cref="GetRowToRowMapper"/> should succeed, on an appropriate schema.

@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TestFramework"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Predictor.Tests", "test\Microsoft.ML.Predictor.Tests\Microsoft.ML.Predictor.Tests.csproj", "{6B047E09-39C9-4583-96F3-685D84CA4117}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Functional.Tests", "test\Microsoft.ML.Functional.Tests\Microsoft.ML.Functional.Tests.csproj", "{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.ResultProcessor", "src\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj", "{3769FCC3-9AFF-4C37-97E9-6854324681DF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.FastTree", "src\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj", "{B7B593C5-FB8C-4ADA-A638-5B53B47D087E}"
@@ -928,6 +930,18 @@ Global
 		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
 		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
 		{5E920CAC-5A28-42FB-936E-49C472130953}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-Intrinsics|Any CPU.Build.0 = Debug-Intrinsics|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1011,6 +1025,7 @@ Global
 		{85D0CAFD-2FE8-496A-88C7-585D35B94243} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{31D38B21-102B-41C0-9E0A-2FE0BF68D123} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 		{5E920CAC-5A28-42FB-936E-49C472130953} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
+		{CFED9F0C-FF81-4C96-8D5E-0436264CA7B5} = {AED9C836-31E3-4F3F-8ABC-929555D3F3C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}

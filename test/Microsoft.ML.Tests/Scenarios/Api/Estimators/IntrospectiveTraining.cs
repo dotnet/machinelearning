@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers;
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var trainer = ml.BinaryClassification.Trainers.FastTree(numLeaves: 5, numTrees: 3);
 
-            BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> pred = null;
+            BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> pred = null;
 
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data);
 
             // Extract the learned GBDT model.
-            var treeCollection = ((FastTreeBinaryModelParameters)((Internal.Calibration.FeatureWeightsCalibratedPredictor)pred.Model).SubPredictor).TrainedTreeEnsemble;
+            var treeCollection = pred.Model.SubModel.TrainedTreeEnsemble;
 
             // Inspect properties in the extracted model.
             Assert.Equal(3, treeCollection.Trees.Count);
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void FastForestRegressionIntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
             var dataView = ml.Data.ReadFromEnumerable(data);
 
             RegressionPredictionTransformer<FastForestRegressionModelParameters> pred = null;
