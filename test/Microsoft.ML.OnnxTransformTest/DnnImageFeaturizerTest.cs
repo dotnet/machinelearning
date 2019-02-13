@@ -13,6 +13,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
@@ -57,16 +58,9 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        // Onnx is only supported on x64 Windows
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [OnnxFact]
         void TestDnnImageFeaturizer()
         {
-            // Onnxruntime supports Ubuntu 16.04, but not CentOS
-            // Do not execute on CentOS image
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
-
             var samplevector = GetSampleArrayData();
 
             var dataView = DataViewConstructionUtils.CreateFromList(Env,
@@ -97,13 +91,9 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        // Onnx is only supported on x64 Windows
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [OnnxFact]
         public void OnnxStatic()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             var env = new MLContext(null, 1);
             var imageHeight = 224;
             var imageWidth = 224;
@@ -141,13 +131,9 @@ namespace Microsoft.ML.Tests
         }
 
         // Onnx is only supported on x64 Windows
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [OnnxFact]
         public void TestOldSavingAndLoading()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
-
             var samplevector = GetSampleArrayData();
 
             var dataView = ML.Data.ReadFromEnumerable(

@@ -12,7 +12,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using Microsoft.ML.Benchmarks.Harness;
-using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.TestFramework.Attributes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,15 +28,6 @@ namespace Microsoft.ML.Benchmarks.Tests
         public BenchmarksTest(ITestOutputHelper output) => Output = output;
 
         private ITestOutputHelper Output { get; }
-
-        public static bool CanExecute =>
-#if DEBUG
-            false; // BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG
-#elif NET461
-            false; // We are currently not running Benchmarks for FullFramework
-#else
-            Environment.Is64BitProcess; // we don't support 32 bit yet
-#endif
 
         public static TheoryData<Type> GetBenchmarks()
         {
@@ -54,7 +45,7 @@ namespace Microsoft.ML.Benchmarks.Tests
             return benchmarks;
         }
 
-        [ConditionalTheory(typeof(BenchmarksTest), nameof(CanExecute))]
+        [BenchmarkTheory]
         [MemberData(nameof(GetBenchmarks))]
         public void BenchmarksProjectIsNotBroken(Type type)
         {

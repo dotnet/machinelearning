@@ -27,7 +27,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// <summary>
     /// Transform which takes one or many columns with vectors in them and transform them to <see cref="ImageType"/> representation.
     /// </summary>
-    public sealed class VectorToImageTransform : OneToOneTransformBase
+    internal sealed class VectorToImageTransform : OneToOneTransformBase
     {
         public class Column : OneToOneColumn
         {

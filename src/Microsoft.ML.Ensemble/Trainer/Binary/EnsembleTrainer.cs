@@ -7,11 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.OutputCombiners;
-using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Training;
 
@@ -22,7 +19,7 @@ using Microsoft.ML.Training;
 [assembly: LoadableClass(typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments), typeof(SignatureModelCombiner),
     "Binary Classification Ensemble Model Combiner", EnsembleTrainer.LoadNameValue, "pe", "ParallelEnsemble")]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
     using TScalarPredictor = IPredictorProducing<Single>;

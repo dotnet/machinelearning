@@ -9,9 +9,8 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.TimeSeries;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// The is the wrapper to <see cref="IidAnomalyDetectionBase"/> that computes the p-values and martingale scores for a supposedly i.i.d input sequence of floats. In other words, it assumes

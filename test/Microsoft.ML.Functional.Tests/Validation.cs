@@ -42,15 +42,15 @@ namespace Microsoft.ML.Functional.Tests
             // Compute the CV result.
             var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numFolds: 5);
 
-            // Check that the results are valid.
-            Assert.IsType<RegressionMetrics>(cvResult[0].metrics);
-            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>>>(cvResult[0].model);
-            Assert.True(cvResult[0].scoredTestData is IDataView);
+            // Check that the results are valid
+            Assert.IsType<RegressionMetrics>(cvResult[0].Metrics);
+            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>>>(cvResult[0].Model);
+            Assert.True(cvResult[0].ScoredHoldOutSet is IDataView);
             Assert.Equal(5, cvResult.Length);
 
             // And validate the metrics.
             foreach (var result in cvResult)
-                Common.CheckMetrics(result.metrics);
+                Common.CheckMetrics(result.Metrics);
         }
 
         /// <summary>

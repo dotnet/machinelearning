@@ -825,12 +825,12 @@ var pipeline =
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
 // Split the data 90:10 into train and test sets, train and evaluate.
-var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+var split = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
 
 // Train the model.
-var model = pipeline.Fit(trainData);
+var model = pipeline.Fit(split.TrainSet);
 // Compute quality metrics on the test set.
-var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData));
+var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(split.TestSet));
 Console.WriteLine(metrics.AccuracyMicro);
 
 // Now run the 5-fold cross-validation experiment, using the same pipeline.
@@ -838,7 +838,7 @@ var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline,
 
 // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
 // Let's compute the average micro-accuracy.
-var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
+var microAccuracies = cvResults.Select(r => r.Metrics.AccuracyMicro);
 Console.WriteLine(microAccuracies.Average());
 
 ```

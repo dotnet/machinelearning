@@ -22,7 +22,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class LabelConvertTransform : OneToOneTransformBase
+    [BestFriend]
+    internal sealed class LabelConvertTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {

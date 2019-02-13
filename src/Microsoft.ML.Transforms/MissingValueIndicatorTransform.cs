@@ -21,7 +21,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class MissingValueIndicatorTransform : OneToOneTransformBase
+    internal sealed class MissingValueIndicatorTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {

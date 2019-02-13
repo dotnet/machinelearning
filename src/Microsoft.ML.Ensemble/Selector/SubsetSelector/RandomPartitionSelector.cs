@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.SubsetSelector;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble;
+using Microsoft.ML.Trainers.Ensemble.SubsetSelector;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(RandomPartitionSelector), typeof(RandomPartitionSelector.Arguments),
@@ -16,7 +16,7 @@ using Microsoft.ML.Transforms;
 
 [assembly: EntryPointModule(typeof(RandomPartitionSelector))]
 
-namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
 {
     internal sealed class RandomPartitionSelector : BaseSubsetSelector<RandomPartitionSelector.Arguments>
     {
