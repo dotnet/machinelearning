@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// <summary>
     /// A class for artifacts of ensembled models.
     /// </summary>
-    public sealed class EnsembleModelParameters : EnsembleModelParametersBase<Single>, IValueMapper
+    internal sealed class EnsembleModelParameters : EnsembleModelParametersBase<Single>, IValueMapper
     {
         internal const string UserName = "Ensemble Executor";
         internal const string LoaderSignature = "EnsembleFloatExec";

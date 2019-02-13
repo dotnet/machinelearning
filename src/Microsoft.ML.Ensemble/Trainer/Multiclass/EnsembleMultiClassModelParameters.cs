@@ -15,7 +15,7 @@ using Microsoft.ML.Trainers.Ensemble;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
+    internal sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
     {
         internal const string UserName = "Ensemble Multiclass Executor";
         internal const string LoaderSignature = "EnsemMcExec";
