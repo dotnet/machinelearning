@@ -64,7 +64,9 @@ namespace Microsoft.ML.Functional.Tests
             // Get the dataset.
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(), hasHeader: true)
                 .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
-            (var trainData, var validData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
+            var dataSplit = mlContext.Regression.TrainTestSplit(data, testFraction: 0.2);
+            var trainData = dataSplit.TrainSet;
+            var validData = dataSplit.TestSet;
 
             // Create a pipeline to featurize the dataset.
             var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
