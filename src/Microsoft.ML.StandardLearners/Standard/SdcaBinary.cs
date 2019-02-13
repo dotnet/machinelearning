@@ -1408,10 +1408,10 @@ namespace Microsoft.ML.Trainers
             public float PositiveInstanceWeight = 1;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
+            internal int MaxCalibrationExamples = 1000000;
 
             internal override void Check(IHostEnvironment env)
             {
@@ -1624,10 +1624,10 @@ namespace Microsoft.ML.Trainers
             public int? CheckFrequency;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
+            internal int MaxCalibrationExamples = 1000000;
 
             internal void Check(IHostEnvironment env)
             {

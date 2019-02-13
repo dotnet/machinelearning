@@ -75,7 +75,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's train a calibrator estimator on this scored dataset. The trained calibrator estimator produces a transformer
             // that can transform the scored data by adding a new column names "Probability". 
-            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, model, "Sentiment", "Features");
+            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, "Sentiment", "Score");
             var calibratorTransformer = calibratorEstimator.Fit(scoredData);
 
             // Transform the scored data with a calibrator transfomer by adding a new column names "Probability". 
