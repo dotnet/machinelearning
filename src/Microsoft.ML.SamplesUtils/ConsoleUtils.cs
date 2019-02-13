@@ -3,9 +3,16 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
 {
+    /// <summary>
+    /// Utilities for creating console outputs in samples' code.
+    /// </summary>
     public static class ConsoleUtils
     {
-        public static void PrintBinaryClassificationMetrics(BinaryClassificationMetrics metrics)
+        /// <summary>
+        /// Pretty-print <see cref="BinaryClassificationMetrics"/> objects.
+        /// </summary>
+        /// <param name="metrics">Binary classification metrics.</param>
+        public static void PrintMetrics(BinaryClassificationMetrics metrics)
         {
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.Auc:F2}");
@@ -16,7 +23,11 @@ namespace Microsoft.ML.SamplesUtils
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
         }
 
-        public static void PrintRegressionMetrics(RegressionMetrics metrics)
+        /// <summary>
+        /// Pretty-print <see cref="RegressionMetrics"/> objects.
+        /// </summary>
+        /// <param name="metrics">Regression metrics.</param>
+        public static void PrintMetrics(RegressionMetrics metrics)
         {
             Console.WriteLine($"L1: {metrics.L1:F2}");
             Console.WriteLine($"L2: {metrics.L2:F2}");

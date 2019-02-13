@@ -7,14 +7,12 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     public sealed class OrdinaryLeastSquaresWithOptions
     {
-        /// <summary>
-        /// This example require installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>
-        /// </summary>
+        // This example requires installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>
+        // In this examples we will use the housing price dataset. The goal is to predict median home value.
+        // For more details about this dataset, please see https://archive.ics.uci.edu/ml/machine-learning-databases/housing/
         public static void Example()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
-            // this will create a housing.txt file in the filsystem this code will run
-            // you can open the file to see the data. 
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -42,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90
             // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10
 
-            var (trainData, testData) = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.2);
+            var split = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.2);
 
             // Create the estimator, here we only need OrdinaryLeastSquares trainer 
             // as data is already processed in a form consumable by the trainer
@@ -51,16 +49,16 @@ namespace Microsoft.ML.Samples.Dynamic
                 L2Weight = 0.1f,
                 PerParameterSignificance = false
             });
-            var model = pipeline.Fit(trainData);
+            var model = pipeline.Fit(split.TrainSet);
 
             // Check the weights that the model learned
             var weightsValues = model.Model.Weights;
             Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = -0.1783206
             Console.WriteLine($"weight 3 - {weightsValues[3]}"); // CharlesRiver (weight 1) = 3.118422
-            var dataWithPredictions = model.Transform(testData);
+            var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
 
-            ConsoleUtils.PrintRegressionMetrics(metrics);
+            ConsoleUtils.PrintMetrics(metrics);
             // L1: 4.14
             // L2: 32.35
             // LossFunction: 32.35
