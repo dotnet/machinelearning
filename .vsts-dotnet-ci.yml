@@ -4,11 +4,11 @@
 
 resources:
   containers:
-  - container: LinuxCentosContainer
+  - container: CentosContainer
     image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
   
-  - container: LinuxUbuntuContainer
-    image: microsoft/dotnet-buildtools-prereqs:ubuntu1604_cross_prereqs_v1
+  - container: UbuntuContainer
+    image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-10fcdcf-20190208200917
 
 phases:
 - template: /build/ci/phase-template.yml
@@ -29,19 +29,37 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Linux_Centos
+    name: Centos
     buildScript: ./build.sh
+    customMatrixes:
+      Build_Debug_Intrinsics:
+        _configuration: Debug-Intrinsics
+        _config_short: DI
+        _includeBenchmarkData: false
+      Build_Release:
+        _configuration: Release
+        _config_short: R
+        _includeBenchmarkData: true
     queue:
       name: Hosted Ubuntu 1604
-      container: LinuxCentosContainer
+      container: CentosContainer
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Linux_Ubuntu
+    name: Ubuntu
     buildScript: ./build.sh
+    customMatrixes:
+      Build_Debug_Intrinsics:
+        _configuration: Debug-Intrinsics
+        _config_short: DI
+        _includeBenchmarkData: false
+      Build_Release:
+        _configuration: Release
+        _config_short: R
+        _includeBenchmarkData: true
     queue:
       name: Hosted Ubuntu 1604
-      container: LinuxUbuntuContainer
+      container: UbuntuContainer
 
 - template: /build/ci/phase-template.yml
   parameters:

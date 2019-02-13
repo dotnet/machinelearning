@@ -6,7 +6,7 @@ set(SOURCES
 )
 
 if(NOT WIN32)
-    set_property(SOURCE Sse.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -msse3 -msse4.1 -msse4.2")
+    set_property(SOURCE Sse.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -msse3")
     list(APPEND SOURCES ${VERSION_FILE_PATH})
 endif()
 

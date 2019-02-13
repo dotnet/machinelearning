@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.PlatformAbstractions;
 using System;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
@@ -19,7 +19,7 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return Environment.Is64BitProcess && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            return Environment.Is64BitProcess && (RuntimeEnvironment.OperatingSystem.Contains("Windows") || RuntimeEnvironment.OperatingSystem.Contains("ubuntu"));
         }
     }
 }
