@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
-{
+    {
     public partial class TrainerEstimators
     {
         [Fact]

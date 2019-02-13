@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;

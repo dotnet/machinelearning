@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Transforms.Conversions;
@@ -15,7 +13,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
-{
+    {
     public partial class TrainerEstimators : TestDataPipeBase
     {
         public TrainerEstimators(ITestOutputHelper helper) : base(helper)
