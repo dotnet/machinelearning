@@ -10,7 +10,7 @@ if [ -z "${__BUILDTOOLS_SOURCE:-}" ]; then __BUILDTOOLS_SOURCE=https://dotnet.my
 export __BUILDTOOLS_USE_CSPROJ=true
 __BUILD_TOOLS_PACKAGE_VERSION=$(cat "$__scriptpath/BuildToolsVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 
-if [[ $1 == *"Intrinsics"* ]]; then
+if [[ $2 == *"Intrinsics"* ]]; then
     __DOTNET_TOOLS_VERSION=$(cat "$__scriptpath/DotnetCLIVersion.netcoreapp.latest.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
 else
     __DOTNET_TOOLS_VERSION=$(cat "$__scriptpath/DotnetCLIVersion.txt" | sed 's/\r$//') # remove CR if mounted repo on Windows drive
