@@ -118,7 +118,7 @@ namespace Microsoft.ML.Auto
                 iterationResults.Add(iterationResult);
             } while (!_cancellationToken.IsCancellationRequested &&
                     _history.Count < _settings.StoppingCriteria.MaxIterations &&
-                    stopwatch.Elapsed.TotalMinutes < _settings.StoppingCriteria.TimeoutInSeconds);
+                    stopwatch.Elapsed.TotalSeconds < _settings.StoppingCriteria.TimeoutInSeconds);
 
             return iterationResults;
         }
