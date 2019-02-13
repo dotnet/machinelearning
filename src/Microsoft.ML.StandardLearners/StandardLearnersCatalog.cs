@@ -190,23 +190,22 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with averaged perceptron trainer.
+        /// Predict a target using a linear binary classification model trained with the averaged perceptron trainer.
         /// </summary>
         /// <remarks>
-        /// Perceptron is a classification algorithm that makes its predictions by finding a separating hyperplane.
+        /// The perceptron is a classification algorithm that makes its predictions by finding a separating hyperplane.
         /// For instance, with feature values f0, f1,..., f_D-1, the prediction is given by determining what side of the hyperplane the point falls into.
         /// That is the same as the sign of sigma[0, D-1] (w_i * f_i), where w_0, w_1,..., w_D-1 are the weights computed by the algorithm.
         ///
         /// The perceptron is an online algorithm, which means it processes the instances in the training set one at a time.
         /// It starts with a set of initial weights (zero, random, or initialized from a previous learner). Then, for each example in the training set, the weighted sum of the features (sigma[0, D-1] (w_i * f_i)) is computed.
-        /// If this value has the same sign as the label of the current example, the weights remain the same.If they have opposite signs,
-        /// the weights vector is updated by either subtracting or adding (if the label is negative or positive, respectively) the feature vector of the current example,
-        /// multiplied by a factor 0 &lt; a &lt;= 1, called the learning rate.In a generalization of this algorithm, the weights are updated by adding the feature vector multiplied by the learning rate,
+        /// If this value has the same sign as the label of the current example, the weights remain the same. If they have opposite signs,
+        /// the weights vector is updated by either adding or subtracting (if the label is positive or negative, respectively) the feature vector of the current example,
+        /// multiplied by a factor 0 &lt; a &lt;= 1, called the learning rate. In a generalization of this algorithm, the weights are updated by adding the feature vector multiplied by the learning rate,
         /// and by the gradient of some loss function (in the specific case described above, the loss is hinge-loss, whose gradient is 1 when it is non-zero).
         ///
-        /// In Averaged Perceptron (AKA voted-perceptron), the weight vectors are stored,
-        /// together with a weight that counts the number of iterations it survived (this is equivalent to storing the weight vector after every iteration, regardless of whether it was updated or not).
-        /// The prediction is then calculated by taking the weighted average of all the sums sigma[0, D-1] (w_i * f_i) or the different weight vectors.
+        /// In Averaged Perceptron (aka voted-perceptron), for each iteration, i.e. pass through the training data, a weight vector is calculated as explained above.
+        /// The final prediction is then calculate by averaging the weighted sum from each weight vector and looking at the sign of the result.
         ///
         /// For more information see <a href="https://en.wikipedia.org/wiki/Perceptron">Wikipedia entry for Perceptron</a>
         /// or <a href="https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200">Large Margin Classification Using the Perceptron Algorithm</a>
@@ -214,7 +213,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumn">The name of the label column, or dependent variable.</param>
         /// <param name="featureColumn">The features, or independent variables.</param>
-        /// <param name="lossFunction">The custom <a href="tmpurl_loss">loss</a>. If <see langword="null"/>, hinge loss will be used resulting in max-margin averaged perceptron.</param>
+        /// <param name="lossFunction">A custom <a href="tmpurl_loss">loss</a>. If <see langword="null"/>, hinge loss will be used resulting in max-margin averaged perceptron.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="learningRate"><a href="tmpurl_lr">Learning rate</a>.</param>
         /// <param name="decreaseLearningRate">
@@ -222,11 +221,11 @@ namespace Microsoft.ML
         /// Default is <see langword="false" />.
         /// </param>
         /// <param name="l2RegularizerWeight">L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
-        /// <param name="numIterations">Number of training iterations through the data.</param>
+        /// <param name="numIterations">Number of passes through the training dataset.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/AveragedPerceptron.cs)]
+        /// [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/AveragedPerceptron.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -248,15 +247,17 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with averaged perceptron trainer using advanced options.
-        /// For usage details, please see <see cref="AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
+        /// Predict a target using a linear binary classification model trained with the averaged perceptron trainer using advanced options.
         /// </summary>
+        /// <remarks>
+        /// For usage details, please see <see cref="AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
+        /// </remarks>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/AveragedPerceptronWithOptions.cs)]
+        /// [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/AveragedPerceptronWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>

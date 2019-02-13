@@ -15,6 +15,9 @@ using Microsoft.ML.Numeric;
 
 namespace Microsoft.ML.Trainers.Online
 {
+    /// <summary>
+    /// Arguments class for averaged linear trainers.
+    /// </summary>
     public abstract class AveragedLinearArguments : OnlineLinearArguments
     {
         /// <summary>
@@ -30,7 +33,7 @@ namespace Microsoft.ML.Trainers.Online
         /// </summary>
         /// <value>
         /// <see langword="true" /> to decrease the <see cref="LearningRate"/> as iterations progress; otherwise, <see langword="false" />.
-        /// Default is <see langword="false" />.
+        /// Default is <see langword="false" />. The learning rate will be reduced with every weight update proportional to the square root of the number of updates.
         /// </value>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Decrease learning rate", ShortName = "decreaselr", SortOrder = 50)]
         [TGUI(Label = "Decrease Learning Rate", Description = "Decrease learning rate as iterations progress")]

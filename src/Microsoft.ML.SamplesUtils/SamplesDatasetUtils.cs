@@ -117,9 +117,9 @@ namespace Microsoft.ML.SamplesUtils
             );
 
             // Create data featurizing pipeline
-            var pipeline =
+            var pipeline = mlContext.Transforms.CopyColumns("Label", "IsOver50K")
                 // Convert categorical features to one-hot vectors
-                mlContext.Transforms.Categorical.OneHotEncoding("workclass")
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("workclass"))
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("education"))
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("marital-status"))
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("occupation"))

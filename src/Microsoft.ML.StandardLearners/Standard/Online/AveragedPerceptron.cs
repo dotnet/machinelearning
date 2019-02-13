@@ -25,7 +25,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.Online
 {
     /// <summary>
-    /// This is averaged perceptron trainer.
+    /// The <see cref="IEstimator{TTransformer}"/> for the averaged perceptron trainer.
     /// </summary>
     /// <remarks>
     /// For usage details, please see <see cref="StandardLearnersCatalog.AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, float, bool, float, int)"/>
@@ -39,10 +39,13 @@ namespace Microsoft.ML.Trainers.Online
 
         private readonly Options _args;
 
+        /// <summary>
+        /// Options for the averaged perceptron trainer.
+        /// </summary>
         public sealed class Options : AveragedLinearArguments
         {
             /// <summary>
-            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="tmpurl_loss">loss</a>.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();

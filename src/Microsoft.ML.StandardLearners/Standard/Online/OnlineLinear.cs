@@ -16,13 +16,15 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.Online
 {
-
+    /// <summary>
+    /// Arguments class for online linear trainers.
+    /// </summary>
     public abstract class OnlineLinearArguments : LearnerInputBaseWithLabel
     {
         /// <summary>
-        /// Number of training iterations through the data.
+        /// Number of passes through the training dataset.
         /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter", SortOrder = 50)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter, numIterations", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
         [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
         public int NumberOfIterations = OnlineDefaultArgs.NumIterations;
@@ -47,9 +49,12 @@ namespace Microsoft.ML.Trainers.Online
         public float InitialWeightsDiameter = 0;
 
         /// <summary>
+        /// Determines whether to shuffle data for each training iteration.
+        /// </summary>
+        /// <value>
         /// <see langword="true" /> to shuffle data for each training iteration; otherwise, <see langword="false" />.
         /// Default is <see langword="true" />.
-        /// </summary>
+        /// </value>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf")]
         [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
         public bool Shuffle = true;
