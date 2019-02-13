@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositiveRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativePrecision.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativePrecision.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(0, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.F1Score.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.F1Score.Mean));
