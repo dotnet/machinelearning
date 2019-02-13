@@ -236,10 +236,10 @@ namespace Microsoft.ML.EntryPoints
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
-                    dependingColumns = mapper.GetDependencies(cols);
+                    cols = mapper.GetDependencies(cols);
                     transform = transform.Source as IDataTransform;
                 }
-                return dependingColumns;
+                return cols;
             }
 
             public DataViewSchema InputSchema => _rootSchema;
