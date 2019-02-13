@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: EntryPointModule(typeof(TimeSeriesProcessingEntryPoints))]
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// Entry points for text anylytics transforms.
@@ -26,7 +26,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             };
         }
 
-        [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.IidChangePointDetector.Summary, UserName = TimeSeriesProcessing.IidChangePointDetector.UserName, ShortName = TimeSeriesProcessing.IidChangePointDetector.ShortName)]
+        [TlcModule.EntryPoint(Desc = TimeSeries.IidChangePointDetector.Summary,
+            UserName = TimeSeries.IidChangePointDetector.UserName,
+            ShortName = TimeSeries.IidChangePointDetector.ShortName)]
         internal static CommonOutputs.TransformOutput IidChangePointDetector(IHostEnvironment env, IidChangePointDetector.Options options)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidChangePointDetector", options);
@@ -38,7 +40,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             };
         }
 
-        [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.IidSpikeDetector.Summary, UserName = TimeSeriesProcessing.IidSpikeDetector.UserName, ShortName = TimeSeriesProcessing.IidSpikeDetector.ShortName)]
+        [TlcModule.EntryPoint(Desc = TimeSeries.IidSpikeDetector.Summary,
+            UserName = TimeSeries.IidSpikeDetector.UserName,
+            ShortName = TimeSeries.IidSpikeDetector.ShortName)]
         internal static CommonOutputs.TransformOutput IidSpikeDetector(IHostEnvironment env, IidSpikeDetector.Options options)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidSpikeDetector", options);
@@ -50,7 +54,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             };
         }
 
-        [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.PercentileThresholdTransform.Summary, UserName = TimeSeriesProcessing.PercentileThresholdTransform.UserName, ShortName = TimeSeriesProcessing.PercentileThresholdTransform.ShortName)]
+        [TlcModule.EntryPoint(Desc = TimeSeries.PercentileThresholdTransform.Summary,
+            UserName = TimeSeries.PercentileThresholdTransform.UserName,
+            ShortName = TimeSeries.PercentileThresholdTransform.ShortName)]
         internal static CommonOutputs.TransformOutput PercentileThresholdTransform(IHostEnvironment env, PercentileThresholdTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "PercentileThresholdTransform", input);
@@ -62,7 +68,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             };
         }
 
-        [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.PValueTransform.Summary, UserName = TimeSeriesProcessing.PValueTransform.UserName, ShortName = TimeSeriesProcessing.PValueTransform.ShortName)]
+        [TlcModule.EntryPoint(Desc = TimeSeries.PValueTransform.Summary,
+            UserName = TimeSeries.PValueTransform.UserName,
+            ShortName = TimeSeries.PValueTransform.ShortName)]
         internal static CommonOutputs.TransformOutput PValueTransform(IHostEnvironment env, PValueTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "PValueTransform", input);
@@ -74,7 +82,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             };
         }
 
-        [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.SlidingWindowTransform.Summary, UserName = TimeSeriesProcessing.SlidingWindowTransform.UserName, ShortName = TimeSeriesProcessing.SlidingWindowTransform.ShortName)]
+        [TlcModule.EntryPoint(Desc = TimeSeries.SlidingWindowTransform.Summary,
+            UserName = TimeSeries.SlidingWindowTransform.UserName,
+            ShortName = TimeSeries.SlidingWindowTransform.ShortName)]
         internal static CommonOutputs.TransformOutput SlidingWindowTransform(IHostEnvironment env, SlidingWindowTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SlidingWindowTransform", input);
@@ -86,7 +96,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             };
         }
 
-        [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.SsaChangePointDetector.Summary, UserName = TimeSeriesProcessing.SsaChangePointDetector.UserName, ShortName = TimeSeriesProcessing.SsaChangePointDetector.ShortName)]
+        [TlcModule.EntryPoint(Desc = TimeSeries.SsaChangePointDetector.Summary,
+            UserName = TimeSeries.SsaChangePointDetector.UserName,
+            ShortName = TimeSeries.SsaChangePointDetector.ShortName)]
         internal static CommonOutputs.TransformOutput SsaChangePointDetector(IHostEnvironment env, SsaChangePointDetector.Options options)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaChangePointDetector", options);
@@ -98,8 +110,10 @@ namespace Microsoft.ML.TimeSeriesProcessing
             };
         }
 
-        [TlcModule.EntryPoint(Desc = TimeSeriesProcessing.SsaSpikeDetector.Summary, UserName = TimeSeriesProcessing.SsaSpikeDetector.UserName, ShortName = TimeSeriesProcessing.SsaSpikeDetector.ShortName)]
-        internal static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Options options)
+        [TlcModule.EntryPoint(Desc = TimeSeries.SsaSpikeDetector.Summary,
+            UserName = TimeSeries.SsaSpikeDetector.UserName,
+            ShortName = TimeSeries.SsaSpikeDetector.ShortName)]
+        public static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Options options)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaSpikeDetector", options);
             var view = new SsaSpikeEstimator(h, options).Fit(options.Data).Transform(options.Data);

@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.StaticPipe
 {

@@ -12,7 +12,7 @@ using Microsoft.ML.Ensemble;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Training;
 
@@ -24,7 +24,7 @@ using Microsoft.ML.Training;
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments), typeof(SignatureModelCombiner),
     "Regression Ensemble Model Combiner", RegressionEnsembleTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
     internal sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,

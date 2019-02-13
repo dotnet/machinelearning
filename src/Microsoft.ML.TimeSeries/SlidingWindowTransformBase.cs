@@ -6,13 +6,11 @@ using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// SlidingWindowTransformBase outputs a sliding window as a VBuffer from a series of any type.
@@ -104,7 +102,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             int index;
             sch.TryGetColumnIndex(InputColumnName, out index);
             ColumnType col = sch[index].Type;
-            TInput nanValue = Conversions.Instance.GetNAOrDefault<TInput>(col);
+            TInput nanValue = Data.Conversion.Conversions.Instance.GetNAOrDefault<TInput>(col);
 
             // We store the nan_value here to avoid getting it each time a state is instanciated.
             return nanValue;
