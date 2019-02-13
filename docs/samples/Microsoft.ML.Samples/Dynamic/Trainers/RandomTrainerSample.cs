@@ -38,14 +38,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var data = reader.Read(dataFile);
 
             // Split it between training and test data
-            var (train, test) = mlContext.BinaryClassification.TrainTestSplit(data);
-
-            // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times, 
-            // it can be slow due to expensive featurization and disk operations. When the considered data can fit into memory, a 
-            // solution is to cache the data in memory. Caching is especially helpful when working with iterative algorithms which 
-            // needs many data passes. Since SDCA is the case, we cache. Inserting a cache step in a pipeline is also possible,
-            // please see the construction of pipeline below.
-            data = mlContext.Data.Cache(data);
+            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data);
 
             // Step 2: Pipeline 
             // Featurize the text column through the FeaturizeText API. 
@@ -56,10 +49,10 @@ namespace Microsoft.ML.Samples.Dynamic
                     .Append(mlContext.BinaryClassification.Trainers.Random());
 
             // Step 3: Train the pipeline
-            var trainedPipeline = pipeline.Fit(train);
+            var trainedPipeline = pipeline.Fit(trainTestData.TrainSet);
 
             // Step 4: Evaluate on the test set
-            var transformedData = trainedPipeline.Transform(test);
+            var transformedData = trainedPipeline.Transform(trainTestData.TestSet);
             var evalMetrics = mlContext.BinaryClassification.Evaluate(transformedData, label: "Sentiment");
 
             // Step 5: Inspect the output
