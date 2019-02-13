@@ -1703,6 +1703,7 @@ namespace Microsoft.ML.Internal.Calibration
     }
 
     /// <summary>
+    /// The pair-adjacent violators calibrator.
     /// The function that is implemented by this calibrator is:
     /// f(x) = v_i, if minX_i &lt;= x &lt;= maxX_i
     ///      = linear interpolate between v_i and v_i+1, if maxX_i &lt; x &lt; minX_i+1

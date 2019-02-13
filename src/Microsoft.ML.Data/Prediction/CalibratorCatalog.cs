@@ -260,7 +260,7 @@ namespace Microsoft.ML.Calibrator
     }
 
     /// <summary>
-    /// The PlattCalibratorEstimator.
+    /// The Platt calibrator estimator.
     /// </summary>
     /// <remarks>
     /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
@@ -291,6 +291,8 @@ namespace Microsoft.ML.Calibrator
 
     /// <summary>
     /// Obtains the probability values by applying the sigmoid:  f(x) = 1 / (1 + exp(-slope * x + offset).
+    /// Note that unlike, say, <see cref="PlattCalibratorEstimator"/>, the fit function here is trivial
+    /// and just "fits" a calibrator with the provided parameters.
     /// </summary>
     /// <remarks>
     /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
@@ -347,7 +349,7 @@ double slope = 1,
     }
 
     /// <summary>
-    /// The naive binning-based calibratorEstimator.
+    /// The naive binning-based calbirator estimator.
     /// </summary>
     /// <remarks>
     /// It divides the range of the outputs into equally sized bins. In each bin,
@@ -399,7 +401,7 @@ double slope = 1,
     }
 
     /// <summary>
-    /// The PavCalibratorEstimator.
+    /// The pair-adjacent violators calibrator estimator.
     /// </summary>
     /// <remarks>
     /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
