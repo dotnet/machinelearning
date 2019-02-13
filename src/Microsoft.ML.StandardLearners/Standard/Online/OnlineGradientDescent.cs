@@ -98,7 +98,6 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="weightsColumn">The name of the weights column.</param>
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         internal OnlineGradientDescentTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
@@ -107,7 +106,6 @@ namespace Microsoft.ML.Trainers.Online
             bool decreaseLearningRate = Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = Options.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = Options.OgdDefaultArgs.NumIterations,
-            string weightsColumn = null,
             IRegressionLoss lossFunction = null)
             : this(env, new Options
             {
@@ -117,7 +115,6 @@ namespace Microsoft.ML.Trainers.Online
                 NumIterations = numIterations,
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
-                InitialWeights = weightsColumn,
                 LossFunction = new TrivialFactory(lossFunction ?? new SquaredLoss())
             })
         {
@@ -179,8 +176,5 @@ namespace Microsoft.ML.Trainers.Online
 
         protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, Schema trainSchema)
         => new RegressionPredictionTransformer<LinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
-
-        public RegressionPredictionTransformer<LinearRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 }
