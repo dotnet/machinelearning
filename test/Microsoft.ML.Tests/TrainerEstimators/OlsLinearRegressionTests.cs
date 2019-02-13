@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(trainer, dataView);
 
             var model = trainer.Fit(dataView);
-            trainer.Train(dataView, model.Model);
+            trainer.Fit(dataView, model.Model);
             Done();
         }
     }

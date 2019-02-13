@@ -64,6 +64,7 @@ namespace Microsoft.ML.Training
             WeightColumn = weight;
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         public TTransformer Fit(IDataView input) => TrainTransformer(input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)

@@ -140,7 +140,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.InRange(metrices.L2, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
 
-            var modelWithValidation = pipeline.Train(data, testData);
+            var modelWithValidation = pipeline.Fit(data, testData);
         }
 
         private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)

@@ -164,7 +164,10 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override RegressionPredictionTransformer<FastTreeRegressionModelParameters> MakeTransformer(FastTreeRegressionModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<FastTreeRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<FastTreeRegressionModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastTreeRegressionTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<FastTreeRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
