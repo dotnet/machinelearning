@@ -530,21 +530,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [MatrixFactorizationFact]
-        public void OneClassMatrixFactorizationWithUnseenRow()
+        public void OneClassMatrixFactorizationWithUnseenColumnAndRow()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
             // factorization problem, unspecified matrix elements are all a constant provided by user. If that constant is 0.15,
             // the following list means a 3-by-2 training matrix with elements:
-            //   (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 0.15), (0, 2, 0.15), (1, 2, 0.15).
-            // because matrix elements at (0, 1), (0, 2), and (1, 2) are not specified. Below is a visualization of the training matrix.
-            //   [1, 1]
-            //   |?, 1| where ? will be set to 0.15 by user when creating the trainer.
+            //   (0, 0, 1), (0, 1, 1), (1, 0, 0.15), (1, 1, 0.15), (0, 2, 0.15), (1, 2, 0.15).
+            // because matrix elements at (1, 0), (1, 1), (0, 2), and (1, 2) are not specified. Below is a visualization of the training matrix.
+            //   [1, ?]
+            //   |1, ?| where ? will be set to 0.15 by user when creating the trainer.
             //   [?, ?]
-            // Note that the third row is an unseen row because it contains no training elements (i.e., all its values are "?"s).
+            // Note that the second column and the third row are called unseen because they contain no training element (i.e., all its values are "?"s).
             var dataMatrix = new List<OneClassMatrixElementZeroBased>();
             dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 1 });
-            dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 1, MatrixRowIndex = 0, Value = 1 });
-            dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 1, MatrixRowIndex = 1, Value = 1 });
+            dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 1, Value = 1 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
             var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
@@ -584,7 +583,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create data for testing.
             var testDataMatrix = new List<OneClassMatrixElementZeroBasedForScore>();
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 0, Score = 0 });
-            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 0, MatrixRowIndex = 1, Value = 0, Score = 0 });
+            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 0, Value = 0, Score = 0 });
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
@@ -595,11 +594,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var testResults = mlContext.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
-            CompareNumbersWithTolerance(0.975457132, testResults[0].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.9823623, testResults[0].Score, digitsOfPrecision: 5);
             // Negative examples' scores (i.e., examples can not be found in dataMatrix) are closer
             // to 0.15 (specified by s.C = 0.15 in the trainer) than positive example's score.
-            CompareNumbersWithTolerance(0.6217553, testResults[1].Score, digitsOfPrecision: 5);
-            CompareNumbersWithTolerance(0.06734055, testResults[2].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.05511549, testResults[1].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
     }
 }
