@@ -96,7 +96,8 @@ namespace Microsoft.ML.Data
             _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
 
-        public static DataViewSchema GetOutputSchema(DataViewSchema inputSchema, IRowMapper mapper)
+        [BestFriend]
+        internal static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -189,7 +190,7 @@ namespace Microsoft.ML.Data
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
-        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -241,7 +242,7 @@ namespace Microsoft.ML.Data
 
         public DataViewSchema InputSchema => Source.Schema;
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
