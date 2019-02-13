@@ -513,7 +513,7 @@ namespace Microsoft.ML.FactorizationMachine
         }
 
         /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
-        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Fit(input);
+        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Fit(input, null, null);
 
         /// <summary>
         /// Schema propagation for transformers. Returns the output schema of the data, if

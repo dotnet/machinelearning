@@ -505,7 +505,7 @@ namespace Microsoft.ML.Trainers
         /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         /// </summary>
         /// <param name="input">The training data set.</param>
-        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Fit(input);
+        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Fit(input, null);
 
         /// <summary>
         /// Schema propagation for transformers. Returns the output schema of the data, if
