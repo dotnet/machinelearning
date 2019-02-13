@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.Evaluators.Metrics;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 
@@ -644,6 +645,55 @@ namespace Microsoft.ML
 
             var eval = new RankerEvaluator(Environment, new RankerEvaluator.Arguments() { });
             return eval.Evaluate(data, label, groupId, score);
+        }
+    }
+
+    /// <summary>
+    /// The central catalog for anomaly detection tasks and trainers.
+    /// </summary>
+    public sealed class AnomalyDetectionCatalog : TrainCatalogBase
+    {
+        /// <summary>
+        /// The list of trainers for anomaly detection.
+        /// </summary>
+        public AnomalyDetectionTrainers Trainers { get; }
+
+        internal AnomalyDetectionCatalog(IHostEnvironment env)
+            : base(env, nameof(AnomalyDetectionCatalog))
+        {
+            Trainers = new AnomalyDetectionTrainers(this);
+        }
+
+        public sealed class AnomalyDetectionTrainers : CatalogInstantiatorBase
+        {
+            internal AnomalyDetectionTrainers(AnomalyDetectionCatalog catalog)
+                : base(catalog)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored anomaly detection data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <param name="k">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DrAtK"/> metric. </param>
+        /// <returns>Evaluation results.</returns>
+        public AnomalyDetectionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+            string predictedLabel = DefaultColumnNames.PredictedLabel, int k = 10)
+        {
+            Environment.CheckValue(data, nameof(data));
+            Environment.CheckNonEmpty(label, nameof(label));
+            Environment.CheckNonEmpty(score, nameof(score));
+            Environment.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var args = new AnomalyDetectionEvaluator.Arguments();
+            args.K = k;
+
+            var eval = new AnomalyDetectionEvaluator(Environment, args);
+            return eval.Evaluate(data, label, score, predictedLabel);
         }
     }
 }
