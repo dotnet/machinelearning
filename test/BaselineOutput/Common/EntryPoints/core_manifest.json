@@ -4310,7 +4310,8 @@
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
-            "iter"
+            "iter",
+            "numIterations"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13240,7 +13241,8 @@
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
-            "iter"
+            "iter",
+            "numIterations"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -14254,7 +14256,8 @@
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
-            "iter"
+            "iter",
+            "numIterations"
           ],
           "Required": false,
           "SortOrder": 50.0,
