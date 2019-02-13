@@ -92,7 +92,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override LinearRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override LinearRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // Using a different logic for default L2 parameter in regression.
-        protected override float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
+        private protected override float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
         {
             Contracts.AssertValue(ch);
             Contracts.Assert(maxIterations > 0);

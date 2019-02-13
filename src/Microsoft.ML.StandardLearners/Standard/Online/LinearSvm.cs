@@ -223,7 +223,7 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        protected override bool NeedCalibration => true;
+        private protected override bool NeedCalibration => true;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LinearSvmTrainer"/>.

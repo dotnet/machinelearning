@@ -134,7 +134,7 @@ namespace Microsoft.ML.Trainers
         public BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
-        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+        private protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        protected override void ProcessPriorDistribution(float label, float weight)
+        private protected override void ProcessPriorDistribution(float label, float weight)
         {
             if (label > 0)
                 _posWeight += weight;
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Trainers
             return opt;
         }
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> srcPredictor)
+        private protected override VBuffer<float> InitializeWeightsFromPredictor(CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
 
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Trainers
             return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
-        protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor()
+        private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
             // Logistic regression is naturally calibrated to
             // output probabilities when transformed using

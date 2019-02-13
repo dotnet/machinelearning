@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers
     {
         private const string RegisterName = nameof(LinearTrainerBase<TTransformer, TModel>);
 
-        protected bool NeedShuffle;
+        private protected bool NeedShuffle;
 
         private static readonly TrainerInfo _info = new TrainerInfo();
         public override TrainerInfo Info => _info;
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Whether data is to be shuffled every epoch.
         /// </summary>
-        protected abstract bool ShuffleData { get; }
+        private protected abstract bool ShuffleData { get; }
 
         private protected LinearTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
             string weightColumn = null)
@@ -128,12 +128,12 @@ namespace Microsoft.ML.Trainers
 
         private protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
-        protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
+        private protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
-        protected float WScaledDot(in VBuffer<float> features, Double scaling, in VBuffer<float> weights, float bias)
+        private protected float WScaledDot(in VBuffer<float> features, Double scaling, in VBuffer<float> weights, float bias)
         {
             return VectorUtils.DotProduct(in weights, in features) * (float)scaling + bias;
         }
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // The order of these matter, since they are used as indices into arrays.
-        protected enum MetricKind
+        private protected enum MetricKind
         {
             Loss,
             DualLoss,
@@ -237,10 +237,10 @@ namespace Microsoft.ML.Trainers
         // substantial additional benefits in terms of accuracy.
         private const long MaxDualTableSize = 1L << 50;
         private const float L2LowerBound = 1e-09f;
-        protected readonly TArgs Args;
-        protected ISupportSdcaLoss Loss;
+        private protected readonly TArgs Args;
+        private protected ISupportSdcaLoss Loss;
 
-        protected override bool ShuffleData => Args.Shuffle;
+        private protected override bool ShuffleData => Args.Shuffle;
 
         private const string RegisterName = nameof(SdcaTrainerBase<TArgs, TTransformer, TModel>);
 
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Trainers
             Args.Check(env);
         }
 
-        protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
+        private protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Trainers
             return CreatePredictor(weights, bias);
         }
 
-        protected abstract TModel CreatePredictor(VBuffer<float>[] weights, float[] bias);
+        private protected abstract TModel CreatePredictor(VBuffer<float>[] weights, float[] bias);
 
         // Assign an upper bound for number of iterations based on data set size first.
         // This ensures SDCA will not run forever...
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // Tune default for l2.
-        protected virtual float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
+        private protected virtual float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
         {
             Contracts.AssertValue(ch);
             Contracts.Assert(maxIterations > 0);
@@ -987,7 +987,7 @@ namespace Microsoft.ML.Trainers
             return converged;
         }
 
-        protected virtual float[] InitializeFeatureNormSquared(int length)
+        private protected virtual float[] InitializeFeatureNormSquared(int length)
         {
             return null;
         }
@@ -1066,7 +1066,7 @@ namespace Microsoft.ML.Trainers
         /// Returns a function delegate to retrieve index from id.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<DataViewRowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
+        private protected Func<DataViewRowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
@@ -1097,7 +1097,7 @@ namespace Microsoft.ML.Trainers
         /// Only works if the cursor is not shuffled.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<DataViewRowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
+        private protected Func<DataViewRowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
@@ -1139,7 +1139,7 @@ namespace Microsoft.ML.Trainers
         /// the table growing operation initializes a new larger bucket and rehash the existing entries to
         /// the new bucket. Such operation has an expected complexity proportional to the size.
         /// </summary>
-        protected sealed class IdToIdxLookup
+        private protected sealed class IdToIdxLookup
         {
             // Utilizing this struct gives better cache behavior than using parallel arrays.
             private readonly struct Entry
@@ -1407,7 +1407,7 @@ namespace Microsoft.ML.Trainers
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
 
-        protected override bool ShuffleData => Args.Shuffle;
+        private protected override bool ShuffleData => Args.Shuffle;
 
         private readonly SchemaShape.Column[] _outputColumns;
 
@@ -1697,7 +1697,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Weekly-typed function to create calibrated or uncalibrated predictors.
         /// </summary>
-        protected override IPredictorWithFeatureWeights<float> CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override IPredictorWithFeatureWeights<float> CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -1788,7 +1788,7 @@ namespace Microsoft.ML.Trainers
 
         protected IClassificationLoss Loss { get; }
 
-        protected override bool ShuffleData => _options.Shuffle;
+        private protected override bool ShuffleData => _options.Shuffle;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 

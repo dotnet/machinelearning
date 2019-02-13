@@ -51,7 +51,8 @@ namespace Microsoft.ML.Trainers
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
-        protected readonly VBuffer<float> Weight;
+        [BestFriend]
+        private protected readonly VBuffer<float> Weight;
 
         // _weightsDense is not persisted and is used for performance when the input instance is sparse.
         private VBuffer<float> _weightsDense;
@@ -250,7 +251,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // Generate the score from the given values, assuming they have already been normalized.
-        protected virtual float Score(in VBuffer<float> src)
+        private protected virtual float Score(in VBuffer<float> src)
         {
             if (src.IsDense)
             {
@@ -711,7 +712,7 @@ namespace Microsoft.ML.Trainers
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        protected override float Score(in VBuffer<float> src)
+        private protected override float Score(in VBuffer<float> src)
         {
             return MathUtils.ExpSlow(base.Score(in src));
         }

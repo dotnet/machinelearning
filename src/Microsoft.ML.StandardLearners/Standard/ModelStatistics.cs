@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public sealed class LinearModelStatistics : ICanSaveModel
     {
-        public const string LoaderSignature = "LinearModelStats";
+        internal const string LoaderSignature = "LinearModelStats";
 
         private static VersionInfo GetVersionInfo()
         {
