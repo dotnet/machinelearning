@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(typeof(TreeEnsembleCombiner), null, typeof(SignatureModelCombiner), "Fast Tree Model Combiner", "FastTreeCombiner")]
