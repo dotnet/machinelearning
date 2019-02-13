@@ -4,7 +4,6 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrator;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Xunit;
