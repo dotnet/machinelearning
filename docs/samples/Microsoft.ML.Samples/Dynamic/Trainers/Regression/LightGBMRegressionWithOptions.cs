@@ -42,7 +42,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90
             // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10
 
-            var (trainData, testData) = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.1);
+            var split = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.1);
 
             // Create a pipeline with LightGbm estimator with advanced options,
             // here we only need LightGbm trainer as data is already processed
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var pipeline = mlContext.Regression.Trainers.LightGbm(options);
 
             // Fit this pipeline to the training data
-            var model = pipeline.Fit(trainData);
+            var model = pipeline.Fit(split.TrainSet);
 
             // Get the feature importance based on the information gain used during training.
             VBuffer<float> weights = default;
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"weight 5 - {weightsValues[5]}"); // RoomsPerDwelling (weight 5) = 1
 
             // Evaluate how the model is doing on the test data
-            var dataWithPredictions = model.Transform(testData);
+            var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions, "LabelColumn");
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 

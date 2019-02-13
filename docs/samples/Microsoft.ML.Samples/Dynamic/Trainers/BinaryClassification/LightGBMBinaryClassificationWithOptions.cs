@@ -18,7 +18,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataview = SamplesUtils.DatasetUtils.LoadAdultDataset(mlContext);
 
             // Leave out 10% of data for testing
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(dataview, testFraction: 0.1);
+            var split = mlContext.BinaryClassification.TrainTestSplit(dataview, testFraction: 0.1);
 
             // Create the pipeline with LightGbm Estimator using advanced options
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding(new OneHotEncodingEstimator.ColumnInfo[]
@@ -54,10 +54,10 @@ namespace Microsoft.ML.Samples.Dynamic
                 }));
 
             // Fit this Pipeline to the Training Data
-            var model = pipeline.Fit(trainData);
+            var model = pipeline.Fit(split.TrainSet);
 
             // Evaluate how the model is doing on the test data
-            var dataWithPredictions = model.Transform(testData);
+            var dataWithPredictions = model.Transform(split.TestSet);
 
             var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, "IsOver50K");
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);

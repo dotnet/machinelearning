@@ -50,13 +50,13 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Split the static-typed data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var (trainingData, testingData) = mlContext.MulticlassClassification.TrainTestSplit(dataView, testFraction: 0.5);
+            var split = mlContext.MulticlassClassification.TrainTestSplit(dataView, testFraction: 0.5);
 
             // Train the model.
-            var model = pipeline.Fit(trainingData);
+            var model = pipeline.Fit(split.TrainSet);
 
             // Do prediction on the test set.
-            var dataWithPredictions = model.Transform(testingData);
+            var dataWithPredictions = model.Transform(split.TestSet);
 
             // Evaluate the trained model using the test set.
             var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, label: "LabelIndex");
