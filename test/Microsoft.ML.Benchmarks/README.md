@@ -94,7 +94,7 @@ you can debug this test locally by:
 build.cmd -release -buildNative
 
 2- Changing the configuration in Visual Studio from Debug -> Release
-3- Changing the annotation in the `BenchmarksProjectIsNotBroken` to replace `ConditionalTheory` with `Theory`, as below. 
+3- Changing the annotation in the `BenchmarksProjectIsNotBroken` to replace `BenchmarkTheory` with `Theory`, as below. 
 
 ```cs
 [Theory]

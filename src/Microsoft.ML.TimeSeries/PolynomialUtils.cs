@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     internal static class PolynomialUtils
     {

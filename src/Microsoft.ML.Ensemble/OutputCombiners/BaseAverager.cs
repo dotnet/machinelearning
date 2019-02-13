@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
     public abstract class BaseAverager : IBinaryOutputCombiner, ICanSaveModel
     {

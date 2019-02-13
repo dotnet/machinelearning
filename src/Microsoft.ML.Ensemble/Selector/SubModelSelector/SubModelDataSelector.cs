@@ -6,7 +6,7 @@ using System;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Internallearn;
 
-namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
 {
     internal abstract class SubModelDataSelector<TOutput> : BaseSubModelSelector<TOutput>
     {

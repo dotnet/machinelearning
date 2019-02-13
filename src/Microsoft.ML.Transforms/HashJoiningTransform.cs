@@ -31,7 +31,8 @@ namespace Microsoft.ML.Transforms.Conversions
     /// column there is an option to specify which slots should be hashed together into one output slot.
     /// This transform can be applied either to single valued columns or to known length vector columns.
     /// </summary>
-    public sealed class HashJoiningTransform : OneToOneTransformBase
+    [BestFriend]
+    internal sealed class HashJoiningTransform : OneToOneTransformBase
     {
         public const int NumBitsMin = 1;
         public const int NumBitsLim = 32;
