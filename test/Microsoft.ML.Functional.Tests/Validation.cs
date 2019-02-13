@@ -84,7 +84,7 @@ namespace Microsoft.ML.Functional.Tests
                     EarlyStoppingMetrics = 2,
                     EarlyStoppingRule = new GLEarlyStoppingCriterion.Arguments()
                 })
-                .Train(trainData: preprocessedTrainData, validationData: preprocessedValidData);
+                .Fit(trainData: preprocessedTrainData, validationData: preprocessedValidData);
 
             // Combine the model.
             var model = preprocessor.Append(trainedModel);
