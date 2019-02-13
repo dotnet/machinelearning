@@ -95,9 +95,7 @@ namespace Microsoft.ML.Data
             _mapperFactory = mapperFactory;
             _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
-
-        [BestFriend]
-        internal static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
+        public static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
