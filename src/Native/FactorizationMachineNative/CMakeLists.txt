@@ -6,6 +6,7 @@ set(SOURCES
 
 if(WIN32)
 else()
+    set_property(SOURCE FactorizationMachineCore.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -msse3")
     list(APPEND SOURCES ${VERSION_FILE_PATH})
 endif()
 
