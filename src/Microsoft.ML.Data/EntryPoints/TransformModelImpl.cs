@@ -263,7 +263,7 @@ namespace Microsoft.ML.EntryPoints
                     mappers.Add(mapper);
                     actives.Add(activeCur);
                     var activeCurCol = mapper.GetDependencies(mapper.OutputSchema.Where(col => activeCur(col.Index)));
-                    activeCur = c => activeCurCol.Any(col => col.Index == c);
+                    activeCur = RowCursorUtils.FromColumnsToPredicate(activeCurCol, mapper.InputSchema);
                     transform = transform.Source as IDataTransform;
                 }
                 mappers.Reverse();

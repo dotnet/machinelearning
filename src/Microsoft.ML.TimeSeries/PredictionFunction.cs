@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 var inputCols = innerMappers[i].OutputSchema.Where(c => deps[i](c.Index));
                 var cols = innerMappers[i].GetDependencies(inputCols).ToArray();
-                deps[i - 1] = c => cols.Count() > 0 ? cols.Any(col => col.Index == c) : false;
+                deps[i - 1] = c => cols.Length > 0 ? cols.Any(col => col.Index == c) : false;
             }
 
             DataViewRow result = input;

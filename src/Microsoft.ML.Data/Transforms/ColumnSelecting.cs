@@ -681,8 +681,6 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> columns)
             {
-                var activeOutput = RowCursorUtils.FromColumnsToPredicate(columns, _mapper.OutputSchema);
-
                 var active = new bool[_mapper.InputSchema.Count];
                 foreach (var column in columns)
                         active[_mapper.GetInputIndex(column.Index)] = true;

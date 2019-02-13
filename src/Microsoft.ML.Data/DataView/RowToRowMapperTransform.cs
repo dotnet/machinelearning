@@ -2,17 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
-using Microsoft.ML;
-using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Model.OnnxConverter;
-using Microsoft.ML.Model.Pfa;
 
 [assembly: LoadableClass(typeof(RowToRowMapperTransform), null, typeof(SignatureLoadDataTransform),
     "", RowToRowMapperTransform.LoaderSignature)]
@@ -161,7 +155,7 @@ namespace Microsoft.ML.Data
             var predicateIn = _mapper.GetDependencies(predicateOut);
 
             // Combine the two sets of input columns.
-            inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index]|| predicateIn(col.Index));
+            inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
 
             return active;
         }
@@ -187,7 +181,7 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var active = GetActive(predicate, out IEnumerable<Schema.Column> inputCols);
@@ -241,7 +235,7 @@ namespace Microsoft.ML.Data
         IEnumerable<Schema.Column> IRowToRowMapper.GetDependencies(IEnumerable<Schema.Column> dependingColumns)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
-            GetActive(predicate, out IEnumerable<Schema.Column> inputColumns);
+            GetActive(predicate, out var inputColumns);
             return inputColumns;
         }
 
