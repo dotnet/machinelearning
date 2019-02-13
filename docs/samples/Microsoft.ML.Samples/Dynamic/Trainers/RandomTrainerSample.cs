@@ -58,6 +58,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Step 5: Inspect the output
             Console.WriteLine("Accuracy: " + evalMetrics.Accuracy);
 
+            // We expect an output probability closet to 0.5 as the Random trainer outputs a random prediction.
+            // Regardless of the input features, the trainer will predict either positive or negative label with equal probability.
             // Expected output (close to 0.5):
             // Accuracy: 0.588235294117647
         }

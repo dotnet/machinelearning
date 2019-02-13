@@ -58,6 +58,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Step 5: Inspect the output
             Console.WriteLine("Accuracy: " + evalMetrics.Accuracy);
 
+            // The Prior trainer outputs the proportion of a label in the dataset as the probability of that label.
+            // In this case it means that there is a split of around 64%-36% of positive and negative labels in the dataset.
             // Expected output:
             // Accuracy: 0.647058823529412
         }
