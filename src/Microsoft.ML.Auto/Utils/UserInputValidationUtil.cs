@@ -28,9 +28,8 @@ namespace Microsoft.ML.Auto
             ValidatePath(path);
         }
 
-        public static void ValidateInferColumnsArgs(string path, int labelColumnIndex)
+        public static void ValidateInferColumnsArgs(string path)
         {
-            ValidateLabelColumnIndex(labelColumnIndex);
             ValidatePath(path);
         }
 
@@ -42,7 +41,7 @@ namespace Microsoft.ML.Auto
 
         private static void ValidateTrainData(IDataView trainData)
         {
-            if(trainData == null)
+            if (trainData == null)
             {
                 throw new ArgumentNullException(nameof(trainData), "Training data cannot be null");
             }
@@ -52,7 +51,7 @@ namespace Microsoft.ML.Auto
         {
             ValidateLabel(label);
 
-            if(trainData.Schema.GetColumnOrNull(label) == null)
+            if (trainData.Schema.GetColumnOrNull(label) == null)
             {
                 throw new ArgumentException($"Provided label column '{label}' not found in training data.", nameof(label));
             }
@@ -63,14 +62,6 @@ namespace Microsoft.ML.Auto
             if (label == null)
             {
                 throw new ArgumentNullException(nameof(label), "Provided label cannot be null");
-            }
-        }
-
-        private static void ValidateLabelColumnIndex(int labelColumnIndex)
-        {
-            if (labelColumnIndex < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(labelColumnIndex), $"Provided label column index ({labelColumnIndex}) must be non-negative.");
             }
         }
 
@@ -96,7 +87,7 @@ namespace Microsoft.ML.Auto
 
         private static void ValidateValidationData(IDataView trainData, IDataView validationData)
         {
-            if(validationData == null)
+            if (validationData == null)
             {
                 return;
             }
@@ -109,15 +100,15 @@ namespace Microsoft.ML.Auto
                     $"and validation data has '{validationData.Schema.Count}' columns.", nameof(validationData));
             }
 
-            foreach(var trainCol in trainData.Schema)
+            foreach (var trainCol in trainData.Schema)
             {
                 var validCol = validationData.Schema.GetColumnOrNull(trainCol.Name);
-                if(validCol == null)
+                if (validCol == null)
                 {
                     throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' exsits in train data, but not in validation data.", nameof(validationData));
                 }
 
-                if(trainCol.Type != validCol.Value.Type)
+                if (trainCol.Type != validCol.Value.Type)
                 {
                     throw new ArgumentException($"{schemaMismatchError} Column '{trainCol.Name}' is of type {trainCol.Type} in train data, and type " +
                         $"{validCol.Value.Type} in validation data.", nameof(validationData));
@@ -127,12 +118,12 @@ namespace Microsoft.ML.Auto
 
         private static void ValidateSettings(AutoFitSettings settings)
         {
-            if(settings?.StoppingCriteria == null)
+            if (settings?.StoppingCriteria == null)
             {
                 return;
             }
 
-            if(settings.StoppingCriteria.MaxIterations <= 0)
+            if (settings.StoppingCriteria.MaxIterations <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(settings), "Max iterations must be > 0");
             }
@@ -162,7 +153,7 @@ namespace Microsoft.ML.Auto
                 }
 
                 // if column w/ purpose = 'Label' found, ensure it matches the passed-in label
-                if(colPurpose == ColumnPurpose.Label && colName != label)
+                if (colPurpose == ColumnPurpose.Label && colName != label)
                 {
                     throw new ArgumentException($"Label column name in provided list of purposes '{colName}' must match " +
                         $"the label column name '{label}'", nameof(purposeOverrides));

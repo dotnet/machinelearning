@@ -4,9 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Auto;
+using Microsoft.ML.Data;
+using mlnet.Templates;
 using static Microsoft.ML.Data.TextLoader;
 
 namespace Microsoft.ML.CLI
@@ -14,13 +17,78 @@ namespace Microsoft.ML.CLI
     internal class CodeGenerator
     {
         private readonly Pipeline pipeline;
+        private readonly CodeGeneratorOptions options;
         private readonly (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult;
 
-        public CodeGenerator(Pipeline pipelineToDeconstruct, (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult)
+        internal CodeGenerator(Pipeline pipeline, (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult, CodeGeneratorOptions options)
         {
-            this.pipeline = pipelineToDeconstruct;
+            this.pipeline = pipeline;
             this.columnInferenceResult = columnInferenceResult;
+            this.options = options;
         }
+
+        internal void GenerateOutput()
+        {
+            var trainerAndUsings = this.GenerateTrainerAndUsings();
+            var transformsAndUsings = this.GenerateTransformsAndUsings();
+
+            //Capture all the usings
+            var usings = new List<string>();
+
+            //Get trainer code and its associated usings.
+            var trainer = trainerAndUsings.Item1;
+            usings.Add(trainerAndUsings.Item2);
+
+            //Get transforms code and its associated (unique) usings.
+            var transforms = transformsAndUsings.Select(t => t.Item1).ToList();
+            usings.AddRange(transformsAndUsings.Select(t => t.Item2));
+            usings = usings.Distinct().ToList();
+
+            //Combine all using statements to actual text.
+            StringBuilder usingsBuilder = new StringBuilder();
+            usings.ForEach(t =>
+            {
+                if (t != null)
+                    usingsBuilder.Append(t);
+            });
+
+            //Generate code for columns
+            var columns = this.GenerateColumns();
+
+            //Generate code for prediction Class labels
+            var classLabels = this.GenerateClassLabels();
+
+            MLCodeGen codeGen = new MLCodeGen()
+            {
+                Path = options.TrainDataset.FullName,
+                TestPath = options.TestDataset?.FullName,
+                Columns = columns,
+                Transforms = transforms,
+                HasHeader = columnInferenceResult.Item1.HasHeader,
+                Separators = columnInferenceResult.Item1.Separators,
+                AllowQuoting = columnInferenceResult.Item1.AllowQuoting,
+                AllowSparse = columnInferenceResult.Item1.AllowSparse,
+                TrimWhiteSpace = columnInferenceResult.Item1.TrimWhitespace,
+                Trainer = trainer,
+                TaskType = options.MlTask.ToString(),
+                ClassLabels = classLabels,
+                GeneratedUsings = usingsBuilder.ToString()
+            };
+
+            MLProjectGen csProjGenerator = new MLProjectGen();
+            ConsoleHelper consoleHelper = new ConsoleHelper();
+            var trainScoreCode = codeGen.TransformText();
+            var projectSourceCode = csProjGenerator.TransformText();
+            var consoleHelperCode = consoleHelper.TransformText();
+            if (!Directory.Exists("./BestModel"))
+            {
+                Directory.CreateDirectory("./BestModel");
+            }
+            File.WriteAllText("./BestModel/Train.cs", trainScoreCode);
+            File.WriteAllText("./BestModel/MyML.csproj", projectSourceCode);
+            File.WriteAllText("./BestModel/ConsoleHelper.cs", consoleHelperCode);
+        }
+
         internal IList<(string, string)> GenerateTransformsAndUsings()
         {
             var nodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Transform);
@@ -164,8 +232,6 @@ namespace Microsoft.ML.CLI
                 default: return inputColumn.First().ToString().ToUpper() + inputColumn.Substring(1);
             }
         }
-
-
 
     }
 }

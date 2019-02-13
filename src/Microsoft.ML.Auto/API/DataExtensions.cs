@@ -18,11 +18,11 @@ namespace Microsoft.ML.Auto
             return ColumnInferenceApi.InferColumns(mlContext, path, label, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
         }
 
-        public static (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) InferColumns(this DataOperationsCatalog catalog, string path, int labelColumnIndex,
-            bool hasHeader = false, char? separatorChar = null, bool? allowQuotedStrings = null, bool? supportSparse = null, 
+        public static (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) InferColumns(this DataOperationsCatalog catalog, string path, uint labelColumnIndex,
+            bool hasHeader = false, char? separatorChar = null, bool? allowQuotedStrings = null, bool? supportSparse = null,
             bool trimWhitespace = false, bool groupColumns = true)
         {
-            UserInputValidationUtil.ValidateInferColumnsArgs(path, labelColumnIndex);
+            UserInputValidationUtil.ValidateInferColumnsArgs(path);
             var mlContext = new MLContext();
             return ColumnInferenceApi.InferColumns(mlContext, path, labelColumnIndex, hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace, groupColumns);
         }

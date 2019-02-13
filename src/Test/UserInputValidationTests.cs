@@ -193,16 +193,9 @@ namespace Microsoft.ML.Auto.Test
         }
 
         [TestMethod]
-        public void ValidateOkayInferColsLabelIndex()
+        public void ValidateInferColsPath()
         {
-            UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.DownloadUciAdultDataset(), 0);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentOutOfRangeException))]
-        public void ValidateInferColsNegativeLabelIndex()
-        {
-            UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.DownloadUciAdultDataset(), -1);
+            UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.DownloadUciAdultDataset());
         }
     }
 }

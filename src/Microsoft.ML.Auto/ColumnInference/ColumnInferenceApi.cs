@@ -11,7 +11,7 @@ namespace Microsoft.ML.Auto
 {
     internal static class ColumnInferenceApi
     {
-        public static (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) InferColumns(MLContext context, string path, int labelColumnIndex,
+        public static (TextLoader.Arguments, IEnumerable<(string, ColumnPurpose)>) InferColumns(MLContext context, string path, uint labelColumnIndex,
             bool hasHeader, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace, bool groupColumns)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Auto
                 typeInference.Columns[labelColumnIndex].SuggestedName = DefaultColumnNames.Label;
             }
 
-            return InferColumns(context, path, typeInference.Columns[labelColumnIndex].SuggestedName, 
+            return InferColumns(context, path, typeInference.Columns[labelColumnIndex].SuggestedName,
                 hasHeader, splitInference, typeInference, trimWhitespace, groupColumns);
         }
 
@@ -87,14 +87,14 @@ namespace Microsoft.ML.Auto
             }
 
             return (new TextLoader.Arguments()
-                {
-                    Column = columnResults.ToArray(),
-                    AllowQuoting = splitInference.AllowQuote,
-                    AllowSparse = splitInference.AllowSparse,
-                    Separators = new char[] { splitInference.Separator.Value },
-                    HasHeader = hasHeader,
-                    TrimWhitespace = trimWhitespace
-                }, purposeResults);
+            {
+                Column = columnResults.ToArray(),
+                AllowQuoting = splitInference.AllowQuote,
+                AllowSparse = splitInference.AllowSparse,
+                Separators = new char[] { splitInference.Separator.Value },
+                HasHeader = hasHeader,
+                TrimWhitespace = trimWhitespace
+            }, purposeResults);
         }
 
         private static TextFileContents.ColumnSplitResult InferSplit(TextFileSample sample, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse)

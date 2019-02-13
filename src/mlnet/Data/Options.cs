@@ -21,9 +21,11 @@ namespace Microsoft.ML.CLI
 
         internal string LabelName { get; set; }
 
-        internal int LabelIndex { get; set; }
+        internal uint LabelIndex { get; set; }
 
         internal TaskKind MlTask { get; set; }
+
+        internal uint Timeout { get; set; }
 
     }
 }
