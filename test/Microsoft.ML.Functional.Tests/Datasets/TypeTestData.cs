@@ -12,7 +12,14 @@ using Xunit;
 
 namespace Microsoft.ML.Functional.Tests.Datasets
 {
-    internal sealed class AllTypes
+    /// <summary>
+    /// A class containing one property per <see cref="DataKind"/>.
+    /// </summary>
+    /// <remarks>
+    /// This class has annotations for automatic deserialization from a file, and contains helper methods
+    /// for reading from a file and for generating a random dataset as an IEnumerable.
+    /// </remarks>
+    internal sealed class TypeTestData
     {
         [LoadColumn(0)]
         public bool Label { get; set; }
@@ -66,7 +73,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         public RowId Ug { get; set; }
 
         /// <summary>
-        /// Get the text loader for the AllTypes dataset.
+        /// Get the text loader for the <see cref="TypeTestData"/> dataset.
         /// </summary>
         /// <param name="mlContext">The ML Context.</param>
         /// <param name="separator">The Separator to read with.</param>
@@ -98,43 +105,56 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         }
 
         /// <summary>
-        /// Generate an IEnumerable of AllTypes.
+        /// Generate an IEnumerable of <see cref="TypeTestData"/>.
         /// </summary>
-        /// <param name="numExamples">The number of AllTypesDataset objects to make.</param>
+        /// <param name="numExamples">The number of <see cref="TypeTestData"/> objects to make.</param>
         /// <param name="seed">The random seed.</param>
-        /// <returns>An IEnumerable of AllTypes.</returns>
-        public static IEnumerable<AllTypes> GenerateDataset(int numExamples = 5, int seed = 1)
+        /// <returns>An IEnumerable of <see cref="TypeTestData"/>.</returns>
+        public static IEnumerable<TypeTestData> GenerateDataset(int numExamples = 5, int seed = 1)
         {
             var rng = new Random(seed);
             for (int i = 0; i < numExamples; i++)
             {
-                yield return new AllTypes
-                {
-                    Label = rng.NextDouble() > 0.5,
-                    Features = new float[] {
+                yield return GetRandomInstance(rng);
+            }
+        }
+
+        /// <summary>
+        /// Get a random instance of <see cref="TypeTestData"/>.
+        /// </summary>
+        /// <param name="rng">A <see cref="Random"/> object.</param>
+        /// <returns></returns>
+        public static TypeTestData GetRandomInstance(Random rng)
+        {
+            if (rng == null)
+                throw new ArgumentNullException("rng");
+
+            return new TypeTestData
+            {
+                Label = rng.NextDouble() > 0.5,
+                Features = new float[] {
                         (float)rng.NextDouble(),
                         (float)rng.NextDouble(),
                         (float)rng.NextDouble(),
                         (float)rng.NextDouble(),
                         (float)rng.NextDouble()
                     },
-                    I1 = (sbyte)rng.Next(),
-                    U1 = (byte)rng.Next(),
-                    I2 = (short)rng.Next(),
-                    U2 = (ushort)rng.Next(),
-                    I4 = rng.Next(),
-                    U4 = (uint)rng.Next(),
-                    I8 = (long)rng.Next(),
-                    U8 = (ulong)rng.Next(),
-                    R4 = (float)rng.NextDouble(),
-                    R8 = (double)rng.NextDouble(),
-                    Tx = GetRandomCharSpan(rng),
-                    Ts = TimeSpan.FromSeconds(rng.NextDouble() * (1 + rng.Next())),
-                    Dt = DateTime.FromOADate(rng.Next(657435, 2958465)),
-                    Dz = DateTimeOffset.FromUnixTimeSeconds((long)(rng.NextDouble() * (1 + rng.Next()))),
-                    Ug = new RowId((ulong)rng.Next(), (ulong)rng.Next())
-                };
-            }
+                I1 = (sbyte)rng.Next(),
+                U1 = (byte)rng.Next(),
+                I2 = (short)rng.Next(),
+                U2 = (ushort)rng.Next(),
+                I4 = rng.Next(),
+                U4 = (uint)rng.Next(),
+                I8 = (long)rng.Next(),
+                U8 = (ulong)rng.Next(),
+                R4 = (float)rng.NextDouble(),
+                R8 = (double)rng.NextDouble(),
+                Tx = GetRandomCharSpan(rng),
+                Ts = TimeSpan.FromSeconds(rng.NextDouble() * (1 + rng.Next())),
+                Dt = DateTime.FromOADate(rng.Next(657435, 2958465)),
+                Dz = DateTimeOffset.FromUnixTimeSeconds((long)(rng.NextDouble() * (1 + rng.Next()))),
+                Ug = new RowId((ulong)rng.Next(), (ulong)rng.Next())
+            };
         }
 
         private static ReadOnlyMemory<char> GetRandomCharSpan(Random rng, int length = 10)

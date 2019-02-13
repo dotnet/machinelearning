@@ -15,15 +15,15 @@ namespace Microsoft.ML.Functional.Tests
     internal static class Common
     {
         /// <summary>
-        /// Asssert that an <see cref="IDataView"/> rows are of <see cref="AllTypes"/>.
+        /// Asssert that an <see cref="IDataView"/> rows are of <see cref="TypeTestData"/>.
         /// </summary>
-        /// <param name="allTypesDataset">An <see cref="IDataView"/>.</param>
-        public static void AssertAllTypesDataset(IDataView allTypesDataset)
+        /// <param name="testTypeDataset">An <see cref="IDataView"/>.</param>
+        public static void AssertTypeTestDataset(IDataView testTypeDataset)
         {
-            var toyClassProperties = typeof(AllTypes).GetProperties();
+            var toyClassProperties = typeof(TypeTestData).GetProperties();
 
             // Check that the schema is of the right size.
-            Assert.Equal(toyClassProperties.Length, allTypesDataset.Schema.Count);
+            Assert.Equal(toyClassProperties.Length, testTypeDataset.Schema.Count);
 
             // Create a lookup table for the types and counts of all properties.
             var types = new Dictionary<string, Type>();
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Functional.Tests
                 counts[property.Name] = 0;
             }
 
-            foreach (var column in allTypesDataset.Schema)
+            foreach (var column in testTypeDataset.Schema)
             {
                 Assert.True(types.ContainsKey(column.Name));
                 Assert.Equal(1, ++counts[column.Name]);
@@ -57,23 +57,23 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Assert than two <see cref="AllTypes"/> datasets are equal.
+        /// Assert than two <see cref="TypeTestData"/> datasets are equal.
         /// </summary>
         /// <param name="mlContext">The ML Context.</param>
-        /// <param name="data1">A <see cref="IDataView"/> of <see cref="AllTypes"/></param>
-        /// <param name="data2">A <see cref="IDataView"/> of <see cref="AllTypes"/></param>
-        public static void AssertAllTypesDatasetsAreEqual(MLContext mlContext, IDataView data1, IDataView data2)
+        /// <param name="data1">A <see cref="IDataView"/> of <see cref="TypeTestData"/></param>
+        /// <param name="data2">A <see cref="IDataView"/> of <see cref="TypeTestData"/></param>
+        public static void AssertTestTypeDatasetsAreEqual(MLContext mlContext, IDataView data1, IDataView data2)
         {
             // Confirm that they are both of the propery row type.
-            AssertAllTypesDataset(data1);
-            AssertAllTypesDataset(data2);
+            AssertTypeTestDataset(data1);
+            AssertTypeTestDataset(data2);
 
             // Validate that the two Schemas are the same.
             Common.AssertEqual(data1.Schema, data2.Schema);
 
             // Define how to serialize the IDataView to objects.
-            var enumerable1 = mlContext.CreateEnumerable<AllTypes>(data1, true);
-            var enumerable2 = mlContext.CreateEnumerable<AllTypes>(data2, true);
+            var enumerable1 = mlContext.CreateEnumerable<TypeTestData>(data1, true);
+            var enumerable2 = mlContext.CreateEnumerable<TypeTestData>(data2, true);
 
             AssertEqual(enumerable1, enumerable2);
         }
@@ -118,11 +118,11 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Assert than two <see cref="AllTypes"/> enumerables are equal.
+        /// Assert than two <see cref="TypeTestData"/> enumerables are equal.
         /// </summary>
-        /// <param name="data1">An enumerable of <see cref="AllTypes"/></param>
-        /// <param name="data2">An enumerable of <see cref="AllTypes"/></param>
-        public static void AssertEqual(IEnumerable<AllTypes> data1, IEnumerable<AllTypes> data2)
+        /// <param name="data1">An enumerable of <see cref="TypeTestData"/></param>
+        /// <param name="data2">An enumerable of <see cref="TypeTestData"/></param>
+        public static void AssertEqual(IEnumerable<TypeTestData> data1, IEnumerable<TypeTestData> data2)
         {
             Assert.NotNull(data1);
             Assert.NotNull(data2);
@@ -135,29 +135,29 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Assert that two AllTypes datasets are equal.
+        /// Assert that two TypeTest datasets are equal.
         /// </summary>
-        /// <param name="allTypes1">An <see cref="AllTypes"/>.</param>
-        /// <param name="allTypes2">An <see cref="AllTypes"/>.</param>
-        public static void AssertEqual(AllTypes allTypes1, AllTypes allTypes2)
+        /// <param name="testType1">An <see cref="TypeTestData"/>.</param>
+        /// <param name="testType2">An <see cref="TypeTestData"/>.</param>
+        public static void AssertEqual(TypeTestData testType1, TypeTestData testType2)
         {
-            Assert.Equal(allTypes1.Label, allTypes2.Label);
-            Common.AssertEqual(allTypes1.Features, allTypes2.Features);
-            Assert.Equal(allTypes1.I1, allTypes2.I1);
-            Assert.Equal(allTypes1.U1, allTypes2.U1);
-            Assert.Equal(allTypes1.I2, allTypes2.I2);
-            Assert.Equal(allTypes1.U2, allTypes2.U2);
-            Assert.Equal(allTypes1.I4, allTypes2.I4);
-            Assert.Equal(allTypes1.U4, allTypes2.U4);
-            Assert.Equal(allTypes1.I8, allTypes2.I8);
-            Assert.Equal(allTypes1.U8, allTypes2.U8);
-            Assert.Equal(allTypes1.R4, allTypes2.R4);
-            Assert.Equal(allTypes1.R8, allTypes2.R8);
-            Assert.Equal(allTypes1.Tx.ToString(), allTypes2.Tx.ToString());
-            Assert.True(allTypes1.Ts.Equals(allTypes2.Ts));
-            Assert.True(allTypes1.Dt.Equals(allTypes2.Dt));
-            Assert.True(allTypes1.Dz.Equals(allTypes2.Dz));
-            Assert.True(allTypes1.Ug.Equals(allTypes2.Ug));
+            Assert.Equal(testType1.Label, testType2.Label);
+            Common.AssertEqual(testType1.Features, testType2.Features);
+            Assert.Equal(testType1.I1, testType2.I1);
+            Assert.Equal(testType1.U1, testType2.U1);
+            Assert.Equal(testType1.I2, testType2.I2);
+            Assert.Equal(testType1.U2, testType2.U2);
+            Assert.Equal(testType1.I4, testType2.I4);
+            Assert.Equal(testType1.U4, testType2.U4);
+            Assert.Equal(testType1.I8, testType2.I8);
+            Assert.Equal(testType1.U8, testType2.U8);
+            Assert.Equal(testType1.R4, testType2.R4);
+            Assert.Equal(testType1.R8, testType2.R8);
+            Assert.Equal(testType1.Tx.ToString(), testType2.Tx.ToString());
+            Assert.True(testType1.Ts.Equals(testType2.Ts));
+            Assert.True(testType1.Dt.Equals(testType2.Dt));
+            Assert.True(testType1.Dz.Equals(testType2.Dz));
+            Assert.True(testType1.Ug.Equals(testType2.Ug));
         }
 
         /// <summary>

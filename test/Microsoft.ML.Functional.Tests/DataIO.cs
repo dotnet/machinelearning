@@ -35,9 +35,9 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Read the dataset from an enumerable.
-            var data = mlContext.Data.ReadFromEnumerable(AllTypes.GenerateDataset());
+            var data = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
 
-            Common.AssertAllTypesDataset(data);
+            Common.AssertTypeTestDataset(data);
         }
 
         /// <summary>
@@ -49,11 +49,11 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             // Read the dataset from an enumerable.
-            var enumerableBefore = AllTypes.GenerateDataset();
+            var enumerableBefore = TypeTestData.GenerateDataset();
             var data = mlContext.Data.ReadFromEnumerable(enumerableBefore);
 
             // Export back to an enumerable.
-            var enumerableAfter = mlContext.CreateEnumerable<AllTypes>(data, true);
+            var enumerableAfter = mlContext.CreateEnumerable<TypeTestData>(data, true);
 
             Common.AssertEqual(enumerableBefore, enumerableAfter);
         }
@@ -62,21 +62,21 @@ namespace Microsoft.ML.Functional.Tests
         /// Write to and read from a delimited file: Any DataKind can be written to and read from a delimited file.
         /// </summary>
         /// <remarks>
-        /// Tests the roundtrip hrough a file using explicit schematization.
+        /// Tests the roundtrip through a file using explicit schematization.
         /// </remarks>
         [Fact]
         public void WriteToAndReadFromADelimetedFile()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
             
-            var dataBefore = mlContext.Data.ReadFromEnumerable(AllTypes.GenerateDataset());
+            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
 
             foreach (var separator in _separators)
             {
                 // Serialize a dataset with a known schema to a file.
                 var filePath = SerializeDatasetToFile(mlContext, dataBefore, separator);
-                var dataAfter = AllTypes.GetTextLoader(mlContext, separator).Read(filePath);
-                Common.AssertAllTypesDatasetsAreEqual(mlContext, dataBefore, dataAfter);
+                var dataAfter = TypeTestData.GetTextLoader(mlContext, separator).Read(filePath);
+                Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
             }
         }
 
@@ -84,21 +84,21 @@ namespace Microsoft.ML.Functional.Tests
         /// Write to and read from a delimited file: Schematized data of any DataKind can be read from a delimited file.
         /// </summary>
         /// <remarks>
-        /// Tests the roundtrip hrough a file using schema inference.
+        /// Tests the roundtrip through a file using schema inference.
         /// </remarks>
         [Fact]
         public void WriteToAndReadASchemaFromADelimitedFile()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var dataBefore = mlContext.Data.ReadFromEnumerable(AllTypes.GenerateDataset());
+            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
 
             foreach (var separator in _separators)
             {
                 // Serialize a dataset with a known schema to a file.
                 var filePath = SerializeDatasetToFile(mlContext, dataBefore, separator);
-                var dataAfter = mlContext.Data.ReadFromTextFile<AllTypes>(filePath, hasHeader: true, separatorChar: separator);
-                Common.AssertAllTypesDatasetsAreEqual(mlContext, dataBefore, dataAfter);
+                var dataAfter = mlContext.Data.ReadFromTextFile<TypeTestData>(filePath, hasHeader: true, separatorChar: separator);
+                Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
             }
         }
 
@@ -110,12 +110,12 @@ namespace Microsoft.ML.Functional.Tests
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var dataBefore = mlContext.Data.ReadFromEnumerable(AllTypes.GenerateDataset());
+            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
 
             // Serialize a dataset with a known schema to a file.
             var filePath = SerializeDatasetToBinaryFile(mlContext, dataBefore);
             var dataAfter = mlContext.Data.ReadFromBinary(filePath);
-            Common.AssertAllTypesDatasetsAreEqual(mlContext, dataBefore, dataAfter);
+            Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
         }
 
         private string SerializeDatasetToFile(MLContext mlContext, IDataView data, char separator)
