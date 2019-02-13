@@ -14,6 +14,7 @@ using Microsoft.ML.LightGBM;
 using Microsoft.ML.LightGBM.StaticPipe;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
@@ -448,7 +449,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGbmBinaryClassification()
         {
             var env = new MLContext(seed: 0);
@@ -488,7 +489,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Auprc, 0, 1);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGbmRegression()
         {
             var env = new MLContext(seed: 0);
@@ -804,7 +805,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void LightGBMRanking()
         {
             var env = new MLContext(seed: 0);
@@ -845,7 +846,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void MultiClassLightGBM()
         {
             var env = new MLContext(seed: 0);
@@ -966,7 +967,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Auprc, 0, 1);
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))] // netcore3.0 and x86 output differs from Baseline. This test is being fixed as part of issue #1441.
+        [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline. Being tracked as part of https://github.com/dotnet/machinelearning/issues/1441")]
         public void MatrixFactorization()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
@@ -1017,7 +1018,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.L2, 0, 0.5);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [LightGBMFact]
         public void MultiClassLightGbmStaticPipelineWithInMemoryData()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,

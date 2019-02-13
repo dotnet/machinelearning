@@ -54,7 +54,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Step 3: Run Cross-Validation on this pipeline.
             var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment");
 
-            var accuracies = cvResults.Select(r => r.metrics.Accuracy);
+            var accuracies = cvResults.Select(r => r.Metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
 
             // If we wanted to specify more advanced parameters for the algorithm, 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Run Cross-Validation on this second pipeline.
             var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment", numFolds: 3);
-            accuracies = cvResults_advancedPipeline.Select(r => r.metrics.Accuracy);
+            accuracies = cvResults_advancedPipeline.Select(r => r.Metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
 
         }

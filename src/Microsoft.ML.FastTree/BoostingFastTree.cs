@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Float = System.Single;
 

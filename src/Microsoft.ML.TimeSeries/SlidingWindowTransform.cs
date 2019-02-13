@@ -7,14 +7,14 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(SlidingWindowTransform.Summary, typeof(SlidingWindowTransform), typeof(SlidingWindowTransform.Arguments), typeof(SignatureDataTransform),
     SlidingWindowTransform.UserName, SlidingWindowTransform.LoaderSignature, SlidingWindowTransform.ShortName)]
 [assembly: LoadableClass(SlidingWindowTransform.Summary, typeof(SlidingWindowTransform), null, typeof(SignatureLoadDataTransform),
     SlidingWindowTransform.UserName, SlidingWindowTransform.LoaderSignature)]
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// Outputs a sliding window on a time series of type Single.

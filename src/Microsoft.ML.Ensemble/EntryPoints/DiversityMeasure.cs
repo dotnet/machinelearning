@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble;
+using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
 
 [assembly: EntryPointModule(typeof(DisagreementDiversityFactory))]
 [assembly: EntryPointModule(typeof(RegressionDisagreementDiversityFactory))]
 [assembly: EntryPointModule(typeof(MultiDisagreementDiversityFactory))]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     [TlcModule.Component(Name = DisagreementDiversityMeasure.LoadName, FriendlyName = DisagreementDiversityMeasure.UserName)]
     internal sealed class DisagreementDiversityFactory : ISupportBinaryDiversityMeasureFactory

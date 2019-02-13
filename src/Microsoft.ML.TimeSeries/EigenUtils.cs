@@ -8,7 +8,7 @@ using System.Security;
 using Microsoft.ML.Internal.Utilities;
 using Float = System.Single;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     //REVIEW: improve perf with SSE and Multithreading
     internal static class EigenUtils

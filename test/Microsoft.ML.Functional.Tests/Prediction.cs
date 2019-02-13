@@ -24,7 +24,7 @@ namespace Microsoft.ML.Functional.Tests
             // Get the dataset, create a train and test
             var data = mlContext.Data.CreateTextLoader(TestDatasets.housing.GetLoaderColumns(), hasHeader: true)
                 .Read(BaseTestClass.GetDataPath(TestDatasets.housing.trainFilename));
-            (var train, var test) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
+            var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
 
             // Create a pipeline to train on the housing data
             var pipeline = mlContext.Transforms.Concatenate("Features", new string[] {
@@ -33,9 +33,9 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.CopyColumns("Label", "MedianHomeValue"))
                 .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares());
 
-            var model = pipeline.Fit(train);
+            var model = pipeline.Fit(split.TrainSet);
 
-            var scoredTest = model.Transform(test);
+            var scoredTest = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(scoredTest);
 
             Common.CheckMetrics(metrics);
