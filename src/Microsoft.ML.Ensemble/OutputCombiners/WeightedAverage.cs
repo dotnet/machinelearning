@@ -19,7 +19,7 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
-    public sealed class WeightedAverage : BaseAverager, IWeightedAverager
+    internal sealed class WeightedAverage : BaseAverager, IWeightedAverager
     {
         public const string UserName = "Weighted Average";
         public const string LoadName = "WeightedAverage";
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Ensemble.OutputCombiners
     }
 
     // These values are serialized, so should not be changed.
-    public enum WeightageKind
+    internal enum WeightageKind
     {
         [TGUI(Label = BinaryClassifierEvaluator.Accuracy)]
         Accuracy = 0,

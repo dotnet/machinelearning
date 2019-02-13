@@ -13,7 +13,7 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
-    public sealed class Voting : IBinaryOutputCombiner, ICanSaveModel
+    internal sealed class Voting : IBinaryOutputCombiner, ICanSaveModel
     {
         private readonly IHost _host;
         public const string UserName = "Voting";

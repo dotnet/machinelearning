@@ -16,8 +16,6 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Ensemble
 {
-    using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-
     public sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<VBuffer<Single>>, IValueMapper
     {
         internal const string UserName = "Ensemble Multiclass Executor";

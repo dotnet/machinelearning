@@ -11,7 +11,7 @@ using Microsoft.ML.Numeric;
 
 namespace Microsoft.ML.Ensemble.OutputCombiners
 {
-    public abstract class BaseMultiCombiner : IMultiClassOutputCombiner, ICanSaveModel
+    internal abstract class BaseMultiCombiner : IMultiClassOutputCombiner, ICanSaveModel
     {
         protected readonly IHost Host;
 

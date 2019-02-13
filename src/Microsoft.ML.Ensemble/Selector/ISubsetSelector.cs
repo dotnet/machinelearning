@@ -17,7 +17,7 @@ namespace Microsoft.ML.Ensemble.Selector
         RoleMappedData GetTestData(Subset subset, Batch batch);
     }
 
-    public delegate void SignatureEnsembleDataSelector();
+    internal delegate void SignatureEnsembleDataSelector();
 
     [TlcModule.ComponentKind("EnsembleSubsetSelector")]
     internal interface ISupportSubsetSelectorFactory : IComponentFactory<ISubsetSelector>
