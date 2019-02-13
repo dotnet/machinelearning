@@ -19,7 +19,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer),
-    typeof(TensorFlowTransformer.Options), typeof(SignatureDataTransform), TensorFlowTransformer.UserName, TensorFlowTransformer.ShortName)]
+    typeof(TensorFlowEstimator.Options), typeof(SignatureDataTransform), TensorFlowTransformer.UserName, TensorFlowTransformer.ShortName)]
 
 [assembly: LoadableClass(TensorFlowTransformer.Summary, typeof(IDataTransform), typeof(TensorFlowTransformer), null, typeof(SignatureLoadDataTransform),
     TensorFlowTransformer.UserName, TensorFlowTransformer.LoaderSignature)]
@@ -37,110 +37,6 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransformer"]/*' />
     public sealed class TensorFlowTransformer : RowToRowTransformerBase
     {
-        /// <summary>
-        /// The options for the <see cref="TensorFlowTransformer"/>.
-        /// </summary>
-        public sealed class Options : TransformInputBase
-        {
-            /// <summary>
-            /// Location of the TensorFlow model.
-            /// </summary>
-            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
-            public string ModelLocation;
-
-            /// <summary>
-            /// The names of the model inputs.
-            /// </summary>
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
-            public string[] InputColumns;
-
-            /// <summary>
-            /// The names of the requested model outputs.
-            /// </summary>
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
-            public string[] OutputColumns;
-
-            /// <summary>
-            /// The name of the label column in <see cref="IDataView"/> that will be mapped to label node in TensorFlow model.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Training labels.", ShortName = "label", SortOrder = 4)]
-            public string LabelColumn;
-
-            /// <summary>
-            /// The name of the label in TensorFlow model.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "TensorFlow label node.", ShortName = "TFLabel", SortOrder = 5)]
-            public string TensorFlowLabel;
-
-            /// <summary>
-            /// Name of the operation in TensorFlow graph that is used for optimizing parameters in the graph.
-            /// Usually it is the name specified in the minimize method of optimizer in python
-            /// e.g. optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, name = "SGDOptimizer").
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 6)]
-            public string OptimizationOperation;
-
-            /// <summary>
-            /// The name of the operation in the TensorFlow graph to compute training loss (Optional).
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute training loss (Optional)", ShortName = "LossOp", SortOrder = 7)]
-            public string LossOperation;
-
-            /// <summary>
-            /// The name of the operation in the TensorFlow graph to compute performance metric during training (Optional).
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)", ShortName = "MetricOp", SortOrder = 8)]
-            public string MetricOperation;
-
-            /// <summary>
-            /// Number of samples to use for mini-batch training.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 9)]
-            public int BatchSize = 64;
-
-            /// <summary>
-            /// Number of training iterations.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 10)]
-            public int Epoch = 5;
-
-            /// <summary>
-            /// The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).", SortOrder = 11)]
-            public string LearningRateOperation;
-
-            /// <summary>
-            /// Learning rate to use during optimization.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
-            public float LearningRate = 0.01f;
-
-            /// <summary>
-            /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models to/from disk.
-            /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
-            /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/Const'.
-            /// Please change it cautiously if you need to.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 13)]
-            public string SaveLocationOperation = "save/Const";
-
-            /// <summary>
-            /// Name of the operation in TensorFlow graph that is used for saving/restoring models to/from disk.
-            /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
-            /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/control_dependency'.
-            /// Please change it cautiously if you need to.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 14)]
-            public string SaveOperation = "save/control_dependency";
-
-            /// <summary>
-            /// Needed for command line to specify if retraining is requested.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
-            public bool ReTrain = false;
-        }
-
         private readonly string _savedModelPath;
         private readonly bool _isTemporarySavedModel;
 
@@ -300,7 +196,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, TensorFlowEstimator.Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(options, nameof(options));
@@ -311,12 +207,12 @@ namespace Microsoft.ML.Transforms
             return new TensorFlowTransformer(env, options, input).MakeDataTransform(input);
         }
 
-        internal TensorFlowTransformer(IHostEnvironment env, Options options, IDataView input)
+        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowEstimator.Options options, IDataView input)
             : this(env, options, TensorFlowUtils.LoadTensorFlowModel(env, options.ModelLocation), input)
         {
         }
 
-        internal TensorFlowTransformer(IHostEnvironment env, Options options, TensorFlowModelInfo tensorFlowModel, IDataView input)
+        internal TensorFlowTransformer(IHostEnvironment env, TensorFlowEstimator.Options options, TensorFlowModelInfo tensorFlowModel, IDataView input)
             : this(env, tensorFlowModel.Session, options.OutputColumns, options.InputColumns, TensorFlowUtils.IsSavedModel(env, options.ModelLocation) ? options.ModelLocation : null, false)
         {
 
@@ -335,7 +231,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private void CheckTrainingParameters(Options options)
+        private void CheckTrainingParameters(TensorFlowEstimator.Options options)
         {
             Host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
             Host.CheckNonWhiteSpace(options.OptimizationOperation, nameof(options.OptimizationOperation));
@@ -404,7 +300,7 @@ namespace Microsoft.ML.Transforms
             return (inputColIndex, isInputVector, tfInputType, tfInputShape);
         }
 
-        private void TrainCore(Options options, IDataView input)
+        private void TrainCore(TensorFlowEstimator.Options options, IDataView input)
         {
             var inputsForTraining = new string[Inputs.Length + 1];
             var inputColIndices = new int[inputsForTraining.Length];
@@ -482,7 +378,7 @@ namespace Microsoft.ML.Transforms
             string[] inputsForTraining,
             ITensorValueGetter[] srcTensorGetters,
             List<string> fetchList,
-            Options options)
+            TensorFlowEstimator.Options options)
         {
             float loss = 0;
             float metric = 0;
@@ -512,7 +408,7 @@ namespace Microsoft.ML.Transforms
         /// After retraining Session and Graphs are both up-to-date
         /// However model on disk is not which is used to serialzed to ML.Net stream
         /// </summary>
-        private void UpdateModelOnDisk(string modelDir, Options options)
+        private void UpdateModelOnDisk(string modelDir, TensorFlowEstimator.Options options)
         {
             try
             {
@@ -955,7 +851,7 @@ namespace Microsoft.ML.Transforms
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName)]
-        internal static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Options input)
+        internal static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, TensorFlowEstimator.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
@@ -1080,8 +976,112 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class TensorFlowEstimator : IEstimator<TensorFlowTransformer>
     {
+        /// <summary>
+        /// The options for the <see cref="TensorFlowTransformer"/>.
+        /// </summary>
+        public sealed class Options : TransformInputBase
+        {
+            /// <summary>
+            /// Location of the TensorFlow model.
+            /// </summary>
+            [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
+            public string ModelLocation;
+
+            /// <summary>
+            /// The names of the model inputs.
+            /// </summary>
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
+            public string[] InputColumns;
+
+            /// <summary>
+            /// The names of the requested model outputs.
+            /// </summary>
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
+            public string[] OutputColumns;
+
+            /// <summary>
+            /// The name of the label column in <see cref="IDataView"/> that will be mapped to label node in TensorFlow model.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Training labels.", ShortName = "label", SortOrder = 4)]
+            public string LabelColumn;
+
+            /// <summary>
+            /// The name of the label in TensorFlow model.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "TensorFlow label node.", ShortName = "TFLabel", SortOrder = 5)]
+            public string TensorFlowLabel;
+
+            /// <summary>
+            /// Name of the operation in TensorFlow graph that is used for optimizing parameters in the graph.
+            /// Usually it is the name specified in the minimize method of optimizer in python
+            /// e.g. optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, name = "SGDOptimizer").
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 6)]
+            public string OptimizationOperation;
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph to compute training loss (Optional).
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute training loss (Optional)", ShortName = "LossOp", SortOrder = 7)]
+            public string LossOperation;
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph to compute performance metric during training (Optional).
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)", ShortName = "MetricOp", SortOrder = 8)]
+            public string MetricOperation;
+
+            /// <summary>
+            /// Number of samples to use for mini-batch training.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 9)]
+            public int BatchSize = 64;
+
+            /// <summary>
+            /// Number of training iterations.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 10)]
+            public int Epoch = 5;
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).", SortOrder = 11)]
+            public string LearningRateOperation;
+
+            /// <summary>
+            /// Learning rate to use during optimization.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
+            public float LearningRate = 0.01f;
+
+            /// <summary>
+            /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models to/from disk.
+            /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
+            /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/Const'.
+            /// Please change it cautiously if you need to.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 13)]
+            public string SaveLocationOperation = "save/Const";
+
+            /// <summary>
+            /// Name of the operation in TensorFlow graph that is used for saving/restoring models to/from disk.
+            /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
+            /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/control_dependency'.
+            /// Please change it cautiously if you need to.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 14)]
+            public string SaveOperation = "save/control_dependency";
+
+            /// <summary>
+            /// Needed for command line to specify if retraining is requested.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
+            public bool ReTrain = false;
+        }
+
         private readonly IHost _host;
-        private readonly TensorFlowTransformer.Options _options;
+        private readonly Options _options;
         private readonly TensorFlowModelInfo _tensorFlowModel;
         private readonly TFDataType[] _tfInputTypes;
         private readonly ColumnType[] _outputTypes;
@@ -1098,12 +1098,12 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        internal TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Options options)
+        internal TensorFlowEstimator(IHostEnvironment env, Options options)
             : this(env, options, TensorFlowUtils.LoadTensorFlowModel(env, options.ModelLocation))
         {
         }
 
-        internal TensorFlowEstimator(IHostEnvironment env, TensorFlowTransformer.Options options, TensorFlowModelInfo tensorFlowModel)
+        internal TensorFlowEstimator(IHostEnvironment env, Options options, TensorFlowModelInfo tensorFlowModel)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowEstimator));
             _options = options;
@@ -1114,9 +1114,9 @@ namespace Microsoft.ML.Transforms
             _outputTypes = outputTuple.outputTypes;
         }
 
-        private static TensorFlowTransformer.Options CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
+        private static Options CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] outputColumnNames, string[] inputColumnName)
         {
-            var options = new TensorFlowTransformer.Options();
+            var options = new Options();
             options.ModelLocation = tensorFlowModel.ModelPath;
             options.InputColumns = inputColumnName;
             options.OutputColumns = outputColumnNames;

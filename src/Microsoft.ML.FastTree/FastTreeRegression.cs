@@ -36,7 +36,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRegressionTrainer
         : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Options, RegressionPredictionTransformer<FastTreeRegressionModelParameters>, FastTreeRegressionModelParameters>
     {
-        public const string LoadNameValue = "FastTreeRegression";
+        internal const string LoadNameValue = "FastTreeRegression";
         internal const string UserNameValue = "FastTree (Boosted Trees) Regression";
         internal const string Summary = "Trains gradient boosted decision trees to fit target values using least-squares.";
         internal const string ShortName = "ftr";
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="set">The dataset</param>
         /// <returns>The list of regression targets, or null if <paramref name="set"/> was null</returns>
-        public static float[] GetDatasetRegressionLabels(Dataset set)
+        internal static float[] GetDatasetRegressionLabels(Dataset set)
         {
             if (set == null)
                 return null;

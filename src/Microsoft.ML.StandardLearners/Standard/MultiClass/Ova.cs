@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
@@ -22,7 +23,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
+[assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     Ova.UserNameValue,
     Ova.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
@@ -47,13 +48,16 @@ namespace Microsoft.ML.Trainers
             + "which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers, "
             + "and choosing the prediction with the highest confidence score.";
 
-        private readonly Arguments _args;
+        private readonly Options _options;
 
         /// <summary>
-        /// Arguments passed to OVA.
+        /// Options passed to OVA.
         /// </summary>
-        public sealed class Arguments : ArgumentsBase
+        internal sealed class Options : ArgumentsBase
         {
+            /// <summary>
+            /// Whether to use probabilities (vs. raw outputs) to identify top-score category.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use probability or margins to determine max", ShortName = "useprob")]
             [TGUI(Label = "Use Probability", Description = "Use probabilities (vs. raw outputs) to identify top-score category")]
             public bool UseProbabilities = true;
@@ -61,16 +65,16 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Legacy constructor that builds the <see cref="Ova"/> trainer supplying the base trainer to use, for the classification task
-        /// through the <see cref="Arguments"/>arguments.
+        /// through the <see cref="Options"/>.
         /// Developers should instantiate OVA by supplying the trainer argument directly to the OVA constructor
         /// using the other public constructor.
         /// </summary>
         /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
-        /// <param name="args">The legacy <see cref="Arguments"/></param>
-        internal Ova(IHostEnvironment env, Arguments args)
-            : base(env, args, LoadNameValue)
+        /// <param name="options">The legacy <see cref="Options"/></param>
+        internal Ova(IHostEnvironment env, Options options)
+            : base(env, options, LoadNameValue)
         {
-            _args = args;
+            _options = options;
         }
 
         /// <summary>
@@ -91,7 +95,7 @@ namespace Microsoft.ML.Trainers
             int maxCalibrationExamples = 1000000000,
             bool useProbabilities = true)
          : base(env,
-               new Arguments
+               new Options
                {
                    ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
                    MaxCalibrationExamples = maxCalibrationExamples,
@@ -99,8 +103,8 @@ namespace Microsoft.ML.Trainers
                LoadNameValue, labelColumn, binaryEstimator, calibrator)
         {
             Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
-            _args = (Arguments)Args;
-            _args.UseProbabilities = useProbabilities;
+            _options = (Options)Args;
+            _options.UseProbabilities = useProbabilities;
         }
 
         private protected override OvaModelParameters TrainCore(IChannel ch, RoleMappedData data, int count)
@@ -112,7 +116,7 @@ namespace Microsoft.ML.Trainers
                 ch.Info($"Training learner {i}");
                 predictors[i] = TrainOne(ch, Trainer, data, i).Model;
             }
-            return OvaModelParameters.Create(Host, _args.UseProbabilities, predictors);
+            return OvaModelParameters.Create(Host, _options.UseProbabilities, predictors);
         }
 
         private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
@@ -125,7 +129,7 @@ namespace Microsoft.ML.Trainers
             // this is currently unsupported.
             var transformer = trainer.Fit(view);
 
-            if (_args.UseProbabilities)
+            if (_options.UseProbabilities)
             {
                 var calibratedModel = transformer.Model as TDistPredictor;
 
@@ -169,6 +173,7 @@ namespace Microsoft.ML.Trainers
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
         public override MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView input)
         {
             var roles = new KeyValuePair<CR, string>[1];
@@ -196,7 +201,7 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new MulticlassPredictionTransformer<OvaModelParameters>(Host, OvaModelParameters.Create(Host, _args.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<OvaModelParameters>(Host, OvaModelParameters.Create(Host, _options.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
         }
     }
 
@@ -227,6 +232,7 @@ namespace Microsoft.ML.Trainers
 
         public ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         /// <summary>
@@ -265,7 +271,7 @@ namespace Microsoft.ML.Trainers
                         ivmd.OutputType != NumberType.Float ||
                         ivmd.DistType != NumberType.Float))
                 {
-                    ch.Warning($"{nameof(Ova.Arguments.UseProbabilities)} specified with {nameof(Ova.Arguments.PredictorType)} that can't produce probabilities.");
+                    ch.Warning($"{nameof(Ova.Options.UseProbabilities)} specified with {nameof(Ova.Options.PredictorType)} that can't produce probabilities.");
                     ivmd = null;
                 }
 

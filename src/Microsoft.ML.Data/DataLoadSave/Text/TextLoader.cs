@@ -905,7 +905,7 @@ namespace Microsoft.ML.Data
 
         internal const string Summary = "Loads text data file.";
 
-        public const string LoaderSignature = "TextLoader";
+        internal const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
         private const uint VersionNoMinCount = 0x0001000C;

@@ -54,6 +54,10 @@ namespace Microsoft.ML.Data
         private protected ISchemaBindableMapper BindableMapper;
         protected Schema TrainSchema;
 
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
         public bool IsRowToRowMapper => true;
 
         /// <summary>
@@ -257,8 +261,8 @@ namespace Microsoft.ML.Data
     public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        internal readonly string ThresholdColumn;
+        internal readonly float Threshold;
 
         [BestFriend]
         internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
@@ -326,8 +330,8 @@ namespace Microsoft.ML.Data
     public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        internal readonly string ThresholdColumn;
+        internal readonly float Threshold;
 
         [BestFriend]
         internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,

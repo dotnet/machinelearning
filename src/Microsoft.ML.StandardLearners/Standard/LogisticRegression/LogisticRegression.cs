@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers
         BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
-        public const string LoadNameValue = "LogisticRegression";
+        internal const string LoadNameValue = "LogisticRegression";
         internal const string UserNameValue = "Logistic Regression";
         internal const string ShortName = "lr";
         internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can "

@@ -32,7 +32,7 @@ namespace Microsoft.ML.Trainers.Online
     /// <include file='doc.xml' path='doc/members/member[@name="AP"]/*' />
     public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
-        public const string LoadNameValue = "AveragedPerceptron";
+        internal const string LoadNameValue = "AveragedPerceptron";
         internal const string UserNameValue = "Averaged Perceptron";
         internal const string ShortName = "ap";
         internal const string Summary = "Averaged Perceptron Binary Classifier.";

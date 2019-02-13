@@ -15,7 +15,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(Pkpd.Summary, typeof(Pkpd), typeof(Pkpd.Arguments),
+[assembly: LoadableClass(Pkpd.Summary, typeof(Pkpd), typeof(Pkpd.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     Pkpd.UserNameValue, Pkpd.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
@@ -62,19 +62,19 @@ namespace Microsoft.ML.Trainers
             + "classifiers predicted it. The prediction is the class with the highest score.";
 
         /// <summary>
-        /// Arguments passed to PKPD.
+        /// Options passed to PKPD.
         /// </summary>
-        public sealed class Arguments : ArgumentsBase
+        internal sealed class Options : ArgumentsBase
         {
         }
         /// <summary>
         /// Legacy constructor that builds the <see cref="Pkpd"/> trainer supplying the base trainer to use, for the classification task
-        /// through the <see cref="Arguments"/>arguments.
+        /// through the <see cref="Options"/>Options.
         /// Developers should instantiate <see cref="Pkpd"/> by supplying the trainer argument directly to the <see cref="Pkpd"/> constructor
         /// using the other public constructor.
         /// </summary>
-        internal Pkpd(IHostEnvironment env, Arguments args)
-            : base(env, args, LoadNameValue)
+        internal Pkpd(IHostEnvironment env, Options options)
+            : base(env, options, LoadNameValue)
         {
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers
             ICalibratorTrainer calibrator = null,
             int maxCalibrationExamples = 1000000000)
            : base(env,
-               new Arguments
+               new Options
                {
                    ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
                    MaxCalibrationExamples = maxCalibrationExamples,
@@ -242,6 +242,7 @@ namespace Microsoft.ML.Trainers
         private readonly TDistPredictor[] _predictors;
         private readonly IValueMapperDist[] _mappers;
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         private readonly VectorType _inputType;
         private readonly ColumnType _outputType;

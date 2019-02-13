@@ -30,7 +30,12 @@ namespace Microsoft.ML.Transforms
         internal InternalSchemaDefinition AddedSchema { get; }
         internal SchemaDefinition InputSchemaDefinition { get; }
 
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
         public bool IsRowToRowMapper => true;
+
         /// <summary>
         /// Create a custom mapping of input columns to output columns.
         /// </summary>
@@ -39,7 +44,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="contractName">The name of the action (will be saved to the model).</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
-        public CustomMappingTransformer(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
+        internal CustomMappingTransformer(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -61,6 +66,7 @@ namespace Microsoft.ML.Transforms
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
         internal void SaveModel(ModelSaveContext ctx)
         {
             if (_contractName == null)
@@ -68,6 +74,10 @@ namespace Microsoft.ML.Transforms
             LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName);
         }
 
+        /// <summary>
+        /// Returns the <see cref="Schema"/> which would be produced by the transformer applied to
+        /// an input data with schema <paramref name="inputSchema"/>.
+        /// </summary>
         public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -75,12 +85,21 @@ namespace Microsoft.ML.Transforms
             return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
+        /// <summary>
+        /// Take the data in, make transformations, output the data.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
+        /// </summary>
         public IDataView Transform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
+        /// <summary>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// is <c>false</c>, then an exception is thrown. If the <paramref name="inputSchema"/> is in any way
+        /// unsuitable for constructing the mapper, an exception is likewise thrown.
+        /// </summary>
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -185,6 +204,13 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> to define a custom mapping of rows of an <see cref="IDataView"/>.
+    /// For usage details, please see <see cref="CustomMappingCatalog.CustomMapping"/>
+    /// </summary>
+    /// <remarks>
+    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="CustomMappingTransformer{TSrc, TDst}"/>.
+    /// </remarks>
     public sealed class CustomMappingEstimator<TSrc, TDst> : TrivialEstimator<CustomMappingTransformer<TSrc, TDst>>
         where TSrc : class, new()
         where TDst : class, new()
@@ -197,13 +223,17 @@ namespace Microsoft.ML.Transforms
         /// <param name="contractName">The contract name, used by ML.NET for loading the model. If <c>null</c> is specified, such a trained model would not be save-able.</param>
         /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
         /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
-        public CustomMappingEstimator(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
+        internal CustomMappingEstimator(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
                 SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CustomMappingEstimator<TSrc, TDst>)),
                  new CustomMappingTransformer<TSrc, TDst>(env, mapAction, contractName, inputSchemaDefinition, outputSchemaDefinition))
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             var addedCols = DataViewConstructionUtils.GetSchemaColumns(Transformer.AddedSchema);
