@@ -20,7 +20,7 @@ namespace Microsoft.ML
     /// </summary>
     public abstract class TrainCatalogBase
     {
-        protected internal readonly IHost Host;
+        protected internal IHostEnvironment Host { get; set; }
 
         [BestFriend]
         internal IHostEnvironment Environment => Host;
@@ -196,7 +196,6 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(registrationName, nameof(registrationName));
-            Host = env.Register(registrationName);
         }
 
         /// <summary>
@@ -275,6 +274,7 @@ namespace Microsoft.ML
         internal BinaryClassificationCatalog(IHostEnvironment env)
             : base(env, nameof(BinaryClassificationCatalog))
         {
+            Host = env;
             Trainers = new BinaryClassificationTrainers(this);
         }
 
@@ -396,6 +396,7 @@ namespace Microsoft.ML
         internal ClusteringCatalog(IHostEnvironment env)
             : base(env, nameof(ClusteringCatalog))
         {
+            Host = env;
             Trainers = new ClusteringTrainers(this);
         }
 
@@ -475,6 +476,7 @@ namespace Microsoft.ML
         internal MulticlassClassificationCatalog(IHostEnvironment env)
             : base(env, nameof(MulticlassClassificationCatalog))
         {
+            Host = env;
             Trainers = new MulticlassClassificationTrainers(this);
         }
 
@@ -552,6 +554,7 @@ namespace Microsoft.ML
         internal RegressionCatalog(IHostEnvironment env)
             : base(env, nameof(RegressionCatalog))
         {
+            Host = env;
             Trainers = new RegressionTrainers(this);
         }
 
@@ -620,6 +623,7 @@ namespace Microsoft.ML
         internal RankingCatalog(IHostEnvironment env)
             : base(env, nameof(RankingCatalog))
         {
+            Host = env;
             Trainers = new RankingTrainers(this);
         }
 

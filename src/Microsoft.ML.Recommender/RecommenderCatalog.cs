@@ -33,6 +33,7 @@ namespace Microsoft.ML
         internal RecommendationCatalog(IHostEnvironment env)
             : base(env, nameof(RecommendationCatalog))
         {
+            Host = env;
             Trainers = new RecommendationTrainers(this);
         }
 
