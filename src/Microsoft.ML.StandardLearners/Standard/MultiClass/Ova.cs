@@ -611,6 +611,9 @@ namespace Microsoft.ML.Trainers
                 for (int i = 0; i < count; i++)
                 {
                     var value = output[i];
+                    if (float.IsNaN(value))
+                        continue;
+
                     if (value >= 0)
                         sum += value;
                     else
