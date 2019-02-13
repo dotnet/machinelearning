@@ -10,14 +10,14 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(PercentileThresholdTransform.Summary, typeof(PercentileThresholdTransform), typeof(PercentileThresholdTransform.Arguments), typeof(SignatureDataTransform),
     PercentileThresholdTransform.UserName, PercentileThresholdTransform.LoaderSignature, PercentileThresholdTransform.ShortName)]
 [assembly: LoadableClass(PercentileThresholdTransform.Summary, typeof(PercentileThresholdTransform), null, typeof(SignatureLoadDataTransform),
     PercentileThresholdTransform.UserName, PercentileThresholdTransform.LoaderSignature)]
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// PercentileThresholdTransform is a sequential transform that decides whether the current value of the time-series belongs to the 'percentile' % of the top values in

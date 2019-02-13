@@ -15,12 +15,12 @@ namespace Microsoft.ML.RunTests
     using Microsoft.Data.DataView;
     using Microsoft.ML;
     using Microsoft.ML.Data;
-    using Microsoft.ML.Ensemble;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
     using Microsoft.ML.LightGBM;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
+    using Microsoft.ML.Trainers.Ensemble;
     using Microsoft.ML.Trainers.FastTree;
     using Microsoft.ML.Trainers.HalLearners;
     using Microsoft.ML.Trainers.Online;

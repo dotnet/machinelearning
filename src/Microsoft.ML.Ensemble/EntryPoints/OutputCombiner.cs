@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: EntryPointModule(typeof(AverageFactory))]
 [assembly: EntryPointModule(typeof(MedianFactory))]
@@ -18,7 +17,7 @@ using Microsoft.ML.EntryPoints;
 [assembly: EntryPointModule(typeof(VotingFactory))]
 [assembly: EntryPointModule(typeof(WeightedAverage))]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     [TlcModule.Component(Name = Average.LoadName, FriendlyName = Average.UserName)]
     public sealed class AverageFactory : ISupportBinaryOutputCombinerFactory, ISupportRegressionOutputCombinerFactory

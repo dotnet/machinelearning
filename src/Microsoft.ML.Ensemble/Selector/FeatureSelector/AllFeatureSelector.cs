@@ -5,13 +5,13 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.FeatureSelector;
+using Microsoft.ML.Trainers.Ensemble;
+using Microsoft.ML.Trainers.Ensemble.FeatureSelector;
 
 [assembly: LoadableClass(typeof(AllFeatureSelector), null, typeof(SignatureEnsembleFeatureSelector),
     AllFeatureSelector.UserName, AllFeatureSelector.LoadName)]
 
-namespace Microsoft.ML.Ensemble.Selector.FeatureSelector
+namespace Microsoft.ML.Trainers.Ensemble.FeatureSelector
 {
     internal sealed class AllFeatureSelector : IFeatureSelector
     {

@@ -6,7 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// The utility functions that wrap the native Discrete Fast Fourier Transform functionality from Intel MKL.

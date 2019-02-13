@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe.Runtime;
 
@@ -49,8 +48,8 @@ namespace Microsoft.ML.StaticPipe
                 stratName = indexer.Get(column);
             }
 
-            var (trainData, testData) = catalog.TrainTestSplit(data.AsDynamic, testFraction, stratName, seed);
-            return (new DataView<T>(env, trainData, data.Shape), new DataView<T>(env, testData, data.Shape));
+            var split = catalog.TrainTestSplit(data.AsDynamic, testFraction, stratName, seed);
+            return (new DataView<T>(env, split.TrainSet, data.Shape), new DataView<T>(env, split.TestSet, data.Shape));
         }
 
         /// <summary>
@@ -105,9 +104,9 @@ namespace Microsoft.ML.StaticPipe
             var results = catalog.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
-                    x.metrics,
-                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.scoredTestData, estimator.Shape)))
+                    x.Metrics,
+                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
+                    new DataView<TOutShape>(env, x.ScoredHoldOutSet, estimator.Shape)))
                 .ToArray();
         }
 
@@ -163,9 +162,9 @@ namespace Microsoft.ML.StaticPipe
             var results = catalog.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
-                    x.metrics,
-                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.scoredTestData, estimator.Shape)))
+                    x.Metrics,
+                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
+                    new DataView<TOutShape>(env, x.ScoredHoldOutSet, estimator.Shape)))
                 .ToArray();
         }
 
@@ -221,9 +220,9 @@ namespace Microsoft.ML.StaticPipe
             var results = catalog.CrossValidateNonCalibrated(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
-                    x.metrics,
-                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.scoredTestData, estimator.Shape)))
+                    x.Metrics,
+                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
+                    new DataView<TOutShape>(env, x.ScoredHoldOutSet, estimator.Shape)))
                 .ToArray();
         }
 
@@ -279,9 +278,9 @@ namespace Microsoft.ML.StaticPipe
             var results = catalog.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
-                    x.metrics,
-                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.model, data.Shape, estimator.Shape),
-                    new DataView<TOutShape>(env, x.scoredTestData, estimator.Shape)))
+                    x.Metrics,
+                    new Transformer<TInShape, TOutShape, TTransformer>(env, (TTransformer)x.Model, data.Shape, estimator.Shape),
+                    new DataView<TOutShape>(env, x.ScoredHoldOutSet, estimator.Shape)))
                 .ToArray();
         }
     }

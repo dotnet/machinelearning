@@ -8,12 +8,10 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
-using Microsoft.ML.TimeSeries;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(IidChangePointDetector.Summary, typeof(IDataTransform), typeof(IidChangePointDetector), typeof(IidChangePointDetector.Options), typeof(SignatureDataTransform),
     IidChangePointDetector.UserName, IidChangePointDetector.LoaderSignature, IidChangePointDetector.ShortName)]
@@ -27,7 +25,7 @@ using Microsoft.ML.TimeSeriesProcessing;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(IidChangePointDetector), null, typeof(SignatureLoadRowMapper),
    IidChangePointDetector.UserName, IidChangePointDetector.LoaderSignature)]
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// This class implements the change point detector transform for an i.i.d. sequence based on adaptive kernel density estimation and martingales.

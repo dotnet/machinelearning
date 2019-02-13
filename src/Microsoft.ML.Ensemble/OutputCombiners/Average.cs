@@ -4,13 +4,13 @@
 
 using System;
 using Microsoft.ML;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(Average), null, typeof(SignatureCombiner), Average.UserName)]
 [assembly: LoadableClass(typeof(Average), null, typeof(SignatureLoadModel), Average.UserName, Average.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
     public sealed class Average : BaseAverager, IRegressionOutputCombiner
     {

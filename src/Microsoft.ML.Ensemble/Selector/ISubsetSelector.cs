@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Ensemble.Selector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal interface ISubsetSelector
     {

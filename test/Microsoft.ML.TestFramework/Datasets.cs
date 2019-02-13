@@ -439,7 +439,7 @@ namespace Microsoft.ML.RunTests
             name = "iris",
             trainFilename = @"iris.txt",
             testFilename = @"iris.txt",
-            loaderSettings = "loader=Text{col=Label:U4[0-4]:0 col=Features:1-4}",
+            loaderSettings = "loader=Text{col=Label:U4[0-2]:0 col=Features:1-4}",
         };
 
         public static TestDataset iris = new TestDataset()

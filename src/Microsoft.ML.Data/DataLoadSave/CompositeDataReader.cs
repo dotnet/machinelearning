@@ -4,7 +4,6 @@
 
 using System.IO;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data

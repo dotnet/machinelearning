@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML;
-using Microsoft.ML.Ensemble;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(void), typeof(Ensemble), null, typeof(SignatureEntryPointModule), "TrainEnsemble")]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal static class Ensemble
     {

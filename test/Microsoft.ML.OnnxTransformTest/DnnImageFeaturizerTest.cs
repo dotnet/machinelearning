@@ -5,10 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -74,7 +71,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = new DnnImageFeaturizerEstimator(Env, "output_1", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "data_0");
+            var pipe = ML.Transforms.DnnFeaturizeImage("output_1", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "data_0");
 
             var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
@@ -146,7 +143,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = "data_0";
             var outputNames = "output_1";
-            var est = new DnnImageFeaturizerEstimator(Env, outputNames, m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), inputNames);
+            var est = ML.Transforms.DnnFeaturizeImage(outputNames, m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), inputNames);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);

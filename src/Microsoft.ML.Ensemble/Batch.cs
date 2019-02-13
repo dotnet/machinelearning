@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class Batch
     {
