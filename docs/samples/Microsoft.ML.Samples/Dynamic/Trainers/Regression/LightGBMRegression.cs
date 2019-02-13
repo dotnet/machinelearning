@@ -5,6 +5,9 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     class LightGbmRegression
     {
+        /// <summary>
+        /// This example require installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>
+        /// </summary>
         public static void Example()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning

@@ -7,6 +7,9 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     class LightGbmMulticlassClassification
     {
+        /// <summary>
+        /// This example require installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>
+        /// </summary>
         public static void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
