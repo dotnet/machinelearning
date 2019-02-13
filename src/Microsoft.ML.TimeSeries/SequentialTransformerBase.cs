@@ -482,8 +482,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// </summary>
             public IEnumerable<Schema.Column> GetDependencies(IEnumerable<Schema.Column> dependingColumns)
             {
-                var columnNames = dependingColumns.Select(col => col.Name);
-                return InputSchema.Where(col => columnNames.Contains(col.Name));
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<Schema.Column>();
+
+                return InputSchema;
             }
 
             public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)

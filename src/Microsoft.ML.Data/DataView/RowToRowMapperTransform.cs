@@ -152,7 +152,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(active.Length == n);
 
             var activeInput = _bindings.GetActiveInput(predicate);
-            Contracts.Assert(activeInput.Count() == _bindings.InputSchema.Count);
+            Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
 
             // Get a predicate that determines which outputs are active.
             var predicateOut = GetActiveOutputColumns(active);
@@ -161,8 +161,7 @@ namespace Microsoft.ML.Data
             var predicateIn = _mapper.GetDependencies(predicateOut);
 
             // Combine the two sets of input columns.
-            inputColumns = _bindings.InputSchema.Where(col => col.Index < activeInput.Length
-                                            && (activeInput[col.Index]|| predicateIn(col.Index)));
+            inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index]|| predicateIn(col.Index));
 
             return active;
         }
