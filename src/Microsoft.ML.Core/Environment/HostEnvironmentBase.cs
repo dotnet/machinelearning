@@ -439,14 +439,6 @@ namespace Microsoft.ML.Data
         protected abstract IHost RegisterCore(HostEnvironmentBase<TEnv> source, string shortName,
             string parentFullName, Random rand, bool verbose, int? conc);
 
-        public IFileHandle OpenInputFile(string path)
-        {
-
-            if (Master != null)
-                return Master.OpenInputFileCore(this, path);
-            return OpenInputFileCore(this, path);
-        }
-
         public IProgressChannel StartProgressChannel(string name)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
@@ -458,41 +450,6 @@ namespace Microsoft.ML.Data
             Contracts.AssertNonEmpty(name);
             Contracts.AssertValueOrNull(host);
             return new ProgressReporting.ProgressChannel(this, ProgressTracker, name);
-        }
-
-        /// <summary>
-        /// This "opens" the input file handle. The default implementation assumes the file resides in the
-        /// file system and it does not access the physical file until a read stream is opened on the returned
-        /// file handle.
-        /// </summary>
-        protected virtual IFileHandle OpenInputFileCore(IHostEnvironment env, string path)
-        {
-            this.AssertValue(env);
-            this.CheckNonWhiteSpace(path, nameof(path));
-            if (Master != null)
-                return Master.OpenInputFileCore(env, path);
-            return new SimpleFileHandle(env, path, needsWrite: false, autoDelete: false);
-        }
-
-        public IFileHandle CreateOutputFile(string path)
-        {
-            if (Master != null)
-                return Master.CreateOutputFileCore(this, path);
-            return CreateOutputFileCore(this, path);
-        }
-
-        /// <summary>
-        /// This "creates" the output file handle. The default implementation assumes the file resides in the
-        /// file system and it does not create the physical file until a write stream is opened on the returned
-        /// file handle.
-        /// </summary>
-        protected virtual IFileHandle CreateOutputFileCore(IHostEnvironment env, string path)
-        {
-            this.AssertValue(env);
-            this.CheckNonWhiteSpace(path, nameof(path));
-            if (Master != null)
-                return Master.CreateOutputFileCore(env, path);
-            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
         }
 
         public IFileHandle CreateTempFile(string suffix = null, string prefix = null)
