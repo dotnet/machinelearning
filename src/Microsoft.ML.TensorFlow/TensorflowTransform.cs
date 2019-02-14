@@ -955,7 +955,10 @@ namespace Microsoft.ML.Transforms
             {
                 _srcgetter(ref _vBuffer);
 
-                _denseData = new T[_vBuffer.Length];
+                // _denseData.Length can be greater than _vBuffer.Length sometime after
+                // Utils.EnsureSize is exectued. Use _vBuffer.Length to access the elements in _denseData.
+                // This is done to reduce memory allocation every time tensor is created.
+                Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
                 _vBuffer.CopyTo(_denseData);
 
                 return TFTensor.Create(_denseData, _vBuffer.Length, _tfShape);

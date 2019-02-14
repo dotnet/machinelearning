@@ -422,7 +422,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static unsafe TFTensor CreateString(byte[] buffer)
         {
             if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
+                throw Contracts.ExceptEmpty(nameof(buffer));
             //
             // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static unsafe byte[] DecodeString(TFTensor tensor)
         {
             if (tensor == null)
-                throw new ArgumentNullException(nameof(tensor));
+                throw Contracts.ExceptEmpty(nameof(tensor));
             //
             // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static unsafe TFTensor CreateStringTensor(byte[][] buffer, TFShape shape)
         {
             if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
+                throw Contracts.ExceptEmpty(nameof(buffer));
             //
             // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static unsafe byte[][] DecodeStringTensor(TFTensor tensor)
         {
             if (tensor == null)
-                throw new ArgumentNullException(nameof(tensor));
+                throw Contracts.ExceptEmpty(nameof(tensor));
             //
             // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static IntPtr SetupTensor(TFDataType dt, TFShape shape, Array data, int start, int count, int size)
         {
             if (shape == null)
-                throw new ArgumentNullException(nameof(shape));
+                throw Contracts.ExceptEmpty(nameof(shape));
             return SetupTensor(dt, shape.dims, data, start, count, size);
         }
 
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static IntPtr SetupTensor(TFDataType dt, long[] dims, Array data, int start, int count, int size)
         {
             if (start < 0 || start > data.Length - count)
-                throw new ArgumentException("start + count > Array size");
+                throw Contracts.ExceptParam(nameof(start), "start + count > Array size");
 
             var dataHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
 
@@ -596,7 +596,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public TFTensor(TFDataType dataType, long[] dims, IntPtr data, size_t dataSize, Deallocator deallocator, IntPtr deallocatorData) : base(IntPtr.Zero)
         {
             if (dims == null)
-                throw new ArgumentNullException("dims");
+                throw Contracts.ExceptEmpty(nameof(dims));
 
             handle = TF_NewTensor(dataType, dims, dims.Length, data, dataSize, deallocator, deallocatorData);
 
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public TFTensor(TFDataType dataType, long[] dims, int size) : base(IntPtr.Zero)
         {
             if (dims == null)
-                throw new ArgumentNullException("dims");
+                throw Contracts.ExceptEmpty(nameof(dims));
             handle = TF_AllocateTensor(dataType, dims, dims.Length, (size_t)size);
         }
 
@@ -758,11 +758,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         /// <summary>
-		/// Converts a system type to a <see cref="TFDataType"/>.
-		/// </summary>
-		/// <param name="type">The system type to be converted.</param>
-		/// <returns>The <see cref="TFDataType"/> corresponding to the given type.</returns>
-		public static TFDataType TensorTypeFromType(Type type)
+        /// Converts a system type to a <see cref="TFDataType"/>.
+        /// </summary>
+        /// <param name="type">The system type to be converted.</param>
+        /// <returns>The <see cref="TFDataType"/> corresponding to the given type.</returns>
+        public static TFDataType TensorTypeFromType(Type type)
         {
             if (type == typeof(float))
                 return TFDataType.Float;
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             if (type == typeof(Complex))
                 return TFDataType.Complex128;
 
-            throw new ArgumentOutOfRangeException(nameof(type), $"The given type could not be mapped to an existing {nameof(TFDataType)}.");
+            throw Contracts.ExceptParam(nameof(type), $"The given type could not be mapped to an existing {nameof(TFDataType)}.");
         }
 
         private static unsafe object FetchSimple(TFDataType dt, IntPtr data)
@@ -819,7 +819,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.UInt64:
                     return *(ulong*)data;
                 case TFDataType.String:
-                    throw new NotImplementedException();
+                    throw Contracts.ExceptNotImpl("String decoding is not implemented.");
                 case TFDataType.Bool:
                     return *(bool*)data;
                 case TFDataType.Complex128:
@@ -891,9 +891,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return;
                 case TFDataType.String:
                     // need to return an array of TFStrings []
-                    throw new NotImplementedException();
+                    throw Contracts.ExceptNotImpl("String decoding is not implemented.");
                 default:
-                    throw new NotImplementedException();
+                    throw Contracts.ExceptNotImpl("{0} decoding not implemented.", dt);
             }
         }
 
@@ -946,9 +946,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                             data += sizeof(Complex);
                             break;
                         case TFDataType.String:
-                            throw new NotImplementedException("String decoding not implemented for tensor vecotrs yet");
+                            throw Contracts.ExceptNotImpl("String decoding not implemented for tensor vecotrs yet");
                         default:
-                            throw new NotImplementedException();
+                            throw Contracts.ExceptNotImpl("{0} decoding not implemented for tensor vecotrs yet", dt);
                     }
             }
             else
@@ -993,7 +993,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             for (int i = 0; i < shape.Length; i++)
             {
                 if (shape[i] > Int32.MaxValue)
-                    throw new ArgumentOutOfRangeException("Shape can not be longer than 32 bits");
+                    throw Contracts.ExceptNotSupp("Shape can not be longer than 32 bits");
             }
             Copy(target, dt, shape, idx, 0, ref data);
         }
@@ -1048,9 +1048,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                             data += sizeof(Complex);
                             break;
                         case TFDataType.String:
-                            throw new NotImplementedException("String decoding not implemented for tensor vecotrs yet");
+                            throw Contracts.ExceptNotImpl("String decoding not implemented for tensor vecotrs yet");
                         default:
-                            throw new NotImplementedException();
+                            throw Contracts.ExceptNotImpl("{0} decoding not implemented for tensor vecotrs yet", dt);
                     }
                 }
             }

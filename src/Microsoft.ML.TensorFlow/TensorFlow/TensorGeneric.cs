@@ -139,7 +139,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
             else if (typeof(T) == typeof(System.ReadOnlyMemory<char>))
             {
-                byte[][] bytes = new byte[data.Length][];
+                byte[][] bytes = new byte[count][];
                 for(int i=0;i<bytes.Length;i++)
                 {
                     bytes[i] = Encoding.UTF8.GetBytes(((System.ReadOnlyMemory<char>)(object)data[i]).ToArray());
