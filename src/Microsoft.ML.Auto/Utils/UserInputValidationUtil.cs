@@ -46,8 +46,8 @@ namespace Microsoft.ML.Auto
             {
                 throw new ArgumentNullException(nameof(trainData), "Training data cannot be null");
             }
-
-            if (trainData.Schema.GetColumnOrNull(DefaultColumnNames.Features)?.Type.GetItemType() != NumberType.R4)
+            var type = trainData.Schema.GetColumnOrNull(DefaultColumnNames.Features)?.Type.GetItemType();
+            if (type != null && type != NumberType.R4)
             {
                 throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type Single", nameof(trainData));
             }
