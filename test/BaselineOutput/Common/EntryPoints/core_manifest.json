@@ -11258,7 +11258,7 @@
           "Default": "Features"
         },
         {
-          "Name": "Booster",
+          "Name": "BoosterFactory",
           "Type": {
             "Kind": "Component",
             "ComponentKind": "BoosterParameterFunction"
@@ -11762,7 +11762,7 @@
           "Default": "Features"
         },
         {
-          "Name": "Booster",
+          "Name": "BoosterFactory",
           "Type": {
             "Kind": "Component",
             "ComponentKind": "BoosterParameterFunction"
@@ -12266,7 +12266,7 @@
           "Default": "Features"
         },
         {
-          "Name": "Booster",
+          "Name": "BoosterFactory",
           "Type": {
             "Kind": "Component",
             "ComponentKind": "BoosterParameterFunction"
@@ -12770,7 +12770,7 @@
           "Default": "Features"
         },
         {
-          "Name": "Booster",
+          "Name": "BoosterFactory",
           "Type": {
             "Kind": "Component",
             "ComponentKind": "BoosterParameterFunction"
