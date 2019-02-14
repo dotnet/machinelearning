@@ -1,18 +1,17 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Samples.Dynamic.TensorFlow
 {
-    class TextClassification
+    public static class TextClassification
     {
         public const int MaxSentenceLenth = 600;
         /// <summary>
         /// Example use of the TensorFlow sentiment classification model.
         /// </summary>
-        public static void ScoringWithTextClassificationModelSample()
+        public static void Example()
         {
             string modelLocation = SamplesUtils.DatasetUtils.DownloadTensorFlowSentimentModel();
 

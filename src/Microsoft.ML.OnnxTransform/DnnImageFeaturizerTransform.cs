@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
@@ -61,7 +60,7 @@ namespace Microsoft.ML.Transforms
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, string outputColumnName, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string inputColumnName = null)
+        internal DnnImageFeaturizerEstimator(IHostEnvironment env, string outputColumnName, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string inputColumnName = null)
         {
             _modelChain = modelFactory(new DnnImageFeaturizerInput(outputColumnName, inputColumnName ?? outputColumnName, env, new DnnImageModelSelector()));
         }

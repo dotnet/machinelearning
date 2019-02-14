@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class DropColumns
+    public static class DropColumns
     {
         public static void Example()
         {

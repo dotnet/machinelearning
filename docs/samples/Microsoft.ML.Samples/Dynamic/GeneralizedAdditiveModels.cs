@@ -4,9 +4,9 @@ using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class GeneralizedAdditiveModels_RegressionExample
+    public static class GeneralizedAdditiveModelsRegression
     {
-        public static void RunExample()
+        public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.

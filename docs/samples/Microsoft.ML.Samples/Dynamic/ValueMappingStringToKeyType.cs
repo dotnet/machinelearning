@@ -6,7 +6,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ValueMappingStringToKeyTypeExample
+    public static class ValueMappingStringToKeyType
     {
         /// <summary>
         /// Helper class for retrieving the resulting data
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
         /// 
         /// The KeyToValueEstimator is added to the pipeline to convert the KeyType back to the original value. Therefore the output of this example 
         /// results in the string value of 'Undergraduate' and 'Postgraduate'.
-        public static void Run()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

@@ -4,12 +4,12 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic.TensorFlow
 {
-    class ImageClassification
+    public static class ImageClassification
     {
         /// <summary>
         /// Example use of the TensorFlow image model in a ML.NET pipeline.
         /// </summary>
-        public static void ScoringWithImageClassificationModelSample()
+        public static void Example()
         {
             // Download the ResNet 101 model from the location below.
             // https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz

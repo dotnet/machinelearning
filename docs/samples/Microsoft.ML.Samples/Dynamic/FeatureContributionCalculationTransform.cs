@@ -4,7 +4,7 @@ using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class FeatureContributionCalculationTransform
+    public static class FeatureContributionCalculationTransform
     {
         public static void Example()
         {

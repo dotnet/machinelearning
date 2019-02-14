@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.UniversalModelFormat.Onnx;
 

@@ -6,7 +6,6 @@ using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
@@ -47,7 +46,7 @@ namespace Microsoft.ML.Trainers.Online
     /// </remarks>
     public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
-        public const string LoadNameValue = "AveragedPerceptron";
+        internal const string LoadNameValue = "AveragedPerceptron";
         internal const string UserNameValue = "Averaged Perceptron";
         internal const string ShortName = "ap";
         internal const string Summary = "Averaged Perceptron Binary Classifier.";
@@ -69,13 +68,13 @@ namespace Microsoft.ML.Trainers.Online
             /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
             /// <summary>
             /// The maximum number of examples to use when training the calibrator.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
+            internal int MaxCalibrationExamples = 1000000;
 
             internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
         }
@@ -125,7 +124,6 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="lossFunction">The classification loss function. </param>
         /// <param name="labelColumn">The name of the label column. </param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weights">The optional name of the weights column.</param>
         /// <param name="learningRate">The learning rate. </param>
         /// <param name="decreaseLearningRate">Whether to decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
@@ -133,7 +131,6 @@ namespace Microsoft.ML.Trainers.Online
         internal AveragedPerceptronTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
             IClassificationLoss lossFunction = null,
             float learningRate = Options.AveragedDefaultArgs.LearningRate,
             bool decreaseLearningRate = Options.AveragedDefaultArgs.DecreaseLearningRate,
@@ -143,7 +140,6 @@ namespace Microsoft.ML.Trainers.Online
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
-                InitialWeights = weights,
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
                 L2RegularizerWeight = l2RegularizerWeight,
@@ -206,9 +202,6 @@ namespace Microsoft.ML.Trainers.Online
 
         protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, Schema trainSchema)
         => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
-
-        public BinaryPredictionTransformer<LinearBinaryModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",
              Desc = Summary,

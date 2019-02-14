@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -2489,7 +2488,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
-            var options = new SdcaBinaryTrainer.Options()
+            var options = new LegacySdcaBinaryTrainer.Options()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
                 CheckFrequency = 42
@@ -3415,7 +3414,7 @@ namespace Microsoft.ML.RunTests
                     InputFile = inputFile,
                 }).Data;
 
-                var pcaInput = new RandomizedPcaTrainer.Arguments
+                var pcaInput = new RandomizedPcaTrainer.Options
                 {
                     TrainingData = dataView,
                 };

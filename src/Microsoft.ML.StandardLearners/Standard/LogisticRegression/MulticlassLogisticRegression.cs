@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -41,7 +40,7 @@ namespace Microsoft.ML.Trainers
     public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Options,
         MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
-        public const string LoadNameValue = "MultiClassLogisticRegression";
+        internal const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
 

@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests
                 .Append(new ImagePixelExtractingEstimator(env, "ImagePixels", "ImageReal"))
                 .Append(new ImageGrayscalingEstimator(env, ("ImageGray", "ImageReal")));
 
-            pipe.GetOutputSchema(Core.Data.SchemaShape.Create(data.Schema));
+            pipe.GetOutputSchema(SchemaShape.Create(data.Schema));
             var model = pipe.Fit(data);
 
             var tempPath = Path.GetTempFileName();

@@ -65,7 +65,7 @@ namespace Microsoft.ML.Scenarios
 
             // Pipeline
             var ap = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
-                    new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null });
+                    new AveragedPerceptronTrainer.Options { Shuffle = true });
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(ap, useProbabilities: false);
 
             var model = pipeline.Fit(data);

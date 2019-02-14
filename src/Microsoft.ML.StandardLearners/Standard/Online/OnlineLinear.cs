@@ -4,8 +4,8 @@
 
 using System;
 using System.Globalization;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Trainers.Online
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Initial Weights and bias, comma-separated", ShortName = "initweights")]
         [TGUI(NoSweep = true)]
-        public string InitialWeights;
+        internal string InitialWeights;
 
         /// <summary>
         /// Initial weights and bias scale.
@@ -298,6 +298,12 @@ namespace Microsoft.ML.Trainers.Online
                 return state.CreatePredictor();
             }
         }
+
+        /// <summary>
+        /// Continues the training of a <see cref="OnlineLinearTrainer{TTransformer, TModel}"/> using an initial predictor and returns a <see cref="ITransformer"/>.
+        /// </summary>
+        public TTransformer Fit(IDataView trainData, IPredictor initialPredictor)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         private protected abstract void CheckLabels(RoleMappedData data);
 
