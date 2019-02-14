@@ -37,7 +37,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="ITransformer.Transform(IDataView)"/> resizes the images to a new height and width.
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
     /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ImageResizingEstimator.ResizingKind, ImageResizingEstimator.Anchor)" />
     /// <seealso cref = "ImageEstimatorsCatalog" />
     /// </remarks >
@@ -415,7 +415,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageResizingTransformer"/>.
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
     /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)" />
     /// <seealso cref = "ImageEstimatorsCatalog" />
     /// </remarks >
