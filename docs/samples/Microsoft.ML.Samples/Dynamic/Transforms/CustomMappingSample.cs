@@ -3,7 +3,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class CustomMappingSample
+    public static class CustomMapping
     {
         public static void Example()
         {

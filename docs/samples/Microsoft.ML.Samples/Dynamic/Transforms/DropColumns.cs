@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class DropColumns
+    public static class DropColumns
     {
         public static void Example()
         {

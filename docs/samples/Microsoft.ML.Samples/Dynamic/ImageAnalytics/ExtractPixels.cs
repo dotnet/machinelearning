@@ -3,11 +3,11 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ExtractPixelsExample
+    public static class ExtractPixels
     {
         // Sample that loads the images from the file system, resizes them (ExtractPixels requires a resizing operation), and extracts the 
         // values of the pixels as a vector. 
-        public static void ExtractPixels()
+        public static void Example()
         {
             var mlContext = new MLContext();
 

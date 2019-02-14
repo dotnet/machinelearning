@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class RandomTrainerSample
+    public static class RandomTrainer
     {
         public static void Example()
         {
