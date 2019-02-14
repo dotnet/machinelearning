@@ -41,18 +41,18 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Get <see cref="Schema"/> for complete model. Every node in the TensorFlow model will be included in the <see cref="Schema"/> object.
+        /// Get <see cref="DataViewSchema"/> for complete model. Every node in the TensorFlow model will be included in the <see cref="DataViewSchema"/> object.
         /// </summary>
-        public Schema GetModelSchema()
+        public DataViewSchema GetModelSchema()
         {
             return TensorFlowUtils.GetModelSchema(_env, Session.Graph);
         }
 
         /// <summary>
-        /// Get <see cref="Schema"/> for only those nodes which are marked "Placeholder" in the TensorFlow model.
+        /// Get <see cref="DataViewSchema"/> for only those nodes which are marked "Placeholder" in the TensorFlow model.
         /// This method is convenient for exploring the model input(s) in case TensorFlow graph is very large.
         /// </summary>
-        public Schema GetInputSchema()
+        public DataViewSchema GetInputSchema()
         {
             return TensorFlowUtils.GetModelSchema(_env, Session.Graph, "Placeholder");
         }

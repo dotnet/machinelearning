@@ -85,7 +85,7 @@ namespace Microsoft.ML.Data
         /// from the model of a bindable mapper)</param>
         /// <returns>Whether we can call <see cref="MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
-        private static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
+        private static bool CanWrap(ISchemaBoundMapper mapper, DataViewType labelNameType)
         {
             Contracts.AssertValue(mapper);
             Contracts.AssertValue(labelNameType);
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Data
             return new BinaryClassifierScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(DataViewRow output, out Delegate scoreGetter)
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
@@ -286,15 +286,15 @@ namespace Microsoft.ML.Data
                 PfaUtils.If(PfaUtils.Call("<=", scoreToken, _threshold), falseVal, nullVal));
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
+        private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper)
         {
             var labelNameBindableMapper = mapper.Bindable as MultiClassClassifierScorer.LabelNameBindableMapper;
             if (labelNameBindableMapper == null)
-                return BoolType.Instance;
+                return BooleanDataViewType.Instance;
             return new KeyType(typeof(uint), labelNameBindableMapper.Type.Size);
         }
 
-        private static bool OutputTypeMatches(ColumnType scoreType)
-            => scoreType == NumberType.Float;
+        private static bool OutputTypeMatches(DataViewType scoreType)
+            => scoreType == NumberDataViewType.Single;
     }
 }

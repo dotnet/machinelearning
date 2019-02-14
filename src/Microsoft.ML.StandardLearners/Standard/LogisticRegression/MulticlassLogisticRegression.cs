@@ -123,7 +123,7 @@ namespace Microsoft.ML.Trainers
             // Try to get the label key values metedata.
             var labelCol = data.Schema.Label.Value;
             var labelMetadataType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            if (!(labelMetadataType is VectorType vecType && vecType.ItemType == TextType.Instance && vecType.Size == _numClasses))
+            if (!(labelMetadataType is VectorType vecType && vecType.ItemType == TextDataViewType.Instance && vecType.Size == _numClasses))
             {
                 _labelNames = null;
                 return;
@@ -317,12 +317,12 @@ namespace Microsoft.ML.Trainers
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, metadata)
             };
         }
 
-        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, Schema trainSchema)
+        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         public MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
@@ -378,10 +378,10 @@ namespace Microsoft.ML.Trainers
         private volatile VBuffer<float>[] _weightsDense;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        internal readonly ColumnType InputType;
-        internal readonly ColumnType OutputType;
-        ColumnType IValueMapper.InputType => InputType;
-        ColumnType IValueMapper.OutputType => OutputType;
+        internal readonly DataViewType InputType;
+        internal readonly DataViewType OutputType;
+        DataViewType IValueMapper.InputType => InputType;
+        DataViewType IValueMapper.OutputType => OutputType;
 
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
@@ -408,8 +408,8 @@ namespace Microsoft.ML.Trainers
             if (_weights.All(v => v.IsDense))
                 _weightsDense = _weights;
 
-            InputType = new VectorType(NumberType.R4, _numFeatures);
-            OutputType = new VectorType(NumberType.R4, _numClasses);
+            InputType = new VectorType(NumberDataViewType.Single, _numFeatures);
+            OutputType = new VectorType(NumberDataViewType.Single, _numClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -452,8 +452,8 @@ namespace Microsoft.ML.Trainers
             if (_weights.All(v => v.IsDense))
                 _weightsDense = _weights;
 
-            InputType = new VectorType(NumberType.R4, _numFeatures);
-            OutputType = new VectorType(NumberType.R4, _numClasses);
+            InputType = new VectorType(NumberDataViewType.Single, _numFeatures);
+            OutputType = new VectorType(NumberDataViewType.Single, _numClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -534,8 +534,8 @@ namespace Microsoft.ML.Trainers
                 }
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
-            InputType = new VectorType(NumberType.R4, _numFeatures);
-            OutputType = new VectorType(NumberType.R4, _numClasses);
+            InputType = new VectorType(NumberDataViewType.Single, _numFeatures);
+            OutputType = new VectorType(NumberDataViewType.Single, _numClasses);
 
             // REVIEW: Should not save the label names duplicately with the predictor again.
             // Get it from the label column schema metadata instead.
@@ -970,18 +970,18 @@ namespace Microsoft.ML.Trainers
                     MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numFeatures, ref dst);
 
             // Add the bias and the weight columns.
-            bldr.AddColumn("Bias", NumberType.R4, _biases);
-            bldr.AddColumn("Weights", getSlotNames, NumberType.R4, _weights);
+            bldr.AddColumn("Bias", NumberDataViewType.Single, _biases);
+            bldr.AddColumn("Weights", getSlotNames, NumberDataViewType.Single, _weights);
             bldr.AddColumn("ClassNames", Enumerable.Range(0, _numClasses).Select(i => GetLabelName(i)).ToArray());
             return bldr.GetDataView();
         }
 
-        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
+        DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }
 
-        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
+        DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;

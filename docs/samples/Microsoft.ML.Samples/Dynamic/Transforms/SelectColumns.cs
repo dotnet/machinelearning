@@ -3,7 +3,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class SelectColumns
+    public static class SelectColumns
     {
         public static void Example()
         {

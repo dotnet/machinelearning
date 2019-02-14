@@ -103,13 +103,13 @@ namespace Microsoft.ML
         /// <summary>
         /// Provides output schema.
         /// </summary>
-        public Schema OutputSchema;
+        public DataViewSchema OutputSchema;
 
         [BestFriend]
         private protected ITransformer Transformer { get; }
 
         [BestFriend]
-        private static Func<Schema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
+        private static Func<DataViewSchema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
         {
             env.CheckValue(modelStream, nameof(modelStream));
             return schema =>
@@ -145,7 +145,7 @@ namespace Microsoft.ML
             disposer = inputRow.Dispose;
         }
 
-        private protected virtual Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        private protected virtual Func<DataViewSchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");

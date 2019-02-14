@@ -139,9 +139,9 @@ namespace Microsoft.ML.Internal.Internallearn
     [BestFriend]
     internal interface ICanGetSummaryAsIRow
     {
-        Row GetSummaryIRowOrNull(RoleMappedSchema schema);
+        DataViewRow GetSummaryIRowOrNull(RoleMappedSchema schema);
 
-        Row GetStatsIRowOrNull(RoleMappedSchema schema);
+        DataViewRow GetStatsIRowOrNull(RoleMappedSchema schema);
     }
 
     [BestFriend]
@@ -228,6 +228,6 @@ namespace Microsoft.ML.Internal.Internallearn
     /// </summary>
     public interface ICanGetTrainingLabelNames : IPredictor
     {
-        string[] GetLabelNamesOrNull(out ColumnType labelType);
+        string[] GetLabelNamesOrNull(out DataViewType labelType);
     }
 }

@@ -10,15 +10,15 @@ using System.Linq;
 namespace Microsoft.Data.DataView
 {
     /// <summary>
-    /// The class that incrementally builds a <see cref="Schema.Metadata"/>.
+    /// The class that incrementally builds a <see cref="DataViewSchema.Metadata"/>.
     /// </summary>
     public sealed class MetadataBuilder
     {
-        private readonly List<(string Name, ColumnType Type, Delegate Getter, Schema.Metadata Metadata)> _items;
+        private readonly List<(string Name, DataViewType Type, Delegate Getter, DataViewSchema.Metadata Metadata)> _items;
 
         public MetadataBuilder()
         {
-            _items = new List<(string Name, ColumnType Type, Delegate Getter, Schema.Metadata Metadata)>();
+            _items = new List<(string Name, DataViewType Type, Delegate Getter, DataViewSchema.Metadata Metadata)>();
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Microsoft.Data.DataView
         /// </summary>
         /// <param name="metadata">The metadata row to take values from.</param>
         /// <param name="selector">The predicate describing which metadata columns to keep.</param>
-        public void Add(Schema.Metadata metadata, Func<string, bool> selector)
+        public void Add(DataViewSchema.Metadata metadata, Func<string, bool> selector)
         {
             if (metadata == null)
                 return;
@@ -51,7 +51,7 @@ namespace Microsoft.Data.DataView
         /// <param name="getter">The getter delegate.</param>
         /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
         /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
-        public void Add<TValue>(string name, ColumnType type, ValueGetter<TValue> getter, Schema.Metadata metadata = null)
+        public void Add<TValue>(string name, DataViewType type, ValueGetter<TValue> getter, DataViewSchema.Metadata metadata = null)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
@@ -74,7 +74,7 @@ namespace Microsoft.Data.DataView
         /// inside this method.</param>
         /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
         /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
-        public void Add(string name, ColumnType type, Delegate getter, Schema.Metadata metadata = null)
+        public void Add(string name, DataViewType type, Delegate getter, DataViewSchema.Metadata metadata = null)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
@@ -94,7 +94,7 @@ namespace Microsoft.Data.DataView
         /// <param name="value">The value of the metadata.</param>
         /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
         /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
-        public void AddPrimitiveValue<TValue>(string name, PrimitiveType type, TValue value, Schema.Metadata metadata = null)
+        public void AddPrimitiveValue<TValue>(string name, PrimitiveDataViewType type, TValue value, DataViewSchema.Metadata metadata = null)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
@@ -110,15 +110,15 @@ namespace Microsoft.Data.DataView
         /// Produce the metadata row that the builder has so far.
         /// Can be called multiple times.
         /// </summary>
-        public Schema.Metadata GetMetadata()
+        public DataViewSchema.Metadata GetMetadata()
         {
             var builder = new SchemaBuilder();
             foreach (var item in _items)
                 builder.AddColumn(item.Name, item.Type, item.Metadata);
-            return new Schema.Metadata(builder.GetSchema(), _items.Select(x => x.Getter).ToArray());
+            return new DataViewSchema.Metadata(builder.GetSchema(), _items.Select(x => x.Getter).ToArray());
         }
 
-        private void AddDelegate<TValue>(string name, ColumnType type, Delegate getter, Schema.Metadata metadata)
+        private void AddDelegate<TValue>(string name, DataViewType type, Delegate getter, DataViewSchema.Metadata metadata)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
             Debug.Assert(type != null);

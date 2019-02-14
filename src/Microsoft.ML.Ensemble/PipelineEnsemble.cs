@@ -41,8 +41,8 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             public ISchemaBindableMapper Bindable => Parent;
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            public Schema OutputSchema { get; }
+            public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
+            public DataViewSchema OutputSchema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {
@@ -105,13 +105,13 @@ namespace Microsoft.ML.Trainers.Ensemble
                 yield break;
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate)
+            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
             {
                 var scoreGetter = CreateScoreGetter(input, predicate, out Action disposer);
                 return new SimpleRow(OutputSchema, input, new[] { scoreGetter }, disposer);
             }
 
-            internal abstract Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer);
+            internal abstract Delegate CreateScoreGetter(DataViewRow input, Func<int, bool> mapperPredicate, out Action disposer);
         }
 
         // A generic base class for pipeline ensembles. This class contains the combiner.
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     _combiner = parent.Combiner;
                 }
 
-                internal override Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer)
+                internal override Delegate CreateScoreGetter(DataViewRow input, Func<int, bool> mapperPredicate, out Action disposer)
                 {
                     disposer = null;
 
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     return scoreGetter;
                 }
 
-                public ValueGetter<Single> GetLabelGetter(Row input, int i, out Action disposer)
+                public ValueGetter<Single> GetLabelGetter(DataViewRow input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
                     Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label.HasValue, "Mapper was not trained using a label column");
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     return RowCursorUtils.GetLabelGetter(pipelineRow, labelCol.Index);
                 }
 
-                public ValueGetter<Single> GetWeightGetter(Row input, int i, out Action disposer)
+                public ValueGetter<Single> GetWeightGetter(DataViewRow input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
 
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         // This is an implementation of pipeline ensembles that combines scores of type float (regression and anomaly detection).
         private sealed class ImplOne : SchemaBindablePipelineEnsemble<Single>
         {
-            protected override ColumnType ScoreType => NumberType.R4;
+            protected override DataViewType ScoreType => NumberDataViewType.Single;
 
             public override PredictionKind PredictionKind
             {
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         // This is an implementation of pipeline ensemble that combines scores of type vectors of float (multi-class).
         private sealed class ImplVec : SchemaBindablePipelineEnsemble<VBuffer<Single>>
         {
-            protected override ColumnType ScoreType { get { return _scoreType; } }
+            protected override DataViewType ScoreType { get { return _scoreType; } }
 
             public override PredictionKind PredictionKind
             {
@@ -277,21 +277,21 @@ namespace Microsoft.ML.Trainers.Ensemble
                 : base(env, predictors, combiner, LoaderSignature, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification)
             {
                 int classCount = CheckLabelColumn(Host, predictors, false);
-                _scoreType = new VectorType(NumberType.R4, classCount);
+                _scoreType = new VectorType(NumberDataViewType.Single, classCount);
             }
 
             public ImplVec(IHostEnvironment env, ModelLoadContext ctx, string scoreColumnKind)
                 : base(env, ctx, scoreColumnKind)
             {
                 int classCount = CheckLabelColumn(Host, PredictorModels, false);
-                _scoreType = new VectorType(NumberType.R4, classCount);
+                _scoreType = new VectorType(NumberDataViewType.Single, classCount);
             }
         }
 
         // This is an implementation of pipeline ensembles that combines scores of type float, and also provides calibration (for binary classification).
         private sealed class ImplOneWithCalibrator : SchemaBindablePipelineEnsemble<Single>, ISelfCalibratingPredictor
         {
-            protected override ColumnType ScoreType { get { return NumberType.R4; } }
+            protected override DataViewType ScoreType { get { return NumberDataViewType.Single; } }
 
             public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
 
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         private readonly string _scoreColumnKind;
 
-        protected abstract ColumnType ScoreType { get; }
+        protected abstract DataViewType ScoreType { get; }
 
         public abstract PredictionKind PredictionKind { get; }
 
@@ -615,7 +615,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
         // OutputType property of the IValueMapper.
         // If any of the predictors do not implement IValueMapper we throw an exception. Returns the class count.
-        private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, PredictorModel[] models, bool isBinary, ColumnType labelType)
+        private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, PredictorModel[] models, bool isBinary, DataViewType labelType)
         {
             env.Assert(!(labelType is KeyType));
             env.AssertNonEmpty(models);
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, VectorType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, DataViewSchema schema, int labelIndex, VectorType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
@@ -753,7 +753,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             return list;
         }
 
-        public string[] GetLabelNamesOrNull(out ColumnType labelType)
+        public string[] GetLabelNamesOrNull(out DataViewType labelType)
         {
             Host.AssertNonEmpty(PredictorModels);
             return PredictorModels[0].GetLabelInfo(Host, out labelType);

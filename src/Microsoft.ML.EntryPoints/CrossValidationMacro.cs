@@ -375,7 +375,7 @@ namespace Microsoft.ML.EntryPoints
                 var dvBldr = new ArrayDataViewBuilder(env);
                 var warn = $"Detected columns of variable length: {string.Join(", ", variableSizeVectorColumnNames)}." +
                     $" Consider setting collateMetrics- for meaningful per-Folds results.";
-                dvBldr.AddColumn(MetricKinds.ColumnNames.WarningText, TextType.Instance, warn.AsMemory());
+                dvBldr.AddColumn(MetricKinds.ColumnNames.WarningText, TextDataViewType.Instance, warn.AsMemory());
                 warnings.Add(dvBldr.GetDataView());
             }
 
@@ -387,7 +387,7 @@ namespace Microsoft.ML.EntryPoints
             IDataView conf = null;
             if (Utils.Size(input.ConfusionMatrix) > 0)
             {
-                EvaluateUtils.ReconcileSlotNames<double>(env, input.ConfusionMatrix, MetricKinds.ColumnNames.Count, NumberType.R8);
+                EvaluateUtils.ReconcileSlotNames<double>(env, input.ConfusionMatrix, MetricKinds.ColumnNames.Count, NumberDataViewType.Double);
 
                 for (int i = 0; i < input.ConfusionMatrix.Length; i++)
                 {
@@ -443,4 +443,3 @@ namespace Microsoft.ML.EntryPoints
         }
     }
 }
-#pragma warning restore 612

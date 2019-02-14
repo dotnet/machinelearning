@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public readonly int NumShapeFunctions;
         private readonly VectorType _inputType;
-        private readonly ColumnType _outputType;
+        private readonly DataViewType _outputType;
         // These would be the bins for a totally sparse input.
         private readonly int[] _binsAtAllZero;
         // The output value for all zeros
@@ -52,8 +52,8 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly int _numInputFeatures;
         private readonly Dictionary<int, int> _inputFeatureToShapeFunctionMap;
 
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => _outputType;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => _outputType;
 
         /// <summary>
         /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
@@ -111,8 +111,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 _inputFeatureToShapeFunctionMap[_shapeToInputMap[i]] = i;
             }
 
-            _inputType = new VectorType(NumberType.Float, _numInputFeatures);
-            _outputType = NumberType.Float;
+            _inputType = new VectorType(NumberDataViewType.Single, _numInputFeatures);
+            _outputType = NumberDataViewType.Single;
         }
 
         protected GamModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
@@ -161,8 +161,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 _shapeToInputMap[val] = key;
             }
 
-            _inputType = new VectorType(NumberType.Float, _numInputFeatures);
-            _outputType = NumberType.Float;
+            _inputType = new VectorType(NumberDataViewType.Single, _numInputFeatures);
+            _outputType = NumberDataViewType.Single;
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -677,8 +677,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     {
                         _eval = eval;
                         var builder = new ArrayDataViewBuilder(pred.Host);
-                        builder.AddColumn(DefaultColumnNames.Label, NumberType.Float, _labels);
-                        builder.AddColumn(DefaultColumnNames.Score, NumberType.Float, _scores);
+                        builder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, _labels);
+                        builder.AddColumn(DefaultColumnNames.Score, NumberDataViewType.Single, _scores);
                         _dataForEvaluator = new RoleMappedData(builder.GetDataView(), opt: false,
                             RoleMappedSchema.ColumnRole.Label.Bind(DefaultColumnNames.Label),
                             new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
     public static class LambdaFilter
     {
         public static IDataView Create<TSrc>(IHostEnvironment env, string name, IDataView input,
-            string src, ColumnType typeSrc, InPredicate<TSrc> predicate)
+            string src, DataViewType typeSrc, InPredicate<TSrc> predicate)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(name, nameof(name));
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Data
                 return null;
             }
 
-            protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 Host.AssertValueOrNull(rand);
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Data
                 return new Cursor(this, input, active);
             }
 
-            public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
 
                 Host.CheckValueOrNull(rand);
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Data
                 Host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
-                var cursors = new RowCursor[inputs.Length];
+                var cursors = new DataViewRowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
                     cursors[i] = new Cursor(this, inputs[i], active);
                 return cursors;
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Data
                 private readonly InPredicate<T1> _pred;
                 private T1 _src;
 
-                public Cursor(Impl<T1, T2> parent, RowCursor input, bool[] active)
+                public Cursor(Impl<T1, T2> parent, DataViewRowCursor input, bool[] active)
                     : base(parent.Host, input, parent.OutputSchema, active)
                 {
                     _getSrc = Input.GetGetter<T1>(parent._colSrc);

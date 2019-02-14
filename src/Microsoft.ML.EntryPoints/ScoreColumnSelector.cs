@@ -41,7 +41,7 @@ namespace Microsoft.ML.EntryPoints
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
 
-        private static bool ShouldAddColumn(Schema schema, int i, string[] extraColumns, uint scoreSet)
+        private static bool ShouldAddColumn(DataViewSchema schema, int i, string[] extraColumns, uint scoreSet)
         {
             uint scoreSetId = 0;
             if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
@@ -72,7 +72,7 @@ namespace Microsoft.ML.EntryPoints
 
             if (input.PredictorModel.Predictor.PredictionKind == PredictionKind.BinaryClassification)
             {
-                ColumnType labelType;
+                DataViewType labelType;
                 var labelNames = input.PredictorModel.GetLabelInfo(host, out labelType);
                 if (labelNames != null && labelNames.Length == 2)
                 {
@@ -90,7 +90,7 @@ namespace Microsoft.ML.EntryPoints
                             continue;
                         // Do not rename the PredictedLabel column.
                         ReadOnlyMemory<char> tmp = default;
-                        if (input.Data.Schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, i,
+                        if (input.Data.Schema.TryGetMetadata(TextDataViewType.Instance, MetadataUtils.Kinds.ScoreValueKind, i,
                             ref tmp)
                             && ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreValueKind.PredictedLabel, tmp))
                         {

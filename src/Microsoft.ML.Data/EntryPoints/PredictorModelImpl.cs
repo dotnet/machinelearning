@@ -108,7 +108,7 @@ namespace Microsoft.ML.EntryPoints
             predictor = Predictor;
         }
 
-        internal override string[] GetLabelInfo(IHostEnvironment env, out ColumnType labelType)
+        internal override string[] GetLabelInfo(IHostEnvironment env, out DataViewType labelType)
         {
             Contracts.CheckValue(env, nameof(env));
             var predictor = Predictor;

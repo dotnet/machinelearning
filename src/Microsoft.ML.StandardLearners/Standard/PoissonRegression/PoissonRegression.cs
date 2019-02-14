@@ -87,11 +87,11 @@ namespace Microsoft.ML.Trainers
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
-        protected override RegressionPredictionTransformer<PoissonRegressionModelParameters> MakeTransformer(PoissonRegressionModelParameters model, Schema trainSchema)
+        protected override RegressionPredictionTransformer<PoissonRegressionModelParameters> MakeTransformer(PoissonRegressionModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<PoissonRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         public RegressionPredictionTransformer<PoissonRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)

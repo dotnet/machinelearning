@@ -243,7 +243,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static PrimitiveType OnnxToMlNetType(System.Type type)
+        public static PrimitiveDataViewType OnnxToMlNetType(System.Type type)
         {
             if (!_typeToKindMap.ContainsKey(type))
                throw Contracts.ExceptNotSupp("Onnx type not supported", type);

@@ -5,8 +5,15 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
 {
+    /// <summary>
+    /// Utilities for creating console outputs in samples' code.
+    /// </summary>
     public static class ConsoleUtils
     {
+        /// <summary>
+        /// Pretty-print BinaryClassificationMetrics objects.
+        /// </summary>
+        /// <param name="metrics">Binary classification metrics.</param>
         public static void PrintMetrics(BinaryClassificationMetrics metrics)
         {
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
@@ -18,6 +25,10 @@ namespace Microsoft.ML.SamplesUtils
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
         }
 
+        /// <summary>
+        /// Pretty-print RegressionMetrics objects.
+        /// </summary>
+        /// <param name="metrics">Regression metrics.</param>
         public static void PrintMetrics(RegressionMetrics metrics)
         {
             Console.WriteLine($"L1: {metrics.L1:F2}");

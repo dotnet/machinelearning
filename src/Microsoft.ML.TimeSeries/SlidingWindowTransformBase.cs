@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             var sch = OutputSchema;
             int index;
             sch.TryGetColumnIndex(InputColumnName, out index);
-            ColumnType col = sch[index].Type;
+            DataViewType col = sch[index].Type;
             TInput nanValue = Data.Conversion.Conversions.Instance.GetNAOrDefault<TInput>(col);
 
             // We store the nan_value here to avoid getting it each time a state is instanciated.

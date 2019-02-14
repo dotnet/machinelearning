@@ -321,7 +321,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -439,27 +439,27 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return true;
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
             => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly SlotsDroppingTransformer _parent;
             private readonly int[] _cols;
-            private readonly ColumnType[] _srcTypes;
-            private readonly ColumnType[] _dstTypes;
+            private readonly DataViewType[] _srcTypes;
+            private readonly DataViewType[] _dstTypes;
             private readonly SlotDropper[] _slotDropper;
             // Track if all the slots of the column are to be dropped.
             private readonly bool[] _suppressed;
             private readonly int[][] _categoricalRanges;
 
-            public Mapper(SlotsDroppingTransformer parent, Schema inputSchema)
+            public Mapper(SlotsDroppingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _cols = new int[_parent.ColumnPairs.Length];
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
-                _dstTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
+                _dstTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _slotDropper = new SlotDropper[_parent.ColumnPairs.Length];
                 _suppressed = new bool[_parent.ColumnPairs.Length];
                 _categoricalRanges = new int[_parent.ColumnPairs.Length][];
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
                     VectorType srcVectorType = _srcTypes[i] as VectorType;
 
-                    ColumnType itemType = srcVectorType?.ItemType ?? _srcTypes[i];
+                    DataViewType itemType = srcVectorType?.ItemType ?? _srcTypes[i];
                     if (!IsValidColumnType(itemType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
 
@@ -485,9 +485,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// Both scalars and vectors are acceptable types, but the item type must have a default value which means it must be
             /// a string, a key, a float or a double.
             /// </summary>
-            private static bool IsValidColumnType(ColumnType type)
+            private static bool IsValidColumnType(DataViewType type)
                 => (type is KeyType keytype && 0 < keytype.Count && keytype.Count < Utils.ArrayMaxSize)
-                || type == NumberType.R4 || type == NumberType.R8 || type is TextType;
+                || type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is TextDataViewType;
 
             /// <summary>
             /// Computes the types (column and slotnames), the length reduction, categorical feature indices
@@ -500,8 +500,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// <param name="suppressed">Whether the column is suppressed (all slots dropped)</param>
             /// <param name="type">The column type</param>
             /// <param name="categoricalRanges">Categorical feature indices.</param>
-            private void ComputeType(Schema input, int iinfo, SlotDropper slotDropper,
-                out bool suppressed, out ColumnType type, out int[] categoricalRanges)
+            private void ComputeType(DataViewSchema input, int iinfo, SlotDropper slotDropper,
+                out bool suppressed, out DataViewType type, out int[] categoricalRanges)
             {
                 var slotsMin = _parent.SlotsMin[iinfo];
                 var slotsMax = _parent.SlotsMax[iinfo];
@@ -703,7 +703,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 newRangeMax = maxRange2;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -722,7 +722,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return MakeVecGetter(input, iinfo);
             }
 
-            private Delegate MakeOneTrivialGetter(Row input, int iinfo)
+            private Delegate MakeOneTrivialGetter(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -745,7 +745,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 value = default(TDst);
             }
 
-            private Delegate MakeVecTrivialGetter(Row input, int iinfo)
+            private Delegate MakeVecTrivialGetter(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -768,19 +768,19 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 VBufferUtils.Resize(ref value, 1, 0);
             }
 
-            private Delegate MakeVecGetter(Row input, int iinfo)
+            private Delegate MakeVecGetter(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 VectorType vectorType = (VectorType)_srcTypes[iinfo];
                 Host.Assert(!_suppressed[iinfo]);
 
-                Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
+                Func<DataViewRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vectorType.ItemType.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 
-            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(Row input, int iinfo)
+            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(DataViewRow input, int iinfo)
             {
                 var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
                 var typeDst = _dstTypes[iinfo];
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     };
             }
 
-            private ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
+            private ValueGetter<T> GetSrcGetter<T>(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -806,19 +806,19 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return input.GetGetter<T>(src);
             }
 
-            private Delegate GetSrcGetter(ColumnType typeDst, Row row, int iinfo)
+            private Delegate GetSrcGetter(DataViewType typeDst, DataViewRow row, int iinfo)
             {
                 Host.CheckValue(typeDst, nameof(typeDst));
                 Host.CheckValue(row, nameof(row));
 
-                Func<Row, int, ValueGetter<int>> del = GetSrcGetter<int>;
+                Func<DataViewRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     // Avoid closure when adding metadata.
@@ -839,7 +839,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         {
                             // Add slot name metadata.
                             ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) => GetSlotNames(iinfo, ref dst);
-                            builder.Add(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, dstLength), slotNamesGetter);
+                            builder.Add(MetadataUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, dstLength), slotNamesGetter);
                         }
                     }
 
@@ -864,7 +864,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     // Add isNormalize and KeyValues metadata.
                     builder.Add(InputSchema[_cols[iinfo]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
 
-                    result[iinfo] = new Schema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.GetMetadata());
+                    result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.GetMetadata());
                 }
                 return result;
             }

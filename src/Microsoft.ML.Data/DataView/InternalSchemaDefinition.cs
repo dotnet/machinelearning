@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data
             public readonly string ColumnName;
             public readonly MemberInfo MemberInfo;
             public readonly ParameterInfo ReturnParameterInfo;
-            public readonly ColumnType ColumnType;
+            public readonly DataViewType ColumnType;
             public readonly bool IsComputed;
             public readonly Delegate Generator;
             private readonly Dictionary<string, MetadataInfo> _metadata;
@@ -33,25 +33,25 @@ namespace Microsoft.ML.Data
             public Type FieldOrPropertyType => (MemberInfo is FieldInfo) ? (MemberInfo as FieldInfo).FieldType : (MemberInfo as PropertyInfo).PropertyType;
             public Type OutputType => IsComputed ? ComputedReturnType : FieldOrPropertyType;
 
-            public Column(string columnName, ColumnType columnType, MemberInfo memberInfo) :
+            public Column(string columnName, DataViewType columnType, MemberInfo memberInfo) :
                 this(columnName, columnType, memberInfo, null, null)
             { }
 
-            public Column(string columnName, ColumnType columnType, MemberInfo memberInfo,
+            public Column(string columnName, DataViewType columnType, MemberInfo memberInfo,
                 Dictionary<string, MetadataInfo> metadataInfos) :
                 this(columnName, columnType, memberInfo, null, metadataInfos)
             { }
 
-            public Column(string columnName, ColumnType columnType, Delegate generator) :
+            public Column(string columnName, DataViewType columnType, Delegate generator) :
                 this(columnName, columnType, null, generator, null)
             { }
 
-            public Column(string columnName, ColumnType columnType, Delegate generator,
+            public Column(string columnName, DataViewType columnType, Delegate generator,
                 Dictionary<string, MetadataInfo> metadataInfos) :
                 this(columnName, columnType, null, generator, metadataInfos)
             { }
 
-            private Column(string columnName, ColumnType columnType, MemberInfo memberInfo = null,
+            private Column(string columnName, DataViewType columnType, MemberInfo memberInfo = null,
                 Delegate generator = null, Dictionary<string, MetadataInfo> metadataInfos = null)
             {
                 Contracts.AssertNonEmpty(columnName);
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Data
         /// <param name="memberInfo">The field or property info to inspect.</param>
         /// <param name="isVector">Whether this appears to be a vector type.</param>
         /// <param name="itemType">
-        /// The corresponding <see cref="PrimitiveType"/> RawType of the type, or items of this type if vector.
+        /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
         public static void GetVectorAndItemType(MemberInfo memberInfo, out bool isVector, out Type itemType)
         {
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Data
         /// <param name="name">The name of the variable to inspect.</param>
         /// <param name="isVector">Whether this appears to be a vector type.</param>
         /// <param name="itemType">
-        /// The corresponding <see cref="PrimitiveType"/> RawType of the type, or items of this type if vector.
+        /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
         public static void GetVectorAndItemType(Type rawType, string name, out bool isVector, out Type itemType)
         {
@@ -251,12 +251,12 @@ namespace Microsoft.ML.Data
                 // with duplicate column names is completely legal. Possible objection is that we should make it less
                 // convenient to produce "hidden" columns, since this may not be of practical use to users.
 
-                ColumnType colType;
+                DataViewType colType;
                 if (col.ColumnType == null)
                 {
                     // Infer a type as best we can.
-                    PrimitiveType itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataItemType);
-                    colType = isVector ? new VectorType(itemType) : (ColumnType)itemType;
+                    PrimitiveDataViewType itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataItemType);
+                    colType = isVector ? new VectorType(itemType) : (DataViewType)itemType;
                 }
                 else
                 {
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Data
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to be {1}, but type of associated field '{2}' is {3}",
                             colName, columnVectorType != null ? "vector" : "scalar", col.MemberName, isVector ? "vector" : "scalar");
                     }
-                    ColumnType itemType = columnVectorType?.ItemType ?? col.ColumnType;
+                    DataViewType itemType = columnVectorType?.ItemType ?? col.ColumnType;
                     if (itemType.RawType != dataItemType)
                     {
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to have item type {1}, but associated field has type {2}",

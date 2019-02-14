@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ValueMappingExample
+    public static partial class ValueMapping
     {
         class SampleInfertDataWithFeatures
         {
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Dynamic
         ///   6-11yrs -> Postgraduate
         ///   12+yrs  -> Postgraduate
         /// Its possible to have multiple keys map to the same value.
-        public static void Run()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

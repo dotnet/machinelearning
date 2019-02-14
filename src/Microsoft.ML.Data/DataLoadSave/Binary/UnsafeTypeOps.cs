@@ -42,7 +42,7 @@ namespace Microsoft.ML.Internal.Internallearn
             _type2ops[typeof(Single)] = new SingleUnsafeTypeOps();
             _type2ops[typeof(Double)] = new DoubleUnsafeTypeOps();
             _type2ops[typeof(TimeSpan)] = new TimeSpanUnsafeTypeOps();
-            _type2ops[typeof(RowId)] = new UgUnsafeTypeOps();
+            _type2ops[typeof(DataViewRowId)] = new UgUnsafeTypeOps();
         }
 
         public static UnsafeTypeOps<T> Get<T>()
@@ -187,21 +187,21 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        private sealed class UgUnsafeTypeOps : UnsafeTypeOps<RowId>
+        private sealed class UgUnsafeTypeOps : UnsafeTypeOps<DataViewRowId>
         {
             public override int Size { get { return 2 * sizeof(ulong); } }
-            public override unsafe void Apply(ReadOnlySpan<RowId> array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<DataViewRowId> array, Action<IntPtr> func)
             {
-                fixed (RowId* pArray = &MemoryMarshal.GetReference(array))
+                fixed (DataViewRowId* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
 
-            public override void Write(RowId a, BinaryWriter writer) { writer.Write(a.Low); writer.Write(a.High); }
-            public override RowId Read(BinaryReader reader)
+            public override void Write(DataViewRowId a, BinaryWriter writer) { writer.Write(a.Low); writer.Write(a.High); }
+            public override DataViewRowId Read(BinaryReader reader)
             {
                 ulong lo = reader.ReadUInt64();
                 ulong hi = reader.ReadUInt64();
-                return new RowId(lo, hi);
+                return new DataViewRowId(lo, hi);
             }
         }
     }

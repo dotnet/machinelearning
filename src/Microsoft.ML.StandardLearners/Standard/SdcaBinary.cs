@@ -348,7 +348,7 @@ namespace Microsoft.ML.Trainers
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, count));
                 while (cursor.MoveNext())
                 {
-                    RowId id = cursor.Id;
+                    DataViewRowId id = cursor.Id;
                     if (id.High > 0 || id.Low >= (ulong)maxTrainingExamples)
                     {
                         needLookup = true;
@@ -529,7 +529,7 @@ namespace Microsoft.ML.Trainers
             if (invariants != null)
             {
                 Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
-                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 int invariantCoeff = weightSetCount == 1 ? 1 : 2;
                 using (var cursor = cursorFactory.Create())
                 using (var pch = Host.StartProgressChannel("SDCA invariants initialization"))
@@ -770,7 +770,7 @@ namespace Microsoft.ML.Trainers
                 if (pch != null)
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, rowCount));
 
-                Func<RowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
+                Func<DataViewRowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
@@ -932,7 +932,7 @@ namespace Microsoft.ML.Trainers
             using (var cursor = cursorFactory.Create())
             {
                 long row = 0;
-                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
@@ -1067,13 +1067,13 @@ namespace Microsoft.ML.Trainers
         /// Returns a function delegate to retrieve index from id.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<RowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
+        protected Func<DataViewRowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
-                return (RowId id) =>
+                return (DataViewRowId id) =>
                 {
                     Contracts.Assert(id.High == 0);
                     Contracts.Assert((long)id.Low < maxTrainingExamples);
@@ -1082,7 +1082,7 @@ namespace Microsoft.ML.Trainers
             }
             else
             {
-                return (RowId id) =>
+                return (DataViewRowId id) =>
                 {
                     long idx;
                     bool found = idToIdx.TryGetIndex(id, out idx);
@@ -1098,13 +1098,13 @@ namespace Microsoft.ML.Trainers
         /// Only works if the cursor is not shuffled.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<RowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
+        protected Func<DataViewRowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
-                return (RowId id, long row) =>
+                return (DataViewRowId id, long row) =>
                 {
                     Contracts.Assert(id.High == 0);
                     Contracts.Assert((long)id.Low < maxTrainingExamples);
@@ -1113,7 +1113,7 @@ namespace Microsoft.ML.Trainers
             }
             else
             {
-                return (RowId id, long row) =>
+                return (DataViewRowId id, long row) =>
                 {
 #if DEBUG
                     long idx;
@@ -1132,7 +1132,7 @@ namespace Microsoft.ML.Trainers
         // This class can also be made to accommodate generic type, as long as the type implements a
         // good 64-bit hash function.
         /// <summary>
-        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Data.RowId"/>,
+        /// A hash table data structure to store Id of type <see cref="T:Microsoft.Data.DataView.DataViewRowId"/>,
         /// and accommodates size larger than 2 billion. This class is an extension based on BCL.
         /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity.
         /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than
@@ -1146,9 +1146,9 @@ namespace Microsoft.ML.Trainers
             private readonly struct Entry
             {
                 public readonly long ItNext;
-                public readonly RowId Value;
+                public readonly DataViewRowId Value;
 
-                public Entry(long itNext, RowId value)
+                public Entry(long itNext, DataViewRowId value)
                 {
                     ItNext = itNext;
                     Value = value;
@@ -1185,7 +1185,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Make sure the given id is in this lookup table and return the index of the id.
             /// </summary>
-            public long Add(RowId id)
+            public long Add(DataViewRowId id)
             {
                 long iit = GetIit(Get64BitHashCode(id));
                 long index = GetIndexCore(id, iit);
@@ -1200,7 +1200,7 @@ namespace Microsoft.ML.Trainers
             /// Returns a bool representing if id is present.
             /// Index outputs the index that the id, -1 otherwise.
             /// </summary>
-            public bool TryGetIndex(RowId id, out long index)
+            public bool TryGetIndex(DataViewRowId id, out long index)
             {
                 AssertValid();
                 index = GetIndexCore(id, GetIit(Get64BitHashCode(id)));
@@ -1215,7 +1215,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Return the index of value, -1 if it is not present.
             /// </summary>
-            private long GetIndexCore(RowId val, long iit)
+            private long GetIndexCore(DataViewRowId val, long iit)
             {
                 Contracts.Assert(0 <= iit & iit < _rgit.Length);
                 long it = _rgit[iit];
@@ -1236,7 +1236,7 @@ namespace Microsoft.ML.Trainers
             /// Adds the value as a TItem. Does not check whether the TItem is already present.
             /// Returns the index of the added value.
             /// </summary>
-            private long AddCore(RowId val, long iit)
+            private long AddCore(DataViewRowId val, long iit)
             {
                 AssertValid();
                 Contracts.Assert(0 <= iit && iit < _rgit.Length);
@@ -1284,7 +1284,7 @@ namespace Microsoft.ML.Trainers
                 _entries.ApplyRange(0, _count,
                     (long it, ref Entry entry) =>
                     {
-                        RowId value = entry.Value;
+                        DataViewRowId value = entry.Value;
                         long iit = GetIit(Get64BitHashCode(entry.Value));
                         entry = new Entry(_rgit[iit], value);
                         _rgit[iit] = it;
@@ -1311,7 +1311,7 @@ namespace Microsoft.ML.Trainers
                 Console.WriteLine("Table: {0} out of {1}", c, _rgit.Length);
             }
 
-            private static long Get64BitHashCode(RowId value)
+            private static long Get64BitHashCode(DataViewRowId value)
             {
                 // REVIEW: Is this a good way to compute hash?
                 ulong lo = value.Low;
@@ -1483,7 +1483,7 @@ namespace Microsoft.ML.Trainers
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
 
-            if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4 && labelCol.ItemType != NumberType.R8 && !(labelCol.ItemType is BoolType))
+            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single && labelCol.ItemType != NumberDataViewType.Double && !(labelCol.ItemType is BooleanDataViewType))
                 error();
         }
 
@@ -1496,7 +1496,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
             return new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
         }
@@ -1512,7 +1512,7 @@ namespace Microsoft.ML.Trainers
             weightSetCount = 1;
         }
 
-        protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, Schema trainSchema)
+        protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
@@ -1556,19 +1556,19 @@ namespace Microsoft.ML.Trainers
                     new SchemaShape.Column(
                         DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
                     new SchemaShape.Column(
                         DefaultColumnNames.Probability,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
                     new SchemaShape.Column(
                         DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
-                        BoolType.Instance,
+                        BooleanDataViewType.Instance,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
 
@@ -1611,14 +1611,14 @@ namespace Microsoft.ML.Trainers
                     new SchemaShape.Column(
                         DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
                     ),
                     new SchemaShape.Column(
                         DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
-                        BoolType.Instance,
+                        BooleanDataViewType.Instance,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
@@ -1669,14 +1669,14 @@ namespace Microsoft.ML.Trainers
                     new SchemaShape.Column(
                         DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
                     ),
                     new SchemaShape.Column(
                         DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
-                        BoolType.Instance,
+                        BooleanDataViewType.Instance,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
 
@@ -1687,7 +1687,7 @@ namespace Microsoft.ML.Trainers
                 outCols.Insert(1, new SchemaShape.Column(
                     DefaultColumnNames.Probability,
                     SchemaShape.Column.VectorKind.Scalar,
-                    NumberType.R4,
+                    NumberDataViewType.Single,
                     false,
                     new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
             };
@@ -1707,7 +1707,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
             if (Info.NeedCalibration)
@@ -1867,13 +1867,13 @@ namespace Microsoft.ML.Trainers
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
+        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
@@ -2064,7 +2064,7 @@ namespace Microsoft.ML.Trainers
             VectorUtils.ScaleBy(ref weights, (float)weightScaling); // restore the true weights
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
             var pred = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;

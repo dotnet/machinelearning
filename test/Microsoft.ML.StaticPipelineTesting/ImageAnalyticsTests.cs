@@ -30,7 +30,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var type = schema[col].Type;
             var vecType = type as VectorType;
             Assert.True(vecType?.Size > 0, $"Type was supposed to be known size vector but was instead '{type}'");
-            Assert.Equal(NumberType.R4, vecType.ItemType);
+            Assert.Equal(NumberDataViewType.Single, vecType.ItemType);
             Assert.Equal(3, vecType.Dimensions.Length);
             Assert.Equal(3, vecType.Dimensions[0]);
             Assert.Equal(8, vecType.Dimensions[1]);

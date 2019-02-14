@@ -5,7 +5,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class SDCALogisticRegression
+    public static class SDCALogisticRegression
     {
         public static void Example()
         {

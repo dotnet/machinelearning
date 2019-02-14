@@ -22,11 +22,11 @@ namespace Microsoft.ML.Tests
         void SimpleTest()
         {
             var metadataBuilder = new MetadataBuilder();
-            metadataBuilder.Add("M", NumberType.R4, (ref float v) => v = 484f);
+            metadataBuilder.Add("M", NumberDataViewType.Single, (ref float v) => v = 484f);
             var schemaBuilder = new SchemaBuilder();
-            schemaBuilder.AddColumn("A", new VectorType(NumberType.R4, 94));
+            schemaBuilder.AddColumn("A", new VectorType(NumberDataViewType.Single, 94));
             schemaBuilder.AddColumn("B", new KeyType(typeof(uint), 17));
-            schemaBuilder.AddColumn("C", NumberType.I4, metadataBuilder.GetMetadata());
+            schemaBuilder.AddColumn("C", NumberDataViewType.Int32, metadataBuilder.GetMetadata());
 
             var shape = SchemaShape.Create(schemaBuilder.GetSchema());
 
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
             var columnC = fakeSchema[2];
 
             Assert.Equal("A", columnA.Name);
-            Assert.Equal(NumberType.R4, columnA.Type.GetItemType());
+            Assert.Equal(NumberDataViewType.Single, columnA.Type.GetItemType());
             Assert.Equal(10, columnA.Type.GetValueCount());
 
             Assert.Equal("B", columnB.Name);
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(10u, columnB.Type.GetKeyCount());
 
             Assert.Equal("C", columnC.Name);
-            Assert.Equal(NumberType.I4, columnC.Type);
+            Assert.Equal(NumberDataViewType.Int32, columnC.Type);
 
             var metaC = columnC.Metadata;
             Assert.Single(metaC.Schema);

@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     /// A view of data where columns can optionally be accessed slot by slot, as opposed to row
     /// by row in a typical dataview. A slot-accessible column can be accessed with a slot-by-slot
     /// cursor via an <see cref="SlotCursor"/> returned by <see cref="GetSlotCursor(int)"/>
-    /// (naturally, as opposed to row-by-row through an <see cref="RowCursor"/>). This interface
+    /// (naturally, as opposed to row-by-row through an <see cref="DataViewRowCursor"/>). This interface
     /// is intended to be implemented by classes that want to provide an option for an alternate
     /// way of accessing the data stored in a <see cref="IDataView"/>.
     ///
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Data
         /// <see cref="GetSlotType"/> (input argument is named col) specifies the type of all values at the col-th column of
         /// <see cref="IDataView"/>.  For example, if <see cref="IDataView.Schema"/>[i] is a scalar float column, then
         /// <see cref="GetSlotType"/> with col=i may return a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
-        /// field is <see cref="NumberType.R4"/>. If the i-th column can't be iterated column-wisely, this function may
+        /// field is <see cref="NumberDataViewType.Single"/>. If the i-th column can't be iterated column-wisely, this function may
         /// return <see langword="null"/>.
         /// </summary>
         VectorType GetSlotType(int col);

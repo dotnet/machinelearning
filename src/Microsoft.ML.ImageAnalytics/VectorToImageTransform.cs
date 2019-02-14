@@ -325,13 +325,13 @@ namespace Microsoft.ML.ImageAnalytics
                 _exes[i].Save(ctx);
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override DataViewType GetColumnTypeCore(int iinfo)
         {
             Host.Assert(0 <= iinfo & iinfo < Infos.Length);
             return _types[iinfo];
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
@@ -343,17 +343,17 @@ namespace Microsoft.ML.ImageAnalytics
             disposer = null;
             var sourceType = InputSchema[Infos[iinfo].Source].Type;
             var sourceItemType = sourceType.GetItemType();
-            if (sourceItemType == NumberType.R4 || sourceItemType == NumberType.R8)
+            if (sourceItemType == NumberDataViewType.Single || sourceItemType == NumberDataViewType.Double)
                 return GetterFromType<float>(input, iinfo, ex, needScale);
             else
-                if (sourceItemType == NumberType.U1)
+                if (sourceItemType == NumberDataViewType.Byte)
                 return GetterFromType<byte>(input, iinfo, ex, false);
             else
                 throw Contracts.Except("We only support float or byte arrays");
 
         }
 
-        private ValueGetter<Bitmap> GetterFromType<TValue>(Row input, int iinfo, ColInfoEx ex, bool needScale) where TValue : IConvertible
+        private ValueGetter<Bitmap> GetterFromType<TValue>(DataViewRow input, int iinfo, ColInfoEx ex, bool needScale) where TValue : IConvertible
         {
             var getSrc = GetSrcGetter<VBuffer<TValue>>(input, iinfo);
             var src = default(VBuffer<TValue>);

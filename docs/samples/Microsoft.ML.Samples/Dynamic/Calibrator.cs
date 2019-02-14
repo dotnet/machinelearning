@@ -8,9 +8,9 @@ namespace Microsoft.ML.Samples.Dynamic
     /// <summary>
     /// This example first trains a StochasticDualCoordinateAscentBinary Classifier and then convert its output to probability via training a calibrator.  
     /// </summary>
-    public class CalibratorExample
+    public static class Calibrator
     {
-        public static void Calibration()
+        public static void Example()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.

@@ -73,7 +73,7 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public double Auprc { get; }
 
-        protected private static T Fetch<T>(IExceptionContext ectx, Row row, string name)
+        protected private static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
             if (!row.Schema.TryGetColumnIndex(name, out int col))
                 throw ectx.Except($"Could not find column '{name}'");
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
             return val;
         }
 
-        internal BinaryClassificationMetrics(IExceptionContext ectx, Row overallResult)
+        internal BinaryClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
             Auc = Fetch(BinaryClassifierEvaluator.Auc);

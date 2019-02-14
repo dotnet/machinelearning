@@ -15,7 +15,7 @@ namespace Microsoft.ML.Data
     /// <see cref="MoveNext"/>, use <see cref="SynchronizedCursorBase"/> instead.
     /// </summary>
     [BestFriend]
-    internal abstract class RootCursorBase : RowCursor
+    internal abstract class RootCursorBase : DataViewRowCursor
     {
         protected readonly IChannel Ch;
         private long _position;

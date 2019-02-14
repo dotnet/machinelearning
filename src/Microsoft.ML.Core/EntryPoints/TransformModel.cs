@@ -29,7 +29,7 @@ namespace Microsoft.ML.EntryPoints
         // if transform model A needs column X and model B needs Y, that is NOT produced by A,
         // then trimming A's input schema would cause composition to fail.
         [BestFriend]
-        internal abstract Schema InputSchema { get; }
+        internal abstract DataViewSchema InputSchema { get; }
 
         /// <summary>
         /// The output schema that this transform model was originally instantiated on. The schema resulting
@@ -37,7 +37,7 @@ namespace Microsoft.ML.EntryPoints
         /// <see cref="InputSchema"/> may differ from the schema of dataviews we apply this transform model to.
         /// </summary>
         [BestFriend]
-        internal abstract Schema OutputSchema { get; }
+        internal abstract DataViewSchema OutputSchema { get; }
 
         /// <summary>
         /// Apply the transform(s) in the model to the given input data.

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Transforms
         internal SchemaDefinition InputSchemaDefinition { get; }
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
         /// appropriate schema.
         /// </summary>
         public bool IsRowToRowMapper => true;
@@ -74,10 +74,10 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Returns the <see cref="Schema"/> which would be produced by the transformer applied to
+        /// Returns the <see cref="DataViewSchema"/> which would be produced by the transformer applied to
         /// an input data with schema <paramref name="inputSchema"/>.
         /// </summary>
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
@@ -99,23 +99,23 @@ namespace Microsoft.ML.Transforms
         /// is <c>false</c>, then an exception is thrown. If the <paramref name="inputSchema"/> is in any way
         /// unsuitable for constructing the mapper, an exception is likewise thrown.
         /// </summary>
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var simplerMapper = MakeRowMapper(inputSchema);
             return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), simplerMapper, MakeRowMapper);
         }
 
-        private IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : IRowMapper
         {
             private readonly IHost _host;
-            private readonly Schema _inputSchema;
+            private readonly DataViewSchema _inputSchema;
             private readonly CustomMappingTransformer<TSrc, TDst> _parent;
             private readonly TypedCursorable<TSrc> _typedSrc;
 
-            public Mapper(CustomMappingTransformer<TSrc, TDst> parent, Schema inputSchema)
+            public Mapper(CustomMappingTransformer<TSrc, TDst> parent, DataViewSchema inputSchema)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(inputSchema);
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Transforms
                 _typedSrc = TypedCursorable<TSrc>.Create(_host, emptyDataView, false, _parent.InputSchemaDefinition);
             }
 
-            Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+            Delegate[] IRowMapper.CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 // If no outputs are active, we short-circuit to empty array of getters.
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            private Delegate GetDstGetter<T>(Row input, int colIndex, Action refreshAction)
+            private Delegate GetDstGetter<T>(DataViewRow input, int colIndex, Action refreshAction)
             {
                 var getter = input.GetGetter<T>(colIndex);
                 ValueGetter<T> combinedGetter = (ref T dst) =>
@@ -186,11 +186,11 @@ namespace Microsoft.ML.Transforms
                 return col => false;
             }
 
-            Schema.DetachedColumn[] IRowMapper.GetOutputColumns()
+            DataViewSchema.DetachedColumn[] IRowMapper.GetOutputColumns()
             {
                 var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent.AddedSchema);
                 // All the output columns of dstRow are our outputs.
-                return Enumerable.Range(0, dstRow.Schema.Count).Select(x => new Schema.DetachedColumn(dstRow.Schema[x])).ToArray();
+                return Enumerable.Range(0, dstRow.Schema.Count).Select(x => new DataViewSchema.DetachedColumn(dstRow.Schema[x])).ToArray();
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx)

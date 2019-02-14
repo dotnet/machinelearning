@@ -277,7 +277,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckNonWhiteSpace(col.Source, nameof(col.Source));
                 int colId;
                 if (input.Schema.TryGetColumnIndex(col.Source, out colId) &&
-                    input.Schema[colId].Type.GetItemType() is TextType)
+                    input.Schema[colId].Type.GetItemType() is TextDataViewType)
                 {
                     termCols.Add(col);
                     isTermCol[i] = true;
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Transforms.Text
         /// Generates and returns unique names for columns source. Each element of the returned array is
         /// an array of unique source names per specific column.
         /// </summary>
-        public static string[][] GenerateUniqueSourceNames(IHostEnvironment env, ManyToOneColumn[] columns, Schema schema)
+        public static string[][] GenerateUniqueSourceNames(IHostEnvironment env, ManyToOneColumn[] columns, DataViewSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(columns, nameof(columns));

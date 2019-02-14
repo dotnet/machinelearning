@@ -31,7 +31,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a non-key, non-vector <see cref="ColumnType"/>.
+    /// For representing a non-key, non-vector <see cref="DataViewType"/>.
     /// </summary>
     /// <typeparam name="T">The scalar item type.</typeparam>
     public abstract class Scalar<T> : PipelineColumn
@@ -143,7 +143,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a custom <see cref="ColumnType"/>.
+    /// For representing a custom <see cref="DataViewType"/>.
     /// </summary>
     /// <typeparam name="T">The custom item type.</typeparam>
     public abstract class Custom<T>: PipelineColumn

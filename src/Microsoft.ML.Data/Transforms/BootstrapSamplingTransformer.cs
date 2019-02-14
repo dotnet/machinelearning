@@ -166,21 +166,21 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             // We do not use the input random because this cursor does not support shuffling.
             var rgen = new TauswortheHybrid(_state);
             var input = Source.GetRowCursor(columnsNeeded, _shuffleInput ? new TauswortheHybrid(rgen) : null);
-            RowCursor cursor = new Cursor(this, input, rgen);
+            DataViewRowCursor cursor = new Cursor(this, input, rgen);
             if (_poolSize > 1)
                 cursor = RowShufflingTransformer.GetShuffledCursor(Host, _poolSize, cursor, new TauswortheHybrid(rgen));
             return cursor;
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             var cursor = GetRowCursorCore(columnsNeeded, rand);
-            return new RowCursor[] { cursor };
+            return new DataViewRowCursor[] { cursor };
         }
 
         private sealed class Cursor : LinkedRootCursorBase
@@ -191,9 +191,9 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => 0;
 
-            public override Schema Schema => Input.Schema;
+            public override DataViewSchema Schema => Input.Schema;
 
-            public Cursor(BootstrapSamplingTransformer parent, RowCursor input, Random rgen)
+            public Cursor(BootstrapSamplingTransformer parent, DataViewRowCursor input, Random rgen)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(rgen);
@@ -201,14 +201,14 @@ namespace Microsoft.ML.Transforms
                 _rgen = rgen;
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 var inputIdGetter = Input.GetIdGetter();
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         inputIdGetter(ref val);
-                        val = val.Combine(new RowId((ulong)_remaining, 0));
+                        val = val.Combine(new DataViewRowId((ulong)_remaining, 0));
                     };
             }
 

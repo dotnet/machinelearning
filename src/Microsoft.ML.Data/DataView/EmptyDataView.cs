@@ -17,9 +17,9 @@ namespace Microsoft.ML.Data
         private readonly IHost _host;
 
         public bool CanShuffle => true;
-        public Schema Schema { get; }
+        public DataViewSchema Schema { get; }
 
-        public EmptyDataView(IHostEnvironment env, Schema schema)
+        public EmptyDataView(IHostEnvironment env, DataViewSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(EmptyDataView));
@@ -29,13 +29,13 @@ namespace Microsoft.ML.Data
 
         public long? GetRowCount() => 0;
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             return new Cursor(_host, Schema, columnsNeeded);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             return new[] { new Cursor(_host, Schema, columnsNeeded) };
@@ -45,10 +45,10 @@ namespace Microsoft.ML.Data
         {
             private readonly bool[] _active;
 
-            public override Schema Schema { get; }
+            public override DataViewSchema Schema { get; }
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, Schema schema, IEnumerable<Schema.Column> columnsNeeded)
+            public Cursor(IChannelProvider provider, DataViewSchema schema, IEnumerable<DataViewSchema.Column> columnsNeeded)
                 : base(provider)
             {
                 Ch.AssertValue(schema);
@@ -56,9 +56,9 @@ namespace Microsoft.ML.Data
                 _active = Utils.BuildArray(Schema.Count, columnsNeeded);
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
-                return (ref RowId val) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
+                return (ref DataViewRowId val) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
             }
 
             protected override bool MoveNextCore() => false;
