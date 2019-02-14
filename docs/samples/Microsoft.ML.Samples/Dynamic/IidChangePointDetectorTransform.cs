@@ -10,7 +10,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TransformSamples
+    public static partial class TransformSamples
     {
         class ChangePointPrediction
         {

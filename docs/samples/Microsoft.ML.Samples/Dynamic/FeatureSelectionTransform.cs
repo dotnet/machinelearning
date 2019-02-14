@@ -4,9 +4,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class FeatureSelectionTransformExample
+    public static class FeatureSelectionTransform
     {
-        public static void FeatureSelectionTransform()
+        public static void Example()
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable

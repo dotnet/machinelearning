@@ -151,8 +151,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSDCABinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaBinaryTrainer.Options { NumThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary");
         }
 
         [Fact]

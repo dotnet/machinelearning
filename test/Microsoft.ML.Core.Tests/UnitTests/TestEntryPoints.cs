@@ -2488,7 +2488,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
-            var options = new SdcaBinaryTrainer.Options()
+            var options = new LegacySdcaBinaryTrainer.Options()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
                 CheckFrequency = 42
