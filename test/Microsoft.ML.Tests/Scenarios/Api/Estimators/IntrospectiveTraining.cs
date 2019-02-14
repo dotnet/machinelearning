@@ -36,8 +36,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumThreads = 1 }));
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1 }));
 
             // Train.
             var model = pipeline.Fit(data);

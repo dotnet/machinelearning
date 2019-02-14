@@ -69,7 +69,7 @@ namespace Microsoft.ML.StaticPipe
                     else
                         return trainer;
 
-                }, label, features, weights, hasProbs);
+                }, label, features, weights);
 
             return rec.Output;
         }
@@ -128,7 +128,7 @@ namespace Microsoft.ML.StaticPipe
                     else
                         return trainer;
 
-                }, label, features, weights, hasProbs);
+                }, label, features, weights);
 
             return rec.Output;
         }

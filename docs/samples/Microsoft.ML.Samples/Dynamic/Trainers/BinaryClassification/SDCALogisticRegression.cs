@@ -5,9 +5,9 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class SDCA_BinaryClassificationExample
+    public class SDCALogisticRegression
     {
-        public static void SDCA_BinaryClassification()
+        public static void Example()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.
