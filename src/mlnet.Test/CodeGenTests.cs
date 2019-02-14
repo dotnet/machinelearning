@@ -105,7 +105,7 @@ namespace mlnet.Test
 
             CodeGenerator codeGenerator = new CodeGenerator(null, result, null);
             var actual = codeGenerator.GenerateClassLabels();
-            var expected1 = "[ColumnName(\"Label\")]";
+            var expected1 = "[ColumnName(\"Label\"), LoadColumn(0)]";
             var expected2 = "public bool Label{get; set;}";
 
             Assert.AreEqual(expected1, actual[0]);

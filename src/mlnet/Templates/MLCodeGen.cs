@@ -159,28 +159,19 @@ if("Regression".Equals(TaskType)){
 
         private static TextLoader GetTextLoader(MLContext mlContext)
         {
-            return mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
-            {
-                Column = new[]{
-");
- foreach(var col in Columns) {
-            this.Write("                                  ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(col));
-            this.Write("\r\n");
- } 
-            this.Write("                              },                                                 " +
-                    "    \r\n                HasHeader = ");
+            return mlContext.Data.CreateTextLoader<SampleObservation>(
+                hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
-            this.Write(",\r\n                Separators = new char[] {");
- Write(string.Join(",", Separators.Select(t => "'" + t.ToString() + "'").ToArray())); 
-            this.Write("},\r\n                AllowQuoting = ");
+            this.Write(",\r\n                separatorChar : \'");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Separator));
+            this.Write("\',\r\n                allowQuotedStrings : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
-            this.Write(",\r\n                TrimWhitespace = ");
+            this.Write(",\r\n                trimWhitespace : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(TrimWhiteSpace.ToString().ToLowerInvariant()));
-            this.Write(" ,\r\n                AllowSparse = ");
+            this.Write(" ,\r\n                supportSparse : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(@"
-             });
+             );
         }
 
         // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
@@ -191,7 +182,7 @@ if("Regression".Equals(TaskType)){
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = textLoader.Read(TrainDataPath);
 
-            var sample = mlContext.CreateEnumerable<SampleClass>(trainingDataView, false).First();
+            var sample = mlContext.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
 
             ITransformer trainedModel;
             using (var stream = new FileStream(ModelPath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -200,7 +191,7 @@ if("Regression".Equals(TaskType)){
             }
 
             // Create prediction engine related to the loaded trained model
-            var predEngine= trainedModel.CreatePredictionEngine<SampleClass, SamplePrediction>(mlContext);
+            var predEngine= trainedModel.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlContext);
 
             //Score
             var resultprediction = predEngine.Predict(sample);
@@ -242,7 +233,7 @@ public string Path {get;set;}
 public string TestPath {get;set;}
 public IList<string> Columns {get;set;}
 public bool HasHeader {get;set;}
-public char[] Separators {get;set;}
+public char Separator {get;set;}
 public IList<string> Transforms {get;set;}
 public string Trainer {get;set;}
 public string TaskType {get;set;}

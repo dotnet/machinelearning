@@ -64,7 +64,7 @@ namespace Microsoft.ML.CLI
                 Columns = columns,
                 Transforms = transforms,
                 HasHeader = columnInferenceResult.Item1.HasHeader,
-                Separators = columnInferenceResult.Item1.Separators,
+                Separator = columnInferenceResult.Item1.Separators.FirstOrDefault(),
                 AllowQuoting = columnInferenceResult.Item1.AllowQuoting,
                 AllowSparse = columnInferenceResult.Item1.AllowSparse,
                 TrimWhiteSpace = columnInferenceResult.Item1.TrimWhitespace,
@@ -153,12 +153,12 @@ namespace Microsoft.ML.CLI
 
                 if (range > 0)
                 {
-                    result.Add((string)("[ColumnName(\"" + column.Name + "\"), VectorType(" + (range + 1) + ")]"));
+                    result.Add($"[ColumnName(\"{column.Name}\"),LoadColumn({column.Source[0].Min}, {column.Source[0].Max}) VectorType({(range + 1)})]");
                     sb.Append("[]");
                 }
                 else
                 {
-                    result.Add((string)("[ColumnName(\"" + column.Name + "\")]"));
+                    result.Add($"[ColumnName(\"{column.Name}\"), LoadColumn({column.Source[0].Min})]");
                 }
                 sb.Append(" ");
                 sb.Append(Normalize(column.Name));

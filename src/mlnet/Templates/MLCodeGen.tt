@@ -119,19 +119,13 @@ else{#>
 
         private static TextLoader GetTextLoader(MLContext mlContext)
         {
-            return mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
-            {
-                Column = new[]{
-<# foreach(var col in Columns) {#>
-                                  <#= col #>
-<# } #>
-                              },                                                     
-                HasHeader = <#= HasHeader.ToString().ToLowerInvariant() #>,
-                Separators = new char[] {<# Write(string.Join(",", Separators.Select(t => "'" + t.ToString() + "'").ToArray())); #>},
-                AllowQuoting = <#= AllowQuoting.ToString().ToLowerInvariant() #>,
-                TrimWhitespace = <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
-                AllowSparse = <#= AllowSparse.ToString().ToLowerInvariant() #>
-             });
+            return mlContext.Data.CreateTextLoader<SampleObservation>(
+                hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
+                separatorChar : '<#= Separator #>',
+                allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
+                trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
+                supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>
+             );
         }
 
         // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
@@ -142,7 +136,7 @@ else{#>
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = textLoader.Read(TrainDataPath);
 
-            var sample = mlContext.CreateEnumerable<SampleClass>(trainingDataView, false).First();
+            var sample = mlContext.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
 
             ITransformer trainedModel;
             using (var stream = new FileStream(ModelPath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -151,7 +145,7 @@ else{#>
             }
 
             // Create prediction engine related to the loaded trained model
-            var predEngine= trainedModel.CreatePredictionEngine<SampleClass, SamplePrediction>(mlContext);
+            var predEngine= trainedModel.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlContext);
 
             //Score
             var resultprediction = predEngine.Predict(sample);
@@ -196,7 +190,7 @@ public string Path {get;set;}
 public string TestPath {get;set;}
 public IList<string> Columns {get;set;}
 public bool HasHeader {get;set;}
-public char[] Separators {get;set;}
+public char Separator {get;set;}
 public IList<string> Transforms {get;set;}
 public string Trainer {get;set;}
 public string TaskType {get;set;}
