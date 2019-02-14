@@ -163,4 +163,3 @@ namespace Microsoft.ML.EntryPoints
         }
     }
 }
-#pragma warning restore 612
