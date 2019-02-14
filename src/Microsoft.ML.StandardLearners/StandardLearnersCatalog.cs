@@ -197,7 +197,6 @@ namespace Microsoft.ML
         /// <param name="labelColumn">The name of the label column, or dependent variable.</param>
         /// <param name="featureColumn">The features, or independent variables.</param>
         /// <param name="lossFunction">The custom loss.</param>
-        /// <param name="weights">The optional example weights.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
@@ -206,7 +205,6 @@ namespace Microsoft.ML
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
             IClassificationLoss lossFunction = null,
             float learningRate = AveragedLinearArguments.AveragedDefaultArgs.LearningRate,
             bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
@@ -216,7 +214,7 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new AveragedPerceptronTrainer(env, labelColumn, featureColumn, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
+            return new AveragedPerceptronTrainer(env, labelColumn, featureColumn, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
         }
 
         /// <summary>
@@ -255,7 +253,6 @@ namespace Microsoft.ML
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumn">The name of the label, or dependent variable.</param>
         /// <param name="featureColumn">The features, or independent variables.</param>
-        /// <param name="weights">The optional example weights.</param>
         /// <param name="lossFunction">The custom loss. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
@@ -264,7 +261,6 @@ namespace Microsoft.ML
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
             IRegressionLoss lossFunction = null,
             float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
@@ -274,7 +270,7 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new OnlineGradientDescentTrainer(env, labelColumn, featureColumn, learningRate, decreaseLearningRate, l2RegularizerWeight,
-                numIterations, weights, lossFunction);
+                numIterations, lossFunction);
         }
 
         /// <summary>

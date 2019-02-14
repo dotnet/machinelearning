@@ -13205,6 +13205,18 @@
           "Default": "Label"
         },
         {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
+        },
+        {
           "Name": "NormalizeFeatures",
           "Type": {
             "Kind": "Enum",
