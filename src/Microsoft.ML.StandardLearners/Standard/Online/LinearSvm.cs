@@ -64,6 +64,12 @@ namespace Microsoft.ML.Trainers.Online
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal int MaxCalibrationExamples = 1000000;
+
+            /// <summary>
+            /// Column to use for example weight.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
         }
 
         private sealed class TrainState : TrainStateBase
@@ -225,19 +231,19 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column. </param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightsColumn">The optional name of the weights column.</param>
+         /// <param name="weightColumn">The optional name of the weight column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
         [BestFriend]
         internal LinearSvmTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weightsColumn = null,
+            string weightColumn = null,
             int numIterations = Options.OnlineDefaultArgs.NumIterations)
             : this(env, new Options
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
-                InitialWeights = weightsColumn,
+                WeightColumn = weightColumn,
                 NumIterations = numIterations,
             })
         {
@@ -288,8 +294,5 @@ namespace Microsoft.ML.Trainers.Online
 
         protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, Schema trainSchema)
             => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
-
-        public BinaryPredictionTransformer<LinearBinaryModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 }

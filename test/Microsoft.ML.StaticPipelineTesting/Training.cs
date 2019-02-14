@@ -148,6 +148,41 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
+        public void SdcaBinaryClassificationSimple()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.SubModel.Weights.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.9, 1);
+            Assert.InRange(metrics.Auc, 0.9, 1);
+            Assert.InRange(metrics.Auprc, 0.9, 1);
+            Assert.InRange(metrics.LogLoss, 0, 0.2);
+            Assert.InRange(metrics.Entropy, 0.9, double.PositiveInfinity);
+        }
+
+        [Fact]
         public void SdcaBinaryClassificationNoCalibration()
         {
             var env = new MLContext(seed: 0);
@@ -164,8 +199,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null, loss,
-                new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, null, loss,
+                new SdcaNonCalibratedBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -189,6 +224,43 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int c = 0; c < schema.Count; ++c)
                 Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
+
+        [Fact]
+        public void SdcaBinaryClassificationNoCalibrationSimple()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryModelParameters pred = null;
+
+            var loss = new HingeLoss(1);
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, loss, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.95, 1);
+            Assert.InRange(metrics.Auc, 0.95, 1);
+            Assert.InRange(metrics.Auprc, 0.95, 1);
+        }
+
 
         [Fact]
         public void AveragePerceptronNoCalibration()
@@ -1074,8 +1146,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = mlContext.MulticlassClassification.Evaluate(prediction, r => r.LabelIndex, r => r.Predictions);
 
             // Check if metrics are resonable.
-            Assert.Equal(0.863482146891263, metrics.AccuracyMacro, 6);
-            Assert.Equal(0.86309523809523814, metrics.AccuracyMicro, 6);
+            Assert.Equal(0.86545065082827088, metrics.AccuracyMacro, 6);
+            Assert.Equal(0.86507936507936511, metrics.AccuracyMicro, 6);
 
             // Convert prediction in ML.NET format to native C# class.
             var nativePredictions = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
@@ -1091,7 +1163,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Show prediction result for the 3rd example.
             var nativePrediction = nativePredictions[2];
-            var expectedProbabilities = new float[] { 0.922597349f, 0.07508608f, 0.00221699756f, 9.95488E-05f };
+            var expectedProbabilities = new float[] { 0.92574507f, 0.0739398f, 0.0002437812f, 7.13458649E-05f };
             // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
             for (int i = 0; i < labelBuffer.Length; ++i)
                 Assert.Equal(expectedProbabilities[i], nativePrediction.Scores[i], 6);

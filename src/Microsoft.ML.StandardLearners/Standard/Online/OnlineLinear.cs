@@ -4,6 +4,7 @@
 
 using System;
 using System.Globalization;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
@@ -15,7 +16,6 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.Online
 {
-
     public abstract class OnlineLinearArguments : LearnerInputBaseWithLabel
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter", SortOrder = 50)]
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Trainers.Online
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Initial Weights and bias, comma-separated", ShortName = "initweights")]
         [TGUI(NoSweep = true)]
-        public string InitialWeights;
+        internal string InitialWeights;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts", SortOrder = 140)]
         [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
@@ -279,6 +279,12 @@ namespace Microsoft.ML.Trainers.Online
                 return state.CreatePredictor();
             }
         }
+
+        /// <summary>
+        /// Continues the training of a <see cref="OnlineLinearTrainer{TTransformer, TModel}"/> using an initial predictor and returns a <see cref="ITransformer"/>.
+        /// </summary>
+        public TTransformer Fit(IDataView trainData, IPredictor initialPredictor)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         private protected abstract void CheckLabels(RoleMappedData data);
 

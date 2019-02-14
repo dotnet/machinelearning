@@ -11607,6 +11607,15 @@
           }
         },
         {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -12100,6 +12109,15 @@
               10
             ]
           }
+        },
+        {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
         },
         {
           "Name": "ParallelTrainer",
@@ -12597,6 +12615,15 @@
           }
         },
         {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -13092,6 +13119,15 @@
           }
         },
         {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -13167,6 +13203,18 @@
           "SortOrder": 3.0,
           "IsNullable": false,
           "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
         },
         {
           "Name": "NormalizeFeatures",
@@ -15210,18 +15258,6 @@
           "Default": null
         },
         {
-          "Name": "PositiveInstanceWeight",
-          "Type": "Float",
-          "Desc": "Apply weight to the positive class, for imbalanced data",
-          "Aliases": [
-            "piw"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1.0
-        },
-        {
           "Name": "Calibrator",
           "Type": {
             "Kind": "Component",
@@ -15243,6 +15279,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 1000000
+        },
+        {
+          "Name": "PositiveInstanceWeight",
+          "Type": "Float",
+          "Desc": "Apply weight to the positive class, for imbalanced data",
+          "Aliases": [
+            "piw"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
         },
         {
           "Name": "ConvergenceTolerance",

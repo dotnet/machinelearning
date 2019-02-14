@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class NgramTransformSamples
+    public static partial class TransformSamples
     {
         public static void NgramTransform()
         {

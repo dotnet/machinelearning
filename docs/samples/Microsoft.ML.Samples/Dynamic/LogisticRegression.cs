@@ -4,9 +4,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class LogisticRegressionExample
+    public static class LogisticRegressionExample
     {
-        public static void LogisticRegression()
+        public static void Example()
         {
             var ml = new MLContext();
 

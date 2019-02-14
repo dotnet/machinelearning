@@ -6,11 +6,9 @@ using static Microsoft.ML.SamplesUtils.DatasetUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public sealed class MatrixFactorizationWithOptions
+    public static class MatrixFactorizationWithOptions
     {
-        /// <summary>
-        /// This example require installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.Recommender/">Microsoft.ML.Recommender</a>
-        /// </summary>
+        // This example first creates in-memory data and then use it to train a matrix factorization model. Afterward, quality metrics are reported.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,

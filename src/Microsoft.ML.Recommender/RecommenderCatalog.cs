@@ -102,11 +102,11 @@ namespace Microsoft.ML
         /// <returns>The evaluation results for these calibrated outputs.</returns>
         public RegressionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score)
         {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckNonEmpty(label, nameof(label));
-            Host.CheckNonEmpty(score, nameof(score));
+            Environment.CheckValue(data, nameof(data));
+            Environment.CheckNonEmpty(label, nameof(label));
+            Environment.CheckNonEmpty(score, nameof(score));
 
-            var eval = new RegressionEvaluator(Host, new RegressionEvaluator.Arguments() { });
+            var eval = new RegressionEvaluator(Environment, new RegressionEvaluator.Arguments() { });
             return eval.Evaluate(data, label, score);
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.ML
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string stratificationColumn = null, uint? seed = null)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => new CrossValidationResult<RegressionMetrics>(x.Model, Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
