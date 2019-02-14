@@ -188,7 +188,7 @@ namespace Microsoft.ML.LightGBM
             }
         }
 
-        public class DartBooster : BoosterParameter<DartBooster.Arguments>
+        public sealed class DartBooster : BoosterParameter<DartBooster.Arguments>
         {
             internal const string Name = "dart";
             internal const string FriendlyName = "Tree Dropout Tree Booster";
@@ -232,7 +232,7 @@ namespace Microsoft.ML.LightGBM
             }
         }
 
-        public class GossBooster : BoosterParameter<GossBooster.Arguments>
+        public sealed class GossBooster : BoosterParameter<GossBooster.Arguments>
         {
             internal const string Name = "goss";
             internal const string FriendlyName = "Gradient-based One-Size Sampling";
