@@ -182,7 +182,8 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Interface implemented by predictors that can score features.
     /// </summary>
-    public interface IPredictorWithFeatureWeights<out TResult> : IHaveFeatureWeights, IPredictorProducing<TResult>
+    [BestFriend]
+    internal interface IPredictorWithFeatureWeights<out TResult> : IHaveFeatureWeights, IPredictorProducing<TResult>
     {
     }
 

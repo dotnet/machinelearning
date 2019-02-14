@@ -40,7 +40,8 @@ namespace Microsoft.ML
     /// A predictor the produces values of the indicated type.
     /// REVIEW: Determine whether this is just a temporary shim or long term solution.
     /// </summary>
-    public interface IPredictorProducing<out TResult> : IPredictor
+    [BestFriend]
+    internal interface IPredictorProducing<out TResult> : IPredictor
     {
     }
 
