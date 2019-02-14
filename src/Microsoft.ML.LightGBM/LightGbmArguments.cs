@@ -27,11 +27,11 @@ namespace Microsoft.ML.LightGBM
     internal delegate void SignatureLightGBMBooster();
 
     [TlcModule.ComponentKind("BoosterParameterFunction")]
-    public interface ISupportBoosterParameterFactory : IComponentFactory<IBoosterParameter>
+    internal interface ISupportBoosterParameterFactory : IComponentFactory<IBoosterParameter>
     {
     }
 
-    public interface IBoosterParameter
+    internal interface IBoosterParameter
     {
         void UpdateParameters(Dictionary<string, object> res);
     }
@@ -100,7 +100,7 @@ namespace Microsoft.ML.LightGBM
 
         public sealed class TreeBooster : BoosterParameter<TreeBooster.Arguments>
         {
-            public const string Name = "gbdt";
+            internal const string Name = "gbdt";
             internal const string FriendlyName = "Tree Booster";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Traditional Gradient Boosting Decision Tree.")]
@@ -190,7 +190,7 @@ namespace Microsoft.ML.LightGBM
 
         public class DartBooster : BoosterParameter<DartBooster.Arguments>
         {
-            public const string Name = "dart";
+            internal const string Name = "dart";
             internal const string FriendlyName = "Tree Dropout Tree Booster";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
@@ -234,7 +234,7 @@ namespace Microsoft.ML.LightGBM
 
         public class GossBooster : BoosterParameter<GossBooster.Arguments>
         {
-            public const string Name = "goss";
+            internal const string Name = "goss";
             internal const string FriendlyName = "Gradient-based One-Size Sampling";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Gradient-based One-Side Sampling.")]
@@ -311,7 +311,7 @@ namespace Microsoft.ML.LightGBM
         public int MaxBin = 255;
 
         [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3)]
-        public ISupportBoosterParameterFactory Booster = new TreeBooster.Arguments();
+        public TreeBooster.Arguments Booster = new TreeBooster.Arguments();
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose", ShortName = "v")]
         public bool VerboseEval = false;

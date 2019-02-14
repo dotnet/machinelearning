@@ -7,9 +7,7 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     class LightGbmMulticlassClassification
     {
-        /// <summary>
-        /// This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>
-        /// </summary>
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
@@ -31,7 +29,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Create a pipeline. 
             //  - Convert the string labels into key types.
-            //  - Apply LightGbm multiclass trainer
+            //  - Apply LightGbm multiclass trainer.
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
                         .Append(mlContext.MulticlassClassification.Trainers.LightGbm(labelColumn: "LabelIndex"))
                         .Append(mlContext.Transforms.Conversion.MapValueToKey("PredictedLabelIndex", "PredictedLabel"))
@@ -53,9 +51,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Check if metrics are reasonable.
             Console.WriteLine($"Macro accuracy: {metrics.AccuracyMacro:F4}, Micro accuracy: {metrics.AccuracyMicro:F4}.");
             // Console output:
-            //   Macro accuracy: 0.8635, Micro accuracy: 0.8631.
+            //   Macro accuracy: 0.8655, Micro accuracy: 0.8651.
 
-            // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>
+            // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>.
             var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
 
             // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
@@ -70,15 +68,15 @@ namespace Microsoft.ML.Samples.Dynamic
             // Show prediction result for the 3rd example.
             var nativePrediction = nativePredictions[2];
             // Console output:
-            //   Our predicted label to this example is "AA" with probability 0.9226.
+            //   Our predicted label to this example is "AA" with probability 0.9257.
             Console.WriteLine($"Our predicted label to this example is {nativeLabels[(int)nativePrediction.PredictedLabelIndex - 1]} " +
                 $"with probability {nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex - 1]:F4}.");
 
             // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
             // Console output:
-            //  The probability of being class "AA" is 0.9226.
-            //  The probability of being class "BB" is 0.0751.
-            //  The probability of being class "CC" is 0.0022.
+            //  The probability of being class "AA" is 0.9257.
+            //  The probability of being class "BB" is 0.0739.
+            //  The probability of being class "CC" is 0.0002.
             //  The probability of being class "DD" is 0.0001.
             for (int i = 0; i < nativeLabels.Length; ++i)
                 Console.WriteLine($"The probability of being class {nativeLabels[i]} is {nativePrediction.Scores[i]:F4}.");

@@ -1,67 +1,57 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
     class LightGbmRegression
     {
-        /// <summary>
-        /// This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>
-        /// </summary>
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
         public static void Example()
         {
-            // Downloading a regression dataset from github.com/dotnet/machinelearning
-            // this will create a housing.txt file in the filsystem this code will run
-            // you can open the file to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
-
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Creating a data reader, based on the format of the data
-            // The data is tab separated with all numeric columns.
-            // The first column being the label and rest are numeric features
-            // Here only seven numeric columns are used as features
-            var dataView = mlContext.Data.ReadFromTextFile(dataFile, new TextLoader.Arguments
-            {
-                Separators = new[] { '\t' },
-                HasHeader = true,
-                Columns = new[]
-               {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("Features", DataKind.R4, 1, 6)
-                }
-            });
+            // Download and load the housing dataset into an IDataView.
+            var dataView = SamplesUtils.DatasetUtils.LoadHousingRegressionDataset(mlContext);
 
             //////////////////// Data Preview ////////////////////
-            // MedianHomeValue    CrimesPerCapita    PercentResidental    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s
-            // 24.00              0.00632            18.00                2.310               0               0.5380          6.5750              65.20
-            // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90
-            // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10
+            /// Only 6 columns are displayed here.
+            // MedianHomeValue    CrimesPerCapita    PercentResidental    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s     ...
+            // 24.00              0.00632            18.00                2.310               0               0.5380          6.5750              65.20             ...
+            // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90             ...
+            // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10             ...
 
             var split = mlContext.Regression.TrainTestSplit(dataView, testFraction: 0.1);
 
-            // Create the estimator, here we only need LightGbm trainer 
-            // as data is already processed in a form consumable by the trainer
-            var pipeline = mlContext.Regression.Trainers.LightGbm(
+            // Create the estimator, here we only need LightGbm trainer
+            // as data is already processed in a form consumable by the trainer.
+            var labelName = "MedianHomeValue";
+            var featureNames = dataView.Schema
+                .Select(column => column.Name) // Get the column names
+                .Where(name => name != labelName) // Drop the Label
+                .ToArray();
+            var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
+                           .Append(mlContext.Regression.Trainers.LightGbm(
+                                            labelColumn: labelName,
                                             numLeaves: 4,
                                             minDataPerLeaf: 6,
-                                            learningRate: 0.001);
+                                            learningRate: 0.001));
 
-            // Fit this pipeline to the training data
+            // Fit this pipeline to the training data.
             var model = pipeline.Fit(split.TrainSet);
 
             // Get the feature importance based on the information gain used during training.
             VBuffer<float> weights = default;
-            model.Model.GetFeatureWeights(ref weights);
-            var weightsValues = weights.GetValues();
+            model.LastTransformer.Model.GetFeatureWeights(ref weights);
+            var weightsValues = weights.DenseValues().ToArray();
             Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = 0.1898361
             Console.WriteLine($"weight 5 - {weightsValues[5]}"); // RoomsPerDwelling (weight 5) = 1
 
-            // Evaluate how the model is doing on the test data
+            // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
-            var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
+            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, label: labelName);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Output
