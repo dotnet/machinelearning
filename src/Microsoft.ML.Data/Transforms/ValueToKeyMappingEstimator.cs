@@ -140,7 +140,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     metadata = new SchemaShape(new[] { slotMeta, kv });
                 else
                     metadata = new SchemaShape(new[] { kv });
-                result[colInfo.OutputColumnName] = new SchemaShape.Column(colInfo.OutputColumnName, col.Kind, NumberDataViewType.U4, true, metadata);
+                result[colInfo.OutputColumnName] = new SchemaShape.Column(colInfo.OutputColumnName, col.Kind, NumberDataViewType.UInt32, true, metadata);
             }
 
             return new SchemaShape(result.Values);

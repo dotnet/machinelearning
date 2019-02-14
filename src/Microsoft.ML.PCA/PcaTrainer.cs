@@ -158,12 +158,12 @@ namespace Microsoft.ML.Trainers.PCA
         {
             if (weightColumn == null)
                 return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false);
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
         {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false);
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
         }
 
         //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Trainers.PCA
             {
                 new SchemaShape.Column(DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberDataViewType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
 
@@ -431,7 +431,7 @@ namespace Microsoft.ML.Trainers.PCA
             _mean = mean;
             _norm2Mean = VectorUtils.NormSquared(mean);
 
-            _inputType = new VectorType(NumberDataViewType.Float, _dimension);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimension);
         }
 
         private PcaModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Trainers.PCA
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
-            _inputType = new VectorType(NumberDataViewType.Float, _dimension);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimension);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Trainers.PCA
             cols[_rank] = _mean;
 
             bldr.AddColumn("VectorName", names);
-            bldr.AddColumn("VectorData", NumberDataViewType.R4, cols);
+            bldr.AddColumn("VectorData", NumberDataViewType.Single, cols);
 
             return bldr.GetDataView();
         }
@@ -573,7 +573,7 @@ namespace Microsoft.ML.Trainers.PCA
 
         DataViewType IValueMapper.OutputType
         {
-            get { return NumberDataViewType.Float; }
+            get { return NumberDataViewType.Single; }
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()

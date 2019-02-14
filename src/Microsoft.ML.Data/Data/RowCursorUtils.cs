@@ -334,7 +334,7 @@ namespace Microsoft.ML.Data
 
         public static string TestGetLabelGetter(DataViewType type, bool allowKeys)
         {
-            if (type == NumberDataViewType.R4 || type == NumberDataViewType.R8 || type is BooleanDataViewType)
+            if (type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is BooleanDataViewType)
                 return null;
 
             if (allowKeys && type is KeyType)
@@ -347,10 +347,10 @@ namespace Microsoft.ML.Data
         {
             var type = cursor.Schema[labelIndex].Type;
 
-            if (type == NumberDataViewType.R4)
+            if (type == NumberDataViewType.Single)
                 return cursor.GetGetter<Single>(labelIndex);
 
-            if (type == NumberDataViewType.R8)
+            if (type == NumberDataViewType.Double)
             {
                 var getSingleSrc = cursor.GetGetter<Double>(labelIndex);
                 return
@@ -369,7 +369,7 @@ namespace Microsoft.ML.Data
         {
             var type = cursor.Schema[labelIndex].Type;
 
-            Contracts.Assert(type != NumberDataViewType.R4 && type != NumberDataViewType.R8);
+            Contracts.Assert(type != NumberDataViewType.Single && type != NumberDataViewType.Double);
 
             // boolean type label mapping: True -> 1, False -> 0.
             if (type is BooleanDataViewType)
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Data
             ulong keyMax = (ulong)keyType.Count;
             if (keyMax == 0)
                 keyMax = ulong.MaxValue;
-            var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberDataViewType.U8, cursor, labelIndex);
+            var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberDataViewType.UInt64, cursor, labelIndex);
             return
                 (ref Single dst) =>
                 {
@@ -408,10 +408,10 @@ namespace Microsoft.ML.Data
         internal static ValueGetter<VBuffer<Single>> GetLabelGetter(SlotCursor cursor)
         {
             var type = cursor.GetSlotType().ItemType;
-            if (type == NumberDataViewType.R4)
+            if (type == NumberDataViewType.Single)
                 return cursor.GetGetter<Single>();
-            if (type == NumberDataViewType.R8 || type is BooleanDataViewType)
-                return GetVecGetterAs<Single>(NumberDataViewType.R4, cursor);
+            if (type == NumberDataViewType.Double || type is BooleanDataViewType)
+                return GetVecGetterAs<Single>(NumberDataViewType.Single, cursor);
             if (!(type is KeyType keyType))
             {
                 throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Data
             ulong keyMax = (ulong)keyType.Count;
             if (keyMax == 0)
                 keyMax = ulong.MaxValue;
-            var getSrc = RowCursorUtils.GetVecGetterAs<ulong>(NumberDataViewType.U8, cursor);
+            var getSrc = RowCursorUtils.GetVecGetterAs<ulong>(NumberDataViewType.UInt64, cursor);
             VBuffer<ulong> src = default(VBuffer<ulong>);
             return
                 (ref VBuffer<Single> dst) =>

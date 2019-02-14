@@ -343,10 +343,10 @@ namespace Microsoft.ML.ImageAnalytics
             disposer = null;
             var sourceType = InputSchema[Infos[iinfo].Source].Type;
             var sourceItemType = sourceType.GetItemType();
-            if (sourceItemType == NumberDataViewType.R4 || sourceItemType == NumberDataViewType.R8)
+            if (sourceItemType == NumberDataViewType.Single || sourceItemType == NumberDataViewType.Double)
                 return GetterFromType<float>(input, iinfo, ex, needScale);
             else
-                if (sourceItemType == NumberDataViewType.U1)
+                if (sourceItemType == NumberDataViewType.Byte)
                 return GetterFromType<byte>(input, iinfo, ex, false);
             else
                 throw Contracts.Except("We only support float or byte arrays");

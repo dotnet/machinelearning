@@ -245,8 +245,8 @@ namespace Microsoft.ML.Data
         public static void CheckWeightType(IExceptionContext ectx, DataViewType type)
         {
             ectx.AssertValue(type);
-            if (type != NumberDataViewType.Float)
-                throw ectx.ExceptUserArg(nameof(EvaluateCommand.Arguments.WeightColumn), "Incompatible Weight column. Weight column type must be {0}.", NumberDataViewType.Float);
+            if (type != NumberDataViewType.Single)
+                throw ectx.ExceptUserArg(nameof(EvaluateCommand.Arguments.WeightColumn), "Incompatible Weight column. Weight column type must be {0}.", NumberDataViewType.Single);
         }
 
         /// <summary>
@@ -304,11 +304,11 @@ namespace Microsoft.ML.Data
                         continue;
 
                     var type = schema[i].Type;
-                    if (type == NumberDataViewType.R8 || type == NumberDataViewType.R4)
-                        getters[i] = RowCursorUtils.GetGetterAs<double>(NumberDataViewType.R8, cursor, i);
+                    if (type == NumberDataViewType.Double || type == NumberDataViewType.Single)
+                        getters[i] = RowCursorUtils.GetGetterAs<double>(NumberDataViewType.Double, cursor, i);
                     else if (type is VectorType vectorType
                         && vectorType.IsKnownSize
-                        && vectorType.ItemType == NumberDataViewType.R8
+                        && vectorType.ItemType == NumberDataViewType.Double
                         && getVectorMetrics)
                         vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(i);
                 }
@@ -1010,11 +1010,11 @@ namespace Microsoft.ML.Data
                 var metricName = row.Schema[i].Name;
                 if (type is NumberDataViewType)
                 {
-                    getters[i] = RowCursorUtils.GetGetterAs<double>(NumberDataViewType.R8, row, i);
+                    getters[i] = RowCursorUtils.GetGetterAs<double>(NumberDataViewType.Double, row, i);
                     metricNames.Add(metricName);
                     metricCount++;
                 }
-                else if (type is VectorType vectorType && vectorType.ItemType == NumberDataViewType.R8)
+                else if (type is VectorType vectorType && vectorType.ItemType == NumberDataViewType.Double)
                 {
                     if (vectorType.Size == 0)
                     {
@@ -1270,7 +1270,7 @@ namespace Microsoft.ML.Data
                     weightedDvBldr?.AddScalarColumn(schema, weightedAgg, hasStdev, numFolds, iMetric);
                     iMetric++;
                 }
-                else if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.R8)
+                else if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Double)
                 {
                     dvBldr.AddVectorColumn(env, schema, agg, hasStdev, numFolds, iMetric, i, vectorType, name);
                     weightedDvBldr?.AddVectorColumn(env, schema, weightedAgg, hasStdev, numFolds, iMetric, i, vectorType, name);
@@ -1307,10 +1307,10 @@ namespace Microsoft.ML.Data
             if (vectorStdevMetrics != null)
             {
                 env.AssertValue(vectorStdevMetrics);
-                dvBldr.AddColumn(columnName, getSlotNames, NumberDataViewType.R8, new[] { vectorMetrics, vectorStdevMetrics });
+                dvBldr.AddColumn(columnName, getSlotNames, NumberDataViewType.Double, new[] { vectorMetrics, vectorStdevMetrics });
             }
             else
-                dvBldr.AddColumn(columnName, getSlotNames, NumberDataViewType.R8, new[] { vectorMetrics });
+                dvBldr.AddColumn(columnName, getSlotNames, NumberDataViewType.Double, new[] { vectorMetrics });
         }
 
         private static void AddScalarColumn(this ArrayDataViewBuilder dvBldr, DataViewSchema schema, AggregatedMetric[] agg, bool hasStdev, int numFolds, int iMetric)
@@ -1319,9 +1319,9 @@ namespace Microsoft.ML.Data
 
             var avg = agg[iMetric].Sum / numFolds;
             if (hasStdev)
-                dvBldr.AddColumn(agg[iMetric].Name, NumberDataViewType.R8, avg, Math.Sqrt(agg[iMetric].SumSq / numFolds - avg * avg));
+                dvBldr.AddColumn(agg[iMetric].Name, NumberDataViewType.Double, avg, Math.Sqrt(agg[iMetric].SumSq / numFolds - avg * avg));
             else
-                dvBldr.AddColumn(agg[iMetric].Name, NumberDataViewType.R8, avg);
+                dvBldr.AddColumn(agg[iMetric].Name, NumberDataViewType.Double, avg);
         }
 
         /// <summary>
@@ -1440,7 +1440,7 @@ namespace Microsoft.ML.Data
             using (var cursor = confusionDataView.GetRowCursor(confusionDataView.Schema.Where(col => col.Index == countIndex || hasStrat && col.Index == stratCol)))
             {
                 var type = cursor.Schema[countIndex].Type as VectorType;
-                Contracts.Check(type != null && type.IsKnownSize && type.ItemType == NumberDataViewType.R8);
+                Contracts.Check(type != null && type.IsKnownSize && type.ItemType == NumberDataViewType.Double);
                 var countGetter = cursor.GetGetter<VBuffer<double>>(countIndex);
                 ValueGetter<uint> stratGetter = null;
                 if (hasStrat)

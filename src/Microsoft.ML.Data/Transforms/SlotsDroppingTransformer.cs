@@ -487,7 +487,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// </summary>
             private static bool IsValidColumnType(DataViewType type)
                 => (type is KeyType keytype && 0 < keytype.Count && keytype.Count < Utils.ArrayMaxSize)
-                || type == NumberDataViewType.R4 || type == NumberDataViewType.R8 || type is TextDataViewType;
+                || type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is TextDataViewType;
 
             /// <summary>
             /// Computes the types (column and slotnames), the length reduction, categorical feature indices

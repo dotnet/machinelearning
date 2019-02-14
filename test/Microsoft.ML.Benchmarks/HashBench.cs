@@ -131,7 +131,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarFloat))]
         public void SetupHashScalarFloat()
         {
-            InitMap(5.0f, NumberDataViewType.R4);
+            InitMap(5.0f, NumberDataViewType.Single);
         }
 
         [Benchmark]
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarDouble))]
         public void SetupHashScalarDouble()
         {
-            InitMap(5.0, NumberDataViewType.R8);
+            InitMap(5.0, NumberDataViewType.Double);
         }
 
         [Benchmark]
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashVectorFloat))]
         public void SetupHashVectorFloat()
         {
-            InitDenseVecMap(new[] { 1f, 2f, 3f, 4f, 5f }, NumberDataViewType.R4);
+            InitDenseVecMap(new[] { 1f, 2f, 3f, 4f, 5f }, NumberDataViewType.Single);
         }
 
         [Benchmark]
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashVectorDouble))]
         public void SetupHashVectorDouble()
         {
-            InitDenseVecMap(new[] { 1d, 2d, 3d, 4d, 5d }, NumberDataViewType.R8);
+            InitDenseVecMap(new[] { 1d, 2d, 3d, 4d, 5d }, NumberDataViewType.Double);
         }
 
         [Benchmark]

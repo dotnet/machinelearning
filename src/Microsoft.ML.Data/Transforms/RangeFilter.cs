@@ -155,7 +155,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptSchemaMismatch(nameof(schema), "source", column);
 
             _type = schema[_index].Type;
-            if (_type != NumberDataViewType.R4 && _type != NumberDataViewType.R8 && _type.GetKeyCount() == 0)
+            if (_type != NumberDataViewType.Single && _type != NumberDataViewType.Double && _type.GetKeyCount() == 0)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "float, double or KeyType", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
@@ -241,9 +241,9 @@ namespace Microsoft.ML.Transforms
 
         private DataViewRowCursor CreateCursorCore(DataViewRowCursor input, bool[] active)
         {
-            if (_type == NumberDataViewType.R4)
+            if (_type == NumberDataViewType.Single)
                 return new SingleRowCursor(this, input, active);
-            if (_type == NumberDataViewType.R8)
+            if (_type == NumberDataViewType.Double)
                 return new DoubleRowCursor(this, input, active);
             Host.Assert(_type is KeyType);
             return RowCursorBase.CreateKeyRowCursor(this, input, active);
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Transforms
         {
             ectx.CheckValue(type, nameof(type));
 
-            return type == NumberDataViewType.R4 || type == NumberDataViewType.R8 || type.GetKeyCount() > 0;
+            return type == NumberDataViewType.Single || type == NumberDataViewType.Double || type.GetKeyCount() > 0;
         }
 
         private abstract class RowCursorBase : LinkedRowFilterCursorBase
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Transforms
             public SingleRowCursor(RangeFilter parent, DataViewRowCursor input, bool[] active)
                 : base(parent, input, active)
             {
-                Ch.Assert(Parent._type == NumberDataViewType.R4);
+                Ch.Assert(Parent._type == NumberDataViewType.Single);
                 _srcGetter = Input.GetGetter<Single>(Parent._index);
                 _getter =
                     (ref Single value) =>
@@ -361,13 +361,13 @@ namespace Microsoft.ML.Transforms
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type == NumberDataViewType.R4);
+                Ch.Assert(Parent._type == NumberDataViewType.Single);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type == NumberDataViewType.R4);
+                Ch.Assert(Parent._type == NumberDataViewType.Single);
                 _srcGetter(ref _value);
                 return CheckBounds(_value);
             }
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Transforms
             public DoubleRowCursor(RangeFilter parent, DataViewRowCursor input, bool[] active)
                 : base(parent, input, active)
             {
-                Ch.Assert(Parent._type == NumberDataViewType.R8);
+                Ch.Assert(Parent._type == NumberDataViewType.Double);
                 _srcGetter = Input.GetGetter<Double>(Parent._index);
                 _getter =
                     (ref Double value) =>
@@ -394,13 +394,13 @@ namespace Microsoft.ML.Transforms
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type == NumberDataViewType.R8);
+                Ch.Assert(Parent._type == NumberDataViewType.Double);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type == NumberDataViewType.R8);
+                Ch.Assert(Parent._type == NumberDataViewType.Double);
                 _srcGetter(ref _value);
                 return CheckBounds(_value);
             }
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Transforms
                         dst = _value;
                     };
                 bool identity;
-                _conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberDataViewType.U8, out identity);
+                _conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberDataViewType.UInt64, out identity);
             }
 
             protected override Delegate GetGetter()

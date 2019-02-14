@@ -231,7 +231,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         // This is an implementation of pipeline ensembles that combines scores of type float (regression and anomaly detection).
         private sealed class ImplOne : SchemaBindablePipelineEnsemble<Single>
         {
-            protected override DataViewType ScoreType => NumberDataViewType.R4;
+            protected override DataViewType ScoreType => NumberDataViewType.Single;
 
             public override PredictionKind PredictionKind
             {
@@ -277,21 +277,21 @@ namespace Microsoft.ML.Trainers.Ensemble
                 : base(env, predictors, combiner, LoaderSignature, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification)
             {
                 int classCount = CheckLabelColumn(Host, predictors, false);
-                _scoreType = new VectorType(NumberDataViewType.R4, classCount);
+                _scoreType = new VectorType(NumberDataViewType.Single, classCount);
             }
 
             public ImplVec(IHostEnvironment env, ModelLoadContext ctx, string scoreColumnKind)
                 : base(env, ctx, scoreColumnKind)
             {
                 int classCount = CheckLabelColumn(Host, PredictorModels, false);
-                _scoreType = new VectorType(NumberDataViewType.R4, classCount);
+                _scoreType = new VectorType(NumberDataViewType.Single, classCount);
             }
         }
 
         // This is an implementation of pipeline ensembles that combines scores of type float, and also provides calibration (for binary classification).
         private sealed class ImplOneWithCalibrator : SchemaBindablePipelineEnsemble<Single>, ISelfCalibratingPredictor
         {
-            protected override DataViewType ScoreType { get { return NumberDataViewType.R4; } }
+            protected override DataViewType ScoreType { get { return NumberDataViewType.Single; } }
 
             public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
 

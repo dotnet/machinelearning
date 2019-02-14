@@ -526,7 +526,7 @@ namespace Microsoft.ML.Transforms.Text
             if (OptionalSettings.VectorNormalizer != TextNormKind.None)
                 metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
 
-            result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false,
+            result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false,
                 new SchemaShape(metadata));
             if (OptionalSettings.OutputTokens)
             {

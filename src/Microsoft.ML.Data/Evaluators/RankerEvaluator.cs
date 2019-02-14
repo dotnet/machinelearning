@@ -87,13 +87,13 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var t = schema.Label.Value.Type;
-            if (t != NumberDataViewType.Float && !(t is KeyType))
+            if (t != NumberDataViewType.Single && !(t is KeyType))
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.LabelColumn),
                     "label", schema.Label.Value.Name, "R4 or a key", t.ToString());
             }
             var scoreCol = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            if (scoreCol.Type != NumberDataViewType.Float)
+            if (scoreCol.Type != NumberDataViewType.Single)
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.ScoreColumn),
                     "score", scoreCol.Name, "R4", t.ToString());
@@ -209,8 +209,8 @@ namespace Microsoft.ML.Data
                     }
                     if (hasWeight)
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BooleanDataViewType.Instance, isWeighted.ToArray());
-                    overallDvBldr.AddColumn(Ndcg, aggregator.GetSlotNames, NumberDataViewType.R8, ndcg.ToArray());
-                    overallDvBldr.AddColumn(Dcg, aggregator.GetSlotNames, NumberDataViewType.R8, dcg.ToArray());
+                    overallDvBldr.AddColumn(Ndcg, aggregator.GetSlotNames, NumberDataViewType.Double, ndcg.ToArray());
+                    overallDvBldr.AddColumn(Dcg, aggregator.GetSlotNames, NumberDataViewType.Double, dcg.ToArray());
 
                     var groupDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
@@ -221,9 +221,9 @@ namespace Microsoft.ML.Data
                     if (groupSummary)
                     {
                         groupDvBldr.AddColumn(GroupId, TextDataViewType.Instance, groupName.ToArray());
-                        groupDvBldr.AddColumn(Ndcg, aggregator.GetGroupSummarySlotNames("NDCG"), NumberDataViewType.R8, groupNdcg.ToArray());
-                        groupDvBldr.AddColumn(Dcg, aggregator.GetGroupSummarySlotNames("DCG"), NumberDataViewType.R8, groupDcg.ToArray());
-                        groupDvBldr.AddColumn(MaxDcg, aggregator.GetGroupSummarySlotNames("MaxDCG"), NumberDataViewType.R8, groupMaxDcg.ToArray());
+                        groupDvBldr.AddColumn(Ndcg, aggregator.GetGroupSummarySlotNames("NDCG"), NumberDataViewType.Double, groupNdcg.ToArray());
+                        groupDvBldr.AddColumn(Dcg, aggregator.GetGroupSummarySlotNames("DCG"), NumberDataViewType.Double, groupDcg.ToArray());
+                        groupDvBldr.AddColumn(MaxDcg, aggregator.GetGroupSummarySlotNames("MaxDCG"), NumberDataViewType.Double, groupMaxDcg.ToArray());
                     }
 
                     var result = new Dictionary<string, IDataView>();
@@ -629,7 +629,7 @@ namespace Microsoft.ML.Data
                     : base(ectx, input, labelCol, scoreCol, groupCol, user, Ndcg, Dcg, MaxDcg)
                 {
                     _truncationLevel = truncationLevel;
-                    _outputType = new VectorType(NumberDataViewType.R8, _truncationLevel);
+                    _outputType = new VectorType(NumberDataViewType.Double, _truncationLevel);
                     _slotNamesType = new VectorType(TextDataViewType.Instance, _truncationLevel);
                     _slotNamesGetter = SlotNamesGetter;
                 }

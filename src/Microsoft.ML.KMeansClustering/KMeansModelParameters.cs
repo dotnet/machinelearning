@@ -101,8 +101,8 @@ namespace Microsoft.ML.Trainers.KMeans
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberDataViewType.Float, _dimensionality);
-            _outputType = new VectorType(NumberDataViewType.Float, _k);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorType(NumberDataViewType.Single, _k);
         }
 
         /// <summary>
@@ -143,8 +143,8 @@ namespace Microsoft.ML.Trainers.KMeans
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberDataViewType.Float, _dimensionality);
-            _outputType = new VectorType(NumberDataViewType.Float, _k);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorType(NumberDataViewType.Single, _k);
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()

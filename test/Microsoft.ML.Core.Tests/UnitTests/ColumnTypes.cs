@@ -17,8 +17,8 @@ namespace Microsoft.ML.RunTests
             var dict = new Dictionary<DataViewType, string>();
             // add PrimitiveTypes, KeyType & corresponding VectorTypes
             VectorType tmp1, tmp2;
-            var types = new PrimitiveDataViewType[] { NumberDataViewType.I1, NumberDataViewType.I2, NumberDataViewType.I4, NumberDataViewType.I8,
-                NumberDataViewType.U1, NumberDataViewType.U2, NumberDataViewType.U4, NumberDataViewType.U8, NumberDataViewType.UG,
+            var types = new PrimitiveDataViewType[] { NumberDataViewType.SByte, NumberDataViewType.Int16, NumberDataViewType.Int32, NumberDataViewType.Int64,
+                NumberDataViewType.Byte, NumberDataViewType.UInt16, NumberDataViewType.UInt32, NumberDataViewType.UInt64, NumberDataViewType.DataViewRowId,
                 TextDataViewType.Instance, BooleanDataViewType.Instance, DateTimeDataViewType.Instance, DateTimeOffsetDataViewType.Instance, TimeSpanDataViewType.Instance };
 
             foreach (var type in types)

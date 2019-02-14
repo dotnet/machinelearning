@@ -158,7 +158,7 @@ namespace Microsoft.ML.Data
         internal static VectorType GetCategoricalType(int rangeCount)
         {
             Contracts.CheckParam(rangeCount > 0, nameof(rangeCount), "must be known size");
-            return new VectorType(NumberDataViewType.I4, rangeCount, 2);
+            return new VectorType(NumberDataViewType.Int32, rangeCount, 2);
         }
 
         private static volatile KeyType _scoreColumnSetIdType;
@@ -489,7 +489,7 @@ namespace Microsoft.ML.Data
         internal static IEnumerable<SchemaShape.Column> GetTrainerOutputMetadata(bool isNormalized = false)
         {
             var cols = new List<SchemaShape.Column>();
-            cols.Add(new SchemaShape.Column(Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.U4, true));
+            cols.Add(new SchemaShape.Column(Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true));
             cols.Add(new SchemaShape.Column(Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false));
             cols.Add(new SchemaShape.Column(Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false));
             if (isNormalized)

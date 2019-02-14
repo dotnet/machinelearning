@@ -143,7 +143,7 @@ namespace Microsoft.ML.Data
         {
             return scoreType is VectorType vectorType
                 && vectorType.IsKnownSize
-                && vectorType.ItemType == NumberDataViewType.Float;
+                && vectorType.ItemType == NumberDataViewType.Single;
         }
     }
 }

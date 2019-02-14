@@ -1429,7 +1429,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                                     // Perhaps we should change the binning to just work over singles.
                                     VBuffer<double> doubleTemp = default(VBuffer<double>);
-                                    var copier = GetCopier<Float, Double>(NumberDataViewType.Float, NumberDataViewType.R8);
+                                    var copier = GetCopier<Float, Double>(NumberDataViewType.Single, NumberDataViewType.Double);
                                     int iFeature = 0;
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
                                     while (cursor.MoveNext())
@@ -1498,7 +1498,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                 VBuffer<double> doubleTemp = default(VBuffer<double>);
 
                                 int[] binnedValues = new int[numExamples];
-                                var copier = GetCopier<Float, Double>(NumberDataViewType.Float, NumberDataViewType.R8);
+                                var copier = GetCopier<Float, Double>(NumberDataViewType.Single, NumberDataViewType.Double);
                                 int iFeature = 0;
                                 if (CategoricalSplit && CategoricalFeatureIndices != null)
                                 {
@@ -2873,8 +2873,8 @@ namespace Microsoft.ML.Trainers.FastTree
             MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
-            InputType = new VectorType(NumberDataViewType.Float, NumFeatures);
-            OutputType = NumberDataViewType.Float;
+            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            OutputType = NumberDataViewType.Single;
         }
 
         protected TreeEnsembleModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
@@ -2911,8 +2911,8 @@ namespace Microsoft.ML.Trainers.FastTree
             // TLC >= 3.0 supposed to be independent of any predictor specific
             // tricks.
 
-            InputType = new VectorType(NumberDataViewType.Float, NumFeatures);
-            OutputType = NumberDataViewType.Float;
+            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            OutputType = NumberDataViewType.Single;
         }
 
         [BestFriend]
@@ -3291,7 +3291,7 @@ namespace Microsoft.ML.Trainers.FastTree
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
             var builder = new MetadataBuilder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.R4, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
 
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }

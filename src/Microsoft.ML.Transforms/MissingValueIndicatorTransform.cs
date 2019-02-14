@@ -141,10 +141,10 @@ namespace Microsoft.ML.Transforms
                 Host.Check(type.GetValueCount() < int.MaxValue / 2);
 
                 if (!(type is VectorType vectorType))
-                    types[iinfo] = new VectorType(NumberDataViewType.Float, 2);
+                    types[iinfo] = new VectorType(NumberDataViewType.Single, 2);
                 else
                 {
-                    types[iinfo] = new VectorType(NumberDataViewType.Float, vectorType, 2);
+                    types[iinfo] = new VectorType(NumberDataViewType.Single, vectorType, 2);
 
                     // Produce slot names metadata iff the source has (valid) slot names.
                     VectorType typeNames;

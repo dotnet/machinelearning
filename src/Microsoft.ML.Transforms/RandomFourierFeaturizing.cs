@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         private static string TestColumnType(DataViewType type)
         {
-            if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Float)
+            if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single)
                 return null;
             return "Expected vector of floats with known size";
         }
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms.Projections
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, reason, type.ToString());
             if (_transformInfos[col].SrcDim != type.GetVectorSize())
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName,
-                    new VectorType(NumberDataViewType.Float, _transformInfos[col].SrcDim).ToString(), type.ToString());
+                    new VectorType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
         internal RandomFourierFeaturizingTransformer(IHostEnvironment env, IDataView input, RandomFourierFeaturizingEstimator.ColumnInfo[] columns)
@@ -498,7 +498,7 @@ namespace Microsoft.ML.Transforms.Projections
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
                     //validate typeSrc.ValueCount and transformInfo.SrcDim
-                    _types[i] = new VectorType(NumberDataViewType.Float, _parent._transformInfos[i].RotationTerms == null ?
+                    _types[i] = new VectorType(NumberDataViewType.Single, _parent._transformInfos[i].RotationTerms == null ?
                     _parent._transformInfos[i].NewDim * 2 : _parent._transformInfos[i].NewDim);
                 }
             }
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Transforms.Projections
                 if (col.ItemType.RawType != typeof(float) || col.Kind != SchemaShape.Column.VectorKind.Vector)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(result.Values);

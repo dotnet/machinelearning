@@ -294,7 +294,7 @@ namespace Microsoft.ML.EntryPoints
             if (!labelCol.HasValue)
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
             var labelType = labelCol.Value.Type;
-            if (labelType == NumberDataViewType.R4 || !(labelType is NumberDataViewType))
+            if (labelType == NumberDataViewType.Single || !(labelType is NumberDataViewType))
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };

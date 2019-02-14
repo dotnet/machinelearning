@@ -58,11 +58,11 @@ namespace Microsoft.ML.Data
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type as VectorType;
-            if (t == null || t.Size == 0 || (t.ItemType != NumberDataViewType.R4 && t.ItemType != NumberDataViewType.R8))
+            if (t == null || t.Size == 0 || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of float or double", t.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
             var labelType = schema.Label.Value.Type;
-            if (labelType != NumberDataViewType.R4)
+            if (labelType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float", t.ToString());
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Data
         {
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var scoreType = scoreInfo.Type as VectorType;
-            Host.Assert(scoreType != null && scoreType.Size > 0 && (scoreType.ItemType == NumberDataViewType.R4 || scoreType.ItemType == NumberDataViewType.R8));
+            Host.Assert(scoreType != null && scoreType.Size > 0 && (scoreType.ItemType == NumberDataViewType.Single || scoreType.ItemType == NumberDataViewType.Double));
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             var slotNamesType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
             if (slotNamesType != null && slotNamesType.Size == scoreType.Size && slotNamesType.ItemType is TextDataViewType)
@@ -250,10 +250,10 @@ namespace Microsoft.ML.Data
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
                         (ref VBuffer<ReadOnlyMemory<char>> dst) => dst = _slotNames;
-                    dvBldr.AddColumn(metricName, getSlotNames, NumberDataViewType.R8, metric);
+                    dvBldr.AddColumn(metricName, getSlotNames, NumberDataViewType.Double, metric);
                 }
                 else
-                    dvBldr.AddColumn(metricName, NumberDataViewType.R8, metric);
+                    dvBldr.AddColumn(metricName, NumberDataViewType.Double, metric);
             }
         }
     }
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Data
             CheckInputColumnTypes(schema);
             _scoreSize = scoreSize;
             _quantiles = quantiles;
-            _outputType = new VectorType(NumberDataViewType.R8, _scoreSize);
+            _outputType = new VectorType(NumberDataViewType.Double, _scoreSize);
         }
 
         private QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < _scoreSize; i++)
                 quantiles[i] = ctx.LoadNonEmptyString().AsMemory();
             _quantiles = new VBuffer<ReadOnlyMemory<char>>(quantiles.Length, quantiles);
-            _outputType = new VectorType(NumberDataViewType.R8, _scoreSize);
+            _outputType = new VectorType(NumberDataViewType.Double, _scoreSize);
         }
 
         public static QuantileRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
@@ -446,11 +446,11 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(LabelCol);
 
             var t = schema[(int)LabelIndex].Type;
-            if (t != NumberDataViewType.R4)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float", t.ToString());
 
             VectorType scoreType = schema[ScoreIndex].Type as VectorType;
-            if (scoreType == null || scoreType.Size == 0 || (scoreType.ItemType != NumberDataViewType.R4 && scoreType.ItemType != NumberDataViewType.R8))
+            if (scoreType == null || scoreType.Size == 0 || (scoreType.ItemType != NumberDataViewType.Single && scoreType.ItemType != NumberDataViewType.Double))
             {
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float or double", t.ToString());
 
@@ -515,11 +515,11 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < data.Schema.Count; i++)
             {
                 var type = data.Schema[i].Type;
-                if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.R8)
+                if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Double)
                 {
                     var name = data.Schema[i].Name;
                     var index = _index ?? vectorType.Size / 2;
-                    output = LambdaColumnMapper.Create(Host, "Quantile Regression", output, name, name, type, NumberDataViewType.R8,
+                    output = LambdaColumnMapper.Create(Host, "Quantile Regression", output, name, name, type, NumberDataViewType.Double,
                         (in VBuffer<Double> src, ref Double dst) => dst = src.GetItemOrDefault(index));
                     output = new ChooseColumnsByIndexTransform(Host,
                         new ChooseColumnsByIndexTransform.Options() { Drop = true, Indices = new[] { i } }, output);

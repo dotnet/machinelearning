@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector or scalar", col.GetTypeString());
 
-                if (!col.ItemType.Equals(NumberDataViewType.R4) && !col.ItemType.Equals(NumberDataViewType.R8))
+                if (!col.ItemType.Equals(NumberDataViewType.Single) && !col.ItemType.Equals(NumberDataViewType.Double))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of float or double", col.GetTypeString());
 
                 var isNormalizedMeta = new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
@@ -570,7 +570,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             if (vectorType != null && !vectorType.IsKnownSize)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, "variable-size vector");
             DataViewType itemType = vectorType?.ItemType ?? colType;
-            if (!itemType.Equals(NumberDataViewType.R4) && !itemType.Equals(NumberDataViewType.R8))
+            if (!itemType.Equals(NumberDataViewType.Single) && !itemType.Equals(NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, colType.ToString());
         }
 

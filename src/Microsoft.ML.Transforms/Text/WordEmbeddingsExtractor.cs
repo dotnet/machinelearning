@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     _parent.CheckInputColumn(inputSchema, i, ColMapNewToOld[i]);
                 }
-                _outputType = new VectorType(NumberDataViewType.R4, 3 * _parent._currentVocab.Dimension);
+                _outputType = new VectorType(NumberDataViewType.Single, 3 * _parent._currentVocab.Dimension);
             }
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
@@ -875,7 +875,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!(col.ItemType is TextDataViewType) || (col.Kind != SchemaShape.Column.VectorKind.VariableVector && col.Kind != SchemaShape.Column.VectorKind.Vector))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new VectorType(TextDataViewType.Instance).ToString(), col.GetTypeString());
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(result.Values);

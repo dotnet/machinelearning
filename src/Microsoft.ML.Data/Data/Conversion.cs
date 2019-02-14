@@ -480,8 +480,8 @@ namespace Microsoft.ML.Data.Conversion
             // then convert to StringBuilder.
             ulong count = key.Count;
             bool identity;
-            var convSrc = GetStandardConversion<TSrc, U8>(key, NumberDataViewType.U8, out identity);
-            var convU8 = GetStringConversion<U8>(NumberDataViewType.U8);
+            var convSrc = GetStandardConversion<TSrc, U8>(key, NumberDataViewType.UInt64, out identity);
+            var convU8 = GetStringConversion<U8>(NumberDataViewType.UInt64);
             return
                 (in TSrc src, ref SB dst) =>
                 {

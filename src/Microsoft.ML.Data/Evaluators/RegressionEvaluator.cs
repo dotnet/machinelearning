@@ -57,11 +57,11 @@ namespace Microsoft.ML.Data
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
-            if (t != NumberDataViewType.Float)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             t = schema.Label.Value.Type;
-            if (t != NumberDataViewType.R4)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float", t.ToString());
         }
 
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Data
             public override void AddColumn(ArrayDataViewBuilder dvBldr, string metricName, params double[] metric)
             {
                 Host.AssertValue(dvBldr);
-                dvBldr.AddColumn(metricName, NumberDataViewType.R8, metric);
+                dvBldr.AddColumn(metricName, NumberDataViewType.Double, metric);
             }
         }
 
@@ -254,8 +254,8 @@ namespace Microsoft.ML.Data
         private protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new DataViewSchema.DetachedColumn[2];
-            infos[L1Col] = new DataViewSchema.DetachedColumn(L1, NumberDataViewType.R8, null);
-            infos[L2Col] = new DataViewSchema.DetachedColumn(L2, NumberDataViewType.R8, null);
+            infos[L1Col] = new DataViewSchema.DetachedColumn(L1, NumberDataViewType.Double, null);
+            infos[L2Col] = new DataViewSchema.DetachedColumn(L2, NumberDataViewType.Double, null);
             return infos;
         }
 
@@ -319,11 +319,11 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(LabelCol);
 
             var t = schema[(int) LabelIndex].Type;
-            if (t != NumberDataViewType.R4)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float", t.ToString());
 
             t = schema[ScoreIndex].Type;
-            if (t != NumberDataViewType.Float)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "float", t.ToString());
         }
     }

@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers.HalLearners
 
             VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.R4));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
             return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters,PlattCalibrator>(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
@@ -219,8 +219,8 @@ namespace Microsoft.ML.Trainers.HalLearners
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }

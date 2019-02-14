@@ -252,9 +252,9 @@ namespace Microsoft.ML.Transforms.Conversions
                     int valueCount = _infos[i].TypeSrc.GetValueCount();
                     int keyCount = _infos[i].TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
                     if (_parent._columns[i].Bag || valueCount == 1)
-                        _types[i] = new VectorType(NumberDataViewType.Float, keyCount);
+                        _types[i] = new VectorType(NumberDataViewType.Single, keyCount);
                     else
-                        _types[i] = new VectorType(NumberDataViewType.Float, valueCount, keyCount);
+                        _types[i] = new VectorType(NumberDataViewType.Single, valueCount, keyCount);
                 }
             }
 
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(size > 0);
                 input.Schema.TryGetColumnIndex(_infos[iinfo].InputColumnName, out int srcCol);
                 Host.Assert(srcCol >= 0);
-                var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.U4, input, srcCol);
+                var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, input, srcCol);
                 var src = default(uint);
                 return
                     (ref VBuffer<float> dst) =>
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(cv >= 0);
                 input.Schema.TryGetColumnIndex(info.InputColumnName, out int srcCol);
                 Host.Assert(srcCol >= 0);
-                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.U4, input, srcCol);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, srcCol);
                 var src = default(VBuffer<uint>);
                 var bldr = BufferBuilder<float>.CreateDefault();
                 return
@@ -547,7 +547,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(cv >= 0);
                 Host.Assert(_types[iinfo].Size == size * cv);
                 input.Schema.TryGetColumnIndex(info.InputColumnName, out int srcCol);
-                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.U4, input, srcCol);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, srcCol);
                 var src = default(VBuffer<uint>);
                 return
                     (ref VBuffer<float> dst) =>
@@ -797,11 +797,11 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && keyMeta.ItemType is TextDataViewType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (!colInfo.Bag && (col.Kind == SchemaShape.Column.VectorKind.Scalar || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.I4, false));
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
                 if (!colInfo.Bag || (col.Kind == SchemaShape.Column.VectorKind.Scalar))
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
 
             return new SchemaShape(result.Values);

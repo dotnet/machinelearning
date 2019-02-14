@@ -1058,7 +1058,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TestHashTransformFloat()
         {
-            TestHashTransformHelper(dataFloat, resultsFloat, NumberDataViewType.R4);
+            TestHashTransformHelper(dataFloat, resultsFloat, NumberDataViewType.Single);
         }
 
         [Fact]
@@ -1066,27 +1066,27 @@ namespace Microsoft.ML.RunTests
         {
             var data = new[] { dataFloat };
             var results = new[] { resultsFloat };
-            TestHashTransformVectorHelper(data, results, NumberDataViewType.R4);
+            TestHashTransformVectorHelper(data, results, NumberDataViewType.Single);
         }
 
         [Fact]
         public void TestHashTransformFloatSparseVector()
         {
             var results = new[] { resultsFloatSparse };
-            TestHashTransformVectorHelper(dataFloatSparse, results, NumberDataViewType.R4);
+            TestHashTransformVectorHelper(dataFloatSparse, results, NumberDataViewType.Single);
         }
 
         [Fact]
         public void TestHashTransformDoubleSparseVector()
         {
             var results = new[] { resultsDoubleSparse };
-            TestHashTransformVectorHelper(dataDoubleSparse, results, NumberDataViewType.R8);
+            TestHashTransformVectorHelper(dataDoubleSparse, results, NumberDataViewType.Double);
         }
 
         [Fact]
         public void TestHashTransformDouble()
         {
-            TestHashTransformHelper(dataDouble, resultsDouble, NumberDataViewType.R8);
+            TestHashTransformHelper(dataDouble, resultsDouble, NumberDataViewType.Double);
         }
 
         [Fact]
@@ -1094,7 +1094,7 @@ namespace Microsoft.ML.RunTests
         {
             var data = new[] { dataDouble };
             var results = new[] { resultsDouble };
-            TestHashTransformVectorHelper(data, results, NumberDataViewType.R8);
+            TestHashTransformVectorHelper(data, results, NumberDataViewType.Double);
         }
 
         private void TestHashTransformHelper<T>(T[] data, uint[] results, NumberDataViewType type)
@@ -1161,7 +1161,7 @@ namespace Microsoft.ML.RunTests
             Float[] values = new Float[rows];
             for (int i = 0; i < values.Length; ++i)
                 values[i] = (Float)(2 * rgen.NextDouble() - 1);
-            builder.AddColumn("Foo", NumberDataViewType.Float, values);
+            builder.AddColumn("Foo", NumberDataViewType.Single, values);
 
             int[][] barValues = new int[rows][];
             const int barSlots = 4;
@@ -1171,7 +1171,7 @@ namespace Microsoft.ML.RunTests
                 for (int j = 0; j < barSlots; ++j)
                     barValues[i][j] = rgen.Next(-100, 100);
             }
-            builder.AddColumn("Bar", NumberDataViewType.I4, barValues);
+            builder.AddColumn("Bar", NumberDataViewType.Int32, barValues);
             bool[] bizValues = new bool[rows];
             for (int i = 0; i < rows; ++i)
                 bizValues[i] = (rgen.Next(2) == 1);
@@ -1248,8 +1248,8 @@ namespace Microsoft.ML.RunTests
         public void ArrayDataViewBuilderNoRows()
         {
             ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
-            builder.AddColumn("Foo", NumberDataViewType.I4, new int[0]);
-            builder.AddColumn("Bar", NumberDataViewType.U2, new ushort[0]);
+            builder.AddColumn("Foo", NumberDataViewType.Int32, new int[0]);
+            builder.AddColumn("Bar", NumberDataViewType.UInt16, new ushort[0]);
 
             IDataView view = builder.GetDataView();
 
@@ -1321,7 +1321,7 @@ namespace Microsoft.ML.RunTests
                 new[] {  (Float)0.0,  (Float)0.0,  (Float)1.0 },
             };
 
-            builder.AddColumn("F1V", NumberDataViewType.Float, data);
+            builder.AddColumn("F1V", NumberDataViewType.Single, data);
             var srcView = builder.GetDataView();
 
             var est = ML.Transforms.Text.LatentDirichletAllocation("F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
@@ -1370,7 +1370,7 @@ namespace Microsoft.ML.RunTests
                 new[] {  (Float)0.0,  (Float)0.0,  (Float)0.0 },
             };
 
-            builder.AddColumn(colName, NumberDataViewType.Float, data);
+            builder.AddColumn(colName, NumberDataViewType.Single, data);
 
             var srcView = builder.GetDataView();
             try

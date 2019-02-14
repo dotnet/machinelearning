@@ -48,8 +48,8 @@ namespace Microsoft.ML.Trainers.Ensemble
         private readonly VectorType _inputType;
 
         DataViewType IValueMapper.InputType => _inputType;
-        DataViewType IValueMapper.OutputType => NumberDataViewType.Float;
-        DataViewType IValueMapperDist.DistType => NumberDataViewType.Float;
+        DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
+        DataViewType IValueMapperDist.DistType => NumberDataViewType.Single;
 
         public override PredictionKind PredictionKind { get; }
 
@@ -100,15 +100,15 @@ namespace Microsoft.ML.Trainers.Ensemble
                 }
                 mappers[i] = vmd;
             }
-            return inputType ?? new VectorType(NumberDataViewType.Float);
+            return inputType ?? new VectorType(NumberDataViewType.Single);
         }
 
         private bool IsValid(IValueMapperDist mapper, out VectorType inputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberDataViewType.Float
-                && mapper.OutputType == NumberDataViewType.Float
-                && mapper.DistType == NumberDataViewType.Float)
+                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberDataViewType.Single
+                && mapper.OutputType == NumberDataViewType.Single
+                && mapper.DistType == NumberDataViewType.Single)
             {
                 inputType = inVectorType;
                 return true;

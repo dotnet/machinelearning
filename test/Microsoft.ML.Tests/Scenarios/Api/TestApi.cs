@@ -201,7 +201,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Create Metadata.
             var kindFloat = "Testing float as metadata.";
             var valueFloat = 10;
-            var coltypeFloat = NumberDataViewType.Float;
+            var coltypeFloat = NumberDataViewType.Single;
             var kindString = "Testing string as metadata.";
             var valueString = "Strings have value.";
             var kindStringArray = "Testing string array as metadata.";

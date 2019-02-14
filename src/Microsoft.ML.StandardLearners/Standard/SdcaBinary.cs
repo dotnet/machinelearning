@@ -1466,7 +1466,7 @@ namespace Microsoft.ML.Trainers
                     new SchemaShape.Column(
                         DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberDataViewType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
                     ),
@@ -1484,7 +1484,7 @@ namespace Microsoft.ML.Trainers
                 outCols.Insert(1, new SchemaShape.Column(
                     DefaultColumnNames.Probability,
                     SchemaShape.Column.VectorKind.Scalar,
-                    NumberDataViewType.R4,
+                    NumberDataViewType.Single,
                     false,
                     new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
             };
@@ -1505,7 +1505,7 @@ namespace Microsoft.ML.Trainers
                     new SchemaShape.Column(
                         DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberDataViewType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
                     ),
@@ -1523,7 +1523,7 @@ namespace Microsoft.ML.Trainers
                 outCols.Insert(1, new SchemaShape.Column(
                     DefaultColumnNames.Probability,
                     SchemaShape.Column.VectorKind.Scalar,
-                    NumberDataViewType.R4,
+                    NumberDataViewType.Single,
                     false,
                     new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
             };
@@ -1541,7 +1541,7 @@ namespace Microsoft.ML.Trainers
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
 
-            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.R4 && labelCol.ItemType != NumberDataViewType.R8 && !(labelCol.ItemType is BooleanDataViewType))
+            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single && labelCol.ItemType != NumberDataViewType.Double && !(labelCol.ItemType is BooleanDataViewType))
                 error();
         }
 
@@ -1554,7 +1554,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
             if (Info.NeedCalibration)
@@ -1728,8 +1728,8 @@ namespace Microsoft.ML.Trainers
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
@@ -1925,7 +1925,7 @@ namespace Microsoft.ML.Trainers
             VectorUtils.ScaleBy(ref weights, (float)weightScaling); // restore the true weights
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Float));
+            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
             var pred = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;

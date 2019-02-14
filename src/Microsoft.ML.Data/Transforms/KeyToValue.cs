@@ -334,7 +334,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
 
                     bool identity;
-                    _convertToUInt = Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberDataViewType.U4, out identity);
+                    _convertToUInt = Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberDataViewType.UInt32, out identity);
                 }
 
                 private void MapKey(in TKey src, ref TValue dst)

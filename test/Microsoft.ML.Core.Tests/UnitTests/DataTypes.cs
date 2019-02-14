@@ -24,10 +24,10 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void R4ToSBtoR4()
         {
-            var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberDataViewType.R4);
+            var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberDataViewType.Single);
 
             var txToR4 = Conversions.Instance.GetStandardConversion< ReadOnlyMemory<char>, float>(
-                TextDataViewType.Instance, NumberDataViewType.R4, out bool identity2);
+                TextDataViewType.Instance, NumberDataViewType.Single, out bool identity2);
 
             Assert.NotNull(r4ToSB);
             Assert.NotNull(txToR4);
@@ -48,10 +48,10 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void R8ToSBtoR8()
         {
-            var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberDataViewType.R8);
+            var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberDataViewType.Double);
 
             var txToR8 = Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, double>(
-                TextDataViewType.Instance, NumberDataViewType.R8, out bool identity2);
+                TextDataViewType.Instance, NumberDataViewType.Double, out bool identity2);
 
             Assert.NotNull(r8ToSB);
             Assert.NotNull(txToR8);
@@ -72,7 +72,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TXToSByte()
         {
-            var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>(NumberDataViewType.I1);
+            var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>(NumberDataViewType.SByte);
 
             Assert.NotNull(mapper);
 
@@ -112,7 +112,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TXToShort()
         {
-            var mapper = GetMapper<ReadOnlyMemory<char>, short>(NumberDataViewType.I2);
+            var mapper = GetMapper<ReadOnlyMemory<char>, short>(NumberDataViewType.Int16);
 
             Assert.NotNull(mapper);
 
@@ -152,7 +152,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TXToInt()
         {
-            var mapper = GetMapper<ReadOnlyMemory<char>, int>(NumberDataViewType.I4);
+            var mapper = GetMapper<ReadOnlyMemory<char>, int>(NumberDataViewType.Int32);
 
             Assert.NotNull(mapper);
 
@@ -192,7 +192,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TXToLong()
         {
-            var mapper = GetMapper<ReadOnlyMemory<char>, long>(NumberDataViewType.I8);
+            var mapper = GetMapper<ReadOnlyMemory<char>, long>(NumberDataViewType.Int64);
 
             Assert.NotNull(mapper);
 

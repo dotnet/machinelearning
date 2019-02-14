@@ -55,7 +55,7 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!(col.Type is VectorType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Float))
+            if (!(col.Type is VectorType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Training
             Contracts.Assert(!col.IsHidden);
             var colType = col.Type as VectorType;
             Contracts.Assert(colType != null && colType.IsKnownSize);
-            Contracts.Assert(colType.ItemType == NumberDataViewType.Float);
+            Contracts.Assert(colType.ItemType == NumberDataViewType.Single);
             length = colType.Size;
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.R4 && col.Type != NumberDataViewType.R8 && !(col.Type is KeyType keyType && keyType.Count == 2))
+            if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double && !(col.Type is KeyType keyType && keyType.Count == 2))
             {
                 KeyType colKeyType = col.Type as KeyType;
                 if (colKeyType != null)
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
-            if (col.Type != NumberDataViewType.R4 && col.Type != NumberDataViewType.R8)
+            if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
             {
                 throw Contracts.ExceptParam(nameof(data),
                     "Training label column '{0}' type isn't suitable for regression: {1}. Type must be R4 or R8.", col.Name, col.Type);
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Training
             }
 
             // REVIEW: Support other numeric types.
-            if (col.Type != NumberDataViewType.R4 && col.Type != NumberDataViewType.R8)
+            if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' type is not valid for multi-class: {1}. Type must be R4 or R8.", col.Name, col.Type);
 
             int max = -1;
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Training
             Contracts.Assert(!col.IsHidden);
             if (!(col.Type is VectorType vectorType
                 && vectorType.IsKnownSize
-                && vectorType.ItemType == NumberDataViewType.Float))
+                && vectorType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Training
                 return;
             var col = data.Schema.Weight.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type != NumberDataViewType.R4 && col.Type != NumberDataViewType.R8)
+            if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
                 throw Contracts.ExceptParam(nameof(data), "Training weight column '{0}' must be of floating point numeric type, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Training
             var col = schema.Weight;
             if (!col.HasValue)
                 return null;
-            return RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Float, row, col.Value.Index);
+            return RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, row, col.Value.Index);
         }
 
         public static ValueGetter<float> GetOptWeightFloatGetter(this DataViewRow row, RoleMappedData data)
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Training
             var col = schema.Group;
             if (!col.HasValue)
                 return null;
-            return RowCursorUtils.GetGetterAs<ulong>(NumberDataViewType.U8, row, col.Value.Index);
+            return RowCursorUtils.GetGetterAs<ulong>(NumberDataViewType.UInt64, row, col.Value.Index);
         }
 
         public static ValueGetter<ulong> GetOptGroupGetter(this DataViewRow row, RoleMappedData data)
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Training
         /// </summary>
         /// <param name="columnName">name of the column</param>
         public static SchemaShape.Column MakeR4ScalarColumn(string columnName)
-            => new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false);
+            => new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Training
             if (columnName == null)
                 return default;
 
-            return new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.U4, true);
+            return new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
         }
 
         /// <summary>
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Training
         /// </summary>
         /// <param name="featureColumn">name of the feature column</param>
         public static SchemaShape.Column MakeR4VecFeature(string featureColumn)
-            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false);
+            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the weight column.
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Training
         {
             if (weightColumn == null)
                 return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false);
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
         /// <summary>
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Training
         {
             if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false);
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
         /// <summary>

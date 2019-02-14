@@ -223,7 +223,7 @@ namespace Microsoft.ML.Data
                 if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].inputColumnName, out _featureColumnIndex))
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
                 _featureColumnType = schema[_featureColumnIndex].Type as VectorType;
-                if (_featureColumnType == null || _featureColumnType.ItemType != NumberDataViewType.R4)
+                if (_featureColumnType == null || _featureColumnType.ItemType != NumberDataViewType.Single)
                     throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of float.", _featureColumnType.ItemType.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Data
                 // Add FeatureContributions column.
                 var builder = new MetadataBuilder();
                 builder.Add(InputSchema[_featureColumnIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
-                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberDataViewType.R4, _featureColumnType.Size), builder.GetMetadata()) };
+                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberDataViewType.Single, _featureColumnType.Size), builder.GetMetadata()) };
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> active, out Action disposer)
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Data
             if (!inputSchema.TryFindColumn(_featureColumn, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
             // Check that the feature column is of the correct type: a vector of float.
-            if (col.ItemType != NumberDataViewType.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
+            if (col.ItemType != NumberDataViewType.Single || col.Kind != SchemaShape.Column.VectorKind.Vector)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "column", _featureColumn, "vector of float.", col.GetTypeString());
 
             // Build output schemaShape.

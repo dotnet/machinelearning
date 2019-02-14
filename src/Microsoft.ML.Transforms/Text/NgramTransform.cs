@@ -246,7 +246,7 @@ namespace Microsoft.ML.Transforms.Text
                     var ngramLength = columns[iinfo].NgramLength;
                     var skipLength = columns[iinfo].SkipLength;
 
-                    getters[iinfo] = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.U4, cursor, srcCols[iinfo]);
+                    getters[iinfo] = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, cursor, srcCols[iinfo]);
                     src[iinfo] = default;
                     counts[iinfo] = new int[ngramLength];
                     ngramMaps[iinfo] = new SequencePool();
@@ -488,7 +488,7 @@ namespace Microsoft.ML.Transforms.Text
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    _types[i] = new VectorType(NumberDataViewType.Float, _parent._ngramMaps[i].Count);
+                    _types[i] = new VectorType(NumberDataViewType.Single, _parent._ngramMaps[i].Count);
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     _srcTypes[i] = inputSchema[_srcCols[i]].Type;
                 }
@@ -601,7 +601,7 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.U4, input, _srcCols[iinfo]);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, _srcCols[iinfo]);
                 var src = default(VBuffer<uint>);
                 var bldr = new NgramBufferBuilder(_parent._transformInfos[iinfo].NgramLength, _parent._transformInfos[iinfo].SkipLength,
                     _parent._ngramMaps[iinfo].Count, GetNgramIdFinder(iinfo));
@@ -884,7 +884,7 @@ namespace Microsoft.ML.Transforms.Text
                 var metadata = new List<SchemaShape.Column>();
                 if (col.HasKeyValues())
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

@@ -557,7 +557,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var info = _parent._columns[i];
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberDataViewType.Float, info.NumTopic), null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberDataViewType.Single, info.NumTopic), null);
                 }
                 return result;
             }
@@ -573,7 +573,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private ValueGetter<VBuffer<float>> GetTopic(DataViewRow input, int iinfo)
             {
-                var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.R8, input, _srcCols[iinfo]);
+                var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.Double, input, _srcCols[iinfo]);
                 var src = default(VBuffer<Double>);
                 var lda = _parent._ldas[iinfo];
                 int numBurninIter = lda.InfoEx.NumBurninIter;
@@ -807,7 +807,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     corpusSize[i] = 0;
                     numDocArray[i] = 0;
-                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.R8, cursor, srcCols[i]);
+                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.Double, cursor, srcCols[i]);
                 }
                 VBuffer<Double> src = default;
                 long rowCount = 0;
@@ -886,7 +886,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < columns.Length; i++)
                 {
                     docSizeCheck[i] = 0;
-                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.R8, cursor, srcCols[i]);
+                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.Double, cursor, srcCols[i]);
                 }
 
                 VBuffer<double> src = default;
@@ -1205,7 +1205,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (col.ItemType.RawType != typeof(float) || col.Kind == SchemaShape.Column.VectorKind.Scalar)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector of float", col.GetTypeString());
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(result.Values);

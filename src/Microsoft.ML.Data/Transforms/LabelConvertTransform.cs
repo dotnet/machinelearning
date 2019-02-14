@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms
         protected override DataViewType GetColumnTypeCore(int iinfo)
         {
             Contracts.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return NumberDataViewType.Float;
+            return NumberDataViewType.Single;
         }
 
         private void SetMetadata()
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Transforms
                 return null;
             // THe following slot type will be the same for any columns, so we have only one field,
             // as opposed to one for each column.
-            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberDataViewType.Float, srcSlotType), null);
+            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberDataViewType.Single, srcSlotType), null);
             return _slotType;
         }
 

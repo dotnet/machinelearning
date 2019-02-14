@@ -356,7 +356,7 @@ namespace Microsoft.ML.Data
                     outPipes[i] = OutPipe.Create(type, pool);
                 }
                 int idIdx = activeToCol.Length + (int)ExtraIndex.Id;
-                outPipes[idIdx] = OutPipe.Create(NumberDataViewType.UG, GetPool(NumberDataViewType.UG, ourPools, idIdx));
+                outPipes[idIdx] = OutPipe.Create(NumberDataViewType.DataViewRowId, GetPool(NumberDataViewType.DataViewRowId, ourPools, idIdx));
 
                 // Create the structures to synchronize between the workers and the consumer.
                 const int toConsumeBound = 4;
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Data
                 int idIdx = activeToCol.Length + (int)ExtraIndex.Id;
                 inPipes[idIdx] = CreateIdInPipe(input);
                 for (int i = 0; i < cthd; ++i)
-                    outPipes[i][idIdx] = inPipes[idIdx].CreateOutPipe(NumberDataViewType.UG);
+                    outPipes[i][idIdx] = inPipes[idIdx].CreateOutPipe(NumberDataViewType.DataViewRowId);
 
                 var toConsume = new BlockingCollection<Batch>(toConsumeBound);
                 var batchColumnPool = new MadeObjectPool<BatchColumn[]>(() => new BatchColumn[inPipes.Length]);

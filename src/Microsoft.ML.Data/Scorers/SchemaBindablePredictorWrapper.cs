@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
                 if (schema.Feature?.Type is DataViewType type)
                 {
                     // Ensure that the feature column type is compatible with the needed input type.
-                    var typeIn = ValueMapper != null ? ValueMapper.InputType : new VectorType(NumberDataViewType.Float);
+                    var typeIn = ValueMapper != null ? ValueMapper.InputType : new VectorType(NumberDataViewType.Single);
                     if (type != typeIn)
                     {
                         VectorType typeVectorType = type as VectorType;
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Data
 
         private void CheckValid(out IValueMapperDist distMapper)
         {
-            Contracts.Check(ScoreType == NumberDataViewType.Float, "Expected predictor result type to be Float");
+            Contracts.Check(ScoreType == NumberDataViewType.Single, "Expected predictor result type to be Float");
 
             distMapper = Predictor as IValueMapperDist;
             if (distMapper == null)
@@ -447,9 +447,9 @@ namespace Microsoft.ML.Data
             // REVIEW: In theory the restriction on input type could be relaxed at the expense
             // of more complicated code in CalibratedRowMapper.GetGetters. Not worth it at this point
             // and no good way to test it.
-            Contracts.Check(distMapper.InputType is VectorType vectorType && vectorType.ItemType == NumberDataViewType.Float,
+            Contracts.Check(distMapper.InputType is VectorType vectorType && vectorType.ItemType == NumberDataViewType.Single,
                 "Invalid input type for the IValueMapperDist");
-            Contracts.Check(distMapper.DistType == NumberDataViewType.Float,
+            Contracts.Check(distMapper.DistType == NumberDataViewType.Single,
                 "Invalid probability type for the IValueMapperDist");
         }
 
@@ -492,7 +492,7 @@ namespace Microsoft.ML.Data
                 {
                     Contracts.Check(typeSrc is VectorType vectorType
                         && vectorType.IsKnownSize
-                        && vectorType.ItemType == NumberDataViewType.Float,
+                        && vectorType.ItemType == NumberDataViewType.Single,
                         "Invalid feature column type");
                 }
             }
@@ -607,9 +607,9 @@ namespace Microsoft.ML.Data
             var qpred = Predictor as IQuantileValueMapper;
             Contracts.CheckParam(qpred != null, nameof(predictor), "Predictor doesn't implement " + nameof(IQuantileValueMapper));
             _qpred = qpred;
-            Contracts.CheckParam(ScoreType == NumberDataViewType.Float, nameof(predictor), "Unexpected predictor output type");
+            Contracts.CheckParam(ScoreType == NumberDataViewType.Single, nameof(predictor), "Unexpected predictor output type");
             Contracts.CheckParam(ValueMapper != null && ValueMapper.InputType is VectorType vectorType
-                && vectorType.ItemType == NumberDataViewType.Float,
+                && vectorType.ItemType == NumberDataViewType.Single,
                 nameof(predictor), "Unexpected predictor input type");
             Contracts.CheckNonEmpty(quantiles, nameof(quantiles), "Quantiles must not be empty");
             _quantiles = quantiles;
@@ -626,9 +626,9 @@ namespace Microsoft.ML.Data
             var qpred = Predictor as IQuantileValueMapper;
             Contracts.CheckDecode(qpred != null);
             _qpred = qpred;
-            Contracts.CheckDecode(ScoreType == NumberDataViewType.Float);
+            Contracts.CheckDecode(ScoreType == NumberDataViewType.Single);
             Contracts.CheckDecode(ValueMapper != null && ValueMapper.InputType is VectorType vectorType
-                && vectorType.ItemType == NumberDataViewType.Float);
+                && vectorType.ItemType == NumberDataViewType.Single);
             _quantiles = ctx.Reader.ReadDoubleArray();
             Contracts.CheckDecode(Utils.Size(_quantiles) > 0);
         }
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
             var typeSrc = input.Schema[colSrc].Type as VectorType;
-            Contracts.Assert(typeSrc != null && typeSrc.ItemType == NumberDataViewType.Float);
+            Contracts.Assert(typeSrc != null && typeSrc.ItemType == NumberDataViewType.Single);
             Contracts.Assert(ValueMapper == null ||
                 typeSrc.Size == ValueMapper.InputType.GetVectorSize() || ValueMapper.InputType.GetVectorSize() == 0);
             Contracts.Assert(Utils.Size(_quantiles) > 0);

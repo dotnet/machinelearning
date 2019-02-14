@@ -129,11 +129,11 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var host = Host.SchemaSensitive();
             var t = score.Type;
-            if (t != NumberDataViewType.Float)
+            if (t != NumberDataViewType.Single)
                 throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
             host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
-            if (t != NumberDataViewType.R4 && t != NumberDataViewType.R8 && t != BooleanDataViewType.Instance && t.GetKeyCount() != 2)
+            if (t != NumberDataViewType.Single && t != NumberDataViewType.Double && t != BooleanDataViewType.Instance && t.GetKeyCount() != 2)
                 throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float, double, bool, or a KeyType with cardinality 2", t.ToString());
         }
 
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Data
             {
                 host.CheckParam(prob.Count == 1, nameof(schema), "Cannot have multiple probability columns");
                 var probType = prob[0].Type;
-                if (probType != NumberDataViewType.Float)
+                if (probType != NumberDataViewType.Single)
                     throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "float", probType.ToString());
             }
             else if (!_useRaw)
@@ -340,18 +340,18 @@ namespace Microsoft.ML.Data
                     }
                     if (hasWeight)
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BooleanDataViewType.Instance, isWeighted.ToArray());
-                    overallDvBldr.AddColumn(Auc, NumberDataViewType.R8, auc.ToArray());
-                    overallDvBldr.AddColumn(Accuracy, NumberDataViewType.R8, accuracy.ToArray());
-                    overallDvBldr.AddColumn(PosPrecName, NumberDataViewType.R8, posPrec.ToArray());
-                    overallDvBldr.AddColumn(PosRecallName, NumberDataViewType.R8, posRecall.ToArray());
-                    overallDvBldr.AddColumn(NegPrecName, NumberDataViewType.R8, negPrec.ToArray());
-                    overallDvBldr.AddColumn(NegRecallName, NumberDataViewType.R8, negRecall.ToArray());
-                    overallDvBldr.AddColumn(LogLoss, NumberDataViewType.R8, logLoss.ToArray());
-                    overallDvBldr.AddColumn(LogLossReduction, NumberDataViewType.R8, logLossRed.ToArray());
-                    overallDvBldr.AddColumn(Entropy, NumberDataViewType.R8, entropy.ToArray());
-                    overallDvBldr.AddColumn(F1, NumberDataViewType.R8, f1.ToArray());
+                    overallDvBldr.AddColumn(Auc, NumberDataViewType.Double, auc.ToArray());
+                    overallDvBldr.AddColumn(Accuracy, NumberDataViewType.Double, accuracy.ToArray());
+                    overallDvBldr.AddColumn(PosPrecName, NumberDataViewType.Double, posPrec.ToArray());
+                    overallDvBldr.AddColumn(PosRecallName, NumberDataViewType.Double, posRecall.ToArray());
+                    overallDvBldr.AddColumn(NegPrecName, NumberDataViewType.Double, negPrec.ToArray());
+                    overallDvBldr.AddColumn(NegRecallName, NumberDataViewType.Double, negRecall.ToArray());
+                    overallDvBldr.AddColumn(LogLoss, NumberDataViewType.Double, logLoss.ToArray());
+                    overallDvBldr.AddColumn(LogLossReduction, NumberDataViewType.Double, logLossRed.ToArray());
+                    overallDvBldr.AddColumn(Entropy, NumberDataViewType.Double, entropy.ToArray());
+                    overallDvBldr.AddColumn(F1, NumberDataViewType.Double, f1.ToArray());
                     if (aggregator.AuPrcAggregator != null)
-                        overallDvBldr.AddColumn(AuPrc, NumberDataViewType.R8, auprc.ToArray());
+                        overallDvBldr.AddColumn(AuPrc, NumberDataViewType.Double, auprc.ToArray());
 
                     var confDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
@@ -362,10 +362,10 @@ namespace Microsoft.ML.Data
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
                         (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                             dst = new VBuffer<ReadOnlyMemory<char>>(aggregator.ClassNames.Length, aggregator.ClassNames);
-                    confDvBldr.AddColumn(MetricKinds.ColumnNames.Count, getSlotNames, NumberDataViewType.R8, counts.ToArray());
+                    confDvBldr.AddColumn(MetricKinds.ColumnNames.Count, getSlotNames, NumberDataViewType.Double, counts.ToArray());
 
                     if (hasWeight)
-                        confDvBldr.AddColumn(MetricKinds.ColumnNames.Weight, getSlotNames, NumberDataViewType.R8, weights.ToArray());
+                        confDvBldr.AddColumn(MetricKinds.ColumnNames.Weight, getSlotNames, NumberDataViewType.Double, weights.ToArray());
 
                     var result = new Dictionary<string, IDataView>();
                     result.Add(MetricKinds.OverallMetrics, overallDvBldr.GetDataView());
@@ -379,15 +379,15 @@ namespace Microsoft.ML.Data
                             dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, prStratCol.ToArray());
                             dvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextDataViewType.Instance, prStratVal.ToArray());
                         }
-                        dvBldr.AddColumn(Threshold, NumberDataViewType.R4, scores.ToArray());
-                        dvBldr.AddColumn(Precision, NumberDataViewType.R8, precision.ToArray());
-                        dvBldr.AddColumn(Recall, NumberDataViewType.R8, recall.ToArray());
-                        dvBldr.AddColumn(FalsePositiveRate, NumberDataViewType.R8, fpr.ToArray());
+                        dvBldr.AddColumn(Threshold, NumberDataViewType.Single, scores.ToArray());
+                        dvBldr.AddColumn(Precision, NumberDataViewType.Double, precision.ToArray());
+                        dvBldr.AddColumn(Recall, NumberDataViewType.Double, recall.ToArray());
+                        dvBldr.AddColumn(FalsePositiveRate, NumberDataViewType.Double, fpr.ToArray());
                         if (weightedPrecision.Count > 0)
                         {
-                            dvBldr.AddColumn("Weighted " + Precision, NumberDataViewType.R8, weightedPrecision.ToArray());
-                            dvBldr.AddColumn("Weighted " + Recall, NumberDataViewType.R8, weightedRecall.ToArray());
-                            dvBldr.AddColumn("Weighted " + FalsePositiveRate, NumberDataViewType.R8, weightedFpr.ToArray());
+                            dvBldr.AddColumn("Weighted " + Precision, NumberDataViewType.Double, weightedPrecision.ToArray());
+                            dvBldr.AddColumn("Weighted " + Recall, NumberDataViewType.Double, weightedRecall.ToArray());
+                            dvBldr.AddColumn("Weighted " + FalsePositiveRate, NumberDataViewType.Double, weightedFpr.ToArray());
                         }
                         result.Add(PrCurve, dvBldr.GetDataView());
                     }
@@ -909,7 +909,7 @@ namespace Microsoft.ML.Data
             }
 
             _types = new DataViewType[2];
-            _types[LogLossCol] = NumberDataViewType.R8;
+            _types[LogLossCol] = NumberDataViewType.Double;
             _types[AssignedCol] = BooleanDataViewType.Instance;
         }
 
@@ -935,7 +935,7 @@ namespace Microsoft.ML.Data
             Host.CheckDecode(FloatUtils.IsFinite(_threshold));
 
             _types = new DataViewType[2];
-            _types[LogLossCol] = NumberDataViewType.R8;
+            _types[LogLossCol] = NumberDataViewType.Double;
             _types[AssignedCol] = BooleanDataViewType.Instance;
         }
 
@@ -1098,18 +1098,18 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(LabelCol);
 
             var t = schema[(int)LabelIndex].Type;
-            if (t != NumberDataViewType.R4 && t != NumberDataViewType.R8 && t != BooleanDataViewType.Instance && t.GetKeyCount() != 2)
+            if (t != NumberDataViewType.Single && t != NumberDataViewType.Double && t != BooleanDataViewType.Instance && t.GetKeyCount() != 2)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float, double, bool or a KeyType with cardinality 2", t.ToString());
 
             t = schema[ScoreIndex].Type;
-            if (t != NumberDataViewType.Float)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "float", t.ToString());
 
             if (_probIndex >= 0)
             {
                 Host.Assert(!string.IsNullOrEmpty(_probCol));
                 t = schema[_probIndex].Type;
-                if (t != NumberDataViewType.Float)
+                if (t != NumberDataViewType.Single)
                     throw Host.ExceptSchemaMismatch(nameof(schema), "probability", _probCol, "float", t.ToString());
             }
             else if (!_useRaw)
@@ -1182,7 +1182,7 @@ namespace Microsoft.ML.Data
 
             // Get the optional probability column.
             var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Float.Equals);
+                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
             if (probCol.HasValue)
                 cols = MetadataUtils.Prepend(cols, RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name));
             return cols;
@@ -1491,7 +1491,7 @@ namespace Microsoft.ML.Data
                 MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
             yield return scoreCol.Name;
             var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Float.Equals);
+                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
             // Return the output columns. The LogLoss column is returned only if the probability column exists.
             if (probCol.HasValue)
             {
@@ -1574,7 +1574,7 @@ namespace Microsoft.ML.Data
                 overallMetrics = new EmptyDataView(host,
                     SimpleSchemaUtils.Create(host,
                         evaluator.GetOverallMetricColumns()
-                            .Select(mc => new KeyValuePair<string, DataViewType>(mc.LoadName, NumberDataViewType.R8))
+                            .Select(mc => new KeyValuePair<string, DataViewType>(mc.LoadName, NumberDataViewType.Double))
                             .ToArray()));
             }
 
@@ -1587,7 +1587,7 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out confusionMatrix))
             {
                 confusionMatrix = new EmptyDataView(host,
-                    SimpleSchemaUtils.Create(host, new KeyValuePair<string, DataViewType>(MetricKinds.ColumnNames.Count, NumberDataViewType.R8)));
+                    SimpleSchemaUtils.Create(host, new KeyValuePair<string, DataViewType>(MetricKinds.ColumnNames.Count, NumberDataViewType.Double)));
             }
 
             return confusionMatrix;

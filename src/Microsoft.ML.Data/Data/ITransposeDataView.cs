@@ -37,7 +37,7 @@ namespace Microsoft.ML.Data
         /// <see cref="GetSlotType"/> (input argument is named col) specifies the type of all values at the col-th column of
         /// <see cref="IDataView"/>.  For example, if <see cref="IDataView.Schema"/>[i] is a scalar float column, then
         /// <see cref="GetSlotType"/> with col=i may return a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
-        /// field is <see cref="NumberDataViewType.R4"/>. If the i-th column can't be iterated column-wisely, this function may
+        /// field is <see cref="NumberDataViewType.Single"/>. If the i-th column can't be iterated column-wisely, this function may
         /// return <see langword="null"/>.
         /// </summary>
         VectorType GetSlotType(int col);

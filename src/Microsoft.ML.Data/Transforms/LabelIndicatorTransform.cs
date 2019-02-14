@@ -109,7 +109,7 @@ namespace Microsoft.ML.Transforms
 
         private static string TestIsMulticlassLabel(DataViewType type)
         {
-            if (type.GetKeyCount() > 0 || type == NumberDataViewType.R4 || type == NumberDataViewType.R8)
+            if (type.GetKeyCount() > 0 || type == NumberDataViewType.Single || type == NumberDataViewType.Double)
                 return null;
             return $"Label column type is not supported for binary remapping: {type}. Supported types: key, float, double.";
         }
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms
                         dst = src == cls;
                     };
             }
-            if (info.TypeSrc == NumberDataViewType.R4)
+            if (info.TypeSrc == NumberDataViewType.Single)
             {
                 var srcGetter = input.GetGetter<float>(info.Source);
                 var src = default(float);
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Transforms
                         dst = src == _classIndex[iinfo];
                     };
             }
-            if (info.TypeSrc == NumberDataViewType.R8)
+            if (info.TypeSrc == NumberDataViewType.Double)
             {
                 var srcGetter = input.GetGetter<double>(info.Source);
                 var src = default(double);

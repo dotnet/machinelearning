@@ -480,9 +480,9 @@ namespace Microsoft.ML.ImageAnalytics
                     Contracts.Assert((long)height * width <= int.MaxValue / 4);
 
                     if (column.Interleave)
-                        types[i] = new VectorType(column.AsFloat ? NumberDataViewType.Float : NumberDataViewType.U1, height, width, column.Planes);
+                        types[i] = new VectorType(column.AsFloat ? NumberDataViewType.Single : NumberDataViewType.Byte, height, width, column.Planes);
                     else
-                        types[i] = new VectorType(column.AsFloat ? NumberDataViewType.Float : NumberDataViewType.U1, column.Planes, height, width);
+                        types[i] = new VectorType(column.AsFloat ? NumberDataViewType.Single : NumberDataViewType.Byte, column.Planes, height, width);
                 }
                 return types;
             }
@@ -742,7 +742,7 @@ namespace Microsoft.ML.ImageAnalytics
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageType().ToString(), col.GetTypeString());
 
-                var itemType = colInfo.AsFloat ? NumberDataViewType.R4 : NumberDataViewType.U1;
+                var itemType = colInfo.AsFloat ? NumberDataViewType.Single : NumberDataViewType.Byte;
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, itemType, false);
             }
 

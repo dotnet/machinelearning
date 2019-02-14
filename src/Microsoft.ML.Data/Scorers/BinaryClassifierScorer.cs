@@ -295,6 +295,6 @@ namespace Microsoft.ML.Data
         }
 
         private static bool OutputTypeMatches(DataViewType scoreType)
-            => scoreType == NumberDataViewType.Float;
+            => scoreType == NumberDataViewType.Single;
     }
 }

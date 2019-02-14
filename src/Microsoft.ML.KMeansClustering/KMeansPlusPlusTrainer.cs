@@ -260,13 +260,13 @@ namespace Microsoft.ML.Trainers.KMeans
             {
                 new SchemaShape.Column(DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Vector,
-                        NumberDataViewType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberDataViewType.U4,
+                        NumberDataViewType.UInt32,
                         true,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
@@ -925,8 +925,8 @@ namespace Microsoft.ML.Trainers.KMeans
                 else
                 {
                     ArrayDataViewBuilder arrDv = new ArrayDataViewBuilder(host);
-                    arrDv.AddColumn(DefaultColumnNames.Features, NumberDataViewType.R4, clusters);
-                    arrDv.AddColumn(DefaultColumnNames.Weight, NumberDataViewType.R4, totalWeights);
+                    arrDv.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, clusters);
+                    arrDv.AddColumn(DefaultColumnNames.Weight, NumberDataViewType.Single, totalWeights);
                     var subDataViewCursorFactory = new FeatureFloatVectorCursor.Factory(
                         new RoleMappedData(arrDv.GetDataView(), null, DefaultColumnNames.Features, weight: DefaultColumnNames.Weight), CursOpt.Weight | CursOpt.Features);
                     long discard1;

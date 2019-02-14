@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms.Projections
             VectorType vectorType = type as VectorType;
             DataViewType itemType = vectorType?.ItemType ?? type;
             if ((vectorType != null && !vectorType.IsKnownSize && vectorType.Dimensions.Length > 1)
-                || itemType != NumberDataViewType.R4)
+                || itemType != NumberDataViewType.Single)
                 return "Expected float or float vector of known size";
 
             long valueCount = type.GetValueCount();
@@ -589,7 +589,7 @@ namespace Microsoft.ML.Transforms.Projections
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var info = _parent._columns[iinfo];
-                    DataViewType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberDataViewType.Float, info.PcaNum) : _srcTypes[iinfo];
+                    DataViewType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberDataViewType.Single, info.PcaNum) : _srcTypes[iinfo];
                     result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, outType, null);
                 }
                 return result;

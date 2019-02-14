@@ -97,11 +97,11 @@ namespace Microsoft.ML.Data
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
-            if (t != NumberDataViewType.Float)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
-            if (t != NumberDataViewType.Float && t.GetKeyCount() != 2)
+            if (t != NumberDataViewType.Single && t.GetKeyCount() != 2)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a KeyType with cardinality 2", t.ToString());
         }
 
@@ -183,14 +183,14 @@ namespace Microsoft.ML.Data
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextDataViewType.Instance, stratVal.ToArray());
                     }
-                    overallDvBldr.AddColumn(BinaryClassifierEvaluator.Auc, NumberDataViewType.R8, auc.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.DrAtK, NumberDataViewType.R8, drAtK.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.DrAtPFpr, NumberDataViewType.R8, drAtP.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.DrAtNumPos, NumberDataViewType.R8, drAtNumAnomalies.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtK, NumberDataViewType.R4, thresholdAtK.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtP, NumberDataViewType.R4, thresholdAtP.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtNumPos, NumberDataViewType.R4, thresholdAtNumAnomalies.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.NumAnomalies, NumberDataViewType.I8, numAnoms.ToArray());
+                    overallDvBldr.AddColumn(BinaryClassifierEvaluator.Auc, NumberDataViewType.Double, auc.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.DrAtK, NumberDataViewType.Double, drAtK.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.DrAtPFpr, NumberDataViewType.Double, drAtP.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.DrAtNumPos, NumberDataViewType.Double, drAtNumAnomalies.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtK, NumberDataViewType.Single, thresholdAtK.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtP, NumberDataViewType.Single, thresholdAtP.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtNumPos, NumberDataViewType.Single, thresholdAtNumAnomalies.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.NumAnomalies, NumberDataViewType.Int64, numAnoms.ToArray());
 
                     var topKdvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
@@ -199,8 +199,8 @@ namespace Microsoft.ML.Data
                         topKdvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextDataViewType.Instance, topKStratVal.ToArray());
                     }
                     topKdvBldr.AddColumn(TopKResultsColumns.Instance, TextDataViewType.Instance, names.ToArray());
-                    topKdvBldr.AddColumn(TopKResultsColumns.AnomalyScore, NumberDataViewType.R4, scores.ToArray());
-                    topKdvBldr.AddColumn(TopKResultsColumns.Label, NumberDataViewType.R4, labels.ToArray());
+                    topKdvBldr.AddColumn(TopKResultsColumns.AnomalyScore, NumberDataViewType.Single, scores.ToArray());
+                    topKdvBldr.AddColumn(TopKResultsColumns.Label, NumberDataViewType.Single, labels.ToArray());
 
                     var result = new Dictionary<string, IDataView>();
                     result.Add(MetricKinds.OverallMetrics, overallDvBldr.GetDataView());

@@ -76,7 +76,7 @@ namespace Microsoft.ML.Trainers.Recommender
 
         public PredictionKind PredictionKind => PredictionKind.Recommendation;
 
-        private DataViewType OutputType => NumberDataViewType.Float;
+        private DataViewType OutputType => NumberDataViewType.Single;
 
         internal DataViewType MatrixColumnIndexType { get; }
         internal DataViewType MatrixRowIndexType { get; }
@@ -368,8 +368,8 @@ namespace Microsoft.ML.Trainers.Recommender
                 {
                     // First check if expected columns are ok and then create getters to acccess those columns' values.
                     CheckInputSchema(input.Schema, _matrixColumnIndexColumnIndex, _matrixRowIndexCololumnIndex);
-                    var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.U4, input, _matrixColumnIndexColumnIndex);
-                    var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.U4, input, _matrixRowIndexCololumnIndex);
+                    var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, input, _matrixColumnIndexColumnIndex);
+                    var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, input, _matrixRowIndexCololumnIndex);
 
                     // Assign the getter of the prediction score. It maps a pair of matrix column index and matrix row index to a scalar.
                     getters[0] = _parent.GetGetter(matrixColumnIndexGetter, matrixRowIndexGetter);

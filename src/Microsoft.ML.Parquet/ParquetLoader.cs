@@ -332,35 +332,35 @@ namespace Microsoft.ML.Data
                 case DataType.Boolean:
                     return BooleanDataViewType.Instance;
                 case DataType.Byte:
-                    return NumberDataViewType.U1;
+                    return NumberDataViewType.Byte;
                 case DataType.SignedByte:
-                    return NumberDataViewType.I1;
+                    return NumberDataViewType.SByte;
                 case DataType.UnsignedByte:
-                    return NumberDataViewType.U1;
+                    return NumberDataViewType.Byte;
                 case DataType.Short:
-                    return NumberDataViewType.I2;
+                    return NumberDataViewType.Int16;
                 case DataType.UnsignedShort:
-                    return NumberDataViewType.U2;
+                    return NumberDataViewType.UInt16;
                 case DataType.Int16:
-                    return NumberDataViewType.I2;
+                    return NumberDataViewType.Int16;
                 case DataType.UnsignedInt16:
-                    return NumberDataViewType.U2;
+                    return NumberDataViewType.UInt16;
                 case DataType.Int32:
-                    return NumberDataViewType.I4;
+                    return NumberDataViewType.Int32;
                 case DataType.Int64:
-                    return NumberDataViewType.I8;
+                    return NumberDataViewType.Int64;
                 case DataType.Int96:
-                    return NumberDataViewType.UG;
+                    return NumberDataViewType.DataViewRowId;
                 case DataType.ByteArray:
-                    return new VectorType(NumberDataViewType.U1);
+                    return new VectorType(NumberDataViewType.Byte);
                 case DataType.String:
                     return TextDataViewType.Instance;
                 case DataType.Float:
-                    return NumberDataViewType.R4;
+                    return NumberDataViewType.Single;
                 case DataType.Double:
-                    return NumberDataViewType.R8;
+                    return NumberDataViewType.Double;
                 case DataType.Decimal:
-                    return NumberDataViewType.R8;
+                    return NumberDataViewType.Double;
                 case DataType.DateTimeOffset:
                     return DateTimeOffsetDataViewType.Instance;
                 case DataType.Interval:

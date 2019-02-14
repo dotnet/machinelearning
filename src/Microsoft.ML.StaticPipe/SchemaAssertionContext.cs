@@ -33,34 +33,34 @@ namespace Microsoft.ML.StaticPipe.Runtime
         // property of these things to make sure people don't make the mistake of assigning them as the
         // values.
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.I1"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.SByte"/>.</summary>
         public PrimitiveTypeAssertions<sbyte> I1 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.I2"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.Int16"/>.</summary>
         public PrimitiveTypeAssertions<short> I2 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.I4"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.Int32"/>.</summary>
         public PrimitiveTypeAssertions<int> I4 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.I8"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.Int64"/>.</summary>
         public PrimitiveTypeAssertions<long> I8 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.U1"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.Byte"/>.</summary>
         public PrimitiveTypeAssertions<byte> U1 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.U2"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.UInt16"/>.</summary>
         public PrimitiveTypeAssertions<ushort> U2 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.U4"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.UInt32"/>.</summary>
         public PrimitiveTypeAssertions<uint> U4 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.U8"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.UInt64"/>.</summary>
         public PrimitiveTypeAssertions<ulong> U8 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.R4"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.Single"/>.</summary>
         public NormalizableTypeAssertions<float> R4 => default;
 
-        /// <summary>Assertions over a column of <see cref="NumberDataViewType.R8"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="NumberDataViewType.Double"/>.</summary>
         public NormalizableTypeAssertions<double> R8 => default;
 
         /// <summary>Assertions over a column of <see cref="TextDataViewType"/>.</summary>
@@ -184,27 +184,27 @@ namespace Microsoft.ML.StaticPipe.Runtime
             /// </summary>
             public KeyTypeVectorAssertions<VarKey<T>> UnknownCardinality => default;
 
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.I1"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.SByte"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, sbyte>> I1Values => default;
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.I2"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.Int16"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, short>> I2Values => default;
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.I4"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.Int32"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, int>> I4Values => default;
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.I8"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.Int64"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, long>> I8Values => default;
 
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.U1"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.Byte"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, byte>> U1Values => default;
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.U2"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.UInt16"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, ushort>> U2Values => default;
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.U4"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.UInt32"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, uint>> U4Values => default;
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.U8"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.UInt64"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, ulong>> U8Values => default;
 
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.R4"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.Single"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, float>> R4Values => default;
-            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.R8"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
+            /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="NumberDataViewType.Double"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>
             public KeyTypeVectorAssertions<Key<T, double>> R8Values => default;
 
             /// <summary>Asserts a <see cref="KeyType"/> of known cardinality with a vector of <see cref="TextDataViewType"/> <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.</summary>

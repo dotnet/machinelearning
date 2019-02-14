@@ -757,14 +757,14 @@ namespace Microsoft.ML.Transforms.Projections
         {
             if (!(type is VectorType vectorType && vectorType.IsKnownSize))
                 return false;
-            return vectorType.ItemType == NumberDataViewType.R4;
+            return vectorType.ItemType == NumberDataViewType.Single;
         }
 
         internal static bool IsSchemaColumnValid(SchemaShape.Column col)
         {
             if (col.Kind != SchemaShape.Column.VectorKind.Vector)
                 return false;
-            return col.ItemType == NumberDataViewType.R4;
+            return col.ItemType == NumberDataViewType.Single;
         }
 
         internal const string ExpectedColumnType = "Expected float or float vector of known size";

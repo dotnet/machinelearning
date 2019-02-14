@@ -108,7 +108,7 @@ namespace Microsoft.ML.Calibrator
             var outColumns = inputSchema.ToDictionary(x => x.Name);
             outColumns[DefaultColumnNames.Probability] = new SchemaShape.Column(DefaultColumnNames.Probability,
                 SchemaShape.Column.VectorKind.Scalar,
-                NumberDataViewType.R4,
+                NumberDataViewType.Single,
                 false,
                 new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true)));
 
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Calibrator
 
         string ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumn => DefaultColumnNames.Score;
 
-        DataViewType ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnType => NumberDataViewType.Float;
+        DataViewType ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnType => NumberDataViewType.Single;
 
         TICalibrator IPredictionTransformer<TICalibrator>.Model => _calibrator;
 
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Calibrator
             {
                 return new[]
                 {
-                    new DataViewSchema.DetachedColumn(DefaultColumnNames.Probability, NumberDataViewType.Float, null)
+                    new DataViewSchema.DetachedColumn(DefaultColumnNames.Probability, NumberDataViewType.Single, null)
                 };
             }
 

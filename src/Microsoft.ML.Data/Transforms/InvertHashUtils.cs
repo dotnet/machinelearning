@@ -56,7 +56,7 @@ namespace Microsoft.ML.Data
                 ReadOnlyMemory<char> value = default;
 
                 // REVIEW: We could optimize for identity, but it's probably not worthwhile.
-                var keyMapper = conv.GetStandardConversion<T, uint>(type, NumberDataViewType.U4, out identity);
+                var keyMapper = conv.GetStandardConversion<T, uint>(type, NumberDataViewType.UInt32, out identity);
                 return
                     (in T src, ref StringBuilder dst) =>
                     {

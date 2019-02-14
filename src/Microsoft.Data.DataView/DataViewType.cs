@@ -28,7 +28,7 @@ namespace Microsoft.Data.DataView
         /// </summary>
         /// <remarks>
         /// Code should not assume that a <see cref="RawType"/> uniquely identifiers a <see cref="DataViewType"/>.
-        /// For example, most practical instances of ML.NET's KeyType and <see cref="NumberDataViewType.U4"/> will have a
+        /// For example, most practical instances of ML.NET's KeyType and <see cref="NumberDataViewType.UInt32"/> will have a
         /// <see cref="RawType"/> of <see cref="uint"/>, but both are very different in the types of information conveyed in that number.
         /// </remarks>
         public Type RawType { get; }
@@ -111,128 +111,126 @@ namespace Microsoft.Data.DataView
             _name = name;
         }
 
-        private static volatile NumberDataViewType _instI1;
-        public static NumberDataViewType I1
+        private static volatile NumberDataViewType _instSByte;
+        public static NumberDataViewType SByte
         {
             get
             {
-                return _instI1 ??
-                    Interlocked.CompareExchange(ref _instI1, new NumberDataViewType(typeof(sbyte), "I1"), null) ??
-                    _instI1;
+                return _instSByte ??
+                    Interlocked.CompareExchange(ref _instSByte, new NumberDataViewType(typeof(sbyte), "I1"), null) ??
+                    _instSByte;
             }
         }
 
-        private static volatile NumberDataViewType _instU1;
-        public static NumberDataViewType U1
+        private static volatile NumberDataViewType _instByte;
+        public static NumberDataViewType Byte
         {
             get
             {
-                return _instU1 ??
-                    Interlocked.CompareExchange(ref _instU1, new NumberDataViewType(typeof(byte), "U1"), null) ??
-                    _instU1;
+                return _instByte ??
+                    Interlocked.CompareExchange(ref _instByte, new NumberDataViewType(typeof(byte), "U1"), null) ??
+                    _instByte;
             }
         }
 
-        private static volatile NumberDataViewType _instI2;
-        public static NumberDataViewType I2
+        private static volatile NumberDataViewType _instInt16;
+        public static NumberDataViewType Int16
         {
             get
             {
-                return _instI2 ??
-                    Interlocked.CompareExchange(ref _instI2, new NumberDataViewType(typeof(short), "I2"), null) ??
-                    _instI2;
+                return _instInt16 ??
+                    Interlocked.CompareExchange(ref _instInt16, new NumberDataViewType(typeof(short), "I2"), null) ??
+                    _instInt16;
             }
         }
 
-        private static volatile NumberDataViewType _instU2;
-        public static NumberDataViewType U2
+        private static volatile NumberDataViewType _instUInt16;
+        public static NumberDataViewType UInt16
         {
             get
             {
-                return _instU2 ??
-                    Interlocked.CompareExchange(ref _instU2, new NumberDataViewType(typeof(ushort), "U2"), null) ??
-                    _instU2;
+                return _instUInt16 ??
+                    Interlocked.CompareExchange(ref _instUInt16, new NumberDataViewType(typeof(ushort), "U2"), null) ??
+                    _instUInt16;
             }
         }
 
-        private static volatile NumberDataViewType _instI4;
-        public static NumberDataViewType I4
+        private static volatile NumberDataViewType _instInt32;
+        public static NumberDataViewType Int32
         {
             get
             {
-                return _instI4 ??
-                    Interlocked.CompareExchange(ref _instI4, new NumberDataViewType(typeof(int), "I4"), null) ??
-                    _instI4;
+                return _instInt32 ??
+                    Interlocked.CompareExchange(ref _instInt32, new NumberDataViewType(typeof(int), "I4"), null) ??
+                    _instInt32;
             }
         }
 
-        private static volatile NumberDataViewType _instU4;
-        public static NumberDataViewType U4
+        private static volatile NumberDataViewType _instUInt32;
+        public static NumberDataViewType UInt32
         {
             get
             {
-                return _instU4 ??
-                    Interlocked.CompareExchange(ref _instU4, new NumberDataViewType(typeof(uint), "U4"), null) ??
-                    _instU4;
+                return _instUInt32 ??
+                    Interlocked.CompareExchange(ref _instUInt32, new NumberDataViewType(typeof(uint), "U4"), null) ??
+                    _instUInt32;
             }
         }
 
-        private static volatile NumberDataViewType _instI8;
-        public static NumberDataViewType I8
+        private static volatile NumberDataViewType _instInt64;
+        public static NumberDataViewType Int64
         {
             get
             {
-                return _instI8 ??
-                    Interlocked.CompareExchange(ref _instI8, new NumberDataViewType(typeof(long), "I8"), null) ??
-                    _instI8;
+                return _instInt64 ??
+                    Interlocked.CompareExchange(ref _instInt64, new NumberDataViewType(typeof(long), "I8"), null) ??
+                    _instInt64;
             }
         }
 
-        private static volatile NumberDataViewType _instU8;
-        public static NumberDataViewType U8
+        private static volatile NumberDataViewType _instUInt64;
+        public static NumberDataViewType UInt64
         {
             get
             {
-                return _instU8 ??
-                    Interlocked.CompareExchange(ref _instU8, new NumberDataViewType(typeof(ulong), "U8"), null) ??
-                    _instU8;
+                return _instUInt64 ??
+                    Interlocked.CompareExchange(ref _instUInt64, new NumberDataViewType(typeof(ulong), "U8"), null) ??
+                    _instUInt64;
             }
         }
 
-        private static volatile NumberDataViewType _instUG;
-        public static NumberDataViewType UG
+        private static volatile NumberDataViewType _instDataViewRowId;
+        public static NumberDataViewType DataViewRowId
         {
             get
             {
-                return _instUG ??
-                    Interlocked.CompareExchange(ref _instUG, new NumberDataViewType(typeof(DataViewRowId), "UG"), null) ??
-                    _instUG;
+                return _instDataViewRowId ??
+                    Interlocked.CompareExchange(ref _instDataViewRowId, new NumberDataViewType(typeof(DataViewRowId), "UG"), null) ??
+                    _instDataViewRowId;
             }
         }
 
-        private static volatile NumberDataViewType _instR4;
-        public static NumberDataViewType R4
+        private static volatile NumberDataViewType _instSingle;
+        public static NumberDataViewType Single
         {
             get
             {
-                return _instR4 ??
-                    Interlocked.CompareExchange(ref _instR4, new NumberDataViewType(typeof(float), "R4"), null) ??
-                    _instR4;
+                return _instSingle ??
+                    Interlocked.CompareExchange(ref _instSingle, new NumberDataViewType(typeof(float), "R4"), null) ??
+                    _instSingle;
             }
         }
 
-        private static volatile NumberDataViewType _instR8;
-        public static NumberDataViewType R8
+        private static volatile NumberDataViewType _instDouble;
+        public static NumberDataViewType Double
         {
             get
             {
-                return _instR8 ??
-                    Interlocked.CompareExchange(ref _instR8, new NumberDataViewType(typeof(double), "R8"), null) ??
-                    _instR8;
+                return _instDouble ??
+                    Interlocked.CompareExchange(ref _instDouble, new NumberDataViewType(typeof(double), "R8"), null) ??
+                    _instDouble;
             }
         }
-
-        public static NumberDataViewType Float => R4;
 
         public override bool Equals(DataViewType other)
         {

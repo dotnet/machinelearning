@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
             string probabilityColumnName = MetadataUtils.Const.ScoreValueKind.Probability)
         {
             // Schema of Score column. We are going to extend it by adding a Probability column.
-            var partialSchema = Create(NumberDataViewType.Float, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, scoreColumnName);
+            var partialSchema = Create(NumberDataViewType.Single, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, scoreColumnName);
 
             var schemaBuilder = new SchemaBuilder();
             // Copy Score column from partialSchema.
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Data
                 (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreValueKind.Probability.AsMemory(); });
 
             // Add probability column.
-            schemaBuilder.AddColumn(probabilityColumnName, NumberDataViewType.Float, probabilityMetadataBuilder.GetMetadata());
+            schemaBuilder.AddColumn(probabilityColumnName, NumberDataViewType.Single, probabilityMetadataBuilder.GetMetadata());
 
             return schemaBuilder.GetSchema();
         }

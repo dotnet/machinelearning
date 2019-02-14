@@ -420,10 +420,10 @@ namespace Microsoft.ML.Trainers
 
             var builder = new MetadataBuilder();
 
-            builder.AddPrimitiveValue("Count of training examples", NumberDataViewType.I8, _trainingExampleCount);
-            builder.AddPrimitiveValue("Residual Deviance", NumberDataViewType.R4, _deviance);
-            builder.AddPrimitiveValue("Null Deviance", NumberDataViewType.R4, _nullDeviance);
-            builder.AddPrimitiveValue("AIC", NumberDataViewType.R4, 2 * _paramCount + _deviance);
+            builder.AddPrimitiveValue("Count of training examples", NumberDataViewType.Int64, _trainingExampleCount);
+            builder.AddPrimitiveValue("Residual Deviance", NumberDataViewType.Single, _deviance);
+            builder.AddPrimitiveValue("Null Deviance", NumberDataViewType.Single, _nullDeviance);
+            builder.AddPrimitiveValue("AIC", NumberDataViewType.Single, 2 * _paramCount + _deviance);
 
             if (parent == null)
                 return builder.GetMetadata();
@@ -432,10 +432,10 @@ namespace Microsoft.ML.Trainers
                 return builder.GetMetadata();
 
             var biasEstimate = parent.Bias;
-            builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.R4, biasEstimate);
-            builder.AddPrimitiveValue("BiasStandardError", NumberDataViewType.R4, biasStdErr);
-            builder.AddPrimitiveValue("BiasZScore", NumberDataViewType.R4, biasZScore);
-            builder.AddPrimitiveValue("BiasPValue", NumberDataViewType.R4, biasPValue);
+            builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.Single, biasEstimate);
+            builder.AddPrimitiveValue("BiasStandardError", NumberDataViewType.Single, biasStdErr);
+            builder.AddPrimitiveValue("BiasZScore", NumberDataViewType.Single, biasZScore);
+            builder.AddPrimitiveValue("BiasPValue", NumberDataViewType.Single, biasPValue);
 
             var weights = default(VBuffer<float>);
             parent.GetFeatureWeights(ref weights);
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Trainers
             var subMetaBuilder = new MetadataBuilder();
             subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
             var subMeta = subMetaBuilder.GetMetadata();
-            var colType = new VectorType(NumberDataViewType.R4, stdErr.Length);
+            var colType = new VectorType(NumberDataViewType.Single, stdErr.Length);
 
             builder.Add("Estimate", colType, (ref VBuffer<float> dst) => estimate.CopyTo(ref dst), subMeta);
             builder.Add("StandardError", colType, (ref VBuffer<float> dst) => stdErr.CopyTo(ref dst), subMeta);

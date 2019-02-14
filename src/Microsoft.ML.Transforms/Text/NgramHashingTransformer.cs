@@ -408,7 +408,7 @@ namespace Microsoft.ML.Transforms.Text
                         _srcTypes[i][j] = srcType;
                     }
 
-                    _types[i] = new VectorType(NumberDataViewType.Float, 1 << _parent._columns[i].HashBits);
+                    _types[i] = new VectorType(NumberDataViewType.Single, 1 << _parent._columns[i].HashBits);
                 }
             }
 
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Transforms.Text
                 int srcCount = _srcIndices[iinfo].Length;
                 ValueGetter<VBuffer<uint>>[] getSrc = new ValueGetter<VBuffer<uint>>[srcCount];
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                    getSrc[isrc] = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.U4, input, _srcIndices[iinfo][isrc]);
+                    getSrc[isrc] = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, _srcIndices[iinfo][isrc]);
                 var src = default(VBuffer<uint>);
                 var ngramIdFinder = GetNgramIdFinder(iinfo);
                 if (_decorator != null)
@@ -1220,7 +1220,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 var metadata = new List<SchemaShape.Column>();
                 metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

@@ -150,27 +150,27 @@ namespace Microsoft.ML.Transforms.TensorFlow
             switch (type)
             {
                 case TFDataType.Float:
-                    return NumberDataViewType.R4;
+                    return NumberDataViewType.Single;
                 case TFDataType.Float_ref:
-                    return NumberDataViewType.R4;
+                    return NumberDataViewType.Single;
                 case TFDataType.Double:
-                    return NumberDataViewType.R8;
+                    return NumberDataViewType.Double;
                 case TFDataType.UInt8:
-                    return NumberDataViewType.U1;
+                    return NumberDataViewType.Byte;
                 case TFDataType.UInt16:
-                    return NumberDataViewType.U2;
+                    return NumberDataViewType.UInt16;
                 case TFDataType.UInt32:
-                    return NumberDataViewType.U4;
+                    return NumberDataViewType.UInt32;
                 case TFDataType.UInt64:
-                    return NumberDataViewType.U8;
+                    return NumberDataViewType.UInt64;
                 case TFDataType.Int8:
-                    return NumberDataViewType.I1;
+                    return NumberDataViewType.SByte;
                 case TFDataType.Int16:
-                    return NumberDataViewType.I2;
+                    return NumberDataViewType.Int16;
                 case TFDataType.Int32:
-                    return NumberDataViewType.I4;
+                    return NumberDataViewType.Int32;
                 case TFDataType.Int64:
-                    return NumberDataViewType.I8;
+                    return NumberDataViewType.Int64;
                 case TFDataType.Bool:
                     return BooleanDataViewType.Instance;
                 default:

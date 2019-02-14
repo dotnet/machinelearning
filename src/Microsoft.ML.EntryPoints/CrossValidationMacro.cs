@@ -387,7 +387,7 @@ namespace Microsoft.ML.EntryPoints
             IDataView conf = null;
             if (Utils.Size(input.ConfusionMatrix) > 0)
             {
-                EvaluateUtils.ReconcileSlotNames<double>(env, input.ConfusionMatrix, MetricKinds.ColumnNames.Count, NumberDataViewType.R8);
+                EvaluateUtils.ReconcileSlotNames<double>(env, input.ConfusionMatrix, MetricKinds.ColumnNames.Count, NumberDataViewType.Double);
 
                 for (int i = 0; i < input.ConfusionMatrix.Length; i++)
                 {

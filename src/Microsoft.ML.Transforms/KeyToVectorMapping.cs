@@ -180,10 +180,10 @@ namespace Microsoft.ML.Transforms.Conversions
                     int srcValueCount = _infos[i].TypeSrc.GetValueCount();
                     if (srcValueCount == 1)
                         // Output is a single vector computed as the sum of the output indicator vectors.
-                        _types[i] = new VectorType(NumberDataViewType.Float, _bitsPerKey[i]);
+                        _types[i] = new VectorType(NumberDataViewType.Single, _bitsPerKey[i]);
                     else
                         // Output is the concatenation of the multiple output indicator vectors.
-                        _types[i] = new VectorType(NumberDataViewType.Float, srcValueCount, _bitsPerKey[i]);
+                        _types[i] = new VectorType(NumberDataViewType.Single, srcValueCount, _bitsPerKey[i]);
                 }
             }
             private ColInfo[] CreateInfos(DataViewSchema inputSchema)
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(dstLength > 0);
                 input.Schema.TryGetColumnIndex(_infos[iinfo].InputColumnName, out int srcCol);
                 Host.Assert(srcCol >= 0);
-                var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.U4, input, srcCol);
+                var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, input, srcCol);
                 var src = default(uint);
                 var bldr = new BufferBuilder<float>(R4Adder.Instance);
                 return
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(cv >= 0);
                 input.Schema.TryGetColumnIndex(_infos[iinfo].InputColumnName, out int srcCol);
                 Host.Assert(srcCol >= 0);
-                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.U4, input, srcCol);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, srcCol);
                 var src = default(VBuffer<uint>);
                 var bldr = new BufferBuilder<float>(R4Adder.Instance);
                 int bitsPerKey = _bitsPerKey[iinfo];
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (col.Kind == SchemaShape.Column.VectorKind.Scalar)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
-                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false, new SchemaShape(metadata));
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
 
             return new SchemaShape(result.Values);

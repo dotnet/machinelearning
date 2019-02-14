@@ -60,11 +60,11 @@ namespace Microsoft.ML.Data
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type as VectorType;
-            if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Float)
+            if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type as VectorType;
-            if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.R4 && t.ItemType != NumberDataViewType.R8))
+            if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of float or double", t.ToString());
         }
 
@@ -151,13 +151,13 @@ namespace Microsoft.ML.Data
                     }
                     if (hasWeight)
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BooleanDataViewType.Instance, isWeighted.ToArray());
-                    overallDvBldr.AddColumn(PerLabelL1, aggregator.GetSlotNames, NumberDataViewType.R8, perLabelL1.ToArray());
-                    overallDvBldr.AddColumn(PerLabelL2, aggregator.GetSlotNames, NumberDataViewType.R8, perLabelL2.ToArray());
-                    overallDvBldr.AddColumn(PerLabelRms, aggregator.GetSlotNames, NumberDataViewType.R8, perLabelRms.ToArray());
-                    overallDvBldr.AddColumn(PerLabelLoss, aggregator.GetSlotNames, NumberDataViewType.R8, perLabelLoss.ToArray());
-                    overallDvBldr.AddColumn(L1, NumberDataViewType.R8, l1.ToArray());
-                    overallDvBldr.AddColumn(L2, NumberDataViewType.R8, l2.ToArray());
-                    overallDvBldr.AddColumn(Dist, NumberDataViewType.R8, dist.ToArray());
+                    overallDvBldr.AddColumn(PerLabelL1, aggregator.GetSlotNames, NumberDataViewType.Double, perLabelL1.ToArray());
+                    overallDvBldr.AddColumn(PerLabelL2, aggregator.GetSlotNames, NumberDataViewType.Double, perLabelL2.ToArray());
+                    overallDvBldr.AddColumn(PerLabelRms, aggregator.GetSlotNames, NumberDataViewType.Double, perLabelRms.ToArray());
+                    overallDvBldr.AddColumn(PerLabelLoss, aggregator.GetSlotNames, NumberDataViewType.Double, perLabelLoss.ToArray());
+                    overallDvBldr.AddColumn(L1, NumberDataViewType.Double, l1.ToArray());
+                    overallDvBldr.AddColumn(L2, NumberDataViewType.Double, l2.ToArray());
+                    overallDvBldr.AddColumn(Dist, NumberDataViewType.Double, dist.ToArray());
                     var result = new Dictionary<string, IDataView>();
                     result.Add(MetricKinds.OverallMetrics, overallDvBldr.GetDataView());
                     return result;
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Data
 
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetVecGetterAs<Float>(NumberDataViewType.Float, row, schema.Label.Value.Index);
+                _labelGetter = RowCursorUtils.GetVecGetterAs<Float>(NumberDataViewType.Single, row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<VBuffer<Float>>(score.Index);
                 Contracts.AssertValue(_labelGetter);
                 Contracts.AssertValue(_scoreGetter);
@@ -452,9 +452,9 @@ namespace Microsoft.ML.Data
             var infos = new DataViewSchema.DetachedColumn[5];
             infos[LabelOutput] = new DataViewSchema.DetachedColumn(LabelCol, _labelType, _labelMetadata);
             infos[ScoreOutput] = new DataViewSchema.DetachedColumn(ScoreCol, _scoreType, _scoreMetadata);
-            infos[L1Output] = new DataViewSchema.DetachedColumn(L1, NumberDataViewType.R8, null);
-            infos[L2Output] = new DataViewSchema.DetachedColumn(L2, NumberDataViewType.R8, null);
-            infos[DistCol] = new DataViewSchema.DetachedColumn(Dist, NumberDataViewType.R8, null);
+            infos[L1Output] = new DataViewSchema.DetachedColumn(L1, NumberDataViewType.Double, null);
+            infos[L2Output] = new DataViewSchema.DetachedColumn(L2, NumberDataViewType.Double, null);
+            infos[DistCol] = new DataViewSchema.DetachedColumn(Dist, NumberDataViewType.Double, null);
             return infos;
         }
 
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Data
 
             ValueGetter<VBuffer<Float>> nullGetter = (ref VBuffer<Float> vec) => vec = default(VBuffer<Float>);
             var labelGetter = activeCols(LabelOutput) || activeCols(L1Output) || activeCols(L2Output) || activeCols(DistCol)
-                ? RowCursorUtils.GetVecGetterAs<Float>(NumberDataViewType.Float, input, LabelIndex)
+                ? RowCursorUtils.GetVecGetterAs<Float>(NumberDataViewType.Single, input, LabelIndex)
                 : nullGetter;
             var scoreGetter = activeCols(ScoreOutput) || activeCols(L1Output) || activeCols(L2Output) || activeCols(DistCol)
                 ? input.GetGetter<VBuffer<Float>>(ScoreIndex)
@@ -548,7 +548,7 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(LabelCol);
 
             var t = schema[LabelIndex].Type as VectorType;
-            if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.R4 && t.ItemType != NumberDataViewType.R8))
+            if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of float or double", t.ToString());
             labelType = new VectorType((PrimitiveDataViewType)t.ItemType, t.Size);
             var slotNamesType = new VectorType(TextDataViewType.Instance, t.Size);
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Data
             labelMetadata = builder.GetMetadata();
 
             t = schema[ScoreIndex].Type as VectorType;
-            if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Float)
+            if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", t.ToString());
             scoreType = new VectorType((PrimitiveDataViewType)t.ItemType, t.Size);
             builder = new MetadataBuilder();
@@ -706,7 +706,7 @@ namespace Microsoft.ML.Data
                     }
 
                     var type = fold.Schema[i].Type as VectorType;
-                    if (type != null && type.IsKnownSize && type.ItemType == NumberDataViewType.R8)
+                    if (type != null && type.IsKnownSize && type.ItemType == NumberDataViewType.Double)
                     {
                         vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(i);
                         if (labelCount == 0)

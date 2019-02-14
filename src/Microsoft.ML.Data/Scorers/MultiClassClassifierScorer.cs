@@ -536,6 +536,6 @@ namespace Microsoft.ML.Data
         private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(typeof(uint), scoreType.GetVectorSize());
 
         private static bool OutputTypeMatches(DataViewType scoreType) =>
-            scoreType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Float;
+            scoreType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single;
     }
 }

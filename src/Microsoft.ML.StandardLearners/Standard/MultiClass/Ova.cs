@@ -150,23 +150,23 @@ namespace Microsoft.ML.Trainers
         {
             var lab = data.Schema.Label.Value;
             Host.Assert(!lab.IsHidden);
-            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberDataViewType.R4 || lab.Type == NumberDataViewType.R8);
+            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberDataViewType.Single || lab.Type == NumberDataViewType.Double);
 
             if (lab.Type.GetKeyCount() > 0)
             {
                 // Key values are 1-based.
                 uint key = (uint)(cls + 1);
-                return MapLabelsCore(NumberDataViewType.U4, (in uint val) => key == val, data);
+                return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => key == val, data);
             }
-            if (lab.Type == NumberDataViewType.R4)
+            if (lab.Type == NumberDataViewType.Single)
             {
                 float key = cls;
-                return MapLabelsCore(NumberDataViewType.R4, (in float val) => key == val, data);
+                return MapLabelsCore(NumberDataViewType.Single, (in float val) => key == val, data);
             }
-            if (lab.Type == NumberDataViewType.R8)
+            if (lab.Type == NumberDataViewType.Double)
             {
                 double key = cls;
-                return MapLabelsCore(NumberDataViewType.R8, (in double val) => key == val, data);
+                return MapLabelsCore(NumberDataViewType.Double, (in double val) => key == val, data);
             }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
@@ -267,8 +267,8 @@ namespace Microsoft.ML.Trainers
                 IValueMapperDist ivmd = null;
                 if (outputFormula == OutputFormula.ProbabilityNormalization &&
                     ((ivmd = predictors[0] as IValueMapperDist) == null ||
-                        ivmd.OutputType != NumberDataViewType.Float ||
-                        ivmd.DistType != NumberDataViewType.Float))
+                        ivmd.OutputType != NumberDataViewType.Single ||
+                        ivmd.DistType != NumberDataViewType.Single))
                 {
                     ch.Warning($"{nameof(Ova.Options.UseProbabilities)} specified with {nameof(Ova.Options.PredictorType)} that can't produce probabilities.");
                     ivmd = null;
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(Utils.Size(impl.Predictors) > 0);
 
             _impl = impl;
-            _outputType = new VectorType(NumberDataViewType.Float, _impl.Predictors.Length);
+            _outputType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private OvaModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Trainers
                 _impl = new ImplRaw(predictors);
             }
 
-            _outputType = new VectorType(NumberDataViewType.Float, _impl.Predictors.Length);
+            _outputType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private static OvaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -456,9 +456,9 @@ namespace Microsoft.ML.Trainers
 
                 if (mapper == null)
                     return false;
-                if (mapper.OutputType != NumberDataViewType.Float)
+                if (mapper.OutputType != NumberDataViewType.Single)
                     return false;
-                if (!(mapper.InputType is VectorType mapperVectorType)|| mapperVectorType.ItemType != NumberDataViewType.Float)
+                if (!(mapper.InputType is VectorType mapperVectorType)|| mapperVectorType.ItemType != NumberDataViewType.Single)
                     return false;
                 if (inputType == null)
                     inputType = mapperVectorType;
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Trainers
 
             private bool IsValid(IValueMapperDist mapper, ref VectorType inputType)
             {
-                return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberDataViewType.Float;
+                return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberDataViewType.Single;
             }
 
             /// <summary>

@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
                     yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     // Get the optional probability column.
                     var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, scoredSchema, null, nameof(BinaryClassifierMamlEvaluator.Arguments.ProbabilityColumn),
-                        scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Float.Equals);
+                        scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
                     if (probCol.HasValue)
                         yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name);
                     yield break;

@@ -342,7 +342,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             ulong keyCount = type.GetKeyCount();
             return
                 (0 < keyCount && keyCount < Utils.ArrayMaxSize) || type is BooleanDataViewType ||
-                type == NumberDataViewType.R4 || type == NumberDataViewType.R8 || type == NumberDataViewType.I4;
+                type == NumberDataViewType.Single || type == NumberDataViewType.Double || type == NumberDataViewType.Int32;
         }
 
         private sealed class Impl
@@ -453,21 +453,21 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 int lim;
                 var labels = default(VBuffer<int>);
                 // Note: NAs have their own separate bin.
-                if (labelType == NumberDataViewType.I4)
+                if (labelType == NumberDataViewType.Int32)
                 {
                     var tmp = default(VBuffer<int>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinInts(in tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
-                else if (labelType == NumberDataViewType.R4)
+                else if (labelType == NumberDataViewType.Single)
                 {
                     var tmp = default(VBuffer<Single>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinSingles(in tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
-                else if (labelType == NumberDataViewType.R8)
+                else if (labelType == NumberDataViewType.Double)
                 {
                     var tmp = default(VBuffer<Double>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
@@ -529,7 +529,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 // Note: NAs have their own separate bin.
                 var type = trans.Schema[col].Type;
                 var itemType = type.GetItemType();
-                if (itemType == NumberDataViewType.I4)
+                if (itemType == NumberDataViewType.Int32)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<int> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -537,7 +537,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinInts(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (itemType == NumberDataViewType.R4)
+                if (itemType == NumberDataViewType.Single)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Single> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinSingles(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (itemType == NumberDataViewType.R8)
+                if (itemType == NumberDataViewType.Double)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Double> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -702,7 +702,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// </summary>
             private static ValueMapper<VBuffer<T>, VBuffer<int>> BinKeys<T>(DataViewType colType)
             {
-                var conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberDataViewType.U4, out bool identity);
+                var conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberDataViewType.UInt32, out bool identity);
                 ValueMapper<T, int> mapper;
                 if (identity)
                 {

@@ -76,7 +76,7 @@ namespace Microsoft.ML.Transforms.Conversions
             // if the output VectorKind is a vector or variable vector then
             // this is the data type of items stored in the vector.
             var isKey = Transformer.ValueColumnType is KeyType;
-            var columnType = (isKey) ? NumberDataViewType.U4 :
+            var columnType = (isKey) ? NumberDataViewType.UInt32 :
                                     Transformer.ValueColumnType.GetItemType();
             var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (outputColumnName, inputColumnName) in _columns)

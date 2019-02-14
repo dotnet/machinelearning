@@ -111,8 +111,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 _inputFeatureToShapeFunctionMap[_shapeToInputMap[i]] = i;
             }
 
-            _inputType = new VectorType(NumberDataViewType.Float, _numInputFeatures);
-            _outputType = NumberDataViewType.Float;
+            _inputType = new VectorType(NumberDataViewType.Single, _numInputFeatures);
+            _outputType = NumberDataViewType.Single;
         }
 
         protected GamModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
@@ -161,8 +161,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 _shapeToInputMap[val] = key;
             }
 
-            _inputType = new VectorType(NumberDataViewType.Float, _numInputFeatures);
-            _outputType = NumberDataViewType.Float;
+            _inputType = new VectorType(NumberDataViewType.Single, _numInputFeatures);
+            _outputType = NumberDataViewType.Single;
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -677,8 +677,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     {
                         _eval = eval;
                         var builder = new ArrayDataViewBuilder(pred.Host);
-                        builder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Float, _labels);
-                        builder.AddColumn(DefaultColumnNames.Score, NumberDataViewType.Float, _scores);
+                        builder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, _labels);
+                        builder.AddColumn(DefaultColumnNames.Score, NumberDataViewType.Single, _scores);
                         _dataForEvaluator = new RoleMappedData(builder.GetDataView(), opt: false,
                             RoleMappedSchema.ColumnRole.Label.Bind(DefaultColumnNames.Label),
                             new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));

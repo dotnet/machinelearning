@@ -34,7 +34,7 @@ namespace Microsoft.ML.Benchmarks
             int[] values = new int[Length];
             for (int i = 0; i < values.Length; ++i)
                 values[i] = i;
-            builder.AddColumn("A", NumberDataViewType.I4, values);
+            builder.AddColumn("A", NumberDataViewType.Int32, values);
             var dv = builder.GetDataView();
             var cacheDv = ctx.Data.Cache(dv);
 

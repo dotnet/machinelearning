@@ -103,7 +103,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
-            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.R4)
+            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single)
                 error();
         }
         protected override float GetMaxLabel()
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             return new[]
            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 

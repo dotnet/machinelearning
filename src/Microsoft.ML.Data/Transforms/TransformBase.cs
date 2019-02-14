@@ -922,14 +922,14 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsFloatItem(DataViewType type)
         {
-            if (type.GetItemType() == NumberDataViewType.Float)
+            if (type.GetItemType() == NumberDataViewType.Single)
                 return null;
             return "Expected R4 or a vector of R4";
         }
 
         protected static string TestIsFloatVector(DataViewType type)
         {
-            if (type is VectorType vectorType && vectorType.ItemType == NumberDataViewType.Float)
+            if (type is VectorType vectorType && vectorType.ItemType == NumberDataViewType.Single)
                 return null;
 
             return "Expected Float vector";
@@ -939,7 +939,7 @@ namespace Microsoft.ML.Data
         {
             if (type is VectorType vectorType
                 && vectorType.IsKnownSize
-                && vectorType.ItemType == NumberDataViewType.Float)
+                && vectorType.ItemType == NumberDataViewType.Single)
                 return null;
 
             return "Expected Float vector of known size";

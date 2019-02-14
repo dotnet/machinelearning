@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data
                                 var type = cursor.Schema[currentIndex].Type;
                                 if (type is NumberDataViewType)
                                 {
-                                    var getter = RowCursorUtils.GetGetterAs<double>(NumberDataViewType.R8, cursor, currentIndex);
+                                    var getter = RowCursorUtils.GetGetterAs<double>(NumberDataViewType.Double, cursor, currentIndex);
                                     double metricValue = 0;
                                     getter(ref metricValue);
                                     if (averageMetric.ContainsKey(nameOfMetric))

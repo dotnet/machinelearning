@@ -31,7 +31,7 @@ namespace Microsoft.ML.Internal.Internallearn
                 Contracts.CheckValue(collection, nameof(collection));
 
                 _collection = collection;
-                _colType = new VectorType(NumberDataViewType.R4, collection.Count);
+                _colType = new VectorType(NumberDataViewType.Single, collection.Count);
                 _slotNamesType = new VectorType(TextDataViewType.Instance, collection.Count);
 
                 var metadataBuilder = new MetadataBuilder();

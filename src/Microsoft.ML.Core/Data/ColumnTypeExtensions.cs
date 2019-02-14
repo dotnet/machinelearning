@@ -136,27 +136,27 @@ namespace Microsoft.ML.Data
             switch (kind)
             {
                 case DataKind.I1:
-                    return NumberDataViewType.I1;
+                    return NumberDataViewType.SByte;
                 case DataKind.U1:
-                    return NumberDataViewType.U1;
+                    return NumberDataViewType.Byte;
                 case DataKind.I2:
-                    return NumberDataViewType.I2;
+                    return NumberDataViewType.Int16;
                 case DataKind.U2:
-                    return NumberDataViewType.U2;
+                    return NumberDataViewType.UInt16;
                 case DataKind.I4:
-                    return NumberDataViewType.I4;
+                    return NumberDataViewType.Int32;
                 case DataKind.U4:
-                    return NumberDataViewType.U4;
+                    return NumberDataViewType.UInt32;
                 case DataKind.I8:
-                    return NumberDataViewType.I8;
+                    return NumberDataViewType.Int64;
                 case DataKind.U8:
-                    return NumberDataViewType.U8;
+                    return NumberDataViewType.UInt64;
                 case DataKind.R4:
-                    return NumberDataViewType.R4;
+                    return NumberDataViewType.Single;
                 case DataKind.R8:
-                    return NumberDataViewType.R8;
+                    return NumberDataViewType.Double;
                 case DataKind.UG:
-                    return NumberDataViewType.UG;
+                    return NumberDataViewType.DataViewRowId;
             }
 
             Contracts.Assert(false);

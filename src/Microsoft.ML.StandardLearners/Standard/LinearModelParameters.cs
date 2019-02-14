@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers
 
             Weight = weights;
             Bias = bias;
-            _inputType = new VectorType(NumberDataViewType.Float, Weight.Length);
+            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers
             else
                 Weight = new VBuffer<float>(len, Utils.Size(weights), weights, indices);
 
-            _inputType = new VectorType(NumberDataViewType.Float, Weight.Length);
+            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
             if (Weight.IsDense)
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Trainers
 
         DataViewType IValueMapper.OutputType
         {
-            get { return NumberDataViewType.Float; }
+            get { return NumberDataViewType.Single; }
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
@@ -366,9 +366,9 @@ namespace Microsoft.ML.Trainers
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var subBuilder = new MetadataBuilder();
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
-            var colType = new VectorType(NumberDataViewType.R4, Weight.Length);
+            var colType = new VectorType(NumberDataViewType.Single, Weight.Length);
             var builder = new MetadataBuilder();
-            builder.AddPrimitiveValue("Bias", NumberDataViewType.R4, Bias);
+            builder.AddPrimitiveValue("Bias", NumberDataViewType.Single, Bias);
             builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.GetMetadata());
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }

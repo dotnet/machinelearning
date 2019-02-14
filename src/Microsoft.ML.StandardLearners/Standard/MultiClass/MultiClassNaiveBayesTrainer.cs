@@ -85,8 +85,8 @@ namespace Microsoft.ML.Trainers
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.U4, true, predLabelMetadata)
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, predLabelMetadata)
             };
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Trainers
             var data = context.TrainingSet;
             Host.Check(data.Schema.Label.HasValue, "Missing Label column");
             var labelCol = data.Schema.Label.Value;
-            Host.Check(labelCol.Type == NumberDataViewType.Float || labelCol.Type is KeyType,
+            Host.Check(labelCol.Type == NumberDataViewType.Single || labelCol.Type is KeyType,
                 "Invalid type for Label column, only floats and known-size keys are supported");
 
             Host.Check(data.Schema.Feature.HasValue, "Missing Feature column");
@@ -267,8 +267,8 @@ namespace Microsoft.ML.Trainers
             _labelCount = _labelHistogram.Length;
             _featureCount = featureCount;
             _absentFeaturesLogProb = CalculateAbsentFeatureLogProbabilities(_labelHistogram, _featureHistogram, _featureCount);
-            _inputType = new VectorType(NumberDataViewType.Float, _featureCount);
-            _outputType = new VectorType(NumberDataViewType.R4, _labelCount);
+            _inputType = new VectorType(NumberDataViewType.Single, _featureCount);
+            _outputType = new VectorType(NumberDataViewType.Single, _labelCount);
         }
 
         private MultiClassNaiveBayesModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -301,8 +301,8 @@ namespace Microsoft.ML.Trainers
 
             _absentFeaturesLogProb = ctx.Reader.ReadDoubleArray(_labelCount);
             _totalTrainingCount = _labelHistogram.Sum();
-            _inputType = new VectorType(NumberDataViewType.Float, _featureCount);
-            _outputType = new VectorType(NumberDataViewType.R4, _labelCount);
+            _inputType = new VectorType(NumberDataViewType.Single, _featureCount);
+            _outputType = new VectorType(NumberDataViewType.Single, _labelCount);
         }
 
         private static MultiClassNaiveBayesModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)

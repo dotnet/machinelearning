@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms.Projections
             public float[][] Eigenvectors;
             public float[] MeanProjected;
 
-            public DataViewType OutputType => new VectorType(NumberDataViewType.Float, Rank);
+            public DataViewType OutputType => new VectorType(NumberDataViewType.Single, Rank);
 
             public TransformInfo(int rank, int dim)
             {
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Transforms.Projections
         {
             string inputSchema; // just used for the excpections
 
-            if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberDataViewType.R4)))
+            if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberDataViewType.Single)))
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "known-size vector of float of two or more items", type.ToString());
         }
 
@@ -531,7 +531,7 @@ namespace Microsoft.ML.Transforms.Projections
                     {
                         if (!schema.TryGetColumnIndex(weightColumn, out weightIndex))
                             throw Contracts.Except("Weight column '{0}' does not exist.", weightColumn);
-                        Contracts.CheckParam(schema[weightIndex].Type == NumberDataViewType.Float, nameof(weightColumn));
+                        Contracts.CheckParam(schema[weightIndex].Type == NumberDataViewType.Single, nameof(weightColumn));
                     }
                     WeightColumnIndex = weightIndex;
                 }
@@ -553,7 +553,7 @@ namespace Microsoft.ML.Transforms.Projections
                     if (colSchemaInfo.InputType.GetVectorSize() != _parent._transformInfos[i].Dimension)
                     {
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName,
-                            new VectorType(NumberDataViewType.R4, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
+                            new VectorType(NumberDataViewType.Single, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
                     }
                 }
             }
@@ -744,11 +744,11 @@ namespace Microsoft.ML.Transforms.Projections
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
-                if (col.Kind != SchemaShape.Column.VectorKind.Vector || !col.ItemType.Equals(NumberDataViewType.R4))
+                if (col.Kind != SchemaShape.Column.VectorKind.Vector || !col.ItemType.Equals(NumberDataViewType.Single))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name,
-                    SchemaShape.Column.VectorKind.Vector, NumberDataViewType.R4, false);
+                    SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(result.Values);

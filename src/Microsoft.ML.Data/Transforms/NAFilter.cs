@@ -191,9 +191,9 @@ namespace Microsoft.ML.Transforms
             Contracts.AssertValue(type);
 
             var itemType = (type as VectorType)?.ItemType ?? type;
-            if (itemType == NumberDataViewType.R4)
+            if (itemType == NumberDataViewType.Single)
                 return true;
-            if (itemType == NumberDataViewType.R8)
+            if (itemType == NumberDataViewType.Double)
                 return true;
             if (itemType is KeyType)
                 return true;

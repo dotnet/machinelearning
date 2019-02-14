@@ -192,7 +192,7 @@ namespace Microsoft.ML.Transforms
             protected override DataViewType GetColumnTypeCore(int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                return UseCounter[iinfo] ? NumberDataViewType.I8 : NumberDataViewType.Float;
+                return UseCounter[iinfo] ? NumberDataViewType.Int64 : NumberDataViewType.Single;
             }
 
             protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)

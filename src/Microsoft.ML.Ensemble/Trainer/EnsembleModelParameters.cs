@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         private readonly VectorType _inputType;
         DataViewType IValueMapper.InputType => _inputType;
-        DataViewType IValueMapper.OutputType => NumberDataViewType.Float;
+        DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
         public override PredictionKind PredictionKind { get; }
 
         /// <summary>
@@ -91,14 +91,14 @@ namespace Microsoft.ML.Trainers.Ensemble
                 mappers[i] = vm;
             }
 
-            return inputType ?? new VectorType(NumberDataViewType.Float);
+            return inputType ?? new VectorType(NumberDataViewType.Single);
         }
 
         private bool IsValid(IValueMapper mapper, out VectorType inputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inputVectorType && inputVectorType.ItemType == NumberDataViewType.Float
-                && mapper.OutputType == NumberDataViewType.Float)
+                && mapper.InputType is VectorType inputVectorType && inputVectorType.ItemType == NumberDataViewType.Single
+                && mapper.OutputType == NumberDataViewType.Single)
             {
                 inputType = inputVectorType;
                 return true;

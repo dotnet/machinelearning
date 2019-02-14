@@ -121,8 +121,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
 
                 var colType = inputSchema[col].Type;
-                if (colType != NumberDataViewType.R4)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, NumberDataViewType.R4.ToString(), colType.ToString());
+                if (colType != NumberDataViewType.Single)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, NumberDataViewType.Single.ToString(), colType.ToString());
 
                 return Transform(new EmptyDataView(Host, inputSchema)).Schema;
             }

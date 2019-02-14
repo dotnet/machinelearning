@@ -164,9 +164,9 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 // not be one of the built in types. (For example, an outside analogy to the key types.) For this
                 // reason, we must be certain that when we return here we are covering one fo the builtin types.
                 if (physType != null && (
-                    pt == NumberDataViewType.I1 || pt == NumberDataViewType.I2 || pt == NumberDataViewType.I4 || pt == NumberDataViewType.I4 ||
-                    pt == NumberDataViewType.U1 || pt == NumberDataViewType.U2 || pt == NumberDataViewType.U4 || pt == NumberDataViewType.U4 ||
-                    pt == NumberDataViewType.R4 || pt == NumberDataViewType.R8 || pt == NumberDataViewType.UG || pt == BooleanDataViewType.Instance ||
+                    pt == NumberDataViewType.SByte || pt == NumberDataViewType.Int16 || pt == NumberDataViewType.Int32 || pt == NumberDataViewType.Int32 ||
+                    pt == NumberDataViewType.Byte || pt == NumberDataViewType.UInt16 || pt == NumberDataViewType.UInt32 || pt == NumberDataViewType.UInt32 ||
+                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == NumberDataViewType.DataViewRowId || pt == BooleanDataViewType.Instance ||
                     pt == DateTimeDataViewType.Instance || pt == DateTimeOffsetDataViewType.Instance || pt == TimeSpanDataViewType.Instance ||
                     pt == TextDataViewType.Instance))
                 {
@@ -309,9 +309,9 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 // not be one of the built in types. (For example, an outside analogy to the key types.) For this
                 // reason, we must be certain that when we return here we are covering one fo the builtin types.
                 if (physType != null && (
-                    pt == NumberDataViewType.I1 || pt == NumberDataViewType.I2 || pt == NumberDataViewType.I4 || pt == NumberDataViewType.I8 ||
-                    pt == NumberDataViewType.U1 || pt == NumberDataViewType.U2 || pt == NumberDataViewType.U4 || pt == NumberDataViewType.U8 ||
-                    pt == NumberDataViewType.R4 || pt == NumberDataViewType.R8 || pt == NumberDataViewType.UG || pt == BooleanDataViewType.Instance ||
+                    pt == NumberDataViewType.SByte || pt == NumberDataViewType.Int16 || pt == NumberDataViewType.Int32 || pt == NumberDataViewType.Int64 ||
+                    pt == NumberDataViewType.Byte || pt == NumberDataViewType.UInt16 || pt == NumberDataViewType.UInt32 || pt == NumberDataViewType.UInt64 ||
+                    pt == NumberDataViewType.Single || pt == NumberDataViewType.Double || pt == NumberDataViewType.DataViewRowId || pt == BooleanDataViewType.Instance ||
                     pt == DateTimeDataViewType.Instance || pt == DateTimeOffsetDataViewType.Instance || pt == TimeSpanDataViewType.Instance ||
                     pt == TextDataViewType.Instance))
                 {

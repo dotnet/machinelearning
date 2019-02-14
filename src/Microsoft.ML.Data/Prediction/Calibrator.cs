@@ -278,7 +278,7 @@ namespace Microsoft.ML.Internal.Calibration
 
         DataViewType IValueMapper.InputType => _mapper.InputType;
         DataViewType IValueMapper.OutputType => _mapper.OutputType;
-        DataViewType IValueMapperDist.DistType => NumberDataViewType.Float;
+        DataViewType IValueMapperDist.DistType => NumberDataViewType.Single;
         bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
 
         public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Internal.Calibration
 
             _mapper = SubModel as IValueMapper;
             Host.Check(_mapper != null, "The predictor does not implement IValueMapper");
-            Host.Check(_mapper.OutputType == NumberDataViewType.Float, "The output type of the predictor is expected to be float");
+            Host.Check(_mapper.OutputType == NumberDataViewType.Single, "The output type of the predictor is expected to be float");
 
             _featureContribution = predictor as IFeatureContributionMapper;
         }
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Internal.Calibration
 
             private Delegate GetProbGetter(DataViewRow input)
             {
-                var scoreGetter = RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.R4, input, _scoreCol);
+                var scoreGetter = RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.Single, input, _scoreCol);
                 ValueGetter<Single> probGetter =
                     (ref Single dst) =>
                     {
@@ -810,9 +810,9 @@ namespace Microsoft.ML.Internal.Calibration
                 return false;
             }
             var type = outputSchema[scoreCol].Type;
-            if (type != NumberDataViewType.Float)
+            if (type != NumberDataViewType.Single)
             {
-                ch.Info("Not training a calibrator because the predictor output is {0}, but expected to be {1}.", type, NumberDataViewType.R4);
+                ch.Info("Not training a calibrator because the predictor output is {0}, but expected to be {1}.", type, NumberDataViewType.Single);
                 return false;
             }
             return true;
@@ -892,9 +892,9 @@ namespace Microsoft.ML.Internal.Calibration
             using (var cursor = scored.GetRowCursor(cols))
             {
                 var labelGetter = RowCursorUtils.GetLabelGetter(cursor, labelCol.Index);
-                var scoreGetter = RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.R4, cursor, scoreCol.Index);
+                var scoreGetter = RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.Single, cursor, scoreCol.Index);
                 ValueGetter<Single> weightGetter = !weightCol.HasValue ? (ref float dst) => dst = 1 :
-                    RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.R4, cursor, weightCol.Value.Index);
+                    RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.Single, cursor, weightCol.Value.Index);
 
                 int num = 0;
                 while (cursor.MoveNext())
