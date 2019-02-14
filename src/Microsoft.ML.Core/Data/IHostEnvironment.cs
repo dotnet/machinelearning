@@ -34,6 +34,8 @@ namespace Microsoft.ML
         /// </summary>
         public static IFileHandle OpenInputFile(this IHostEnvironment env, string path)
         {
+            Contracts.AssertValue(env);
+            Contracts.CheckNonWhiteSpace(path, nameof(path));
             return new SimpleFileHandle(env, path, needsWrite: false, autoDelete: false);
         }
 
@@ -42,6 +44,8 @@ namespace Microsoft.ML
         /// </summary>
         public static IFileHandle CreateOutputFile(this IHostEnvironment env, string path)
         {
+            Contracts.AssertValue(env);
+            Contracts.CheckNonWhiteSpace(path, nameof(path));
             return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
         }
     }
