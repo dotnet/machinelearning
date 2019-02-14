@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Resources/**" />
     <EmbeddedResource Include="Resources/**/*.cs">
       <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>

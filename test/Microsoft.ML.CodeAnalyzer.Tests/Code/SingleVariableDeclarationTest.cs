@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
+using VerifyCS = Microsoft.ML.CodeAnalyzer.Tests.Helpers.CSharpCodeFixVerifier<
+    Microsoft.ML.InternalCodeAnalyzer.SingleVariableDeclarationAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
-    public sealed class SingleVariableDeclarationTest : DiagnosticVerifier<SingleVariableDeclarationAnalyzer>
+    public sealed class SingleVariableDeclarationTest
     {
         [Fact]
-        public void SingleVariableDeclaration()
+        public async Task SingleVariableDeclaration()
         {
             const string test = @"
 namespace TestNamespace
@@ -34,16 +38,13 @@ namespace TestNamespace
     }
 }";
 
-            var analyzer = GetCSharpDiagnosticAnalyzer();
-            var diag = analyzer.SupportedDiagnostics[0];
-
             var expected = new DiagnosticResult[] {
-                diag.CreateDiagnosticResult(5, 9, "a', 'b', 'c"),
-                diag.CreateDiagnosticResult(7, 9, "e', 'f"),
-                diag.CreateDiagnosticResult(16, 17, "l', 'm"),
+                VerifyCS.Diagnostic().WithLocation(6, 9).WithArguments("a', 'b', 'c"),
+                VerifyCS.Diagnostic().WithLocation(8, 9).WithArguments("e', 'f"),
+                VerifyCS.Diagnostic().WithLocation(17, 17).WithArguments("l', 'm"),
             };
 
-            VerifyCSharpDiagnostic(test, expected);
+            await VerifyCS.VerifyAnalyzerAsync(test, expected);
         }
     }
 }
