@@ -8,7 +8,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
@@ -32,7 +31,7 @@ using Microsoft.ML.Transforms.Projections;
 [assembly: LoadableClass(typeof(void), typeof(PrincipalComponentAnalysisTransformer), null, typeof(SignatureEntryPointModule), PrincipalComponentAnalysisTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Projections
-{
+    {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PrincipalComponentAnalysisTransformer : OneToOneTransformerBase
     {

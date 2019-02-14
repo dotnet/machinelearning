@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Text;
 

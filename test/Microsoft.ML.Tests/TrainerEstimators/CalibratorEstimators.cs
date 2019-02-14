@@ -4,7 +4,6 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrator;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Xunit;
@@ -21,15 +20,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var calibratorTestData = GetCalibratorTestData();
 
-            // platCalibrator
-            var platCalibratorEstimator = new PlattCalibratorEstimator(Env, calibratorTestData.transformer.Model, "Label", "Features");
-            var platCalibratorTransformer = platCalibratorEstimator.Fit(calibratorTestData.scoredData);
+            // plattCalibrator
+            var plattCalibratorEstimator = new PlattCalibratorEstimator(Env);
+            var plattCalibratorTransformer = plattCalibratorEstimator.Fit(calibratorTestData.ScoredData);
 
             //testData
-            checkValidCalibratedData(calibratorTestData.scoredData, platCalibratorTransformer);
+            CheckValidCalibratedData(calibratorTestData.ScoredData, plattCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(platCalibratorEstimator, calibratorTestData.scoredData);
+            TestEstimatorCore(plattCalibratorEstimator, calibratorTestData.ScoredData);
 
             Done();
         }
@@ -38,18 +37,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// OVA and calibrators
         /// </summary>
         [Fact]
-        public void FixedPlatCalibratorEstimator()
+        public void FixedPlattCalibratorEstimator()
         {
             var calibratorTestData = GetCalibratorTestData();
 
-            // fixedPlatCalibrator
-            var fixedPlatCalibratorEstimator = new FixedPlattCalibratorEstimator(Env, calibratorTestData.transformer.Model, labelColumn: "Label", featureColumn: "Features");
-            var fixedPlatCalibratorTransformer = fixedPlatCalibratorEstimator.Fit(calibratorTestData.scoredData);
+            // fixedPlattCalibrator
+            var fixedPlattCalibratorEstimator = new FixedPlattCalibratorEstimator(Env);
+            var fixedPlattCalibratorTransformer = fixedPlattCalibratorEstimator.Fit(calibratorTestData.ScoredData);
 
-            checkValidCalibratedData(calibratorTestData.scoredData, fixedPlatCalibratorTransformer);
+            CheckValidCalibratedData(calibratorTestData.ScoredData, fixedPlattCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.pipeline, calibratorTestData.data);
+            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
 
             Done();
         }
@@ -63,14 +62,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var calibratorTestData = GetCalibratorTestData();
 
             // naive calibrator
-            var naiveCalibratorEstimator = new NaiveCalibratorEstimator(Env, calibratorTestData.transformer.Model, "Label", "Features");
-            var naiveCalibratorTransformer = naiveCalibratorEstimator.Fit(calibratorTestData.scoredData);
+            var naiveCalibratorEstimator = new NaiveCalibratorEstimator(Env);
+            var naiveCalibratorTransformer = naiveCalibratorEstimator.Fit(calibratorTestData.ScoredData);
 
             // check data
-            checkValidCalibratedData(calibratorTestData.scoredData, naiveCalibratorTransformer);
+            CheckValidCalibratedData(calibratorTestData.ScoredData, naiveCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.pipeline, calibratorTestData.data);
+            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
 
             Done();
         }
@@ -83,14 +82,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var calibratorTestData = GetCalibratorTestData();
 
             // pav calibrator
-            var pavCalibratorEstimator = new PavCalibratorEstimator(Env, calibratorTestData.transformer.Model, "Label", "Features");
-            var pavCalibratorTransformer = pavCalibratorEstimator.Fit(calibratorTestData.scoredData);
+            var pavCalibratorEstimator = new PavCalibratorEstimator(Env);
+            var pavCalibratorTransformer = pavCalibratorEstimator.Fit(calibratorTestData.ScoredData);
 
             //check data
-            checkValidCalibratedData(calibratorTestData.scoredData, pavCalibratorTransformer);
+            CheckValidCalibratedData(calibratorTestData.ScoredData, pavCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.pipeline, calibratorTestData.data);
+            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
 
             Done();
         }
@@ -109,24 +108,24 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             return new CalibratorTestData
             {
-                data = data,
-                scoredData = scoredData,
-                pipeline = pipeline,
-                transformer = ((TransformerChain<BinaryPredictionTransformer<LinearBinaryModelParameters>>)transformer).LastTransformer as BinaryPredictionTransformer<LinearBinaryModelParameters>,
+                Data = data,
+                ScoredData = scoredData,
+                Pipeline = pipeline,
+                Transformer = ((TransformerChain<BinaryPredictionTransformer<LinearBinaryModelParameters>>)transformer).LastTransformer as BinaryPredictionTransformer<LinearBinaryModelParameters>,
             };
         }
 
-        private class CalibratorTestData
+        private sealed class CalibratorTestData
         {
-            internal IDataView data { get; set; }
-            internal IDataView scoredData { get; set; }
-            internal IEstimator<ITransformer> pipeline { get; set; }
+            public IDataView Data { get; set; }
+            public IDataView ScoredData { get; set; }
+            public IEstimator<ITransformer> Pipeline { get; set; }
 
-            internal BinaryPredictionTransformer<LinearBinaryModelParameters> transformer { get; set; }
+            public BinaryPredictionTransformer<LinearBinaryModelParameters> Transformer { get; set; }
         }
 
 
-        void checkValidCalibratedData (IDataView scoredData, ITransformer transformer){
+        private void CheckValidCalibratedData(IDataView scoredData, ITransformer transformer){
 
             var calibratedData = transformer.Transform(scoredData).Preview();
 

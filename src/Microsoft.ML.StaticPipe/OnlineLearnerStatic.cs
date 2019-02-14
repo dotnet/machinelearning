@@ -61,7 +61,7 @@ namespace Microsoft.ML.StaticPipe
                 (env, labelName, featuresName, weightsName) =>
                 {
 
-                    var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, weightsName, lossFunction,
+                    var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, lossFunction,
                         learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
 
                     if (onFit != null)
@@ -120,7 +120,6 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.InitialWeights = weightsName;
 
                     var trainer = new AveragedPerceptronTrainer(env, options);
 
@@ -179,7 +178,7 @@ namespace Microsoft.ML.StaticPipe
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new OnlineGradientDescentTrainer(env, labelName, featuresName, learningRate,
-                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction);
+                        decreaseLearningRate, l2RegularizerWeight, numIterations, lossFunction);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -225,7 +224,6 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.InitialWeights = weightsName;
 
                     var trainer = new OnlineGradientDescentTrainer(env, options);
 
@@ -239,7 +237,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    internal static class OnlineLinearStaticUtils{
+    internal static class OnlineLinearStaticUtils
+    {
 
         internal static void CheckUserParams(PipelineColumn label,
             PipelineColumn features,

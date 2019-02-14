@@ -375,6 +375,9 @@ namespace Microsoft.ML.LightGBM
         [TlcModule.SweepableDiscreteParam("CatL2", new object[] { 0.1, 0.5, 1, 5, 10 })]
         public double CatL2 = 10;
 
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Sets the random seed for LightGBM to use.")]
+        public int? Seed;
+
         [Argument(ArgumentType.Multiple, HelpText = "Parallel LightGBM Learning Algorithm", ShortName = "parag")]
         internal ISupportParallel ParallelTrainer = new SingleTrainerFactory();
 
@@ -394,7 +397,7 @@ namespace Microsoft.ML.LightGBM
             if (NThread.HasValue)
                 res["nthread"] = NThread.Value;
 
-            res["seed"] = host.Rand.Next();
+            res["seed"] = (Seed.HasValue) ? Seed : host.Rand.Next();
 
             string metric = null;
             switch (EvalMetric)

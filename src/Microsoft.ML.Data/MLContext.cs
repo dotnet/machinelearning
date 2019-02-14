@@ -41,6 +41,11 @@ namespace Microsoft.ML
         public RankingCatalog Ranking { get; }
 
         /// <summary>
+        /// Trainers and tasks specific to anomaly detection problems.
+        /// </summary>
+        public AnomalyDetectionCatalog AnomalyDetection { get; }
+
+        /// <summary>
         /// Data processing operations.
         /// </summary>
         public TransformsCatalog Transforms { get; }
@@ -83,6 +88,7 @@ namespace Microsoft.ML
             Regression = new RegressionCatalog(_env);
             Clustering = new ClusteringCatalog(_env);
             Ranking = new RankingCatalog(_env);
+            AnomalyDetection = new AnomalyDetectionCatalog(_env);
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataOperationsCatalog(_env);
