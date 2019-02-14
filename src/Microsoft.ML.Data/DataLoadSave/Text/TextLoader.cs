@@ -1231,6 +1231,7 @@ namespace Microsoft.ML.Data
         {
             host.AssertValue(host);
             host.AssertValue(files);
+            host.CheckValue(options, nameof(options));
 
             cols = null;
             error = false;
