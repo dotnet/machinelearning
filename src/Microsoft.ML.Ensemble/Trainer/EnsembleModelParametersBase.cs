@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     public abstract class EnsembleModelParametersBase<TOutput> : ModelParametersBase<TOutput>,
         IPredictorProducing<TOutput>, ICanSaveInTextFormat, ICanSaveSummary

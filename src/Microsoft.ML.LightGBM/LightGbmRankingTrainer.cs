@@ -5,7 +5,6 @@
 using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.LightGBM;
@@ -75,9 +74,9 @@ namespace Microsoft.ML.LightGBM
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, RankingPredictionTransformer<LightGbmRankingModelParameters>, LightGbmRankingModelParameters>
     {
-        public const string UserName = "LightGBM Ranking";
-        public const string LoadNameValue = "LightGBMRanking";
-        public const string ShortName = "LightGBMRank";
+        internal const string UserName = "LightGBM Ranking";
+        internal const string LoadNameValue = "LightGBMRanking";
+        internal const string ShortName = "LightGBMRank";
 
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 

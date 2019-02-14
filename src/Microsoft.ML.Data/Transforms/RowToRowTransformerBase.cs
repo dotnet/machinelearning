@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
@@ -47,7 +46,8 @@ namespace Microsoft.ML.Data
 
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
 
-        protected RowToRowMapperTransform MakeDataTransform(IDataView input)
+        [BestFriend]
+        private protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
             return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);

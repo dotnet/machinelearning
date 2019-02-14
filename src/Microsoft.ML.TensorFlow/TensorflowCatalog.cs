@@ -85,23 +85,23 @@ namespace Microsoft.ML
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, tensorFlowModel);
 
         /// <summary>
-        /// Score or Retrain a tensorflow model (based on setting of the <see cref="TensorFlowTransformer.Options.ReTrain"/>) setting.
-        /// The model is specified in the <see cref="TensorFlowTransformer.Options.ModelLocation"/>.
+        /// Score or Retrain a tensorflow model (based on setting of the <see cref="TensorFlowEstimator.Options.ReTrain"/>) setting.
+        /// The model is specified in the <see cref="TensorFlowEstimator.Options.ModelLocation"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="options">The <see cref="TensorFlowTransformer.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
+        /// <param name="options">The <see cref="TensorFlowEstimator.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
         public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
-            TensorFlowTransformer.Options options)
+            TensorFlowEstimator.Options options)
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), options);
 
         /// <summary>
-        /// Scores or retrains (based on setting of the <see cref="TensorFlowTransformer.Options.ReTrain"/>) a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
+        /// Scores or retrains (based on setting of the <see cref="TensorFlowEstimator.Options.ReTrain"/>) a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="options">The <see cref="TensorFlowTransformer.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
+        /// <param name="options">The <see cref="TensorFlowEstimator.Options"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
         /// <param name="tensorFlowModel">The pre-loaded TensorFlow model.</param>
         public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
-            TensorFlowTransformer.Options options,
+            TensorFlowEstimator.Options options,
             TensorFlowModelInfo tensorFlowModel)
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), options, tensorFlowModel);
     }

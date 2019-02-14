@@ -4,12 +4,9 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TimeSeries;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
 namespace Microsoft.ML.Tests

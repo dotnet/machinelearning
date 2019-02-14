@@ -371,12 +371,36 @@ namespace Microsoft.ML.SamplesUtils
 
         private const int _simpleBinaryClassSampleFeatureLength = 10;
 
+        /// <summary>
+        /// Example with one binary label and 10 feature values.
+        /// </summary>
         public class BinaryLabelFloatFeatureVectorSample
         {
             public bool Label;
 
             [VectorType(_simpleBinaryClassSampleFeatureLength)]
             public float[] Features;
+        }
+
+        /// <summary>
+        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
+        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// </summary>
+        public class CalibratedBinaryClassifierOutput
+        {
+            public bool Label;
+            public float Score;
+            public float Probability;
+        }
+
+        /// <summary>
+        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
+        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// </summary>
+        public class NonCalibratedBinaryClassifierOutput
+        {
+            public bool Label;
+            public float Score;
         }
 
         public static IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)

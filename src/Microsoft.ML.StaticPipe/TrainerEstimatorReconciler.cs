@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
@@ -259,7 +258,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
         /// <summary>
         /// A reconciler capable of handling the most common cases for binary classification that does not
-        /// necessarily have calibrated outputs.
+        /// have calibrated outputs and therefore no probability output is produced. If probability output
+        /// is required, please add a calibrator after this trainer.
         /// </summary>
         public sealed class BinaryClassifierNoCalibration : TrainerEstimatorReconciler
         {
@@ -274,7 +274,6 @@ namespace Microsoft.ML.StaticPipe.Runtime
             public delegate IEstimator<ITransformer> EstimatorFactory(IHostEnvironment env, string label, string features, string weights);
 
             private readonly EstimatorFactory _estFact;
-            private static readonly string[] _fixedOutputNamesProb = new[] { DefaultColumnNames.Score, DefaultColumnNames.Probability, DefaultColumnNames.PredictedLabel };
             private static readonly string[] _fixedOutputNames = new[] { DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel };
 
             /// <summary>
@@ -283,9 +282,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             public (Scalar<float> score, Scalar<bool> predictedLabel) Output { get; }
 
             /// <summary>
-            /// The output columns, which will contain at least the columns produced by <see cref="Output"/> and may contain an
-            /// additional <see cref="DefaultColumnNames.Probability"/> column if at runtime we determine the predictor actually
-            /// is calibrated.
+            /// The output columns, which will contain at least the columns produced by <see cref="Output"/>.
             /// </summary>
             protected override IEnumerable<PipelineColumn> Outputs { get; }
 
@@ -297,12 +294,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
             /// <param name="label">The input label column.</param>
             /// <param name="features">The input features column.</param>
             /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
-            /// <param name="hasProbs">While this type is a compile time construct, it may be that at runtime we have determined that we will have probabilities,
-            /// and so ought to do the renaming of the <see cref="DefaultColumnNames.Probability"/> column anyway if appropriate. If this is so, then this should
-            /// be set to true.</param>
-            public BinaryClassifierNoCalibration(EstimatorFactory estimatorFactory, Scalar<bool> label, Vector<float> features, Scalar<float> weights, bool hasProbs)
-                : base(MakeInputs(Contracts.CheckRef(label, nameof(label)), Contracts.CheckRef(features, nameof(features)), weights),
-                      hasProbs ? _fixedOutputNamesProb : _fixedOutputNames)
+            public BinaryClassifierNoCalibration(EstimatorFactory estimatorFactory, Scalar<bool> label, Vector<float> features, Scalar<float> weights)
+                : base(MakeInputs(Contracts.CheckRef(label, nameof(label)), Contracts.CheckRef(features, nameof(features)), weights), _fixedOutputNames)
             {
                 Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
                 _estFact = estimatorFactory;
@@ -310,10 +303,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
                 Output = (new Impl(this), new ImplBool(this));
 
-                if (hasProbs)
-                    Outputs = new PipelineColumn[] { Output.score, new Impl(this), Output.predictedLabel };
-                else
-                    Outputs = new PipelineColumn[] { Output.score, Output.predictedLabel };
+                Outputs = new PipelineColumn[] { Output.score, Output.predictedLabel };
             }
 
             private static PipelineColumn[] MakeInputs(Scalar<bool> label, Vector<float> features, Scalar<float> weights)

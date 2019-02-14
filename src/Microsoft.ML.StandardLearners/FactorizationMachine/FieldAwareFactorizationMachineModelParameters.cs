@@ -285,17 +285,17 @@ namespace Microsoft.ML.FactorizationMachine
 
     public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters>
     {
-        public const string LoaderSignature = "FAFMPredXfer";
+        internal const string LoaderSignature = "FAFMPredXfer";
 
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        public IReadOnlyList<string> FeatureColumns { get; }
+        internal IReadOnlyList<string> FeatureColumns { get; }
 
         /// <summary>
         /// The type of the feature columns.
         /// </summary>
-        public IReadOnlyList<ColumnType> FeatureColumnTypes { get; }
+        internal IReadOnlyList<ColumnType> FeatureColumnTypes { get; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;

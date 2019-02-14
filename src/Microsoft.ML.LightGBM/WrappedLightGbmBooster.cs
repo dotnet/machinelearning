@@ -100,12 +100,12 @@ namespace Microsoft.ML.LightGBM
             var values = new List<double>();
             foreach (var token in str.Split(delimiter))
             {
-                var trimmed = token.Trim();
+                var trimmed = token.Trim().ToLowerInvariant();
 
-                if (trimmed.Equals("inf", StringComparison.OrdinalIgnoreCase))
-                    values.Add(double.PositiveInfinity);
-                else if (trimmed.Equals("-inf", StringComparison.OrdinalIgnoreCase))
+                if (trimmed.Contains("-inf"))
                     values.Add(double.NegativeInfinity);
+                else if (trimmed.Contains("inf"))
+                    values.Add(double.PositiveInfinity);
                 else if (trimmed.Contains("nan"))
                     values.Add(double.NaN);
                 else

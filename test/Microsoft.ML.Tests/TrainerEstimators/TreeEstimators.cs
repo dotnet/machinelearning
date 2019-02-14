@@ -388,6 +388,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 for (int j = 0; j < _classNumber; ++j)
                 {
                     Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    if (float.IsNaN((float)nativeResult1[j + i * _classNumber]))
+                        continue;
                     sum += MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
                 }
                 for (int j = 0; j < _classNumber; ++j)
