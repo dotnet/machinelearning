@@ -27,11 +27,11 @@ namespace Microsoft.ML.LightGBM
     internal delegate void SignatureLightGBMBooster();
 
     [TlcModule.ComponentKind("BoosterParameterFunction")]
-    internal interface ISupportBoosterParameterFactory : IComponentFactory<IBoosterParameter>
+    public interface ISupportBoosterParameterFactory : IComponentFactory<IBoosterParameter>
     {
     }
 
-    internal interface IBoosterParameter
+    public interface IBoosterParameter
     {
         void UpdateParameters(Dictionary<string, object> res);
     }
@@ -310,11 +310,8 @@ namespace Microsoft.ML.LightGBM
         [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of bucket bin for features.", ShortName = "mb")]
         public int MaxBin = 255;
 
-        [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        internal ISupportBoosterParameterFactory BoosterFactory = new TreeBooster.Arguments();
-
-        [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-        public TreeBooster.Arguments Booster = new TreeBooster.Arguments();
+        [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3)]
+        public ISupportBoosterParameterFactory Booster = new TreeBooster.Arguments();
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose", ShortName = "v")]
         public bool VerboseEval = false;
