@@ -1047,7 +1047,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowStringTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var model = TensorFlowUtils.LoadTensorFlowModel(mlContext, @"E:\Tensorflow\TextModels\model_string_test");
+            var model = TensorFlowUtils.LoadTensorFlowModel(mlContext, @"model_string_test");
             var schema = model.GetModelSchema();
             Assert.True(schema.TryGetColumnIndex("A", out var colIndex));
             Assert.True(schema.TryGetColumnIndex("B", out colIndex));
