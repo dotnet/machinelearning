@@ -19,8 +19,7 @@ namespace Samples
 
         public static void Run()
         {
-            //Create ML Context with seed for repeteable/deterministic results
-            MLContext mlContext = new MLContext(seed: 0);
+            MLContext mlContext = new MLContext();
 
             // STEP 1: Infer columns
             var columnInference = mlContext.Data.InferColumns(TrainDataPath, LabelColumnName, '\t');
@@ -32,16 +31,16 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tuning
             Console.WriteLine($"Invoking MulticlassClassification.AutoFit");
-            var autoFitResults = mlContext.MulticlassClassification.AutoFit(trainDataView, timeoutInSeconds: 1);
+            var autoFitResults = mlContext.MulticlassClassification.AutoFit(trainDataView, timeoutInSeconds: 60);
 
             // STEP 4: Print metric from the best model
             var best = autoFitResults.Best();
-            Console.WriteLine($"AccuracyMacro of best model from validation data {best.Metrics.AccuracyMacro}");
+            Console.WriteLine($"AccuracyMacro of best model from validation data: {best.Metrics.AccuracyMacro}");
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
-            var testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: DefaultColumnNames.Label, DefaultColumnNames.Score);
-            Console.WriteLine($"AccuracyMacro of best model from test data {best.Metrics.AccuracyMacro}");
+            var testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore, label: DefaultColumnNames.Label, DefaultColumnNames.Score);
+            Console.WriteLine($"AccuracyMacro of best model from test data: {best.Metrics.AccuracyMacro}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (var fs = File.Create(ModelPath))

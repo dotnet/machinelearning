@@ -19,8 +19,7 @@ namespace Samples
 
         public static void Run()
         {
-            //Create ML Context with seed for repeteable/deterministic results
-            MLContext mlContext = new MLContext(seed: 0);
+            MLContext mlContext = new MLContext();
 
             // STEP 1: Common data loading configuration
             var columnInference = mlContext.Data.InferColumns(TrainDataPath, LabelColumnName, ',');
@@ -32,16 +31,16 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tuning
             Console.WriteLine($"Invoking Regression.AutoFit");
-            var autoFitResults = mlContext.Regression.AutoFit(trainDataView, LabelColumnName, timeoutInSeconds:1);
+            var autoFitResults = mlContext.Regression.AutoFit(trainDataView, LabelColumnName, timeoutInSeconds: 60);
             
             // STEP 4: Compare and print actual value vs predicted value for top 5 rows from validation data
             var best = autoFitResults.Best();
-            Console.WriteLine($"RSquared of best model from validation data {best.Metrics.RSquared}");
+            Console.WriteLine($"RSquared of best model from validation data: {best.Metrics.RSquared}");
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
             var testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: DefaultColumnNames.Label, DefaultColumnNames.Score);
-            Console.WriteLine($"RSquared of best model from test data {best.Metrics.RSquared}");
+            Console.WriteLine($"RSquared of best model from test data: {best.Metrics.RSquared}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (var fs = File.Create(ModelPath))
