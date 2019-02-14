@@ -825,7 +825,7 @@ namespace Microsoft.ML.RunTests
             var scoreCol = binaryScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with binary ensemble does not have a score column");
             var type = binaryScored.Schema[scoreCol.Value.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
-            Assert.True(type is TextType, "Binary ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextDataViewType, "Binary ensemble scored data does not have correct type of metadata.");
             var kind = default(ReadOnlyMemory<char>);
             binaryScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
@@ -834,7 +834,7 @@ namespace Microsoft.ML.RunTests
             scoreCol = regressionScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with regression ensemble does not have a score column");
             type = regressionScored.Schema[scoreCol.Value.Index].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
-            Assert.True(type is TextType, "Regression ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextDataViewType, "Regression ensemble scored data does not have correct type of metadata.");
             regressionScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
                 $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
@@ -842,7 +842,7 @@ namespace Microsoft.ML.RunTests
             scoreCol = anomalyScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
             Assert.True(scoreCol.HasValue, "Data scored with anomaly detection ensemble does not have a score column");
             type = anomalyScored.Schema[scoreCol.Value.Index].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
-            Assert.True(type is TextType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextDataViewType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
             anomalyScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
                 $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
@@ -985,7 +985,7 @@ namespace Microsoft.ML.RunTests
                         dst = false;
                 };
             dataView = LambdaColumnMapper.Create(Env, "TextToBinaryLabel", dataView, "Label", "Label",
-                TextType.Instance, BoolType.Instance, labelToBinary);
+                TextDataViewType.Instance, BooleanDataViewType.Instance, labelToBinary);
 
             const int nModels = 5;
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = nModels + 1 });
@@ -4467,7 +4467,7 @@ namespace Microsoft.ML.RunTests
             foldCol = schema.GetColumnOrNull("Fold Index");
             Assert.True(foldCol.HasValue);
             var type = schema["Count"].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
-            Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
+            Assert.True(type is VectorType vecType && vecType.ItemType is TextDataViewType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             schema["Count"].GetSlotNames(ref slotNames);
             var slotNameValues = slotNames.GetValues();

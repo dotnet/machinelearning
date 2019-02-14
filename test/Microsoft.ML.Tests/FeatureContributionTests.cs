@@ -264,12 +264,12 @@ namespace Microsoft.ML.Tests
 
             // Create data view.
             var bldr = new ArrayDataViewBuilder(Env);
-            bldr.AddColumn("X1", NumberType.Float, x1Array);
-            bldr.AddColumn("X2VBuffer", NumberType.Float, vbArray);
-            bldr.AddColumn("X3Important", NumberType.Float, x3Array);
-            bldr.AddColumn("Label", NumberType.Float, yArray);
+            bldr.AddColumn("X1", NumberDataViewType.Float, x1Array);
+            bldr.AddColumn("X2VBuffer", NumberDataViewType.Float, vbArray);
+            bldr.AddColumn("X3Important", NumberDataViewType.Float, x3Array);
+            bldr.AddColumn("Label", NumberDataViewType.Float, yArray);
             if (task == TaskType.Ranking)
-                bldr.AddColumn("GroupId", NumberType.U4, CreateGroupIds(yArray.Length));
+                bldr.AddColumn("GroupId", NumberDataViewType.U4, CreateGroupIds(yArray.Length));
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")

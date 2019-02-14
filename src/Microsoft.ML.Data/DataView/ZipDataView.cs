@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle { get { return false; } }
 
-        public Schema Schema => _zipBinding.OutputSchema;
+        public DataViewSchema Schema => _zipBinding.OutputSchema;
 
         public long? GetRowCount()
         {
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
             return min;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             _host.CheckValueOrNull(rand);
@@ -89,31 +89,31 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Create an <see cref="RowCursor"/> with no requested columns on a data view.
+        /// Create an <see cref="DataViewRowCursor"/> with no requested columns on a data view.
         /// Potentially, this can be optimized by calling GetRowCount(lazy:true) first, and if the count is not known,
         /// wrapping around GetCursor().
         /// </summary>
-        private RowCursor GetMinimumCursor(IDataView dv)
+        private DataViewRowCursor GetMinimumCursor(IDataView dv)
         {
             _host.AssertValue(dv);
             return dv.GetRowCursor();
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
-            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
+            return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         private sealed class Cursor : RootCursorBase
         {
-            private readonly RowCursor[] _cursors;
+            private readonly DataViewRowCursor[] _cursors;
             private readonly ZipBinding _zipBinding;
             private readonly bool[] _isColumnActive;
             private bool _disposed;
 
             public override long Batch { get { return 0; } }
 
-            public Cursor(ZipDataView parent, RowCursor[] srcCursors, Func<int, bool> predicate)
+            public Cursor(ZipDataView parent, DataViewRowCursor[] srcCursors, Func<int, bool> predicate)
                 : base(parent._host)
             {
                 Ch.AssertNonEmpty(srcCursors);
@@ -137,13 +137,13 @@ namespace Microsoft.ML.Data
                 base.Dispose(disposing);
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                        val = new RowId((ulong)Position, 0);
+                        val = new DataViewRowId((ulong)Position, 0);
                     };
             }
 
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public override Schema Schema => _zipBinding.OutputSchema;
+            public override DataViewSchema Schema => _zipBinding.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {

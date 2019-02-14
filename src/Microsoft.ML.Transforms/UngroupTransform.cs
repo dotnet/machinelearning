@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema OutputSchema => _ungroupBinding.OutputSchema;
+        public override DataViewSchema OutputSchema => _ungroupBinding.OutputSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, inputCursor, _ungroupBinding, predicate);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded,
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded,
             int n, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Transforms
 
             var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
             var inputCursors = Source.GetRowCursorSet(inputCols, n, null);
-            return Utils.BuildArray<RowCursor>(inputCursors.Length,
+            return Utils.BuildArray<DataViewRowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _ungroupBinding, predicate));
         }
 
@@ -223,9 +223,9 @@ namespace Microsoft.ML.Transforms
                 public readonly string Name;
                 public readonly int Index;
                 public readonly int Size;
-                public readonly PrimitiveType ItemType;
+                public readonly PrimitiveDataViewType ItemType;
 
-                public PivotColumnInfo(string name, int index, int size, PrimitiveType itemType)
+                public PivotColumnInfo(string name, int index, int size, PrimitiveDataViewType itemType)
                 {
                     Contracts.AssertNonEmpty(name);
                     Contracts.Assert(index >= 0);
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private readonly Schema _inputSchema;
+            private readonly DataViewSchema _inputSchema;
             private readonly IExceptionContext _ectx;
 
             /// <summary>
@@ -263,12 +263,12 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public readonly UngroupMode Mode;
             /// <summary>
-            /// Output data's <see cref="Schema"/> produced by this <see cref="UngroupTransform"/>
+            /// Output data's <see cref="DataViewSchema"/> produced by this <see cref="UngroupTransform"/>
             /// when input data's schema is <see cref="_inputSchema"/>.
             /// </summary>
-            public Schema OutputSchema { get; }
+            public DataViewSchema OutputSchema { get; }
 
-            public UngroupBinding(IExceptionContext ectx, Schema inputSchema, UngroupMode mode, string[] pivotColumns)
+            public UngroupBinding(IExceptionContext ectx, DataViewSchema inputSchema, UngroupMode mode, string[] pivotColumns)
             {
                 Contracts.AssertValueOrNull(ectx);
                 _ectx = ectx;
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms
                 OutputSchema = schemaBuilder.GetSchema();
             }
 
-            private static void Bind(IExceptionContext ectx, Schema inputSchema,
+            private static void Bind(IExceptionContext ectx, DataViewSchema inputSchema,
                 string[] pivotColumns, out PivotColumnInfo[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public static UngroupBinding Create(ModelLoadContext ctx, IExceptionContext ectx, Schema inputSchema)
+            public static UngroupBinding Create(ModelLoadContext ctx, IExceptionContext ectx, DataViewSchema inputSchema)
             {
                 Contracts.AssertValueOrNull(ectx);
                 ectx.AssertValue(ctx);
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Transforms
             // Parallel to columns.
             private int[] _colSizes;
 
-            public Cursor(IChannelProvider provider, RowCursor input, UngroupBinding schema, Func<int, bool> predicate)
+            public Cursor(IChannelProvider provider, DataViewRowCursor input, UngroupBinding schema, Func<int, bool> predicate)
                 : base(provider, input)
             {
                 _ungroupBinding = schema;
@@ -516,13 +516,13 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => Input.Batch;
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 var idGetter = Input.GetIdGetter();
-                return (ref RowId val) =>
+                return (ref DataViewRowId val) =>
                 {
                     idGetter(ref val);
-                    val = val.Combine(new RowId((ulong)_pivotColPosition, 0));
+                    val = val.Combine(new DataViewRowId((ulong)_pivotColPosition, 0));
                 };
             }
 
@@ -591,7 +591,7 @@ namespace Microsoft.ML.Transforms
                     };
             }
 
-            public override Schema Schema => _ungroupBinding.OutputSchema;
+            public override DataViewSchema Schema => _ungroupBinding.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            private ValueGetter<T> MakeGetter<T>(int col, PrimitiveType itemType)
+            private ValueGetter<T> MakeGetter<T>(int col, PrimitiveDataViewType itemType)
             {
                 var srcGetter = Input.GetGetter<VBuffer<T>>(col);
                 // The position of the source cursor. Used to extract the source row once.

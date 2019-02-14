@@ -14,12 +14,12 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TestEqualAndGetHashCode()
         {
-            var dict = new Dictionary<ColumnType, string>();
+            var dict = new Dictionary<DataViewType, string>();
             // add PrimitiveTypes, KeyType & corresponding VectorTypes
             VectorType tmp1, tmp2;
-            var types = new PrimitiveType[] { NumberType.I1, NumberType.I2, NumberType.I4, NumberType.I8,
-                NumberType.U1, NumberType.U2, NumberType.U4, NumberType.U8, NumberType.UG,
-                TextType.Instance, BoolType.Instance, DateTimeType.Instance, DateTimeOffsetType.Instance, TimeSpanType.Instance };
+            var types = new PrimitiveDataViewType[] { NumberDataViewType.I1, NumberDataViewType.I2, NumberDataViewType.I4, NumberDataViewType.I8,
+                NumberDataViewType.U1, NumberDataViewType.U2, NumberDataViewType.U4, NumberDataViewType.U8, NumberDataViewType.UG,
+                TextDataViewType.Instance, BooleanDataViewType.Instance, DateTimeDataViewType.Instance, DateTimeOffsetDataViewType.Instance, TimeSpanDataViewType.Instance };
 
             foreach (var type in types)
             {

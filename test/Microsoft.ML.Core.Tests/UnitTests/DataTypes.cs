@@ -24,10 +24,10 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void R4ToSBtoR4()
         {
-            var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberType.R4);
+            var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberDataViewType.R4);
 
             var txToR4 = Conversions.Instance.GetStandardConversion< ReadOnlyMemory<char>, float>(
-                TextType.Instance, NumberType.R4, out bool identity2);
+                TextDataViewType.Instance, NumberDataViewType.R4, out bool identity2);
 
             Assert.NotNull(r4ToSB);
             Assert.NotNull(txToR4);
@@ -48,10 +48,10 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void R8ToSBtoR8()
         {
-            var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberType.R8);
+            var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberDataViewType.R8);
 
             var txToR8 = Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, double>(
-                TextType.Instance, NumberType.R8, out bool identity2);
+                TextDataViewType.Instance, NumberDataViewType.R8, out bool identity2);
 
             Assert.NotNull(r8ToSB);
             Assert.NotNull(txToR8);
@@ -72,7 +72,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TXToSByte()
         {
-            var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>(NumberType.I1);
+            var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>(NumberDataViewType.I1);
 
             Assert.NotNull(mapper);
 
@@ -112,7 +112,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TXToShort()
         {
-            var mapper = GetMapper<ReadOnlyMemory<char>, short>(NumberType.I2);
+            var mapper = GetMapper<ReadOnlyMemory<char>, short>(NumberDataViewType.I2);
 
             Assert.NotNull(mapper);
 
@@ -152,7 +152,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TXToInt()
         {
-            var mapper = GetMapper<ReadOnlyMemory<char>, int>(NumberType.I4);
+            var mapper = GetMapper<ReadOnlyMemory<char>, int>(NumberDataViewType.I4);
 
             Assert.NotNull(mapper);
 
@@ -192,7 +192,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void TXToLong()
         {
-            var mapper = GetMapper<ReadOnlyMemory<char>, long>(NumberType.I8);
+            var mapper = GetMapper<ReadOnlyMemory<char>, long>(NumberDataViewType.I8);
 
             Assert.NotNull(mapper);
 
@@ -229,12 +229,12 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(default, dst);
         }
 
-        private static ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>(ColumnType dstType)
+        private static ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>(DataViewType dstType)
         {
             Assert.True(typeof(TDst) == dstType.RawType);
 
             return Conversions.Instance.GetStandardConversion<TSrc, TDst>(
-                TextType.Instance, dstType, out bool identity);
+                TextDataViewType.Instance, dstType, out bool identity);
         }
     }
 }

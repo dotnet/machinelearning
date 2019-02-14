@@ -670,7 +670,7 @@ namespace Microsoft.ML.RunTests
                 Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
             }
 
-            var cursors = new RowCursor[predCount];
+            var cursors = new DataViewRowCursor[predCount];
             var cols = scored.Schema.Where( c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
 
             for (int i = 0; i < predCount; i++)
@@ -848,7 +848,7 @@ namespace Microsoft.ML.RunTests
                 }
             }
 
-            var cursors = new RowCursor[predCount];
+            var cursors = new DataViewRowCursor[predCount];
             var cols = scored.Schema.Where(c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
 
             for (int i = 0; i < predCount; i++)

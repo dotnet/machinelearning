@@ -12,14 +12,14 @@ namespace Microsoft.ML.Recommender
     {
         /// <summary>
         /// Check if the considered data, <see cref="RoleMappedData"/>, contains column roles specified by <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>.
-        /// If the column roles, <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>, uniquely exist in data, their <see cref="Schema.Column"/> would be assigned
+        /// If the column roles, <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>, uniquely exist in data, their <see cref="DataViewSchema.Column"/> would be assigned
         /// to the two out parameters below.
         /// </summary>
         /// <param name="data">The considered data being checked</param>
         /// <param name="matrixColumnIndexColumn">The schema column as the row in the input data</param>
         /// <param name="matrixRowIndexColumn">The schema column as the column in the input data</param>
         /// <param name="isDecode">Whether a non-user error should be thrown as a decode</param>
-        public static void CheckAndGetMatrixIndexColumns(RoleMappedData data, out Schema.Column matrixColumnIndexColumn, out Schema.Column matrixRowIndexColumn, bool isDecode)
+        public static void CheckAndGetMatrixIndexColumns(RoleMappedData data, out DataViewSchema.Column matrixColumnIndexColumn, out DataViewSchema.Column matrixRowIndexColumn, bool isDecode)
         {
             Contracts.AssertValue(data);
             CheckRowColumnType(data, MatrixColumnIndexKind, out matrixColumnIndexColumn, isDecode);
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Recommender
         /// Returns whether a type is a U4 key of known cardinality, and if so, sets
         /// <paramref name="keyType"/> to a non-null value.
         /// </summary>
-        private static bool TryMarshalGoodRowColumnType(ColumnType type, out KeyType keyType)
+        private static bool TryMarshalGoodRowColumnType(DataViewType type, out KeyType keyType)
         {
             keyType = type as KeyType;
             return keyType?.Count > 0 && type.RawType == typeof(uint);
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Recommender
         /// <param name="col">The extracted schema column</param>
         /// <param name="isDecode">Whether a non-user error should be thrown as a decode</param>
         /// <returns>The type cast to a key-type</returns>
-        private static KeyType CheckRowColumnType(RoleMappedData data, RoleMappedSchema.ColumnRole role, out Schema.Column col, bool isDecode)
+        private static KeyType CheckRowColumnType(RoleMappedData data, RoleMappedSchema.ColumnRole role, out DataViewSchema.Column col, bool isDecode)
         {
             Contracts.AssertValue(data);
             Contracts.AssertValue(role.Value);

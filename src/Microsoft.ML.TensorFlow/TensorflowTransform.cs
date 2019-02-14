@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms
         private readonly bool _isTemporarySavedModel;
 
         internal readonly TFSession Session;
-        internal readonly ColumnType[] OutputTypes;
+        internal readonly DataViewType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
         internal readonly TFDataType[] TFInputTypes;
         internal readonly TFShape[] TFInputShapes;
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private (int, bool, TFDataType, TFShape) GetTrainingInputInfo(Schema inputSchema, string columnName, string tfNodeName, int batchSize)
+        private (int, bool, TFDataType, TFShape) GetTrainingInputInfo(DataViewSchema inputSchema, string columnName, string tfNodeName, int batchSize)
         {
             if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
                 throw Host.Except($"Column {columnName} doesn't exist");
@@ -463,21 +463,21 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private static ITensorValueGetter CreateTensorValueGetter<T>(Row input, bool isVector, int colIndex, TFShape tfShape)
+        private static ITensorValueGetter CreateTensorValueGetter<T>(DataViewRow input, bool isVector, int colIndex, TFShape tfShape)
         {
             if (isVector)
                 return new TensorValueGetterVec<T>(input, colIndex, tfShape);
             return new TensorValueGetter<T>(input, colIndex, tfShape);
         }
 
-        private static ITensorValueGetter CreateTensorValueGetter(Row input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
+        private static ITensorValueGetter CreateTensorValueGetter(DataViewRow input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
         {
             var type = TFTensor.TypeFromTensorType(tfType);
             Contracts.AssertValue(type);
             return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, tfShape);
         }
 
-        private static ITensorValueGetter[] GetTensorValueGetters(Row input,
+        private static ITensorValueGetter[] GetTensorValueGetters(DataViewRow input,
             int[] inputColIndices,
             bool[] isInputVector,
             TFDataType[] tfInputTypes,
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen)
@@ -566,10 +566,10 @@ namespace Microsoft.ML.Transforms
             return (tfInputTypes, tfInputShapes);
         }
 
-        internal static (TFDataType[] tfOutputTypes, ColumnType[] outputTypes) GetOutputInfo(IHost host, TFSession session, string[] outputs)
+        internal static (TFDataType[] tfOutputTypes, DataViewType[] outputTypes) GetOutputInfo(IHost host, TFSession session, string[] outputs)
         {
             var tfOutputTypes = new TFDataType[outputs.Length];
-            var outputTypes = new ColumnType[outputs.Length];
+            var outputTypes = new DataViewType[outputs.Length];
             var newNames = new HashSet<string>();
             foreach (var output in outputs)
             {
@@ -600,7 +600,7 @@ namespace Microsoft.ML.Transforms
             return (tfOutputTypes, outputTypes);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
@@ -703,7 +703,7 @@ namespace Microsoft.ML.Transforms
             private readonly bool[] _isInputVector;
             private readonly TFShape[] _fullySpecifiedShapes;
 
-            public Mapper(TensorFlowTransformer parent, Schema inputSchema) :
+            public Mapper(TensorFlowTransformer parent, DataViewSchema inputSchema) :
                    base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 Host.CheckValue(parent, nameof(parent));
@@ -780,7 +780,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 Host.AssertValue(input);
@@ -794,7 +794,7 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(Row input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
@@ -837,11 +837,11 @@ namespace Microsoft.ML.Transforms
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var info = new Schema.DetachedColumn[_parent.Outputs.Length];
+                var info = new DataViewSchema.DetachedColumn[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new Schema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                    info[i] = new DataViewSchema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
         }
@@ -880,7 +880,7 @@ namespace Microsoft.ML.Transforms
             private readonly TFShape _tfShape;
             private int _position;
 
-            public TensorValueGetter(Row input, int colIndex, TFShape tfShape)
+            public TensorValueGetter(DataViewRow input, int colIndex, TFShape tfShape)
             {
                 _srcgetter = input.GetGetter<T>(colIndex);
                 _tfShape = tfShape;
@@ -926,7 +926,7 @@ namespace Microsoft.ML.Transforms
             private readonly T[] _bufferedData;
             private int _position;
 
-            public TensorValueGetterVec(Row input, int colIndex, TFShape tfShape)
+            public TensorValueGetterVec(DataViewRow input, int colIndex, TFShape tfShape)
             {
                 _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                 _tfShape = tfShape;
@@ -1083,7 +1083,7 @@ namespace Microsoft.ML.Transforms
         private readonly Options _options;
         private readonly TensorFlowModelInfo _tensorFlowModel;
         private readonly TFDataType[] _tfInputTypes;
-        private readonly ColumnType[] _outputTypes;
+        private readonly DataViewType[] _outputTypes;
         private TensorFlowTransformer _transformer;
 
         [BestFriend]
