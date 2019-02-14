@@ -105,7 +105,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a logistic regression model trained with the SDCA trainer.
-        /// The trained model can produce probablity via feeding output value of the linear
+        /// The trained model can produce probablity by feeding the output value of the linear
         /// function to a <see cref="PlattCalibrator"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
@@ -118,7 +118,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCACalibrated.cs)]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SDCALogisticRegression.cs)]
         /// ]]></format>
         /// </example>
         public static SdcaBinaryTrainer StochasticDualCoordinateAscent(
@@ -138,8 +138,8 @@ namespace Microsoft.ML
         /// <summary>
         /// Predict a target using a logistic regression model trained with the SDCA trainer.
         /// The trained model can produce probablity via feeding output value of the linear
-        /// function to a <see cref="PlattCalibrator"/>. Comparing with <see cref="StochasticDualCoordinateAscent(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float?, float?, int?)"/>,
-        /// this function allows more advanced settings via accepting <see cref="SdcaBinaryTrainer.Options"/>.
+        /// function to a <see cref="PlattCalibrator"/>. Compared with <see cref="StochasticDualCoordinateAscent(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float?, float?, int?)"/>,
+        /// this function allows more advanced settings by accepting <see cref="SdcaBinaryTrainer.Options"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
@@ -168,7 +168,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs)]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SDCASupportVectorMachine.cs)]
         /// ]]></format>
         /// </example>
         public static SdcaNonCalibratedBinaryTrainer StochasticDualCoordinateAscentNonCalibrated(

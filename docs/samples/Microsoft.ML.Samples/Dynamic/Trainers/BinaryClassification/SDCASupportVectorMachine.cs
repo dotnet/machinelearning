@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class SDCALogisticRegressionExample
+    public class SDCASupportVectorMachine
     {
-        public static void SDCALogisticRegression()
+        public static void Example()
         {
-            // Generate C# objects as training examples.
+            // Generate IEnumerable<BinaryLabelFloatFeatureVectorSample> as training examples.
             var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(100);
 
             // Information in first example.
@@ -41,7 +40,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 2: Create a binary classifier. This trainer may produce a logistic regression model.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumn: "Label", featureColumn: "Features", l2Const: 0.001f);
+            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                labelColumn: "Label", featureColumn: "Features", loss: new HingeLoss(), l2Const: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
@@ -49,14 +49,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // Step 4: Make prediction and evaluate its quality (on training set).
             var prediction = model.Transform(data);
 
-            var rawPrediction = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(prediction, false);
+            var rawPrediction = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.NonCalibratedBinaryClassifierOutput>(prediction, false);
 
             // Step 5: Inspect the prediction of the first example.
+            // Note that positive/negative label may be associated with positive/negative score
             var first = rawPrediction.First();
-
-            Console.WriteLine("The first example actual label is {0}." +
-                " The trained model assigns it a score {1} and a probability of being positive class {2}.",
-                first.Label /*true*/, first.Score /*around 3.2*/, first.Probability /*around 0.95*/);
+            Console.WriteLine("The first example actual label is {0}. The trained model assigns it a score {1}.",
+                first.Label /*true*/, first.Score /*around 3*/);
         }
     }
 }

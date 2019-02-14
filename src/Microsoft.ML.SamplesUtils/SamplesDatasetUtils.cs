@@ -393,6 +393,16 @@ namespace Microsoft.ML.SamplesUtils
             public float Probability;
         }
 
+        /// <summary>
+        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
+        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// </summary>
+        public class NonCalibratedBinaryClassifierOutput
+        {
+            public bool Label;
+            public float Score;
+        }
+
         public static IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)
         {
             var rnd = new Random(0);

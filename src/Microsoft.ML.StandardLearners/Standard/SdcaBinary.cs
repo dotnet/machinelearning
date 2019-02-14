@@ -246,19 +246,19 @@ namespace Microsoft.ML.Trainers
 
         private const string RegisterName = nameof(SdcaTrainerBase<TArgs, TTransformer, TModel>);
 
-        private static TArgs ArgsInit(string featureColumn, SchemaShape.Column labelColumn)
+        private static TArgs ArgsInit(string featureColumnName, SchemaShape.Column labelColumn)
         {
             var args = new TArgs();
 
-            args.FeatureColumn = featureColumn;
+            args.FeatureColumn = featureColumnName;
             args.LabelColumn = labelColumn.Name;
             return args;
         }
 
-        internal SdcaTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
+        internal SdcaTrainerBase(IHostEnvironment env, string featureColumnName, SchemaShape.Column labelColumn,
            SchemaShape.Column weight = default, float? l2Const = null,
             float? l1Threshold = null, int? maxIterations = null)
-          : this(env, ArgsInit(featureColumn, labelColumn), labelColumn, weight, l2Const, l1Threshold, maxIterations)
+          : this(env, ArgsInit(featureColumnName, labelColumn), labelColumn, weight, l2Const, l1Threshold, maxIterations)
         {
         }
 
@@ -1401,8 +1401,6 @@ namespace Microsoft.ML.Trainers
     /// (2) <see cref="SdcaBinaryTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
     /// naturally provide probability output, this generated model's type is <see cref="CalibratedModelParametersBase{TSubModel, TCalibrator}"/>.
     /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
-    /// (3) <see cref="LegacySdcaBinaryTrainer"/> is used to support classical command line tools where model is weakly-typed to
-    /// <see cref="IPredictorWithFeatureWeights{TResult}"/>.
     /// </summary>
     public abstract class SdcaBinaryTrainerBase<TModelParameters> :
         SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
@@ -1437,26 +1435,26 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="SdcaBinaryTrainerBase{TModelParameters}"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="labelColumn">The label, or dependent variable.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="labelColumnName">The label, or dependent variable.</param>
+        /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="loss">The custom loss.</param>
-        /// <param name="weightColumn">The optional example weights.</param>
+        /// <param name="weightColumnName">The optional example weights.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
         protected SdcaBinaryTrainerBase(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
             ISupportSdcaClassificationLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null)
-             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn),
+             : base(env, featureColumnName, TrainerUtils.MakeBoolScalarLabel(labelColumnName), TrainerUtils.MakeR4ScalarWeightColumn(weightColumnName),
                    l2Const, l1Threshold, maxIterations)
         {
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumnName, nameof(featureColumnName));
+            Host.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: false);
@@ -1530,13 +1528,13 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaBinaryTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null)
-             : base(env, labelColumn, featureColumn, weightColumn, new LogLoss(), l2Const, l1Threshold, maxIterations)
+             : base(env, labelColumnName, featureColumnName, weightColumnName, new LogLoss(), l2Const, l1Threshold, maxIterations)
         {
         }
 
@@ -1591,14 +1589,14 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
             ISupportSdcaClassificationLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null)
-             : base(env, labelColumn, featureColumn, weightColumn, loss, l2Const, l1Threshold, maxIterations)
+             : base(env, labelColumnName, featureColumnName, weightColumnName, loss, l2Const, l1Threshold, maxIterations)
         {
         }
 
@@ -1637,8 +1635,8 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// This SDCA trainer exists only because of legacy command line tool and entry point graphs. Please do NOT use
-    /// it whenever possible.
+    /// <see cref="LegacySdcaBinaryTrainer"/> is used to support classical command line tools where model is weakly-typed to
+    /// <see cref="IPredictorWithFeatureWeights{TResult}"/>. Please do NOT use it whenever possible.
     /// </summary>
     internal sealed class LegacySdcaBinaryTrainer : SdcaBinaryTrainerBase<IPredictorWithFeatureWeights<float>>
     {
