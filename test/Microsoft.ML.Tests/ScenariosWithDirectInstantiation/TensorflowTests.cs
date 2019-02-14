@@ -389,7 +389,7 @@ namespace Microsoft.ML.Scenarios
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
             var images = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath")).Fit(data).Transform(data);
-            var cropped = mlContext.Transforms.Resize("ImageCropped", 224, 224 , "ImageReal").Fit(images).Transform(images);
+            var cropped = mlContext.Transforms.ResizeImages("ImageCropped", 224, 224 , "ImageReal").Fit(images).Transform(images);
             var pixels = mlContext.Transforms.ExtractPixels("input","ImageCropped").Fit(cropped).Transform(cropped);
             var tf = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, "softmax2_pre_activation", "input").Fit(pixels).Transform(pixels);
 
@@ -902,7 +902,7 @@ namespace Microsoft.ML.Scenarios
                 }
             );
             var images = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath")).Fit(data).Transform(data);
-            var cropped = mlContext.Transforms.Resize("ImageCropped", imageWidth, imageHeight, "ImageReal").Fit(images).Transform(images);
+            var cropped = mlContext.Transforms.ResizeImages("ImageCropped", imageWidth, imageHeight, "ImageReal").Fit(images).Transform(images);
             var pixels = mlContext.Transforms.ExtractPixels("Input", "ImageCropped", interleave: true).Fit(cropped).Transform(cropped);
             IDataView trans = mlContext.Transforms.ScoreTensorFlowModel(tensorFlowModel, "Output", "Input").Fit(pixels).Transform(pixels);
 

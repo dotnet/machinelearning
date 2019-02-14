@@ -101,7 +101,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[Resize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ImageAnalytics/ResizeImage.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageResizingEstimator Resize(this TransformsCatalog catalog,
+        public static ImageResizingEstimator ResizeImages(this TransformsCatalog catalog,
             string outputColumnName,
             int imageWidth,
             int imageHeight,
