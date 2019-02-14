@@ -213,7 +213,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write("Score");
 }
             this.Write("}\");\r\n            Console.WriteLine($\"===========================================" +
-                    "=======\");\r\n        }\r\n\r\n    }\r\n\r\n    public class SampleClass\r\n    {\r\n");
+                    "=======\");\r\n        }\r\n\r\n    }\r\n\r\n    public class SampleObservation\r\n    {\r\n");
 
 foreach(var label in ClassLabels)
 {

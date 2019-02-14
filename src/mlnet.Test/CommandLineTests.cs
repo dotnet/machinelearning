@@ -17,7 +17,7 @@ namespace mlnet.Test
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<FileInfo, FileInfo, FileInfo, TaskKind, string, uint, uint>(
-                (trainDataset, testDataset, validationDataset, mlTask, labelColumnName, timeout, labelColumnIndex) =>
+                (trainDataset, validationDataset, testDataset, mlTask, labelColumnName, maxExplorationTime, labelColumnIndex) =>
                 {
                     parsingSuccessful = true;
                 });
@@ -43,7 +43,7 @@ namespace mlnet.Test
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<FileInfo, FileInfo, FileInfo, TaskKind, string, uint, uint>(
-                (trainDataset, testDataset, validationDataset, mlTask, labelColumnName, timeout, labelColumnIndex) =>
+                (trainDataset, validationDataset, testDataset, mlTask, labelColumnName, maxExplorationTime, labelColumnIndex) =>
                 {
                     parsingSuccessful = true;
                 });
@@ -87,13 +87,14 @@ namespace mlnet.Test
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<FileInfo, FileInfo, FileInfo, TaskKind, string, uint, uint>(
-                (trainDataset, validationDataset, testDataset, mlTask, labelColumnName, timeout, labelColumnIndex) =>
+                (trainDataset, validationDataset, testDataset, mlTask, labelColumnName, maxExplorationTime, labelColumnIndex) =>
                 {
                     parsingSuccessful = true;
                     Assert.AreEqual(mlTask, TaskKind.BinaryClassification);
                     Assert.AreEqual(trainDataset, file1);
                     Assert.AreEqual(testDataset, file2);
                     Assert.AreEqual(labelColumnName, labelName);
+                    Assert.AreEqual(maxExplorationTime, 5);
                 });
 
             var parser = new CommandLineBuilder()
@@ -103,7 +104,7 @@ namespace mlnet.Test
                         .Build();
 
             // Incorrect mltask test
-            string[] args = new[] { "new", "--ml-task", "BinaryClassification", "--train-dataset", file1, "--label-column-name", labelName, "--test-dataset", file2 };
+            string[] args = new[] { "new", "--ml-task", "BinaryClassification", "--train-dataset", file1, "--label-column-name", labelName, "--test-dataset", file2, "--max-exploration-time", "5" };
             parser.InvokeAsync(args).Wait();
             File.Delete(file1);
             File.Delete(file2);

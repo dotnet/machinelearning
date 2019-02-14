@@ -163,7 +163,7 @@ else{#>
 
     }
 
-    public class SampleClass
+    public class SampleObservation
     {
 <#
 foreach(var label in ClassLabels)

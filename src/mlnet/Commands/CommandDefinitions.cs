@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
@@ -18,13 +19,17 @@ namespace Microsoft.ML.CLI
         {
             var newCommand = new System.CommandLine.Command("new", "ML.NET CLI tool for code generation", handler: handler)
             {
+                                //Dataset(), 
                                 TrainDataset(),
                                 ValidationDataset(),
                                 TestDataset(),
                                 MlTask(),
                                 LabelName(),
-                                Timeout(),
-                                LabelColumnIndex()
+                                MaxExplorationTime(),
+                                LabelColumnIndex(),
+                                Verbosity(),
+                                Name(),
+                                OutputBaseDir()
             };
 
             newCommand.Argument.AddValidator((sym) =>
@@ -46,6 +51,9 @@ namespace Microsoft.ML.CLI
 
             return newCommand;
 
+            /*Option Dataset() =>
+               new Option("--dataset", "Dataset file path.",
+                          new Argument<FileInfo>().ExistingOnly()); */
 
             Option TrainDataset() =>
                new Option("--train-dataset", "Train dataset file path.",
@@ -71,15 +79,32 @@ namespace Microsoft.ML.CLI
              new Option("--label-column-index", "Index of the label column.",
                         new Argument<uint>());
 
-            Option Timeout() =>
-              new Option("--timeout", "Timeout in seconds for exploring models.",
+            Option MaxExplorationTime() =>
+              new Option("--max-exploration-time", "Timeout in seconds for exploring models.",
                          new Argument<uint>(defaultValue: 10));
+
+            Option Verbosity() =>
+              new Option(new List<string>() { "--verbosity" }, "Verbosity of the output to be shown by the tool.",
+                         new Argument<string>(defaultValue: "m").WithSuggestions(GetVerbositySuggestions()));
+
+            Option Name() =>
+              new Option(new List<string>() { "--name" }, "Name of the output files(project and folder).",
+                         new Argument<string>(defaultValue: "Sample"));
+
+            Option OutputBaseDir() =>
+              new Option(new List<string>() { "--output" }, "Output folder path.",
+             new Argument<string>(defaultValue: ".\\Sample"));
 
         }
 
         private static string[] GetMlTaskSuggestions()
         {
             return Enum.GetValues(typeof(TaskKind)).Cast<TaskKind>().Select(v => v.ToString()).ToArray();
+        }
+
+        private static string[] GetVerbositySuggestions()
+        {
+            return new[] { "q", "m", "diag" };
         }
     }
 }

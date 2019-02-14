@@ -9,6 +9,8 @@ namespace Microsoft.ML.CLI
 {
     internal class Options
     {
+        internal string OutputName { get; set; }
+
         internal string Name { get; set; }
 
         internal FileInfo Dataset { get; set; }
@@ -26,6 +28,8 @@ namespace Microsoft.ML.CLI
         internal TaskKind MlTask { get; set; }
 
         internal uint Timeout { get; set; }
+
+        internal string OutputBaseDir { get; set; }
 
     }
 }

@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Auto;
-using Microsoft.ML.Data;
 using mlnet.Templates;
 using static Microsoft.ML.Data.TextLoader;
 
@@ -80,13 +79,14 @@ namespace Microsoft.ML.CLI
             var trainScoreCode = codeGen.TransformText();
             var projectSourceCode = csProjGenerator.TransformText();
             var consoleHelperCode = consoleHelper.TransformText();
-            if (!Directory.Exists("./BestModel"))
+            var outputFolder = Path.Combine(options.OutputBaseDir, options.OutputName);
+            if (!Directory.Exists(outputFolder))
             {
-                Directory.CreateDirectory("./BestModel");
+                Directory.CreateDirectory(outputFolder);
             }
-            File.WriteAllText("./BestModel/Train.cs", trainScoreCode);
-            File.WriteAllText("./BestModel/MyML.csproj", projectSourceCode);
-            File.WriteAllText("./BestModel/ConsoleHelper.cs", consoleHelperCode);
+            File.WriteAllText($"{outputFolder}/Train.cs", trainScoreCode);
+            File.WriteAllText($"{outputFolder}/{options.OutputName}.csproj", projectSourceCode);
+            File.WriteAllText($"{outputFolder}/ConsoleHelper.cs", consoleHelperCode);
         }
 
         internal IList<(string, string)> GenerateTransformsAndUsings()
