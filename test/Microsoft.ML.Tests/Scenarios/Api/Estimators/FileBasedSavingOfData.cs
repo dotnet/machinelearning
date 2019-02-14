@@ -38,8 +38,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     DataSaverUtils.SaveDataView(ch, saver, trainData, file);
             }
 
-            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaBinaryTrainer.Options { NumThreads = 1 });
+            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1 });
             var loadedTrainData = new BinaryLoader(ml, new BinaryLoader.Arguments(), new MultiFileSource(path));
 
             // Train.
