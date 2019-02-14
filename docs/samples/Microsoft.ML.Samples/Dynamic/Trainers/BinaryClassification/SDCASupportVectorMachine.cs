@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class SDCASupportVectorMachine
+    public static class SDCASupportVectorMachine
     {
         public static void Example()
         {

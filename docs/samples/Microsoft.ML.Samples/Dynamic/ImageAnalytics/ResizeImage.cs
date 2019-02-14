@@ -3,10 +3,10 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ResizeImageExample
+    public static class ResizeImage
     {
         // Example on how to load the images from the file system, and resize them. 
-        public static void ResizeImage()
+        public static void Example()
         {
             var mlContext = new MLContext();
 

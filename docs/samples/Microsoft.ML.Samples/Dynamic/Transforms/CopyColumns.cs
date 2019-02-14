@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class CopyColumns
+    public static class CopyColumns
     {
         public static void Example()
         {

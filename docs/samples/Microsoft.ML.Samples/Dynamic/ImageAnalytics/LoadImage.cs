@@ -3,10 +3,10 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class LoadImageExample
+    public static class LoadImage
     {
         // Loads the images of the imagesFolder into an IDataView. 
-        public static void LoadImage()
+        public static void Example()
         {
             var mlContext = new MLContext();
 
