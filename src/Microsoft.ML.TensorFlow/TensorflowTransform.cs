@@ -805,7 +805,14 @@ namespace Microsoft.ML.Transforms
                     var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
 
                     var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-                    TensorFlowUtils.FetchData<T>(tensor.Data, editor.Values);
+                    if (_parent.TFOutputTypes[iinfo] == TFDataType.String)
+                    {
+                        TensorFlowUtils.FetchStringData(tensor, editor.Values);
+                    }
+                    else
+                    {
+                        TensorFlowUtils.FetchData<T>(tensor.Data, editor.Values);
+                    }
                     dst = editor.Commit();
                 };
                 return valuegetter;
@@ -948,7 +955,7 @@ namespace Microsoft.ML.Transforms
             {
                 _srcgetter(ref _vBuffer);
 
-                Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
+                _denseData = new T[_vBuffer.Length];
                 _vBuffer.CopyTo(_denseData);
 
                 return TFTensor.Create(_denseData, _vBuffer.Length, _tfShape);

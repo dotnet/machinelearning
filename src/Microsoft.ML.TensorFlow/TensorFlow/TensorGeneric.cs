@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Text;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
@@ -67,6 +68,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 return new TFTensor((System.UInt16)(object)data);
             }
+            else if (typeof(T) == typeof(System.ReadOnlyMemory<char>))
+            {
+                return CreateString(Encoding.UTF8.GetBytes(((System.ReadOnlyMemory<char>)(object)data).ToArray()));
+            }
             throw new NotSupportedException($"Unsupported type {typeof(T)}");
         }
 
@@ -131,6 +136,15 @@ namespace Microsoft.ML.Transforms.TensorFlow
             else if (typeof(T) == typeof(System.UInt16))
             {
                 return new TFTensor(SetupTensor(TFDataType.UInt16, shape, (Array)(object)data, 0, count, 2));
+            }
+            else if (typeof(T) == typeof(System.ReadOnlyMemory<char>))
+            {
+                byte[][] bytes = new byte[data.Length][];
+                for(int i=0;i<bytes.Length;i++)
+                {
+                    bytes[i] = Encoding.UTF8.GetBytes(((System.ReadOnlyMemory<char>)(object)data[i]).ToArray());
+                }
+                return CreateStringTensor(bytes, shape);
             }
             // note that we will get here for jagged arrays, which is intententional since we'd need to copy them.
             throw new NotSupportedException($"Unsupported type {typeof(T)}");
