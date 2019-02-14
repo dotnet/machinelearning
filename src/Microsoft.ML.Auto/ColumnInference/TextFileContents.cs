@@ -81,35 +81,45 @@ namespace Microsoft.ML.Auto
         private static bool TryParseFile(TextLoader.Arguments args, IMultiStreamSource source, out ColumnSplitResult result)
         {
             result = null;
-            var textLoader = new TextLoader(new MLContext(), args, source);
-            var idv = textLoader.Read(source).Take(1000);
-            var columnCounts = new List<int>();
-            var column = idv.Schema["C"];
-            var columnIndex = column.Index;
-
-            using (var cursor = idv.GetRowCursor(new[] { idv.Schema[columnIndex] }))
+            // try to instantiate data view with swept arguments
+            try
             {
-                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(columnIndex);
 
-                VBuffer<ReadOnlyMemory<char>> line = default;
-                while (cursor.MoveNext())
+                var textLoader = new TextLoader(new MLContext(), args, source);
+                var idv = textLoader.Read(source).Take(1000);
+                var columnCounts = new List<int>();
+                var column = idv.Schema["C"];
+                var columnIndex = column.Index;
+
+                using (var cursor = idv.GetRowCursor(new[] { idv.Schema[columnIndex] }))
                 {
-                    getter(ref line);
-                    columnCounts.Add(line.Length);
+                    var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(columnIndex);
+
+                    VBuffer<ReadOnlyMemory<char>> line = default;
+                    while (cursor.MoveNext())
+                    {
+                        getter(ref line);
+                        columnCounts.Add(line.Length);
+                    }
                 }
+
+                var mostCommon = columnCounts.GroupBy(x => x).OrderByDescending(x => x.Count()).First();
+                if (mostCommon.Count() < UniformColumnCountThreshold * columnCounts.Count)
+                {
+                    return false;
+                }
+
+                // disallow single-column case
+                if (mostCommon.Key <= 1) { return false; }
+
+                result = new ColumnSplitResult(true, args.Separators.First(), args.AllowQuoting, args.AllowSparse, mostCommon.Key);
+                return true;
             }
-            
-            var mostCommon = columnCounts.GroupBy(x => x).OrderByDescending(x => x.Count()).First();
-            if (mostCommon.Count() < UniformColumnCountThreshold * columnCounts.Count)
+            // fail gracefully if unable to instantiate data view with swept arguments
+            catch(Exception)
             {
                 return false;
             }
-
-            // disallow single-column case
-            if (mostCommon.Key <= 1) { return false; }
-
-            result = new ColumnSplitResult(true, args.Separators.First(), args.AllowQuoting, args.AllowSparse, mostCommon.Key);
-            return true;
         }
     }
 }
