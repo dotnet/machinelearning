@@ -165,10 +165,10 @@ namespace Microsoft.ML.Transforms
                     throw h.Except("Column '{0}' does not exist", column.Source);
                 var replaceType = input.Schema[inputCol].Type;
                 var replaceItemType = replaceType.GetItemType();
-                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceItemType, out Delegate conv, out bool identity))
+                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BooleanDataViewType.Instance, replaceItemType, out Delegate conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
-                        BoolType.Instance, replaceItemType);
+                        BooleanDataViewType.Instance, replaceItemType);
                 }
 
                 // Find a temporary name for the NAReplaceTransform and NAIndicatorTransform output columns.

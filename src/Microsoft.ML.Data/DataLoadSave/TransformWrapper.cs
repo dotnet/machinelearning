@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
             IsRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
 
         public bool IsRowToRowMapper { get; }
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var input = new EmptyDataView(_host, inputSchema);

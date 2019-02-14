@@ -374,7 +374,7 @@ namespace Microsoft.ML.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema[c].Type;
+                DataViewType type = schema[c].Type;
                 if (saver.IsColumnSavable(type) && (hidden || !schema[c].IsHidden))
                     savable.Add(c);
             }
@@ -459,7 +459,7 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        protected bool CheckMetadataTypes(Schema sch)
+        protected bool CheckMetadataTypes(DataViewSchema sch)
         {
             var hs = new HashSet<string>();
             for (int col = 0; col < sch.Count; col++)
@@ -510,7 +510,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected bool CheckSameSchemas(Schema sch1, Schema sch2, bool exactTypes = true, bool keyNames = true)
+        protected bool CheckSameSchemas(DataViewSchema sch1, DataViewSchema sch2, bool exactTypes = true, bool keyNames = true)
         {
             if (sch1.Count != sch2.Count)
             {
@@ -568,7 +568,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected bool CheckMetadataNames(string kind, ulong size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
+        protected bool CheckMetadataNames(string kind, ulong size, DataViewSchema sch1, DataViewSchema sch2, int col, bool exactTypes, bool mustBeText)
         {
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
@@ -595,7 +595,7 @@ namespace Microsoft.ML.RunTests
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
                 return Failed();
             }
-            if (!(t1.GetItemType() is TextType))
+            if (!(t1.GetItemType() is TextDataViewType))
             {
                 if (!mustBeText)
                 {
@@ -622,7 +622,7 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, Schema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
+        protected bool CheckMetadataCallFailure(string kind, DataViewSchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
@@ -652,7 +652,7 @@ namespace Microsoft.ML.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema[c].Type;
+                DataViewType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -698,7 +698,7 @@ namespace Microsoft.ML.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema[c].Type;
+                DataViewType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -763,7 +763,7 @@ namespace Microsoft.ML.RunTests
             return false;
         }
 
-        protected bool EqualTypes(ColumnType type1, ColumnType type2, bool exactTypes)
+        protected bool EqualTypes(DataViewType type1, DataViewType type2, bool exactTypes)
         {
             Contracts.AssertValue(type1);
             Contracts.AssertValue(type2);
@@ -820,7 +820,7 @@ namespace Microsoft.ML.RunTests
             return all;
         }
 
-        protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
+        protected bool CheckSameValues(DataViewRowCursor curs1, DataViewRowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
             Contracts.Assert(curs1.Schema.Count == curs2.Schema.Count);
 
@@ -844,13 +844,13 @@ namespace Microsoft.ML.RunTests
                     comps[col] = GetColumnComparer(curs1, curs2, col, type1, exactDoubles);
                 }
             }
-            ValueGetter<RowId> idGetter = null;
+            ValueGetter<DataViewRowId> idGetter = null;
             Func<bool> idComp = checkId ? GetIdComparer(curs1, curs2, out idGetter) : null;
-            HashSet<RowId> idsSeen = null;
+            HashSet<DataViewRowId> idsSeen = null;
             if (checkIdCollisions && idGetter == null)
                 idGetter = curs1.GetIdGetter();
             long idCollisions = 0;
-            RowId id = default(RowId);
+            DataViewRowId id = default(DataViewRowId);
 
             for (; ; )
             {
@@ -901,13 +901,13 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
+        protected bool CheckSameValues(DataViewRowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
             Contracts.Assert(curs1.Schema.Count == view2.Schema.Count);
 
             // Get a cursor for each column.
             int colLim = curs1.Schema.Count;
-            var cursors = new RowCursor[colLim];
+            var cursors = new DataViewRowCursor[colLim];
             try
             {
                 for (int col = 0; col < colLim; col++)
@@ -932,7 +932,7 @@ namespace Microsoft.ML.RunTests
                         return Failed();
                     }
                     comps[col] = GetColumnComparer(curs1, cursors[col], col, type1, exactDoubles);
-                    ValueGetter<RowId> idGetter;
+                    ValueGetter<DataViewRowId> idGetter;
                     idComps[col] = checkId ? GetIdComparer(curs1, cursors[col], out idGetter) : null;
                 }
 
@@ -984,13 +984,13 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<RowId> idGetter)
+        protected Func<bool> GetIdComparer(DataViewRow r1, DataViewRow r2, out ValueGetter<DataViewRowId> idGetter)
         {
             var g1 = r1.GetIdGetter();
             idGetter = g1;
             var g2 = r2.GetIdGetter();
-            RowId v1 = default(RowId);
-            RowId v2 = default(RowId);
+            DataViewRowId v1 = default(DataViewRowId);
+            DataViewRowId v2 = default(DataViewRowId);
             return
                 () =>
                 {
@@ -1000,7 +1000,7 @@ namespace Microsoft.ML.RunTests
                 };
         }
 
-        protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
+        protected Func<bool> GetColumnComparer(DataViewRow r1, DataViewRow r2, int col, DataViewType type, bool exactDoubles)
         {
             if (!(type is VectorType vectorType))
             {
@@ -1040,8 +1040,8 @@ namespace Microsoft.ML.RunTests
                     return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
                 else if (rawType == typeof(DateTimeOffset))
                     return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
-                else if (rawType == typeof(RowId))
-                    return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
+                else if (rawType == typeof(DataViewRowId))
+                    return GetComparerOne<DataViewRowId>(r1, r2, col, (x, y) => x.Equals(y));
                 else
                     return () => true;
             }
@@ -1091,8 +1091,8 @@ namespace Microsoft.ML.RunTests
                     return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
                 else if (itemType == typeof(DateTimeOffset))
                     return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
-                else if (itemType == typeof(RowId))
-                    return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
+                else if (itemType == typeof(DataViewRowId))
+                    return GetComparerVec<DataViewRowId>(r1, r2, col, size, (x, y) => x.Equals(y));
             }
 
             throw Contracts.Except("Unknown type in GetColumnComparer: '{0}'", type);
@@ -1114,7 +1114,7 @@ namespace Microsoft.ML.RunTests
             return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < SingleEps;
         }
 
-        protected Func<bool> GetComparerOne<T>(Row r1, Row r2, int col, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerOne<T>(DataViewRow r1, DataViewRow r2, int col, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<T>(col);
             var g2 = r2.GetGetter<T>(col);
@@ -1131,7 +1131,7 @@ namespace Microsoft.ML.RunTests
                 };
         }
 
-        protected Func<bool> GetComparerVec<T>(Row r1, Row r2, int col, int size, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerVec<T>(DataViewRow r1, DataViewRow r2, int col, int size, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<VBuffer<T>>(col);
             var g2 = r2.GetGetter<VBuffer<T>>(col);

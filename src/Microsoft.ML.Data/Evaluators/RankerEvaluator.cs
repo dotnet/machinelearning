@@ -87,13 +87,13 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var t = schema.Label.Value.Type;
-            if (t != NumberType.Float && !(t is KeyType))
+            if (t != NumberDataViewType.Single && !(t is KeyType))
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.LabelColumn),
                     "label", schema.Label.Value.Name, "R4 or a key", t.ToString());
             }
             var scoreCol = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            if (scoreCol.Type != NumberType.Float)
+            if (scoreCol.Type != NumberDataViewType.Single)
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.ScoreColumn),
                     "score", scoreCol.Name, "R4", t.ToString());
@@ -205,25 +205,25 @@ namespace Microsoft.ML.Data
                     if (hasStrats)
                     {
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextDataViewType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, isWeighted.ToArray());
-                    overallDvBldr.AddColumn(Ndcg, aggregator.GetSlotNames, NumberType.R8, ndcg.ToArray());
-                    overallDvBldr.AddColumn(Dcg, aggregator.GetSlotNames, NumberType.R8, dcg.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BooleanDataViewType.Instance, isWeighted.ToArray());
+                    overallDvBldr.AddColumn(Ndcg, aggregator.GetSlotNames, NumberDataViewType.Double, ndcg.ToArray());
+                    overallDvBldr.AddColumn(Dcg, aggregator.GetSlotNames, NumberDataViewType.Double, dcg.ToArray());
 
                     var groupDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
                         groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, groupStratCol.ToArray());
-                        groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, groupStratVal.ToArray());
+                        groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextDataViewType.Instance, groupStratVal.ToArray());
                     }
                     if (groupSummary)
                     {
-                        groupDvBldr.AddColumn(GroupId, TextType.Instance, groupName.ToArray());
-                        groupDvBldr.AddColumn(Ndcg, aggregator.GetGroupSummarySlotNames("NDCG"), NumberType.R8, groupNdcg.ToArray());
-                        groupDvBldr.AddColumn(Dcg, aggregator.GetGroupSummarySlotNames("DCG"), NumberType.R8, groupDcg.ToArray());
-                        groupDvBldr.AddColumn(MaxDcg, aggregator.GetGroupSummarySlotNames("MaxDCG"), NumberType.R8, groupMaxDcg.ToArray());
+                        groupDvBldr.AddColumn(GroupId, TextDataViewType.Instance, groupName.ToArray());
+                        groupDvBldr.AddColumn(Ndcg, aggregator.GetGroupSummarySlotNames("NDCG"), NumberDataViewType.Double, groupNdcg.ToArray());
+                        groupDvBldr.AddColumn(Dcg, aggregator.GetGroupSummarySlotNames("DCG"), NumberDataViewType.Double, groupDcg.ToArray());
+                        groupDvBldr.AddColumn(MaxDcg, aggregator.GetGroupSummarySlotNames("MaxDCG"), NumberDataViewType.Double, groupMaxDcg.ToArray());
                     }
 
                     var result = new Dictionary<string, IDataView>();
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Data
                     GroupId = new List<ReadOnlyMemory<char>>();
             }
 
-            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(DataViewRow row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
                 Contracts.Assert(schema.Label.HasValue);
@@ -569,12 +569,12 @@ namespace Microsoft.ML.Data
         /// Explicit implementation prevents Schema from being accessed from derived classes.
         /// It's our first step to separate data produced by transform from transform.
         /// </summary>
-        Schema IDataView.Schema => OutputSchema;
+        DataViewSchema IDataView.Schema => OutputSchema;
 
         /// <summary>
         /// Shape information of the produced output. Note that the input and the output of this transform (and their types) are identical.
         /// </summary>
-        public Schema OutputSchema => _transform.OutputSchema;
+        public DataViewSchema OutputSchema => _transform.OutputSchema;
 
         public RankerPerInstanceTransform(IHostEnvironment env, IDataView input, string labelCol, string scoreCol, string groupCol,
                 int truncationLevel, Double[] labelGains)
@@ -609,38 +609,38 @@ namespace Microsoft.ML.Data
             return _transform.GetRowCount();
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             => _transform.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             => _transform.GetRowCursorSet(columnsNeeded, n, rand);
 
         private sealed class Transform : PerGroupTransformBase<short, Single, Transform.RowCursorState>
         {
             private sealed class Bindings : BindingsBase
             {
-                private readonly ColumnType _outputType;
-                private readonly ColumnType _slotNamesType;
+                private readonly DataViewType _outputType;
+                private readonly DataViewType _slotNamesType;
                 private readonly int _truncationLevel;
                 private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _slotNamesGetter;
 
-                public Bindings(IExceptionContext ectx, Schema input, bool user, string labelCol, string scoreCol, string groupCol,
+                public Bindings(IExceptionContext ectx, DataViewSchema input, bool user, string labelCol, string scoreCol, string groupCol,
                     int truncationLevel)
                     : base(ectx, input, labelCol, scoreCol, groupCol, user, Ndcg, Dcg, MaxDcg)
                 {
                     _truncationLevel = truncationLevel;
-                    _outputType = new VectorType(NumberType.R8, _truncationLevel);
-                    _slotNamesType = new VectorType(TextType.Instance, _truncationLevel);
+                    _outputType = new VectorType(NumberDataViewType.Double, _truncationLevel);
+                    _slotNamesType = new VectorType(TextDataViewType.Instance, _truncationLevel);
                     _slotNamesGetter = SlotNamesGetter;
                 }
 
-                protected override ColumnType GetColumnTypeCore(int iinfo)
+                protected override DataViewType GetColumnTypeCore(int iinfo)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                     return _outputType;
                 }
 
-                protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
+                protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                     var types = base.GetMetadataTypesCore(iinfo);
@@ -648,7 +648,7 @@ namespace Microsoft.ML.Data
                     return types;
                 }
 
-                protected override ColumnType GetMetadataTypeCore(string kind, int iinfo)
+                protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                     if (kind == MetadataUtils.Kinds.SlotNames)
@@ -770,7 +770,7 @@ namespace Microsoft.ML.Data
                 dst = editor.Commit();
             }
 
-            protected override ValueGetter<short> GetLabelGetter(Row row)
+            protected override ValueGetter<short> GetLabelGetter(DataViewRow row)
             {
                 var lb = RowCursorUtils.GetLabelGetter(row, _bindings.LabelIndex);
                 return
@@ -782,12 +782,12 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            protected override ValueGetter<Single> GetScoreGetter(Row row)
+            protected override ValueGetter<Single> GetScoreGetter(DataViewRow row)
             {
                 return row.GetGetter<Single>(_bindings.ScoreIndex);
             }
 
-            protected override RowCursorState InitializeState(Row input)
+            protected override RowCursorState InitializeState(DataViewRow input)
             {
                 return new RowCursorState(_truncationLevel);
             }

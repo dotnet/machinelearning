@@ -8,26 +8,26 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Convenient base class for <see cref="Row"/> implementors that wrap a single <see cref="Row"/>
-    /// as their input. The <see cref="Row.Position"/>, <see cref="Row.Batch"/>, and <see cref="Row.GetIdGetter"/>
+    /// Convenient base class for <see cref="DataViewRow"/> implementors that wrap a single <see cref="DataViewRow"/>
+    /// as their input. The <see cref="DataViewRow.Position"/>, <see cref="DataViewRow.Batch"/>, and <see cref="DataViewRow.GetIdGetter"/>
     /// are taken from this <see cref="Input"/>.
     /// </summary>
     [BestFriend]
-    internal abstract class WrappingRow : Row
+    internal abstract class WrappingRow : DataViewRow
     {
         private bool _disposed;
 
         /// <summary>
         /// The wrapped input row.
         /// </summary>
-        protected Row Input { get; }
+        protected DataViewRow Input { get; }
 
         public sealed override long Batch => Input.Batch;
         public sealed override long Position => Input.Position;
-        public override ValueGetter<RowId> GetIdGetter() => Input.GetIdGetter();
+        public override ValueGetter<DataViewRowId> GetIdGetter() => Input.GetIdGetter();
 
         [BestFriend]
-        private protected WrappingRow(Row input)
+        private protected WrappingRow(DataViewRow input)
         {
             Contracts.AssertValue(input);
             Input = input;

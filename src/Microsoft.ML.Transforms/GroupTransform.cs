@@ -154,9 +154,9 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema OutputSchema => _groupBinding.OutputSchema;
+        public override DataViewSchema OutputSchema => _groupBinding.OutputSchema;
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -172,15 +172,15 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return false; } }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
+            return new DataViewRowCursor[] { GetRowCursorCore(columnsNeeded) };
         }
 
         /// <summary>
-        /// This class describes the relation between <see cref="GroupTransform"/>'s input <see cref="Schema"/>,
-        /// <see cref="GroupBinding._inputSchema"/>, and output <see cref="Schema"/>, <see cref="GroupBinding.OutputSchema"/>.
+        /// This class describes the relation between <see cref="GroupTransform"/>'s input <see cref="DataViewSchema"/>,
+        /// <see cref="GroupBinding._inputSchema"/>, and output <see cref="DataViewSchema"/>, <see cref="GroupBinding.OutputSchema"/>.
         ///
         /// The <see cref="GroupBinding.OutputSchema"/> contains columns used to group columns and columns being aggregated from input data.
         /// In <see cref="GroupBinding.OutputSchema"/>, group columns are followed by aggregated columns. For example, if column "Age" is used to group "UserId" column,
@@ -189,12 +189,12 @@ namespace Microsoft.ML.Transforms
         ///
         /// For group columns, the schema information is intact. For aggregated columns, the type is Vector of original type and variable length.
         /// The only metadata preserved is the KeyNames and IsNormalized. All other columns are dropped. Please see
-        /// <see cref="GroupBinding.BuildOutputSchema(Schema)"/> how this idea got implemented.
+        /// <see cref="GroupBinding.BuildOutputSchema(DataViewSchema)"/> how this idea got implemented.
         /// </summary>
         private sealed class GroupBinding
         {
             private readonly IExceptionContext _ectx;
-            private readonly Schema _inputSchema;
+            private readonly DataViewSchema _inputSchema;
 
             // Column names in source schema used to group rows.
             private readonly string[] _groupColumns;
@@ -211,11 +211,11 @@ namespace Microsoft.ML.Transforms
             public readonly int[] KeepColumnIndexes;
 
             /// <summary>
-            /// Output <see cref="Schema"/> of <see cref="GroupTransform"/> when input schema is <see cref="_inputSchema"/>.
+            /// Output <see cref="DataViewSchema"/> of <see cref="GroupTransform"/> when input schema is <see cref="_inputSchema"/>.
             /// </summary>
-            public Schema OutputSchema { get; }
+            public DataViewSchema OutputSchema { get; }
 
-            public GroupBinding(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
+            public GroupBinding(IExceptionContext ectx, DataViewSchema inputSchema, string[] groupColumns, string[] keepColumns)
             {
                 Contracts.AssertValue(ectx);
                 _ectx = ectx;
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms
                 OutputSchema = BuildOutputSchema(inputSchema);
             }
 
-            public GroupBinding(Schema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
+            public GroupBinding(DataViewSchema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(env);
                 _ectx = env.Register(LoaderSignature);
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             /// <param name="sourceSchema">Input schema.</param>
             /// <returns>The associated output schema produced by <see cref="GroupTransform"/>.</returns>
-            private Schema BuildOutputSchema(Schema sourceSchema)
+            private DataViewSchema BuildOutputSchema(DataViewSchema sourceSchema)
             {
                 // Create schema build. We will sequentially add group columns and then aggregated columns.
                 var schemaBuilder = new SchemaBuilder();
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Transforms
                         s => s == MetadataUtils.Kinds.IsNormalized || s == MetadataUtils.Kinds.KeyValues);
 
                     // Prepare column's type.
-                    var aggregatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveType;
+                    var aggregatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveDataViewType;
                     _ectx.CheckValue(aggregatedValueType, nameof(aggregatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
                     var aggregatedResultType = new VectorType(aggregatedValueType);
 
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="names">Column names</param>
             /// <param name="except">Marked exception function</param>
             /// <returns>column indexes</returns>
-            private int[] GetColumnIds(Schema schema, string[] names, Func<string, Exception> except)
+            private int[] GetColumnIds(DataViewSchema schema, string[] names, Func<string, Exception> except)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(names);
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Transforms
 
                     var colType = retrievedColumn.Value.Type;
                     errorMessage = string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType);
-                    _ectx.Check(colType is PrimitiveType, errorMessage);
+                    _ectx.Check(colType is PrimitiveDataViewType, errorMessage);
 
                     ids[i] = retrievedColumn.Value.Index;
                 }
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Transforms
             {
                 public readonly Func<bool> IsSameKey;
 
-                private static Func<bool> MakeSameChecker<T>(Row row, int col)
+                private static Func<bool> MakeSameChecker<T>(DataViewRow row, int col)
                 {
                     T oldValue = default(T);
                     T newValue = default(T);
@@ -421,12 +421,12 @@ namespace Microsoft.ML.Transforms
                         };
                 }
 
-                public GroupKeyColumnChecker(Row row, int col)
+                public GroupKeyColumnChecker(DataViewRow row, int col)
                 {
                     Contracts.AssertValue(row);
                     var type = row.Schema[col].Type;
 
-                    Func<Row, int, Func<bool>> del = MakeSameChecker<int>;
+                    Func<DataViewRow, int, Func<bool>> del = MakeSameChecker<int>;
                     var mi = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
                     IsSameKey = (Func<bool>)mi.Invoke(null, new object[] { row, col });
                 }
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Transforms
             // REVIEW: Currently, it always produces dense buffers. The anticipated use cases don't include many
             // default values at the moment.
             /// <summary>
-            /// This class handles the aggregation of one 'keep' column into a vector. It wraps around an <see cref="Row"/>'s
+            /// This class handles the aggregation of one 'keep' column into a vector. It wraps around an <see cref="DataViewRow"/>'s
             /// column, reads the data and aggregates.
             /// </summary>
             private abstract class KeepColumnAggregator
@@ -445,15 +445,15 @@ namespace Microsoft.ML.Transforms
                 public abstract void SetSize(int size);
                 public abstract void ReadValue(int position);
 
-                public static KeepColumnAggregator Create(Row row, int col)
+                public static KeepColumnAggregator Create(DataViewRow row, int col)
                 {
                     Contracts.AssertValue(row);
                     var colType = row.Schema[col].Type;
-                    Contracts.Assert(colType is PrimitiveType);
+                    Contracts.Assert(colType is PrimitiveDataViewType);
 
                     var type = typeof(ListAggregator<>);
 
-                    var cons = type.MakeGenericType(colType.RawType).GetConstructor(new[] { typeof(Row), typeof(int) });
+                    var cons = type.MakeGenericType(colType.RawType).GetConstructor(new[] { typeof(DataViewRow), typeof(int) });
                     return cons.Invoke(new object[] { row, col }) as KeepColumnAggregator;
                 }
 
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Transforms
                     private TValue[] _buffer;
                     private int _size;
 
-                    public ListAggregator(Row row, int col)
+                    public ListAggregator(DataViewRow row, int col)
                     {
                         Contracts.AssertValue(row);
                         _srcGetter = row.GetGetter<TValue>(col);
@@ -502,15 +502,15 @@ namespace Microsoft.ML.Transforms
             private readonly bool[] _active;
             private readonly int _groupCount;
 
-            private readonly RowCursor _leadingCursor;
-            private readonly RowCursor _trailingCursor;
+            private readonly DataViewRowCursor _leadingCursor;
+            private readonly DataViewRowCursor _trailingCursor;
 
             private readonly GroupKeyColumnChecker[] _groupCheckers;
             private readonly KeepColumnAggregator[] _aggregators;
 
             public override long Batch => 0;
 
-            public override Schema Schema => _parent.OutputSchema;
+            public override DataViewSchema Schema => _parent.OutputSchema;
 
             public Cursor(GroupTransform parent, Func<int, bool> predicate)
                 : base(parent.Host)
@@ -555,7 +555,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return _trailingCursor.GetIdGetter();
             }

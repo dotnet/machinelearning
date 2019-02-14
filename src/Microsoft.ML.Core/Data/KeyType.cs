@@ -22,7 +22,7 @@ namespace Microsoft.ML.Data
     /// the representational values are 1-5001. The representation value zero is reserved
     /// to mean a missing value (similar to NaN).
     /// </summary>
-    public sealed class KeyType : PrimitiveType
+    public sealed class KeyType : PrimitiveDataViewType
     {
         public KeyType(Type type, ulong count)
             : base(type)
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public ulong Count { get; }
 
-        public override bool Equals(ColumnType other)
+        public override bool Equals(DataViewType other)
         {
             if (other == this)
                 return true;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
 
         public override bool Equals(object other)
         {
-            return other is ColumnType tmp && Equals(tmp);
+            return other is DataViewType tmp && Equals(tmp);
         }
 
         public override int GetHashCode()

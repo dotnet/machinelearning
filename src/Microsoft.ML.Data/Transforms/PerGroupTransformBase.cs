@@ -33,7 +33,7 @@ namespace Microsoft.ML.Data
             public readonly int ScoreIndex;
             public readonly int GroupIndex;
 
-            protected BindingsBase(IExceptionContext ectx, Schema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
+            protected BindingsBase(IExceptionContext ectx, DataViewSchema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
                 : base(input, user, names)
             {
                 ectx.AssertNonWhiteSpace(labelCol);
@@ -93,9 +93,9 @@ namespace Microsoft.ML.Data
         protected readonly string ScoreCol;
         protected readonly string GroupCol;
 
-        Schema IDataView.Schema => OutputSchema;
+        DataViewSchema IDataView.Schema => OutputSchema;
 
-        public Schema OutputSchema => GetBindings().AsSchema;
+        public DataViewSchema OutputSchema => GetBindings().AsSchema;
 
         public IDataView Source { get; }
 
@@ -156,13 +156,13 @@ namespace Microsoft.ML.Data
             return Source.GetRowCount();
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
+            return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Data
             return GetRowCursorCore(predicate);
         }
 
-        private RowCursor GetRowCursorCore(Func<int, bool> predicate)
+        private DataViewRowCursor GetRowCursorCore(Func<int, bool> predicate)
         {
             var bindings = GetBindings();
             var active = bindings.GetActive(predicate);
@@ -206,17 +206,17 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Get the getter for the first input column.
         /// </summary>
-        protected abstract ValueGetter<TLabel> GetLabelGetter(Row row);
+        protected abstract ValueGetter<TLabel> GetLabelGetter(DataViewRow row);
 
         /// <summary>
         /// Get the getter for the second input column.
         /// </summary>
-        protected abstract ValueGetter<TScore> GetScoreGetter(Row row);
+        protected abstract ValueGetter<TScore> GetScoreGetter(DataViewRow row);
 
         /// <summary>
         /// Return a new state object.
         /// </summary>
-        protected abstract TState InitializeState(Row input);
+        protected abstract TState InitializeState(DataViewRow input);
 
         /// <summary>
         /// Update the state object with one example.
@@ -232,8 +232,8 @@ namespace Microsoft.ML.Data
         private sealed class Cursor : RootCursorBase
         {
             private readonly PerGroupTransformBase<TLabel, TScore, TState> _parent;
-            private readonly RowCursor _groupCursor;
-            private readonly RowCursor _input;
+            private readonly DataViewRowCursor _groupCursor;
+            private readonly DataViewRowCursor _input;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
@@ -244,11 +244,11 @@ namespace Microsoft.ML.Data
             private readonly ValueGetter<TLabel> _labelGetter;
             private readonly ValueGetter<TScore> _scoreGetter;
 
-            public override Schema Schema => _parent.OutputSchema;
+            public override DataViewSchema Schema => _parent.OutputSchema;
 
             public override long Batch => 0;
 
-            public Cursor(PerGroupTransformBase<TLabel, TScore, TState> parent, RowCursor input, RowCursor groupCursor, bool[] active)
+            public Cursor(PerGroupTransformBase<TLabel, TScore, TState> parent, DataViewRowCursor input, DataViewRowCursor groupCursor, bool[] active)
                 : base(parent.Host)
             {
                 Ch.AssertValue(parent);
@@ -301,13 +301,13 @@ namespace Microsoft.ML.Data
                 return fn;
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                        val = new RowId((ulong)Position, 0);
+                        val = new DataViewRowId((ulong)Position, 0);
                     };
             }
 

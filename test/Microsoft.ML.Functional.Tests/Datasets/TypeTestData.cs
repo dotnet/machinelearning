@@ -66,7 +66,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
         public DateTimeOffset Dz { get; set; }
 
         [LoadColumn(15)]
-        public RowId Ug { get; set; }
+        public DataViewRowId Ug { get; set; }
 
         [LoadColumn(16, 16 + _numFeatures - 1), VectorType(_numFeatures)]
         public float[] Features { get; set; }
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
                 Ts = TimeSpan.FromSeconds(rng.NextDouble() * (1 + rng.Next())),
                 Dt = DateTime.FromOADate(rng.Next(657435, 2958465)),
                 Dz = DateTimeOffset.FromUnixTimeSeconds((long)(rng.NextDouble() * (1 + rng.Next()))),
-                Ug = new RowId((ulong)rng.Next(), (ulong)rng.Next()),
+                Ug = new DataViewRowId((ulong)rng.Next(), (ulong)rng.Next()),
                 Features = GetRandomFloatArray(rng, _numFeatures),
             };
         }

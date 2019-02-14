@@ -97,11 +97,11 @@ namespace Microsoft.ML.Data
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
-            if (t != NumberType.Float)
+            if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
-            if (t != NumberType.Float && t.GetKeyCount() != 2)
+            if (t != NumberDataViewType.Single && t.GetKeyCount() != 2)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a KeyType with cardinality 2", t.ToString());
         }
 
@@ -181,26 +181,26 @@ namespace Microsoft.ML.Data
                     if (hasStrats)
                     {
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextDataViewType.Instance, stratVal.ToArray());
                     }
-                    overallDvBldr.AddColumn(BinaryClassifierEvaluator.Auc, NumberType.R8, auc.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.DrAtK, NumberType.R8, drAtK.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.DrAtPFpr, NumberType.R8, drAtP.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.DrAtNumPos, NumberType.R8, drAtNumAnomalies.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtK, NumberType.R4, thresholdAtK.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtP, NumberType.R4, thresholdAtP.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtNumPos, NumberType.R4, thresholdAtNumAnomalies.ToArray());
-                    overallDvBldr.AddColumn(OverallMetrics.NumAnomalies, NumberType.I8, numAnoms.ToArray());
+                    overallDvBldr.AddColumn(BinaryClassifierEvaluator.Auc, NumberDataViewType.Double, auc.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.DrAtK, NumberDataViewType.Double, drAtK.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.DrAtPFpr, NumberDataViewType.Double, drAtP.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.DrAtNumPos, NumberDataViewType.Double, drAtNumAnomalies.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtK, NumberDataViewType.Single, thresholdAtK.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtP, NumberDataViewType.Single, thresholdAtP.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.ThreshAtNumPos, NumberDataViewType.Single, thresholdAtNumAnomalies.ToArray());
+                    overallDvBldr.AddColumn(OverallMetrics.NumAnomalies, NumberDataViewType.Int64, numAnoms.ToArray());
 
                     var topKdvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
                         topKdvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, topKStratCol.ToArray());
-                        topKdvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, topKStratVal.ToArray());
+                        topKdvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextDataViewType.Instance, topKStratVal.ToArray());
                     }
-                    topKdvBldr.AddColumn(TopKResultsColumns.Instance, TextType.Instance, names.ToArray());
-                    topKdvBldr.AddColumn(TopKResultsColumns.AnomalyScore, NumberType.R4, scores.ToArray());
-                    topKdvBldr.AddColumn(TopKResultsColumns.Label, NumberType.R4, labels.ToArray());
+                    topKdvBldr.AddColumn(TopKResultsColumns.Instance, TextDataViewType.Instance, names.ToArray());
+                    topKdvBldr.AddColumn(TopKResultsColumns.AnomalyScore, NumberDataViewType.Single, scores.ToArray());
+                    topKdvBldr.AddColumn(TopKResultsColumns.Label, NumberDataViewType.Single, labels.ToArray());
 
                     var result = new Dictionary<string, IDataView>();
                     result.Add(MetricKinds.OverallMetrics, overallDvBldr.GetDataView());
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(DataViewRow row, RoleMappedSchema schema)
             {
                 Host.Assert(!_streaming && PassNum < 2 || PassNum < 1);
                 Host.Assert(schema.Label.HasValue);

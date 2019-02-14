@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests
         {
             var builder = new ArrayDataViewBuilder(ML);
             builder.AddColumn("Strings", new[] { "foo", "bar", "baz" });
-            builder.AddColumn("Floats", NumberType.R4, new float[] { 1, 2, 3 });
+            builder.AddColumn("Floats", NumberDataViewType.Single, new float[] { 1, 2, 3 });
             var data = builder.GetDataView();
 
             var data1 = ML.Data.FilterRowsByColumn(data, "Floats", upperBound: 2.8);

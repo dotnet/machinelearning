@@ -147,9 +147,9 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             public readonly string Name;
             public readonly string InputColumnName;
-            public readonly ColumnType TypeSrc;
+            public readonly DataViewType TypeSrc;
 
-            public ColInfo(string name, string inputColumnName, ColumnType type)
+            public ColInfo(string name, string inputColumnName, DataViewType type)
             {
                 Name = name;
                 InputColumnName = inputColumnName;
@@ -221,17 +221,17 @@ namespace Microsoft.ML.Transforms.Conversions
             return columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray();
         }
 
-        private string TestIsKnownDataKind(ColumnType type)
+        private string TestIsKnownDataKind(DataViewType type)
         {
             VectorType vectorType = type as VectorType;
-            ColumnType itemType = vectorType?.ItemType ?? type;
+            DataViewType itemType = vectorType?.ItemType ?? type;
 
             if (itemType is KeyType || itemType.IsStandardScalar())
                 return null;
             return "standard type or a vector of standard type";
         }
 
-        private ColInfo[] CreateInfos(Schema inputSchema)
+        private ColInfo[] CreateInfos(DataViewSchema inputSchema)
         {
             Host.AssertValue(inputSchema);
             var infos = new ColInfo[ColumnPairs.Length];
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
@@ -688,12 +688,12 @@ namespace Microsoft.ML.Transforms.Conversions
             return _unboundMaps[iinfo];
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
           => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly ValueToKeyMappingTransformer _parent;
             private readonly ColInfo[] _infos;
             private readonly BoundTermMap[] _termMap;
@@ -702,17 +702,17 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public bool CanSavePfa => true;
 
-            public Mapper(ValueToKeyMappingTransformer parent, Schema inputSchema)
+            public Mapper(ValueToKeyMappingTransformer parent, DataViewSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _infos = _parent.CreateInfos(inputSchema);
-                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
                     KeyType keyType = _parent._unboundMaps[i].OutputType;
-                    ColumnType colType;
+                    DataViewType colType;
                     if (type is VectorType vectorType)
                         colType = new VectorType(keyType, vectorType);
                     else
@@ -726,9 +726,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
@@ -737,12 +737,12 @@ namespace Microsoft.ML.Transforms.Conversions
                     _termMap[i].AddMetadata(builder);
 
                     builder.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -751,11 +751,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, iinfo);
             }
 
-            private Delegate MakeGetter<T>(Row row, int src) => _termMap[src].GetMappingGetter(row);
+            private Delegate MakeGetter<T>(DataViewRow row, int src) => _termMap[src].GetMappingGetter(row);
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!(info.TypeSrc.GetItemType() is TextType))
+                if (!(info.TypeSrc.GetItemType() is TextDataViewType))
                     return false;
 
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
@@ -832,8 +832,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 //Contracts.Assert(CanSavePfa);
 
                 VectorType vectorType = info.TypeSrc as VectorType;
-                ColumnType itemType = vectorType?.ItemType ?? info.TypeSrc;
-                if (!(itemType is TextType))
+                DataViewType itemType = vectorType?.ItemType ?? info.TypeSrc;
+                if (!(itemType is TextDataViewType))
                     return null;
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
                 TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;

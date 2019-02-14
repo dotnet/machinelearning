@@ -201,7 +201,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Create Metadata.
             var kindFloat = "Testing float as metadata.";
             var valueFloat = 10;
-            var coltypeFloat = NumberType.Float;
+            var coltypeFloat = NumberDataViewType.Single;
             var kindString = "Testing string as metadata.";
             var valueString = "Strings have value.";
             var kindStringArray = "Testing string array as metadata.";
@@ -231,11 +231,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.True(idv.Schema[0].Metadata.Schema[0].Name == kindFloat);
             Assert.True(idv.Schema[0].Metadata.Schema[0].Type == coltypeFloat);
             Assert.True(idv.Schema[0].Metadata.Schema[1].Name == kindString);
-            Assert.True(idv.Schema[0].Metadata.Schema[1].Type == TextType.Instance);
+            Assert.True(idv.Schema[0].Metadata.Schema[1].Type == TextDataViewType.Instance);
 
             Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
             Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
-            Assert.True(idv.Schema[1].Metadata.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextType);
+            Assert.True(idv.Schema[1].Metadata.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextDataViewType);
             Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Metadata.Schema[kindFloat]);
 
             float retrievedFloat = 0;

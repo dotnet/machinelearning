@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        private void HashTestCore<T>(T val, PrimitiveType type, uint expected, uint expectedOrdered, uint expectedOrdered3)
+        private void HashTestCore<T>(T val, PrimitiveDataViewType type, uint expected, uint expectedOrdered, uint expectedOrdered3)
         {
             const int bits = 10;
 
@@ -231,34 +231,34 @@ namespace Microsoft.ML.Tests.Transformers
 
             if (value <= byte.MaxValue)
             {
-                HashTestCore((byte)value, NumberType.U1, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((byte)value, NumberDataViewType.Byte, expected, expectedOrdered, expectedOrdered3);
                 HashTestCore((byte)value, new KeyType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= ushort.MaxValue)
             {
-                HashTestCore((ushort)value, NumberType.U2, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3);
                 HashTestCore((ushort)value, new KeyType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= uint.MaxValue)
             {
-                HashTestCore((uint)value, NumberType.U4, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3);
                 HashTestCore((uint)value, new KeyType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
             }
-            HashTestCore(value, NumberType.U8, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3);
             HashTestCore((ulong)value, new KeyType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
 
-            HashTestCore(new RowId(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore(new DataViewRowId(value, 0), NumberDataViewType.DataViewRowId, expected, expectedOrdered, expectedOrdered3);
 
             // Next let's check signed numbers.
 
             if (value <= (ulong)sbyte.MaxValue)
-                HashTestCore((sbyte)value, NumberType.I1, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((sbyte)value, NumberDataViewType.SByte, expected, expectedOrdered, expectedOrdered3);
             if (value <= (ulong)short.MaxValue)
-                HashTestCore((short)value, NumberType.I2, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((short)value, NumberDataViewType.Int16, expected, expectedOrdered, expectedOrdered3);
             if (value <= int.MaxValue)
-                HashTestCore((int)value, NumberType.I4, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((int)value, NumberDataViewType.Int32, expected, expectedOrdered, expectedOrdered3);
             if (value <= long.MaxValue)
-                HashTestCore((long)value, NumberType.I8, expected, expectedOrdered, expectedOrdered3);
+                HashTestCore((long)value, NumberDataViewType.Int64, expected, expectedOrdered, expectedOrdered3);
         }
 
         [Fact]
@@ -272,28 +272,28 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestHashString()
         {
-            HashTestCore("".AsMemory(), TextType.Instance, 0, 0, 0);
-            HashTestCore("hello".AsMemory(), TextType.Instance, 326, 636, 307);
+            HashTestCore("".AsMemory(), TextDataViewType.Instance, 0, 0, 0);
+            HashTestCore("hello".AsMemory(), TextDataViewType.Instance, 326, 636, 307);
         }
 
         [Fact]
         public void TestHashFloatingPointNumbers()
         {
-            HashTestCore(1f, NumberType.R4, 933, 67, 270);
-            HashTestCore(-1f, NumberType.R4, 505, 589, 245);
-            HashTestCore(0f, NumberType.R4, 848, 567, 518);
+            HashTestCore(1f, NumberDataViewType.Single, 933, 67, 270);
+            HashTestCore(-1f, NumberDataViewType.Single, 505, 589, 245);
+            HashTestCore(0f, NumberDataViewType.Single, 848, 567, 518);
             // Note that while we have the hash for numeric types be equal, the same is not necessarily the case for floating point numbers.
-            HashTestCore(1d, NumberType.R8, 671, 728, 123);
-            HashTestCore(-1d, NumberType.R8, 803, 699, 790);
-            HashTestCore(0d, NumberType.R8, 848, 567, 518);
+            HashTestCore(1d, NumberDataViewType.Double, 671, 728, 123);
+            HashTestCore(-1d, NumberDataViewType.Double, 803, 699, 790);
+            HashTestCore(0d, NumberDataViewType.Double, 848, 567, 518);
         }
 
         [Fact]
         public void TestHashBool()
         {
             // These are the same for the hashes of 0 and 1.
-            HashTestCore(false, BoolType.Instance, 848, 567, 518);
-            HashTestCore(true, BoolType.Instance, 492, 523, 1013);
+            HashTestCore(false, BooleanDataViewType.Instance, 848, 567, 518);
+            HashTestCore(true, BooleanDataViewType.Instance, 492, 523, 1013);
         }
     }
 }

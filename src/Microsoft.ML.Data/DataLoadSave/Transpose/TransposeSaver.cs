@@ -62,7 +62,7 @@ namespace Microsoft.ML.Data.IO
             _silent = args.Silent;
         }
 
-        public bool IsColumnSavable(ColumnType type)
+        public bool IsColumnSavable(DataViewType type)
         {
             _host.CheckValue(type, nameof(type));
             // We can't transpose variable length columns at all, so nor can we save them.
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Data.IO
             // an artificial vector type out of this. Obviously if you can't make a vector
             // out of the items, then you could not save each slot's values.
             var itemType = type.GetItemType();
-            var primitiveType = itemType as PrimitiveType;
+            var primitiveType = itemType as PrimitiveDataViewType;
             if (primitiveType == null)
                 return false;
             var newVectorType = new VectorType(primitiveType, size: 2);

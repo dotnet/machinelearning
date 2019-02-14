@@ -97,8 +97,8 @@ namespace Microsoft.ML.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            ColumnType type = schema.Label?.Type;
-            if (type != null && type != NumberType.Float && !(type is KeyType keyType && keyType.Count > 0))
+            DataViewType type = schema.Label?.Type;
+            if (type != null && type != NumberDataViewType.Single && !(type is KeyType keyType && keyType.Count > 0))
             {
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name,
                     "float or KeyType", type.ToString());
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
 
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             type = score.Type;
-            if (!(type is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
+            if (!(type is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", type.ToString());
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Data
             {
                 Host.Assert(schema.Feature.HasValue);
                 var t = schema.Feature.Value.Type;
-                if (!(t is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
+                if (!(t is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
                 {
                     throw Host.ExceptSchemaMismatch(nameof(schema), "features", schema.Feature.Value.Name,
                         "R4 vector of known size", t.ToString());
@@ -203,14 +203,14 @@ namespace Microsoft.ML.Data
                     if (hasStrats)
                     {
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextDataViewType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BoolType.Instance, isWeighted.ToArray());
-                    overallDvBldr.AddColumn(Nmi, NumberType.R8, nmi.ToArray());
-                    overallDvBldr.AddColumn(AvgMinScore, NumberType.R8, avgMinScores.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.IsWeighted, BooleanDataViewType.Instance, isWeighted.ToArray());
+                    overallDvBldr.AddColumn(Nmi, NumberDataViewType.Double, nmi.ToArray());
+                    overallDvBldr.AddColumn(AvgMinScore, NumberDataViewType.Double, avgMinScores.ToArray());
                     if (aggregator.UnweightedCounters.CalculateDbi)
-                        overallDvBldr.AddColumn(Dbi, NumberType.R8, dbi.ToArray());
+                        overallDvBldr.AddColumn(Dbi, NumberDataViewType.Double, dbi.ToArray());
 
                     var result = new Dictionary<string, IDataView>
                     {
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public Counters(int numClusters, bool calculateDbi, Schema.Column? features)
+                public Counters(int numClusters, bool calculateDbi, DataViewSchema.Column? features)
                 {
                     _numClusters = numClusters;
                     CalculateDbi = calculateDbi;
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Data
 
             private readonly bool _calculateDbi;
 
-            internal Aggregator(IHostEnvironment env, Schema.Column? features, int scoreVectorSize, bool calculateDbi, bool weighted, string stratName)
+            internal Aggregator(IHostEnvironment env, DataViewSchema.Column? features, int scoreVectorSize, bool calculateDbi, bool weighted, string stratName)
                 : base(env, stratName)
             {
                 _calculateDbi = calculateDbi;
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Data
                     WeightedCounters.UpdateSecondPass(in _features, _indicesArr);
             }
 
-            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(DataViewRow row, RoleMappedSchema schema)
             {
                 AssertValid(assertGetters: false);
 
@@ -585,22 +585,22 @@ namespace Microsoft.ML.Data
         public const string SortedClusterScores = "SortedScores";
 
         private readonly int _numClusters;
-        private readonly ColumnType[] _types;
+        private readonly DataViewType[] _types;
 
-        public ClusteringPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, int numClusters)
+        public ClusteringPerInstanceEvaluator(IHostEnvironment env, DataViewSchema schema, string scoreCol, int numClusters)
             : base(env, schema, scoreCol, null)
         {
             CheckInputColumnTypes(schema);
             _numClusters = numClusters;
 
-            _types = new ColumnType[3];
+            _types = new DataViewType[3];
             var key = new KeyType(typeof(uint), _numClusters);
             _types[ClusterIdCol] = key;
             _types[SortedClusterCol] = new VectorType(key, _numClusters);
-            _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
+            _types[SortedClusterScoreCol] = new VectorType(NumberDataViewType.Single, _numClusters);
         }
 
-        private ClusteringPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        private ClusteringPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -612,14 +612,14 @@ namespace Microsoft.ML.Data
             _numClusters = ctx.Reader.ReadInt32();
             Host.CheckDecode(_numClusters > 0);
 
-            _types = new ColumnType[3];
+            _types = new DataViewType[3];
             var key = new KeyType(typeof(uint), _numClusters);
             _types[ClusterIdCol] = key;
             _types[SortedClusterCol] = new VectorType(key, _numClusters);
-            _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
+            _types[SortedClusterScoreCol] = new VectorType(NumberDataViewType.Single, _numClusters);
         }
 
-        public static ClusteringPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
+        public static ClusteringPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Data
                     (activeOutput(ClusterIdCol) || activeOutput(SortedClusterCol) || activeOutput(SortedClusterScoreCol));
         }
 
-        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(DataViewRow input, Func<int, bool> activeCols, out Action disposer)
         {
             disposer = null;
 
@@ -717,12 +717,12 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+        private protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.DetachedColumn[3];
-            infos[ClusterIdCol] = new Schema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
+            var infos = new DataViewSchema.DetachedColumn[3];
+            infos[ClusterIdCol] = new DataViewSchema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
 
-            var slotNamesType = new VectorType(TextType.Instance, _numClusters);
+            var slotNamesType = new VectorType(TextDataViewType.Instance, _numClusters);
 
             var sortedClusters = new MetadataBuilder();
             int vectorSize = slotNamesType.GetVectorSize();
@@ -731,8 +731,8 @@ namespace Microsoft.ML.Data
             var builder = new MetadataBuilder();
             builder.AddSlotNames(vectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
 
-            infos[SortedClusterCol] = new Schema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
-            infos[SortedClusterScoreCol] = new Schema.DetachedColumn(SortedClusterScores, _types[SortedClusterScoreCol], builder.GetMetadata());
+            infos[SortedClusterCol] = new DataViewSchema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new DataViewSchema.DetachedColumn(SortedClusterScores, _types[SortedClusterScoreCol], builder.GetMetadata());
             return infos;
         }
 
@@ -749,12 +749,12 @@ namespace Microsoft.ML.Data
                 };
         }
 
-        private void CheckInputColumnTypes(Schema schema)
+        private void CheckInputColumnTypes(DataViewSchema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
 
             var type = schema[(int) ScoreIndex].Type;
-            if (!(type is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
+            if (!(type is VectorType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", type.ToString());
         }
     }

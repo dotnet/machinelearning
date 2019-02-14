@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// Schema propagation for transformers. Returns the output schema of the data, if
         /// the input schema is like the one provided.
         /// </summary>
-        public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema) => _transformer.GetOutputSchema(inputSchema);
 
         /// <summary>
         /// Take the data in, make transformations, output the data. Note that <see cref="IDataView"/>
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <summary>
         /// Constructs a row-to-row mapper based on an input schema.
         /// </summary>
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
     }
 
     /// <summary>

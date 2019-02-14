@@ -112,7 +112,7 @@ namespace Microsoft.ML.Transforms.Conversions
             // Note that if CustomSlotMap contains only one array, the output type of the transform will a single Key<U4>.
             // This corresponds to the join=+ case, although now it's possible to omit certain slots entirely.
             // If # of hash bits is less than 31, the key type will have a positive count.
-            public readonly ColumnType OutputColumnType;
+            public readonly DataViewType OutputColumnType;
 
             public readonly int HashBits;
             public readonly uint HashSeed;
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private static string TestColumnType(ColumnType type)
+        private static string TestColumnType(DataViewType type)
         {
             // REVIEW: list all types that can be hashed.
             if (type.GetValueCount() > 0)
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 using (var bldr = md.BuildMetadata(i))
                 {
                     bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
-                        new VectorType(TextType.Instance, ex.SlotMap.Length), GetSlotNames);
+                        new VectorType(TextDataViewType.Instance, ex.SlotMap.Length), GetSlotNames);
                 }
             }
             md.Seal();
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private static MethodInfo _methGetterVecToVec;
         private static MethodInfo _methGetterVecToOne;
 
-        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
@@ -468,17 +468,17 @@ namespace Microsoft.ML.Transforms.Conversions
             // Construct MethodInfos templates that we need for the generic methods.
             if (_methGetterOneToOne == null)
             {
-                Func<Row, int, ValueGetter<uint>> del = ComposeGetterOneToOne<int>;
+                Func<DataViewRow, int, ValueGetter<uint>> del = ComposeGetterOneToOne<int>;
                 Interlocked.CompareExchange(ref _methGetterOneToOne, del.GetMethodInfo().GetGenericMethodDefinition(), null);
             }
             if (_methGetterVecToVec == null)
             {
-                Func<Row, int, ValueGetter<VBuffer<uint>>> del = ComposeGetterVecToVec<int>;
+                Func<DataViewRow, int, ValueGetter<VBuffer<uint>>> del = ComposeGetterVecToVec<int>;
                 Interlocked.CompareExchange(ref _methGetterVecToVec, del.GetMethodInfo().GetGenericMethodDefinition(), null);
             }
             if (_methGetterVecToOne == null)
             {
-                Func<Row, int, ValueGetter<uint>> del = ComposeGetterVecToOne<int>;
+                Func<DataViewRow, int, ValueGetter<uint>> del = ComposeGetterVecToOne<int>;
                 Interlocked.CompareExchange(ref _methGetterVecToOne, del.GetMethodInfo().GetGenericMethodDefinition(), null);
             }
 
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms.Conversions
             // First, we take a method info for GetGetter<int>
             // Then, we replace <int> with correct type of the input
             // And then we generate a delegate using the generic delegate generator
-            ColumnType itemType;
+            DataViewType itemType;
             MethodInfo mi;
             if (!(Infos[iinfo].TypeSrc is VectorType vectorType))
             {
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <typeparam name="TSrc">Input type. Must be a non-vector</typeparam>
         /// <param name="input">Row inout</param>
         /// <param name="iinfo">Index of the getter</param>
-        private ValueGetter<uint> ComposeGetterOneToOne<TSrc>(Row input, int iinfo)
+        private ValueGetter<uint> ComposeGetterOneToOne<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
             Host.Assert(!(Infos[iinfo].TypeSrc is VectorType));
@@ -536,7 +536,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <typeparam name="TSrc">Input type. Must be a vector</typeparam>
         /// <param name="input">Row input</param>
         /// <param name="iinfo">Index of the getter</param>
-        private ValueGetter<VBuffer<uint>> ComposeGetterVecToVec<TSrc>(Row input, int iinfo)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecToVec<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
             VectorType srcType = Infos[iinfo].TypeSrc as VectorType;
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <typeparam name="TSrc">Input type. Must be a vector</typeparam>
         /// <param name="input">Row input</param>
         /// <param name="iinfo">Index of the getter</param>
-        private ValueGetter<uint> ComposeGetterVecToOne<TSrc>(Row input, int iinfo)
+        private ValueGetter<uint> ComposeGetterVecToOne<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
             VectorType srcType = Infos[iinfo].TypeSrc as VectorType;
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return Hashing.MurmurRound(hash, Utils.GetHi(v));
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override DataViewType GetColumnTypeCore(int iinfo)
         {
             Host.Assert(iinfo >= 0 && iinfo < _exes.Length);
             return _exes[iinfo].OutputColumnType;

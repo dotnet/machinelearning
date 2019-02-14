@@ -28,16 +28,16 @@ namespace Microsoft.ML.Data
 
         public bool IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);
         }
 
         [BestFriend]
-        private protected abstract IRowMapper MakeRowMapper(Schema schema);
+        private protected abstract IRowMapper MakeRowMapper(DataViewSchema schema);
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
@@ -56,25 +56,25 @@ namespace Microsoft.ML.Data
         protected abstract class MapperBase : IRowMapper
         {
             protected readonly IHost Host;
-            protected readonly Schema InputSchema;
-            private readonly Lazy<Schema.DetachedColumn[]> _outputColumns;
+            protected readonly DataViewSchema InputSchema;
+            private readonly Lazy<DataViewSchema.DetachedColumn[]> _outputColumns;
             private readonly RowToRowTransformerBase _parent;
 
-            protected MapperBase(IHost host, Schema inputSchema, RowToRowTransformerBase parent)
+            protected MapperBase(IHost host, DataViewSchema inputSchema, RowToRowTransformerBase parent)
             {
                 Contracts.CheckValue(host, nameof(host));
                 Contracts.CheckValue(inputSchema, nameof(inputSchema));
                 Host = host;
                 InputSchema = inputSchema;
                 _parent = parent;
-                _outputColumns = new Lazy<Schema.DetachedColumn[]>(GetOutputColumnsCore);
+                _outputColumns = new Lazy<DataViewSchema.DetachedColumn[]>(GetOutputColumnsCore);
             }
 
-            protected abstract Schema.DetachedColumn[] GetOutputColumnsCore();
+            protected abstract DataViewSchema.DetachedColumn[] GetOutputColumnsCore();
 
-            Schema.DetachedColumn[] IRowMapper.GetOutputColumns() => _outputColumns.Value;
+            DataViewSchema.DetachedColumn[] IRowMapper.GetOutputColumns() => _outputColumns.Value;
 
-            Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+            Delegate[] IRowMapper.CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
                 // of the input row.
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Data
                 return result;
             }
 
-            protected abstract Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer);
+            protected abstract Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer);
 
             Func<int, bool> IRowMapper.GetDependencies(Func<int, bool> activeOutput)
                 => GetDependenciesCore(activeOutput);

@@ -18,10 +18,10 @@ namespace Microsoft.ML.Benchmarks
 
         // Global.
         private IDataView _cacheDataView;
-        private RowCursor _cursor;
+        private DataViewRowCursor _cursor;
         private ValueGetter<int> _seekerGetter;
         private ValueGetter<int> _cursorGetter;
-        private Schema.Column _col;
+        private DataViewSchema.Column _col;
 
         private RowSeeker _seeker;
         private long[] _positions;
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Benchmarks
             int[] values = new int[Length];
             for (int i = 0; i < values.Length; ++i)
                 values[i] = i;
-            builder.AddColumn("A", NumberType.I4, values);
+            builder.AddColumn("A", NumberDataViewType.Int32, values);
             var dv = builder.GetDataView();
             var cacheDv = ctx.Data.Cache(dv);
 
