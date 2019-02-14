@@ -20,9 +20,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = TextLoaderStatic.CreateReader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
                 .Read(dataPath).Cache();
 
-            var binaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f });
+            var binaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { ConvergenceTolerance = 1e-2f });
             TestEstimatorCore(binaryTrainer, data.AsDynamic);
+
+            var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f });
+            TestEstimatorCore(nonCalibratedBinaryTrainer, data.AsDynamic);
 
             var regressionTrainer = ML.Regression.Trainers.StochasticDualCoordinateAscent(
                 new SdcaRegressionTrainer.Options { ConvergenceTolerance = 1e-2f });
@@ -54,7 +58,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(labelColumn: "Label", featureColumn: "Features", l2Const: 0.001f);
+            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumn: "Label", featureColumn: "Features", l2Const: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
