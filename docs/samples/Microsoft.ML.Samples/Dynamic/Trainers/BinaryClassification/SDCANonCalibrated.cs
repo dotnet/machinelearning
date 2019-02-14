@@ -5,9 +5,9 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class SDCA_BinaryClassificationExample
+    public class SDCABinaryClassificationExample
     {
-        public static void SDCA_BinaryClassification()
+        public static void SDCABinaryClassification()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column produced by FeaturizeText as the features column.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                     .AppendCacheCheckpoint(mlContext) // Add a data-cache step within a pipeline.
-                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumn: "Sentiment", featureColumn: "Features", l2Const: 0.001f));
+                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(labelColumn: "Sentiment", featureColumn: "Features", l2Const: 0.001f));
 
             // Step 3: Run Cross-Validation on this pipeline.
             var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment");
@@ -60,8 +60,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // If we wanted to specify more advanced parameters for the algorithm, 
             // we could do so by tweaking the 'advancedSetting'.
             var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
-                                  .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                                      new SdcaBinaryTrainer.Options { 
+                                  .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                                      new SdcaNonCalibratedBinaryTrainer.Options { 
                                         LabelColumn = "Sentiment",
                                         FeatureColumn = "Features",
                                         ConvergenceTolerance = 0.01f,  // The learning rate for adjusting bias from being regularized

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,19 +23,13 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(SdcaBinaryTrainer), typeof(SdcaBinaryTrainer.Options),
+[assembly: LoadableClass(typeof(LegacySdcaBinaryTrainer), typeof(LegacySdcaBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    SdcaBinaryTrainer.UserNameValue,
-    SdcaBinaryTrainer.LoadNameValue,
+    LegacySdcaBinaryTrainer.UserNameValue,
+    LegacySdcaBinaryTrainer.LoadNameValue,
     "LinearClassifier",
     "lc",
     "sasdca")]
-
-[assembly: LoadableClass(typeof(SdcaCalibratedBinaryTrainer), typeof(SdcaCalibratedBinaryTrainer.Options),
-    new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    SdcaCalibratedBinaryTrainer.UserNameValue,
-    SdcaCalibratedBinaryTrainer.LoadNameValue,
-    "SdcaLogisticRegression")]
 
 [assembly: LoadableClass(typeof(StochasticGradientDescentClassificationTrainer), typeof(StochasticGradientDescentClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -1399,7 +1394,18 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public abstract class SdcaBinaryTrainerBase<TModelParameters> : SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
+    /// <summary>
+    /// SDCA is a general training algorithm for (generalized) linear models such as support vector machine, linear regression, logistic regression,
+    /// and so on. SDCA binary classification trainer family includes several sealed members:
+    /// (1) <see cref="SdcaNonCalibratedBinaryTrainer"/> supports general loss functions and returns <see cref="LinearBinaryModelParameters"/>.
+    /// (2) <see cref="SdcaBinaryTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
+    /// naturally provide probability output, this generated model's type is <see cref="CalibratedModelParametersBase{TSubModel, TCalibrator}"/>.
+    /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
+    /// (3) <see cref="LegacySdcaBinaryTrainer"/> is used to support classical command line tools where model is weakly-typed to
+    /// <see cref="IPredictorWithFeatureWeights{TResult}"/>.
+    /// </summary>
+    public abstract class SdcaBinaryTrainerBase<TModelParameters> :
+        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
         where TModelParameters : class, IPredictorProducing<float>
     {
         private readonly ISupportSdcaClassificationLoss _loss;
@@ -1458,12 +1464,12 @@ namespace Microsoft.ML.Trainers
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null)
+        protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
-            Info = new TrainerInfo(calibration: false);
+            Info = new TrainerInfo(calibration: doCalibration);
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
@@ -1513,12 +1519,9 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
-    public sealed class SdcaCalibratedBinaryTrainer :
+    public sealed class SdcaBinaryTrainer :
         SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
-        internal const string LoadNameValue = "SDCALR";
-        internal const string UserNameValue = "Fast Linear (SA-SDCA) Logistic Regression";
-
         /// <summary>
         /// Configuration to training logistic regression using SDCA.
         /// </summary>
@@ -1526,7 +1529,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal SdcaCalibratedBinaryTrainer(IHostEnvironment env,
+        internal SdcaBinaryTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
@@ -1537,7 +1540,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal SdcaCalibratedBinaryTrainer(IHostEnvironment env, Options options)
+        internal SdcaBinaryTrainer(IHostEnvironment env, Options options)
             : base(env, options, new LogLoss())
         {
         }
@@ -1576,11 +1579,8 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public sealed class SdcaBinaryTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
+    public sealed class SdcaNonCalibratedBinaryTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
     {
-        internal const string LoadNameValue = "SDCA";
-        internal const string UserNameValue = "Fast Linear (SA-SDCA)";
-
         /// <summary>
         /// General Configuration to training linear model using SDCA.
         /// </summary>
@@ -1590,7 +1590,7 @@ namespace Microsoft.ML.Trainers
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
         }
 
-        internal SdcaBinaryTrainer(IHostEnvironment env,
+        internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
@@ -1602,7 +1602,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal SdcaBinaryTrainer(IHostEnvironment env, Options options)
+        internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env, Options options)
             : base(env, options, options.LossFunction.CreateComponent(env))
         {
         }
@@ -1628,12 +1628,95 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Comparing with <see cref="SdcaCalibratedBinaryTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
+        /// Comparing with <see cref="SdcaBinaryTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
         /// <see cref="CreatePredictor"/> directly outputs a <see cref="LinearBinaryModelParameters"/> built from
         /// the learned weights and bias without calibration.
         /// </summary>
         protected override LinearBinaryModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
             => CreateLinearBinaryModelParameters(weights, bias);
+    }
+
+    /// <summary>
+    /// This SDCA trainer exists only because of legacy command line tool and entry point graphs. Please do NOT use
+    /// it whenever possible.
+    /// </summary>
+    internal sealed class LegacySdcaBinaryTrainer : SdcaBinaryTrainerBase<IPredictorWithFeatureWeights<float>>
+    {
+        internal const string LoadNameValue = "SDCA";
+        internal const string UserNameValue = "Fast Linear (SA-SDCA)";
+
+        /// <summary>
+        /// Legacy configuration to SDCA in legacy framework.
+        /// </summary>
+        public sealed class Options : BinaryArgumentBase
+        {
+            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public int MaxCalibrationExamples = 1000000;
+        }
+
+        internal LegacySdcaBinaryTrainer(IHostEnvironment env, Options options)
+            : base(env, options, options.LossFunction.CreateComponent(env), !(options.LossFunction is LogLossFactory))
+        {
+        }
+
+        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        {
+            var outCols = new List<SchemaShape.Column>()
+            {
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberType.R4,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                    ),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BoolType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+
+            };
+
+            if (!Info.NeedCalibration)
+            {
+                outCols.Insert(1, new SchemaShape.Column(
+                    DefaultColumnNames.Probability,
+                    SchemaShape.Column.VectorKind.Scalar,
+                    NumberType.R4,
+                    false,
+                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
+            };
+
+            return outCols.ToArray();
+        }
+
+        /// <summary>
+        /// Weekly-typed function to create calibrated or uncalibrated predictors.
+        /// </summary>
+        protected override IPredictorWithFeatureWeights<float> CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        {
+            Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
+            Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
+            Host.CheckParam(weights[0].Length > 0, nameof(weights));
+
+            VBuffer<float> maybeSparseWeights = default;
+            // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
+            VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+
+            var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
+            if (Info.NeedCalibration)
+                return predictor;
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, predictor, new PlattCalibrator(Host, -1, 0));
+        }
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :
@@ -2020,35 +2103,20 @@ namespace Microsoft.ML.Trainers
     internal static partial class Sdca
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
-            Desc = "Train a linear model to binary classification using SDCA.",
-            UserName = SdcaBinaryTrainer.UserNameValue,
-            ShortName = SdcaBinaryTrainer.LoadNameValue)]
-        internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, SdcaBinaryTrainer.Options input)
+            Desc = "Train an SDCA binary model.",
+            UserName = LegacySdcaBinaryTrainer.UserNameValue,
+            ShortName = LegacySdcaBinaryTrainer.LoadNameValue)]
+        internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LegacySdcaBinaryTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSDCA");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<SdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new SdcaBinaryTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
-        }
-
-        [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentCalibratedBinaryClassifier",
-            Desc = "Train logistic regression using SDCA.",
-            UserName = SdcaCalibratedBinaryTrainer.UserNameValue,
-            ShortName = SdcaCalibratedBinaryTrainer.LoadNameValue)]
-        internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, SdcaCalibratedBinaryTrainer.Options input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var host = env.Register("TrainSDCA");
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
-
-            return LearnerEntryPointsUtils.Train<SdcaCalibratedBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new SdcaCalibratedBinaryTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+            return LearnerEntryPointsUtils.Train<LegacySdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new LegacySdcaBinaryTrainer(host, input),
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
+                calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
     }
 }

@@ -446,54 +446,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         }
 
         [Fact]
-        public void SdcaLogisticRegression()
-        {
-            // Generate C# objects as training examples.
-            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(100);
-
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext();
-
-            // Step 1: Read the data as an IDataView.
-            var data = mlContext.Data.ReadFromEnumerable(rawData);
-
-            // ML.NET doesn't cache data set by default. Caching is very helpful when working with iterative
-            // algorithms which needs many data passes. Since SDCA is the case, we cache.
-            data = mlContext.Data.Cache(data);
-
-            // Step 2: Create a binary classifier.
-            // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentCalibrated(labelColumn: "Label", featureColumn: "Features", l2Const: 0.001f);
-
-            // Step 3: Train the pipeline created.
-            var model = pipeline.Fit(data);
-
-            // Step 4: Make prediction and evaluate its quality (on training set).
-            var prediction = model.Transform(data);
-            var metrics = mlContext.BinaryClassification.Evaluate(prediction);
-
-            // Check a few metrics to make sure the trained model is ok.
-            Assert.InRange(metrics.Auc, 0.9, 1);
-            Assert.InRange(metrics.LogLoss, 0, 0.5);
-
-            var rawPrediction = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.CalibratedBinaryClassifierOutput>(prediction, false);
-
-            // Step 5: Inspect the prediction of the first example.
-            var first = rawPrediction.First();
-            // This is a positive example.
-            Assert.True(first.Label);
-            // Positive example should have non-negative score. 
-            Assert.True(first.Score > 0);
-            // Positive example should have high probability of belonging the positive class.
-            Assert.InRange(first.Probability, 0.8, 1);
-
-            Console.WriteLine("The first example actual label is {0}." +
-                " The trained model assigns it a score {1} and a probability of being positive class {2}.",
-                first.Label /*true*/, first.Score /*around 3.2*/, first.Probability /*around around 0.95*/);
-        }
-
-        [Fact]
         public void ReadData()
         {
             ReadDataDynamic(GetDataPath("generated_regression_dataset.csv"));

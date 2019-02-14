@@ -43,8 +43,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void OVAUncalibrated()
         {
             var (pipeline, data) = GetMultiClassPipeline();
-            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
+            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
 
             pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer, useProbabilities: false))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetMultiClassPipeline();
 
-            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
+            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
 
             pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.PairwiseCoupling(sdcaTrainer))
                     .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
@@ -77,8 +77,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
-            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaBinaryTrainer.Options {
+            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options {
                     LabelColumn = "Label",
                     FeatureColumn = "Vars",
                     MaxIterations = 100,

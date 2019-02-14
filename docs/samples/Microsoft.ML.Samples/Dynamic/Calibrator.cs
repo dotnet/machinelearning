@@ -49,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Then append the StochasticDualCoordinateAscentBinary binary classifier, setting the "Label" column as the label of the dataset, and 
             // the "Features" column produced by FeaturizeText as the features column. 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
-                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
                         labelColumn: "Sentiment", 
                         featureColumn: "Features", 
                         l2Const: 0.001f, 

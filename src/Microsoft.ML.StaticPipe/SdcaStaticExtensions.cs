@@ -135,13 +135,13 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCABinaryClassification.cs)]
         /// ]]></format>
         /// </example>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) SdcaCalibrated(
-                    this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                    Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
-                    float? l2Const = null,
-                    float? l1Threshold = null,
-                    int? maxIterations = null,
-                    Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
+            this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null,
+            Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -154,7 +154,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, l2Const, l1Threshold, maxIterations);
+                    var trainer = new SdcaBinaryTrainer(env, labelName, featuresName, weightsName, l2Const, l1Threshold, maxIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -189,11 +189,11 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCABinaryClassification.cs)]
         /// ]]></format>
         /// </example>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) SdcaCalibrated(
-                    this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                    Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-                    SdcaCalibratedBinaryTrainer.Options options,
-                    Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
+            this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            Scalar<bool> label, Vector<float> features, Scalar<float> weights,
+            SdcaBinaryTrainer.Options options,
+            Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -207,7 +207,7 @@ namespace Microsoft.ML.StaticPipe
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
 
-                    var trainer = new SdcaCalibratedBinaryTrainer(env, options);
+                    var trainer = new SdcaBinaryTrainer(env, options);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -241,16 +241,15 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
-                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                Scalar<bool> label, Vector<float> features,
-                ISupportSdcaClassificationLoss loss,
-                Scalar<float> weights = null,
-                float? l2Const = null,
-                float? l1Threshold = null,
-                int? maxIterations = null,
-                Action<LinearBinaryModelParameters> onFit = null
-            )
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) SdcaNonCalibrated(
+            this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            Scalar<bool> label, Vector<float> features,
+            ISupportSdcaClassificationLoss loss,
+            Scalar<float> weights = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null,
+            Action<LinearBinaryModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -264,7 +263,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaBinaryTrainer(env, labelName, featuresName, weightsName, loss, l2Const, l1Threshold, maxIterations);
+                    var trainer = new SdcaNonCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, loss, l2Const, l1Threshold, maxIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -296,13 +295,12 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
-                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-                ISupportSdcaClassificationLoss loss,
-                SdcaBinaryTrainer.Options options,
-                Action<LinearBinaryModelParameters> onFit = null
-            )
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) SdcaNonCalibrated(
+            this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            Scalar<bool> label, Vector<float> features, Scalar<float> weights,
+            ISupportSdcaClassificationLoss loss,
+            SdcaNonCalibratedBinaryTrainer.Options options,
+            Action<LinearBinaryModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -316,7 +314,7 @@ namespace Microsoft.ML.StaticPipe
                     options.FeatureColumn = featuresName;
                     options.LabelColumn = labelName;
 
-                    var trainer = new SdcaBinaryTrainer(env, options);
+                    var trainer = new SdcaNonCalibratedBinaryTrainer(env, options);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -347,16 +345,16 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained. Note that this action cannot change the
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
-        public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-                Sdca<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-                    Key<uint, TVal> label,
-                    Vector<float> features,
-                    ISupportSdcaClassificationLoss loss = null,
-                    Scalar<float> weights = null,
-                    float? l2Const = null,
-                    float? l1Threshold = null,
-                    int? maxIterations = null,
-                    Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+        public static (Vector<float> score, Key<uint, TVal> predictedLabel) Sdca<TVal>(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            Key<uint, TVal> label,
+            Vector<float> features,
+            ISupportSdcaClassificationLoss loss = null,
+            Scalar<float> weights = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null,
+            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -393,13 +391,13 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained. Note that this action cannot change the
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
-        public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-                Sdca<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-                    Key<uint, TVal> label,
-                    Vector<float> features,
-                    Scalar<float> weights,
-                    SdcaMultiClassTrainer.Options options,
-                    Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+        public static (Vector<float> score, Key<uint, TVal> predictedLabel) Sdca<TVal>(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            Key<uint, TVal> label,
+            Vector<float> features,
+            Scalar<float> weights,
+            SdcaMultiClassTrainer.Options options,
+            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));

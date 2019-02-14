@@ -73,7 +73,7 @@ namespace Microsoft.ML.Samples.Static
                 .Append(row => (
                         Features: row.Features.Normalize(),
                         Label: row.Label,
-                        Score: mlContext.BinaryClassification.Trainers.SdcaCalibrated(
+                        Score: mlContext.BinaryClassification.Trainers.Sdca(
                             row.Label,
                             row.Features,
                             l1Threshold: 0.25f,
