@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers.Online
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
                 L2RegularizerWeight = l2RegularizerWeight,
-                NumIterations = numIterations,
+                NumberOfIterations = numIterations,
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
                 LossFunction = new TrivialFactory(lossFunction ?? new SquaredLoss())

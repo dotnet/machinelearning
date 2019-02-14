@@ -244,7 +244,7 @@ namespace Microsoft.ML.Trainers.Online
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
                 WeightColumn = weightColumn,
-                NumIterations = numIterations,
+                NumberOfIterations = numIterations,
             })
         {
         }
