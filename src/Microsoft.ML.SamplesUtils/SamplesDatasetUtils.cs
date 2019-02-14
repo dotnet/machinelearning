@@ -87,6 +87,14 @@ namespace Microsoft.ML.SamplesUtils
         public static string DownloadAdultDataset()
             => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
 
+        /// <summary>
+        /// Downloads the Adult UCI dataset and featurizes it to be suitable for classification tasks.
+        /// </summary>
+        /// <param name="mlContext"><see cref="MLContext"/> used for data loading and processing.</param>
+        /// <returns>Featurized dataset.</returns>
+        /// <remarks>
+        /// For more details about this dataset, please see https://archive.ics.uci.edu/ml/datasets/adult.
+        /// </remarks>
         public static IDataView LoadFeaturizedAdultDataset(MLContext mlContext)
         {
             // Download the file
