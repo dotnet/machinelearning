@@ -15258,18 +15258,6 @@
           "Default": null
         },
         {
-          "Name": "PositiveInstanceWeight",
-          "Type": "Float",
-          "Desc": "Apply weight to the positive class, for imbalanced data",
-          "Aliases": [
-            "piw"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1.0
-        },
-        {
           "Name": "Calibrator",
           "Type": {
             "Kind": "Component",
@@ -15291,6 +15279,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 1000000
+        },
+        {
+          "Name": "PositiveInstanceWeight",
+          "Type": "Float",
+          "Desc": "Apply weight to the positive class, for imbalanced data",
+          "Aliases": [
+            "piw"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
         },
         {
           "Name": "ConvergenceTolerance",
