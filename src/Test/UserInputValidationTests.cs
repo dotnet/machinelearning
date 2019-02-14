@@ -197,5 +197,17 @@ namespace Microsoft.ML.Auto.Test
         {
             UserInputValidationUtil.ValidateInferColumnsArgs(DatasetUtil.DownloadUciAdultDataset());
         }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void ValidateFeaturesColInvalidType()
+        {
+            var schemaBuilder = new SchemaBuilder();
+            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberType.R8);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberType.R4);
+            var schema = schemaBuilder.GetSchema();
+            var dataView = new EmptyDataView(new MLContext(), schema);
+            UserInputValidationUtil.ValidateAutoFitArgs(dataView, DefaultColumnNames.Label, null, null, null);
+        }
     }
 }
