@@ -99,6 +99,33 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        [Fact]
+        public void TestEstimatorHogwildSGDNonCalibrated()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(loss : new SmoothedHingeLoss()),
+                ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(new Trainers.SgdNonCalibratedBinaryTrainer.Options() { Loss = new HingeLoss() }) };
+
+            foreach(var trainer in trainers)
+            {
+                var pipeWithTrainer = pipe.Append(trainer);
+                TestEstimatorCore(pipeWithTrainer, dataView);
+
+                var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+                var model = trainer.Fit(transformedDataView);
+                trainer.Train(transformedDataView, model.Model);
+                TestEstimatorCore(pipe, dataView);
+
+                var result = model.Transform(transformedDataView);
+                var metrics = ML.BinaryClassification.EvaluateNonCalibrated(result);
+
+                Assert.InRange(metrics.Accuracy, 0.7, 1);
+                Assert.InRange(metrics.Auc, 0.9, 1);
+            }
+
+            Done();
+        }
+
         /// <summary>
         /// MultiClassNaiveBayes TrainerEstimator test 
         /// </summary>

@@ -113,7 +113,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) StochasticGradientDescentNonCalibratedClassificationTrainer(
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) StochasticGradientDescentNonCalibratedClassificationTrainer(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
@@ -121,13 +121,14 @@ namespace Microsoft.ML.StaticPipe
             int maxIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.MaxIterations,
             double initLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitLearningRate,
             float l2Weight = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Weight,
-            ISupportClassificationLossFactory loss = null,
+            IClassificationLoss loss = null,
             Action<LinearBinaryModelParameters> onFit = null)
         {
-            var rec = new TrainerEstimatorReconciler.BinaryClassifier(
+            var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SgdNonCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, maxIterations, initLearningRate, l2Weight);
+                    var trainer = new SgdNonCalibratedBinaryTrainer(env, labelName, featuresName, weightsName,
+                        maxIterations, initLearningRate, l2Weight, loss);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -152,7 +153,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) StochasticGradientDescentNonCalibratedClassificationTrainer(
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) StochasticGradientDescentNonCalibratedClassificationTrainer(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
@@ -160,7 +161,7 @@ namespace Microsoft.ML.StaticPipe
             SgdNonCalibratedBinaryTrainer.Options options,
             Action<LinearBinaryModelParameters> onFit = null)
         {
-            var rec = new TrainerEstimatorReconciler.BinaryClassifier(
+            var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     options.FeatureColumn = featuresName;
