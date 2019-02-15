@@ -21,7 +21,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                     .Append(mlContext.Transforms.Normalize("Features"))
                     .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(
-                        labelColumn: labelName, featureColumn: "Features"));
+                        labelColumnName: labelName, featureColumnName: "Features"));
             var model = pipeline.Fit(data);
 
             // Extract the model from the pipeline
