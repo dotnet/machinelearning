@@ -17869,6 +17869,11 @@
           "Name": "OutputData",
           "Type": "DataView",
           "Desc": "Dataset"
+        },
+        {
+          "Name": "FileHandle",
+          "Type": "FileHandle",
+          "Desc": "File Handle"
         }
       ],
       "InputKind": [
