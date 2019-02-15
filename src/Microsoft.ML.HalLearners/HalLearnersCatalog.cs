@@ -18,8 +18,8 @@ namespace Microsoft.ML
         /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The name of label column.</param>
-        /// <param name="featureColumn">The name of feature column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="weightColumn">The name of optional weight column.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -29,16 +29,16 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
             string weightColumn = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             var options = new OlsLinearRegressionTrainer.Options
             {
-                LabelColumn = labelColumn,
-                FeatureColumn = featureColumn,
+                LabelColumn = labelColumnName,
+                FeatureColumn = featureColumnName,
                 WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight)
             };
 
@@ -72,8 +72,8 @@ namespace Microsoft.ML
         ///  Predict a target using a linear binary classification model trained with the <see cref="SymSgdClassificationTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The features column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="numberOfIterations">Number of training iterations.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -83,8 +83,8 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
             int numberOfIterations = SymSgdClassificationTrainer.Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -92,8 +92,8 @@ namespace Microsoft.ML
 
             var options = new SymSgdClassificationTrainer.Options
             {
-                LabelColumn = labelColumn,
-                FeatureColumn = featureColumn,
+                LabelColumn = labelColumnName,
+                FeatureColumn = featureColumnName,
             };
 
             return new SymSgdClassificationTrainer(env, options);

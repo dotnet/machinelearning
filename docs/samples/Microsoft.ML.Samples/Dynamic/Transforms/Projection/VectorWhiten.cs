@@ -7,9 +7,8 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     public sealed class VectorWhiten
     {
-        /// <summary>
+        
         /// This example require installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>
-        /// </summary>
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 

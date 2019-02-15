@@ -478,12 +478,11 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
-        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
+        /// Trains a <see cref="MatrixFactorizationTrainer"/> using both training and validation data, returns a <see cref="MatrixFactorizationPredictionTransformer"/>.
         /// </summary>
         /// <param name="trainData">The training data set.</param>
         /// <param name="validationData">The validation data set.</param>
-        public MatrixFactorizationPredictionTransformer Train(IDataView trainData, IDataView validationData = null)
+        public MatrixFactorizationPredictionTransformer Fit(IDataView trainData, IDataView validationData)
         {
             MatrixFactorizationModelParameters model = null;
 
@@ -503,11 +502,10 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
-        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
+        /// <summary> Trains and returns a <see cref="MatrixFactorizationPredictionTransformer"/>.</summary>
         /// </summary>
         /// <param name="input">The training data set.</param>
-        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Train(input);
+        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Fit(input, null);
 
         /// <summary>
         /// Schema propagation for transformers. Returns the output schema of the data, if

@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -173,6 +174,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return NumberDataViewType.Int64;
                 case TFDataType.Bool:
                     return BooleanDataViewType.Instance;
+                case TFDataType.String:
+                    return TextDataViewType.Instance;
                 default:
                     return null;
             }
@@ -361,6 +364,13 @@ namespace Microsoft.ML.Transforms.TensorFlow
             dataSpan.CopyTo(result);
         }
 
+        internal static unsafe void FetchStringData<T>(TFTensor tensor, Span<T> result)
+        {
+            var buffer = TFTensor.DecodeStringTensor(tensor);
+            for (int i = 0; i < buffer.Length; i++)
+                result[i] = (T)(object)Encoding.UTF8.GetString(buffer[i]).AsMemory();
+        }
+
         internal static bool IsTypeSupported(TFDataType tfoutput)
         {
             switch (tfoutput)
@@ -376,6 +386,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.Int32:
                 case TFDataType.Int64:
                 case TFDataType.Bool:
+                case TFDataType.String:
                     return true;
                 default:
                     return false;

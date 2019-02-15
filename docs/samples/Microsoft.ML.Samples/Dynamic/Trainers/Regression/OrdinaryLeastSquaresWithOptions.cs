@@ -5,7 +5,7 @@ using Microsoft.ML.Trainers.HalLearners;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public sealed class OrdinaryLeastSquaresWithOptions
+    public static class OrdinaryLeastSquaresWithOptions
     {
         // This example requires installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>
         // In this examples we will use the housing price dataset. The goal is to predict median home value.

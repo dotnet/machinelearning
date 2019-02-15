@@ -7,9 +7,7 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     public sealed class VectorWhitenWithColumnInfo
     {
-        /// <summary>
         /// This example require installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>
-        /// </summary>
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -42,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // A pipeline to project Features column into white noise vector.
             var whiteningPipeline = ml.Transforms.Projection.VectorWhiten(new Transforms.Projections.VectorWhiteningEstimator.ColumnInfo(
-                nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), kind: Transforms.Projections.WhiteningKind.Pca, pcaNum:4));
+                nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), kind: Transforms.Projections.WhiteningKind.Pca, pcaNum: 4));
             // The transformed (projected) data.
             var transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.

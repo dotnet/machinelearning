@@ -226,11 +226,10 @@ namespace Microsoft.ML.Trainers.HalLearners
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continue to train <paramref name="initialPredictor"/> on <paramref name="trainData"/> and produce calibrated binary linear model.
+        /// Continues the training of a <see cref="SymSgdClassificationTrainer"/> using an initial predictor and returns
+        /// a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
-        /// <param name="trainData">The training data set.</param>
-        /// <param name="initialPredictor">Accepts <see cref="LinearBinaryModelParameters"/> to continue training of this model</param>
-        public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, TPredictor initialPredictor = null)
+        public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, TPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

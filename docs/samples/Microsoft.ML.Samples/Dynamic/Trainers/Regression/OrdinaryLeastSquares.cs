@@ -4,7 +4,7 @@ using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public sealed class OrdinaryLeastSquares
+    public static class OrdinaryLeastSquares
     {
         // This example requires installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>
         // In this examples we will use the housing price dataset. The goal is to predict median home value.
@@ -17,6 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
             var mlContext = new MLContext(seed: 3);
+
             // Creating a data reader, based on the format of the data
             // The data is tab separated with all numeric columns.
             // The first column being the label and rest are numeric features
@@ -43,6 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create the estimator, here we only need OrdinaryLeastSquares trainer 
             // as data is already processed in a form consumable by the trainer
             var pipeline = mlContext.Regression.Trainers.OrdinaryLeastSquares();
+
             var model = pipeline.Fit(split.TrainSet);
 
             // Check the weights that the model learned

@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.ML.Samples.Dynamic
 {
-    public sealed class SymbolicStochasticGradientDescentWithOptions
+    public static class SymbolicStochasticGradientDescentWithOptions
     {
         // This example requires installation of addition nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.HalLearners/">Microsoft.ML.HalLearners</a>
         // In this examples we will use the adult income dataset. The goal is to predict
@@ -13,10 +13,10 @@
             // Setting the seed to a fixed number in this examples to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Download and featurize the dataset
+            // Download and featurize the dataset.
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
-            // Leave out 10% of data for testing
+            // Leave out 10% of data for testing.
             var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
             // Create data training pipeline
             var pipeline = mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(
@@ -31,7 +31,7 @@
 
             var model = pipeline.Fit(split.TrainSet);
 
-            // Evaluate how the model is doing on the test data
+            // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions, "IsOver50K");
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);

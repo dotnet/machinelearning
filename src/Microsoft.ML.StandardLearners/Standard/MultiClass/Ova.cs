@@ -172,7 +172,7 @@ namespace Microsoft.ML.Trainers
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
         }
 
-        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
+        /// <summary> Trains and returns a <see cref="MulticlassPredictionTransformer{OvaModelParameters}"/>.</summary>
         public override MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView input)
         {
             var roles = new KeyValuePair<CR, string>[1];
