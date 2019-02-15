@@ -197,7 +197,7 @@ namespace Microsoft.ML
                     if (CreateMethod != null)
                         return CreateMethod.Invoke(null, ctorArgs);
                 }
-                catch (Exception ex)
+                catch (TargetInvocationException ex)
                 {
                     if (ex.InnerException != null && ex.InnerException.IsMarked())
                         throw Contracts.Except(ex, "Error during class instantiation");
