@@ -9,10 +9,10 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Float = System.Single;
 
-[assembly: LoadableClass(typeof(TolerantEarlyStoppingCriterion), typeof(TolerantEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]
+[assembly: LoadableClass(typeof(TolerantEarlyStoppingCriterion), typeof(TolerantEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]
 [assembly: LoadableClass(typeof(GLEarlyStoppingCriterion), typeof(GLEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Loss of Generality (GL)", "gl")]
-[assembly: LoadableClass(typeof(LPEarlyStoppingCriterion), typeof(LPEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Low Progress (LP)", "lp")]
-[assembly: LoadableClass(typeof(PQEarlyStoppingCriterion), typeof(PQEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Generality to Progress Ratio (PQ)", "pq")]
+[assembly: LoadableClass(typeof(LPEarlyStoppingCriterion), typeof(LPEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Low Progress (LP)", "lp")]
+[assembly: LoadableClass(typeof(PQEarlyStoppingCriterion), typeof(PQEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Generality to Progress Ratio (PQ)", "pq")]
 [assembly: LoadableClass(typeof(UPEarlyStoppingCriterion), typeof(UPEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Consecutive Loss in Generality (UP)", "up")]
 
 [assembly: EntryPointModule(typeof(TolerantEarlyStoppingCriterion))]
@@ -86,10 +86,10 @@ namespace Microsoft.ML.Internal.Internallearn
         }
     }
 
-    public sealed class TolerantEarlyStoppingCriterion : EarlyStoppingCriterion<TolerantEarlyStoppingCriterion.Arguments>
+    public sealed class TolerantEarlyStoppingCriterion : EarlyStoppingCriterion<TolerantEarlyStoppingCriterion.Options>
     {
         [TlcModule.Component(FriendlyName = "Tolerant (TR)", Name = "TR", Desc = "Stop if validation score exceeds threshold value.")]
-        public class Arguments : OptionsBase, IEarlyStoppingCriterionFactory
+        public sealed class Options : OptionsBase, IEarlyStoppingCriterionFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance threshold. (Non negative value)", ShortName = "th")]
             [TlcModule.Range(Min = 0.0f)]
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        public TolerantEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
+        public TolerantEarlyStoppingCriterion(Options args, bool lowerIsBetter)
             : base(args, lowerIsBetter)
         {
             Contracts.CheckUserArg(EarlyStoppingCriterionOptions.Threshold >= 0, nameof(args.Threshold), "Must be non-negative.");
@@ -124,9 +124,9 @@ namespace Microsoft.ML.Internal.Internallearn
     // Lodwich, Aleksander, Yves Rangoni, and Thomas Breuel. "Evaluation of robustness and performance of early stopping rules with multi layer perceptrons."
     // Neural Networks, 2009. IJCNN 2009. International Joint Conference on. IEEE, 2009.
 
-    public abstract class MovingWindowEarlyStoppingCriterion : EarlyStoppingCriterion<MovingWindowEarlyStoppingCriterion.Arguments>
+    public abstract class MovingWindowEarlyStoppingCriterion : EarlyStoppingCriterion<MovingWindowEarlyStoppingCriterion.Options>
     {
-        public class Arguments : OptionsBase
+        public class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Threshold in range [0,1].", ShortName = "th")]
             [TlcModule.Range(Min = 0.0f, Max = 1.0f)]
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Internal.Internallearn
 
         protected Queue<Float> PastScores;
 
-        private protected MovingWindowEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
+        private protected MovingWindowEarlyStoppingCriterion(Options args, bool lowerIsBetter)
             : base(args, lowerIsBetter)
         {
             Contracts.CheckUserArg(0 <= EarlyStoppingCriterionOptions.Threshold && args.Threshold <= 1, nameof(args.Threshold), "Must be in range [0,1].");
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Internal.Internallearn
     {
         [TlcModule.Component(FriendlyName = "Loss of Generality (GL)", Name = "GL",
                             Desc = "Stop in case of loss of generality.")]
-        public class Options : OptionsBase, IEarlyStoppingCriterionFactory
+        public sealed class Options : OptionsBase, IEarlyStoppingCriterionFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Threshold in range [0,1].", ShortName = "th")]
             [TlcModule.Range(Min = 0.0f, Max = 1.0f)]
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Internal.Internallearn
     public sealed class LPEarlyStoppingCriterion : MovingWindowEarlyStoppingCriterion
     {
         [TlcModule.Component(FriendlyName = "Low Progress (LP)", Name = "LP", Desc = "Stops in case of low progress.")]
-        public new sealed class Arguments : MovingWindowEarlyStoppingCriterion.Arguments, IEarlyStoppingCriterionFactory
+        public new sealed class Options : MovingWindowEarlyStoppingCriterion.Options, IEarlyStoppingCriterionFactory
         {
             public IEarlyStoppingCriterion CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        public LPEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
+        public LPEarlyStoppingCriterion(Options args, bool lowerIsBetter)
             : base(args, lowerIsBetter) { }
 
         public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Internal.Internallearn
     public sealed class PQEarlyStoppingCriterion : MovingWindowEarlyStoppingCriterion
     {
         [TlcModule.Component(FriendlyName = "Generality to Progress Ratio (PQ)", Name = "PQ", Desc = "Stops in case of generality to progress ration exceeds threshold.")]
-        public new sealed class Arguments : MovingWindowEarlyStoppingCriterion.Arguments, IEarlyStoppingCriterionFactory
+        public new sealed class Options : MovingWindowEarlyStoppingCriterion.Options, IEarlyStoppingCriterionFactory
         {
             public IEarlyStoppingCriterion CreateComponent(IHostEnvironment env, bool lowerIsBetter)
             {
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        public PQEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
+        public PQEarlyStoppingCriterion(Options args, bool lowerIsBetter)
             : base(args, lowerIsBetter) { }
 
         public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)

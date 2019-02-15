@@ -46,7 +46,7 @@ namespace Microsoft.ML.Sweeper
 
             [Argument(ArgumentType.Multiple, HelpText = "Specify how to extract the metrics from the result file.", ShortName = "ev", SignatureType = typeof(SignatureSweepResultEvaluator))]
             public IComponentFactory<ISweepResultEvaluator<string>> ResultProcessor = ComponentFactoryUtils.CreateFromFunction(
-                env => new InternalSweepResultEvaluator(env, new InternalSweepResultEvaluator.Arguments()));
+                env => new InternalSweepResultEvaluator(env, new InternalSweepResultEvaluator.Options()));
 
             [Argument(ArgumentType.AtMostOnce, Hide = true)]
             public bool CalledFromUnitTestSuite;

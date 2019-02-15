@@ -194,7 +194,7 @@ namespace Microsoft.ML.LightGBM
             internal const string FriendlyName = "Tree Dropout Tree Booster";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
-            public class Options : TreeBooster.Options
+            public sealed class Options : TreeBooster.Options
             {
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Drop ratio for trees. Range:(0,1).")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
@@ -238,7 +238,7 @@ namespace Microsoft.ML.LightGBM
             internal const string FriendlyName = "Gradient-based One-Size Sampling";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Gradient-based One-Side Sampling.")]
-            public class Options : TreeBooster.Options
+            public sealed class Options : TreeBooster.Options
             {
                 [Argument(ArgumentType.AtMostOnce,
                     HelpText = "Retain ratio for large gradient instances.")]
