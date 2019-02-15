@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public IPredictor CombineModels(IEnumerable<IPredictor> models)
+        IPredictor IModelCombiner.CombineModels(IEnumerable<IPredictor> models)
         {
             _host.CheckValue(models, nameof(models));
 

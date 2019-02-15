@@ -32,7 +32,7 @@ namespace Microsoft.ML.FactorizationMachine
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
     /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
-    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachineModelParameters>,
+    public sealed class FieldAwareFactorizationMachineTrainer : ITrainer<FieldAwareFactorizationMachineModelParameters>,
         IEstimator<FieldAwareFactorizationMachinePredictionTransformer>
     {
         internal const string Summary = "Train a field-aware factorization machine for binary classification";
@@ -85,7 +85,9 @@ namespace Microsoft.ML.FactorizationMachine
             public float Radius = 0.5f;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private readonly IHost _host;
+
+        PredictionKind ITrainer.PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// The feature column that the trainer expects.
@@ -107,7 +109,8 @@ namespace Microsoft.ML.FactorizationMachine
         /// <summary>
         /// The <see cref="TrainerInfo"/> containing at least the training data for this trainer.
         /// </summary>
-        public override TrainerInfo Info { get; }
+        TrainerInfo ITrainer.Info => _info;
+        private static readonly TrainerInfo _info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
 
         private int _latentDim;
         private int _latentDimAligned;
@@ -127,10 +130,11 @@ namespace Microsoft.ML.FactorizationMachine
         /// <param name="options">An instance of the legacy <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
         [BestFriend]
         internal FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Options options)
-            : base(env, LoadName)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadName);
+
             Initialize(env, options);
-            Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
             var extraColumnLength = (options.ExtraFeatureColumns != null ? options.ExtraFeatureColumns.Length : 0);
             // There can be multiple feature columns in FFM, jointly specified by args.FeatureColumn and args.ExtraFeatureColumns.
             FeatureColumns = new SchemaShape.Column[1 + extraColumnLength];
@@ -158,12 +162,13 @@ namespace Microsoft.ML.FactorizationMachine
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
             string weights = null)
-            : base(env, LoadName)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoadName);
+
             var args = new Options();
 
             Initialize(env, args);
-            Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
 
             FeatureColumns = new SchemaShape.Column[featureColumns.Length];
 
@@ -182,11 +187,11 @@ namespace Microsoft.ML.FactorizationMachine
         /// <param name="options"></param>
         private void Initialize(IHostEnvironment env, Options options)
         {
-            Host.CheckUserArg(options.LatentDim > 0, nameof(options.LatentDim), "Must be positive");
-            Host.CheckUserArg(options.LambdaLinear >= 0, nameof(options.LambdaLinear), "Must be non-negative");
-            Host.CheckUserArg(options.LambdaLatent >= 0, nameof(options.LambdaLatent), "Must be non-negative");
-            Host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), "Must be positive");
-            Host.CheckUserArg(options.Iters >= 0, nameof(options.Iters), "Must be non-negative");
+            _host.CheckUserArg(options.LatentDim > 0, nameof(options.LatentDim), "Must be positive");
+            _host.CheckUserArg(options.LambdaLinear >= 0, nameof(options.LambdaLinear), "Must be non-negative");
+            _host.CheckUserArg(options.LambdaLatent >= 0, nameof(options.LambdaLatent), "Must be non-negative");
+            _host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), "Must be positive");
+            _host.CheckUserArg(options.Iters >= 0, nameof(options.Iters), "Must be non-negative");
             _latentDim = options.LatentDim;
             _latentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(_latentDim);
             _lambdaLinear = options.LambdaLinear;
@@ -209,7 +214,7 @@ namespace Microsoft.ML.FactorizationMachine
 
             if (predictor == null)
             {
-                var rng = Host.Rand;
+                var rng = _host.Rand;
                 for (int j = 0; j < featureCount; j++)
                 {
                     linearWeights[j] = 0;
@@ -312,8 +317,8 @@ namespace Microsoft.ML.FactorizationMachine
         private FieldAwareFactorizationMachineModelParameters TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data,
             RoleMappedData validData = null, FieldAwareFactorizationMachineModelParameters predictor = null)
         {
-            Host.AssertValue(ch);
-            Host.AssertValue(pch);
+            _host.AssertValue(ch);
+            _host.AssertValue(pch);
 
             data.CheckBinaryLabel();
             var featureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
@@ -323,12 +328,12 @@ namespace Microsoft.ML.FactorizationMachine
             for (int f = 0; f < fieldCount; f++)
             {
                 var col = featureColumns[f];
-                Host.Assert(!col.IsHidden);
+                _host.Assert(!col.IsHidden);
                 if (!(col.Type is VectorType vectorType) ||
                     !vectorType.IsKnownSize ||
                     vectorType.ItemType != NumberDataViewType.Single)
                     throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
-                Host.Assert(vectorType.Size > 0);
+                _host.Assert(vectorType.Size > 0);
                 fieldColumnIndexes[f] = col.Index;
                 totalFeatureCount += vectorType.Size;
             }
@@ -342,13 +347,13 @@ namespace Microsoft.ML.FactorizationMachine
             {
                 validData.CheckBinaryLabel();
                 var validFeatureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
-                Host.Assert(fieldCount == validFeatureColumns.Count);
+                _host.Assert(fieldCount == validFeatureColumns.Count);
                 for (int f = 0; f < fieldCount; f++)
                 {
                     var featCol = featureColumns[f];
                     var validFeatCol = validFeatureColumns[f];
-                    Host.Assert(featCol.Name == validFeatCol.Name);
-                    Host.Assert(featCol.Type == validFeatCol.Type);
+                    _host.Assert(featCol.Name == validFeatCol.Name);
+                    _host.Assert(featCol.Type == validFeatCol.Type);
                 }
             }
             bool shuffle = _shuffle;
@@ -357,7 +362,7 @@ namespace Microsoft.ML.FactorizationMachine
                 ch.Warning("Training data does not support shuffling, so ignoring request to shuffle");
                 shuffle = false;
             }
-            var rng = shuffle ? Host.Rand : null;
+            var rng = shuffle ? _host.Rand : null;
             var featureGetters = new ValueGetter<VBuffer<float>>[fieldCount];
             var featureBuffer = new VBuffer<float>();
             var featureValueBuffer = new float[totalFeatureCount];
@@ -451,22 +456,25 @@ namespace Microsoft.ML.FactorizationMachine
             if (validBadExampleCount != 0)
                 ch.Warning($"Skipped {validBadExampleCount} examples with bad label/weight/features in validation set");
 
-            return new FieldAwareFactorizationMachineModelParameters(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
+            return new FieldAwareFactorizationMachineModelParameters(_host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
         }
 
-        private protected override FieldAwareFactorizationMachineModelParameters Train(TrainContext context)
+        private FieldAwareFactorizationMachineModelParameters Train(TrainContext context)
         {
-            Host.CheckValue(context, nameof(context));
+            _host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachineModelParameters;
-            Host.CheckParam(context.InitialPredictor == null || initPredictor != null, nameof(context),
+            _host.CheckParam(context.InitialPredictor == null || initPredictor != null, nameof(context),
                 "Initial predictor should have been " + nameof(FieldAwareFactorizationMachineModelParameters));
 
-            using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
+            using (var ch = _host.Start("Training"))
+            using (var pch = _host.StartProgressChannel("Training"))
             {
                 return TrainCore(ch, pch, context.TrainingSet, context.ValidationSet, initPredictor);
             }
         }
+
+        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        FieldAwareFactorizationMachineModelParameters ITrainer<FieldAwareFactorizationMachineModelParameters>.Train(TrainContext context) => Train(context);
 
         [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier",
             Desc = Summary,
@@ -503,13 +511,13 @@ namespace Microsoft.ML.FactorizationMachine
             var trainingData = new RoleMappedData(trainData, roles);
             var validData = validationData == null ? null : new RoleMappedData(validationData, roles);
 
-            using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
+            using (var ch = _host.Start("Training"))
+            using (var pch = _host.StartProgressChannel("Training"))
             {
                 model = TrainCore(ch, pch, trainingData, validData, modelParameters);
             }
 
-            return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, trainData.Schema, FeatureColumns.Select(x => x.Name).ToArray());
+            return new FieldAwareFactorizationMachinePredictionTransformer(_host, model, trainData.Schema, FeatureColumns.Select(x => x.Name).ToArray());
         }
 
         /// <summary> Trains and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.</summary>
@@ -522,16 +530,16 @@ namespace Microsoft.ML.FactorizationMachine
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
 
-            Host.CheckValue(inputSchema, nameof(inputSchema));
+            _host.CheckValue(inputSchema, nameof(inputSchema));
 
             void CheckColumnsCompatible(SchemaShape.Column column, string columnRole)
             {
 
                 if (!inputSchema.TryFindColumn(column.Name, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name);
 
                 if (!column.IsCompatibleWith(col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name,
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), columnRole, column.Name,
                         column.GetTypeString(), col.GetTypeString());
             }
 

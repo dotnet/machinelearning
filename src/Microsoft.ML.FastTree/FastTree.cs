@@ -2852,7 +2852,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
         /// many decision trees.
         /// </summary>
-        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
+        FeatureContributionCalculator ICalculateFeatureContribution.FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         /// The following function is used in both FastTree and LightGBM so <see cref="BestFriendAttribute"/> is required.
         [BestFriend]

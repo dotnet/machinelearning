@@ -57,7 +57,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Fit the pipeline, and get a transformer that knows how to score new data.  
             var transformer = pipeline.Fit(split.TrainSet);
-            IPredictor model = transformer.LastTransformer.Model;
+            var model = transformer.LastTransformer.Model;
 
             // Let's score the new data. The score will give us a numerical estimation of the chance that the particular sample 
             // bears positive sentiment. This estimate is relative to the numbers obtained. 

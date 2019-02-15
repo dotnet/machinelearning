@@ -28,7 +28,8 @@ namespace Microsoft.ML
     /// <summary>
     /// Weakly typed version of IPredictor.
     /// </summary>
-    public interface IPredictor
+    [BestFriend]
+    internal interface IPredictor
     {
         /// <summary>
         /// Return the type of prediction task.
