@@ -13,7 +13,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
-    {
+{
     public partial class TrainerEstimators : TestDataPipeBase
     {
         public TrainerEstimators(ITestOutputHelper helper) : base(helper)
@@ -70,7 +70,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options {
+            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options
+            {
                 FeatureColumn = featureColumn,
                 WeightColumn = weights,
                 InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel,
@@ -82,20 +83,64 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// HogwildSGD TrainerEstimator test 
+        /// HogwildSGD TrainerEstimator test (logistic regression).
         /// </summary>
         [Fact]
         public void TestEstimatorHogwildSGD()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            var trainer = ML.BinaryClassification.Trainers.StochasticGradientDescent();
-            var pipeWithTrainer = pipe.Append(trainer);
-            TestEstimatorCore(pipeWithTrainer, dataView);
+            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Weight: 0, maxIterations: 80),
+                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Weight = 0, MaxIterations = 80})};
 
-            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Fit(transformedDataView);
-            trainer.Fit(transformedDataView, model.Model);
-            TestEstimatorCore(pipe, dataView);
+            foreach (var trainer in trainers)
+            {
+                (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+
+                var pipeWithTrainer = pipe.AppendCacheCheckpoint(Env).Append(trainer);
+                TestEstimatorCore(pipeWithTrainer, dataView);
+
+                var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+                var model = trainer.Fit(transformedDataView);
+                trainer.Fit(transformedDataView, model.Model);
+                TestEstimatorCore(pipe, dataView);
+
+                var result = model.Transform(transformedDataView);
+                var metrics = ML.BinaryClassification.Evaluate(result);
+
+                Assert.InRange(metrics.Accuracy, 0.8, 1);
+                Assert.InRange(metrics.Auc, 0.9, 1);
+                Assert.InRange(metrics.LogLoss, 0, 0.6);
+            }
+
+            Done();
+        }
+
+        /// <summary>
+        /// HogwildSGD TrainerEstimator test (support vector machine)
+        /// </summary>
+        [Fact]
+        public void TestEstimatorHogwildSGDNonCalibrated()
+        {
+            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(loss : new SmoothedHingeLoss()),
+                ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(new Trainers.SgdNonCalibratedBinaryTrainer.Options() { Loss = new HingeLoss() }) };
+
+            foreach (var trainer in trainers)
+            {
+                (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+                var pipeWithTrainer = pipe.AppendCacheCheckpoint(Env).Append(trainer);
+                TestEstimatorCore(pipeWithTrainer, dataView);
+
+                var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+                var model = trainer.Fit(transformedDataView);
+                trainer.Fit(transformedDataView, model.Model);
+                TestEstimatorCore(pipe, dataView);
+
+                var result = model.Transform(transformedDataView);
+                var metrics = ML.BinaryClassification.EvaluateNonCalibrated(result);
+
+                Assert.InRange(metrics.Accuracy, 0.7, 1);
+                Assert.InRange(metrics.Auc, 0.9, 1);
+            }
+
             Done();
         }
 
@@ -126,7 +171,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
-            var pipeline = new TextFeaturizingEstimator(Env,"Features" ,"SentimentText");
+            var pipeline = new TextFeaturizingEstimator(Env, "Features", "SentimentText");
 
             return (pipeline, data);
         }

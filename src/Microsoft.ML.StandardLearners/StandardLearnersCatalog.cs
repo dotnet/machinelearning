@@ -12,8 +12,6 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML
 {
     using LROptions = LogisticRegression.Options;
-    using SgdOptions = StochasticGradientDescentClassificationTrainer.Options;
-    using TLegacyPredictor = IPredictorProducing<float>;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -21,61 +19,101 @@ namespace Microsoft.ML
     public static class StandardLearnersCatalog
     {
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="StochasticGradientDescentClassificationTrainer"/> trainer.
+        ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weights">The name for the example weight column.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="weightColumnName">The name for the example weight column.</param>
         /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
         /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularization constant.</param>
-        /// <param name="loss">The loss function to use.</param>
-        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int maxIterations = SgdOptions.Defaults.MaxIterations,
-            double initLearningRate = SgdOptions.Defaults.InitLearningRate,
-            float l2Weight = SgdOptions.Defaults.L2Weight,
-            ISupportClassificationLossFactory loss = null)
+        public static SgdBinaryTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
+            int maxIterations = SgdBinaryTrainer.Options.Defaults.MaxIterations,
+            double initLearningRate = SgdBinaryTrainer.Options.Defaults.InitLearningRate,
+            float l2Weight = SgdBinaryTrainer.Options.Defaults.L2Weight)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new StochasticGradientDescentClassificationTrainer(env, labelColumn, featureColumn, weights, maxIterations, initLearningRate, l2Weight, loss);
+            return new SgdBinaryTrainer(env, labelColumnName, featureColumnName, weightColumnName,
+                maxIterations, initLearningRate, l2Weight);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="StochasticGradientDescentClassificationTrainer"/> trainer.
+        ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            SgdOptions options)
+        public static SgdBinaryTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            SgdBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new StochasticGradientDescentClassificationTrainer(env, options);
+            return new SgdBinaryTrainer(env, options);
+        }
+
+        /// <summary>
+        ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedBinaryTrainer"/> trainer.
+        /// </summary>
+        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="weightColumnName">The name for the example weight column.</param>
+        /// <param name="loss">The loss function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
+        /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
+        /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
+        /// <param name="l2Weight">The L2 regularization constant.</param>
+        public static SgdNonCalibratedBinaryTrainer StochasticGradientDescentNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
+            IClassificationLoss loss = null,
+            int maxIterations = SgdNonCalibratedBinaryTrainer.Options.Defaults.MaxIterations,
+            double initLearningRate = SgdNonCalibratedBinaryTrainer.Options.Defaults.InitLearningRate,
+            float l2Weight = SgdNonCalibratedBinaryTrainer.Options.Defaults.L2Weight)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SgdNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, weightColumnName,
+                maxIterations, initLearningRate, l2Weight, loss);
+        }
+
+        /// <summary>
+        ///  Predict a target using a linear classification model trained with the <see cref="SgdNonCalibratedBinaryTrainer"/> trainer.
+        /// </summary>
+        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static SgdNonCalibratedBinaryTrainer StochasticGradientDescentNonCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            SgdNonCalibratedBinaryTrainer.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SgdNonCalibratedBinaryTrainer(env, options);
         }
 
         /// <summary>
         /// Predict a target using a linear regression model trained with the SDCA trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
-        /// <param name="labelColumn">The label column, or dependent variable.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
-        /// <param name="weights">The optional example weights.</param>
+        /// <param name="labelColumnName">The label column, or dependent variable.</param>
+        /// <param name="featureColumnName">The features, or independent variables.</param>
+        /// <param name="weightColumnName">The optional example weights.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
         /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLoss"/>.</param>
 
         public static SdcaRegressionTrainer StochasticDualCoordinateAscent(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
             ISupportSdcaRegressionLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
@@ -83,7 +121,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaRegressionTrainer(env, labelColumn, featureColumn, weights, loss, l2Const, l1Threshold, maxIterations);
+            return new SdcaRegressionTrainer(env, labelColumnName, featureColumnName, weightColumnName, loss, l2Const, l1Threshold, maxIterations);
         }
 
         /// <summary>
