@@ -36,7 +36,7 @@ phases:
       - script: curl -O  https://xamjenkinsartifact.azureedge.net/build-package-win-mono/2018-12/48/85498a4b789f00ba3ea85ba1640bebb1cfc87215/mono-5.22.0.67-x64-0.msi && msiexec /i mono-5.22.0.67-x64-0.msi /qn /norestart
         displayName: Install Mono
     - ${{ if eq(parameters.name, 'Mono') }}:
-      - script: Timeout --help
+      - script: SLEEP 60
         displayName: Timeout
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build
