@@ -165,7 +165,8 @@ namespace Microsoft.ML.Trainers.FastTree
             => new RegressionPredictionTransformer<FastTreeRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="FastTreeRegressionTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="FastTreeRegressionTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{FastTreeRegressionModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<FastTreeRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);

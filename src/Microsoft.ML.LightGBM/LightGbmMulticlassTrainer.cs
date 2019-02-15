@@ -223,7 +223,8 @@ namespace Microsoft.ML.LightGBM
             => new MulticlassPredictionTransformer<OvaModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="LightGbmMulticlassTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="LightGbmMulticlassTrainer"/> using both training and validation data, returns
+        /// a <see cref="MulticlassPredictionTransformer{OvaModelParameters}"/>.
         /// </summary>
         public MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);

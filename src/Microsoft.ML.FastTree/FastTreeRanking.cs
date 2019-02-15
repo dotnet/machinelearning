@@ -457,7 +457,8 @@ namespace Microsoft.ML.Trainers.FastTree
         => new RankingPredictionTransformer<FastTreeRankingModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="FastTreeRankingTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="FastTreeRankingTrainer"/> using both training and validation data, returns
+        /// a <see cref="RankingPredictionTransformer{FastTreeRankingModelParameters}"/>.
         /// </summary>
         public RankingPredictionTransformer<FastTreeRankingModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);

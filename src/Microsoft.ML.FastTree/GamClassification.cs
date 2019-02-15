@@ -143,7 +143,8 @@ namespace Microsoft.ML.Trainers.FastTree
             => new BinaryPredictionTransformer<CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="BinaryClassificationGamTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="BinaryClassificationGamTrainer"/> using both training and validation data, returns
+        /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
         /// </summary>
         public BinaryPredictionTransformer<CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);

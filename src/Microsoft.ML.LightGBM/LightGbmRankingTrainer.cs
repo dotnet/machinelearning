@@ -178,7 +178,8 @@ namespace Microsoft.ML.LightGBM
          => new RankingPredictionTransformer<LightGbmRankingModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="LightGbmRankingTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="LightGbmRankingTrainer"/> using both training and validation data, returns
+        /// a <see cref="RankingPredictionTransformer{LightGbmRankingModelParameters}"/>.
         /// </summary>
         public RankingPredictionTransformer<LightGbmRankingModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);

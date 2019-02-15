@@ -318,7 +318,8 @@ namespace Microsoft.ML.Trainers.FastTree
          => new RegressionPredictionTransformer<FastTreeTweedieModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="FastTreeTweedieTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="FastTreeTweedieTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{FastTreeTweedieModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<FastTreeTweedieModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);

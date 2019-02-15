@@ -88,7 +88,8 @@ namespace Microsoft.ML.Trainers.HalLearners
              => new RegressionPredictionTransformer<OlsLinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="OlsLinearRegressionTrainer"/> using an initial predictor and returns a <see cref="ITransformer"/>.
+        /// Continues the training of a <see cref="OlsLinearRegressionTrainer"/> using an initial predictor and returns
+        /// a <see cref="RegressionPredictionTransformer{OlsLinearRegressionModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<OlsLinearRegressionModelParameters> Fit(IDataView trainData, IPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);

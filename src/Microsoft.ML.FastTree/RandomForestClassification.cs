@@ -215,7 +215,8 @@ namespace Microsoft.ML.Trainers.FastTree
          => new BinaryPredictionTransformer<FastForestClassificationModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="FastForestClassification"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="FastForestClassification"/> using both training and validation data, returns
+        /// a <see cref="BinaryPredictionTransformer{FastForestClassificationModelParameters}"/>.
         /// </summary>
         public BinaryPredictionTransformer<FastForestClassificationModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);

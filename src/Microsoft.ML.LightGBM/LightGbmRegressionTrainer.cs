@@ -151,7 +151,8 @@ namespace Microsoft.ML.LightGBM
             => new RegressionPredictionTransformer<LightGbmRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="LightGbmRegressorTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="LightGbmRegressorTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{LightGbmRegressionModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<LightGbmRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);

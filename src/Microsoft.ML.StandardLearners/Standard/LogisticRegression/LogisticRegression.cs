@@ -128,7 +128,8 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="LogisticRegression"/> using an initial predictor and returns a <see cref="ITransformer"/>.
+        /// Continues the training of a <see cref="LogisticRegression"/> using an initial predictor and returns
+        /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
         /// </summary>
         public BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);

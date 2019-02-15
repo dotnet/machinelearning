@@ -95,7 +95,8 @@ namespace Microsoft.ML.Trainers
             => new RegressionPredictionTransformer<PoissonRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="PoissonRegression"/> using an initial predictor and returns a <see cref="ITransformer"/>.
+        /// Continues the training of a <see cref="PoissonRegression"/> using an initial predictor and returns
+        /// a <see cref="RegressionPredictionTransformer{PoissonRegressionModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<PoissonRegressionModelParameters> Fit(IDataView trainData, IPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);

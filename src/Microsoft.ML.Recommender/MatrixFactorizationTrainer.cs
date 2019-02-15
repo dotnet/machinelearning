@@ -478,7 +478,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Trains a <see cref="MatrixFactorizationTrainer"/> using both training and validation data, returns a <see cref="ITransformer"/>.
+        /// Trains a <see cref="MatrixFactorizationTrainer"/> using both training and validation data, returns a <see cref="MatrixFactorizationPredictionTransformer"/>.
         /// </summary>
         /// <param name="trainData">The training data set.</param>
         /// <param name="validationData">The validation data set.</param>
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
+        /// <summary> Trains and returns a <see cref="MatrixFactorizationPredictionTransformer"/>.</summary>
         /// </summary>
         /// <param name="input">The training data set.</param>
         public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Fit(input, null);

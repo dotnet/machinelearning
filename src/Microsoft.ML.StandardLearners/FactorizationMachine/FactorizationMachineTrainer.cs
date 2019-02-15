@@ -484,7 +484,7 @@ namespace Microsoft.ML.FactorizationMachine
 
         /// <summary>
         /// Continues the training of a <see cref="FieldAwareFactorizationMachineTrainer"/> using an initial predictor and/or validation data,
-        /// and returns a <see cref="ITransformer"/>.
+        /// and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.
         /// </summary>
         public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView trainData,
             IDataView validationData = null, FieldAwareFactorizationMachineModelParameters initialPredictor = null)
@@ -512,7 +512,7 @@ namespace Microsoft.ML.FactorizationMachine
             return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, trainData.Schema, FeatureColumns.Select(x => x.Name).ToArray());
         }
 
-        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
+        /// <summary> Trains and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.</summary>
         public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Fit(input, null, null);
 
         /// <summary>

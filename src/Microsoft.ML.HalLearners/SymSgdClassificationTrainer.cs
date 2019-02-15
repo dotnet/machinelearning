@@ -213,7 +213,8 @@ namespace Microsoft.ML.Trainers.HalLearners
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="SymSgdClassificationTrainer"/> using an initial predictor and returns a <see cref="ITransformer"/>.
+        /// Continues the training of a <see cref="SymSgdClassificationTrainer"/> using an initial predictor and returns
+        /// a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
         public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, TPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
