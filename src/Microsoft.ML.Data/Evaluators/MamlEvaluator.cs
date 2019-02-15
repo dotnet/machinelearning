@@ -51,7 +51,7 @@ namespace Microsoft.ML.Data
     /// methods create a new <see cref="RoleMappedData"/> containing all the columns needed for evaluation, and call the corresponding
     /// methods on an <see cref="IEvaluator"/> of the appropriate type.
     /// </summary>
-    public abstract class MamlEvaluatorBase : IMamlEvaluator
+    internal abstract class MamlEvaluatorBase : IMamlEvaluator
     {
         public abstract class ArgumentsBase : EvaluateInputBase
         {
