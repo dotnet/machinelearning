@@ -503,7 +503,7 @@ namespace Microsoft.ML.Scenarios
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
-            var pipe = mlContext.Transforms.CopyColumns(("reshape_input","Placeholder"))
+            var pipe = mlContext.Transforms.CopyColumns(("reshape_input", "Placeholder"))
                 .Append(mlContext.Transforms.ScoreTensorFlowModel("mnist_model/frozen_saved_model.pb", new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" }))
                 .Append(mlContext.Transforms.Concatenate("Features", "Softmax", "dense/Relu"))
                 .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
@@ -863,7 +863,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
-            IDataView trans = mlContext.Transforms.ScoreTensorFlowModel(tensorFlowModel, "Output","Input").Fit(pixels).Transform(pixels);
+            IDataView trans = mlContext.Transforms.ScoreTensorFlowModel(tensorFlowModel, "Output", "Input").Fit(pixels).Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
@@ -960,7 +960,7 @@ namespace Microsoft.ML.Scenarios
             var thrown = false;
             try
             {
-                IDataView trans = mlContext.Transforms.ScoreTensorFlowModel(modelLocation,  "Output", "Input").Fit(pixels).Transform(pixels);
+                IDataView trans = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, "Output", "Input").Fit(pixels).Transform(pixels);
             }
             catch
             {
@@ -1021,6 +1021,53 @@ namespace Microsoft.ML.Scenarios
 
             Assert.Equal(2, prediction.Prediction.Length);
             Assert.InRange(prediction.Prediction[1], 0.650032759 - 0.01, 0.650032759 + 0.01);
+        }
+
+        class TextInput
+        {
+            [LoadColumn(0,1)]
+            [VectorType(2)]
+            public string[] A; // Whatever is passed in 'TextInput.A' will be returned as-is in 'TextOutput.AOut'
+
+            [LoadColumn(2, 4)]
+            [VectorType(3)]
+            public string[] B; // Whatever is passed in 'TextInput.B' will be split on '/' and joined using ' ' and returned in 'TextOutput.BOut'
+        }
+
+        class TextOutput
+        {
+            [VectorType(2)]
+            public string[] AOut { get; set; }
+
+            [VectorType(1)]
+            public string[] BOut { get; set; }
+        }
+
+        [TensorFlowFact]
+        public void TensorFlowStringTest()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var model = TensorFlowUtils.LoadTensorFlowModel(mlContext, @"model_string_test");
+            var schema = model.GetModelSchema();
+            Assert.True(schema.TryGetColumnIndex("A", out var colIndex));
+            Assert.True(schema.TryGetColumnIndex("B", out colIndex));
+
+            var dataview = mlContext.Data.CreateTextLoader<TextInput>().Read(new MultiFileSource(null));
+
+            var pipeline = mlContext.Transforms.ScoreTensorFlowModel(model, new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
+                .Append(mlContext.Transforms.CopyColumns(("AOut", "Original_A"),("BOut", "Joined_Splited_Text")));
+            var transformer = pipeline.Fit(dataview).CreatePredictionEngine<TextInput, TextOutput>(mlContext);
+
+            var input = new TextInput
+            {
+                A = new[] { "This is fine.", "That's ok." },
+                B = new[] { "Thank/you/very/much!.", "I/am/grateful/to/you.", "So/nice/of/you." }
+            };
+            var textOutput = transformer.Predict(input);
+
+            for(int i=0;i< input.A.Length;i++)
+                Assert.Equal(input.A[i], textOutput.AOut[i]);
+            Assert.Equal(string.Join(" ", input.B).Replace("/", " "), textOutput.BOut[0]);
         }
     }
 }
