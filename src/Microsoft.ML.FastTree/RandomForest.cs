@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             optimizationAlgorithm.TreeLearner = ConstructTreeLearner(ch);
             optimizationAlgorithm.ObjectiveFunction = ConstructObjFunc(ch);
-            optimizationAlgorithm.Smoothing = OptionsBase.Smoothing;
+            optimizationAlgorithm.Smoothing = FastTreeTrainerOptions.Smoothing;
             // No notion of dropout for non-boosting applications.
             optimizationAlgorithm.DropoutRate = 0;
             optimizationAlgorithm.DropoutRng = null;
@@ -62,12 +62,12 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override TreeLearner ConstructTreeLearner(IChannel ch)
         {
             return new RandomForestLeastSquaresTreeLearner(
-                       TrainSet, OptionsBase.NumLeaves, OptionsBase.MinDocumentsInLeafs, OptionsBase.EntropyCoefficient,
-                       OptionsBase.FeatureFirstUsePenalty, OptionsBase.FeatureReusePenalty, OptionsBase.SoftmaxTemperature,
-                       OptionsBase.HistogramPoolSize, OptionsBase.RngSeed, OptionsBase.SplitFraction,
-                       OptionsBase.AllowEmptyTrees, OptionsBase.GainConfidenceLevel, OptionsBase.MaxCategoricalGroupsPerNode,
-                       OptionsBase.MaxCategoricalSplitPoints, _quantileEnabled, OptionsBase.QuantileSampleCount, ParallelTraining,
-                       OptionsBase.MinDocsPercentageForCategoricalSplit, OptionsBase.Bundling, OptionsBase.MinDocsForCategoricalSplit, OptionsBase.Bias);
+                       TrainSet, FastTreeTrainerOptions.NumLeaves, FastTreeTrainerOptions.MinDocumentsInLeafs, FastTreeTrainerOptions.EntropyCoefficient,
+                       FastTreeTrainerOptions.FeatureFirstUsePenalty, FastTreeTrainerOptions.FeatureReusePenalty, FastTreeTrainerOptions.SoftmaxTemperature,
+                       FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.RngSeed, FastTreeTrainerOptions.SplitFraction,
+                       FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaxCategoricalGroupsPerNode,
+                       FastTreeTrainerOptions.MaxCategoricalSplitPoints, _quantileEnabled, FastTreeTrainerOptions.QuantileSampleCount, ParallelTraining,
+                       FastTreeTrainerOptions.MinDocsPercentageForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinDocsForCategoricalSplit, FastTreeTrainerOptions.Bias);
         }
 
         public abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase

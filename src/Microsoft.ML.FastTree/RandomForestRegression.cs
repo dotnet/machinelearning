@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs, OptionsBase.QuantileSampleCount);
+            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs, FastTreeTrainerOptions.QuantileSampleCount);
         }
 
         protected override void PrepareLabels(IChannel ch)
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return ObjectiveFunctionImplBase.Create(TrainSet, OptionsBase);
+            return ObjectiveFunctionImplBase.Create(TrainSet, FastTreeTrainerOptions);
         }
 
         protected override Test ConstructTestForTrainingData()
