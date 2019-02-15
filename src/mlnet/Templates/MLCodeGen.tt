@@ -13,7 +13,6 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using static Microsoft.ML.Data.TextLoader;
 using Microsoft.Data.DataView;
 <#= GeneratedUsings #>
 
@@ -48,27 +47,37 @@ namespace MlnetSample
 
         private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)
         {
-            // Common data loading configuration
-            TextLoader textLoader = GetTextLoader(mlContext);
-
-            IDataView trainingDataView = textLoader.Read(TrainDataPath);
+            // Data loading
+            IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+                                            path: TrainDataPath,
+                                            hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
+                                            separatorChar : '<#= Separator #>',
+                                            allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
+                                            trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
+                                            supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
 <# if(!string.IsNullOrEmpty(TestPath)){ #>
-            IDataView testDataView = textLoader.Read(TestDataPath);
+            IDataView testDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+                                            path: TestDataPath,
+                                            hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
+                                            separatorChar : '<#= Separator #>',
+                                            allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
+                                            trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
+                                            supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
 <# } #>
 
 <# if(Transforms.Count >0 ) {#>
             // Common data process configuration with pipeline data transformations          
 
             var dataProcessPipeline = <# for(int i=0;i<Transforms.Count;i++) 
-			{ 
-			   if(i>0)
-			   { Write("\n                                    .Append(");
-			   }
-			   Write("mlContext.Transforms."+Transforms[i]);
-			   if(i>0)
-			   { Write(")");
-			   }
-            }#>;
+                                         { 
+                                             if(i>0)
+                                             { Write("\n                                      .Append(");
+                                             }
+                                             Write("mlContext.Transforms."+Transforms[i]);
+                                             if(i>0)
+                                             { Write(")");
+                                             }
+                                         }#>;
 <#}#>
 
             // Set the training algorithm, then create and config the modelBuilder  
@@ -117,24 +126,17 @@ else{#>
             return trainedModel;
         }
 
-        private static TextLoader GetTextLoader(MLContext mlContext)
-        {
-            return mlContext.Data.CreateTextLoader<SampleObservation>(
-                hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
-                separatorChar : '<#= Separator #>',
-                allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
-                trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
-                supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>
-             );
-        }
-
         // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
         private static void TestSinglePrediction(MLContext mlContext)
         {
-            TextLoader textLoader = GetTextLoader(mlContext);
-
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
-            IDataView trainingDataView = textLoader.Read(TrainDataPath);
+            IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+                                            path: TrainDataPath,
+                                            hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
+                                            separatorChar : '<#= Separator #>',
+                                            allowQuotedStrings : <#= AllowQuoting.ToString().ToLowerInvariant() #>,
+                                            trimWhitespace : <#= TrimWhiteSpace.ToString().ToLowerInvariant() #> ,
+                                            supportSparse : <#= AllowSparse.ToString().ToLowerInvariant() #>);
 
             var sample = mlContext.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
 
