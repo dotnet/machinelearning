@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 return CreateString(Encoding.UTF8.GetBytes(((System.ReadOnlyMemory<char>)(object)data).ToArray()));
             }
-            throw new NotSupportedException($"Unsupported type {typeof(T)}");
+            throw Contracts.ExceptNotSupp($"Unsupported type {typeof(T)}");
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 return CreateStringTensor(bytes, shape);
             }
             // note that we will get here for jagged arrays, which is intententional since we'd need to copy them.
-            throw new NotSupportedException($"Unsupported type {typeof(T)}");
+            throw Contracts.ExceptNotSupp($"Unsupported type {typeof(T)}");
         }
     }
 }

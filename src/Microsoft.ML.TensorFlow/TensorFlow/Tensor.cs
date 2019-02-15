@@ -74,11 +74,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         // extern size_t TF_StringEncode (const char *src, size_t src_len, char *dst, size_t dst_len, TF_Status *status);
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe size_t TF_StringEncode(byte* src, size_t src_len, sbyte* dst, size_t dst_len, TF_Status status);
+        private static extern unsafe size_t TF_StringEncode(byte* src, size_t src_len, byte* dst, size_t dst_len, TF_Status status);
 
         // extern size_t TF_StringDecode (const char *src, size_t src_len, const char **dst, size_t *dst_len, TF_Status *status);
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe size_t TF_StringDecode(sbyte* src, size_t src_len, sbyte** dst, size_t* dst_len, TF_Status status);
+        private static extern unsafe size_t TF_StringDecode(byte* src, size_t src_len, byte** dst, size_t* dst_len, TF_Status status);
 
         // extern size_t TF_StringEncodedSize (size_t len);
         [DllImport(NativeBinding.TensorFlowLibrary)]
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 fixed (byte* src = &buffer[0])
                 {
-                    TF_StringEncode(src, (UIntPtr)buffer.Length, (sbyte*)(dst + 8), size, status.handle);
+                    TF_StringEncode(src, (UIntPtr)buffer.Length, (byte*)(dst + 8), size, status.handle);
                     var ok = status.StatusCode == TFCode.Ok;
                     if (!ok)
                         return null;
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 IntPtr dst = IntPtr.Zero;
                 UIntPtr dst_len = UIntPtr.Zero;
-                TF_StringDecode((sbyte*)(src + 8), tensor.TensorByteSize - 8, (sbyte**)&dst, &dst_len, status.handle);
+                TF_StringDecode((byte*)(src + 8), tensor.TensorByteSize - 8, (byte**)&dst, &dst_len, status.handle);
                 var ok = status.StatusCode == TFCode.Ok;
                 if (!ok)
                     return null;
@@ -497,12 +497,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 {
                     fixed (byte* src = &buffer[i][0])
                     {
-                        var written = TF_StringEncode(src, (UIntPtr)buffer[i].Length, (sbyte*)dst, (size_t)(dstLimit.ToInt64() - dst.ToInt64()), status.handle);
+                        var written = TF_StringEncode(src, (UIntPtr)buffer[i].Length, (byte*)dst, (size_t)(dstLimit.ToInt64() - dst.ToInt64()), status.handle);
                         var ok = status.StatusCode == TFCode.Ok;
                         if (!ok)
                             return null;
                         pOffset += 8;
-                        dst = (IntPtr)(dst.ToInt64() + (Int64)written);
+                        dst += (int)written;
                         offset += written.ToUInt64();
                     }
                 }
@@ -532,13 +532,13 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 {
                     IntPtr dst = IntPtr.Zero;
                     UIntPtr dstLen = UIntPtr.Zero;
-                    var read = TF_StringDecode((sbyte*)src, (size_t)(srcLen.ToInt64() - src.ToInt64()), (sbyte**)&dst, &dstLen, status.handle);
+                    var read = TF_StringDecode((byte*)src, (size_t)(srcLen.ToInt64() - src.ToInt64()), (byte**)&dst, &dstLen, status.handle);
                     var ok = status.StatusCode == TFCode.Ok;
                     if (!ok)
                         return null;
                     buffer[i] = new byte[(int)dstLen];
                     Marshal.Copy(dst, buffer[i], 0, buffer[i].Length);
-                    src = (IntPtr)(src.ToInt64() + (long)read);
+                    src += (int)read;
                 }
             }
             return buffer;
@@ -946,9 +946,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                             data += sizeof(Complex);
                             break;
                         case TFDataType.String:
-                            throw Contracts.ExceptNotImpl("String decoding not implemented for tensor vecotrs yet");
+                            throw Contracts.ExceptNotImpl("String decoding not implemented for tensor vectors yet");
                         default:
-                            throw Contracts.ExceptNotImpl("{0} decoding not implemented for tensor vecotrs yet", dt);
+                            throw Contracts.ExceptNotImpl("{0} decoding not implemented for tensor vectors yet", dt);
                     }
             }
             else
@@ -1048,9 +1048,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                             data += sizeof(Complex);
                             break;
                         case TFDataType.String:
-                            throw Contracts.ExceptNotImpl("String decoding not implemented for tensor vecotrs yet");
+                            throw Contracts.ExceptNotImpl("String decoding not implemented for tensor vectors yet");
                         default:
-                            throw Contracts.ExceptNotImpl("{0} decoding not implemented for tensor vecotrs yet", dt);
+                            throw Contracts.ExceptNotImpl("{0} decoding not implemented for tensor vectors yet", dt);
                     }
                 }
             }
