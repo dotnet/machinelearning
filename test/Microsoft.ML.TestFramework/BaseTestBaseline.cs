@@ -108,7 +108,6 @@ namespace Microsoft.ML.RunTests
         // It is called as a first step in test clean up.
         protected override void Cleanup()
         {
-            _env?.Dispose();
             _env = null;
 
             Contracts.Assert(IsActive);

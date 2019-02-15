@@ -229,31 +229,29 @@ namespace Microsoft.ML.Tests
         public void OnnxModelScenario()
         {
             var modelFile = "squeezenet/00000001/model.onnx";
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
-            {
-                var samplevector = GetSampleArrayData();
+            var env = new ConsoleEnvironment(seed: 1, conc: 1);
+            var samplevector = GetSampleArrayData();
 
-                var dataView = ML.Data.ReadFromEnumerable(
-                    new TestData[] {
-                        new TestData()
-                        {
-                            data_0 = samplevector
-                        }
-                    });
-
-                var onnx = ML.Transforms.ApplyOnnxModel(modelFile, "softmaxout_1", "data_0").Fit(dataView).Transform(dataView);
-
-                onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
-
-                using (var curs = onnx.GetRowCursor(onnx.Schema["softmaxout_1"]))
-                {
-                    var getScores = curs.GetGetter<VBuffer<float>>(score);
-                    var buffer = default(VBuffer<float>);
-                    while (curs.MoveNext())
+            var dataView = ML.Data.ReadFromEnumerable(
+                new TestData[] {
+                    new TestData()
                     {
-                        getScores(ref buffer);
-                        Assert.Equal(1000, buffer.Length);
+                        data_0 = samplevector
                     }
+                });
+
+            var onnx = ML.Transforms.ApplyOnnxModel(modelFile, "softmaxout_1", "data_0").Fit(dataView).Transform(dataView);
+
+            onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
+
+            using (var curs = onnx.GetRowCursor(onnx.Schema["softmaxout_1"]))
+            {
+                var getScores = curs.GetGetter<VBuffer<float>>(score);
+                var buffer = default(VBuffer<float>);
+                while (curs.MoveNext())
+                {
+                    getScores(ref buffer);
+                    Assert.Equal(1000, buffer.Length);
                 }
             }
         }
@@ -262,38 +260,36 @@ namespace Microsoft.ML.Tests
         public void OnnxModelMultiInput()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
-            {
-                var samplevector = GetSampleArrayData();
+            var env = new ConsoleEnvironment(seed: 1, conc: 1);
+            var samplevector = GetSampleArrayData();
 
-                var dataView = ML.Data.ReadFromEnumerable(
-                    new TestDataMulti[] {
-                        new TestDataMulti()
-                        {
-                            ina = new float[] {1,2,3,4,5},
-                            inb = new float[] {1,2,3,4,5}
-                        }
-                    });
-                var onnx = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "outa", "outb" }, new[] { "ina", "inb" }).Fit(dataView).Transform(dataView);
-
-                onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
-                onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
-                using (var curs = onnx.GetRowCursor(onnx.Schema["outa"], onnx.Schema["outb"]))
-                {
-                    var getScoresa = curs.GetGetter<VBuffer<float>>(scoresa);
-                    var getScoresb = curs.GetGetter<VBuffer<float>>(scoresb);
-                    var buffera = default(VBuffer<float>);
-                    var bufferb = default(VBuffer<float>);
-
-                    while (curs.MoveNext())
+            var dataView = ML.Data.ReadFromEnumerable(
+                new TestDataMulti[] {
+                    new TestDataMulti()
                     {
-                        getScoresa(ref buffera);
-                        getScoresb(ref bufferb);
-                        Assert.Equal(5, buffera.Length);
-                        Assert.Equal(5, bufferb.Length);
-                        Assert.Equal(0, buffera.GetValues().ToArray().Sum());
-                        Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
+                        ina = new float[] {1,2,3,4,5},
+                        inb = new float[] {1,2,3,4,5}
                     }
+                });
+            var onnx = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "outa", "outb" }, new[] { "ina", "inb" }).Fit(dataView).Transform(dataView);
+
+            onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
+            onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
+            using (var curs = onnx.GetRowCursor(onnx.Schema["outa"], onnx.Schema["outb"]))
+            {
+                var getScoresa = curs.GetGetter<VBuffer<float>>(scoresa);
+                var getScoresb = curs.GetGetter<VBuffer<float>>(scoresb);
+                var buffera = default(VBuffer<float>);
+                var bufferb = default(VBuffer<float>);
+
+                while (curs.MoveNext())
+                {
+                    getScoresa(ref buffera);
+                    getScoresb(ref bufferb);
+                    Assert.Equal(5, buffera.Length);
+                    Assert.Equal(5, bufferb.Length);
+                    Assert.Equal(0, buffera.GetValues().ToArray().Sum());
+                    Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
                 }
             }
         }

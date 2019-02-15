@@ -31,10 +31,13 @@ namespace Microsoft.ML.EntryPoints
         {
             [TlcModule.Output(Desc = "Dataset", SortOrder = 1)]
             public IDataView OutputData;
+
+            [TlcModule.Output(Desc = "File Handle", SortOrder = 2)]
+            public IFileHandle FileHandle;
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.DataCache", Desc = "Caches using the specified cache option.", UserName = "Cache Data")]
-        public static CacheOutput CacheData(IHostEnvironment env, CacheInput input, IFileHandle fileHandle)
+        public static CacheOutput CacheData(IHostEnvironment env, CacheInput input)
         {
             const string registrationName = "CreateCache";
             Contracts.CheckValue(env, nameof(env));
@@ -43,6 +46,7 @@ namespace Microsoft.ML.EntryPoints
             host.CheckValue(input.Data, nameof(input.Data));
 
             IDataView data;
+            IFileHandle fileHandle = null;
 
             switch (input.Caching)
             {
@@ -65,6 +69,7 @@ namespace Microsoft.ML.EntryPoints
                             cols.Add(i);
                     }
 
+                    fileHandle = host.CreateTempFile();
                     using (var stream = fileHandle.CreateWriteStream())
                         saver.SaveData(stream, input.Data, cols.ToArray());
                     data = new BinaryLoader(host, new BinaryLoader.Arguments(), fileHandle.OpenReadStream());
@@ -73,7 +78,7 @@ namespace Microsoft.ML.EntryPoints
                     throw host.ExceptValue(nameof(input.Caching), $"Unrecognized caching option '{input.Caching}'");
             }
 
-            return new CacheOutput() { OutputData = data };
+            return new CacheOutput() { OutputData = data, FileHandle = fileHandle };
         }
     }
 }

@@ -169,7 +169,6 @@ namespace Microsoft.ML.EntryPoints
             where TArg : LearnerInputBase
             where TOut : CommonOutputs.TrainerOutput, new()
         {
-            using (var fileHandle = host.CreateTempFile())
             using (var ch = host.Start("Training"))
             {
                 var schema = input.TrainingData.Schema;
@@ -190,6 +189,7 @@ namespace Microsoft.ML.EntryPoints
 
                 RoleMappedData cachedRoleMappedData = roleMappedData;
                 Cache.CachingType? cachingType = null;
+                IFileHandle fileHandle = null;
                 switch (input.Caching)
                 {
                     case CachingOptions.Memory:
@@ -218,15 +218,18 @@ namespace Microsoft.ML.EntryPoints
 
                 if (cachingType.HasValue)
                 {
-                    var cacheView = Cache.CacheData(host, new Cache.CacheInput()
+                    var cached = Cache.CacheData(host, new Cache.CacheInput()
                     {
                         Data = roleMappedData.Data,
                         Caching = cachingType.Value
-                    }, fileHandle).OutputData;
+                    });
+                    var cacheView = cached.OutputData;
+                    fileHandle = cached.FileHandle;
                     cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
+                fileHandle?.Dispose();
                 return new TOut() { PredictorModel = new PredictorModelImpl(host, roleMappedData, input.TrainingData, predictor) };
             }
         }

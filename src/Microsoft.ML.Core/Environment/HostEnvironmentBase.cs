@@ -94,7 +94,7 @@ namespace Microsoft.ML.Data
     /// query progress.
     /// </summary>
     [BestFriend]
-    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IDisposable, IChannelProvider
+    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider
         where TEnv : HostEnvironmentBase<TEnv>
     {
         /// <summary>
@@ -330,13 +330,6 @@ namespace Microsoft.ML.Data
         // doesn't free temp files. That is handled when the master is disposed.
         protected readonly HostEnvironmentBase<TEnv> Master;
 
-        // Protects _tempFiles.
-        private readonly object _tempLock;
-
-        // Temp files that have been handed out.
-        // When this is null, the host environment has been disposed.
-        private volatile List<IFileHandle> _tempFiles;
-
         // Protect _cancellation logic.
         private readonly object _cancelLock;
 
@@ -361,8 +354,6 @@ namespace Microsoft.ML.Data
 
         public override int Depth => 0;
 
-        protected bool IsDisposed => _tempFiles == null;
-
         /// <summary>
         ///  The main constructor.
         /// </summary>
@@ -376,8 +367,6 @@ namespace Microsoft.ML.Data
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
             ProgressTracker = new ProgressReporting.ProgressTracker(this);
             _cancelLock = new object();
-            _tempLock = new object();
-            _tempFiles = new List<IFileHandle>();
             Root = this as TEnv;
             ComponentCatalog = new ComponentCatalog();
         }
@@ -403,32 +392,6 @@ namespace Microsoft.ML.Data
             ComponentCatalog = source.ComponentCatalog;
         }
 
-        /// <summary>
-        /// Dispose the environment. This ensures that all temp file handles are properly disposed,
-        /// including deleting the physical files.
-        /// </summary>
-        public virtual void Dispose()
-        {
-            if (Master != null)
-            {
-                // Disposing a fork has no affect.
-                return;
-            }
-
-            List<IFileHandle> temps;
-            lock (_tempLock)
-            {
-                temps = _tempFiles;
-                _tempFiles = null;
-            }
-
-            if (temps == null)
-                return;
-
-            foreach (var temp in temps)
-                temp.Dispose();
-        }
-
         public IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
@@ -450,19 +413,6 @@ namespace Microsoft.ML.Data
             Contracts.AssertNonEmpty(name);
             Contracts.AssertValueOrNull(host);
             return new ProgressReporting.ProgressChannel(this, ProgressTracker, name);
-        }
-
-        private void Protect(IFileHandle file)
-        {
-            lock (_tempLock)
-            {
-                if (_tempFiles == null)
-                {
-                    file.Dispose();
-                    throw this.Except("This environment has been disposed, so can't allocate new temp files");
-                }
-                _tempFiles.Add(file);
-            }
         }
 
         private void DispatchMessageCore<TMessage>(

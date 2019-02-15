@@ -175,16 +175,13 @@ namespace Microsoft.ML.RunTests
 
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
 
-            using(var fileHandle = Env.CreateTempFile())
-            {
-                var cached1 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Memory }, fileHandle);
-                CheckSameValues(dataView, cached1.OutputData);
-            }
-            using(var fileHandle = Env.CreateTempFile())
-            {
-                var cached2 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Disk }, fileHandle);
-                CheckSameValues(dataView, cached2.OutputData);
-            }
+            var cached1 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Memory });
+            CheckSameValues(dataView, cached1.OutputData);
+            cached1.FileHandle?.Dispose();
+
+            var cached2 = Cache.CacheData(Env, new Cache.CacheInput() { Data = dataView, Caching = Cache.CachingType.Disk });
+            CheckSameValues(dataView, cached2.OutputData);
+            cached2.FileHandle?.Dispose();
             Done();
         }
 
