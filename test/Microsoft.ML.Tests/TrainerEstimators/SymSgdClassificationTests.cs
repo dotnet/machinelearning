@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView);
-            trainer.Train(transformedDataView, model.Model);
+            trainer.Fit(transformedDataView, model.Model);
             Done();
         }
 
@@ -36,11 +36,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var initPredictor = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent().Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
-            var withInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData,
+            var withInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Fit(transformedData,
                 initialPredictor: initPredictor.Model as CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>);
             var outInitData = withInitPredictor.Transform(transformedData);
 
-            var notInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Train(transformedData);
+            var notInitPredictor = new SymSgdClassificationTrainer(Env, new SymSgdClassificationTrainer.Options()).Fit(transformedData);
             var outNoInitData = notInitPredictor.Transform(transformedData);
 
             int numExamples = 10;

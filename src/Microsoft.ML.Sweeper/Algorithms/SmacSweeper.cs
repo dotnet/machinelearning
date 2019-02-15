@@ -143,7 +143,7 @@ namespace Microsoft.ML.Sweeper
                         LabelColumn = DefaultColumnNames.Label,
                         FeatureColumn = DefaultColumnNames.Features,
                     });
-                var predictor = trainer.Train(view);
+                var predictor = trainer.Fit(view);
 
                 // Return random forest predictor.
                 return predictor.Model;

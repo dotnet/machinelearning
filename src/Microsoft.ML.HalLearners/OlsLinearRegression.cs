@@ -87,7 +87,11 @@ namespace Microsoft.ML.Trainers.HalLearners
         protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, DataViewSchema trainSchema)
              => new RegressionPredictionTransformer<OlsLinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<OlsLinearRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
+        /// <summary>
+        /// Continues the training of a <see cref="OlsLinearRegressionTrainer"/> using an initial predictor and returns
+        /// a <see cref="RegressionPredictionTransformer{OlsLinearRegressionModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<OlsLinearRegressionModelParameters> Fit(IDataView trainData, IPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

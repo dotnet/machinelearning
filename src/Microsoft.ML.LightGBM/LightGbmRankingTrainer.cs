@@ -177,7 +177,11 @@ namespace Microsoft.ML.LightGBM
         protected override RankingPredictionTransformer<LightGbmRankingModelParameters> MakeTransformer(LightGbmRankingModelParameters model, DataViewSchema trainSchema)
          => new RankingPredictionTransformer<LightGbmRankingModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RankingPredictionTransformer<LightGbmRankingModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="LightGbmRankingTrainer"/> using both training and validation data, returns
+        /// a <see cref="RankingPredictionTransformer{LightGbmRankingModelParameters}"/>.
+        /// </summary>
+        public RankingPredictionTransformer<LightGbmRankingModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

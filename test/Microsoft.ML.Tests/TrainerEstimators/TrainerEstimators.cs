@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView);
-            trainer.Train(transformedDataView, model.Model);
+            trainer.Fit(transformedDataView, model.Model);
             TestEstimatorCore(pipe, dataView);
             Done();
         }

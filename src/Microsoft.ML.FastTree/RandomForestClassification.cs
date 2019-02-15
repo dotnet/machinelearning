@@ -214,7 +214,11 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override BinaryPredictionTransformer<FastForestClassificationModelParameters> MakeTransformer(FastForestClassificationModelParameters model, DataViewSchema trainSchema)
          => new BinaryPredictionTransformer<FastForestClassificationModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<FastForestClassificationModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastForestClassification"/> using both training and validation data, returns
+        /// a <see cref="BinaryPredictionTransformer{FastForestClassificationModelParameters}"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<FastForestClassificationModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

@@ -212,7 +212,11 @@ namespace Microsoft.ML.Trainers.HalLearners
         protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, DataViewSchema trainSchema)
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, TPredictor initialPredictor = null)
+        /// <summary>
+        /// Continues the training of a <see cref="SymSgdClassificationTrainer"/> using an initial predictor and returns
+        /// a <see cref="BinaryPredictionTransformer"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, TPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

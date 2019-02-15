@@ -1876,7 +1876,10 @@ namespace Microsoft.ML.Trainers
         protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+        /// <summary>
+        /// Continues the training of a <see cref="SdcaBinaryTrainer"/> using an initial predictor and returns a <see cref="BinaryPredictionTransformer"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<TScalarPredictor> Fit(IDataView trainData, IPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         //For complexity analysis, we assume that

@@ -317,7 +317,11 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override RegressionPredictionTransformer<FastTreeTweedieModelParameters> MakeTransformer(FastTreeTweedieModelParameters model, DataViewSchema trainSchema)
          => new RegressionPredictionTransformer<FastTreeTweedieModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<FastTreeTweedieModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastTreeTweedieTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{FastTreeTweedieModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<FastTreeTweedieModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
