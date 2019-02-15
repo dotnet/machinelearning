@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers.Online
             internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
 
             [BestFriend]
-            internal class OgdDefaultArgs : AveragedDefaultArgs
+            internal class OgdDefaultArgs : AveragedDefault
             {
                 public new const float LearningRate = 0.1f;
                 public new const bool DecreaseLearningRate = true;
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers.Online
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
                 L2RegularizerWeight = l2RegularizerWeight,
-                NumIterations = numIterations,
+                NumberOfIterations = numIterations,
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
                 LossFunction = new TrivialFactory(lossFunction ?? new SquaredLoss())

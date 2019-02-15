@@ -139,7 +139,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * Args.LearningRates;
+            _sigmoidParameter = 2.0 * OptionsBase.LearningRates;
         }
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Trainers.FastTree
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * Args.LearningRates;
+            _sigmoidParameter = 2.0 * OptionsBase.LearningRates;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -193,25 +193,25 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ObjectiveImpl(
                 TrainSet,
                 _trainSetLabels,
-                Args.LearningRates,
-                Args.Shrinkage,
+                OptionsBase.LearningRates,
+                OptionsBase.Shrinkage,
                 _sigmoidParameter,
-                Args.UnbalancedSets,
-                Args.MaxTreeOutput,
-                Args.GetDerivativesSampleRate,
-                Args.BestStepRankingRegressionTrees,
-                Args.RngSeed,
+                OptionsBase.UnbalancedSets,
+                OptionsBase.MaxTreeOutput,
+                OptionsBase.GetDerivativesSampleRate,
+                OptionsBase.BestStepRankingRegressionTrees,
+                OptionsBase.RngSeed,
                 ParallelTraining);
         }
 
         private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
-            if (Args.UseLineSearch)
+            if (OptionsBase.UseLineSearch)
             {
                 var lossCalculator = new BinaryClassificationTest(optimizationAlgorithm.TrainingScores, _trainSetLabels, _sigmoidParameter);
                 // REVIEW: we should makeloss indices an enum in BinaryClassificationTest
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, Args.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, Args.NumPostBracketSteps, Args.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, OptionsBase.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, OptionsBase.NumPostBracketSteps, OptionsBase.MinStepSize);
             }
             return optimizationAlgorithm;
         }
@@ -258,9 +258,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            if (Args.EnablePruning && ValidSet != null)
+            if (OptionsBase.EnablePruning && ValidSet != null)
             {
-                if (!Args.UseTolerantPruning)
+                if (!OptionsBase.UseTolerantPruning)
                 {
                     //use simple early stopping condition
                     PruningTest = new TestHistory(ValidTest, 0);
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 else
                 {
                     //use tollerant stopping condition
-                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, Args.PruningWindowSize, Args.PruningThreshold);
+                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, OptionsBase.PruningWindowSize, OptionsBase.PruningThreshold);
                 }
             }
         }

@@ -744,7 +744,7 @@ namespace Microsoft.ML.RunTests
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
-                    NumIterations = 2,
+                    NumberOfIterations = 2,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,

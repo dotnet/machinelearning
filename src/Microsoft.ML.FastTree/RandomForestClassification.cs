@@ -196,7 +196,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, Args);
+            return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, OptionsBase);
         }
 
         protected override void PrepareLabels(IChannel ch)

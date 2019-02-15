@@ -241,25 +241,35 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer.
+        /// Predict a target using a linear binary classification model trained with <see cref="AveragedPerceptronTrainer"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumn">The name of the label column, or dependent variable.</param>
         /// <param name="featureColumn">The features, or independent variables.</param>
-        /// <param name="lossFunction">The custom loss.</param>
-        /// <param name="learningRate">The learning Rate.</param>
-        /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
-        /// <param name="numIterations">Number of training iterations through the data.</param>
+        /// <param name="lossFunction">A custom <a href="tmpurl_loss">loss</a>. If <see langword="null"/>, hinge loss will be used resulting in max-margin averaged perceptron.</param>
+        /// <param name="learningRate"><a href="tmpurl_lr">Learning rate</a>.</param>
+        /// <param name="decreaseLearningRate">
+        /// <see langword="true" /> to decrease the <paramref name="learningRate"/> as iterations progress; otherwise, <see langword="false" />.
+        /// Default is <see langword="false" />.
+        /// </param>
+        /// <param name="l2RegularizerWeight">L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="numIterations">Number of passes through the training dataset.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/AveragedPerceptron.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
-            float learningRate = AveragedLinearOptions.AveragedDefaultArgs.LearningRate,
-            bool decreaseLearningRate = AveragedLinearOptions.AveragedDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = AveragedLinearOptions.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = AveragedLinearOptions.AveragedDefaultArgs.NumIterations)
+            float learningRate = AveragedLinearOptions.AveragedDefault.LearningRate,
+            bool decreaseLearningRate = AveragedLinearOptions.AveragedDefault.DecreaseLearningRate,
+            float l2RegularizerWeight = AveragedLinearOptions.AveragedDefault.L2RegularizerWeight,
+            int numIterations = AveragedLinearOptions.AveragedDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
 
@@ -268,10 +278,17 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer.
+        /// Predict a target using a linear binary classification model trained with <see cref="AveragedPerceptronTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/AveragedPerceptronWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, AveragedPerceptronTrainer.Options options)
         {
@@ -314,8 +331,8 @@ namespace Microsoft.ML
             IRegressionLoss lossFunction = null,
             float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = AveragedLinearOptions.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = OnlineLinearOptions.OnlineDefaultArgs.NumIterations)
+            float l2RegularizerWeight = AveragedLinearOptions.AveragedDefault.L2RegularizerWeight,
+            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -593,7 +610,7 @@ namespace Microsoft.ML
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightsColumn = null,
-            int numIterations = OnlineLinearOptions.OnlineDefaultArgs.NumIterations)
+            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), labelColumn, featureColumn, weightsColumn, numIterations);

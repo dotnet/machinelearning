@@ -3,9 +3,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class ResizeImage
+    public static class LoadImages
     {
-        // Example on how to load the images from the file system, and resize them. 
+        // Loads the images of the imagesFolder into an IDataView. 
         public static void Example()
         {
             var mlContext = new MLContext();
@@ -29,15 +29,12 @@ namespace Microsoft.ML.Samples.Dynamic
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                }
+                    }
             }).Read(imagesDataFile);
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
-            var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageReal", "ImagePath"))
-                        .Append(mlContext.Transforms.Resize("ImageReal", imageWidth: 100, imageHeight: 100));
-                                
-
+            var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageReal", "ImagePath"));
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // The transformedData IDataView contains the loaded images now

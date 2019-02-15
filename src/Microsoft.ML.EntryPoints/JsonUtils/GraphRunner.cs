@@ -16,7 +16,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
     /// REVIEW: currently, the graph is executed synchronously, one node at a time. This is an implementation choice, we
     /// probably need to consider parallel asynchronous execution, once we agree on an acceptable syntax for it.
     /// </summary>
-    public sealed class GraphRunner
+    internal sealed class GraphRunner
     {
         private const string RegistrationName = "GraphRunner";
         private readonly IHost _host;

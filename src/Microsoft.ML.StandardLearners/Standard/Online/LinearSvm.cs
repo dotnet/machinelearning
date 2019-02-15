@@ -238,13 +238,13 @@ namespace Microsoft.ML.Trainers.Online
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int numIterations = Options.OnlineDefaultArgs.NumIterations)
+            int numIterations = Options.OnlineDefault.NumIterations)
             : this(env, new Options
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
                 WeightColumn = weightColumn,
-                NumIterations = numIterations,
+                NumberOfIterations = numIterations,
             })
         {
         }

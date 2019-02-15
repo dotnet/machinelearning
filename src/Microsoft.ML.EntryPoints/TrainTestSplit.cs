@@ -14,7 +14,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class TrainTestSplit
+    internal static class TrainTestSplit
     {
         public sealed class Input
         {
@@ -66,7 +66,7 @@ namespace Microsoft.ML.EntryPoints
 
     }
 
-    public static class SplitUtils
+    internal static class SplitUtils
     {
         public static string CreateStratificationColumn(IHost host, ref IDataView data, string stratificationColumn = null)
         {
