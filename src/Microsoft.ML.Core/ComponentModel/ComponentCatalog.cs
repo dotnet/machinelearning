@@ -202,7 +202,7 @@ namespace Microsoft.ML
                     if (ex.InnerException != null && ex.InnerException.IsMarked())
                         throw Contracts.Except(ex, "Error during class instantiation");
                     else
-                        throw ex;
+                        throw;
                 }
                 throw Contracts.Except("Can't instantiate class '{0}'", Type.Name);
             }

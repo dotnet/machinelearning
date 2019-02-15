@@ -72,8 +72,7 @@ namespace Microsoft.ML.Tests.Transformers
             catch (Exception ex)
             {
                 if (!ex.IsMarked())
-                    throw ex;
-                // REVIEW: we should have a common mechanism that will make sure this is 'our' exception thrown.
+                    throw;
             }
             ML.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(MyLambda)));
             TestEstimatorCore(customEst, data);
