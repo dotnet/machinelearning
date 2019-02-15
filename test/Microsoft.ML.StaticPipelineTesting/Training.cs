@@ -1169,7 +1169,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var matrixFactorizationEstimator = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: mlContext.Regression.Trainers.MatrixFactorization(
                                             r.label, r.matrixRowIndex, r.matrixColumnIndex,
-                                            new MatrixFactorizationTrainer.Options { NumThreads = 1 },
+                                            new MatrixFactorizationTrainer.Options { NumberOfThreads = 1 },
                                             onFit: p => pred = p)));
 
             // Create a pipeline from the reader (the 1st step) and the matrix factorization estimator (the 2nd step).

@@ -38,8 +38,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = matrixColumnIndexColumnName,
                 MatrixRowIndexColumnName = matrixRowIndexColumnName,
                 LabelColumnName = labelColumnName,
-                NumIterations = 3,
-                NumThreads = 1,
+                NumberOfIterations = 3,
+                NumberOfThreads = 1,
                 ApproximationRank = 4,
             };
 
@@ -73,8 +73,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = userColumnName,
                 MatrixRowIndexColumnName = itemColumnName,
                 LabelColumnName = labelColumnName,
-                NumIterations = 3,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 3,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 7,
             };
 
@@ -210,8 +210,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
-                NumIterations = 10,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 10,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 32,
             };
 
@@ -300,8 +300,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 32,
                 LearningRate = 0.5,
             };
@@ -421,8 +421,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
                 LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
                 ApproximationRank = 16,
                 Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
@@ -557,8 +557,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
                 LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
                 ApproximationRank = 16,
                 Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.

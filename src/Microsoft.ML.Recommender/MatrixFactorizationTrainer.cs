@@ -172,10 +172,10 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of training iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Training iterations; that is, the times that the training algorithm iterates through the whole training data once.", ShortName = "iter")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Training iterations; that is, the times that the training algorithm iterates through the whole training data once.", ShortName = "iter,numiterations")]
             [TGUI(SuggestedSweeps = "10,20,40")]
             [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 10, 20, 40 })]
-            public int NumIterations = Defaults.NumIterations;
+            public int NumberOfIterations = Defaults.NumIterations;
 
             ///<summary>
             /// Initial learning rate. It specifies the speed of the training algorithm.
@@ -225,8 +225,8 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of threads will be used during training. If unspecified all aviable threads will be use.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t")]
-            public int? NumThreads;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t,numthreads")]
+            public int? NumberOfThreads;
 
             /// <summary>
             /// Suppress writing additional information to output.
@@ -315,8 +315,8 @@ namespace Microsoft.ML.Trainers
             const string posError = "Parameter must be positive";
             Host.CheckValue(options, nameof(options));
             Host.CheckUserArg(options.ApproximationRank > 0, nameof(options.ApproximationRank), posError);
-            Host.CheckUserArg(!options.NumThreads.HasValue || options.NumThreads > 0, nameof(options.NumThreads), posError);
-            Host.CheckUserArg(options.NumIterations > 0, nameof(options.NumIterations), posError);
+            Host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), posError);
+            Host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), posError);
             Host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), posError);
             Host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), posError);
             Host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), posError);
@@ -324,11 +324,11 @@ namespace Microsoft.ML.Trainers
             _fun = (int)options.LossFunction;
             _lambda = options.Lambda;
             _k = options.ApproximationRank;
-            _iter = options.NumIterations;
+            _iter = options.NumberOfIterations;
             _eta = options.LearningRate;
             _alpha = options.Alpha;
             _c = options.C;
-            _threads = options.NumThreads ?? Environment.ProcessorCount;
+            _threads = options.NumberOfThreads ?? Environment.ProcessorCount;
             _quiet = options.Quiet;
             _doNmf = options.NonNegative;
 
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Trainers
             _alpha = args.Alpha;
             _lambda = args.Lambda;
             _c = args.C;
-            _threads = args.NumThreads ?? Environment.ProcessorCount;
+            _threads = args.NumberOfThreads ?? Environment.ProcessorCount;
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
 

@@ -38,6 +38,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         internal const string UserNameValue = "Symbolic SGD (binary)";
         internal const string ShortName = "SymSGD";
 
+        ///<summary> Advanced options for trainer.</summary>
         public sealed class Options : LearnerInputBaseWithLabel
         {
             /// <summary>
@@ -54,14 +55,14 @@ namespace Microsoft.ML.Trainers.HalLearners
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of passes over the data.", ShortName = "iter", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1,5,10,20,30,40,50")]
             [TlcModule.SweepableDiscreteParam("NumberOfIterations", new object[] { 1, 5, 10, 20, 30, 40, 50 })]
-            public int NumberOfIterations = 50;
+            public int NumberOfIterations = Defaults.NumberOfIterations;
 
             /// <summary>
             /// Tolerance for difference in average loss in consecutive passes.
             /// If the reduction on loss is smaller than the specified tolerance in one iteration, the training process will be terminated.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance for difference in average loss in consecutive passes.", ShortName = "tol")]
-            public float Tolerance = 1e-4f;
+            public float Tolerance = Defaults.Tolerance;
 
             /// <summary>
             /// Learning rate. A larger value can potentially reduce the training time but incur numerical instability and over-fitting.
@@ -77,7 +78,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization", ShortName = "l2", SortOrder = 52)]
             [TGUI(SuggestedSweeps = "0.0,1e-5,1e-5,1e-6,1e-7")]
             [TlcModule.SweepableDiscreteParam("L2Regularization", new object[] { 0.0f, 1e-5f, 1e-5f, 1e-6f, 1e-7f })]
-            public float L2Regularization;
+            public float L2Regularization = Defaults.L2Regularization;
 
             /// <summary>
             /// The number of iterations each thread learns a local model until combining it with the
@@ -93,19 +94,19 @@ namespace Microsoft.ML.Trainers.HalLearners
             /// The acceleration memory budget in MB.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The acceleration memory budget in MB", ShortName = "accelMemBudget")]
-            public long MemorySize = 1024;
+            public long MemorySize = Defaults.MemorySize;
 
             /// <summary>
             /// Set to <see langword="true" /> causes the data to shuffle.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data?", ShortName = "shuf")]
-            public bool Shuffle = true;
+            public bool Shuffle = Defaults.Shuffle;
 
             /// <summary>
             /// Apply weight to the positive class, for imbalanced data.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
-            public float PositiveInstanceWeight = 1;
+            public float PositiveInstanceWeight = Defaults.PositiveInstanceWeight;
 
             internal void Check(IExceptionContext ectx)
             {
@@ -116,7 +117,19 @@ namespace Microsoft.ML.Trainers.HalLearners
             }
         }
 
+        [BestFriend]
+        internal static class Defaults
+        {
+            public const float PositiveInstanceWeight = 1;
+            public const bool Shuffle = true;
+            public const long MemorySize = 1024;
+            public const float L2Regularization = 0;
+            public const float Tolerance = 1e-4f;
+            public const int NumberOfIterations = 50;
+        }
+
         public override TrainerInfo Info { get; }
+
         private readonly Options _options;
 
         /// <summary>
