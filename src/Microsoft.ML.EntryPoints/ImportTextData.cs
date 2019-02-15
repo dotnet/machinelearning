@@ -15,7 +15,7 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// A component for importing text files as <see cref="IDataView"/>.
     /// </summary>
-    public static class ImportTextData
+    internal static class ImportTextData
     {
         public sealed class Input
         {

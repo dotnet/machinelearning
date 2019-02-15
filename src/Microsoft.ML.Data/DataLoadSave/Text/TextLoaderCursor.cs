@@ -134,7 +134,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public static RowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
+            public static DataViewRowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Data
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
 
-            public static RowCursor[] CreateSet(TextLoader parent, IMultiStreamSource files, bool[] active, int n)
+            public static DataViewRowCursor[] CreateSet(TextLoader parent, IMultiStreamSource files, bool[] active, int n)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
@@ -166,9 +166,9 @@ namespace Microsoft.ML.Data
                 var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
-                    return new RowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
+                    return new DataViewRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
 
-                var cursors = new RowCursor[cthd];
+                var cursors = new DataViewRowCursor[cthd];
                 try
                 {
                     for (int i = 0; i < cursors.Length; i++)
@@ -195,13 +195,13 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                        val = new RowId((ulong)_total, 0);
+                        val = new DataViewRowId((ulong)_total, 0);
                     };
             }
 
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Data
                 return sb.ToString();
             }
 
-            public override Schema Schema => _bindings.OutputSchema;
+            public override DataViewSchema Schema => _bindings.OutputSchema;
 
             protected override void Dispose(bool disposing)
             {

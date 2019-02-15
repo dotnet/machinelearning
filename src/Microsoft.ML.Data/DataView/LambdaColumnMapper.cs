@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
     {
         // REVIEW: It would be nice to support propagation of select metadata.
         public static IDataView Create<TSrc, TDst>(IHostEnvironment env, string name, IDataView input,
-            string src, string dst, ColumnType typeSrc, ColumnType typeDst, ValueMapper<TSrc, TDst> mapper,
+            string src, string dst, DataViewType typeSrc, DataViewType typeDst, ValueMapper<TSrc, TDst> mapper,
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter = null, ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Data
                 impl = new Impl<TSrc, TDst, TDst>(env, name, input, col, typeDst, mapper, keyValueGetter: keyValueGetter, slotNamesGetter: slotNamesGetter);
             else
             {
-                Func<IHostEnvironment, string, IDataView, Column, ColumnType, ValueMapper<int, int>,
+                Func<IHostEnvironment, string, IDataView, Column, DataViewType, ValueMapper<int, int>,
                     ValueMapper<int, int>, ValueGetter<VBuffer<ReadOnlyMemory<char>>>, ValueGetter<VBuffer<ReadOnlyMemory<char>>>,
                     Impl<int, int, int>> del = CreateImpl<int, int, int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition()
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Data
 
         private static Impl<T1, T2, T3> CreateImpl<T1, T2, T3>(
             IHostEnvironment env, string name, IDataView input, Column col,
-            ColumnType typeDst, ValueMapper<T1, T2> map1, ValueMapper<T2, T3> map2,
+            DataViewType typeDst, ValueMapper<T1, T2> map1, ValueMapper<T2, T3> map2,
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter, ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter)
         {
             return new Impl<T1, T2, T3>(env, name, input, col, typeDst, map1, map2, keyValueGetter);
@@ -100,12 +100,12 @@ namespace Microsoft.ML.Data
 
         private sealed class Impl<T1, T2, T3> : OneToOneTransformBase
         {
-            private readonly ColumnType _typeDst;
+            private readonly DataViewType _typeDst;
             private readonly ValueMapper<T1, T2> _map1;
             private readonly ValueMapper<T2, T3> _map2;
 
             public Impl(IHostEnvironment env, string name, IDataView input, OneToOneColumn col,
-                ColumnType typeDst, ValueMapper<T1, T2> map1, ValueMapper<T2, T3> map2 = null,
+                DataViewType typeDst, ValueMapper<T1, T2> map1, ValueMapper<T2, T3> map2 = null,
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter = null, ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null)
                 : base(env, name, new[] { col }, input, x => null)
             {
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
                         {
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextDataViewType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Data
                             Host.Assert(vectorSize > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => slotNamesGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, vectorSize), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, vectorSize), mdGetter);
                         }
                     }
                 }
@@ -146,13 +146,13 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptNotSupp("Shouldn't serialize this");
             }
 
-            protected override ColumnType GetColumnTypeCore(int iinfo)
+            protected override DataViewType GetColumnTypeCore(int iinfo)
             {
                 Host.Assert(iinfo == 0);
                 return _typeDst;
             }
 
-            protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
+            protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)
             {
                 Host.AssertValueOrNull(ch);
                 Host.AssertValue(input);

@@ -18,11 +18,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
     internal interface IStatefulTransformer : ITransformer
     {
         /// <summary>
-        /// Same as <see cref="ITransformer.GetRowToRowMapper(Schema)"/> but also supports mechanism to save the state.
+        /// Same as <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> but also supports mechanism to save the state.
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
         /// <returns>The row to row mapper.</returns>
-        IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema);
+        IRowToRowMapper GetStatefulRowToRowMapper(DataViewSchema inputSchema);
 
         /// <summary>
         /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         IStatefulTransformer Clone();
     }
 
-    internal abstract class StatefulRow : Row
+    internal abstract class StatefulRow : DataViewRow
     {
         public abstract Action<long> GetPinger();
     }
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     {
         void CloneState();
 
-        Action<long> CreatePinger(Row input, Func<int, bool> activeOutput, out Action disposer);
+        Action<long> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer);
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
         }
 
-        internal Row GetStatefulRows(Row input, IRowToRowMapper mapper, Func<int, bool> active, List<StatefulRow> rows)
+        internal DataViewRow GetStatefulRows(DataViewRow input, IRowToRowMapper mapper, Func<int, bool> active, List<StatefulRow> rows)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             for (int i = deps.Length - 1; i >= 1; --i)
                 deps[i - 1] = innerMappers[i].GetDependencies(deps[i]);
 
-            Row result = input;
+            DataViewRow result = input;
             for (int i = 0; i < innerMappers.Length; ++i)
             {
                 result = GetStatefulRows(result, innerMappers[i], deps[i], rows);
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
             List<StatefulRow> rows = new List<StatefulRow>();
-            Row outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows);
+            DataViewRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows);
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
             _pinger = CreatePinger(rows);
             disposer = outputRowLocal.Dispose;
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return transformer.IsRowToRowMapper || transformer is IStatefulTransformer;
         }
 
-        private IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        private IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.Check(IsRowToRowMapper(InputTransformer), nameof(GetRowToRowMapper) +
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             var transformers = ((ITransformerChainAccessor )InputTransformer).Transformers;
             IRowToRowMapper[] mappers = new IRowToRowMapper[transformers.Length];
-            Schema schema = inputSchema;
+            DataViewSchema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)
             {
                 if (transformers[i] is IStatefulTransformer)
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }
 
-        private protected override Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        private protected override Func<DataViewSchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(IsRowToRowMapper(transformer), nameof(transformer), "Must be a row to row mapper or " + nameof(IStatefulTransformer));

@@ -38,8 +38,8 @@ namespace Microsoft.ML.Trainers.Ensemble
         private readonly VectorType _outputType;
         private readonly IValueMapper[] _mappers;
 
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => _outputType;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => _outputType;
 
         /// <summary>
         /// Instantiate new ensemble model from existing sub-models.
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.AssertValue(outputType);
 
             if (inputType == null)
-                inputType = new VectorType(NumberType.Float);
+                inputType = new VectorType(NumberDataViewType.Single);
         }
 
         private static EnsembleMultiClassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -156,9 +156,9 @@ namespace Microsoft.ML.Trainers.Ensemble
         private bool IsValid(IValueMapper mapper, out VectorType inputType, out VectorType outputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberType.Float
+                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberDataViewType.Single
                 && mapper.OutputType is VectorType outVectorType
-                && outVectorType.Size > 0 && outVectorType.ItemType == NumberType.Float)
+                && outVectorType.Size > 0 && outVectorType.ItemType == NumberDataViewType.Single)
             {
                 inputType = inVectorType;
                 outputType = outVectorType;

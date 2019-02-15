@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers
         /// <summary> The predictor's bias term.</summary>
         public float Bias { get; protected set; }
 
-        private readonly ColumnType _inputType;
+        private readonly DataViewType _inputType;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers
 
             Weight = weights;
             Bias = bias;
-            _inputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers
             else
                 Weight = new VBuffer<float>(len, Utils.Size(weights), weights, indices);
 
-            _inputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
             if (Weight.IsDense)
@@ -285,14 +285,14 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        ColumnType IValueMapper.InputType
+        DataViewType IValueMapper.InputType
         {
             get { return _inputType; }
         }
 
-        ColumnType IValueMapper.OutputType
+        DataViewType IValueMapper.OutputType
         {
-            get { return NumberType.Float; }
+            get { return NumberDataViewType.Single; }
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
@@ -360,24 +360,24 @@ namespace Microsoft.ML.Trainers
 
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema) => SaveSummary(writer, schema);
 
-        private protected virtual Row GetSummaryIRowOrNull(RoleMappedSchema schema)
+        private protected virtual DataViewRow GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var subBuilder = new MetadataBuilder();
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
-            var colType = new VectorType(NumberType.R4, Weight.Length);
+            var colType = new VectorType(NumberDataViewType.Single, Weight.Length);
             var builder = new MetadataBuilder();
-            builder.AddPrimitiveValue("Bias", NumberType.R4, Bias);
+            builder.AddPrimitiveValue("Bias", NumberDataViewType.Single, Bias);
             builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.GetMetadata());
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema) => GetSummaryIRowOrNull(schema);
+        DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema) => GetSummaryIRowOrNull(schema);
 
-        private protected virtual Row GetStatsIRowOrNull(RoleMappedSchema schema) => null;
+        private protected virtual DataViewRow GetStatsIRowOrNull(RoleMappedSchema schema) => null;
 
-        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema) => GetStatsIRowOrNull(schema);
+        DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema) => GetStatsIRowOrNull(schema);
 
         private protected abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
 
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Trainers
             return results;
         }
 
-        private protected override Row GetStatsIRowOrNull(RoleMappedSchema schema)
+        private protected override DataViewRow GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;

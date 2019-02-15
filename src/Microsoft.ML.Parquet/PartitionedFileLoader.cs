@@ -287,22 +287,22 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle => true;
 
-        public Schema Schema { get; }
+        public DataViewSchema Schema { get; }
 
         public long? GetRowCount()
         {
             return null;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             return new Cursor(_host, this, _files, columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             var cursor = new Cursor(_host, this, _files, columnsNeeded, rand);
-            return new RowCursor[] { cursor };
+            return new DataViewRowCursor[] { cursor };
         }
 
         /// <summary>
@@ -312,13 +312,13 @@ namespace Microsoft.ML.Data
         /// <param name="cols">The partitioned columns.</param>
         /// <param name="subLoader">The sub loader.</param>
         /// <returns>The resulting schema.</returns>
-        private Schema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
+        private DataViewSchema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
         {
             Contracts.AssertValue(cols);
             Contracts.AssertValue(subLoader);
 
             var builder = new SchemaBuilder();
-            builder.AddColumns(cols.Select(c => new Schema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
+            builder.AddColumns(cols.Select(c => new DataViewSchema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
             var colSchema = builder.GetSchema();
 
             var subSchema = subLoader.Schema;
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Data
             }
             else
             {
-                var schemas = new Schema[]
+                var schemas = new DataViewSchema[]
                 {
                     subSchema,
                     colSchema
@@ -371,15 +371,15 @@ namespace Microsoft.ML.Data
             private Delegate[] _getters;
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
-            private readonly IEnumerable<Schema.Column> _columnsNeeded;
-            private readonly IEnumerable<Schema.Column> _subActivecolumnsNeeded;
+            private readonly IEnumerable<DataViewSchema.Column> _columnsNeeded;
+            private readonly IEnumerable<DataViewSchema.Column> _subActivecolumnsNeeded;
 
             private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
-            private RowCursor _subCursor; // Sub cursor of the current file.
+            private DataViewRowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
 
-            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, IEnumerable<Schema.Column> columnsNeeded, Random rand)
+            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand)
                 : base(provider)
             {
                 Contracts.AssertValue(parent);
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            public override Schema Schema => _parent.Schema;
+            public override DataViewSchema Schema => _parent.Schema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
@@ -417,14 +417,14 @@ namespace Microsoft.ML.Data
                 return getter;
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
 
-                        val = new RowId(0, (ulong)Position);
+                        val = new DataViewRowId(0, (ulong)Position);
                     };
             }
 
@@ -600,17 +600,17 @@ namespace Microsoft.ML.Data
                 };
             }
 
-            private Delegate CreateGetterDelegateCore<TValue>(int col, ColumnType type)
+            private Delegate CreateGetterDelegateCore<TValue>(int col, DataViewType type)
             {
                 return (Delegate)GetterDelegateCore<TValue>(col, type);
             }
 
-            private ValueGetter<TValue> GetterDelegateCore<TValue>(int col, ColumnType type)
+            private ValueGetter<TValue> GetterDelegateCore<TValue>(int col, DataViewType type)
             {
                 Ch.Check(col >= 0 && col < _colValues.Length);
                 Ch.AssertValue(type);
 
-                var conv = Conversions.Instance.GetStandardConversion(TextType.Instance, type) as ValueMapper<ReadOnlyMemory<char>, TValue>;
+                var conv = Conversions.Instance.GetStandardConversion(TextDataViewType.Instance, type) as ValueMapper<ReadOnlyMemory<char>, TValue>;
                 if (conv == null)
                 {
                     throw Ch.Except("Invalid TValue: '{0}' of the conversion.", typeof(TValue));
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            private bool SchemasMatch(Schema schema1, Schema schema2)
+            private bool SchemasMatch(DataViewSchema schema1, DataViewSchema schema2)
             {
                 if (schema1.Count != schema2.Count)
                 {

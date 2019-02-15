@@ -210,7 +210,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -219,10 +219,10 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
+            return new DataViewRowCursor[] { GetRowCursorCore(columnsNeeded) };
         }
 
         private sealed class Cursor : LinkedRowRootCursorBase
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, RowCursor input, Schema schema, bool[] active, long skip, long take)
+            public Cursor(IChannelProvider provider, DataViewRowCursor input, DataViewSchema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
             {
                 Ch.Assert(skip >= 0);
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms
                 _take = take;
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return Input.GetIdGetter();
             }

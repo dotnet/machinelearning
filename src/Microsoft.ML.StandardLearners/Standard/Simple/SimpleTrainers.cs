@@ -101,9 +101,9 @@ namespace Microsoft.ML.Trainers
 
             var newColumns = new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
             foreach (SchemaShape.Column column in newColumns)
                 outColumns[column.Name] = column;
@@ -141,10 +141,10 @@ namespace Microsoft.ML.Trainers
         /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        private readonly ColumnType _inputType;
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => NumberType.Float;
-        ColumnType IValueMapperDist.DistType => NumberType.Float;
+        private readonly DataViewType _inputType;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
+        DataViewType IValueMapperDist.DistType => NumberDataViewType.Single;
 
         /// <summary>
         /// Instantiate a model that returns a uniform random probability.
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Trainers
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
 
-            _inputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberDataViewType.Single);
         }
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Trainers
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
 
-            _inputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberDataViewType.Single);
         }
 
         private static RandomModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -308,16 +308,16 @@ namespace Microsoft.ML.Trainers
             data.CheckBinaryLabel();
             Host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Missing Label column");
             var labelCol = data.Schema.Label.Value;
-            Host.CheckParam(labelCol.Type == NumberType.Float, nameof(data), "Invalid type for Label column");
+            Host.CheckParam(labelCol.Type == NumberDataViewType.Single, nameof(data), "Invalid type for Label column");
 
             double pos = 0;
             double neg = 0;
 
             int colWeight = -1;
-            if (data.Schema.Weight?.Type == NumberType.Float)
+            if (data.Schema.Weight?.Type == NumberDataViewType.Single)
                 colWeight = data.Schema.Weight.Value.Index;
 
-            var cols = colWeight > -1 ? new Schema.Column[] { labelCol, data.Schema.Weight.Value } : new Schema.Column[] { labelCol };
+            var cols = colWeight > -1 ? new DataViewSchema.Column[] { labelCol, data.Schema.Weight.Value } : new DataViewSchema.Column[] { labelCol };
 
             using (var cursor = data.Data.GetRowCursor(cols))
             {
@@ -348,10 +348,10 @@ namespace Microsoft.ML.Trainers
         }
 
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
 
         /// <summary>
         /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
@@ -365,9 +365,9 @@ namespace Microsoft.ML.Trainers
 
             var newColumns = new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
             foreach (SchemaShape.Column column in newColumns)
                 outColumns[column.Name] = column;
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Trainers
             _prob = prob;
             _raw = 2 * _prob - 1;       // This could be other functions -- logodds for instance
 
-            _inputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberDataViewType.Single);
         }
 
         private PriorModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Trainers
 
             _raw = 2 * _prob - 1;
 
-            _inputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberDataViewType.Single);
         }
 
         private static PriorModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -448,10 +448,10 @@ namespace Microsoft.ML.Trainers
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        private readonly ColumnType _inputType;
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => NumberType.Float;
-        ColumnType IValueMapperDist.DistType => NumberType.Float;
+        private readonly DataViewType _inputType;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
+        DataViewType IValueMapperDist.DistType => NumberDataViewType.Single;
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {

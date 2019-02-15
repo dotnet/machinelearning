@@ -188,5 +188,4 @@ namespace Microsoft.ML.EntryPoints
             return new CommonOutputs.MacroOutput<Output>() { Nodes = macroNodes };
         }
     }
-#pragma warning restore 612
 }

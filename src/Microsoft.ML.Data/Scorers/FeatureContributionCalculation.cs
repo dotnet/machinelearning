@@ -184,24 +184,24 @@ namespace Microsoft.ML.Data
                 ctx.Writer.WriteBoolByte(Stringify);
             }
 
-            public Delegate GetTextContributionGetter(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
+            public Delegate GetTextContributionGetter(DataViewRow input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
                 var typeSrc = input.Schema[colSrc].Type;
 
-                Func<Row, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
+                Func<DataViewRow, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
                 return (Delegate)meth.Invoke(this, new object[] { input, colSrc, slotNames });
             }
 
-            public Delegate GetContributionGetter(Row input, int colSrc)
+            public Delegate GetContributionGetter(DataViewRow input, int colSrc)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
 
                 var typeSrc = input.Schema[colSrc].Type;
-                Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
+                Func<DataViewRow, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
                 // For multiclass LR it needs to be(VBuffer<float>[].
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Data
                     : slotName;
             }
 
-            private ValueGetter<ReadOnlyMemory<char>> GetTextValueGetter<TSrc>(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
+            private ValueGetter<ReadOnlyMemory<char>> GetTextValueGetter<TSrc>(DataViewRow input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            private ValueGetter<VBuffer<float>> GetValueGetter<TSrc>(Row input, int colSrc)
+            private ValueGetter<VBuffer<float>> GetValueGetter<TSrc>(DataViewRow input, int colSrc)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
@@ -295,16 +295,16 @@ namespace Microsoft.ML.Data
             private readonly IHostEnvironment _env;
             private readonly ISchemaBoundRowMapper _genericRowMapper;
             private readonly BindableMapper _parent;
-            private readonly Schema _outputSchema;
-            private readonly Schema _outputGenericSchema;
+            private readonly DataViewSchema _outputSchema;
+            private readonly DataViewSchema _outputGenericSchema;
             private VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
+            public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
+            private DataViewSchema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
-            public Schema OutputSchema { get; }
+            public DataViewSchema OutputSchema { get; }
 
             public ISchemaBindableMapper Bindable => _parent;
 
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Data
                 if (parent.Stringify)
                 {
                     var builder = new SchemaBuilder();
-                    builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
+                    builder.AddColumn(DefaultColumnNames.FeatureContributions, TextDataViewType.Instance, null);
                     _outputSchema = builder.GetSchema();
                     if (FeatureColumn.HasSlotNames(featureSize))
                         FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
@@ -339,13 +339,13 @@ namespace Microsoft.ML.Data
                             FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref value));
 
                     var schemaBuilder = new SchemaBuilder();
-                    var featureContributionType = new VectorType(NumberType.R4, FeatureColumn.Type as VectorType);
+                    var featureContributionType = new VectorType(NumberDataViewType.Single, FeatureColumn.Type as VectorType);
                     schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.GetMetadata());
                     _outputSchema = schemaBuilder.GetSchema();
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
-                OutputSchema = new ZipBinding(new Schema[] { _outputGenericSchema, _outputSchema, }).OutputSchema;
+                OutputSchema = new ZipBinding(new DataViewSchema[] { _outputGenericSchema, _outputSchema, }).OutputSchema;
             }
 
             /// <summary>
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Data
                 return col => false;
             }
 
-            public Row GetRow(Row input, Func<int, bool> active)
+            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(active);

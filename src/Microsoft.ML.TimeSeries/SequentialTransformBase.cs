@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         protected string OutputColumnName;
 
         private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string outputColumnName, string inputColumnName,
-            Action<TState> initFunction, bool hasBuffer, ColumnType outputColTypeOverride)
+            Action<TState> initFunction, bool hasBuffer, DataViewType outputColTypeOverride)
         {
             var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
             inputSchema[0].ColumnName = inputColumnName;
@@ -245,13 +245,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="input">A reference to the input data view.</param>
         /// <param name="outputColTypeOverride"></param>
         private protected SequentialTransformBase(int windowSize, int initialWindowSize, string outputColumnName, string inputColumnName,
-            string name, IHostEnvironment env, IDataView input, ColumnType outputColTypeOverride = null)
+            string name, IHostEnvironment env, IDataView input, DataViewType outputColTypeOverride = null)
             : this(windowSize, initialWindowSize, outputColumnName, inputColumnName, Contracts.CheckRef(env, nameof(env)).Register(name), input, outputColTypeOverride)
         {
         }
 
         private protected SequentialTransformBase(int windowSize, int initialWindowSize, string outputColumnName, string inputColumnName,
-            IHost host, IDataView input, ColumnType outputColTypeOverride = null)
+            IHost host, IDataView input, DataViewType outputColTypeOverride = null)
             : base(host, input)
         {
             Contracts.AssertValue(Host);
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             WindowSize = windowSize;
 
             BinarySaver bs = new BinarySaver(Host, new BinarySaver.Arguments());
-            ColumnType ct = bs.LoadTypeDescriptionOrNull(ctx.Reader.BaseStream);
+            DataViewType ct = bs.LoadTypeDescriptionOrNull(ctx.Reader.BaseStream);
 
             _transform = CreateLambdaTransform(Host, input, OutputColumnName, InputColumnName, InitFunction, WindowSize > 0, ct);
         }
@@ -353,21 +353,21 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var srcCursor = _transform.GetRowCursor(columnsNeeded, rand);
             return new Cursor(this, srcCursor);
         }
 
-        public override Schema OutputSchema => _transform.Schema;
+        public override DataViewSchema OutputSchema => _transform.Schema;
 
         public override long? GetRowCount()
         {
             return _transform.GetRowCount();
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
-            => new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
+            => new DataViewRowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
 
         /// <summary>
         /// A wrapper around the cursor which replaces the schema.
@@ -376,14 +376,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             private readonly SequentialTransformBase<TInput, TOutput, TState> _parent;
 
-            public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, RowCursor input)
+            public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, DataViewRowCursor input)
                 : base(parent.Host, input)
             {
                 Ch.Assert(input.Schema.Count == parent.OutputSchema.Count);
                 _parent = parent;
             }
 
-            public override Schema Schema { get { return _parent.OutputSchema; } }
+            public override DataViewSchema Schema { get { return _parent.OutputSchema; } }
 
             public override bool IsColumnActive(int col)
             {

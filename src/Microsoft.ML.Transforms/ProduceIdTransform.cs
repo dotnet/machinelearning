@@ -37,19 +37,19 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Bindings : ColumnBindingsBase
         {
-            public Bindings(Schema input, bool user, string name)
+            public Bindings(DataViewSchema input, bool user, string name)
                 : base(input, user, name)
             {
                 Contracts.Assert(InfoCount == 1);
             }
 
-            protected override ColumnType GetColumnTypeCore(int iinfo)
+            protected override DataViewType GetColumnTypeCore(int iinfo)
             {
                 Contracts.Assert(iinfo == 0);
-                return NumberType.UG;
+                return NumberDataViewType.DataViewRowId;
             }
 
-            public static Bindings Create(ModelLoadContext ctx, Schema input)
+            public static Bindings Create(ModelLoadContext ctx, DataViewSchema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly Bindings _bindings;
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override DataViewSchema OutputSchema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(ctx);
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -151,14 +151,14 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var inputPred = _bindings.GetDependencies(predicate);
 
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
-            RowCursor[] cursors = Source.GetRowCursorSet(inputCols, n, rand);
+            DataViewRowCursor[] cursors = Source.GetRowCursorSet(inputCols, n, rand);
             bool active = predicate(_bindings.MapIinfoToCol(0));
             for (int c = 0; c < cursors.Length; ++c)
                 cursors[c] = new Cursor(Host, _bindings, cursors[c], active);
@@ -176,9 +176,9 @@ namespace Microsoft.ML.Transforms
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override DataViewSchema Schema => _bindings.AsSchema;
 
-            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool active)
+            public Cursor(IChannelProvider provider, Bindings bindings, DataViewRowCursor input, bool active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));

@@ -99,9 +99,9 @@ namespace Microsoft.ML.Transforms
 
         public bool CanShuffle => false;
 
-        Schema IDataView.Schema => OutputSchema;
+        DataViewSchema IDataView.Schema => OutputSchema;
 
-        public Schema OutputSchema => _bindings.Schema;
+        public DataViewSchema OutputSchema => _bindings.Schema;
 
         public long? GetRowCount()
         {
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(this, input, columnsNeeded);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Contracts.CheckParam(n >= 0, nameof(n));
             Contracts.CheckValueOrNull(rand);
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Transforms
 
             private readonly RowCursor<TSrc> _input;
             // This is used to serve getters for the columns we produce.
-            private readonly Row _appendedRow;
+            private readonly DataViewRow _appendedRow;
 
             private readonly TSrc _src;
             private readonly TDst _dst;
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => _input.Batch;
 
-            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, IEnumerable<Schema.Column> columnsNeeded)
+            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, IEnumerable<DataViewSchema.Column> columnsNeeded)
                 : base(parent.Host)
             {
                 Ch.AssertValue(input);
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms
                 base.Dispose(disposing);
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return _input.GetIdGetter();
             }
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms
                 isRowAccepted = _parent._filterFunc(_src, _dst, _state);
             }
 
-            public override Schema Schema => _parent._bindings.Schema;
+            public override DataViewSchema Schema => _parent._bindings.Schema;
 
             public override bool IsColumnActive(int col)
             {

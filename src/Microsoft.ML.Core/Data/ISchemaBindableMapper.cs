@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Gets schema of this mapper's output.
         /// </summary>
-        Schema OutputSchema { get; }
+        DataViewSchema OutputSchema { get; }
 
         /// <summary>
         /// A property to get back the <see cref="ISchemaBindableMapper"/> that produced this <see cref="ISchemaBoundMapper"/>.
@@ -64,6 +64,6 @@ namespace Microsoft.ML.Data
         /// There are two schemas from <see cref="ISchemaBoundMapper"/> and <see cref="IRowToRowMapper"/>.
         /// Since the two parent schema's are identical in all derived classes, we merge them into <see cref="OutputSchema"/>.
         /// </summary>
-        new Schema OutputSchema { get; }
+        new DataViewSchema OutputSchema { get; }
     }
 }

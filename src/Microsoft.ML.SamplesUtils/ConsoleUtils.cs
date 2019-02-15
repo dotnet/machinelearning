@@ -9,7 +9,7 @@ namespace Microsoft.ML.SamplesUtils
     public static class ConsoleUtils
     {
         /// <summary>
-        /// Pretty-print <see cref="BinaryClassificationMetrics"/> objects.
+        /// Pretty-print BinaryClassificationMetrics objects.
         /// </summary>
         /// <param name="metrics">Binary classification metrics.</param>
         public static void PrintMetrics(BinaryClassificationMetrics metrics)

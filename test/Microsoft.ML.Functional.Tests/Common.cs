@@ -94,11 +94,11 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        ///  Assert that two <see cref="Schema"/> objects are equal.
+        ///  Assert that two <see cref="DataViewSchema"/> objects are equal.
         /// </summary>
-        /// <param name="schema1">A <see cref="Schema"/> object.</param>
-        /// <param name="schema2">A <see cref="Schema"/> object.</param>
-        public static void AssertEqual(Schema schema1, Schema schema2)
+        /// <param name="schema1">A <see cref="DataViewSchema"/> object.</param>
+        /// <param name="schema2">A <see cref="DataViewSchema"/> object.</param>
+        public static void AssertEqual(DataViewSchema schema1, DataViewSchema schema2)
         {
             Assert.NotNull(schema1);
             Assert.NotNull(schema2);

@@ -169,7 +169,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private protected SequentialAnomalyDetectionTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
                 AnomalySide anomalySide, MartingaleType martingale, AlertingScore alertingScore, Double powerMartingaleEpsilon,
                 Double alertThreshold)
-                : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorType(NumberType.R8, GetOutputLength(alertingScore, env)))
+                : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorType(NumberDataViewType.Double, GetOutputLength(alertingScore, env)))
             {
                 Host.CheckUserArg(Enum.IsDefined(typeof(MartingaleType), martingale), nameof(ArgumentsBase.Martingale), "Value is undefined.");
                 Host.CheckUserArg(Enum.IsDefined(typeof(AnomalySide), anomalySide), nameof(ArgumentsBase.Side), "Value is undefined.");
@@ -296,18 +296,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return Math.Log(p * logP + 1 - p) - 2 * Math.Log(-logP) - logP;
             }
 
-            internal override IStatefulRowMapper MakeRowMapper(Schema schema) => new Mapper(Host, this, schema);
+            internal override IStatefulRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(Host, this, schema);
 
             internal sealed class Mapper : IStatefulRowMapper
             {
                 private readonly IHost _host;
                 private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
-                private readonly Schema _parentSchema;
+                private readonly DataViewSchema _parentSchema;
                 private readonly int _inputColumnIndex;
                 private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
                 private AnomalyDetectionStateBase State { get; set; }
 
-                public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, Schema inputSchema)
+                public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, DataViewSchema inputSchema)
                 {
                     Contracts.CheckValue(env, nameof(env));
                     _host = env.Register(nameof(Mapper));
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                         throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName);
 
                     var colType = inputSchema[_inputColumnIndex].Type;
-                    if (colType != NumberType.R4)
+                    if (colType != NumberDataViewType.Single)
                         throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, "float", colType.ToString());
 
                     _parent = parent;
@@ -329,12 +329,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     State = (AnomalyDetectionStateBase)_parent.StateRef;
                 }
 
-                public Schema.DetachedColumn[] GetOutputColumns()
+                public DataViewSchema.DetachedColumn[] GetOutputColumns()
                 {
                     var meta = new MetadataBuilder();
                     meta.AddSlotNames(_parent.OutputLength, GetSlotNames);
-                    var info = new Schema.DetachedColumn[1];
-                    info[0] = new Schema.DetachedColumn(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent.OutputLength), meta.GetMetadata());
+                    var info = new DataViewSchema.DetachedColumn[1];
+                    info[0] = new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new VectorType(NumberDataViewType.Double, _parent.OutputLength), meta.GetMetadata());
                     return info;
                 }
 
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 public void Save(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
-                public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+                public Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
                 {
                     disposer = null;
                     var getters = new Delegate[1];
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 private delegate void ProcessData(ref TInput src, ref VBuffer<double> dst);
 
-                private Delegate MakeGetter(Row input, AnomalyDetectionStateBase state)
+                private Delegate MakeGetter(DataViewRow input, AnomalyDetectionStateBase state)
                 {
                     _host.AssertValue(input);
                     var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     return valueGetter;
                 }
 
-                public Action<long> CreatePinger(Row input, Func<int, bool> activeOutput, out Action disposer)
+                public Action<long> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
                 {
                     disposer = null;
                     Action<long> pinger = null;
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     return pinger;
                 }
 
-                private Action<long> MakePinger(Row input, AnomalyDetectionStateBase state)
+                private Action<long> MakePinger(DataViewRow input, AnomalyDetectionStateBase state)
                 {
                     _host.AssertValue(input);
                     var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);

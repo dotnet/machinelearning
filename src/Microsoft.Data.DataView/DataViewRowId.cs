@@ -14,8 +14,8 @@ namespace Microsoft.Data.DataView
     /// Those Ids are derived from other Ids of the previous components of the pipelines, and dividing the structure in two: high order and low order of bits,
     /// and reduces the changes of those collisions even further.
     /// </summary>
-    /// <seealso cref="Row.GetIdGetter"/>
-    public readonly struct RowId : IComparable<RowId>, IEquatable<RowId>
+    /// <seealso cref="DataViewRow.GetIdGetter"/>
+    public readonly struct DataViewRowId : IComparable<DataViewRowId>, IEquatable<DataViewRowId>
     {
         ///<summary>The low order bits. Corresponds to H1 in the Murmur algorithms.</summary>
         public readonly ulong Low;
@@ -24,11 +24,11 @@ namespace Microsoft.Data.DataView
         public readonly ulong High;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="RowId"/>
+        /// Initializes a new instance of <see cref="DataViewRowId"/>
         /// </summary>
         /// <param name="low">The low order <langword>ulong</langword>.</param>
         /// <param name="high">The high order <langword>ulong</langword>.</param>
-        public RowId(ulong low, ulong high)
+        public DataViewRowId(ulong low, ulong high)
         {
             Low = low;
             High = high;
@@ -40,76 +40,76 @@ namespace Microsoft.Data.DataView
             return string.Format("{0:x16}{1:x16}", High, Low);
         }
 
-        public int CompareTo(RowId other)
+        public int CompareTo(DataViewRowId other)
         {
             int result = High.CompareTo(other.High);
             return result == 0 ? Low.CompareTo(other.Low) : result;
         }
 
-        public bool Equals(RowId other)
+        public bool Equals(DataViewRowId other)
         {
             return Low == other.Low && High == other.High;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj != null && obj is RowId)
+            if (obj != null && obj is DataViewRowId)
             {
-                var item = (RowId)obj;
+                var item = (DataViewRowId)obj;
                 return Equals(item);
             }
             return false;
         }
 
-        public static RowId operator +(RowId first, ulong second)
+        public static DataViewRowId operator +(DataViewRowId first, ulong second)
         {
             ulong resHi = first.High;
             ulong resLo = first.Low + second;
             if (resLo < second)
                 resHi++;
-            return new RowId(resLo, resHi);
+            return new DataViewRowId(resLo, resHi);
         }
 
-        public static RowId operator -(RowId first, ulong second)
+        public static DataViewRowId operator -(DataViewRowId first, ulong second)
         {
             ulong resHi = first.High;
             ulong resLo = first.Low - second;
             if (resLo > first.Low)
                 resHi--;
-            return new RowId(resLo, resHi);
+            return new DataViewRowId(resLo, resHi);
         }
 
-        public static bool operator ==(RowId first, ulong second)
+        public static bool operator ==(DataViewRowId first, ulong second)
         {
             return first.High == 0 && first.Low == second;
         }
 
-        public static bool operator !=(RowId first, ulong second)
+        public static bool operator !=(DataViewRowId first, ulong second)
         {
             return !(first == second);
         }
 
-        public static bool operator <(RowId first, ulong second)
+        public static bool operator <(DataViewRowId first, ulong second)
         {
             return first.High == 0 && first.Low < second;
         }
 
-        public static bool operator >(RowId first, ulong second)
+        public static bool operator >(DataViewRowId first, ulong second)
         {
             return first.High > 0 || first.Low > second;
         }
 
-        public static bool operator <=(RowId first, ulong second)
+        public static bool operator <=(DataViewRowId first, ulong second)
         {
             return first.High == 0 && first.Low <= second;
         }
 
-        public static bool operator >=(RowId first, ulong second)
+        public static bool operator >=(DataViewRowId first, ulong second)
         {
             return first.High > 0 || first.Low >= second;
         }
 
-        public static explicit operator double(RowId x)
+        public static explicit operator double(DataViewRowId x)
         {
             // REVIEW: The 64-bit JIT has a bug where rounding might be not quite
             // correct when converting a ulong to double with the high bit set. Should we
@@ -177,7 +177,7 @@ namespace Microsoft.Data.DataView
         /// that were all zeros, except for the last bit which is one.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public RowId Fork()
+        public DataViewRowId Fork()
         {
             ulong h1 = Low;
             ulong h2 = High;
@@ -189,7 +189,7 @@ namespace Microsoft.Data.DataView
             h2 += h1;
             h2 = h2 * 5 + 0x38495ab5;
             h1 ^= RotL(_c1, 31) * _c2;
-            return new RowId(h1, h2);
+            return new DataViewRowId(h1, h2);
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace Microsoft.Data.DataView
         /// that were all zeros.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public RowId Next()
+        public DataViewRowId Next()
         {
             ulong h1 = Low;
             ulong h2 = High;
@@ -209,7 +209,7 @@ namespace Microsoft.Data.DataView
             h2 = RotL(h2, 31);
             h2 += h1;
             h2 = h2 * 5 + 0x38495ab5;
-            return new RowId(h1, h2);
+            return new DataViewRowId(h1, h2);
         }
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace Microsoft.Data.DataView
         /// <param name="other"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public RowId Combine(RowId other)
+        public DataViewRowId Combine(DataViewRowId other)
         {
             var h1 = Low;
             var h2 = High;
@@ -245,7 +245,7 @@ namespace Microsoft.Data.DataView
             h2 += h1;
             h2 = h2 * 5 + 0x38495ab5;
 
-            return new RowId(h1, h2);
+            return new DataViewRowId(h1, h2);
         }
         #endregion
     }

@@ -135,10 +135,10 @@ namespace Microsoft.ML.Transforms
             SaveBase(ctx);
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override DataViewType GetColumnTypeCore(int iinfo)
         {
             Contracts.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return NumberType.Float;
+            return NumberDataViewType.Single;
         }
 
         private void SetMetadata()
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Transforms
             return kind != MetadataUtils.Kinds.KeyValues;
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)
         {
             Contracts.AssertValueOrNull(ch);
             Contracts.AssertValue(input);
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Transforms
                 return null;
             // THe following slot type will be the same for any columns, so we have only one field,
             // as opposed to one for each column.
-            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberType.Float, srcSlotType), null);
+            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberDataViewType.Single, srcSlotType), null);
             return _slotType;
         }
 
