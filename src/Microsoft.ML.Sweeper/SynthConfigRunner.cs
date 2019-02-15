@@ -30,13 +30,13 @@ namespace Microsoft.ML.Sweeper
 
         private readonly ParallelOptions _parallelOptions;
 
-        public SynthConfigRunner(IHostEnvironment env, Options args)
-            : base(args, env, "SynthSweepEvaluator")
+        public SynthConfigRunner(IHostEnvironment env, Options options)
+            : base(options, env, "SynthSweepEvaluator")
         {
-            Host.CheckUserArg(args.NumThreads == null || args.NumThreads.Value > 0, nameof(args.NumThreads), "Must be positive");
-            _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = args.NumThreads ?? -1 };
-            Host.AssertNonEmpty(args.OutputFolderName);
-            ProcessFullExePath(args.Exe);
+            Host.CheckUserArg(options.NumThreads == null || options.NumThreads.Value > 0, nameof(options.NumThreads), "Must be positive");
+            _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = options.NumThreads ?? -1 };
+            Host.AssertNonEmpty(options.OutputFolderName);
+            ProcessFullExePath(options.Exe);
         }
 
         protected override IEnumerable<IRunResult> RunConfigsCore(ParameterSet[] sweeps, IChannel ch, int min)

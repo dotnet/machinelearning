@@ -50,11 +50,11 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         public string WeightageMetricName { get { return _weightageKind.ToString(); } }
 
-        public WeightedAverage(IHostEnvironment env, Options args)
+        public WeightedAverage(IHostEnvironment env, Options options)
             : base(env, LoaderSignature)
         {
-            _weightageKind = args.WeightageName;
-            Host.CheckUserArg(Enum.IsDefined(typeof(WeightageKind), _weightageKind), nameof(args.WeightageName));
+            _weightageKind = options.WeightageName;
+            Host.CheckUserArg(Enum.IsDefined(typeof(WeightageKind), _weightageKind), nameof(options.WeightageName));
         }
 
         private WeightedAverage(IHostEnvironment env, ModelLoadContext ctx)

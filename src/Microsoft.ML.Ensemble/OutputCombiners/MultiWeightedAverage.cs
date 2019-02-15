@@ -52,11 +52,11 @@ namespace Microsoft.ML.Trainers.Ensemble
         private readonly MultiWeightageKind _weightageKind;
         public string WeightageMetricName { get { return _weightageKind.ToString(); } }
 
-        public MultiWeightedAverage(IHostEnvironment env, Options args)
-            : base(env, LoaderSignature, args)
+        public MultiWeightedAverage(IHostEnvironment env, Options options)
+            : base(env, LoaderSignature, options)
         {
-            _weightageKind = args.WeightageName;
-            Host.CheckUserArg(Enum.IsDefined(typeof(MultiWeightageKind), _weightageKind), nameof(args.WeightageName));
+            _weightageKind = options.WeightageName;
+            Host.CheckUserArg(Enum.IsDefined(typeof(MultiWeightageKind), _weightageKind), nameof(options.WeightageName));
         }
 
         private MultiWeightedAverage(IHostEnvironment env, ModelLoadContext ctx)

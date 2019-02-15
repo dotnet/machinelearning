@@ -171,8 +171,8 @@ namespace Microsoft.ML.LightGBM
                 IBoosterParameter IComponentFactory<IBoosterParameter>.CreateComponent(IHostEnvironment env) => CreateComponent(env);
             }
 
-            internal TreeBooster(Options args)
-                : base(args)
+            internal TreeBooster(Options options)
+                : base(options)
             {
                 Contracts.CheckUserArg(Args.MinSplitGain >= 0, nameof(Args.MinSplitGain), "must be >= 0.");
                 Contracts.CheckUserArg(Args.MinChildWeight >= 0, nameof(Args.MinChildWeight), "must be >= 0.");
@@ -217,8 +217,8 @@ namespace Microsoft.ML.LightGBM
                 internal override IBoosterParameter CreateComponent(IHostEnvironment env) => new DartBooster(this);
             }
 
-            internal DartBooster(Options args)
-                : base(args)
+            internal DartBooster(Options options)
+                : base(options)
             {
                 Contracts.CheckUserArg(Args.DropRate > 0 && Args.DropRate < 1, nameof(Args.DropRate), "must be in (0,1).");
                 Contracts.CheckUserArg(Args.MaxDrop > 0, nameof(Args.MaxDrop), "must be > 0.");
@@ -254,8 +254,8 @@ namespace Microsoft.ML.LightGBM
                 internal override IBoosterParameter CreateComponent(IHostEnvironment env) => new GossBooster(this);
             }
 
-            internal GossBooster(Options args)
-                : base(args)
+            internal GossBooster(Options options)
+                : base(options)
             {
                 Contracts.CheckUserArg(Args.TopRate > 0 && Args.TopRate < 1, nameof(Args.TopRate), "must be in (0,1).");
                 Contracts.CheckUserArg(Args.OtherRate >= 0 && Args.OtherRate < 1, nameof(Args.TopRate), "must be in [0,1).");

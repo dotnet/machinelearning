@@ -991,27 +991,27 @@ namespace Microsoft.ML.Data
         /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="args">Defines the settings of the load operation.</param>
+        /// <param name="options">Defines the settings of the load operation.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        public TextLoader(IHostEnvironment env, Options args = null, IMultiStreamSource dataSample = null)
+        public TextLoader(IHostEnvironment env, Options options = null, IMultiStreamSource dataSample = null)
         {
-            args = args ?? new Options();
+            options = options ?? new Options();
 
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.CheckValue(args, nameof(args));
+            _host.CheckValue(options, nameof(options));
             _host.CheckValueOrNull(dataSample);
 
             if (dataSample == null)
                 dataSample = new MultiFileSource(null);
 
             IMultiStreamSource headerFile = null;
-            if (!string.IsNullOrWhiteSpace(args.HeaderFile))
-                headerFile = new MultiFileSource(args.HeaderFile);
+            if (!string.IsNullOrWhiteSpace(options.HeaderFile))
+                headerFile = new MultiFileSource(options.HeaderFile);
 
-            var cols = args.Columns;
+            var cols = options.Columns;
             bool error;
-            if (Utils.Size(cols) == 0 && !TryParseSchema(_host, headerFile ?? dataSample, ref args, out cols, out error))
+            if (Utils.Size(cols) == 0 && !TryParseSchema(_host, headerFile ?? dataSample, ref options, out cols, out error))
             {
                 if (error)
                     throw _host.Except("TextLoader options embedded in the file are invalid");
@@ -1026,43 +1026,43 @@ namespace Microsoft.ML.Data
             }
             _host.Assert(Utils.Size(cols) > 0);
 
-            _useThreads = args.UseThreads;
+            _useThreads = options.UseThreads;
 
-            if (args.TrimWhitespace)
+            if (options.TrimWhitespace)
                 _flags |= OptionFlags.TrimWhitespace;
-            if (headerFile == null && args.HasHeader)
+            if (headerFile == null && options.HasHeader)
                 _flags |= OptionFlags.HasHeader;
-            if (args.AllowQuoting)
+            if (options.AllowQuoting)
                 _flags |= OptionFlags.AllowQuoting;
-            if (args.AllowSparse)
+            if (options.AllowSparse)
                 _flags |= OptionFlags.AllowSparse;
 
             // REVIEW: This should be persisted (if it should be maintained).
-            _maxRows = args.MaxRows ?? long.MaxValue;
-            _host.CheckUserArg(_maxRows >= 0, nameof(args.MaxRows));
+            _maxRows = options.MaxRows ?? long.MaxValue;
+            _host.CheckUserArg(_maxRows >= 0, nameof(options.MaxRows));
 
             // Note that _maxDim == 0 means sparsity is illegal.
-            _inputSize = args.InputSize ?? 0;
+            _inputSize = options.InputSize ?? 0;
             _host.Check(_inputSize >= 0, "inputSize");
             if (_inputSize >= SrcLim)
                 _inputSize = SrcLim - 1;
 
-            _host.CheckNonEmpty(args.Separator, nameof(args.Separator), "Must specify a separator");
+            _host.CheckNonEmpty(options.Separator, nameof(options.Separator), "Must specify a separator");
 
             //Default arg.Separator is tab and default args.Separators is also a '\t'.
             //At a time only one default can be different and whichever is different that will
             //be used.
-            if (args.Separators.Length > 1 || args.Separators[0] != '\t')
+            if (options.Separators.Length > 1 || options.Separators[0] != '\t')
             {
                 var separators = new HashSet<char>();
-                foreach (char c in args.Separators)
+                foreach (char c in options.Separators)
                     separators.Add(NormalizeSeparator(c.ToString()));
 
                 _separators = separators.ToArray();
             }
             else
             {
-                string sep = args.Separator.ToLowerInvariant();
+                string sep = options.Separator.ToLowerInvariant();
                 if (sep == ",")
                     _separators = new char[] { ',' };
                 else
@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Data
         // If so, update args and set cols to the combined set of columns.
         // If not, set error to true if there was an error condition.
         private static bool TryParseSchema(IHost host, IMultiStreamSource files,
-            ref Options args, out Column[] cols, out bool error)
+            ref Options options, out Column[] cols, out bool error)
         {
             host.AssertValue(host);
             host.AssertValue(files);
@@ -1144,7 +1144,7 @@ namespace Microsoft.ML.Data
 
             // Verify that the current schema-defining arguments are default.
             // Get settings just for core arguments, not everything.
-            string tmp = CmdParser.GetSettings(host, args, new ArgumentsCore());
+            string tmp = CmdParser.GetSettings(host, options, new ArgumentsCore());
 
             // Try to get the schema information from the file.
             string str = Cursor.GetEmbeddedArgs(files);
@@ -1181,7 +1181,7 @@ namespace Microsoft.ML.Data
 
                 var argsNew = new Options();
                 // Copy the non-core arguments to the new args (we already know that all the core arguments are default).
-                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(host, args, new Options()), argsNew);
+                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(host, options, new Options()), argsNew);
                 ch.Assert(parsed);
                 // Copy the core arguments to the new args.
                 if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
@@ -1192,7 +1192,7 @@ namespace Microsoft.ML.Data
                     goto LDone;
 
                 error = false;
-                args = argsNew;
+                options = argsNew;
 
             LDone:
                 return !error;
@@ -1202,16 +1202,16 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Checks whether the source contains the valid TextLoader.Arguments depiction.
         /// </summary>
-        public static bool FileContainsValidSchema(IHostEnvironment env, IMultiStreamSource files, out Options args)
+        public static bool FileContainsValidSchema(IHostEnvironment env, IMultiStreamSource files, out Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(files, nameof(files));
-            args = new Options();
+            options = new Options();
             Column[] cols;
             bool error;
-            bool found = TryParseSchema(h, files, ref args, out cols, out error);
-            return found && !error && args.IsValid();
+            bool found = TryParseSchema(h, files, ref options, out cols, out error);
+            return found && !error && options.IsValid();
         }
 
         private TextLoader(IHost host, ModelLoadContext ctx)
@@ -1273,14 +1273,14 @@ namespace Microsoft.ML.Data
         // These are legacy constructors needed for ComponentCatalog.
         internal static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
             => (IDataLoader)Create(env, ctx).Read(files);
-        internal static IDataLoader Create(IHostEnvironment env, Options args, IMultiStreamSource files)
-            => (IDataLoader)new TextLoader(env, args, files).Read(files);
+        internal static IDataLoader Create(IHostEnvironment env, Options options, IMultiStreamSource files)
+            => (IDataLoader)new TextLoader(env, options, files).Read(files);
 
         /// <summary>
         /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
         /// </summary>
-        internal static IDataView ReadFile(IHostEnvironment env, Options args, IMultiStreamSource fileSource)
-            => new TextLoader(env, args, fileSource).Read(fileSource);
+        internal static IDataView ReadFile(IHostEnvironment env, Options options, IMultiStreamSource fileSource)
+            => new TextLoader(env, options, fileSource).Read(fileSource);
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
         {
@@ -1367,7 +1367,7 @@ namespace Microsoft.ML.Data
                 columns.Add(column);
             }
 
-            Options args = new Options
+            Options options = new Options
             {
                 HasHeader = hasHeader,
                 Separators = new[] { separator },
@@ -1377,7 +1377,7 @@ namespace Microsoft.ML.Data
                 Columns = columns.ToArray()
             };
 
-            return new TextLoader(host, args);
+            return new TextLoader(host, options);
         }
 
         private sealed class BoundLoader : IDataLoader

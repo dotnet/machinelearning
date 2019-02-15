@@ -253,14 +253,14 @@ namespace Microsoft.ML.Trainers.Online
 
         protected virtual bool NeedCalibration => false;
 
-        private protected OnlineLinearTrainer(OnlineLinearOptions args, IHostEnvironment env, string name, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.InitialWeights))
+        private protected OnlineLinearTrainer(OnlineLinearOptions options, IHostEnvironment env, string name, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.InitialWeights))
         {
-            Contracts.CheckValue(args, nameof(args));
-            Contracts.CheckUserArg(args.NumberOfIterations > 0, nameof(args.NumberOfIterations), UserErrorPositive);
-            Contracts.CheckUserArg(args.InitialWeightsDiameter >= 0, nameof(args.InitialWeightsDiameter), UserErrorNonNegative);
+            Contracts.CheckValue(options, nameof(options));
+            Contracts.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), UserErrorPositive);
+            Contracts.CheckUserArg(options.InitialWeightsDiameter >= 0, nameof(options.InitialWeightsDiameter), UserErrorNonNegative);
 
-            Args = args;
+            Args = options;
             Name = name;
             // REVIEW: Caching could be false for one iteration, if we got around the whole shuffling issue.
             Info = new TrainerInfo(calibration: NeedCalibration, supportIncrementalTrain: true);

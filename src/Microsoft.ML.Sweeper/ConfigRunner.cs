@@ -188,13 +188,13 @@ namespace Microsoft.ML.Sweeper
 
         private readonly ParallelOptions _parallelOptions;
 
-        public LocalExeConfigRunner(IHostEnvironment env, Options args)
-            : base(args, env, "LocalExeSweepEvaluator")
+        public LocalExeConfigRunner(IHostEnvironment env, Options options)
+            : base(options, env, "LocalExeSweepEvaluator")
         {
-            Contracts.CheckParam(args.NumThreads == null || args.NumThreads.Value > 0, nameof(args.NumThreads), "Cannot be 0 or negative");
-            _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = args.NumThreads ?? -1 };
-            Contracts.AssertNonEmpty(args.OutputFolderName);
-            ProcessFullExePath(args.Exe);
+            Contracts.CheckParam(options.NumThreads == null || options.NumThreads.Value > 0, nameof(options.NumThreads), "Cannot be 0 or negative");
+            _parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = options.NumThreads ?? -1 };
+            Contracts.AssertNonEmpty(options.OutputFolderName);
+            ProcessFullExePath(options.Exe);
         }
 
         protected override IEnumerable<IRunResult> RunConfigsCore(ParameterSet[] sweeps, IChannel ch, int min)

@@ -85,20 +85,20 @@ namespace Microsoft.ML.Sweeper.Algorithms
         private readonly SortedSet<Float[]> _alreadySeenConfigs;
         private readonly List<ParameterSet> _randomParamSets;
 
-        public KdoSweeper(IHostEnvironment env, Options args)
+        public KdoSweeper(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("Sweeper");
 
-            _host.CheckUserArg(args.NumberInitialPopulation > 1, nameof(args.NumberInitialPopulation), "Must be greater than 1");
-            _host.CheckUserArg(args.HistoryLength > 1, nameof(args.HistoryLength), "Must be greater than 1");
-            _host.CheckUserArg(args.MinimumMutationSpread >= 0, nameof(args.MinimumMutationSpread), "Must be nonnegative");
-            _host.CheckUserArg(0 <= args.ProportionRandom && args.ProportionRandom <= 1, nameof(args.ProportionRandom), "Must be in [0, 1]");
-            _host.CheckUserArg(args.WeightRescalingPower >= 1, nameof(args.WeightRescalingPower), "Must be greater or equal to 1");
+            _host.CheckUserArg(options.NumberInitialPopulation > 1, nameof(options.NumberInitialPopulation), "Must be greater than 1");
+            _host.CheckUserArg(options.HistoryLength > 1, nameof(options.HistoryLength), "Must be greater than 1");
+            _host.CheckUserArg(options.MinimumMutationSpread >= 0, nameof(options.MinimumMutationSpread), "Must be nonnegative");
+            _host.CheckUserArg(0 <= options.ProportionRandom && options.ProportionRandom <= 1, nameof(options.ProportionRandom), "Must be in [0, 1]");
+            _host.CheckUserArg(options.WeightRescalingPower >= 1, nameof(options.WeightRescalingPower), "Must be greater or equal to 1");
 
-            _args = args;
-            _host.CheckUserArg(Utils.Size(args.SweptParameters) > 0, nameof(args.SweptParameters), "KDO sweeper needs at least one parameter to sweep over");
-            _sweepParameters = args.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
+            _args = options;
+            _host.CheckUserArg(Utils.Size(options.SweptParameters) > 0, nameof(options.SweptParameters), "KDO sweeper needs at least one parameter to sweep over");
+            _sweepParameters = options.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
             _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase(), _sweepParameters);
             _redundantSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase { Retries = 0 }, _sweepParameters);
             _spu = new SweeperProbabilityUtils(_host);

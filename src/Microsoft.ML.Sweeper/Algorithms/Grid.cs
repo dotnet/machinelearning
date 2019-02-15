@@ -116,14 +116,14 @@ namespace Microsoft.ML.Sweeper
             public int MaxGridPoints = 1000000;
         }
 
-        public RandomGridSweeper(IHostEnvironment env, Options args)
-            : base(args, env, "RandomGrid")
+        public RandomGridSweeper(IHostEnvironment env, Options options)
+            : base(options, env, "RandomGrid")
         {
             _nGridPoints = 1;
             foreach (var sweptParameter in SweepParameters)
             {
                 _nGridPoints *= sweptParameter.Count;
-                if (_nGridPoints > args.MaxGridPoints)
+                if (_nGridPoints > options.MaxGridPoints)
                     _nGridPoints = 0;
             }
             if (_nGridPoints != 0)
@@ -133,14 +133,14 @@ namespace Microsoft.ML.Sweeper
             }
         }
 
-        public RandomGridSweeper(IHostEnvironment env, Options args, IValueGenerator[] sweepParameters)
-            : base(args, env, sweepParameters, "RandomGrid")
+        public RandomGridSweeper(IHostEnvironment env, Options options, IValueGenerator[] sweepParameters)
+            : base(options, env, sweepParameters, "RandomGrid")
         {
             _nGridPoints = 1;
             foreach (var sweptParameter in SweepParameters)
             {
                 _nGridPoints *= sweptParameter.Count;
-                if (_nGridPoints > args.MaxGridPoints)
+                if (_nGridPoints > options.MaxGridPoints)
                     _nGridPoints = 0;
             }
             if (_nGridPoints != 0)

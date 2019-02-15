@@ -38,8 +38,8 @@ namespace Microsoft.ML.Trainers.Ensemble
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
         }
 
-        public MultiAverage(IHostEnvironment env, Options args)
-            : base(env, LoaderSignature, args)
+        public MultiAverage(IHostEnvironment env, Options options)
+            : base(env, LoaderSignature, options)
         {
         }
 

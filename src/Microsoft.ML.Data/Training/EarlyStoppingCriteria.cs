@@ -62,9 +62,9 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        internal EarlyStoppingCriterion(TOptions args, bool lowerIsBetter)
+        internal EarlyStoppingCriterion(TOptions options, bool lowerIsBetter)
         {
-            Args = args;
+            Args = options;
             LowerIsBetter = lowerIsBetter;
             _bestScore = LowerIsBetter ? Float.PositiveInfinity : Float.NegativeInfinity;
         }
@@ -219,10 +219,10 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        public GLEarlyStoppingCriterion(Options args, bool lowerIsBetter)
-            : base(args, lowerIsBetter)
+        public GLEarlyStoppingCriterion(Options options, bool lowerIsBetter)
+            : base(options, lowerIsBetter)
         {
-            Contracts.CheckUserArg(0 <= Args.Threshold && args.Threshold <= 1, nameof(args.Threshold), "Must be in range [0,1].");
+            Contracts.CheckUserArg(0 <= Args.Threshold && options.Threshold <= 1, nameof(options.Threshold), "Must be in range [0,1].");
         }
 
         public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
@@ -337,10 +337,10 @@ namespace Microsoft.ML.Internal.Internallearn
         private int _count;
         private Float _prevScore;
 
-        public UPEarlyStoppingCriterion(Options args, bool lowerIsBetter)
-            : base(args, lowerIsBetter)
+        public UPEarlyStoppingCriterion(Options options, bool lowerIsBetter)
+            : base(options, lowerIsBetter)
         {
-            Contracts.CheckUserArg(Args.WindowSize > 0, nameof(args.WindowSize), "Must be positive");
+            Contracts.CheckUserArg(Args.WindowSize > 0, nameof(options.WindowSize), "Must be positive");
 
             _prevScore = LowerIsBetter ? Float.PositiveInfinity : Float.NegativeInfinity;
         }

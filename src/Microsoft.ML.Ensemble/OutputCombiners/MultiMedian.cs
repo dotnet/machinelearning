@@ -41,8 +41,8 @@ namespace Microsoft.ML.Trainers.Ensemble
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiMedian(env, this);
         }
 
-        public MultiMedian(IHostEnvironment env, Options args)
-            : base(env, LoaderSignature, args)
+        public MultiMedian(IHostEnvironment env, Options options)
+            : base(env, LoaderSignature, options)
         {
         }
 

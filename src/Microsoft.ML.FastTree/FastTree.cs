@@ -149,11 +149,11 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
-        private protected FastTreeTrainerBase(IHostEnvironment env, TOptions args, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+        private protected FastTreeTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {
-            Host.CheckValue(args, nameof(args));
-            FastTreeTrainerOptions = args;
+            Host.CheckValue(options, nameof(options));
+            FastTreeTrainerOptions = options;
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.

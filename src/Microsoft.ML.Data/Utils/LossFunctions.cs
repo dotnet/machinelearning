@@ -176,9 +176,9 @@ namespace Microsoft.ML
         private const Float Threshold = 0.5f;
         private readonly Float _margin;
 
-        internal HingeLoss(Options args)
+        internal HingeLoss(Options options)
         {
-            _margin = args.Margin;
+            _margin = options.Margin;
         }
 
         private static class Defaults
@@ -268,8 +268,8 @@ namespace Microsoft.ML
             _doubleSmoothConst = _smoothConst * 2;
         }
 
-        private SmoothedHingeLoss(IHostEnvironment env, Options args)
-            : this(args.SmoothingConst)
+        private SmoothedHingeLoss(IHostEnvironment env, Options options)
+            : this(options.SmoothingConst)
         {
         }
 
@@ -345,9 +345,9 @@ namespace Microsoft.ML
 
         private readonly Float _beta;
 
-        public ExpLoss(Options args)
+        public ExpLoss(Options options)
         {
-            _beta = args.Beta;
+            _beta = options.Beta;
         }
 
         public Double Loss(Float output, Float label)
@@ -454,10 +454,10 @@ namespace Microsoft.ML
         private readonly Double _index1; // 1 minus the index parameter.
         private readonly Double _index2; // 2 minus the index parameter.
 
-        public TweedieLoss(Options args)
+        public TweedieLoss(Options options)
         {
-            Contracts.CheckUserArg(1 <= args.Index && args.Index <= 2, nameof(args.Index), "Must be in the range [1, 2]");
-            _index = args.Index;
+            Contracts.CheckUserArg(1 <= options.Index && options.Index <= 2, nameof(options.Index), "Must be in the range [1, 2]");
+            _index = options.Index;
             _index1 = 1 - _index;
             _index2 = 2 - _index;
         }

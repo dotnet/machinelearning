@@ -84,21 +84,21 @@ namespace Microsoft.ML.Sweeper
 
         private readonly List<IValueGenerator> _sweepParameters;
 
-        public NelderMeadSweeper(IHostEnvironment env, Options args)
+        public NelderMeadSweeper(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckUserArg(-1 < args.DeltaInsideContraction, nameof(args.DeltaInsideContraction), "Must be greater than -1");
-            env.CheckUserArg(args.DeltaInsideContraction < 0, nameof(args.DeltaInsideContraction), "Must be less than 0");
-            env.CheckUserArg(0 < args.DeltaOutsideContraction, nameof(args.DeltaOutsideContraction), "Must be greater than 0");
-            env.CheckUserArg(args.DeltaReflection > args.DeltaOutsideContraction, nameof(args.DeltaReflection), "Must be greater than " + nameof(args.DeltaOutsideContraction));
-            env.CheckUserArg(args.DeltaExpansion > args.DeltaReflection, nameof(args.DeltaExpansion), "Must be greater than " + nameof(args.DeltaReflection));
-            env.CheckUserArg(0 < args.GammaShrink && args.GammaShrink < 1, nameof(args.GammaShrink), "Must be between 0 and 1");
-            env.CheckValue(args.FirstBatchSweeper, nameof(args.FirstBatchSweeper) , "First Batch Sweeper Contains Null Value");
+            env.CheckUserArg(-1 < options.DeltaInsideContraction, nameof(options.DeltaInsideContraction), "Must be greater than -1");
+            env.CheckUserArg(options.DeltaInsideContraction < 0, nameof(options.DeltaInsideContraction), "Must be less than 0");
+            env.CheckUserArg(0 < options.DeltaOutsideContraction, nameof(options.DeltaOutsideContraction), "Must be greater than 0");
+            env.CheckUserArg(options.DeltaReflection > options.DeltaOutsideContraction, nameof(options.DeltaReflection), "Must be greater than " + nameof(options.DeltaOutsideContraction));
+            env.CheckUserArg(options.DeltaExpansion > options.DeltaReflection, nameof(options.DeltaExpansion), "Must be greater than " + nameof(options.DeltaReflection));
+            env.CheckUserArg(0 < options.GammaShrink && options.GammaShrink < 1, nameof(options.GammaShrink), "Must be between 0 and 1");
+            env.CheckValue(options.FirstBatchSweeper, nameof(options.FirstBatchSweeper) , "First Batch Sweeper Contains Null Value");
 
-            _args = args;
+            _args = options;
 
             _sweepParameters = new List<IValueGenerator>();
-            foreach (var sweptParameter in args.SweptParameters)
+            foreach (var sweptParameter in options.SweptParameters)
             {
                 var parameter = sweptParameter.CreateComponent(env);
                 // REVIEW: ideas about how to support discrete values:
@@ -108,13 +108,13 @@ namespace Microsoft.ML.Sweeper
                 // the metric values that we get when using them. (For example, if, for a given discrete value, we get a bad result,
                 // we lower its weight, but if we get a good result we increase its weight).
                 var parameterNumeric = parameter as INumericValueGenerator;
-                env.CheckUserArg(parameterNumeric != null, nameof(args.SweptParameters), "Nelder-Mead sweeper can only sweep over numeric parameters");
+                env.CheckUserArg(parameterNumeric != null, nameof(options.SweptParameters), "Nelder-Mead sweeper can only sweep over numeric parameters");
                 _sweepParameters.Add(parameterNumeric);
             }
 
-            _initSweeper = args.FirstBatchSweeper.CreateComponent(env, _sweepParameters.ToArray());
+            _initSweeper = options.FirstBatchSweeper.CreateComponent(env, _sweepParameters.ToArray());
             _dim = _sweepParameters.Count;
-            env.CheckUserArg(_dim > 1, nameof(args.SweptParameters), "Nelder-Mead sweeper needs at least two parameters to sweep over.");
+            env.CheckUserArg(_dim > 1, nameof(options.SweptParameters), "Nelder-Mead sweeper needs at least two parameters to sweep over.");
 
             _simplexVertices = new SortedList<IRunResult, Float[]>(new SimplexVertexComparer());
             _stage = OptimizationStage.NeedReflectionPoint;

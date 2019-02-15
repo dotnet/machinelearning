@@ -68,12 +68,12 @@ namespace Microsoft.ML.StaticPipe
             private readonly TextLoader.Options _args;
             private readonly IMultiStreamSource _files;
 
-            public TextReconciler(TextLoader.Options args, IMultiStreamSource files)
+            public TextReconciler(TextLoader.Options options, IMultiStreamSource files)
             {
-                Contracts.AssertValue(args);
+                Contracts.AssertValue(options);
                 Contracts.AssertValueOrNull(files);
 
-                _args = args;
+                _args = options;
                 _files = files;
             }
 
