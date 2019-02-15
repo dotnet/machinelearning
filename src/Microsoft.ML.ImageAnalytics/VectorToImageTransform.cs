@@ -217,7 +217,7 @@ namespace Microsoft.ML.ImageAnalytics
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -242,9 +242,9 @@ namespace Microsoft.ML.ImageAnalytics
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].InputColumnName;
             var vectorType = inputSchema[srcCol].Type as VectorType;
@@ -260,17 +260,17 @@ namespace Microsoft.ML.ImageAnalytics
             private readonly VectorToImageConvertingTransformer _parent;
             private readonly ImageType[] _types;
 
-            public Mapper(VectorToImageConvertingTransformer parent, Schema inputSchema)
+            public Mapper(VectorToImageConvertingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _types = ConstructTypes(_parent._columns);
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent._columns.Select((x, idx) => new Schema.DetachedColumn(x.Name, _types[idx], null)).ToArray();
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent._columns.Select((x, idx) => new DataViewSchema.DetachedColumn(x.Name, _types[idx], null)).ToArray();
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -281,16 +281,16 @@ namespace Microsoft.ML.ImageAnalytics
                 disposer = null;
                 var sourceType = InputSchema[ColMapNewToOld[iinfo]].Type;
                 var sourceItemType = sourceType.GetItemType();
-                if (sourceItemType == NumberType.R4 || sourceItemType == NumberType.R8)
+                if (sourceItemType == NumberDataViewType.Single || sourceItemType == NumberDataViewType.Double)
                     return GetterFromType<float>(input, iinfo, ex, needScale);
                 else
-                    if (sourceItemType == NumberType.U1)
+                    if (sourceItemType == NumberDataViewType.Byte)
                     return GetterFromType<byte>(input, iinfo, ex, false);
                 else
                     throw Contracts.Except("We only support float or byte arrays");
             }
 
-            private ValueGetter<Bitmap> GetterFromType<TValue>(Row input, int iinfo,
+            private ValueGetter<Bitmap> GetterFromType<TValue>(DataViewRow input, int iinfo,
                 VectorToImageConvertingEstimator.ColumnInfo ex, bool needScale) where TValue : IConvertible
             {
                 var getSrc = input.GetGetter<VBuffer<TValue>>(ColMapNewToOld[iinfo]);
@@ -582,7 +582,7 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (col.Kind != SchemaShape.Column.VectorKind.Vector || (col.ItemType != NumberType.R4 && col.ItemType != NumberType.R8 && col.ItemType != NumberType.U1))
+                if (col.Kind != SchemaShape.Column.VectorKind.Vector || (col.ItemType != NumberDataViewType.Single && col.ItemType != NumberDataViewType.Double && col.ItemType != NumberDataViewType.Byte))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageType().ToString(), col.GetTypeString());
 
                 var itemType = new ImageType(colInfo.Height, colInfo.Width);
