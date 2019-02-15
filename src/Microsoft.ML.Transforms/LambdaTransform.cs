@@ -69,6 +69,7 @@ namespace Microsoft.ML.Transforms
             var contractName = ctx.LoadString();
 
             var composition = env.GetCompositionContainer();
+            Contracts.CheckValue(composition,nameof(composition));
             ITransformer transformer = composition.GetExportedValue<ITransformer>(contractName);
             return transformer;
         }
