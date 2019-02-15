@@ -797,25 +797,36 @@ namespace Microsoft.ML.Transforms
             private Delegate MakeGetter<T>(DataViewRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
-                ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
+                if (_parent.TFOutputTypes[iinfo] == TFDataType.String)
                 {
-                    UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
-
-                    var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                    var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
-
-                    var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-                    if (_parent.TFOutputTypes[iinfo] == TFDataType.String)
+                    ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                     {
+                        UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+
+                        var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+                        var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
+
+                        var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
                         TensorFlowUtils.FetchStringData(tensor, editor.Values);
-                    }
-                    else
+                        dst = editor.Commit();
+                    };
+                    return valuegetter;
+                }
+                else
+                {
+                    ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                     {
+                        UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+
+                        var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+                        var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
+
+                        var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
                         TensorFlowUtils.FetchData<T>(tensor.Data, editor.Values);
-                    }
-                    dst = editor.Commit();
-                };
-                return valuegetter;
+                        dst = editor.Commit();
+                    };
+                    return valuegetter;
+                }
             }
 
             private void UpdateCacheIfNeeded(long position, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)

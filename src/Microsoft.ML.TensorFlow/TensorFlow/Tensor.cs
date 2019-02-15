@@ -424,7 +424,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             if (buffer == null)
                 throw Contracts.ExceptEmpty(nameof(buffer));
             //
-            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
             //
             var size = TF_StringEncodedSize((UIntPtr)buffer.Length);
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             if (tensor == null)
                 throw Contracts.ExceptEmpty(nameof(tensor));
             //
-            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
             //
             var src = TF_TensorData(tensor.handle);
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             if (buffer == null)
                 throw Contracts.ExceptEmpty(nameof(buffer));
             //
-            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
             //
             int size = 0;
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             if (tensor == null)
                 throw Contracts.ExceptEmpty(nameof(tensor));
             //
-            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
             // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
             //
             long size = 1;
