@@ -40,7 +40,7 @@ phases:
       - script: brew update && brew install libomp mono-libgdiplus gettext && brew link gettext --force
         displayName: Install runtime dependencies
     - ${{ if eq(parameters.name, 'Mono') }}:
-      - script: curl -O  https://xamjenkinsartifact.azureedge.net/build-package-win-mono/2018-12/48/85498a4b789f00ba3ea85ba1640bebb1cfc87215/mono-5.22.0.67-x64-0.msi && msiexec /i mono-5.22.0.67-x64-0.msi /quiet /norestart
+      - script: curl -O  https://xamjenkinsartifact.azureedge.net/build-package-win-mono/2018-12/48/85498a4b789f00ba3ea85ba1640bebb1cfc87215/mono-5.22.0.67-x64-0.msi && msiexec /i mono-5.22.0.67-x64-0.msi /qn /norestart
         displayName: Install runtime dependencies
     - script: $(_buildScript) -$(_configuration) -$(_runTestsTarget) -coverage=$(_codeCoverage)
       displayName: Run Tests.
