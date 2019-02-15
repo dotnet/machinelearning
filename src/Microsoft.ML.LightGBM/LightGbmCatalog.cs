@@ -57,7 +57,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the features column.</param>
-        /// <param name="weights">The name of the weights column.</param>
+        /// <param name="weights">The name of the optional weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
@@ -95,7 +95,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the features column.</param>
-        /// <param name="weights">The name of the weights column.</param>
+        /// <param name="weights">The name of the optional weights column.</param>
         /// <param name="groupIdColumn">The groupId column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
@@ -135,7 +135,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the features column.</param>
-        /// <param name="weights">The name of the weights column.</param>
+        /// <param name="weights">The name of the optional weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
