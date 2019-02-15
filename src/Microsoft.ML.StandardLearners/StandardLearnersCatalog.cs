@@ -12,8 +12,6 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML
 {
     using LROptions = LogisticRegression.Options;
-    using SgdOptions = StochasticGradientDescentClassificationTrainer.Options;
-    using TLegacyPredictor = IPredictorProducing<float>;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -21,7 +19,7 @@ namespace Microsoft.ML
     public static class StandardLearnersCatalog
     {
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="StochasticGradientDescentClassificationTrainer"/> trainer.
+        ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="labelColumn">The name of the label column.</param>
@@ -30,34 +28,32 @@ namespace Microsoft.ML
         /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
         /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularization constant.</param>
-        /// <param name="loss">The loss function to use.</param>
-        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static SgdBinaryTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            int maxIterations = SgdOptions.Defaults.MaxIterations,
-            double initLearningRate = SgdOptions.Defaults.InitLearningRate,
-            float l2Weight = SgdOptions.Defaults.L2Weight,
-            ISupportClassificationLossFactory loss = null)
+            int maxIterations = SgdBinaryTrainer.Options.Defaults.MaxIterations,
+            double initLearningRate = SgdBinaryTrainer.Options.Defaults.InitLearningRate,
+            float l2Weight = SgdBinaryTrainer.Options.Defaults.L2Weight)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new StochasticGradientDescentClassificationTrainer(env, labelColumn, featureColumn, weights, maxIterations, initLearningRate, l2Weight, loss);
+            return new SgdBinaryTrainer(env, labelColumn, featureColumn, weights, maxIterations, initLearningRate, l2Weight);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="StochasticGradientDescentClassificationTrainer"/> trainer.
+        ///  Predict a target using logistic regression trained with the <see cref="SgdBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            SgdOptions options)
+        public static SgdBinaryTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            SgdBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new StochasticGradientDescentClassificationTrainer(env, options);
+            return new SgdBinaryTrainer(env, options);
         }
 
         /// <summary>
