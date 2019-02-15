@@ -20,7 +20,7 @@
             var split = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
             // Create data training pipeline
             var pipeline = mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(
-                    new Trainers.HalLearners.SymSgdClassificationTrainer.Options()
+                    new ML.Trainers.HalLearners.SymSgdClassificationTrainer.Options()
                     {
                         LabelColumn = "IsOver50K",
                         LearningRate = 0.2f,
@@ -28,7 +28,7 @@
                         NumberOfThreads = 1,
 
                     });
-            
+
             var model = pipeline.Fit(split.TrainSet);
 
             // Evaluate how the model is doing on the test data

@@ -211,57 +211,6 @@ namespace Microsoft.ML.SamplesUtils
             return dataFile;
         }
 
-        public static IDataView LoadFeaturizedAdultDataset(MLContext mlContext)
-        {
-            // Download the file
-            string dataFile = DownloadAdultDataset();
-
-            // Define the columns to read
-            var reader = mlContext.Data.CreateTextLoader(
-                columns: new[]
-                    {
-                        new TextLoader.Column("age", DataKind.R4, 0),
-                        new TextLoader.Column("workclass", DataKind.TX, 1),
-                        new TextLoader.Column("fnlwgt", DataKind.R4, 2),
-                        new TextLoader.Column("education", DataKind.TX, 3),
-                        new TextLoader.Column("education-num", DataKind.R4, 4),
-                        new TextLoader.Column("marital-status", DataKind.TX, 5),
-                        new TextLoader.Column("occupation", DataKind.TX, 6),
-                        new TextLoader.Column("relationship", DataKind.TX, 7),
-                        new TextLoader.Column("ethnicity", DataKind.TX, 8),
-                        new TextLoader.Column("sex", DataKind.TX, 9),
-                        new TextLoader.Column("capital-gain", DataKind.R4, 10),
-                        new TextLoader.Column("capital-loss", DataKind.R4, 11),
-                        new TextLoader.Column("hours-per-week", DataKind.R4, 12),
-                        new TextLoader.Column("native-country", DataKind.R4, 13),
-                        new TextLoader.Column("IsOver50K", DataKind.BL, 14),
-                    },
-                separatorChar: ',',
-                hasHeader: true
-            );
-
-            // Create data featurizing pipeline
-            var pipeline =
-                // Convert categorical features to one-hot vectors
-                mlContext.Transforms.Categorical.OneHotEncoding("workclass")
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("education"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("marital-status"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("occupation"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("relationship"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("ethnicity"))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("native-country"))
-                // Combine all features into one feature vector
-                .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
-                    "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
-                    "capital-gain", "capital-loss", "hours-per-week"))
-                // Min-max normalized all the features
-                .Append(mlContext.Transforms.Normalize("Features"));
-
-            var data = reader.Read(dataFile);
-            var featurizedData = pipeline.Fit(data).Transform(data);
-            return featurizedData;
-        }
-
         /// <summary>
         /// A simple set of features that help generate the Target column, according to a function.
         /// Used for the transformers/estimators working on numeric data.

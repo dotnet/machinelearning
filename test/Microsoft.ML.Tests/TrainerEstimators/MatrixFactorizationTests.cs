@@ -557,8 +557,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
                 LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
                 ApproximationRank = 16,
                 Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
