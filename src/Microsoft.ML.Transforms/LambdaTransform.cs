@@ -68,11 +68,13 @@ namespace Microsoft.ML.Transforms
 
             var contractName = ctx.LoadString();
 
-            var composition = env.GetCompositionContainer();
-            if (composition == null)
-                throw Contracts.Except("Unable to get the MEF composition container");
-            ITransformer transformer = composition.GetExportedValue<ITransformer>(contractName);
-            return transformer;
+            object factoryObject = env.ComponentCatalog.GetExtensionValue(env, typeof(CustomMappingTransformerFactoryAttribute), contractName);
+            if (!(factoryObject is ICustomMappingTransformerFactory transformerFactory))
+            {
+                throw env.Except($"The class with contract '{contractName}' must derive from '{typeof(CustomMappingTransformerFactory<,>).FullName}'.");
+            }
+
+            return transformerFactory.CreateTransformerObject(env, contractName);
         }
 
         /// <summary>
