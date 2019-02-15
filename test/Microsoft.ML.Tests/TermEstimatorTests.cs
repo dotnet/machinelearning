@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
-            var loader = new TextLoader(ML, new TextLoader.Arguments
+            var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 9),

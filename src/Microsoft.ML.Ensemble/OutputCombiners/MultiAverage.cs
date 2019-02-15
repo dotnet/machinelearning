@@ -9,7 +9,7 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.Ensemble;
 
-[assembly: LoadableClass(typeof(MultiAverage), typeof(MultiAverage.Arguments), typeof(SignatureCombiner),
+[assembly: LoadableClass(typeof(MultiAverage), typeof(MultiAverage.Options), typeof(SignatureCombiner),
     Average.UserName, MultiAverage.LoadName)]
 [assembly: LoadableClass(typeof(MultiAverage), null, typeof(SignatureLoadModel), Average.UserName,
     MultiAverage.LoadName, MultiAverage.LoaderSignature)]
@@ -33,12 +33,12 @@ namespace Microsoft.ML.Trainers.Ensemble
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Average.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
+        public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
         }
 
-        public MultiAverage(IHostEnvironment env, Arguments args)
+        public MultiAverage(IHostEnvironment env, Options args)
             : base(env, LoaderSignature, args)
         {
         }

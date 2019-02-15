@@ -11,20 +11,20 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Sweeper;
 using Float = System.Single;
 
-[assembly: LoadableClass(typeof(NelderMeadSweeper), typeof(NelderMeadSweeper.Arguments), typeof(SignatureSweeper),
+[assembly: LoadableClass(typeof(NelderMeadSweeper), typeof(NelderMeadSweeper.Options), typeof(SignatureSweeper),
     "Nelder Mead Sweeper", "NelderMeadSweeper", "NelderMead", "NM")]
 
 namespace Microsoft.ML.Sweeper
 {
     public sealed class NelderMeadSweeper : ISweeper
     {
-        public sealed class Arguments
+        public sealed class Options
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
             public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "init", SignatureType = typeof(SignatureSweeperFromParameterList))]
-            public IComponentFactory<IValueGenerator[], ISweeper> FirstBatchSweeper = ComponentFactoryUtils.CreateFromFunction<IValueGenerator[], ISweeper>((host, array) => new UniformRandomSweeper(host, new SweeperBase.ArgumentsBase(), array));
+            public IComponentFactory<IValueGenerator[], ISweeper> FirstBatchSweeper = ComponentFactoryUtils.CreateFromFunction<IValueGenerator[], ISweeper>((host, array) => new UniformRandomSweeper(host, new SweeperBase.OptionsBase(), array));
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Sweeper
         }
 
         private readonly ISweeper _initSweeper;
-        private readonly Arguments _args;
+        private readonly Options _args;
 
         private SortedList<IRunResult, Float[]> _simplexVertices;
         private readonly int _dim;
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Sweeper
 
         private readonly List<IValueGenerator> _sweepParameters;
 
-        public NelderMeadSweeper(IHostEnvironment env, Arguments args)
+        public NelderMeadSweeper(IHostEnvironment env, Options args)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckUserArg(-1 < args.DeltaInsideContraction, nameof(args.DeltaInsideContraction), "Must be greater than -1");

@@ -11,7 +11,7 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Sweeper;
 
-[assembly: LoadableClass(typeof(SynthConfigRunner), typeof(SynthConfigRunner.Arguments), typeof(SignatureConfigRunner),
+[assembly: LoadableClass(typeof(SynthConfigRunner), typeof(SynthConfigRunner.Options), typeof(SignatureConfigRunner),
     "", "Synth")]
 
 namespace Microsoft.ML.Sweeper
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Sweeper
     /// </summary>
     public sealed class SynthConfigRunner : ExeConfigRunnerBase
     {
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of threads to use for the sweep (default auto determined by the number of cores)", ShortName = "t")]
             public int? NumThreads;
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Sweeper
 
         private readonly ParallelOptions _parallelOptions;
 
-        public SynthConfigRunner(IHostEnvironment env, Arguments args)
+        public SynthConfigRunner(IHostEnvironment env, Options args)
             : base(args, env, "SynthSweepEvaluator")
         {
             Host.CheckUserArg(args.NumThreads == null || args.NumThreads.Value > 0, nameof(args.NumThreads), "Must be positive");

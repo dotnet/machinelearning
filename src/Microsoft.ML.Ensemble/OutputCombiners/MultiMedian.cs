@@ -10,7 +10,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.Ensemble;
 
-[assembly: LoadableClass(typeof(MultiMedian), typeof(MultiMedian.Arguments), typeof(SignatureCombiner),
+[assembly: LoadableClass(typeof(MultiMedian), typeof(MultiMedian.Options), typeof(SignatureCombiner),
     Median.UserName, MultiMedian.LoadName)]
 [assembly: LoadableClass(typeof(MultiMedian), null, typeof(SignatureLoadModel), Median.UserName, MultiMedian.LoaderSignature)]
 
@@ -36,12 +36,12 @@ namespace Microsoft.ML.Trainers.Ensemble
         }
 
         [TlcModule.Component(Name = LoadName, FriendlyName = Median.UserName)]
-        public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
+        public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiMedian(env, this);
         }
 
-        public MultiMedian(IHostEnvironment env, Arguments args)
+        public MultiMedian(IHostEnvironment env, Options args)
             : base(env, LoaderSignature, args)
         {
         }

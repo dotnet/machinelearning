@@ -16,7 +16,7 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.Online
 {
-    public abstract class OnlineLinearArguments : LearnerInputBaseWithLabel
+    public abstract class OnlineLinearOptions : LearnerInputBaseWithLabel
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.Online
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        protected readonly OnlineLinearArguments Args;
+        protected readonly OnlineLinearOptions Args;
         protected readonly string Name;
 
         /// <summary>
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Trainers.Online
 
         protected virtual bool NeedCalibration => false;
 
-        private protected OnlineLinearTrainer(OnlineLinearArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
+        private protected OnlineLinearTrainer(OnlineLinearOptions args, IHostEnvironment env, string name, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.InitialWeights))
         {
             Contracts.CheckValue(args, nameof(args));

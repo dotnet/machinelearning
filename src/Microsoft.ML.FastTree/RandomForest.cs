@@ -5,7 +5,7 @@
 namespace Microsoft.ML.Trainers.FastTree
 {
     public abstract class RandomForestTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
-        where TArgs : FastForestArgumentsBase, new()
+        where TArgs : FastForestOptionsBase, new()
         where TModel : class
         where TTransformer: ISingleFeaturePredictionTransformer<TModel>
     {

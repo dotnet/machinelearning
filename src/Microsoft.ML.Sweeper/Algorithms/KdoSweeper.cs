@@ -12,7 +12,7 @@ using Microsoft.ML.Sweeper.Algorithms;
 using Microsoft.ML.Trainers.FastTree;
 using Float = System.Single;
 
-[assembly: LoadableClass(typeof(KdoSweeper), typeof(KdoSweeper.Arguments), typeof(SignatureSweeper),
+[assembly: LoadableClass(typeof(KdoSweeper), typeof(KdoSweeper.Options), typeof(SignatureSweeper),
     "KDO Sweeper", "KDOSweeper", "KDO")]
 
 namespace Microsoft.ML.Sweeper.Algorithms
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
 
     public sealed class KdoSweeper : ISweeper
     {
-        public sealed class Arguments
+        public sealed class Options
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
             public IComponentFactory<IValueGenerator>[] SweptParameters;
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
 
         private readonly ISweeper _randomSweeper;
         private readonly ISweeper _redundantSweeper;
-        private readonly Arguments _args;
+        private readonly Options _args;
         private readonly IHost _host;
 
         private readonly IValueGenerator[] _sweepParameters;
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
         private readonly SortedSet<Float[]> _alreadySeenConfigs;
         private readonly List<ParameterSet> _randomParamSets;
 
-        public KdoSweeper(IHostEnvironment env, Arguments args)
+        public KdoSweeper(IHostEnvironment env, Options args)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("Sweeper");
@@ -99,8 +99,8 @@ namespace Microsoft.ML.Sweeper.Algorithms
             _args = args;
             _host.CheckUserArg(Utils.Size(args.SweptParameters) > 0, nameof(args.SweptParameters), "KDO sweeper needs at least one parameter to sweep over");
             _sweepParameters = args.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
-            _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase(), _sweepParameters);
-            _redundantSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase { Retries = 0 }, _sweepParameters);
+            _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase(), _sweepParameters);
+            _redundantSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase { Retries = 0 }, _sweepParameters);
             _spu = new SweeperProbabilityUtils(_host);
             _alreadySeenConfigs = new SortedSet<Float[]>(new FloatArrayComparer());
             _randomParamSets = new List<ParameterSet>();

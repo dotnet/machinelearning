@@ -10,10 +10,10 @@ using Microsoft.ML.Internal.Internallearn;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(TolerantEarlyStoppingCriterion), typeof(TolerantEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]
-[assembly: LoadableClass(typeof(GLEarlyStoppingCriterion), typeof(GLEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Loss of Generality (GL)", "gl")]
+[assembly: LoadableClass(typeof(GLEarlyStoppingCriterion), typeof(GLEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Loss of Generality (GL)", "gl")]
 [assembly: LoadableClass(typeof(LPEarlyStoppingCriterion), typeof(LPEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Low Progress (LP)", "lp")]
 [assembly: LoadableClass(typeof(PQEarlyStoppingCriterion), typeof(PQEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Generality to Progress Ratio (PQ)", "pq")]
-[assembly: LoadableClass(typeof(UPEarlyStoppingCriterion), typeof(UPEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Consecutive Loss in Generality (UP)", "up")]
+[assembly: LoadableClass(typeof(UPEarlyStoppingCriterion), typeof(UPEarlyStoppingCriterion.Options), typeof(SignatureEarlyStoppingCriterion), "Consecutive Loss in Generality (UP)", "up")]
 
 [assembly: EntryPointModule(typeof(TolerantEarlyStoppingCriterion))]
 [assembly: EntryPointModule(typeof(GLEarlyStoppingCriterion))]
@@ -44,14 +44,14 @@ namespace Microsoft.ML.Internal.Internallearn
         new IEarlyStoppingCriterion CreateComponent(IHostEnvironment env, bool lowerIsBetter);
     }
 
-    public abstract class EarlyStoppingCriterion<TArguments> : IEarlyStoppingCriterion
-        where TArguments : EarlyStoppingCriterion<TArguments>.ArgumentsBase
+    public abstract class EarlyStoppingCriterion<TOptions> : IEarlyStoppingCriterion
+        where TOptions : EarlyStoppingCriterion<TOptions>.OptionsBase
     {
-        public abstract class ArgumentsBase { }
+        public abstract class OptionsBase { }
 
         private Float _bestScore;
 
-        protected readonly TArguments Args;
+        protected readonly TOptions Args;
         protected readonly bool LowerIsBetter;
         protected Float BestScore {
             get { return _bestScore; }
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        internal EarlyStoppingCriterion(TArguments args, bool lowerIsBetter)
+        internal EarlyStoppingCriterion(TOptions args, bool lowerIsBetter)
         {
             Args = args;
             LowerIsBetter = lowerIsBetter;
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Internal.Internallearn
     public sealed class TolerantEarlyStoppingCriterion : EarlyStoppingCriterion<TolerantEarlyStoppingCriterion.Arguments>
     {
         [TlcModule.Component(FriendlyName = "Tolerant (TR)", Name = "TR", Desc = "Stop if validation score exceeds threshold value.")]
-        public class Arguments : ArgumentsBase, IEarlyStoppingCriterionFactory
+        public class Arguments : OptionsBase, IEarlyStoppingCriterionFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance threshold. (Non negative value)", ShortName = "th")]
             [TlcModule.Range(Min = 0.0f)]
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Internal.Internallearn
 
     public abstract class MovingWindowEarlyStoppingCriterion : EarlyStoppingCriterion<MovingWindowEarlyStoppingCriterion.Arguments>
     {
-        public class Arguments : ArgumentsBase
+        public class Arguments : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Threshold in range [0,1].", ShortName = "th")]
             [TlcModule.Range(Min = 0.0f, Max = 1.0f)]
@@ -203,11 +203,11 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Loss of Generality (GL).
     /// </summary>
-    public sealed class GLEarlyStoppingCriterion : EarlyStoppingCriterion<GLEarlyStoppingCriterion.Arguments>
+    public sealed class GLEarlyStoppingCriterion : EarlyStoppingCriterion<GLEarlyStoppingCriterion.Options>
     {
         [TlcModule.Component(FriendlyName = "Loss of Generality (GL)", Name = "GL",
                             Desc = "Stop in case of loss of generality.")]
-        public class Arguments : ArgumentsBase, IEarlyStoppingCriterionFactory
+        public class Options : OptionsBase, IEarlyStoppingCriterionFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Threshold in range [0,1].", ShortName = "th")]
             [TlcModule.Range(Min = 0.0f, Max = 1.0f)]
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        public GLEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
+        public GLEarlyStoppingCriterion(Options args, bool lowerIsBetter)
             : base(args, lowerIsBetter)
         {
             Contracts.CheckUserArg(0 <= Args.Threshold && args.Threshold <= 1, nameof(args.Threshold), "Must be in range [0,1].");
@@ -318,11 +318,11 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Consecutive Loss in Generality (UP).
     /// </summary>
-    public sealed class UPEarlyStoppingCriterion : EarlyStoppingCriterion<UPEarlyStoppingCriterion.Arguments>
+    public sealed class UPEarlyStoppingCriterion : EarlyStoppingCriterion<UPEarlyStoppingCriterion.Options>
     {
         [TlcModule.Component(FriendlyName = "Consecutive Loss in Generality (UP)", Name = "UP",
             Desc = "Stops in case of consecutive loss in generality.")]
-        public sealed class Arguments : ArgumentsBase, IEarlyStoppingCriterionFactory
+        public sealed class Options : OptionsBase, IEarlyStoppingCriterionFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The window size.", ShortName = "w")]
             [TlcModule.Range(Inf = 0)]
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Internal.Internallearn
         private int _count;
         private Float _prevScore;
 
-        public UPEarlyStoppingCriterion(Arguments args, bool lowerIsBetter)
+        public UPEarlyStoppingCriterion(Options args, bool lowerIsBetter)
             : base(args, lowerIsBetter)
         {
             Contracts.CheckUserArg(Args.WindowSize > 0, nameof(args.WindowSize), "Must be positive");

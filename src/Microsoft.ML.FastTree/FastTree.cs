@@ -49,7 +49,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
         TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TArgs : TreeArgs, new()
+        where TArgs : TreeOptions, new()
         where TModel : class
     {
         protected readonly TArgs Args;

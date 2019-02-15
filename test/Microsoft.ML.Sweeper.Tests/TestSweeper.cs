@@ -90,7 +90,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         public void TestRandomSweeper()
         {
             var env = new MLContext(42);
-            var args = new SweeperBase.ArgumentsBase()
+            var args = new SweeperBase.OptionsBase()
             {
                 SweptParameters = new[] {
                         ComponentFactoryUtils.CreateFromFunction(
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             var random = new Random(42);
             var env = new MLContext(42);
             const int sweeps = 100;
-            var sweeper = new SimpleAsyncSweeper(env, new SweeperBase.ArgumentsBase
+            var sweeper = new SimpleAsyncSweeper(env, new SweeperBase.OptionsBase
             {
                 SweptParameters = new IComponentFactory<IValueGenerator>[] {
                         ComponentFactoryUtils.CreateFromFunction(
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             CheckAsyncSweeperResult(paramSets);
 
             // Test consumption without ever calling Update.
-            var gridArgs = new RandomGridSweeper.Arguments();
+            var gridArgs = new RandomGridSweeper.Options();
             gridArgs.SweptParameters = new IComponentFactory<INumericValueGenerator>[] {
                     ComponentFactoryUtils.CreateFromFunction(
                         environ => new FloatValueGenerator(new FloatParamArguments() { Name = "foo", Min = 1, Max = 5})),
@@ -178,13 +178,13 @@ namespace Microsoft.ML.Sweeper.RunTests
         {
             var random = new Random(42);
             var env = new MLContext(42);
-            var args = new DeterministicSweeperAsync.Arguments();
+            var args = new DeterministicSweeperAsync.Options();
             args.BatchSize = 5;
             args.Relaxation = 1;
 
             args.Sweeper = ComponentFactoryUtils.CreateFromFunction(
                 environ => new KdoSweeper(environ,
-                    new KdoSweeper.Arguments()
+                    new KdoSweeper.Options()
                     {
                         SweptParameters = new IComponentFactory<INumericValueGenerator>[] {
                                 ComponentFactoryUtils.CreateFromFunction(
@@ -228,13 +228,13 @@ namespace Microsoft.ML.Sweeper.RunTests
         {
             var random = new Random(42);
             var env = new MLContext(42);
-            var args = new DeterministicSweeperAsync.Arguments();
+            var args = new DeterministicSweeperAsync.Options();
             args.BatchSize = 5;
             args.Relaxation = args.BatchSize - 1;
 
             args.Sweeper = ComponentFactoryUtils.CreateFromFunction(
                 environ => new SmacSweeper(environ,
-                    new SmacSweeper.Arguments()
+                    new SmacSweeper.Options()
                     {
                         SweptParameters = new IComponentFactory<INumericValueGenerator>[] {
                                 ComponentFactoryUtils.CreateFromFunction(
@@ -300,13 +300,13 @@ namespace Microsoft.ML.Sweeper.RunTests
             const int batchSize = 5;
             const int sweeps = 20;
             var paramSets = new List<ParameterSet>();
-            var args = new DeterministicSweeperAsync.Arguments();
+            var args = new DeterministicSweeperAsync.Options();
             args.BatchSize = batchSize;
             args.Relaxation = batchSize - 2;
 
             args.Sweeper = ComponentFactoryUtils.CreateFromFunction(
                 environ => new SmacSweeper(environ,
-                    new SmacSweeper.Arguments()
+                    new SmacSweeper.Options()
                     {
                         SweptParameters = new IComponentFactory<INumericValueGenerator>[] {
                                 ComponentFactoryUtils.CreateFromFunction(
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             const int batchSize = 5;
             const int sweeps = 40;
             var paramSets = new List<ParameterSet>();
-            var args = new DeterministicSweeperAsync.Arguments();
+            var args = new DeterministicSweeperAsync.Options();
             args.BatchSize = batchSize;
             args.Relaxation = 0;
 
@@ -366,12 +366,12 @@ namespace Microsoft.ML.Sweeper.RunTests
                                 innerEnviron => new LongValueGenerator(new LongParamArguments() { Name = "bar", Min = 1, Max = 1000, LogBase = true }))
                     };
 
-                    var nelderMeadSweeperArgs = new NelderMeadSweeper.Arguments()
+                    var nelderMeadSweeperArgs = new NelderMeadSweeper.Options()
                     {
                         SweptParameters = param,
                         FirstBatchSweeper = ComponentFactoryUtils.CreateFromFunction<IValueGenerator[], ISweeper>(
                             (firstBatchSweeperEnviron, firstBatchSweeperArgs) =>
-                                new RandomGridSweeper(environ, new RandomGridSweeper.Arguments() { SweptParameters = param }))
+                                new RandomGridSweeper(environ, new RandomGridSweeper.Options() { SweptParameters = param }))
                     };
 
                     return new NelderMeadSweeper(environ, nelderMeadSweeperArgs);
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         public void TestRandomGridSweeper()
         {
             var env = new MLContext(42);
-            var args = new RandomGridSweeper.Arguments()
+            var args = new RandomGridSweeper.Options()
             {
                 SweptParameters = new[] {
                         ComponentFactoryUtils.CreateFromFunction(
@@ -544,13 +544,13 @@ namespace Microsoft.ML.Sweeper.RunTests
                         environ => new LongValueGenerator(new LongParamArguments() { Name = "bar", Min = 1, Max = 1000, LogBase = true }))
                 };
 
-            var args = new NelderMeadSweeper.Arguments()
+            var args = new NelderMeadSweeper.Options()
             {
                 SweptParameters = param,
                 FirstBatchSweeper = ComponentFactoryUtils.CreateFromFunction<IValueGenerator[], ISweeper>(
                     (environ, firstBatchArgs) =>
                     {
-                        return new RandomGridSweeper(environ, new RandomGridSweeper.Arguments() { SweptParameters = param });
+                        return new RandomGridSweeper(environ, new RandomGridSweeper.Options() { SweptParameters = param });
                     }
                 )
             };
@@ -600,7 +600,7 @@ namespace Microsoft.ML.Sweeper.RunTests
                         environ => new LongValueGenerator(new LongParamArguments() { Name = "bar", Min = 1, Max = 1000, LogBase = true }))
                 };
 
-            var args = new NelderMeadSweeper.Arguments();
+            var args = new NelderMeadSweeper.Options();
             args.SweptParameters = param;
             var sweeper = new NelderMeadSweeper(env, args);
             var sweeps = sweeper.ProposeSweeps(5, new List<RunResult>());
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             var random = new Random(42);
             var env = new MLContext(42);
             const int maxInitSweeps = 5;
-            var args = new SmacSweeper.Arguments()
+            var args = new SmacSweeper.Options()
             {
                 NumberInitialPopulation = 20,
                 SweptParameters = new IComponentFactory<INumericValueGenerator>[] {

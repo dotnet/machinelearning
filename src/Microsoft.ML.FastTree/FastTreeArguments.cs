@@ -150,7 +150,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public const double LearningRates = 0.2;
     }
 
-    public abstract class TreeArgs : LearnerInputBaseWithGroupId
+    public abstract class TreeOptions : LearnerInputBaseWithGroupId
     {
         /// <summary>
         /// Allows to choose Parallel FastTree Learning Algorithm.
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class BoostedTreeArgs : TreeArgs
+    public abstract class BoostedTreeArgs : TreeOptions
     {
         // REVIEW: TLC FR likes to call it bestStepRegressionTrees which might be more appropriate.
         //Use the second derivative for split gains (not just outputs). Use MaxTreeOutput to "clip" cases where the second derivative is too close to zero.

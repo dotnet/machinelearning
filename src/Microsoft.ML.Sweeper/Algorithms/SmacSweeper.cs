@@ -15,7 +15,7 @@ using Microsoft.ML.Sweeper.Algorithms;
 using Microsoft.ML.Trainers.FastTree;
 using Float = System.Single;
 
-[assembly: LoadableClass(typeof(SmacSweeper), typeof(SmacSweeper.Arguments), typeof(SignatureSweeper),
+[assembly: LoadableClass(typeof(SmacSweeper), typeof(SmacSweeper.Options), typeof(SignatureSweeper),
     "SMAC Sweeper", "SMACSweeper", "SMAC")]
 
 namespace Microsoft.ML.Sweeper
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Sweeper
     //encapsulating common functionality. This seems like a good plan to persue.
     public sealed class SmacSweeper : ISweeper
     {
-        public sealed class Arguments
+        public sealed class Options
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
             public IComponentFactory<IValueGenerator>[] SweptParameters;
@@ -61,12 +61,12 @@ namespace Microsoft.ML.Sweeper
         }
 
         private readonly ISweeper _randomSweeper;
-        private readonly Arguments _args;
+        private readonly Options _args;
         private readonly IHost _host;
 
         private readonly IValueGenerator[] _sweepParameters;
 
-        public SmacSweeper(IHostEnvironment env, Arguments args)
+        public SmacSweeper(IHostEnvironment env, Options args)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("Sweeper");
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Sweeper
             _args = args;
             _host.CheckUserArg(Utils.Size(args.SweptParameters) > 0, nameof(args.SweptParameters), "SMAC sweeper needs at least one parameter to sweep over");
             _sweepParameters = args.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
-            _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase(), _sweepParameters);
+            _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase(), _sweepParameters);
         }
 
         public ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)

@@ -9,9 +9,9 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Sweeper;
 
-[assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeper),
+[assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Options), typeof(SignatureSweeper),
     "Random Grid Sweeper", "RandomGridSweeper", "RandomGrid")]
-[assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeperFromParameterList),
+[assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Options), typeof(SignatureSweeperFromParameterList),
     "Random Grid Sweeper", "RandomGridSweeperParamList", "RandomGridpl")]
 
 namespace Microsoft.ML.Sweeper
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Sweeper
     /// </summary>
     public abstract class SweeperBase : ISweeper
     {
-        public class ArgumentsBase
+        public class OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
             public IComponentFactory<IValueGenerator>[] SweptParameters;
@@ -35,11 +35,11 @@ namespace Microsoft.ML.Sweeper
             public int Retries = 10;
         }
 
-        private readonly ArgumentsBase _args;
+        private readonly OptionsBase _args;
         protected readonly IValueGenerator[] SweepParameters;
         protected readonly IHost Host;
 
-        protected SweeperBase(ArgumentsBase args, IHostEnvironment env, string name)
+        protected SweeperBase(OptionsBase args, IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Sweeper
             SweepParameters = args.SweptParameters.Select(p => p.CreateComponent(Host)).ToArray();
         }
 
-        protected SweeperBase(ArgumentsBase args, IHostEnvironment env, IValueGenerator[] sweepParameters, string name)
+        protected SweeperBase(OptionsBase args, IHostEnvironment env, IValueGenerator[] sweepParameters, string name)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
@@ -110,13 +110,13 @@ namespace Microsoft.ML.Sweeper
         // This is a parallel array to the _permutation array and stores the (already generated) parameter sets
         private readonly ParameterSet[] _cache;
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Limit for the number of combinations to generate the entire grid.", ShortName = "maxpoints")]
             public int MaxGridPoints = 1000000;
         }
 
-        public RandomGridSweeper(IHostEnvironment env, Arguments args)
+        public RandomGridSweeper(IHostEnvironment env, Options args)
             : base(args, env, "RandomGrid")
         {
             _nGridPoints = 1;
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Sweeper
             }
         }
 
-        public RandomGridSweeper(IHostEnvironment env, Arguments args, IValueGenerator[] sweepParameters)
+        public RandomGridSweeper(IHostEnvironment env, Options args, IValueGenerator[] sweepParameters)
             : base(args, env, sweepParameters, "RandomGrid")
         {
             _nGridPoints = 1;

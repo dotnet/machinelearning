@@ -33,7 +33,7 @@ namespace Microsoft.ML
         /// <param name="args">Defines the settings of the load operation.</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
-            TextLoader.Arguments args,
+            TextLoader.Options args,
             IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
 
@@ -124,7 +124,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">Specifies a file from which to read.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
-        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path, TextLoader.Arguments args = null)
+        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path, TextLoader.Options args = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 

@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can "
             + "be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
 
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// If set to <value>true</value>training statistics will be generated at the end of training.

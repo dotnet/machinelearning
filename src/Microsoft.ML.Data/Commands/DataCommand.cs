@@ -364,11 +364,11 @@ namespace Microsoft.ML.Data
                         var isBinary = string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase);
                         var isTranspose = string.Equals(ext, ".tdv", StringComparison.OrdinalIgnoreCase);
 
-                        return isText ? TextLoader.Create(Host, new TextLoader.Arguments(), fileSource) :
+                        return isText ? TextLoader.Create(Host, new TextLoader.Options(), fileSource) :
                                isBinary ? new BinaryLoader(Host, new BinaryLoader.Arguments(), fileSource) :
                                isTranspose ? new TransposeLoader(Host, new TransposeLoader.Arguments(), fileSource) :
                                defaultLoaderFactory != null ? defaultLoaderFactory(Host, fileSource) :
-                               TextLoader.Create(Host, new TextLoader.Arguments(), fileSource);
+                               TextLoader.Create(Host, new TextLoader.Options(), fileSource);
                     }
                     else
                     {

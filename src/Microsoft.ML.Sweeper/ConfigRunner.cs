@@ -14,7 +14,7 @@ using Microsoft.ML.Sweeper;
 
 using ResultProcessorInternal = Microsoft.ML.ResultProcessor;
 
-[assembly: LoadableClass(typeof(LocalExeConfigRunner), typeof(LocalExeConfigRunner.Arguments), typeof(SignatureConfigRunner),
+[assembly: LoadableClass(typeof(LocalExeConfigRunner), typeof(LocalExeConfigRunner.Options), typeof(SignatureConfigRunner),
     "Local Sweep Config Runner", "Local")]
 
 namespace Microsoft.ML.Sweeper
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Sweeper
 
     public abstract class ExeConfigRunnerBase : IConfigRunner
     {
-        public abstract class ArgumentsBase
+        public abstract class OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Command pattern for the sweeps", ShortName = "pattern")]
             public string ArgsPattern;
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Sweeper
 
         private readonly bool _calledFromUnitTestSuite;
 
-        protected ExeConfigRunnerBase(ArgumentsBase args, IHostEnvironment env, string registrationName)
+        protected ExeConfigRunnerBase(OptionsBase args, IHostEnvironment env, string registrationName)
         {
             Contracts.AssertValue(env);
             Host = env.Register(registrationName);
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Sweeper
             Exe = GetFullExePath(exe);
 
             if (!File.Exists(Exe) && !File.Exists(Exe + ".exe"))
-                throw Host.ExceptUserArg(nameof(ArgumentsBase.Exe), "Executable {0} not found", Exe);
+                throw Host.ExceptUserArg(nameof(OptionsBase.Exe), "Executable {0} not found", Exe);
         }
 
         protected virtual string GetFullExePath(string exe)
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Sweeper
 
     public sealed class LocalExeConfigRunner : ExeConfigRunnerBase
     {
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of threads to use for the sweep (default auto determined by the number of cores)", ShortName = "t")]
             public int? NumThreads;
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Sweeper
 
         private readonly ParallelOptions _parallelOptions;
 
-        public LocalExeConfigRunner(IHostEnvironment env, Arguments args)
+        public LocalExeConfigRunner(IHostEnvironment env, Options args)
             : base(args, env, "LocalExeSweepEvaluator")
         {
             Contracts.CheckParam(args.NumThreads == null || args.NumThreads.Value > 0, nameof(args.NumThreads), "Cannot be 0 or negative");

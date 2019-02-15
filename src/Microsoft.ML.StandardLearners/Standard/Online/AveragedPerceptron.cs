@@ -38,10 +38,10 @@ namespace Microsoft.ML.Trainers.Online
 
         private readonly Options _args;
 
-        public sealed class Options : AveragedLinearArguments
+        public sealed class Options : AveragedLinearOptions
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();
+            public ISupportClassificationLossFactory LossFunction = new HingeLoss.Options();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();

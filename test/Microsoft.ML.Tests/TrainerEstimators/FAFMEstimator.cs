@@ -62,9 +62,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        private TextLoader.Arguments GetFafmBCLoaderArgs()
+        private TextLoader.Options GetFafmBCLoaderArgs()
         {
-            return new TextLoader.Arguments()
+            return new TextLoader.Options()
             {
                 Separator = "\t",
                 HasHeader = false,

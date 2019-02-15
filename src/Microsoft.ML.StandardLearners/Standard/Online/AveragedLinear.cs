@@ -14,7 +14,7 @@ using Microsoft.ML.Numeric;
 
 namespace Microsoft.ML.Trainers.Online
 {
-    public abstract class AveragedLinearArguments : OnlineLinearArguments
+    public abstract class AveragedLinearOptions : OnlineLinearOptions
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers.Online
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        protected readonly new AveragedLinearArguments Args;
+        protected readonly new AveragedLinearOptions Args;
         protected IScalarOutputLoss LossFunction;
 
         private protected abstract class AveragedTrainStateBase : TrainStateBase
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers.Online
 
             protected readonly bool Averaged;
             private readonly long _resetWeightsAfterXExamples;
-            private readonly AveragedLinearArguments _args;
+            private readonly AveragedLinearOptions _args;
             private readonly IScalarOutputLoss _loss;
 
             private protected AveragedTrainStateBase(IChannel ch, int numFeatures, LinearModelParameters predictor, AveragedLinearTrainer<TTransformer, TModel> parent)
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        protected AveragedLinearTrainer(AveragedLinearArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
+        protected AveragedLinearTrainer(AveragedLinearOptions args, IHostEnvironment env, string name, SchemaShape.Column label)
             : base(args, env, name, label)
         {
             Contracts.CheckUserArg(args.LearningRate > 0, nameof(args.LearningRate), UserErrorPositive);

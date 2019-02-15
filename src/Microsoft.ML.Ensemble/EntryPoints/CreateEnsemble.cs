@@ -258,10 +258,10 @@ namespace Microsoft.ML.Trainers.Ensemble
             switch (input.ModelCombiner)
             {
                 case ClassifierCombiner.Median:
-                    combiner = new MultiMedian(host, new MultiMedian.Arguments() { Normalize = true });
+                    combiner = new MultiMedian(host, new MultiMedian.Options() { Normalize = true });
                     break;
                 case ClassifierCombiner.Average:
-                    combiner = new MultiAverage(host, new MultiAverage.Arguments() { Normalize = true });
+                    combiner = new MultiAverage(host, new MultiAverage.Options() { Normalize = true });
                     break;
                 case ClassifierCombiner.Vote:
                     combiner = new MultiVoting(host);
