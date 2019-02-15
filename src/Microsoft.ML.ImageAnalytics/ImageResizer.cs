@@ -135,7 +135,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="imageWidth">Width of resized image.</param>
         /// <param name="imageHeight">Height of resized image.</param>
-        /// <param name="inputColumnName">The name of the input column.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to , the value of the will be used as source.</param>
         /// <param name="resizing">What <see cref="ImageResizingEstimator.ResizingKind"/> to use.</param>
         /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ImageResizingEstimator.ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
         internal ImageResizingTransformer(IHostEnvironment env, string outputColumnName,
