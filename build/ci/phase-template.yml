@@ -38,9 +38,6 @@ phases:
     - ${{ if eq(parameters.name, 'Mono') }}:
       - script: Timeout --help
         displayName: Timeout
-    - ${{ if eq(parameters.name, 'Mono') }}:
-      - command: Timeout 60
-        displayName: Timeout
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build
     - script: $(_buildScript) -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
