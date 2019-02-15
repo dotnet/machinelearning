@@ -122,9 +122,7 @@ namespace Microsoft.ML
         bool IHostEnvironment.IsCancelled => _env.IsCancelled;
         ComponentCatalog IHostEnvironment.ComponentCatalog => _env.ComponentCatalog;
         string IExceptionContext.ContextDescription => _env.ContextDescription;
-        IFileHandle IHostEnvironment.CreateOutputFile(string path) => _env.CreateOutputFile(path);
         IFileHandle IHostEnvironment.CreateTempFile(string suffix, string prefix) => _env.CreateTempFile(suffix, prefix);
-        IFileHandle IHostEnvironment.OpenInputFile(string path) => _env.OpenInputFile(path);
         TException IExceptionContext.Process<TException>(TException ex) => _env.Process(ex);
         IHost IHostEnvironment.Register(string name, int? seed, bool? verbose, int? conc) => _env.Register(name, seed, verbose, conc);
         IChannel IChannelProvider.Start(string name) => _env.Start(name);
