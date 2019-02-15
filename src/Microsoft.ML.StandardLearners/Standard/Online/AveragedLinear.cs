@@ -118,7 +118,7 @@ namespace Microsoft.ML.Trainers.Online
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        protected readonly new AveragedLinearOptions Args;
+        protected readonly AveragedLinearOptions AveragedLinearTrainerOptions;
         protected IScalarOutputLoss LossFunction;
 
         private protected abstract class AveragedTrainStateBase : TrainStateBase
@@ -148,10 +148,10 @@ namespace Microsoft.ML.Trainers.Online
             {
                 // Do the other initializations by setting the setters as if user had set them
                 // Initialize the averaged weights if needed (i.e., do what happens when Averaged is set)
-                Averaged = parent.Args.Averaged;
+                Averaged = parent.AveragedLinearTrainerOptions.Averaged;
                 if (Averaged)
                 {
-                    if (parent.Args.AveragedTolerance > 0)
+                    if (parent.AveragedLinearTrainerOptions.AveragedTolerance > 0)
                         VBufferUtils.Densify(ref Weights);
                     Weights.CopyTo(ref TotalWeights);
                 }
@@ -161,8 +161,8 @@ namespace Microsoft.ML.Trainers.Online
                     // to another vector with each update.
                     VBufferUtils.Densify(ref Weights);
                 }
-                _resetWeightsAfterXExamples = parent.Args.ResetWeightsAfterXExamples ?? 0;
-                _args = parent.Args;
+                _resetWeightsAfterXExamples = parent.AveragedLinearTrainerOptions.ResetWeightsAfterXExamples ?? 0;
+                _args = parent.AveragedLinearTrainerOptions;
                 _loss = parent.LossFunction;
 
                 Gain = 1;
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Trainers.Online
             // Verify user didn't specify parameters that conflict
             Contracts.Check(!options.DoLazyUpdates || !options.RecencyGainMulti && options.RecencyGain == 0, "Cannot have both recency gain and lazy updates.");
 
-            Args = options;
+            AveragedLinearTrainerOptions = options;
         }
     }
 }

@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.Online
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        protected readonly OnlineLinearOptions Args;
+        protected readonly OnlineLinearOptions OnlineLinearTrainerOptions;
         protected readonly string Name;
 
         /// <summary>
@@ -136,10 +136,10 @@ namespace Microsoft.ML.Trainers.Online
                     VBufferUtils.Densify(ref Weights);
                     Bias = predictor.Bias;
                 }
-                else if (!string.IsNullOrWhiteSpace(parent.Args.InitialWeights))
+                else if (!string.IsNullOrWhiteSpace(parent.OnlineLinearTrainerOptions.InitialWeights))
                 {
-                    ch.Info("Initializing weights and bias to " + parent.Args.InitialWeights);
-                    string[] weightStr = parent.Args.InitialWeights.Split(',');
+                    ch.Info("Initializing weights and bias to " + parent.OnlineLinearTrainerOptions.InitialWeights);
+                    string[] weightStr = parent.OnlineLinearTrainerOptions.InitialWeights.Split(',');
                     if (weightStr.Length != numFeatures + 1)
                     {
                         throw ch.Except(
@@ -153,13 +153,13 @@ namespace Microsoft.ML.Trainers.Online
                     Weights = new VBuffer<float>(numFeatures, weightValues);
                     Bias = float.Parse(weightStr[numFeatures], CultureInfo.InvariantCulture);
                 }
-                else if (parent.Args.InitialWeightsDiameter > 0)
+                else if (parent.OnlineLinearTrainerOptions.InitialWeightsDiameter > 0)
                 {
                     var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        weightValues[i] = parent.Args.InitialWeightsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
+                        weightValues[i] = parent.OnlineLinearTrainerOptions.InitialWeightsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
                     Weights = new VBuffer<float>(numFeatures, weightValues);
-                    Bias = parent.Args.InitialWeightsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
+                    Bias = parent.OnlineLinearTrainerOptions.InitialWeightsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
                 }
                 else if (numFeatures <= 1000)
                     Weights = VBufferUtils.CreateDense<float>(numFeatures);
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Trainers.Online
             Contracts.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), UserErrorPositive);
             Contracts.CheckUserArg(options.InitialWeightsDiameter >= 0, nameof(options.InitialWeightsDiameter), UserErrorNonNegative);
 
-            Args = options;
+            OnlineLinearTrainerOptions = options;
             Name = name;
             // REVIEW: Caching could be false for one iteration, if we got around the whole shuffling issue.
             Info = new TrainerInfo(calibration: NeedCalibration, supportIncrementalTrain: true);
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Trainers.Online
 
         private void TrainCore(IChannel ch, RoleMappedData data, TrainStateBase state)
         {
-            bool shuffle = Args.Shuffle;
+            bool shuffle = OnlineLinearTrainerOptions.Shuffle;
             if (shuffle && !data.Data.CanShuffle)
             {
                 ch.Warning("Training data does not support shuffling, so ignoring request to shuffle");
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Trainers.Online
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             long numBad = 0;
-            while (state.Iteration < Args.NumberOfIterations)
+            while (state.Iteration < OnlineLinearTrainerOptions.NumberOfIterations)
             {
                 state.BeginIteration(ch);
 
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Trainers.Online
             {
                 ch.Warning(
                     "Skipped {0} instances with missing features during training (over {1} iterations; {2} inst/iter)",
-                    numBad, Args.NumberOfIterations, numBad / Args.NumberOfIterations);
+                    numBad, OnlineLinearTrainerOptions.NumberOfIterations, numBad / OnlineLinearTrainerOptions.NumberOfIterations);
             }
         }
 
