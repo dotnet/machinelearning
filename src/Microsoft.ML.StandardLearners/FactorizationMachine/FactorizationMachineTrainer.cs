@@ -483,11 +483,11 @@ namespace Microsoft.ML.FactorizationMachine
         }
 
         /// <summary>
-        /// Continues the training of a <see cref="FieldAwareFactorizationMachineTrainer"/> using an initial predictor and/or validation data,
+        /// Continues the training of a <see cref="FieldAwareFactorizationMachineTrainer"/> using an already trained <paramref name="modelParameters"/> and/or validation data,
         /// and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.
         /// </summary>
         public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView trainData,
-            IDataView validationData = null, FieldAwareFactorizationMachineModelParameters initialPredictor = null)
+            IDataView validationData = null, FieldAwareFactorizationMachineModelParameters modelParameters = null)
         {
             FieldAwareFactorizationMachineModelParameters model = null;
 

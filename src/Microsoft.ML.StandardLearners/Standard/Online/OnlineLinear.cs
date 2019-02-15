@@ -273,8 +273,6 @@ namespace Microsoft.ML.Trainers.Online
 
             if (initPredictor is LinearModelParameters initLinearPred)
                 initLinearPred = (LinearModelParameters)initPredictor;
-            else if (initPredictor is CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> calibrated)
-                initLinearPred = calibrated.SubModel;
             else
             {
                 initLinearPred = null;
@@ -300,10 +298,10 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         /// <summary>
-        /// Continues the training of a <see cref="OnlineLinearTrainer{TTransformer, TModel}"/> using an initial predictor and returns a <see cref="ITransformer"/>.
+        /// Continues the training of a <see cref="OnlineLinearTrainer{TTransformer, TModel}"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="ITransformer"/>.
         /// </summary>
-        public TTransformer Fit(IDataView trainData, IPredictor initialPredictor)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
+        public TTransformer Fit(IDataView trainData, LinearModelParameters modelParameters)
+            => TrainTransformer(trainData, initPredictor: modelParameters);
 
         private protected abstract void CheckLabels(RoleMappedData data);
 

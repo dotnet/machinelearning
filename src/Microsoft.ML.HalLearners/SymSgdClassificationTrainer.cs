@@ -181,10 +181,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             {
                 var initPred = context.InitialPredictor;
                 var linearInitPred = initPred as LinearModelParameters;
-                if (linearInitPred == null)
-                    linearInitPred = ((initPred as IWeaklyTypedCalibratedModelParameters)?.WeeklyTypedSubModel) as LinearModelParameters;
-
-                // If initial predictor is set, it must be a linear model or calibrated linear model. Otherwise, we throw.
+                // If initial predictor is set, it must be a linear model.
                 // If initPred is null (i.e., not set), the following check will always be bypassed.
                 // If initPred is not null, then the following checks if a LinearModelParameters is loaded to linearInitPred.
                 Host.CheckParam(initPred == null || linearInitPred != null, nameof(context),
@@ -226,11 +223,11 @@ namespace Microsoft.ML.Trainers.HalLearners
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="SymSgdClassificationTrainer"/> using an initial predictor and returns
+        /// Continues the training of a <see cref="SymSgdClassificationTrainer"/> using an already trained <paramref name="modelParameters"/>
         /// a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
-        public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, TPredictor initialPredictor)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
+        public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, LinearModelParameters modelParameters)
+            => TrainTransformer(trainData, initPredictor: modelParameters);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {

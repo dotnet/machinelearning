@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers
         protected Double WeightSum;
         protected bool ShowTrainingStats;
 
-        private TModel _srcPredictor;
+        private IPredictor _srcPredictor;
 
         protected readonly TArgs Args;
         protected readonly float L2Weight;
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Trainers
             return result;
         }
 
-        protected abstract VBuffer<float> InitializeWeightsFromPredictor(TModel srcPredictor);
+        protected abstract VBuffer<float> InitializeWeightsFromPredictor(IPredictor srcPredictor);
 
         private protected abstract void CheckLabel(RoleMappedData data);
 
@@ -380,10 +380,10 @@ namespace Microsoft.ML.Trainers
         private protected override TModel TrainModelCore(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
-            Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is TModel, nameof(context.InitialPredictor));
+            Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is IPredictor, nameof(context.InitialPredictor));
 
             if (context.InitialPredictor != null)
-                _srcPredictor = (TModel)context.InitialPredictor;
+                _srcPredictor = context.InitialPredictor;
 
             var data = context.TrainingSet;
             data.CheckFeatureFloatVector(out NumFeatures);
