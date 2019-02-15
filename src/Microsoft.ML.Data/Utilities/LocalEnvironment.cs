@@ -68,9 +68,6 @@ namespace Microsoft.ML.Data
         public void RemoveListener(Action<IMessageSource, ChannelMessage> listener)
             => RemoveListener<ChannelMessage>(listener);
 
-        protected override IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
-            => base.CreateTempFileCore(env, suffix, "Local_" + prefix);
-
         protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
         {
             Contracts.AssertValue(rand);

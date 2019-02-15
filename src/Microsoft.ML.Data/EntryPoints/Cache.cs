@@ -34,7 +34,7 @@ namespace Microsoft.ML.EntryPoints
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.DataCache", Desc = "Caches using the specified cache option.", UserName = "Cache Data")]
-        public static CacheOutput CacheData(IHostEnvironment env, CacheInput input)
+        public static CacheOutput CacheData(IHostEnvironment env, CacheInput input, IFileHandle fileHandle)
         {
             const string registrationName = "CreateCache";
             Contracts.CheckValue(env, nameof(env));
@@ -64,12 +64,6 @@ namespace Microsoft.ML.EntryPoints
                         if (saver.IsColumnSavable(type))
                             cols.Add(i);
                     }
-
-#pragma warning disable CS0618 // This ought to be addressed. See #1287.
-                    // We are not disposing the fileHandle because we want it to stay around for the execution of the graph.
-                    // It will be disposed when the environment is disposed.
-                    var fileHandle = host.CreateTempFile();
-#pragma warning restore CS0618
 
                     using (var stream = fileHandle.CreateWriteStream())
                         saver.SaveData(stream, input.Data, cols.ToArray());

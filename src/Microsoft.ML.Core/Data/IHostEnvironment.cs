@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition.Hosting;
+using System.IO;
 
 namespace Microsoft.ML
 {
@@ -48,6 +49,35 @@ namespace Microsoft.ML
             Contracts.CheckNonWhiteSpace(path, nameof(path));
             return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
         }
+
+        /// <summary>
+        /// Create temp "file" and return a handle to it.
+        /// </summary>
+        public static IFileHandle CreateTempFile(this IHostEnvironment env, string suffix = null, string prefix = null)
+        {
+            Contracts.AssertValue(env);
+            Contracts.CheckParam(!HasBadFileCharacters(suffix), nameof(suffix));
+            Contracts.CheckParam(!HasBadFileCharacters(prefix), nameof(prefix));
+
+            Guid guid = Guid.NewGuid();
+            string path = Path.GetFullPath(Path.Combine(Path.GetTempPath(), prefix + guid.ToString() + suffix));
+            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: true);
+        }
+
+        /// <summary>
+        /// Returns true if the given string is non-null and contains invalid file name characters.
+        /// </summary>
+        private static bool HasBadFileCharacters(string str = null)
+        {
+            if (string.IsNullOrEmpty(str))
+                return false;
+
+            var chars = Path.GetInvalidFileNameChars();
+            if (str.IndexOfAny(chars) >= 0)
+                return true;
+
+            return false;
+        }
     }
 
     /// <summary>
@@ -78,20 +108,6 @@ namespace Microsoft.ML
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
-
-        /// <summary>
-        /// Create a temporary "file" and return a handle to it. Generally temp files are expected to be
-        /// written to exactly once, and then can be read multiple times.
-        /// Note that IFileHandle derives from IDisposable. Clients may dispose the IFileHandle when it is
-        /// no longer needed, but they are not required to. The host environment should track all temp file
-        /// handles and ensure that they are disposed properly when the environment is "shut down".
-        ///
-        /// The suffix and prefix are optional. A common use for suffix is to specify an extension, eg, ".txt".
-        /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
-        /// </summary>
-        [Obsolete("The host environment is not disposable, so it is inappropriate to use this method. " +
-            "Please handle your own temporary files within the component yourself, including their proper disposal and deletion.")]
-        IFileHandle CreateTempFile(string suffix = null, string prefix = null);
 
         /// <summary>
         /// Get the MEF composition container. This can be used to instantiate user-provided 'parts' when the model

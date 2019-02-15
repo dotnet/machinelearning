@@ -169,6 +169,7 @@ namespace Microsoft.ML.EntryPoints
             where TArg : LearnerInputBase
             where TOut : CommonOutputs.TrainerOutput, new()
         {
+            using (var fileHandle = host.CreateTempFile())
             using (var ch = host.Start("Training"))
             {
                 var schema = input.TrainingData.Schema;
@@ -221,7 +222,7 @@ namespace Microsoft.ML.EntryPoints
                     {
                         Data = roleMappedData.Data,
                         Caching = cachingType.Value
-                    }).OutputData;
+                    }, fileHandle).OutputData;
                     cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
                 }
 

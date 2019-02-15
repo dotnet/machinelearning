@@ -452,61 +452,17 @@ namespace Microsoft.ML.Data
             return new ProgressReporting.ProgressChannel(this, ProgressTracker, name);
         }
 
-        public IFileHandle CreateTempFile(string suffix = null, string prefix = null)
+        private void Protect(IFileHandle file)
         {
-            if (Master != null)
-                return Master.CreateAndRegisterTempFile(this);
-            return CreateAndRegisterTempFile(this);
-        }
-
-        /// <summary>
-        /// This calls CreateTempFileCore and handles registering the temp file for cleanup when the environment is disposed.
-        /// </summary>
-        protected IFileHandle CreateAndRegisterTempFile(IHostEnvironment env, string suffix = null, string prefix = null)
-        {
-            this.AssertValue(env);
-
-            if (Master != null)
-                return Master.CreateAndRegisterTempFile(env, suffix, prefix);
-
-            var file = CreateTempFileCore(env, suffix, prefix);
-
             lock (_tempLock)
             {
                 if (_tempFiles == null)
                 {
                     file.Dispose();
-                    throw env.Except("This environment has been disposed, so can't allocate new temp files");
+                    throw this.Except("This environment has been disposed, so can't allocate new temp files");
                 }
                 _tempFiles.Add(file);
             }
-
-            return file;
-        }
-
-        protected virtual IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
-        {
-            this.CheckParam(!HasBadFileCharacters(suffix), nameof(suffix));
-            this.CheckParam(!HasBadFileCharacters(prefix), nameof(prefix));
-
-            Guid guid = Guid.NewGuid();
-            string path = Path.GetFullPath(Path.Combine(Path.GetTempPath(), prefix + guid.ToString() + suffix));
-            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: true);
-        }
-
-        /// <summary>
-        /// Returns true if the given string is non-null and contains invalid file name characters.
-        /// </summary>
-        protected virtual bool HasBadFileCharacters(string str = null)
-        {
-            if (string.IsNullOrEmpty(str))
-                return false;
-
-            var chars = Path.GetInvalidFileNameChars();
-            if (str.IndexOfAny(chars) >= 0)
-                return true;
-
-            return false;
         }
 
         private void DispatchMessageCore<TMessage>(
