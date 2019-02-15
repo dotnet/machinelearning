@@ -1585,6 +1585,17 @@ namespace Microsoft.ML.Data.Conversion
         {
             value = ParseI4(in span);
         }
+        public bool TryConvert(in TX span, ref I4 value)
+        {
+            TryParseSigned(I4.MaxValue, in span, out long? res);
+            if (res.HasValue)
+            {
+                value = (I4)res.GetValueOrDefault();
+                return true;
+            }
+
+            return false;
+        }
         public void Convert(in TX span, ref U4 value)
         {
             value = ParseU4(in span);
