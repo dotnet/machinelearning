@@ -8,6 +8,7 @@ using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -167,7 +168,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a linear model.
+        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a FastTree model.
         /// </summary>
         [Fact]
         public void LocalFeatureImportanceForFastTreeModel()
@@ -203,7 +204,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a linear model.
+        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a FastForest model.
         /// </summary>
         [Fact]
         public void LocalFeatureImportanceForFastForestModel()
@@ -239,7 +240,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a linear model.
+        /// LocalFeatureImportance: Per-row feature importance can be computed through FeatureContributionCalculator for a Generalized Additive Models model.
         /// </summary>
         [Fact]
         public void LocalFeatureImportanceForGamModel()
