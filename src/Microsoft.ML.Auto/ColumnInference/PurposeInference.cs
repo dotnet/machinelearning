@@ -280,6 +280,10 @@ namespace Microsoft.ML.Auto
                 {
                     intermediateCol = new IntermediateColumn(data, i, ColumnPurpose.Label);
                 }
+                else if (column.IsHidden)
+                {
+                    intermediateCol = new IntermediateColumn(data, i, ColumnPurpose.Ignore);
+                }
                 else if(columnOverrides != null && columnOverrides.TryGetValue(column.Name, out var columnPurpose))
                 {
                     intermediateCol = new IntermediateColumn(data, i, columnPurpose);
