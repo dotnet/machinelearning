@@ -1303,7 +1303,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Checks whether the source contains the valid TextLoader.Arguments depiction.
+        /// Checks whether the source contains the valid TextLoader.Options depiction.
         /// </summary>
         internal static bool FileContainsValidSchema(IHostEnvironment env, IMultiStreamSource files, out Options options)
         {
@@ -1425,6 +1425,9 @@ namespace Microsoft.ML.Data
             _bindings.Save(ctx);
         }
 
+        /// <summary>
+        /// The output <see cref="DataViewSchema"/> that will be produced by the reader.
+        /// </summary>
         public DataViewSchema GetOutputSchema() => _bindings.OutputSchema;
 
         /// <summary>
