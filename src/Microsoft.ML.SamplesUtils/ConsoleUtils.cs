@@ -24,7 +24,7 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Pretty-print <see cref="RegressionMetrics"/> objects.
+        /// Pretty-print RegressionMetrics objects.
         /// </summary>
         /// <param name="metrics">Regression metrics.</param>
         public static void PrintMetrics(RegressionMetrics metrics)
