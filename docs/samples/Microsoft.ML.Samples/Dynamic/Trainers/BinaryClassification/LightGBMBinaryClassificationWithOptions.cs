@@ -24,7 +24,7 @@ namespace Microsoft.ML.Samples.Dynamic
                                 {
                                     LabelColumn = "IsOver50K",
                                     FeatureColumn = "Features",
-                                    Booster = new GossBooster.Arguments
+                                    Booster = new GossBooster.Options
                                     {
                                         TopRate = 0.3,
                                         OtherRate = 0.2

@@ -42,7 +42,7 @@ namespace Microsoft.ML.Samples.Dynamic
                                NumLeaves = 4,
                                MinDataPerLeaf = 6,
                                LearningRate = 0.001,
-                               Booster = new GossBooster.Arguments
+                               Booster = new GossBooster.Options
                                {
                                    TopRate = 0.3,
                                    OtherRate = 0.2

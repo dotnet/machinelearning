@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
                         {
                             LabelColumn = "LabelIndex",
                             FeatureColumn = "Features",
-                            Booster = new DartBooster.Arguments
+                            Booster = new DartBooster.Options
                             {
                                 DropRate = 0.15,
                                 XgboostDartMode = false

@@ -11,16 +11,16 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.LightGBM;
 
-[assembly: LoadableClass(typeof(Options.TreeBooster), typeof(Options.TreeBooster.Arguments),
+[assembly: LoadableClass(typeof(Options.TreeBooster), typeof(Options.TreeBooster.Options),
     typeof(SignatureLightGBMBooster), Options.TreeBooster.FriendlyName, Options.TreeBooster.Name)]
-[assembly: LoadableClass(typeof(Options.DartBooster), typeof(Options.DartBooster.Arguments),
+[assembly: LoadableClass(typeof(Options.DartBooster), typeof(Options.DartBooster.Options),
     typeof(SignatureLightGBMBooster), Options.DartBooster.FriendlyName, Options.DartBooster.Name)]
-[assembly: LoadableClass(typeof(Options.GossBooster), typeof(Options.GossBooster.Arguments),
+[assembly: LoadableClass(typeof(Options.GossBooster), typeof(Options.GossBooster.Options),
     typeof(SignatureLightGBMBooster), Options.GossBooster.FriendlyName, Options.GossBooster.Name)]
 
-[assembly: EntryPointModule(typeof(Options.TreeBooster.Arguments))]
-[assembly: EntryPointModule(typeof(Options.DartBooster.Arguments))]
-[assembly: EntryPointModule(typeof(Options.GossBooster.Arguments))]
+[assembly: EntryPointModule(typeof(Options.TreeBooster.Options))]
+[assembly: EntryPointModule(typeof(Options.DartBooster.Options))]
+[assembly: EntryPointModule(typeof(Options.GossBooster.Options))]
 
 namespace Microsoft.ML.LightGBM
 {
@@ -98,13 +98,13 @@ namespace Microsoft.ML.LightGBM
             public const int NumBoostRound = 100;
         }
 
-        public sealed class TreeBooster : BoosterParameter<TreeBooster.Arguments>
+        public sealed class TreeBooster : BoosterParameter<TreeBooster.Options>
         {
             internal const string Name = "gbdt";
             internal const string FriendlyName = "Tree Booster";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Traditional Gradient Boosting Decision Tree.")]
-            public class Arguments : ISupportBoosterParameterFactory
+            public class Options : ISupportBoosterParameterFactory
             {
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when classes are not balanced.", ShortName = "us")]
                 public bool UnbalancedSets = false;
@@ -171,7 +171,7 @@ namespace Microsoft.ML.LightGBM
                 IBoosterParameter IComponentFactory<IBoosterParameter>.CreateComponent(IHostEnvironment env) => CreateComponent(env);
             }
 
-            internal TreeBooster(Arguments args)
+            internal TreeBooster(Options args)
                 : base(args)
             {
                 Contracts.CheckUserArg(Args.MinSplitGain >= 0, nameof(Args.MinSplitGain), "must be >= 0.");
@@ -188,13 +188,13 @@ namespace Microsoft.ML.LightGBM
             }
         }
 
-        public sealed class DartBooster : BoosterParameter<DartBooster.Arguments>
+        public sealed class DartBooster : BoosterParameter<DartBooster.Options>
         {
             internal const string Name = "dart";
             internal const string FriendlyName = "Tree Dropout Tree Booster";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866")]
-            public class Arguments : TreeBooster.Arguments
+            public class Options : TreeBooster.Options
             {
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Drop ratio for trees. Range:(0,1).")]
                 [TlcModule.Range(Inf = 0.0, Max = 1.0)]
@@ -217,7 +217,7 @@ namespace Microsoft.ML.LightGBM
                 internal override IBoosterParameter CreateComponent(IHostEnvironment env) => new DartBooster(this);
             }
 
-            internal DartBooster(Arguments args)
+            internal DartBooster(Options args)
                 : base(args)
             {
                 Contracts.CheckUserArg(Args.DropRate > 0 && Args.DropRate < 1, nameof(Args.DropRate), "must be in (0,1).");
@@ -232,13 +232,13 @@ namespace Microsoft.ML.LightGBM
             }
         }
 
-        public sealed class GossBooster : BoosterParameter<GossBooster.Arguments>
+        public sealed class GossBooster : BoosterParameter<GossBooster.Options>
         {
             internal const string Name = "goss";
             internal const string FriendlyName = "Gradient-based One-Size Sampling";
 
             [TlcModule.Component(Name = Name, FriendlyName = FriendlyName, Desc = "Gradient-based One-Side Sampling.")]
-            public class Arguments : TreeBooster.Arguments
+            public class Options : TreeBooster.Options
             {
                 [Argument(ArgumentType.AtMostOnce,
                     HelpText = "Retain ratio for large gradient instances.")]
@@ -254,7 +254,7 @@ namespace Microsoft.ML.LightGBM
                 internal override IBoosterParameter CreateComponent(IHostEnvironment env) => new GossBooster(this);
             }
 
-            internal GossBooster(Arguments args)
+            internal GossBooster(Options args)
                 : base(args)
             {
                 Contracts.CheckUserArg(Args.TopRate > 0 && Args.TopRate < 1, nameof(Args.TopRate), "must be in (0,1).");
@@ -311,7 +311,7 @@ namespace Microsoft.ML.LightGBM
         public int MaxBin = 255;
 
         [Argument(ArgumentType.Multiple, HelpText = "Which booster to use, can be gbtree, gblinear or dart. gbtree and dart use tree based model while gblinear uses linear function.", SortOrder = 3)]
-        public ISupportBoosterParameterFactory Booster = new TreeBooster.Arguments();
+        public ISupportBoosterParameterFactory Booster = new TreeBooster.Options();
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Verbose", ShortName = "v")]
         public bool VerboseEval = false;
