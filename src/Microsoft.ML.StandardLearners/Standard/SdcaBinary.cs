@@ -1719,7 +1719,7 @@ namespace Microsoft.ML.Trainers
         LinearTrainerBase<BinaryPredictionTransformer<TModelParameters>, TModelParameters>
         where TModelParameters : class, IPredictorProducing<float>
     {
-        public class CommonOptions : LearnerInputBaseWithWeight
+        public class OptionsBase : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
@@ -1784,7 +1784,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private readonly CommonOptions _options;
+        private readonly OptionsBase _options;
 
         protected IClassificationLoss Loss { get; }
 
@@ -1810,15 +1810,15 @@ namespace Microsoft.ML.Trainers
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             IClassificationLoss loss = null,
-            int maxIterations = CommonOptions.Defaults.MaxIterations,
-            double initLearningRate = CommonOptions.Defaults.InitLearningRate,
-            float l2Weight = CommonOptions.Defaults.L2Weight)
+            int maxIterations = OptionsBase.Defaults.MaxIterations,
+            double initLearningRate = OptionsBase.Defaults.InitLearningRate,
+            float l2Weight = OptionsBase.Defaults.L2Weight)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            _options = new CommonOptions();
+            _options = new OptionsBase();
             _options.MaxIterations = maxIterations;
             _options.InitLearningRate = initLearningRate;
             _options.L2Weight = l2Weight;
@@ -1838,7 +1838,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <param name="loss">Loss function would be minimized.</param>
         /// <param name="doCalibration">Set to true if a calibration step should be happen after training. Use false otherwise.</param>
-        internal SgdBinaryTrainerBase(IHostEnvironment env, CommonOptions options, IClassificationLoss loss = null, bool doCalibration = false)
+        internal SgdBinaryTrainerBase(IHostEnvironment env, OptionsBase options, IClassificationLoss loss = null, bool doCalibration = false)
             : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), options.WeightColumn.IsExplicit ? options.WeightColumn.Value : null)
         {
             options.Check(env);
@@ -2085,7 +2085,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options available to training logistic regression using the implemented stochastic gradient method.
         /// </summary>
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
         }
 
@@ -2145,7 +2145,7 @@ namespace Microsoft.ML.Trainers
     public sealed class SgdNonCalibratedBinaryTrainer :
         SgdBinaryTrainerBase<LinearBinaryModelParameters>
     {
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public IClassificationLoss Loss = new LogLoss();
@@ -2198,7 +2198,7 @@ namespace Microsoft.ML.Trainers
         internal const string UserNameValue = "Hogwild SGD (binary)";
         internal const string ShortName = "HogwildSGD";
 
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new LogLossFactory();
