@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -19,7 +18,7 @@ using Microsoft.ML.Transforms;
 using OnnxShape = System.Collections.Generic.List<int>;
 
 [assembly: LoadableClass(OnnxTransformer.Summary, typeof(IDataTransform), typeof(OnnxTransformer),
-    typeof(OnnxTransformer.Arguments), typeof(SignatureDataTransform), OnnxTransformer.UserName, OnnxTransformer.ShortName, "OnnxTransform", "OnnxScorer")]
+    typeof(OnnxTransformer.Options), typeof(SignatureDataTransform), OnnxTransformer.UserName, OnnxTransformer.ShortName, "OnnxTransform", "OnnxScorer")]
 
 [assembly: LoadableClass(OnnxTransformer.Summary, typeof(IDataTransform), typeof(OnnxTransformer),
     null, typeof(SignatureLoadDataTransform), OnnxTransformer.UserName, OnnxTransformer.LoaderSignature)]
@@ -62,7 +61,7 @@ namespace Microsoft.ML.Transforms
     /// </remarks>
     public sealed class OnnxTransformer : RowToRowTransformerBase
     {
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "Path to the onnx model file.", ShortName = "model", SortOrder = 0)]
             public string ModelFile;
@@ -80,7 +79,7 @@ namespace Microsoft.ML.Transforms
             public bool FallbackToCpu = false;
         }
 
-        private readonly Arguments _args;
+        private readonly Options _options;
         internal readonly OnnxModel Model;
 
         internal const string Summary = "Transforms the data using the Onnx model.";
@@ -88,9 +87,9 @@ namespace Microsoft.ML.Transforms
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
 
-        public readonly string[] Inputs;
-        public readonly string[] Outputs;
-        public readonly ColumnType[] OutputTypes;
+        internal readonly string[] Inputs;
+        internal readonly string[] Outputs;
+        internal readonly DataViewType[] OutputTypes;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -106,9 +105,9 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            return new OnnxTransformer(env, args).MakeDataTransform(input);
+            return new OnnxTransformer(env, options).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform
@@ -142,35 +141,35 @@ namespace Microsoft.ML.Transforms
             for (int j = 0; j < outputs.Length; j++)
                 outputs[j] = ctx.LoadNonEmptyString();
 
-            var args = new Arguments() { InputColumns = inputs, OutputColumns = outputs };
+            var options = new Options() { InputColumns = inputs, OutputColumns = outputs };
 
-            return new OnnxTransformer(env, args, modelBytes);
+            return new OnnxTransformer(env, options, modelBytes);
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private OnnxTransformer(IHostEnvironment env, Arguments args, byte[] modelBytes = null) :
+        private OnnxTransformer(IHostEnvironment env, Options options, byte[] modelBytes = null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransformer)))
         {
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            foreach (var col in args.InputColumns)
-                Host.CheckNonWhiteSpace(col, nameof(args.InputColumns));
-            foreach (var col in args.OutputColumns)
-                Host.CheckNonWhiteSpace(col, nameof(args.OutputColumns));
+            foreach (var col in options.InputColumns)
+                Host.CheckNonWhiteSpace(col, nameof(options.InputColumns));
+            foreach (var col in options.OutputColumns)
+                Host.CheckNonWhiteSpace(col, nameof(options.OutputColumns));
 
             try
             {
                 if (modelBytes == null)
                 {
-                    Host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
-                    Host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
-                    Model = new OnnxModel(args.ModelFile, args.GpuDeviceId, args.FallbackToCpu);
+                    Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
+                    Host.CheckUserArg(File.Exists(options.ModelFile), nameof(options.ModelFile));
+                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu);
                 }
                 else
-                    Model = OnnxModel.CreateFromBytes(modelBytes, args.GpuDeviceId, args.FallbackToCpu);
+                    Model = OnnxModel.CreateFromBytes(modelBytes, options.GpuDeviceId, options.FallbackToCpu);
             }
             catch (OnnxRuntimeException e)
             {
@@ -178,9 +177,9 @@ namespace Microsoft.ML.Transforms
             }
 
             var modelInfo = Model.ModelInfo;
-            Inputs = (args.InputColumns.Count() == 0) ? Model.InputNames.ToArray() : args.InputColumns;
-            Outputs = (args.OutputColumns.Count() == 0) ? Model.OutputNames.ToArray() : args.OutputColumns;
-            OutputTypes = new ColumnType[Outputs.Length];
+            Inputs = (options.InputColumns.Count() == 0) ? Model.InputNames.ToArray() : options.InputColumns;
+            Outputs = (options.OutputColumns.Count() == 0) ? Model.OutputNames.ToArray() : options.OutputColumns;
+            OutputTypes = new DataViewType[Outputs.Length];
             var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
             for (int i = 0; i < Outputs.Length; i++)
             {
@@ -193,20 +192,20 @@ namespace Microsoft.ML.Transforms
                 var dims = AdjustDimensions(shape);
                 OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims.ToArray());
             }
-            _args = args;
+            _options = options;
         }
 
         /// <summary>
         /// Transform for scoring ONNX models. Input data column names/types must exactly match
         /// all model input names. All possible output columns are generated, with names/types
-        /// specified by model.
+        /// specified by the model.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new Arguments()
+        internal OnnxTransformer(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
+            : this(env, new Options()
             {
                 ModelFile = modelFile,
                 InputColumns = new string[] {},
@@ -227,8 +226,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string outputColumnName, string modelFile, string inputColumnName = null, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new Arguments()
+        internal OnnxTransformer(IHostEnvironment env, string outputColumnName, string modelFile, string inputColumnName = null, int? gpuDeviceId = null, bool fallbackToCpu = false)
+            : this(env, new Options()
             {
                 ModelFile = modelFile,
                 InputColumns = new[] { inputColumnName ?? outputColumnName },
@@ -249,8 +248,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new Arguments()
+        internal OnnxTransformer(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
+            : this(env, new Options()
             {
                 ModelFile = modelFile,
                 InputColumns = inputColumnNames,
@@ -261,7 +260,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
 
@@ -280,7 +279,7 @@ namespace Microsoft.ML.Transforms
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
         }
-        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
 
         private static IEnumerable<int> AdjustDimensions(OnnxShape shape)
         {
@@ -302,7 +301,7 @@ namespace Microsoft.ML.Transforms
             private readonly OnnxShape[] _inputTensorShapes;
             private readonly System.Type[] _inputOnnxTypes;
 
-            public Mapper(OnnxTransformer parent, Schema inputSchema) :
+            public Mapper(OnnxTransformer parent, DataViewSchema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
 
@@ -355,11 +354,11 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var info = new Schema.DetachedColumn[_parent.Outputs.Length];
+                var info = new DataViewSchema.DetachedColumn[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new Schema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                    info[i] = new DataViewSchema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
 
@@ -368,7 +367,7 @@ namespace Microsoft.ML.Transforms
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
-            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             private interface INamedOnnxValueGetter
             {
@@ -407,7 +406,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 Host.AssertValue(input);
@@ -421,7 +420,7 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(Row input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
@@ -438,7 +437,7 @@ namespace Microsoft.ML.Transforms
                 return valuegetter;
             }
 
-            private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(Row input,
+            private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(DataViewRow input,
                 string[] inputColNames,
                 int[] inputColIndices,
                 bool[] isInputVector,
@@ -454,14 +453,14 @@ namespace Microsoft.ML.Transforms
                 return srcNamedOnnxValueGetters;
             }
 
-            private static INamedOnnxValueGetter CreateNamedOnnxValueGetter(Row input, System.Type onnxType, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNamedOnnxValueGetter(DataViewRow input, System.Type onnxType, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 var type = OnnxUtils.OnnxToMlNetType(onnxType).RawType;
                 Contracts.AssertValue(type);
                 return Utils.MarshalInvoke(CreateNameOnnxValueGetter<int>, type, input, isVector, colName, colIndex, onnxShape);
             }
 
-            private static INamedOnnxValueGetter CreateNameOnnxValueGetter<T>(Row input, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNameOnnxValueGetter<T>(DataViewRow input, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 if (isVector)
                     return new NamedOnnxValueGetterVec<T>(input, colName, colIndex, onnxShape);
@@ -473,7 +472,7 @@ namespace Microsoft.ML.Transforms
                 private readonly ValueGetter<T> _srcgetter;
                 private readonly string _colName;
 
-                public NameOnnxValueGetter(Row input, string colName, int colIndex)
+                public NameOnnxValueGetter(DataViewRow input, string colName, int colIndex)
                 {
                     _colName = colName;
                     _srcgetter = input.GetGetter<T>(colIndex);
@@ -493,7 +492,7 @@ namespace Microsoft.ML.Transforms
                 private readonly string _colName;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
-                public NamedOnnxValueGetterVec(Row input, string colName, int colIndex, OnnxShape tensorShape)
+                public NamedOnnxValueGetterVec(DataViewRow input, string colName, int colIndex, OnnxShape tensorShape)
                 {
                     _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                     _tensorShape = tensorShape;
@@ -512,7 +511,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// A class implementing the estimator interface of the OnnxTransform.
+    /// A class implementing the estimator interface of the <see cref="OnnxTransformer"/>.
     /// </summary>
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransformer>
     {
@@ -525,7 +524,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        [BestFriend]
+        internal OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
             : this(env, new OnnxTransformer(env, new string[] { }, new string[] { }, modelFile, gpuDeviceId, fallbackToCpu))
         {
         }
@@ -540,16 +540,20 @@ namespace Microsoft.ML.Transforms
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
-        public OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile,  int? gpuDeviceId = null, bool fallbackToCpu = false)
+        internal OnnxScoringEstimator(IHostEnvironment env, string[] outputColumnNames, string[] inputColumnNames, string modelFile,  int? gpuDeviceId = null, bool fallbackToCpu = false)
            : this(env, new OnnxTransformer(env, outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu))
         {
         }
 
-        public OnnxScoringEstimator(IHostEnvironment env, OnnxTransformer transformer)
+        internal OnnxScoringEstimator(IHostEnvironment env, OnnxTransformer transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransformer)), transformer)
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

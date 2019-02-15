@@ -7,15 +7,15 @@ using System.Collections;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.Selector;
-using Microsoft.ML.Ensemble.Selector.FeatureSelector;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.Ensemble;
+using Microsoft.ML.Trainers.Ensemble.FeatureSelector;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(RandomFeatureSelector), typeof(RandomFeatureSelector.Arguments),
     typeof(SignatureEnsembleFeatureSelector), RandomFeatureSelector.UserName, RandomFeatureSelector.LoadName)]
 
-namespace Microsoft.ML.Ensemble.Selector.FeatureSelector
+namespace Microsoft.ML.Trainers.Ensemble.FeatureSelector
 {
     internal class RandomFeatureSelector : IFeatureSelector
     {

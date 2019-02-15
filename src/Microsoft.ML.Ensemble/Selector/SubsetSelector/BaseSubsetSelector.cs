@@ -6,10 +6,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Trainers.Ensemble.SubsetSelector
 {
     internal abstract class BaseSubsetSelector<TArgs> : ISubsetSelector
         where TArgs : BaseSubsetSelector<TArgs>.ArgumentsBase
@@ -71,12 +70,12 @@ namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
                 {
                     // Split the data into train and test sets.
                     string name = Data.Data.Schema.GetTempColumnName();
-                    var args = new GenerateNumberTransform.Arguments();
+                    var args = new GenerateNumberTransform.Options();
                     args.Columns = new[] { new GenerateNumberTransform.Column() { Name = name } };
                     args.Seed = (uint)rand.Next();
                     var view = new GenerateNumberTransform(Host, args, Data.Data);
-                    var viewTest = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Max = ValidationDatasetProportion }, view);
-                    var viewTrain = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Max = ValidationDatasetProportion, Complement = true }, view);
+                    var viewTest = new RangeFilter(Host, new RangeFilter.Options() { Column = name, Max = ValidationDatasetProportion }, view);
+                    var viewTrain = new RangeFilter(Host, new RangeFilter.Options() { Column = name, Max = ValidationDatasetProportion, Complement = true }, view);
                     dataTest = new RoleMappedData(viewTest, Data.Schema.GetColumnRoleNames());
                     dataTrain = new RoleMappedData(viewTrain, Data.Schema.GetColumnRoleNames());
                 }

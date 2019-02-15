@@ -57,7 +57,7 @@ namespace Microsoft.ML.EntryPoints
         /// <param name="env"/>
         /// <param name="labelType">The column type of the label the predictor was trained on.</param>
         [BestFriend]
-        internal abstract string[] GetLabelInfo(IHostEnvironment env, out ColumnType labelType);
+        internal abstract string[] GetLabelInfo(IHostEnvironment env, out DataViewType labelType);
 
         /// <summary>
         /// Returns the <see cref="RoleMappedSchema"/> that was used in training.

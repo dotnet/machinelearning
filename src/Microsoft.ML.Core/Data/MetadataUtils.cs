@@ -7,13 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Utilities for implementing and using the metadata API of <see cref="Schema"/>.
+    /// Utilities for implementing and using the metadata API of <see cref="DataViewSchema"/>.
     /// </summary>
     public static class MetadataUtils
     {
@@ -146,7 +145,7 @@ namespace Microsoft.ML.Data
         internal static VectorType GetNamesType(int size)
         {
             Contracts.CheckParam(size > 0, nameof(size), "must be known size");
-            return new VectorType(TextType.Instance, size);
+            return new VectorType(TextDataViewType.Instance, size);
         }
 
         /// <summary>
@@ -159,7 +158,7 @@ namespace Microsoft.ML.Data
         internal static VectorType GetCategoricalType(int rangeCount)
         {
             Contracts.CheckParam(rangeCount > 0, nameof(rangeCount), "must be known size");
-            return new VectorType(NumberType.I4, rangeCount, 2);
+            return new VectorType(NumberDataViewType.Int32, rangeCount, 2);
         }
 
         private static volatile KeyType _scoreColumnSetIdType;
@@ -182,7 +181,7 @@ namespace Microsoft.ML.Data
         /// Returns a key-value pair useful when implementing GetMetadataTypes(col).
         /// </summary>
         [BestFriend]
-        internal static KeyValuePair<string, ColumnType> GetSlotNamesPair(int size)
+        internal static KeyValuePair<string, DataViewType> GetSlotNamesPair(int size)
         {
             return GetNamesType(size).GetPair(Kinds.SlotNames);
         }
@@ -192,7 +191,7 @@ namespace Microsoft.ML.Data
         /// that the values of the key type are Text.
         /// </summary>
         [BestFriend]
-        internal static KeyValuePair<string, ColumnType> GetKeyNamesPair(int size)
+        internal static KeyValuePair<string, DataViewType> GetKeyNamesPair(int size)
         {
             return GetNamesType(size).GetPair(Kinds.KeyValues);
         }
@@ -202,10 +201,10 @@ namespace Microsoft.ML.Data
         /// implementing GetMetadataTypes(col).
         /// </summary>
         [BestFriend]
-        internal static KeyValuePair<string, ColumnType> GetPair(this ColumnType type, string kind)
+        internal static KeyValuePair<string, DataViewType> GetPair(this DataViewType type, string kind)
         {
             Contracts.CheckValue(type, nameof(type));
-            return new KeyValuePair<string, ColumnType>(kind, type);
+            return new KeyValuePair<string, DataViewType>(kind, type);
         }
 
         // REVIEW: This should be in some general utility code.
@@ -227,7 +226,7 @@ namespace Microsoft.ML.Data
         /// The filter function is called for each column, passing in the schema and the column index, and returns
         /// true if the column should be considered, false if the column should be skipped.
         /// </summary>
-        public static uint GetMaxMetadataKind(this Schema schema, out int colMax, string metadataKind, Func<Schema, int, bool> filterFunc = null)
+        public static uint GetMaxMetadataKind(this DataViewSchema schema, out int colMax, string metadataKind, Func<DataViewSchema, int, bool> filterFunc = null)
         {
             uint max = 0;
             colMax = -1;
@@ -254,7 +253,7 @@ namespace Microsoft.ML.Data
         /// The metadata type should be a KeyType with raw type U4.
         /// </summary>
         [BestFriend]
-        internal static IEnumerable<int> GetColumnSet(this Schema schema, string metadataKind, uint value)
+        internal static IEnumerable<int> GetColumnSet(this DataViewSchema schema, string metadataKind, uint value)
         {
             for (int col = 0; col < schema.Count; col++)
             {
@@ -274,12 +273,12 @@ namespace Microsoft.ML.Data
         /// The metadata type should be of type text.
         /// </summary>
         [BestFriend]
-        internal static IEnumerable<int> GetColumnSet(this Schema schema, string metadataKind, string value)
+        internal static IEnumerable<int> GetColumnSet(this DataViewSchema schema, string metadataKind, string value)
         {
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
-                if (columnType is TextType)
+                if (columnType is TextDataViewType)
                 {
                     ReadOnlyMemory<char> val = default;
                     schema[col].Metadata.GetValue(metadataKind, ref val);
@@ -295,7 +294,7 @@ namespace Microsoft.ML.Data
         ///  * has a SlotNames metadata
         ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length N
         /// </summary>
-        public static bool HasSlotNames(this Schema.Column column)
+        public static bool HasSlotNames(this DataViewSchema.Column column)
             => column.Type is VectorType vectorType
                 && vectorType.Size > 0
                 && column.HasSlotNames(vectorType.Size);
@@ -306,7 +305,7 @@ namespace Microsoft.ML.Data
         ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length <paramref name="vectorSize"/>.
         /// </summary>
         [BestFriend]
-        internal static bool HasSlotNames(this Schema.Column column, int vectorSize)
+        internal static bool HasSlotNames(this DataViewSchema.Column column, int vectorSize)
         {
             if (vectorSize == 0)
                 return false;
@@ -316,13 +315,13 @@ namespace Microsoft.ML.Data
                 metaColumn != null
                 && metaColumn.Value.Type is VectorType vectorType
                 && vectorType.Size == vectorSize
-                && vectorType.ItemType is TextType;
+                && vectorType.ItemType is TextDataViewType;
         }
 
-        public static void GetSlotNames(this Schema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
+        public static void GetSlotNames(this DataViewSchema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
             => column.Metadata.GetValue(Kinds.SlotNames, ref slotNames);
 
-        public static void GetKeyValues<TValue>(this Schema.Column column, ref VBuffer<TValue> keyValues)
+        public static void GetKeyValues<TValue>(this DataViewSchema.Column column, ref VBuffer<TValue> keyValues)
             => column.Metadata.GetValue(Kinds.KeyValues, ref keyValues);
 
         [BestFriend]
@@ -331,7 +330,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValueOrNull(schema);
             Contracts.CheckParam(vectorSize >= 0, nameof(vectorSize));
 
-            IReadOnlyList<Schema.Column> list = schema?.GetColumns(role);
+            IReadOnlyList<DataViewSchema.Column> list = schema?.GetColumns(role);
             if (list?.Count != 1 || !schema.Schema[list[0].Index].HasSlotNames(vectorSize))
                 VBufferUtils.Resize(ref slotNames, vectorSize, 0);
             else
@@ -339,7 +338,7 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static bool HasKeyValues(this Schema.Column column, ColumnType type)
+        internal static bool HasKeyValues(this DataViewSchema.Column column, DataViewType type)
         {
             // False if type is not KeyType because GetKeyCount() returns 0.
             ulong keyCount = type.GetKeyCount();
@@ -351,7 +350,7 @@ namespace Microsoft.ML.Data
                 metaColumn != null
                 && metaColumn.Value.Type is VectorType vectorType
                 && keyCount == (ulong)vectorType.Size
-                && vectorType.ItemType is TextType;
+                && vectorType.ItemType is TextDataViewType;
         }
 
         [BestFriend]
@@ -359,16 +358,16 @@ namespace Microsoft.ML.Data
         {
             return col.Metadata.TryFindColumn(Kinds.KeyValues, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
-                && metaCol.ItemType is TextType;
+                && metaCol.ItemType is TextDataViewType;
         }
 
         /// <summary>
         /// Returns true iff <paramref name="column"/> has IsNormalized metadata set to true.
         /// </summary>
-        public static bool IsNormalized(this Schema.Column column)
+        public static bool IsNormalized(this DataViewSchema.Column column)
         {
             var metaColumn = column.Metadata.Schema.GetColumnOrNull((Kinds.IsNormalized));
-            if (metaColumn == null || !(metaColumn.Value.Type is BoolType))
+            if (metaColumn == null || !(metaColumn.Value.Type is BooleanDataViewType))
                 return false;
 
             bool value = default;
@@ -382,13 +381,13 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="col">The schema shape column to query</param>
         /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> metadata
-        /// of a scalar <see cref="BoolType"/> type, which we assume, if set, should be <c>true</c>.</returns>
+        /// of a scalar <see cref="BooleanDataViewType"/> type, which we assume, if set, should be <c>true</c>.</returns>
         public static bool IsNormalized(this SchemaShape.Column col)
         {
             Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
             return col.Metadata.TryFindColumn(Kinds.IsNormalized, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Scalar && !metaCol.IsKey
-                && metaCol.ItemType == BoolType.Instance;
+                && metaCol.ItemType == BooleanDataViewType.Instance;
         }
 
         /// <summary>
@@ -404,7 +403,7 @@ namespace Microsoft.ML.Data
             return col.Kind == SchemaShape.Column.VectorKind.Vector
                 && col.Metadata.TryFindColumn(Kinds.SlotNames, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector && !metaCol.IsKey
-                && metaCol.ItemType == TextType.Instance;
+                && metaCol.ItemType == TextDataViewType.Instance;
         }
 
         /// <summary>
@@ -418,7 +417,7 @@ namespace Microsoft.ML.Data
         /// <param name="value">The value to return, if successful</param>
         /// <returns>True if the metadata of the right type exists, false otherwise</returns>
         [BestFriend]
-        internal static bool TryGetMetadata<T>(this Schema schema, PrimitiveType type, string kind, int col, ref T value)
+        internal static bool TryGetMetadata<T>(this DataViewSchema schema, PrimitiveDataViewType type, string kind, int col, ref T value)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(type, nameof(type));
@@ -439,7 +438,7 @@ namespace Microsoft.ML.Data
         /// Features with indices 3 and 4 are another categorical. Features 5 and 6 don't appear there, so they are not categoricals.
         /// </summary>
         [BestFriend]
-        internal static bool TryGetCategoricalFeatureIndices(Schema schema, int colIndex, out int[] categoricalFeatures)
+        internal static bool TryGetCategoricalFeatureIndices(DataViewSchema schema, int colIndex, out int[] categoricalFeatures)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(colIndex >= 0, nameof(colIndex));
@@ -490,11 +489,11 @@ namespace Microsoft.ML.Data
         internal static IEnumerable<SchemaShape.Column> GetTrainerOutputMetadata(bool isNormalized = false)
         {
             var cols = new List<SchemaShape.Column>();
-            cols.Add(new SchemaShape.Column(Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true));
-            cols.Add(new SchemaShape.Column(Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
-            cols.Add(new SchemaShape.Column(Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
+            cols.Add(new SchemaShape.Column(Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true));
+            cols.Add(new SchemaShape.Column(Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false));
+            cols.Add(new SchemaShape.Column(Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false));
             if (isNormalized)
-                cols.Add(new SchemaShape.Column(Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                cols.Add(new SchemaShape.Column(Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
             return cols;
         }
 
@@ -508,36 +507,36 @@ namespace Microsoft.ML.Data
         {
             var cols = new List<SchemaShape.Column>();
             if (labelColumn != null && labelColumn.Value.IsKey && HasKeyValues(labelColumn.Value))
-                cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
+                cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
             cols.AddRange(GetTrainerOutputMetadata());
             return cols;
         }
 
-        private sealed class MetadataRow : Row
+        private sealed class MetadataRow : DataViewRow
         {
-            private readonly Schema.Metadata _metadata;
+            private readonly DataViewSchema.Metadata _metadata;
 
-            public MetadataRow(Schema.Metadata metadata)
+            public MetadataRow(DataViewSchema.Metadata metadata)
             {
                 Contracts.AssertValue(metadata);
                 _metadata = metadata;
             }
 
-            public override Schema Schema => _metadata.Schema;
+            public override DataViewSchema Schema => _metadata.Schema;
             public override long Position => 0;
             public override long Batch => 0;
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
-            public override ValueGetter<RowId> GetIdGetter() => (ref RowId dst) => dst = default;
+            public override ValueGetter<DataViewRowId> GetIdGetter() => (ref DataViewRowId dst) => dst = default;
             public override bool IsColumnActive(int col) => true;
         }
 
         /// <summary>
-        /// Presents a <see cref="Schema.Metadata"/> as a an <see cref="Row"/>.
+        /// Presents a <see cref="DataViewSchema.Metadata"/> as a an <see cref="DataViewRow"/>.
         /// </summary>
         /// <param name="metadata">The metadata to wrap.</param>
         /// <returns>A row that wraps an input metadata.</returns>
         [BestFriend]
-        internal static Row MetadataAsRow(Schema.Metadata metadata)
+        internal static DataViewRow MetadataAsRow(DataViewSchema.Metadata metadata)
         {
             Contracts.CheckValue(metadata, nameof(metadata));
             return new MetadataRow(metadata);

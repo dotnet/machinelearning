@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms
                             IDataView viewPermuted = LambdaTransform.CreateMap(
                                 host, data, permuter, null, input, output);
                             if (valuesRowCount == topExamples)
-                                viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
+                                viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeOptions() { Count = valuesRowCount }, viewPermuted);
 
                             var metrics = evaluationFunc(model.Transform(viewPermuted));
 

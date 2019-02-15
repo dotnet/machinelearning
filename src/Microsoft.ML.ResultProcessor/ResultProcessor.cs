@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Tools;
@@ -20,7 +21,7 @@ using Microsoft.ML.Tools;
 using Microsoft.ML.ExperimentVisualization;
 #endif
 
-namespace Microsoft.ML.Internal.Internallearn.ResultProcessor
+namespace Microsoft.ML.ResultProcessor
 {
     using Float = System.Single;
     /// <summary>

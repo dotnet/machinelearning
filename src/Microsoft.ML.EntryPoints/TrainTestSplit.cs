@@ -14,7 +14,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class TrainTestSplit
+    internal static class TrainTestSplit
     {
         public sealed class Input
         {
@@ -54,11 +54,11 @@ namespace Microsoft.ML.EntryPoints
             var stratCol = SplitUtils.CreateStratificationColumn(host, ref data, input.StratificationColumn);
 
             IDataView trainData = new RangeFilter(host,
-                new RangeFilter.Arguments { Column = stratCol, Min = 0, Max = input.Fraction, Complement = false }, data);
+                new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = false }, data);
             trainData = ColumnSelectingTransformer.CreateDrop(host, trainData, stratCol);
 
             IDataView testData = new RangeFilter(host,
-                new RangeFilter.Arguments { Column = stratCol, Min = 0, Max = input.Fraction, Complement = true }, data);
+                new RangeFilter.Options { Column = stratCol, Min = 0, Max = input.Fraction, Complement = true }, data);
             testData = ColumnSelectingTransformer.CreateDrop(host, testData, stratCol);
 
             return new Output() { TrainData = trainData, TestData = testData };
@@ -66,7 +66,7 @@ namespace Microsoft.ML.EntryPoints
 
     }
 
-    public static class SplitUtils
+    internal static class SplitUtils
     {
         public static string CreateStratificationColumn(IHost host, ref IDataView data, string stratificationColumn = null)
         {
@@ -85,7 +85,7 @@ namespace Microsoft.ML.EntryPoints
             if (stratificationColumn == null)
             {
                 data = new GenerateNumberTransform(host,
-                    new GenerateNumberTransform.Arguments
+                    new GenerateNumberTransform.Options
                     {
                         Columns = new[] { new GenerateNumberTransform.Column { Name = stratCol } }
                     }, data);

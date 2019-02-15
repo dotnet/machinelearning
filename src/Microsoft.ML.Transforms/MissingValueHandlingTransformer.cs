@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms
 
             var replaceCols = new List<MissingValueReplacingEstimator.ColumnInfo>();
             var naIndicatorCols = new List<MissingValueIndicatorTransformer.Column>();
-            var naConvCols = new List<TypeConvertingTransformer.ColumnInfo>();
+            var naConvCols = new List<TypeConvertingEstimator.ColumnInfo>();
             var concatCols = new List<ColumnConcatenatingTransformer.TaggedColumn>();
             var dropCols = new List<string>();
             var tmpIsMissingColNames = input.Schema.GetTempColumnNames(args.Columns.Length, "IsMissing");
@@ -165,10 +165,10 @@ namespace Microsoft.ML.Transforms
                     throw h.Except("Column '{0}' does not exist", column.Source);
                 var replaceType = input.Schema[inputCol].Type;
                 var replaceItemType = replaceType.GetItemType();
-                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceItemType, out Delegate conv, out bool identity))
+                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BooleanDataViewType.Instance, replaceItemType, out Delegate conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
-                        BoolType.Instance, replaceItemType);
+                        BooleanDataViewType.Instance, replaceItemType);
                 }
 
                 // Find a temporary name for the NAReplaceTransform and NAIndicatorTransform output columns.
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms
                     {
                         throw h.Except("Cannot get a DataKind for type '{0}'", replaceItemType.RawType);
                     }
-                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, replaceItemTypeKind, tmpIsMissingColName));
+                    naConvCols.Add(new TypeConvertingEstimator.ColumnInfo(tmpIsMissingColName, replaceItemTypeKind, tmpIsMissingColName));
                 }
 
                 // Add the NAReplaceTransform column.
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Transforms
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)
-                output = ColumnSelectingTransformer.CreateDrop(h, output, dropCols.ToArray());
+                output = ColumnSelectingTransformer.CreateDrop(h, output, dropCols.ToArray()) as IDataTransform;
 
             return output;
         }

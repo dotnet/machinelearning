@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
@@ -57,7 +56,7 @@ namespace Microsoft.ML.Transforms
             // The indices must be ints and of a definite size vector type. (Definite becuase
             // metadata has only one value anyway.)
             return mcol.Kind == SchemaShape.Column.VectorKind.Vector
-                && mcol.ItemType == NumberType.I4;
+                && mcol.ItemType == NumberDataViewType.Int32;
         }
 
         private SchemaShape.Column CheckInputsAndMakeColumn(
@@ -76,7 +75,7 @@ namespace Microsoft.ML.Transforms
             bool hasSlotNames = false;
 
             // We will get the item type from the first column.
-            ColumnType itemType = null;
+            DataViewType itemType = null;
 
             for (int i = 0; i < sources.Length; ++i)
             {
@@ -106,11 +105,11 @@ namespace Microsoft.ML.Transforms
 
             List<SchemaShape.Column> meta = new List<SchemaShape.Column>();
             if (isNormalized)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
             if (hasCategoricals)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberType.I4, false));
+                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
             if (hasSlotNames)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
+                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
 
             return new SchemaShape.Column(name, vecKind, itemType, false, new SchemaShape(meta));
         }

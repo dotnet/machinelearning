@@ -9,13 +9,12 @@ using System.Reflection;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms.FeatureSelection;
 
-[assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Options), typeof(SignatureDataTransform),
     CountFeatureSelectingEstimator.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
 namespace Microsoft.ML.Transforms.FeatureSelection
@@ -35,7 +34,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             public const long Count = 1;
         }
 
-        public sealed class Arguments : TransformInputBase
+        internal sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", Name = "Column", ShortName = "col", SortOrder = 1)]
             public string[] Columns;
@@ -46,10 +45,16 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         internal static string RegistrationName = "CountFeatureSelectionTransform";
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public sealed class ColumnInfo
         {
+            /// <summary> Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
+            /// <summary> Name of the column to transform.</summary>
             public readonly string InputColumnName;
+            /// <summary> If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</summary>
             public readonly long MinCount;
 
             /// <summary>
@@ -79,7 +84,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// ]]>
         /// </format>
         /// </example>
-        public CountFeatureSelectingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal CountFeatureSelectingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -100,11 +105,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// ]]>
         /// </format>
         /// </example>
-        public CountFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, long minCount = Defaults.Count)
+        internal CountFeatureSelectingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, long minCount = Defaults.Count)
             : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, minCount))
         {
         }
 
+        /// <summary>
+        /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
+        /// Used for schema propagation and verification in a pipeline.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -120,12 +129,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     metadata.Add(slotMeta);
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var categoricalSlotMeta))
                     metadata.Add(categoricalSlotMeta);
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
                 result[colPair.Name] = new SchemaShape.Column(colPair.Name, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
         }
 
+        /// <summary>
+        /// Trains and returns a <see cref="ITransformer"/>.
+        /// </summary>
         public ITransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
@@ -162,16 +174,16 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
         /// </summary>
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
-            host.CheckValue(args, nameof(args));
+            host.CheckValue(options, nameof(options));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
-            host.CheckUserArg(args.Count > 0, nameof(args.Count));
+            host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
+            host.CheckUserArg(options.Count > 0, nameof(options.Count));
 
-            var columnInfos = args.Columns.Select(inColName => new ColumnInfo(inColName, minCount: args.Count)).ToArray();
+            var columnInfos = options.Columns.Select(inColName => new ColumnInfo(inColName, minCount: options.Count)).ToArray();
 
             return new CountFeatureSelectingEstimator(env, columnInfos).Fit(input).Transform(input) as IDataTransform;
         }
@@ -236,20 +248,20 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeCols = new List<Schema.Column>();
+            var activeCols = new List<DataViewSchema.Column>();
             var colSrcs = new int[size];
-            var colTypes = new ColumnType[size];
+            var colTypes = new DataViewType[size];
             colSizes = new int[size];
             for (int i = 0; i < size; i++)
             {
                 int colSrc;
                 var colName = columns[i];
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Columns), "Source column '{0}' not found", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), "Source column '{0}' not found", colName);
 
                 var colType = schema[colSrc].Type;
                 if (colType is VectorType vectorType && !vectorType.IsKnownSize)
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Columns), "Variable length column '{0}' is not allowed", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), "Variable length column '{0}' is not allowed", colName);
 
                 activeCols.Add(schema[colSrc]);
                 colSrcs[i] = colSrc;
@@ -284,29 +296,29 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return aggregators.Select(a => a.Count).ToArray();
         }
 
-        public static bool IsValidColumnType(ColumnType type)
-            => type == NumberType.R4 || type == NumberType.R8 || type is TextType;
+        public static bool IsValidColumnType(DataViewType type)
+            => type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is TextDataViewType;
 
-        private static CountAggregator GetOneAggregator(Row row, ColumnType colType, int colSrc)
+        private static CountAggregator GetOneAggregator(DataViewRow row, DataViewType colType, int colSrc)
         {
-            Func<Row, ColumnType, int, CountAggregator> del = GetOneAggregator<int>;
+            Func<DataViewRow, DataViewType, int, CountAggregator> del = GetOneAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetOneAggregator<T>(Row row, ColumnType colType, int colSrc)
+        private static CountAggregator GetOneAggregator<T>(DataViewRow row, DataViewType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
         }
 
-        private static CountAggregator GetVecAggregator(Row row, VectorType colType, int colSrc)
+        private static CountAggregator GetVecAggregator(DataViewRow row, VectorType colType, int colSrc)
         {
-            Func<Row, VectorType, int, CountAggregator> del = GetVecAggregator<int>;
+            Func<DataViewRow, VectorType, int, CountAggregator> del = GetVecAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetVecAggregator<T>(Row row, VectorType colType, int colSrc)
+        private static CountAggregator GetVecAggregator<T>(DataViewRow row, VectorType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
         }
@@ -325,9 +337,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             private readonly InPredicate<T> _isMissing;
             private VBuffer<T> _buffer;
 
-            public CountAggregator(ColumnType type, ValueGetter<T> getter)
+            public CountAggregator(DataViewType type, ValueGetter<T> getter)
             {
-                Contracts.Assert(type is PrimitiveType);
+                Contracts.Assert(type is PrimitiveDataViewType);
                 _count = new long[1];
                 _buffer = new VBuffer<T>(1, new T[1]);
                 var t = default(T);

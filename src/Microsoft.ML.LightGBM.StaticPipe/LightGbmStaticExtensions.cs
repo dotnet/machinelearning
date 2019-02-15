@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
@@ -130,7 +131,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = Options.Defaults.NumBoostRound,
-            Action<IPredictorWithFeatureWeights<float>> onFit = null)
+            Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, onFit);
 
@@ -167,7 +168,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
             Options options,
-            Action<IPredictorWithFeatureWeights<float>> onFit = null)
+            Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, options, onFit);
 

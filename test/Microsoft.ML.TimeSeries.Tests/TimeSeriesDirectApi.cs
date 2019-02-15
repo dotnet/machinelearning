@@ -4,11 +4,9 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.TimeSeries;
-using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
 namespace Microsoft.ML.Tests
@@ -56,7 +54,7 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < size / 2; i++)
                 data.Add(new Data((float)(5 + i * 1.1)));
 
-            var args = new IidChangePointDetector.Arguments()
+            var args = new IidChangePointDetector.Options()
             {
                 Confidence = 80,
                 Source = "Value",
@@ -84,7 +82,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(conc: 1);
@@ -96,7 +94,7 @@ namespace Microsoft.ML.Tests
             List<Data> data = new List<Data>();
             var dataView = env.Data.ReadFromEnumerable(data);
 
-            var args = new SsaChangePointDetector.Arguments()
+            var args = new SsaChangePointDetector.Options()
             {
                 Confidence = 95,
                 Source = "Value",
@@ -134,7 +132,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
             const int ChangeHistorySize = 10;
@@ -157,7 +155,7 @@ namespace Microsoft.ML.Tests
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
-                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
+                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Options()
                 {
                     Confidence = 95,
                     Source = "Value",
@@ -210,7 +208,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngine()
         {
             const int ChangeHistorySize = 10;
@@ -233,7 +231,7 @@ namespace Microsoft.ML.Tests
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
-                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
+                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Options()
                 {
                     Confidence = 95,
                     Source = "Value",

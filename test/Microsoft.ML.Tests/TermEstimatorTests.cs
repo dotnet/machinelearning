@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
-            var loader = new TextLoader(Env, new TextLoader.Arguments
+            var loader = new TextLoader(ML, new TextLoader.Arguments
             {
                 Columns = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 9),
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests
                 HasHeader = true
             }, new MultiFileSource(dataPath));
 
-            var pipe = new ValueToKeyMappingEstimator(Env, new[]{
+            var pipe = new ValueToKeyMappingEstimator(ML, new[]{
                     new ValueToKeyMappingEstimator.ColumnInfo("TermFloat1", "float1"),
                     new ValueToKeyMappingEstimator.ColumnInfo("TermFloat4", "float4"),
                     new ValueToKeyMappingEstimator.ColumnInfo("TermDouble1", "double1"),
@@ -80,11 +80,11 @@ namespace Microsoft.ML.Tests
                     new ValueToKeyMappingEstimator.ColumnInfo("TermText2", "text2")
                 });
             var data = loader.Read(dataPath);
-            data = TakeFilter.Create(Env, data, 10);
+            data = ML.Data.TakeRows(data, 10);
             var outputPath = GetOutputPath("Term", "Term.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, pipe.Fit(data).Transform(data), fs, keepHidden: true);
             }

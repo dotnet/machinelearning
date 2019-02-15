@@ -8,104 +8,189 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.TimeSeries;
 
-namespace Microsoft.ML.TimeSeriesProcessing
+namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// This transform computes the p-values and martingale scores for a supposedly i.i.d input sequence of floats. In other words, it assumes
+    /// The is the wrapper to <see cref="IidAnomalyDetectionBase"/> that computes the p-values and martingale scores for a supposedly i.i.d input sequence of floats. In other words, it assumes
     /// the input sequence represents the raw anomaly score which might have been computed via another process.
     /// </summary>
-    public abstract class IidAnomalyDetectionBase : SequentialAnomalyDetectionTransformBase<Single, IidAnomalyDetectionBase.State>
+    public class IidAnomalyDetectionBaseWrapper : IStatefulTransformer, ICanSaveModel
     {
-        public IidAnomalyDetectionBase(ArgumentsBase args, string name, IHostEnvironment env)
-            : base(args, name, env)
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
+        public bool IsRowToRowMapper => InternalTransform.IsRowToRowMapper;
+
+        /// <summary>
+        /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
+        /// </summary>
+        /// <returns></returns>
+        IStatefulTransformer IStatefulTransformer.Clone() => InternalTransform.Clone();
+
+        /// <summary>
+        /// Schema propagation for transformers.
+        /// Returns the output schema of the data, if the input schema is like the one provided.
+        /// </summary>
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema) => InternalTransform.GetOutputSchema(inputSchema);
+
+        /// <summary>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// is <c>false</c>, then an exception should be thrown. If the input schema is in any way
+        /// unsuitable for constructing the mapper, an exception should likewise be thrown.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema) => InternalTransform.GetRowToRowMapper(inputSchema);
+
+        /// <summary>
+        /// Same as <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> but also supports mechanism to save the state.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        public IRowToRowMapper GetStatefulRowToRowMapper(DataViewSchema inputSchema) => ((IStatefulTransformer)InternalTransform).GetStatefulRowToRowMapper(inputSchema);
+
+        /// <summary>
+        /// Take the data in, make transformations, output the data.
+        /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
+        /// </summary>
+        public IDataView Transform(IDataView input) => InternalTransform.Transform(input);
+
+        /// <summary>
+        /// For saving a model into a repository.
+        /// </summary>
+        public virtual void Save(ModelSaveContext ctx)
         {
-            InitialWindowSize = 0;
-            StateRef = new State();
-            StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
+            InternalTransform.SaveThis(ctx);
         }
 
-        public IidAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
-            : base(env, ctx, name)
+        /// <summary>
+        /// Creates a row mapper from Schema.
+        /// </summary>
+        internal IStatefulRowMapper MakeRowMapper(DataViewSchema schema) => InternalTransform.MakeRowMapper(schema);
+
+        /// <summary>
+        /// Creates an IDataTransform from an IDataView.
+        /// </summary>
+        internal IDataTransform MakeDataTransform(IDataView input) => InternalTransform.MakeDataTransform(input);
+
+        internal IidAnomalyDetectionBase InternalTransform;
+
+        internal IidAnomalyDetectionBaseWrapper(ArgumentsBase args, string name, IHostEnvironment env)
         {
-            Host.CheckDecode(InitialWindowSize == 0);
-            StateRef = new State(ctx.Reader);
-            StateRef.InitState(this, Host);
+            InternalTransform = new IidAnomalyDetectionBase(args, name, env, this);
         }
 
-        public override Schema GetOutputSchema(Schema inputSchema)
+        internal IidAnomalyDetectionBaseWrapper(IHostEnvironment env, ModelLoadContext ctx, string name)
         {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-
-            if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
-
-            var colType = inputSchema[col].Type;
-            if (colType != NumberType.R4)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "float", colType.ToString());
-
-            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
+            InternalTransform = new IidAnomalyDetectionBase(env, ctx, name, this);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        /// <summary>
+        /// This transform computes the p-values and martingale scores for a supposedly i.i.d input sequence of floats. In other words, it assumes
+        /// the input sequence represents the raw anomaly score which might have been computed via another process.
+        /// </summary>
+        internal class IidAnomalyDetectionBase : SequentialAnomalyDetectionTransformBase<Single, IidAnomalyDetectionBase.State>
         {
-            ctx.CheckAtModel();
-            Host.Assert(InitialWindowSize == 0);
-            base.Save(ctx);
+            internal IidAnomalyDetectionBaseWrapper Parent;
 
-            // *** Binary format ***
-            // <base>
-            // State: StateRef
-            StateRef.Save(ctx.Writer);
-        }
-
-        public sealed class State : AnomalyDetectionStateBase
-        {
-            public State()
+            public IidAnomalyDetectionBase(ArgumentsBase args, string name, IHostEnvironment env, IidAnomalyDetectionBaseWrapper parent)
+                : base(args, name, env)
             {
+                InitialWindowSize = 0;
+                StateRef = new State();
+                StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
+                Parent = parent;
             }
 
-            internal State(BinaryReader reader) : base(reader)
+            public IidAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name, IidAnomalyDetectionBaseWrapper parent)
+                : base(env, ctx, name)
             {
-                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
-                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                Host.CheckDecode(InitialWindowSize == 0);
+                StateRef = new State(ctx.Reader);
+                StateRef.InitState(this, Host);
+                Parent = parent;
             }
 
-            internal override void Save(BinaryWriter writer)
+            public override DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
             {
-                base.Save(writer);
-                TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, writer);
-                TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, writer);
+                Host.CheckValue(inputSchema, nameof(inputSchema));
+
+                if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
+
+                var colType = inputSchema[col].Type;
+                if (colType != NumberDataViewType.Single)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, NumberDataViewType.Single.ToString(), colType.ToString());
+
+                return Transform(new EmptyDataView(Host, inputSchema)).Schema;
             }
 
-            private protected override void CloneCore(StateBase state)
+            private protected override void SaveModel(ModelSaveContext ctx)
             {
-                base.CloneCore(state);
-                Contracts.Assert(state is State);
-                var stateLocal = state as State;
-                stateLocal.WindowedBuffer = WindowedBuffer.Clone();
-                stateLocal.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
+                Parent.Save(ctx);
             }
 
-            private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+            internal void SaveThis(ModelSaveContext ctx)
             {
-                // This method is empty because there is no need for initial tuning for this transform.
+                ctx.CheckAtModel();
+                Host.Assert(InitialWindowSize == 0);
+                base.SaveModel(ctx);
+
+                // *** Binary format ***
+                // <base>
+                // State: StateRef
+                StateRef.Save(ctx.Writer);
             }
 
-            private protected override void InitializeAnomalyDetector()
+            internal sealed class State : AnomalyDetectionStateBase
             {
-                // This method is empty because there is no need for any extra initialization for this transform.
-            }
+                public State()
+                {
+                }
 
-            private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
-            {
-                // This transform treats the input sequenence as the raw anomaly score.
-                return (double)input;
-            }
+                internal State(BinaryReader reader) : base(reader)
+                {
+                    WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                    InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                }
 
-            public override void Consume(float value)
-            {
+                internal override void Save(BinaryWriter writer)
+                {
+                    base.Save(writer);
+                    TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, writer);
+                    TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, writer);
+                }
+
+                private protected override void CloneCore(State state)
+                {
+                    base.CloneCore(state);
+                    Contracts.Assert(state is State);
+                    var stateLocal = state as State;
+                    stateLocal.WindowedBuffer = WindowedBuffer.Clone();
+                    stateLocal.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
+                }
+
+                private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+                {
+                    // This method is empty because there is no need for initial tuning for this transform.
+                }
+
+                private protected override void InitializeAnomalyDetector()
+                {
+                    // This method is empty because there is no need for any extra initialization for this transform.
+                }
+
+                private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
+                {
+                    // This transform treats the input sequenence as the raw anomaly score.
+                    return (double)input;
+                }
+
+                public override void Consume(float value)
+                {
+                }
             }
         }
     }

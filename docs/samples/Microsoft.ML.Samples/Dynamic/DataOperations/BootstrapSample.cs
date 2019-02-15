@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class BootstrapSample
+    public static class Bootstrap
     {
         public static void Example()
         {
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Let's take a look at the behavior of the BootstrapSample by examining a few draws:
             for (int i = 0; i < 3; i++)
             {
-                var resample = mlContext.Data.BootstrapSample(data, seed: (uint) i);
+                var resample = mlContext.Data.BootstrapSample(data, seed: i);
 
                 var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample>(resample, reuseRowObject: false);
                 Console.WriteLine($"Label\tFeatures[0]");

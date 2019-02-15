@@ -53,10 +53,10 @@ namespace Microsoft.ML.Trainers.KMeans
         // REVIEW: Leaving this public for now until we figure out the correct way to remove it.
         public override PredictionKind PredictionKind => PredictionKind.Clustering;
 
-        private readonly ColumnType _inputType;
-        private readonly ColumnType _outputType;
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => _outputType;
+        private readonly DataViewType _inputType;
+        private readonly DataViewType _outputType;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => _outputType;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
@@ -101,8 +101,8 @@ namespace Microsoft.ML.Trainers.KMeans
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberType.Float, _dimensionality);
-            _outputType = new VectorType(NumberType.Float, _k);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorType(NumberDataViewType.Single, _k);
         }
 
         /// <summary>
@@ -143,8 +143,8 @@ namespace Microsoft.ML.Trainers.KMeans
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberType.Float, _dimensionality);
-            _outputType = new VectorType(NumberType.Float, _k);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorType(NumberDataViewType.Single, _k);
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()

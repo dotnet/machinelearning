@@ -6,10 +6,10 @@ using System;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(WeightedAverage), typeof(WeightedAverage.Arguments), typeof(SignatureCombiner),
     WeightedAverage.UserName, WeightedAverage.LoadName)]
@@ -17,9 +17,9 @@ using Microsoft.ML.Model;
 [assembly: LoadableClass(typeof(WeightedAverage), null, typeof(SignatureLoadModel),
      WeightedAverage.UserName, WeightedAverage.LoaderSignature)]
 
-namespace Microsoft.ML.Ensemble.OutputCombiners
+namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class WeightedAverage : BaseAverager, IWeightedAverager, ICanSaveModel
+    public sealed class WeightedAverage : BaseAverager, IWeightedAverager
     {
         public const string UserName = "Weighted Average";
         public const string LoadName = "WeightedAverage";

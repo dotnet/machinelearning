@@ -6,7 +6,7 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ValueMappingStringToKeyTypeExample
+    public static class ValueMappingStringToKeyType
     {
         /// <summary>
         /// Helper class for retrieving the resulting data
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
         /// 
         /// The KeyToValueEstimator is added to the pipeline to convert the KeyType back to the original value. Therefore the output of this example 
         /// results in the string value of 'Undergraduate' and 'Postgraduate'.
-        public static void Run()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Generate the ValueMappingEstimator that will output KeyTypes even though our values are strings.
             // The KeyToValueMappingEstimator is added to provide a reverse lookup of the KeyType, converting the KeyType value back
             // to the original value.
-            var pipeline = new ValueMappingEstimator<string, string>(mlContext, educationKeys, educationValues, true, ("EducationKeyType", "Education"))
+            var pipeline = mlContext.Transforms.Conversion.ValueMap<string, string>(educationKeys, educationValues, true, ("EducationKeyType", "Education"))
                               .Append(mlContext.Transforms.Conversion.MapKeyToValue(("EducationCategory", "EducationKeyType")));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationKeyType column.

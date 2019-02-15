@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
 {
     internal abstract class BaseSubModelSelector<TOutput> : ISubModelSelector<TOutput>
     {
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
         }
 
         private IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetColumnRoles(
-            RoleMappedSchema testSchema, Schema scoredSchema)
+            RoleMappedSchema testSchema, DataViewSchema scoredSchema)
         {
             switch (PredictionKind)
             {
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
                     yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     // Get the optional probability column.
                     var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, scoredSchema, null, nameof(BinaryClassifierMamlEvaluator.Arguments.ProbabilityColumn),
-                        scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberType.Float.Equals);
+                        scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
                     if (probCol.HasValue)
                         yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name);
                     yield break;

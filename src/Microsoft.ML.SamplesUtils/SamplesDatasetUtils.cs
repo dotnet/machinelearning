@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using Microsoft.Data.DataView;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
@@ -16,7 +18,62 @@ namespace Microsoft.ML.SamplesUtils
         /// Downloads the housing dataset from the ML.NET repo.
         /// </summary>
         public static string DownloadHousingRegressionDataset()
-        => Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", "housing.txt");
+        {
+            var fileName = "housing.txt";
+            if (!File.Exists(fileName))
+                Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", fileName);
+            return fileName;
+        }
+
+        public static IDataView LoadHousingRegressionDataset(MLContext mlContext)
+        {
+            // Download the file
+            string dataFile = DownloadHousingRegressionDataset();
+
+            // Define the columns to read
+            var reader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                    {
+                        new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
+                        new TextLoader.Column("CrimesPerCapita", DataKind.R4, 1),
+                        new TextLoader.Column("PercentResidental", DataKind.R4, 2),
+                        new TextLoader.Column("PercentNonRetail", DataKind.R4, 3),
+                        new TextLoader.Column("CharlesRiver", DataKind.R4, 4),
+                        new TextLoader.Column("NitricOxides", DataKind.R4, 5),
+                        new TextLoader.Column("RoomsPerDwelling", DataKind.R4, 6),
+                        new TextLoader.Column("PercentPre40s", DataKind.R4, 7),
+                        new TextLoader.Column("EmploymentDistance", DataKind.R4, 8),
+                        new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
+                        new TextLoader.Column("TaxRate", DataKind.R4, 10),
+                        new TextLoader.Column("TeacherRatio", DataKind.R4, 11),
+                    },
+                hasHeader: true
+            );
+
+            // Read the data into an IDataView
+            var data = reader.Read(dataFile);
+
+            return data;
+        }
+
+        /// <summary>
+        /// A class to hold the raw housing regression rows.
+        /// </summary>
+        public sealed class HousingRegression
+        {
+            public float MedianHomeValue { get; set; }
+            public float CrimesPerCapita { get; set; }
+            public float PercentResidental { get; set; }
+            public float PercentNonRetail { get; set; }
+            public float CharlesRiver { get; set; }
+            public float NitricOxides { get; set; }
+            public float RoomsPerDwelling { get; set; }
+            public float PercentPre40s { get; set; }
+            public float EmploymentDistance { get; set; }
+            public float HighwayDistance { get; set; }
+            public float TaxRate { get; set; }
+            public float TeacherRatio { get; set; }
+        }
 
         /// <summary>
         /// Downloads the wikipedia detox dataset from the ML.NET repo.
@@ -29,6 +86,65 @@ namespace Microsoft.ML.SamplesUtils
         /// </summary>
         public static string DownloadAdultDataset()
             => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
+
+        /// <summary>
+        /// Downloads the Adult UCI dataset and featurizes it to be suitable for classification tasks.
+        /// </summary>
+        /// <param name="mlContext"><see cref="MLContext"/> used for data loading and processing.</param>
+        /// <returns>Featurized dataset.</returns>
+        /// <remarks>
+        /// For more details about this dataset, please see https://archive.ics.uci.edu/ml/datasets/adult.
+        /// </remarks>
+        public static IDataView LoadFeaturizedAdultDataset(MLContext mlContext)
+        {
+            // Download the file
+            string dataFile = DownloadAdultDataset();
+
+            // Define the columns to read
+            var reader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                    {
+                        new TextLoader.Column("age", DataKind.R4, 0),
+                        new TextLoader.Column("workclass", DataKind.TX, 1),
+                        new TextLoader.Column("fnlwgt", DataKind.R4, 2),
+                        new TextLoader.Column("education", DataKind.TX, 3),
+                        new TextLoader.Column("education-num", DataKind.R4, 4),
+                        new TextLoader.Column("marital-status", DataKind.TX, 5),
+                        new TextLoader.Column("occupation", DataKind.TX, 6),
+                        new TextLoader.Column("relationship", DataKind.TX, 7),
+                        new TextLoader.Column("ethnicity", DataKind.TX, 8),
+                        new TextLoader.Column("sex", DataKind.TX, 9),
+                        new TextLoader.Column("capital-gain", DataKind.R4, 10),
+                        new TextLoader.Column("capital-loss", DataKind.R4, 11),
+                        new TextLoader.Column("hours-per-week", DataKind.R4, 12),
+                        new TextLoader.Column("native-country", DataKind.R4, 13),
+                        new TextLoader.Column("IsOver50K", DataKind.BL, 14),
+                    },
+                separatorChar: ',',
+                hasHeader: true
+            );
+
+            // Create data featurizing pipeline
+            var pipeline = mlContext.Transforms.CopyColumns("Label", "IsOver50K")
+                // Convert categorical features to one-hot vectors
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("workclass"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("education"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("marital-status"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("occupation"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("relationship"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("ethnicity"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("native-country"))
+                // Combine all features into one feature vector
+                .Append(mlContext.Transforms.Concatenate("Features", "workclass", "education", "marital-status",
+                    "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
+                    "capital-gain", "capital-loss", "hours-per-week"))
+                // Min-max normalized all the features
+                .Append(mlContext.Transforms.Normalize("Features"));
+
+            var data = reader.Read(dataFile);
+            var featurizedData = pipeline.Fit(data).Transform(data);
+            return featurizedData;
+        }
 
         /// <summary>
         /// Downloads the breast cancer dataset from the ML.NET repo.
@@ -54,6 +170,35 @@ namespace Microsoft.ML.SamplesUtils
             Download("https://raw.githubusercontent.com/dotnet/machinelearning/284e02cadf5342aa0c36f31d62fc6fa15bc06885/test/data/images/tomato.jpg", $"{pathEscaped}tomato.jpg");
 
             return $"{path}{Path.DirectorySeparatorChar}images.tsv";
+        }
+
+        /// <summary>
+        /// Downloads sentiment_model from the dotnet/machinelearning-testdata repo.
+        /// </summary>
+        /// <remarks>
+        /// The model is downloaded from
+        /// https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model
+        /// The model is in 'SavedModel' format. For further explanation on how was the `sentiment_model` created
+        /// c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
+        /// </remarks>
+        public static string DownloadTensorFlowSentimentModel()
+        {
+            string remotePath = "https://github.com/dotnet/machinelearning-testdata/raw/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/";
+
+            string path = "sentiment_model";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            string varPath = Path.Combine(path, "variables");
+            if (!Directory.Exists(varPath))
+                Directory.CreateDirectory(varPath);
+
+            Download(Path.Combine(remotePath, "saved_model.pb"), Path.Combine(path, "saved_model.pb"));
+            Download(Path.Combine(remotePath, "imdb_word_index.csv"), Path.Combine(path, "imdb_word_index.csv"));
+            Download(Path.Combine(remotePath, "variables", "variables.data-00000-of-00001"), Path.Combine(varPath, "variables.data-00000-of-00001"));
+            Download(Path.Combine(remotePath, "variables", "variables.index"), Path.Combine(varPath, "variables.index"));
+
+            return path;
         }
 
         private static string Download(string baseGitPath, string dataFile)
@@ -141,7 +286,7 @@ namespace Microsoft.ML.SamplesUtils
 
         public class SampleTemperatureData
         {
-            public DateTime Date {get; set; }
+            public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
 
@@ -286,6 +431,9 @@ namespace Microsoft.ML.SamplesUtils
 
         private const int _simpleBinaryClassSampleFeatureLength = 10;
 
+        /// <summary>
+        /// Example with one binary label and 10 feature values.
+        /// </summary>
         public class BinaryLabelFloatFeatureVectorSample
         {
             public bool Label;
@@ -294,7 +442,28 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Features;
         }
 
-        public static  IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)
+        /// <summary>
+        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
+        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// </summary>
+        public class CalibratedBinaryClassifierOutput
+        {
+            public bool Label;
+            public float Score;
+            public float Probability;
+        }
+
+        /// <summary>
+        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
+        /// calling <see cref="CursoringUtils.CreateEnumerable"/> via on <see cref="MLContext"/>.
+        /// </summary>
+        public class NonCalibratedBinaryClassifierOutput
+        {
+            public bool Label;
+            public float Score;
+        }
+
+        public static IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)
         {
             var rnd = new Random(0);
             var data = new List<BinaryLabelFloatFeatureVectorSample>();
@@ -325,7 +494,7 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Features;
         }
 
-        public static  IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount)
+        public static IEnumerable<FloatLabelFloatFeatureVectorSample> GenerateFloatLabelFloatFeatureVectorSamples(int exampleCount, double naRate = 0)
         {
             var rnd = new Random(0);
             var data = new List<FloatLabelFloatFeatureVectorSample>();
@@ -336,10 +505,14 @@ namespace Microsoft.ML.SamplesUtils
                 // Fill feature vector according the assigned label.
                 for (int j = 0; j < _simpleBinaryClassSampleFeatureLength; ++j)
                 {
-                    var value = (float)rnd.NextDouble();
-                    // Positive class gets larger feature value.
-                    if (sample.Label == 0)
-                        value += 0.2f;
+                    float value = float.NaN;
+                    if (naRate <= 0 || rnd.NextDouble() > naRate)
+                    {
+                        value = (float)rnd.NextDouble();
+                        // Positive class gets larger feature value.
+                        if (sample.Label == 0)
+                            value += 0.2f;
+                    }
                     sample.Features[j] = value;
                 }
 
@@ -362,17 +535,20 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Field2;
         }
 
-        public static  IEnumerable<FfmExample> GenerateFfmSamples(int exampleCount)
+        public static IEnumerable<FfmExample> GenerateFfmSamples(int exampleCount)
         {
             var rnd = new Random(0);
             var data = new List<FfmExample>();
             for (int i = 0; i < exampleCount; ++i)
             {
                 // Initialize an example with a random label and an empty feature vector.
-                var sample = new FfmExample() { Label = rnd.Next() % 2 == 0,
+                var sample = new FfmExample()
+                {
+                    Label = rnd.Next() % 2 == 0,
                     Field0 = new float[_simpleBinaryClassSampleFeatureLength],
                     Field1 = new float[_simpleBinaryClassSampleFeatureLength],
-                    Field2 = new float[_simpleBinaryClassSampleFeatureLength] };
+                    Field2 = new float[_simpleBinaryClassSampleFeatureLength]
+                };
                 // Fill feature vector according the assigned label.
                 for (int j = 0; j < 10; ++j)
                 {
@@ -461,6 +637,50 @@ namespace Microsoft.ML.SamplesUtils
                 examples.Add(example);
             }
             return examples;
+        }
+
+        // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
+        // Because in ML.NET key type's minimal value is zero, the first row index is always zero in C# data structure (e.g., MatrixColumnIndex=0
+        // and MatrixRowIndex=0 in MatrixElement below specifies the value at the upper-left corner in the training matrix). If user's row index
+        // starts with 1, their row index 1 would be mapped to the 2nd row in matrix factorization module and their first row may contain no values.
+        // This behavior is also true to column index.
+        private const int _synthesizedMatrixFirstColumnIndex = 1;
+        private const int _synthesizedMatrixFirstRowIndex = 1;
+        private const int _synthesizedMatrixColumnCount = 60;
+        private const int _synthesizedMatrixRowCount = 100;
+
+        // A data structure used to encode a single value in matrix
+        public class MatrixElement
+        {
+            // Matrix column index is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            public uint MatrixColumnIndex;
+            // Matrix row index is at most _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex.
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
+            public uint MatrixRowIndex;
+            // The value at the column MatrixColumnIndex and row MatrixRowIndex.
+            public float Value;
+        }
+
+        // A data structure used to encode prediction result. Comparing with MatrixElement, The field Value in MatrixElement is
+        // renamed to Score because Score is the default name of matrix factorization's output.
+        public class MatrixElementForScore
+        {
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            public uint MatrixColumnIndex;
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
+        // Create an in-memory matrix as a list of tuples (column index, row index, value).
+        public static List<MatrixElement> GetRecommendationData()
+        {
+            var dataMatrix = new List<MatrixElement>();
+            for (uint i = _synthesizedMatrixFirstColumnIndex; i < _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount; ++i)
+                for (uint j = _synthesizedMatrixFirstRowIndex; j < _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount; ++j)
+                    dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+            return dataMatrix;
         }
     }
 }

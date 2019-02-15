@@ -14,11 +14,11 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
 // This is for deserialization from a model repository.
@@ -36,7 +36,7 @@ using Newtonsoft.Json.Linq;
     "Poisson Regression Executor",
     PoissonRegressionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Learners
+namespace Microsoft.ML.Trainers
 {
     public abstract class LinearModelParameters : ModelParametersBase<float>,
         IValueMapper,
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Learners
         /// <summary> The predictor's bias term.</summary>
         public float Bias { get; protected set; }
 
-        private readonly ColumnType _inputType;
+        private readonly DataViewType _inputType;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Learners
 
             Weight = weights;
             Bias = bias;
-            _inputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Learners
             else
                 Weight = new VBuffer<float>(len, Utils.Size(weights), weights, indices);
 
-            _inputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
             if (Weight.IsDense)
@@ -285,14 +285,14 @@ namespace Microsoft.ML.Learners
             }
         }
 
-        ColumnType IValueMapper.InputType
+        DataViewType IValueMapper.InputType
         {
             get { return _inputType; }
         }
 
-        ColumnType IValueMapper.OutputType
+        DataViewType IValueMapper.OutputType
         {
-            get { return NumberType.Float; }
+            get { return NumberDataViewType.Single; }
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
@@ -360,24 +360,24 @@ namespace Microsoft.ML.Learners
 
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema) => SaveSummary(writer, schema);
 
-        private protected virtual Row GetSummaryIRowOrNull(RoleMappedSchema schema)
+        private protected virtual DataViewRow GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var subBuilder = new MetadataBuilder();
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
-            var colType = new VectorType(NumberType.R4, Weight.Length);
+            var colType = new VectorType(NumberDataViewType.Single, Weight.Length);
             var builder = new MetadataBuilder();
-            builder.AddPrimitiveValue("Bias", NumberType.R4, Bias);
+            builder.AddPrimitiveValue("Bias", NumberDataViewType.Single, Bias);
             builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.GetMetadata());
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema) => GetSummaryIRowOrNull(schema);
+        DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema) => GetSummaryIRowOrNull(schema);
 
-        private protected virtual Row GetStatsIRowOrNull(RoleMappedSchema schema) => null;
+        private protected virtual DataViewRow GetStatsIRowOrNull(RoleMappedSchema schema) => null;
 
-        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema) => GetStatsIRowOrNull(schema);
+        DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema) => GetStatsIRowOrNull(schema);
 
         private protected abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
 
@@ -467,8 +467,8 @@ namespace Microsoft.ML.Learners
             if (calibrator == null)
                 return predictor;
             if (calibrator is IParameterMixer)
-                return new ParameterMixingCalibratedPredictor(env, predictor, calibrator);
-            return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
+                return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
+            return new SchemaBindableCalibratedModelParameters<LinearBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Learners
             return results;
         }
 
-        private protected override Row GetStatsIRowOrNull(RoleMappedSchema schema)
+        private protected override DataViewRow GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;
@@ -546,8 +546,8 @@ namespace Microsoft.ML.Learners
 
     public abstract class RegressionModelParameters : LinearModelParameters
     {
-       public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
-            : base(env, name, in weights, bias)
+        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
+             : base(env, name, in weights, bias)
         {
         }
 

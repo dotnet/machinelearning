@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data
         public readonly int RowCount;
         // -1 for input columns that were not transposed, a non-negative index into _cols for those that were.
         private readonly int[] _inputToTransposed;
-        private readonly Schema.Column[] _cols;
+        private readonly DataViewSchema.Column[] _cols;
         private readonly int[] _splitLim;
         private bool _disposed;
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Data
                 columnSet = columnSet.Where(c => _tview.GetSlotType(c) == null);
             }
             columns = columnSet.ToArray();
-            _cols = new Schema.Column[columns.Length];
+            _cols = new DataViewSchema.Column[columns.Length];
             var schema = _view.Schema;
             _nameToICol = new Dictionary<string, int>();
             // Let i be a column index in _view's Schema. _inputToTransposed[i] is -1 if the i-th column can
@@ -262,9 +262,9 @@ namespace Microsoft.ML.Data
                 return _tview?.GetSlotType(col);
 
             var transposedColumn = _view.Schema[col];
-            PrimitiveType elementType = null;
-            if (transposedColumn.Type is PrimitiveType)
-                elementType = (PrimitiveType)transposedColumn.Type;
+            PrimitiveDataViewType elementType = null;
+            if (transposedColumn.Type is PrimitiveDataViewType)
+                elementType = (PrimitiveDataViewType)transposedColumn.Type;
             else if (transposedColumn.Type is VectorType)
                 elementType = ((VectorType)transposedColumn.Type).ItemType;
             _host.Assert(elementType != null);
@@ -277,14 +277,14 @@ namespace Microsoft.ML.Data
         // we are still and will likely forever remain in a state where only a few specialized
         // operations make use of the transpose dataview, with many operations instead being
         // handled in the standard row-wise fashion.
-        public Schema Schema => _view.Schema;
+        public DataViewSchema Schema => _view.Schema;
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             => _view.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             => _view.GetRowCursorSet(columnsNeeded, n, rand);
 
         public long? GetRowCount()
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Data
                     Ch.Assert(parent._splitLim[iinfo] - _col == 1);
                 }
                 Ch.AssertValue(_view);
-                Ch.Assert(_view.Schema[_col].Type is PrimitiveType);
+                Ch.Assert(_view.Schema[_col].Type is PrimitiveDataViewType);
                 Ch.Assert(_view.Schema[_col].Type.RawType == typeof(T));
                 _len = parent.RowCount;
             }
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Data
                     return;
 
                 var type = _view.Schema[_colCurr].Type;
-                ColumnType itemType = type.GetItemType();
+                DataViewType itemType = type.GetItemType();
                 Ch.Assert(itemType.RawType == typeof(T));
                 int vecLen = type.GetValueCount();
                 Ch.Assert(vecLen > 0);
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Data
 
             public bool CanShuffle { get { return _input.CanShuffle; } }
 
-            public Schema Schema { get; }
+            public DataViewSchema Schema { get; }
 
             public DataViewSlicer(IHost host, IDataView input, int[] toSlice)
             {
@@ -822,7 +822,7 @@ namespace Microsoft.ML.Data
                 splitCol = _colToSplitCol[col];
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
@@ -833,7 +833,7 @@ namespace Microsoft.ML.Data
                 return new Cursor(_host, this, _input.GetRowCursor(inputCols, rand), predicate, activeSplitters);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
 
@@ -853,7 +853,7 @@ namespace Microsoft.ML.Data
             /// Given a possibly null predicate for this data view, produce the dependency predicate for the sources,
             /// as well as a list of all the splitters for which we should produce rowsets.
             /// </summary>
-            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/> method.</param>
+            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(IEnumerable{DataViewSchema.Column}, Random)"/> method.</param>
             /// <param name="activeSplitters">A boolean indicator array of length equal to the number of splitters,
             /// indicating whether that splitter has any active columns in its outputs or not</param>
             /// <returns>The predicate to use when constructing the row cursor from the source</returns>
@@ -883,7 +883,7 @@ namespace Microsoft.ML.Data
             /// There is one instance of these per column, implementing the possible splitting
             /// of one column from a <see cref="IDataView"/> into multiple columns. The instance
             /// describes the resulting split columns through <see cref="Splitter.OutputSchema"/>,
-            /// and then can be bound to an <see cref="Row"/> to provide that splitting functionality.
+            /// and then can be bound to an <see cref="DataViewRow"/> to provide that splitting functionality.
             /// </summary>
             private abstract class Splitter
             {
@@ -897,7 +897,7 @@ namespace Microsoft.ML.Data
                 /// Output schema of a splitter. A splitter takes a column from input data and then divide it into multiple columns
                 /// to form its output data.
                 /// </summary>
-                public abstract Schema OutputSchema { get; }
+                public abstract DataViewSchema OutputSchema { get; }
 
                 protected Splitter(IDataView view, int col)
                 {
@@ -914,7 +914,7 @@ namespace Microsoft.ML.Data
                 {
                     var type = view.Schema[col].Type;
                     int vectorSize = type.GetVectorSize();
-                    Contracts.Assert(type is PrimitiveType || vectorSize > 0);
+                    Contracts.Assert(type is PrimitiveDataViewType || vectorSize > 0);
                     const int defaultSplitThreshold = 16;
                     if (vectorSize <= defaultSplitThreshold)
                         return Utils.MarshalInvoke(CreateCore<int>, type.RawType, view, col);
@@ -947,10 +947,10 @@ namespace Microsoft.ML.Data
                 }
 
                 /// <summary>
-                /// Given an input <see cref="Row"/>, create the <see cref="Row"/> containing the split
+                /// Given an input <see cref="DataViewRow"/>, create the <see cref="DataViewRow"/> containing the split
                 /// version of the columns.
                 /// </summary>
-                public abstract Row Bind(Row row, Func<int, bool> pred);
+                public abstract DataViewRow Bind(DataViewRow row, Func<int, bool> pred);
 
                 private static Splitter CreateCore<T>(IDataView view, int col)
                 {
@@ -967,9 +967,9 @@ namespace Microsoft.ML.Data
                 {
                     protected readonly TSplitter Parent;
 
-                    public sealed override Schema Schema => Parent.OutputSchema;
+                    public sealed override DataViewSchema Schema => Parent.OutputSchema;
 
-                    public RowBase(TSplitter parent, Row input)
+                    public RowBase(TSplitter parent, DataViewRow input)
                         : base(input)
                     {
                         Contracts.AssertValue(parent);
@@ -988,7 +988,7 @@ namespace Microsoft.ML.Data
                 {
                     public override int ColumnCount => 1;
 
-                    public override Schema OutputSchema { get; }
+                    public override DataViewSchema OutputSchema { get; }
 
                     /// <summary>
                     /// This is NoSplitter. Thus, the column, indexed by col, which supposes to be splitted will just be copied to an output
@@ -1010,7 +1010,7 @@ namespace Microsoft.ML.Data
                         OutputSchema = schemaBuilder.GetSchema();
                     }
 
-                    public override Row Bind(Row row, Func<int, bool> pred)
+                    public override DataViewRow Bind(DataViewRow row, Func<int, bool> pred)
                     {
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
@@ -1023,7 +1023,7 @@ namespace Microsoft.ML.Data
                     {
                         private readonly bool _isActive;
 
-                        public RowImpl(NoSplitter<T> parent, Row input, bool isActive)
+                        public RowImpl(NoSplitter<T> parent, DataViewRow input, bool isActive)
                             : base(parent, input)
                         {
                             Contracts.Assert(Parent.ColumnCount == 1);
@@ -1054,7 +1054,7 @@ namespace Microsoft.ML.Data
                     // Cache of the types of each slice.
                     private readonly VectorType[] _types;
 
-                    public override Schema OutputSchema { get; }
+                    public override DataViewSchema OutputSchema { get; }
 
                     public override int ColumnCount { get { return _lims.Length; } }
 
@@ -1094,7 +1094,7 @@ namespace Microsoft.ML.Data
                         OutputSchema = schemaBuilder.GetSchema();
                     }
 
-                    public override Row Bind(Row row, Func<int, bool> pred)
+                    public override DataViewRow Bind(DataViewRow row, Func<int, bool> pred)
                     {
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
@@ -1118,7 +1118,7 @@ namespace Microsoft.ML.Data
                         // Getters.
                         private readonly ValueGetter<VBuffer<T>>[] _getters;
 
-                        public RowImpl(ColumnSplitter<T> parent, Row input, Func<int, bool> pred)
+                        public RowImpl(ColumnSplitter<T> parent, DataViewRow input, Func<int, bool> pred)
                             : base(parent, input)
                         {
                             _inputGetter = input.GetGetter<VBuffer<T>>(Parent.SrcCol);
@@ -1225,17 +1225,17 @@ namespace Microsoft.ML.Data
             }
 
             /// <summary>
-            /// The cursor implementation creates the <see cref="Row"/>s using <see cref="Splitter.Bind"/>,
+            /// The cursor implementation creates the <see cref="DataViewRow"/>s using <see cref="Splitter.Bind"/>,
             /// then collates the results from those rows as effectively one big row.
             /// </summary>
             private sealed class Cursor : SynchronizedCursorBase
             {
                 private readonly DataViewSlicer _slicer;
-                private readonly Row[] _sliceRows;
+                private readonly DataViewRow[] _sliceRows;
 
-                public override Schema Schema => _slicer.Schema;
+                public override DataViewSchema Schema => _slicer.Schema;
 
-                public Cursor(IChannelProvider provider, DataViewSlicer slicer, RowCursor input, Func<int, bool> pred, bool[] activeSplitters)
+                public Cursor(IChannelProvider provider, DataViewSlicer slicer, DataViewRowCursor input, Func<int, bool> pred, bool[] activeSplitters)
                     : base(provider, input)
                 {
                     Ch.AssertValue(slicer);
@@ -1243,7 +1243,7 @@ namespace Microsoft.ML.Data
                     Ch.Assert(Utils.Size(activeSplitters) == slicer._splitters.Length);
 
                     _slicer = slicer;
-                    _sliceRows = new Row[_slicer._splitters.Length];
+                    _sliceRows = new DataViewRow[_slicer._splitters.Length];
                     var activeSrc = new bool[slicer._splitters.Length];
                     var activeSrcSet = new HashSet<int>();
                     int offset = 0;
@@ -1336,7 +1336,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Given a slot cursor, construct a single-column equivalent row cursor, with the single column
         /// active and having the same type. This is useful to exploit the many utility methods that exist
-        /// to handle <see cref="RowCursor"/> and <see cref="Row"/> but that know nothing about
+        /// to handle <see cref="DataViewRowCursor"/> and <see cref="DataViewRow"/> but that know nothing about
         /// <see cref="SlotCursor"/>, without having to rewrite all of them. This is, however, rather
         /// something of a hack; whenever possible or reasonable the slot cursor should be used directly.
         /// The name of this column is always "Waffles".
@@ -1344,7 +1344,7 @@ namespace Microsoft.ML.Data
         /// <param name="provider">The channel provider used in creating the wrapping row cursor</param>
         /// <param name="cursor">The slot cursor to wrap</param>
         /// <returns>A row cursor with a single active column with the same type as the slot type</returns>
-        public static RowCursor GetRowCursorShim(IChannelProvider provider, SlotCursor cursor)
+        public static DataViewRowCursor GetRowCursorShim(IChannelProvider provider, SlotCursor cursor)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(cursor, nameof(cursor));
@@ -1352,7 +1352,7 @@ namespace Microsoft.ML.Data
             return Utils.MarshalInvoke(GetRowCursorShimCore<int>, cursor.GetSlotType().ItemType.RawType, provider, cursor);
         }
 
-        private static RowCursor GetRowCursorShimCore<T>(IChannelProvider provider, SlotCursor cursor)
+        private static DataViewRowCursor GetRowCursorShimCore<T>(IChannelProvider provider, SlotCursor cursor)
         {
             return new SlotRowCursorShim<T>(provider, cursor);
         }
@@ -1365,9 +1365,9 @@ namespace Microsoft.ML.Data
             private readonly IHost _host;
             private readonly ITransposeDataView _data;
             private readonly int _col;
-            private readonly ColumnType _type;
+            private readonly DataViewType _type;
 
-            public Schema Schema { get; }
+            public DataViewSchema Schema { get; }
 
             public bool CanShuffle => false;
 
@@ -1396,20 +1396,20 @@ namespace Microsoft.ML.Data
                 return valueCount;
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 bool hasZero = columnsNeeded != null && columnsNeeded.Any(x => x.Index == 0);
                 return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, hasZero);
             }
 
-            private RowCursor GetRowCursor<T>(bool active)
+            private DataViewRowCursor GetRowCursor<T>(bool active)
             {
                 return new Cursor<T>(this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
-                return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
+                return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
             }
 
             private sealed class Cursor<T> : RootCursorBase
@@ -1418,7 +1418,7 @@ namespace Microsoft.ML.Data
                 private readonly SlotCursor _slotCursor;
                 private readonly Delegate _getter;
 
-                public override Schema Schema => _parent.Schema;
+                public override DataViewSchema Schema => _parent.Schema;
 
                 public override long Batch => 0;
 
@@ -1448,12 +1448,12 @@ namespace Microsoft.ML.Data
                     return getter;
                 }
 
-                public override ValueGetter<RowId> GetIdGetter() => GetId;
+                public override ValueGetter<DataViewRowId> GetIdGetter() => GetId;
 
-                private void GetId(ref RowId id)
+                private void GetId(ref DataViewRowId id)
                 {
                     Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
-                    id = new RowId((ulong)_slotCursor.SlotIndex, 0);
+                    id = new DataViewRowId((ulong)_slotCursor.SlotIndex, 0);
                 }
 
                 protected override bool MoveNextCore() => _slotCursor.MoveNext();
@@ -1466,7 +1466,7 @@ namespace Microsoft.ML.Data
         {
             private readonly SlotCursor _slotCursor;
 
-            public override Schema Schema { get; }
+            public override DataViewSchema Schema { get; }
 
             public override long Batch => 0;
 
@@ -1493,12 +1493,12 @@ namespace Microsoft.ML.Data
                 return _slotCursor.GetGetterWithVectorType<TValue>(Ch);
             }
 
-            public override ValueGetter<RowId> GetIdGetter() => GetId;
+            public override ValueGetter<DataViewRowId> GetIdGetter() => GetId;
 
-            private void GetId(ref RowId id)
+            private void GetId(ref DataViewRowId id)
             {
                 Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
-                id = new RowId((ulong)_slotCursor.SlotIndex, 0);
+                id = new DataViewRowId((ulong)_slotCursor.SlotIndex, 0);
             }
 
             protected override bool MoveNextCore() => _slotCursor.MoveNext();

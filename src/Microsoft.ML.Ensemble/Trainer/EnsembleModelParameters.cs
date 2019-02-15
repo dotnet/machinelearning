@@ -7,17 +7,16 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(EnsembleModelParameters), null, typeof(SignatureLoadModel), EnsembleModelParameters.UserName,
     EnsembleModelParameters.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(EnsembleModelParameters))]
 
-namespace Microsoft.ML.Ensemble
+namespace Microsoft.ML.Trainers.Ensemble
 {
     /// <summary>
     /// A class for artifacts of ensembled models.
@@ -44,8 +43,8 @@ namespace Microsoft.ML.Ensemble
         private readonly IValueMapper[] _mappers;
 
         private readonly VectorType _inputType;
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => NumberType.Float;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
         public override PredictionKind PredictionKind { get; }
 
         /// <summary>
@@ -92,14 +91,14 @@ namespace Microsoft.ML.Ensemble
                 mappers[i] = vm;
             }
 
-            return inputType ?? new VectorType(NumberType.Float);
+            return inputType ?? new VectorType(NumberDataViewType.Single);
         }
 
         private bool IsValid(IValueMapper mapper, out VectorType inputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inputVectorType && inputVectorType.ItemType == NumberType.Float
-                && mapper.OutputType == NumberType.Float)
+                && mapper.InputType is VectorType inputVectorType && inputVectorType.ItemType == NumberDataViewType.Single
+                && mapper.OutputType == NumberDataViewType.Single)
             {
                 inputType = inputVectorType;
                 return true;

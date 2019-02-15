@@ -134,7 +134,7 @@ namespace Microsoft.ML.Data.Commands
             }
         }
 
-        private TypeNaInfo KindReport<T>(IChannel ch, PrimitiveType type)
+        private TypeNaInfo KindReport<T>(IChannel ch, PrimitiveDataViewType type)
         {
             Contracts.AssertValue(ch);
             ch.AssertValue(type);

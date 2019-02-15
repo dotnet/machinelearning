@@ -7,7 +7,7 @@ using System.IO;
 using System.Security.Cryptography;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Trainers.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree
 {
     public struct MD5Hash
     {

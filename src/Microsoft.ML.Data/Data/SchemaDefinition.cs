@@ -194,7 +194,7 @@ namespace Microsoft.ML.Data
             /// The column type. If this is null, the API attempts to derive a type
             /// from the member's type.
             /// </summary>
-            public ColumnType ColumnType { get; set; }
+            public DataViewType ColumnType { get; set; }
 
             /// <summary>
             /// Whether the column is a computed type.
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Data
 
             public Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
 
-            public Column(IExceptionContext ectx, string memberName, ColumnType columnType,
+            public Column(IExceptionContext ectx, string memberName, DataViewType columnType,
                 string columnName = null, IEnumerable<MetadataInfo> metadataInfos = null, Delegate generator = null)
             {
                 ectx.CheckNonEmpty(memberName, nameof(memberName));
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Data
             /// <param name="kind">The string identifier of the metadata.</param>
             /// <param name="value">Value of metadata.</param>
             /// <param name="metadataType">Type of value.</param>
-            public void AddMetadata<T>(string kind, T value, ColumnType metadataType = null)
+            public void AddMetadata<T>(string kind, T value, DataViewType metadataType = null)
             {
                 if (_metadata.ContainsKey(kind))
                     throw Contracts.Except("Column already contains metadata of this kind.");
@@ -258,11 +258,11 @@ namespace Microsoft.ML.Data
             /// </summary>
             /// <returns>A dictionary with the kind of the metadata as the key, and the
             /// metadata type as the associated value.</returns>
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes
+            public IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypes
             {
                 get
                 {
-                    return Metadata.Select(x => new KeyValuePair<string, ColumnType>(x.Key, x.Value.MetadataType));
+                    return Metadata.Select(x => new KeyValuePair<string, DataViewType>(x.Key, x.Value.MetadataType));
                 }
             }
         }
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Data
 
                 InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType);
 
-                PrimitiveType itemType;
+                PrimitiveDataViewType itemType;
                 var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
                 if (keyAttr != null)
                 {
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Data
                     itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
 
                 // Get the column type.
-                ColumnType columnType;
+                DataViewType columnType;
                 var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
                 if (vectorAttr != null && !isVector)
                     throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", memberInfo.Name);

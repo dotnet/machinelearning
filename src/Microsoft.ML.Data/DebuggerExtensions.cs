@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
@@ -48,7 +47,7 @@ namespace Microsoft.ML
 
             using (var env = new LocalEnvironment(conc: 1))
             {
-                var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments { Count = maxTrainingRows }, data);
+                var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeOptions { Count = maxTrainingRows }, data);
                 return new DataDebuggerPreview(estimator.Fit(trainData).Transform(data), maxRows);
             }
         }

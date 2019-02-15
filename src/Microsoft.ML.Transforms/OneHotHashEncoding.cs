@@ -8,7 +8,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -24,7 +23,7 @@ namespace Microsoft.ML.Transforms.Categorical
     /// <summary>
     /// Produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.
     /// </summary>
-    public sealed class OneHotHashEncodingTransformer : ITransformer, ICanSaveModel
+    public sealed class OneHotHashEncodingTransformer : ITransformer
     {
         internal sealed class Column : OneToOneColumn
         {
@@ -181,7 +180,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// Schema propagation for transformers. Returns the output schema of the data, if
         /// the input schema is like the one provided.
         /// </summary>
-        public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema) => _transformer.GetOutputSchema(inputSchema);
 
         /// <summary>
         /// Take the data in, make transformations, output the data. Note that <see cref="IDataView"/>
@@ -189,7 +188,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// </summary>
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
-        public void Save(ModelSaveContext ctx) => _transformer.Save(ctx);
+        void ICanSaveModel.Save(ModelSaveContext ctx) => (_transformer as ICanSaveModel).Save(ctx);
 
         /// <summary>
         /// Whether a call to <see cref="GetRowToRowMapper"/> should succeed, on an appropriate schema.
@@ -199,7 +198,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <summary>
         /// Constructs a row-to-row mapper based on an input schema.
         /// </summary>
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
     }
 
     /// <summary>
@@ -312,7 +311,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 IEstimator<ITransformer> toBinVector = null;
                 IEstimator<ITransformer> toVector = null;
                 if (binaryCols.Count > 0)
-                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.outputColumnName, x.inputColumnName)).ToArray());
+                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => (x.outputColumnName, x.inputColumnName)).ToArray());
                 if (cols.Count > 0)
                     toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingEstimator.ColumnInfo(x.outputColumnName, x.inputColumnName, x.bag)).ToArray());
 

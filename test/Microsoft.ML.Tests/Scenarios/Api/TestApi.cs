@@ -182,7 +182,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var cached = mlContext.Data.Cache(xf);
 
             var estimator = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
-                new AveragedPerceptronTrainer.Options { NumIterations = 2 });
+                new AveragedPerceptronTrainer.Options { NumberOfIterations = 2 });
 
             estimator.Fit(cached).Transform(cached);
 
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Create Metadata.
             var kindFloat = "Testing float as metadata.";
             var valueFloat = 10;
-            var coltypeFloat = NumberType.Float;
+            var coltypeFloat = NumberDataViewType.Single;
             var kindString = "Testing string as metadata.";
             var valueString = "Strings have value.";
             var kindStringArray = "Testing string array as metadata.";
@@ -231,11 +231,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.True(idv.Schema[0].Metadata.Schema[0].Name == kindFloat);
             Assert.True(idv.Schema[0].Metadata.Schema[0].Type == coltypeFloat);
             Assert.True(idv.Schema[0].Metadata.Schema[1].Name == kindString);
-            Assert.True(idv.Schema[0].Metadata.Schema[1].Type == TextType.Instance);
+            Assert.True(idv.Schema[0].Metadata.Schema[1].Type == TextDataViewType.Instance);
 
             Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
             Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
-            Assert.True(idv.Schema[1].Metadata.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextType);
+            Assert.True(idv.Schema[1].Metadata.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextDataViewType);
             Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Metadata.Schema[kindFloat]);
 
             float retrievedFloat = 0;
@@ -312,22 +312,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Let's test what train test properly works with seed.
             // In order to do that, let's split same dataset, but in one case we will use default seed value,
             // and in other case we set seed to be specific value.
-            var (simpleTrain, simpleTest) = mlContext.BinaryClassification.TrainTestSplit(input);
-            var (simpleTrainWithSeed, simpleTestWithSeed) = mlContext.BinaryClassification.TrainTestSplit(input, seed: 10);
+            var simpleSplit = mlContext.BinaryClassification.TrainTestSplit(input);
+            var splitWithSeed = mlContext.BinaryClassification.TrainTestSplit(input, seed: 10);
 
             // Since test fraction is 0.1, it's much faster to compare test subsets of split.
-            var simpleTestWorkClass = getWorkclass(simpleTest);
+            var simpleTestWorkClass = getWorkclass(simpleSplit.TestSet);
 
-            var simpleWithSeedTestWorkClass = getWorkclass(simpleTestWithSeed);
+            var simpleWithSeedTestWorkClass = getWorkclass(splitWithSeed.TestSet);
             // Validate we get different test sets.
             Assert.NotEqual(simpleTestWorkClass, simpleWithSeedTestWorkClass);
 
             // Now let's do same thing but with presence of stratificationColumn.
             // Rows with same values in this stratificationColumn should end up in same subset (train or test).
             // So let's break dataset by "Workclass" column.
-            var (stratTrain, stratTest) = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn: "Workclass");
-            var stratTrainWorkclass = getWorkclass(stratTrain);
-            var stratTestWorkClass = getWorkclass(stratTest);
+            var stratSplit = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn: "Workclass");
+            var stratTrainWorkclass = getWorkclass(stratSplit.TrainSet);
+            var stratTestWorkClass = getWorkclass(stratSplit.TestSet);
             // Let's get unique values for "Workclass" column from train subset.
             var uniqueTrain = stratTrainWorkclass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
             // and from test subset.
@@ -337,9 +337,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Let's do same thing, but this time we will choose different seed.
             // Stratification column should still break dataset properly without same values in both subsets.
-            var (stratWithSeedTrain, stratWithSeedTest) = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn:"Workclass", seed: 1000000);
-            var stratTrainWithSeedWorkclass = getWorkclass(stratWithSeedTrain);
-            var stratTestWithSeedWorkClass = getWorkclass(stratWithSeedTest);
+            var stratSeed = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn:"Workclass", seed: 1000000);
+            var stratTrainWithSeedWorkclass = getWorkclass(stratSeed.TrainSet);
+            var stratTestWithSeedWorkClass = getWorkclass(stratSeed.TestSet);
             // Let's get unique values for "Workclass" column from train subset.
             var uniqueSeedTrain = stratTrainWithSeedWorkclass.GroupBy(x => x.ToString()).Select(x => x.First()).ToList();
             // and from test subset.

@@ -17,7 +17,7 @@ namespace Microsoft.ML.Data
     {
         private readonly ColumnBindingsBase _bindings;
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override DataViewSchema Schema => _bindings.AsSchema;
 
         /// <summary>
         /// Creates a wrapped version of the cursor
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
         /// <param name="provider">Channel provider</param>
         /// <param name="input">The input cursor</param>
         /// <param name="bindings">The bindings object, </param>
-        public BindingsWrappedRowCursor(IChannelProvider provider, RowCursor input, ColumnBindingsBase bindings)
+        public BindingsWrappedRowCursor(IChannelProvider provider, DataViewRowCursor input, ColumnBindingsBase bindings)
             : base(provider, input)
         {
             Ch.CheckValue(input, nameof(input));

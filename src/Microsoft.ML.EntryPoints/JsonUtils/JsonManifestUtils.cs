@@ -15,7 +15,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
     /// <summary>
     /// Utilities to generate JSON manifests for entry points and other components.
     /// </summary>
-    public static class JsonManifestUtils
+    internal static class JsonManifestUtils
     {
         /// <summary>
         /// Builds a JSON representation of all entry points and components of the <paramref name="catalog"/>.

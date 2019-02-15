@@ -8,7 +8,7 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.ImageAnalytics
 {
-    public sealed class ImageType : StructuredType
+    public sealed class ImageType : StructuredDataViewType
     {
         public readonly int Height;
         public readonly int Width;
@@ -26,7 +26,7 @@ namespace Microsoft.ML.ImageAnalytics
         {
         }
 
-        public override bool Equals(ColumnType other)
+        public override bool Equals(DataViewType other)
         {
             if (other == this)
                 return true;
@@ -39,7 +39,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         public override bool Equals(object other)
         {
-            return other is ColumnType tmp && Equals(tmp);
+            return other is DataViewType tmp && Equals(tmp);
         }
 
         public override int GetHashCode()

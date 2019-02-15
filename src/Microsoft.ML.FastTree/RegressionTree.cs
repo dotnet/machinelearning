@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.FastTree
 {
@@ -56,7 +56,9 @@ namespace Microsoft.ML.FastTree
         /// Note that the case (1) happens only when <see cref="CategoricalSplitFlags"/>[i] is true and otherwise (2)
         /// occurs. A non-negative returned value means a node (i.e., not a leaf); for example, 2 means the 3rd node in
         /// the underlying <see cref="_tree"/>. A negative returned value means a leaf; for example, -1 stands for the
-        /// first leaf in the underlying <see cref="_tree"/>.
+        /// <see langword="~"/>(-1)-th leaf in the underlying <see cref="_tree"/>. Note that <see langword="~"/> is the
+        /// bitwise complement operator in C#; for details, see
+        /// https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-complement-operator.
         /// </summary>
         public IReadOnlyList<int> LteChild => _lteChild;
 

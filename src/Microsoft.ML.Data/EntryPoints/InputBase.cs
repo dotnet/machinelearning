@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Calibration;
@@ -141,7 +140,7 @@ namespace Microsoft.ML.EntryPoints
     [BestFriend]
     internal static class LearnerEntryPointsUtils
     {
-        public static string FindColumn(IExceptionContext ectx, Schema schema, Optional<string> value)
+        public static string FindColumn(IExceptionContext ectx, DataViewSchema schema, Optional<string> value)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));

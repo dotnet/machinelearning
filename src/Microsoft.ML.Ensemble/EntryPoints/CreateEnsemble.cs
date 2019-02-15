@@ -10,15 +10,13 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Ensemble;
-using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(void), typeof(EnsembleCreator), null, typeof(SignatureEntryPointModule), "CreateEnsemble")]
 
-namespace Microsoft.ML.EntryPoints
+namespace Microsoft.ML.Trainers.Ensemble
 {
     /// <summary>
     /// A component to combine given models into an ensemble model.
@@ -95,7 +93,7 @@ namespace Microsoft.ML.EntryPoints
             env.AssertValue(input);
             env.AssertNonEmpty(input.Models);
 
-            Schema inputSchema = null;
+            DataViewSchema inputSchema = null;
             startingData = null;
             transformedData = null;
             byte[][] transformedDataSerialized = null;

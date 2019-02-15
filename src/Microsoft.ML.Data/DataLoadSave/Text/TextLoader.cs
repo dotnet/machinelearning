@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -446,7 +445,7 @@ namespace Microsoft.ML.Data
             public readonly string Name;
             // REVIEW: Fix this for keys.
             public readonly DataKind Kind;
-            public readonly ColumnType ColType;
+            public readonly DataViewType ColType;
             public readonly Segment[] Segments;
 
             // There is at most one variable sized segment, the one at IsegVariable (-1 if none).
@@ -454,7 +453,7 @@ namespace Microsoft.ML.Data
             public readonly int IsegVariable;
             public readonly int SizeBase;
 
-            private ColInfo(string name, ColumnType colType, Segment[] segs, int isegVar, int sizeBase)
+            private ColInfo(string name, DataViewType colType, Segment[] segs, int isegVar, int sizeBase)
             {
                 Contracts.AssertNonEmpty(name);
                 Contracts.AssertNonEmpty(segs);
@@ -470,7 +469,7 @@ namespace Microsoft.ML.Data
                 IsegVariable = isegVar;
             }
 
-            public static ColInfo Create(string name, PrimitiveType itemType, Segment[] segs, bool user)
+            public static ColInfo Create(string name, PrimitiveDataViewType itemType, Segment[] segs, bool user)
             {
                 Contracts.AssertNonEmpty(name);
                 Contracts.AssertValue(itemType);
@@ -511,7 +510,7 @@ namespace Microsoft.ML.Data
                 }
                 Contracts.Assert(size >= segs.Length || size >= segs.Length - 1 && isegVar >= 0);
 
-                ColumnType type = itemType;
+                DataViewType type = itemType;
                 if (isegVar >= 0)
                     type = new VectorType(itemType);
                 else if (size > 1 || segs[0].ForceVector)
@@ -529,7 +528,7 @@ namespace Microsoft.ML.Data
             public readonly ColInfo[] Infos;
             /// <summary>
             /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="MetadataUtils.Kinds.SlotNames"/>
-            /// in <see cref="Schema.Metadata"/>.
+            /// in <see cref="DataViewSchema.Metadata"/>.
             /// </summary>
             private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
             /// <summary>
@@ -538,7 +537,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private readonly ReadOnlyMemory<char> _header;
 
-            public Schema OutputSchema { get; }
+            public DataViewSchema OutputSchema { get; }
 
             public Bindings(TextLoader parent, Column[] cols, IMultiStreamSource headerFile, IMultiStreamSource dataSample)
             {
@@ -586,7 +585,7 @@ namespace Microsoft.ML.Data
                     }
 
                     int iinfoOther = -1;
-                    PrimitiveType typeOther = null;
+                    PrimitiveDataViewType typeOther = null;
                     Segment[] segsOther = null;
                     int isegOther = -1;
 
@@ -604,7 +603,7 @@ namespace Microsoft.ML.Data
                         if (iinfo == nameToInfoIndex.Count && nameToInfoIndex.ContainsKey(name))
                             ch.Info("Duplicate name(s) specified - later columns will hide earlier ones");
 
-                        PrimitiveType itemType;
+                        PrimitiveDataViewType itemType;
                         DataKind kind;
                         if (col.KeyCount != null)
                         {
@@ -769,7 +768,7 @@ namespace Microsoft.ML.Data
                 {
                     string name = ctx.LoadNonEmptyString();
 
-                    PrimitiveType itemType;
+                    PrimitiveDataViewType itemType;
                     var kind = (DataKind)ctx.Reader.ReadByte();
                     Contracts.CheckDecode(Enum.IsDefined(typeof(DataKind), kind));
                     bool isKey = ctx.Reader.ReadBoolByte();
@@ -834,7 +833,7 @@ namespace Microsoft.ML.Data
                 OutputSchema = ComputeOutputSchema();
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -877,7 +876,7 @@ namespace Microsoft.ML.Data
                     ctx.SaveTextStream("Header.txt", writer => writer.WriteLine(_header.ToString()));
             }
 
-            private Schema ComputeOutputSchema()
+            private DataViewSchema ComputeOutputSchema()
             {
                 var schemaBuilder = new SchemaBuilder();
 
@@ -905,7 +904,7 @@ namespace Microsoft.ML.Data
 
         internal const string Summary = "Loads text data file.";
 
-        public const string LoaderSignature = "TextLoader";
+        internal const string LoaderSignature = "TextLoader";
 
         private const uint VerForceVectorSupported = 0x0001000A;
         private const uint VersionNoMinCount = 0x0001000C;
@@ -1283,7 +1282,7 @@ namespace Microsoft.ML.Data
         internal static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
             => new TextLoader(env, args, fileSource).Read(fileSource);
 
-        public void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -1308,7 +1307,7 @@ namespace Microsoft.ML.Data
             _bindings.Save(ctx);
         }
 
-        public Schema GetOutputSchema() => _bindings.OutputSchema;
+        public DataViewSchema GetOutputSchema() => _bindings.OutputSchema;
 
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
@@ -1404,23 +1403,23 @@ namespace Microsoft.ML.Data
             // REVIEW: Should we try to support shuffling?
             public bool CanShuffle => false;
 
-            public Schema Schema => _reader._bindings.OutputSchema;
+            public DataViewSchema Schema => _reader._bindings.OutputSchema;
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
                 var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.Create(_reader, _files, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
                 var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.CreateSet(_reader, _files, active, n);
             }
 
-            public void Save(ModelSaveContext ctx) => _reader.Save(ctx);
+            void ICanSaveModel.Save(ModelSaveContext ctx) => ((ICanSaveModel)_reader).Save(ctx);
         }
     }
 }

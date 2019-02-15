@@ -69,7 +69,7 @@ namespace Microsoft.ML.Data
         /// Check if the column can be saved.
         /// </summary>
         /// <returns>True if the column is savable.</returns>
-        bool IsColumnSavable(ColumnType type);
+        bool IsColumnSavable(DataViewType type);
 
         /// <summary>
         /// Save the data into the given stream. The stream should be kept open.

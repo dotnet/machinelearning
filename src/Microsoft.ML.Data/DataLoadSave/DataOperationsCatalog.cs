@@ -35,7 +35,7 @@ namespace Microsoft.ML
         /// and complementary out-of-bag sample by using the same <paramref name="seed"/>.
         /// </remarks>
         /// <param name="input">The input data.</param>
-        /// <param name="seed">The random seed. If unspecified random state will be instead derived from the <see cref="MLContext"/>.</param>
+        /// <param name="seed">The random seed. If unspecified, the random state will be instead derived from the <see cref="MLContext"/>.</param>
         /// <param name="complement">Whether this is the out-of-bag sample, that is, all those rows that are not selected by the transform.
         /// Can be used to create a complementary pair of samples by using the same seed.</param>
         /// <example>
@@ -46,7 +46,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public IDataView BootstrapSample(IDataView input,
-            uint? seed = null,
+            int? seed = null,
             bool complement = BootstrapSamplingTransformer.Defaults.Complement)
         {
             Environment.CheckValue(input, nameof(input));
@@ -54,7 +54,7 @@ namespace Microsoft.ML
                 Environment,
                 input,
                 complement: complement,
-                seed: seed,
+                seed: (uint?) seed,
                 shuffleInput: false,
                 poolSize: 0);
         }
@@ -64,12 +64,19 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// Caching happens per-column. A column is only cached when it is first accessed.
-        /// In addition, <paramref name="columnsToPrefetch"/> are considered 'always needed', so all of them
-        /// will be cached whenever any data is requested.
+        /// In addition, <paramref name="columnsToPrefetch"/> are considered 'always needed', so these columns
+        /// will be cached the first time any data is requested.
         /// </remarks>
-        /// <param name="input">The data view to cache.</param>
-        /// <param name="columnsToPrefetch">The columns that must be cached whenever anything is cached. Empty array or null
-        /// is acceptable, it means that all columns are only cached at the first access.</param>
+        /// <param name="input">The input data.</param>
+        /// <param name="columnsToPrefetch">The columns that must be cached whenever anything is cached. An empty array or null
+        /// value means that columns are cached upon their first access.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Cache](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/Cache.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView Cache(IDataView input, params string[] columnsToPrefetch)
         {
             Environment.CheckValue(input, nameof(input));
@@ -98,18 +105,18 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FilterByColumn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByColumn.cs)]
+        /// [!code-csharp[FilterRowsByColumn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterRowsByColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView FilterByColumn(IDataView input, string columnName, double lowerBound = double.NegativeInfinity, double upperBound = double.PositiveInfinity)
+        public IDataView FilterRowsByColumn(IDataView input, string columnName, double lowerBound = double.NegativeInfinity, double upperBound = double.PositiveInfinity)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckNonEmpty(columnName, nameof(columnName));
             Environment.CheckParam(lowerBound < upperBound, nameof(upperBound), "Must be less than lowerBound");
 
             var type = input.Schema[columnName].Type;
-            if (!(type is NumberType))
+            if (!(type is NumberDataViewType))
                 throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "number", type.ToString());
             return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
@@ -130,11 +137,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FilterByKeyColumnFraction](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterByKeyColumnFraction.cs)]
+        /// [!code-csharp[FilterRowsByKeyColumnFraction](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterRowsByKeyColumnFraction.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public IDataView FilterByKeyColumnFraction(IDataView input, string columnName, double lowerBound = 0, double upperBound = 1)
+        public IDataView FilterRowsByKeyColumnFraction(IDataView input, string columnName, double lowerBound = 0, double upperBound = 1)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckNonEmpty(columnName, nameof(columnName));
@@ -146,6 +153,129 @@ namespace Microsoft.ML
             if (type.GetKeyCount() == 0)
                 throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "KeyType", type.ToString());
             return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
+        }
+
+        /// <summary>
+        /// Drop rows where any column in <paramref name="columns"/> contains a missing value.
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="columns">Name of the columns to filter on. If a row is has a missing value in any of
+        /// these columns, it will be dropped from the dataset.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FilterRowsByMissingValues](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/FilterRowsByMissingValues.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView FilterRowsByMissingValues(IDataView input, params string[] columns)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
+
+            return new NAFilter(Environment, input, complement: false, columns);
+        }
+
+        /// <summary>
+        /// Shuffle the rows of <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="ShuffleRows"/> will shuffle the rows of any input <see cref="IDataView"/> using a streaming approach.
+        /// In order to not load the entire dataset in memory, a pool of <paramref name="shufflePoolSize"/> rows will be used
+        /// to randomly select rows to output. The pool is constructed from the first <paramref name="shufflePoolSize"/> rows
+        /// in <paramref name="input"/>. Rows will then be randomly yielded from the pool and replaced with the next row from <paramref name="input"/>
+        /// until all the rows have been yielded, resulting in a new <see cref="IDataView"/> of the same size as <paramref name="input"/>
+        /// but with the rows in a randomized order.
+        /// If the <see cref="IDataView.CanShuffle"/> property of <paramref name="input"/> is true, then it will also be read into the
+        /// pool in a random order, offering two sources of randomness.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="seed">The random seed. If unspecified, the random state will be instead derived from the <see cref="MLContext"/>.</param>
+        /// <param name="shufflePoolSize">The number of rows to hold in the pool. Setting this to 1 will turn off pool shuffling and
+        /// <see cref="ShuffleRows"/> will only perform a shuffle by reading <paramref name="input"/> in a random order.</param>
+        /// <param name="shuffleSource">If <see langword="false"/>, the transform will not attempt to read <paramref name="input"/> in a random order and only use
+        /// pooling to shuffle. This parameter has no effect if the <see cref="IDataView.CanShuffle"/> property of <paramref name="input"/> is <see langword="false"/>.
+        /// </param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ShuffleRows](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/ShuffleRows.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView ShuffleRows(IDataView input,
+            int? seed = null,
+            int shufflePoolSize = RowShufflingTransformer.Defaults.PoolRows,
+            bool shuffleSource = !RowShufflingTransformer.Defaults.PoolOnly)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(shufflePoolSize > 0, nameof(shufflePoolSize), "Must be positive");
+
+            var options = new RowShufflingTransformer.Options
+            {
+                PoolRows = shufflePoolSize,
+                PoolOnly = !shuffleSource,
+                ForceShuffle = true,
+                ForceShuffleSeed = seed
+            };
+
+            return new RowShufflingTransformer(Environment, options, input);
+        }
+
+        /// <summary>
+        /// Skip <paramref name="count"/> rows in <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// Skips the first <paramref name="count"/> rows from <paramref name="input"/> and returns an <see cref="IDataView"/> with all other rows.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="count">Number of rows to skip.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SkipRows](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/SkipRows.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView SkipRows(IDataView input, long count)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
+
+            var options = new SkipTakeFilter.SkipOptions()
+            {
+                Count = count
+            };
+
+            return new SkipTakeFilter(Environment, options, input);
+        }
+
+        /// <summary>
+        /// Take <paramref name="count"/> rows from <paramref name="input"/>.
+        /// </summary>
+        /// <remarks>
+        /// Returns returns an <see cref="IDataView"/> with the first <paramref name="count"/> rows from <paramref name="input"/>.
+        /// </remarks>
+        /// <param name="input">The input data.</param>
+        /// <param name="count">Number of rows to take.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[TakeRows](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/TakeRows.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IDataView TakeRows(IDataView input, long count)
+        {
+            Environment.CheckValue(input, nameof(input));
+            Environment.CheckUserArg(count > 0, nameof(count), "Must be greater than zero.");
+
+            var options = new SkipTakeFilter.TakeOptions()
+            {
+                Count = count
+            };
+
+            return new SkipTakeFilter(Environment, options, input);
         }
     }
 }

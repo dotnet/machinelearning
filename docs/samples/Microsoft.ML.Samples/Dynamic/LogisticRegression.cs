@@ -4,9 +4,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class LogisticRegressionExample
+    public static class LogisticRegressionExample
     {
-        public static void LogisticRegression()
+        public static void Example()
         {
             var ml = new MLContext();
 
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             IDataView data = reader.Read(dataFilePath);
 
-            var (trainData, testData) = ml.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
+            var split = ml.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
 
             var pipeline = ml.Transforms.Concatenate("Text", "workclass", "education", "marital-status",
                     "relationship", "ethnicity", "sex", "native-country")
@@ -66,9 +66,9 @@ namespace Microsoft.ML.Samples.Dynamic
                     "education-num", "capital-gain", "capital-loss", "hours-per-week"))
                 .Append(ml.BinaryClassification.Trainers.LogisticRegression());
 
-            var model = pipeline.Fit(trainData);
+            var model = pipeline.Fit(split.TrainSet);
 
-            var dataWithPredictions = model.Transform(testData);
+            var dataWithPredictions = model.Transform(split.TestSet);
 
             var metrics = ml.BinaryClassification.Evaluate(dataWithPredictions);
 

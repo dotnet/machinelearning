@@ -4,7 +4,6 @@
 
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms.Conversions
@@ -133,7 +132,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!col.IsKey || !col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
                 {
                     kv = new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
-                        colInfo.TextKeyValues ? TextType.Instance : col.ItemType, col.IsKey);
+                        colInfo.TextKeyValues ? TextDataViewType.Instance : col.ItemType, col.IsKey);
                 }
                 Contracts.Assert(kv.IsValid);
 
@@ -141,7 +140,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     metadata = new SchemaShape(new[] { slotMeta, kv });
                 else
                     metadata = new SchemaShape(new[] { kv });
-                result[colInfo.OutputColumnName] = new SchemaShape.Column(colInfo.OutputColumnName, col.Kind, NumberType.U4, true, metadata);
+                result[colInfo.OutputColumnName] = new SchemaShape.Column(colInfo.OutputColumnName, col.Kind, NumberDataViewType.UInt32, true, metadata);
             }
 
             return new SchemaShape(result.Values);

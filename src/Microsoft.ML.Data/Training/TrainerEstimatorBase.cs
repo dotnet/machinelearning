@@ -4,7 +4,6 @@
 
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Training
@@ -141,10 +140,9 @@ namespace Microsoft.ML.Training
             return MakeTransformer(pred, trainSet.Schema);
         }
 
-        [BestFriend]
         private protected abstract TModel TrainModelCore(TrainContext trainContext);
 
-        protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
+        protected abstract TTransformer MakeTransformer(TModel model, DataViewSchema trainSchema);
 
         private protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);

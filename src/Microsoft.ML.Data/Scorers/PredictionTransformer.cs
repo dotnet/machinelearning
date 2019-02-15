@@ -33,10 +33,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for transformers with no feature column, or more than one feature columns.
     /// </summary>
-    /// <typeparam name="TModel"></typeparam>
-    /// <typeparam name="TScorer">The Scorer used by this <see cref="IPredictionTransformer{TModel}"/></typeparam>
-    public abstract class PredictionTransformerBase<TModel, TScorer> : IPredictionTransformer<TModel>
-        where TScorer : RowToRowScorerBase
+    /// <typeparam name="TModel">The type of the model parameters used by this prediction transformer.</typeparam>
+    public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>
         where TModel : class
     {
         /// <summary>
@@ -46,19 +44,34 @@ namespace Microsoft.ML.Data
 
         private protected IPredictor ModelAsPredictor => (IPredictor)Model;
 
-        protected const string DirModel = "Model";
-        protected const string DirTransSchema = "TrainSchema";
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected const string DirModel = "Model";
+        [BestFriend]
+        private protected const string DirTransSchema = "TrainSchema";
+        [BestFriend]
+        private protected readonly IHost Host;
         [BestFriend]
         private protected ISchemaBindableMapper BindableMapper;
-        protected Schema TrainSchema;
+        protected DataViewSchema TrainSchema;
 
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
         public bool IsRowToRowMapper => true;
 
-        protected abstract TScorer Scorer { get; set; }
+        /// <summary>
+        /// This class is more or less a thin wrapper over the <see cref="IDataScorerTransform"/> implementing
+        /// <see cref="RowToRowScorerBase"/>, which publicly is a deprecated concept as far as the public API is
+        /// concerned. Nonetheless, until we move all internal infrastructure to be truely transform based, we
+        /// retain this as a wrapper. Even though it is mutable, subclasses of this should set this only in
+        /// their constructor.
+        /// </summary>
+        [BestFriend]
+        private protected RowToRowScorerBase Scorer { get; set; }
 
         [BestFriend]
-        private protected PredictionTransformerBase(IHost host, TModel model, Schema trainSchema)
+        private protected PredictionTransformerBase(IHost host, TModel model, DataViewSchema trainSchema)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
@@ -99,16 +112,15 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Gets the output schema resulting from the <see cref="Transform(IDataView)"/>
         /// </summary>
-        /// <param name="inputSchema">The <see cref="Schema"/> of the input data.</param>
-        /// <returns>The resulting <see cref="Schema"/>.</returns>
-        public abstract Schema GetOutputSchema(Schema inputSchema);
+        /// <param name="inputSchema">The <see cref="DataViewSchema"/> of the input data.</param>
+        /// <returns>The resulting <see cref="DataViewSchema"/>.</returns>
+        public abstract DataViewSchema GetOutputSchema(DataViewSchema inputSchema);
 
         /// <summary>
         /// Transforms the input data.
         /// </summary>
         /// <param name="input">The input data.</param>
         /// <returns>The transformed <see cref="IDataView"/></returns>
-
         public IDataView Transform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
@@ -120,13 +132,17 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="inputSchema"></param>
         /// <returns></returns>
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return (IRowToRowMapper)Scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
         }
 
-        protected void SaveModel(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => SaveModel(ctx);
+
+        private protected abstract void SaveModel(ModelSaveContext ctx);
+
+        protected void SaveModelCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -149,10 +165,8 @@ namespace Microsoft.ML.Data
     /// Those are all the transformers that work with one feature column.
     /// </summary>
     /// <typeparam name="TModel">The model used to transform the data.</typeparam>
-    /// <typeparam name="TScorer">The scorer used on this PredictionTransformer.</typeparam>
-    public abstract class SingleFeaturePredictionTransformerBase<TModel, TScorer> : PredictionTransformerBase<TModel, TScorer>, ISingleFeaturePredictionTransformer<TModel>, ICanSaveModel
+    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
-        where TScorer : RowToRowScorerBase
     {
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
@@ -162,18 +176,16 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The type of the prediction transformer
         /// </summary>
-        public ColumnType FeatureColumnType { get; }
-
-        protected override TScorer Scorer { get; set; }
+        public DataViewType FeatureColumnType { get; }
 
         /// <summary>
-        /// Initializes a new reference of <see cref="SingleFeaturePredictionTransformerBase{TModel, TScorer}"/>.
+        /// Initializes a new reference of <see cref="SingleFeaturePredictionTransformerBase{TModel}"/>.
         /// </summary>
         /// <param name="host">The local instance of <see cref="IHost"/>.</param>
         /// <param name="model">The model used for scoring.</param>
         /// <param name="trainSchema">The schema of the training data.</param>
         /// <param name="featureColumn">The feature column name.</param>
-        private protected SingleFeaturePredictionTransformerBase(IHost host, TModel model, Schema trainSchema, string featureColumn)
+        private protected SingleFeaturePredictionTransformerBase(IHost host, TModel model, DataViewSchema trainSchema, string featureColumn)
             : base(host, model, trainSchema)
         {
             FeatureColumn = featureColumn;
@@ -202,7 +214,12 @@ namespace Microsoft.ML.Data
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, ModelAsPredictor);
         }
 
-        public override Schema GetOutputSchema(Schema inputSchema)
+        /// <summary>
+        ///  Schema propagation for this prediction transformer.
+        /// </summary>
+        /// <param name="inputSchema">The input schema to attempt to map.</param>
+        /// <returns>The output schema of the data, given an input schema like <paramref name="inputSchema"/>.</returns>
+        public sealed override DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -217,7 +234,7 @@ namespace Microsoft.ML.Data
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -226,11 +243,11 @@ namespace Microsoft.ML.Data
 
         protected virtual void SaveCore(ModelSaveContext ctx)
         {
-            SaveModel(ctx);
+            SaveModelCore(ctx);
             ctx.SaveStringOrNull(FeatureColumn);
         }
 
-        protected virtual GenericScorer GetGenericScorer()
+        private protected GenericScorer GetGenericScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
             return new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
@@ -241,14 +258,14 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on anomaly detection tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, BinaryClassifierScorer>
+    public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        internal readonly string ThresholdColumn;
+        internal readonly float Threshold;
 
         [BestFriend]
-        internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)),model, inputSchema, featureColumn)
         {
@@ -310,14 +327,14 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on binary classification tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, BinaryClassifierScorer>
+    public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        internal readonly string ThresholdColumn;
+        internal readonly float Threshold;
 
         [BestFriend]
-        internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
@@ -328,7 +345,7 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
-        public BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        internal BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
         {
             // *** Binary format ***
@@ -379,13 +396,13 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on multi-class classification tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class MulticlassPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, MultiClassClassifierScorer>
+    public sealed class MulticlassPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         private readonly string _trainLabelColumn;
 
         [BestFriend]
-        internal MulticlassPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn, string labelColumn)
+        internal MulticlassPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn, string labelColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckValueOrNull(labelColumn);
@@ -394,7 +411,7 @@ namespace Microsoft.ML.Data
             SetScorer();
         }
 
-        public MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        internal MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), ctx)
         {
             // *** Binary format ***
@@ -441,11 +458,11 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on regression tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class RegressionPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, GenericScorer>
+    public sealed class RegressionPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         [BestFriend]
-        internal RegressionPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn)
+        internal RegressionPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Scorer = GetGenericScorer();
@@ -483,11 +500,11 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on ranking tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, GenericScorer>
+    public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
     where TModel : class
     {
         [BestFriend]
-        internal RankingPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn)
+        internal RankingPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Scorer = GetGenericScorer();
@@ -525,11 +542,11 @@ namespace Microsoft.ML.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on clustering tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class ClusteringPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, ClusteringScorer>
+    public sealed class ClusteringPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
         [BestFriend]
-        internal ClusteringPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        internal ClusteringPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ClusteringPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {

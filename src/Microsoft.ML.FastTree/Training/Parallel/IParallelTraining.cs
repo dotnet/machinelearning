@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Trainers.FastTree.Internal;
 
 namespace Microsoft.ML.Trainers.FastTree
 {

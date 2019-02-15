@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -17,17 +18,17 @@ namespace Microsoft.ML.Transforms.TensorFlow
     public static class TensorFlowUtils
     {
         /// <summary>
-        /// Key to access operator's type (a string) in <see cref="Schema.Column.Metadata"/>.
-        /// Its value describes the Tensorflow operator that produces this <see cref="Schema.Column"/>.
+        /// Key to access operator's type (a string) in <see cref="DataViewSchema.Column.Metadata"/>.
+        /// Its value describes the Tensorflow operator that produces this <see cref="DataViewSchema.Column"/>.
         /// </summary>
         public const string TensorflowOperatorTypeKind = "TensorflowOperatorType";
         /// <summary>
-        /// Key to access upstream operators' names (a string array) in <see cref="Schema.Column.Metadata"/>.
-        /// Its value states operators that the associated <see cref="Schema.Column"/>'s generator depends on.
+        /// Key to access upstream operators' names (a string array) in <see cref="DataViewSchema.Column.Metadata"/>.
+        /// Its value states operators that the associated <see cref="DataViewSchema.Column"/>'s generator depends on.
         /// </summary>
         public const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
-        internal static Schema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
+        internal static DataViewSchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
             var schemaBuilder = new SchemaBuilder();
             foreach (var op in graph)
@@ -63,7 +64,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 //     can be missing.
                 var metadataBuilder = new MetadataBuilder();
                 // Create the first metadata field.
-                metadataBuilder.Add(TensorflowOperatorTypeKind, TextType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
+                metadataBuilder.Add(TensorflowOperatorTypeKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
                 if (op.NumInputs > 0)
                 {
                     // Put upstream operators' names to an array (type: VBuffer) of string (type: ReadOnlyMemory<char>).
@@ -74,7 +75,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     upstreamOperatorNames = bufferEditor.Commit(); // Used in metadata's getter.
 
                     // Create the second metadata field.
-                    metadataBuilder.Add(TensorflowUpstreamOperatorsKind, new VectorType(TextType.Instance, op.NumInputs),
+                    metadataBuilder.Add(TensorflowUpstreamOperatorsKind, new VectorType(TextDataViewType.Instance, op.NumInputs),
                         (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 
@@ -84,7 +85,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         /// <summary>
-        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="Schema"/>.
+        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="DataViewSchema"/>.
         /// For every node in the graph that has an output type that is compatible with the types supported by
         /// <see cref="TensorFlowTransformer"/>, the output schema contains a column with the name of that node, and the
         /// type of its output (including the item type and the shape, if it is known). Every column also contains metadata
@@ -93,7 +94,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
-        public static Schema GetModelSchema(IHostEnvironment env, string modelPath)
+        public static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath)
         {
             var model = LoadTensorFlowModel(env, modelPath);
             return GetModelSchema(env, model.Session.Graph);
@@ -101,14 +102,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         /// <summary>
         /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
-        /// iterates over the columns of the <see cref="Schema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
+        /// iterates over the columns of the <see cref="DataViewSchema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
         /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
         /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
         /// <returns></returns>
-        public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(IHostEnvironment env, string modelPath)
+        public static IEnumerable<(string, string, DataViewType, string[])> GetModelNodes(IHostEnvironment env, string modelPath)
         {
             var schema = GetModelSchema(env, modelPath);
 
@@ -118,14 +119,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 var type = schema[i].Type;
 
                 var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowOperatorTypeKind)?.Type;
-                Contracts.Assert(metadataType != null && metadataType is TextType);
+                Contracts.Assert(metadataType != null && metadataType is TextDataViewType);
                 ReadOnlyMemory<char> opType = default;
                 schema[i].Metadata.GetValue(TensorflowOperatorTypeKind, ref opType);
                 metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowUpstreamOperatorsKind)?.Type;
                 VBuffer<ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
-                    Contracts.Assert(metadataType.IsKnownSizeVector() && metadataType.GetItemType() is TextType);
+                    Contracts.Assert(metadataType.IsKnownSizeVector() && metadataType.GetItemType() is TextDataViewType);
                     schema[i].Metadata.GetValue(TensorflowUpstreamOperatorsKind, ref inputOps);
                 }
 
@@ -137,7 +138,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
-        internal static PrimitiveType Tf2MlNetType(TFDataType type)
+        internal static PrimitiveDataViewType Tf2MlNetType(TFDataType type)
         {
             var mlNetType = Tf2MlNetTypeOrNull(type);
             if (mlNetType == null)
@@ -145,34 +146,36 @@ namespace Microsoft.ML.Transforms.TensorFlow
             return mlNetType;
         }
 
-        private static PrimitiveType Tf2MlNetTypeOrNull(TFDataType type)
+        private static PrimitiveDataViewType Tf2MlNetTypeOrNull(TFDataType type)
         {
             switch (type)
             {
                 case TFDataType.Float:
-                    return NumberType.R4;
+                    return NumberDataViewType.Single;
                 case TFDataType.Float_ref:
-                    return NumberType.R4;
+                    return NumberDataViewType.Single;
                 case TFDataType.Double:
-                    return NumberType.R8;
+                    return NumberDataViewType.Double;
                 case TFDataType.UInt8:
-                    return NumberType.U1;
+                    return NumberDataViewType.Byte;
                 case TFDataType.UInt16:
-                    return NumberType.U2;
+                    return NumberDataViewType.UInt16;
                 case TFDataType.UInt32:
-                    return NumberType.U4;
+                    return NumberDataViewType.UInt32;
                 case TFDataType.UInt64:
-                    return NumberType.U8;
+                    return NumberDataViewType.UInt64;
                 case TFDataType.Int8:
-                    return NumberType.I1;
+                    return NumberDataViewType.SByte;
                 case TFDataType.Int16:
-                    return NumberType.I2;
+                    return NumberDataViewType.Int16;
                 case TFDataType.Int32:
-                    return NumberType.I4;
+                    return NumberDataViewType.Int32;
                 case TFDataType.Int64:
-                    return NumberType.I8;
+                    return NumberDataViewType.Int64;
                 case TFDataType.Bool:
-                    return BoolType.Instance;
+                    return BooleanDataViewType.Instance;
+                case TFDataType.String:
+                    return TextDataViewType.Instance;
                 default:
                     return null;
             }
@@ -361,6 +364,13 @@ namespace Microsoft.ML.Transforms.TensorFlow
             dataSpan.CopyTo(result);
         }
 
+        internal static unsafe void FetchStringData<T>(TFTensor tensor, Span<T> result)
+        {
+            var buffer = TFTensor.DecodeStringTensor(tensor);
+            for (int i = 0; i < buffer.Length; i++)
+                result[i] = (T)(object)Encoding.UTF8.GetString(buffer[i]).AsMemory();
+        }
+
         internal static bool IsTypeSupported(TFDataType tfoutput)
         {
             switch (tfoutput)
@@ -376,6 +386,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.Int32:
                 case TFDataType.Int64:
                 case TFDataType.Bool:
+                case TFDataType.String:
                     return true;
                 default:
                     return false;

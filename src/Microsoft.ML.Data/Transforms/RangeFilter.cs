@@ -16,7 +16,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 using Float = System.Single;
 
-[assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Options), typeof(SignatureDataTransform),
     RangeFilter.UserName, "RangeFilter")]
 
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), null, typeof(SignatureLoadDataTransform),
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms
     [BestFriend]
     internal sealed class RangeFilter : FilterBase
     {
-        public sealed class Arguments : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column", ShortName = "col", SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
             public string Column;
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms
         private const string RegistrationName = "RangeFilter";
 
         private readonly int _index;
-        private readonly ColumnType _type;
+        private readonly DataViewType _type;
         private readonly Double _min;
         private readonly Double _max;
         private readonly bool _complement;
@@ -91,46 +91,46 @@ namespace Microsoft.ML.Transforms
         /// <param name="upperBound">Maximum value (0 to 1 for key types).</param>
         /// <param name="includeUpperBound">Whether to include the upper bound.</param>
         public RangeFilter(IHostEnvironment env, IDataView input, string column, Double lowerBound, Double upperBound, bool includeUpperBound)
-            : this(env, new Arguments() { Column = column, Min = lowerBound, Max = upperBound, IncludeMax = includeUpperBound }, input)
+            : this(env, new Options() { Column = column, Min = lowerBound, Max = upperBound, IncludeMax = includeUpperBound }, input)
         {
         }
 
-        public RangeFilter(IHostEnvironment env, Arguments args, IDataView input)
+        public RangeFilter(IHostEnvironment env, Options options, IDataView input)
             : base(env, RegistrationName, input)
         {
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
             var schema = Source.Schema;
-            if (!schema.TryGetColumnIndex(args.Column, out _index))
-                throw Host.ExceptUserArg(nameof(args.Column), "Source column '{0}' not found", args.Column);
+            if (!schema.TryGetColumnIndex(options.Column, out _index))
+                throw Host.ExceptUserArg(nameof(options.Column), "Source column '{0}' not found", options.Column);
 
             using (var ch = Host.Start("Checking parameters"))
             {
                 _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
-                    throw ch.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible type", args.Column);
+                    throw ch.ExceptUserArg(nameof(options.Column), "Column '{0}' does not have compatible type", options.Column);
                 if (_type is KeyType)
                 {
-                    if (args.Min < 0)
+                    if (options.Min < 0)
                     {
                         ch.Warning("specified min less than zero, will be ignored");
-                        args.Min = null;
+                        options.Min = null;
                     }
-                    if (args.Max > 1)
+                    if (options.Max > 1)
                     {
                         ch.Warning("specified max greater than one, will be ignored");
-                        args.Max = null;
+                        options.Max = null;
                     }
                 }
-                if (args.Min == null && args.Max == null)
-                    throw ch.ExceptUserArg(nameof(args.Min), "At least one of min and max must be specified.");
-                _min = args.Min ?? Double.NegativeInfinity;
-                _max = args.Max ?? Double.PositiveInfinity;
+                if (options.Min == null && options.Max == null)
+                    throw ch.ExceptUserArg(nameof(options.Min), "At least one of min and max must be specified.");
+                _min = options.Min ?? Double.NegativeInfinity;
+                _max = options.Max ?? Double.PositiveInfinity;
                 if (!(_min <= _max))
-                    throw ch.ExceptUserArg(nameof(args.Min), "min must be less than or equal to max");
-                _complement = args.Complement;
-                _includeMin = args.IncludeMin;
-                _includeMax = args.IncludeMax ?? (args.Max == null || (_type is KeyType && _max >= 1));
+                    throw ch.ExceptUserArg(nameof(options.Min), "min must be less than or equal to max");
+                _complement = options.Complement;
+                _includeMin = options.IncludeMin;
+                _includeMax = options.IncludeMax ?? (options.Max == null || (_type is KeyType && _max >= 1));
             }
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptSchemaMismatch(nameof(schema), "source", column);
 
             _type = schema[_index].Type;
-            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.GetKeyCount() == 0)
+            if (_type != NumberDataViewType.Single && _type != NumberDataViewType.Double && _type.GetKeyCount() == 0)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "float, double or KeyType", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Transforms
             return h.Apply("Loading Model", ch => new RangeFilter(h, ctx, input));
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms
             return CreateCursorCore(input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
 
             Host.CheckValueOrNull(rand);
@@ -233,17 +233,17 @@ namespace Microsoft.ML.Transforms
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new RowCursor[inputs.Length];
+            var cursors = new DataViewRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = CreateCursorCore(inputs[i], active);
             return cursors;
         }
 
-        private RowCursor CreateCursorCore(RowCursor input, bool[] active)
+        private DataViewRowCursor CreateCursorCore(DataViewRowCursor input, bool[] active)
         {
-            if (_type == NumberType.R4)
+            if (_type == NumberDataViewType.Single)
                 return new SingleRowCursor(this, input, active);
-            if (_type == NumberType.R8)
+            if (_type == NumberDataViewType.Double)
                 return new DoubleRowCursor(this, input, active);
             Host.Assert(_type is KeyType);
             return RowCursorBase.CreateKeyRowCursor(this, input, active);
@@ -260,11 +260,11 @@ namespace Microsoft.ML.Transforms
             return col => activeInput[col];
         }
 
-        public static bool IsValidRangeFilterColumnType(IExceptionContext ectx, ColumnType type)
+        public static bool IsValidRangeFilterColumnType(IExceptionContext ectx, DataViewType type)
         {
             ectx.CheckValue(type, nameof(type));
 
-            return type == NumberType.R4 || type == NumberType.R8 || type.GetKeyCount() > 0;
+            return type == NumberDataViewType.Single || type == NumberDataViewType.Double || type.GetKeyCount() > 0;
         }
 
         private abstract class RowCursorBase : LinkedRowFilterCursorBase
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Transforms
             private readonly Double _min;
             private readonly Double _max;
 
-            protected RowCursorBase(RangeFilter parent, RowCursor input, bool[] active)
+            protected RowCursorBase(RangeFilter parent, DataViewRowCursor input, bool[] active)
                 : base(parent.Host, input, parent.OutputSchema, active)
             {
                 Parent = parent;
@@ -325,15 +325,15 @@ namespace Microsoft.ML.Transforms
                 return fn;
             }
 
-            public static RowCursor CreateKeyRowCursor(RangeFilter filter, RowCursor input, bool[] active)
+            public static DataViewRowCursor CreateKeyRowCursor(RangeFilter filter, DataViewRowCursor input, bool[] active)
             {
                 Contracts.Assert(filter._type is KeyType);
-                Func<RangeFilter, RowCursor, bool[], RowCursor> del = CreateKeyRowCursor<int>;
+                Func<RangeFilter, DataViewRowCursor, bool[], DataViewRowCursor> del = CreateKeyRowCursor<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(filter._type.RawType);
-                return (RowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
+                return (DataViewRowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
             }
 
-            private static RowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, RowCursor input, bool[] active)
+            private static DataViewRowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, DataViewRowCursor input, bool[] active)
             {
                 Contracts.Assert(filter._type is KeyType);
                 return new KeyRowCursor<TSrc>(filter, input, active);
@@ -346,10 +346,10 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<Single> _getter;
             private Single _value;
 
-            public SingleRowCursor(RangeFilter parent, RowCursor input, bool[] active)
+            public SingleRowCursor(RangeFilter parent, DataViewRowCursor input, bool[] active)
                 : base(parent, input, active)
             {
-                Ch.Assert(Parent._type == NumberType.R4);
+                Ch.Assert(Parent._type == NumberDataViewType.Single);
                 _srcGetter = Input.GetGetter<Single>(Parent._index);
                 _getter =
                     (ref Single value) =>
@@ -361,13 +361,13 @@ namespace Microsoft.ML.Transforms
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type == NumberType.R4);
+                Ch.Assert(Parent._type == NumberDataViewType.Single);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type == NumberType.R4);
+                Ch.Assert(Parent._type == NumberDataViewType.Single);
                 _srcGetter(ref _value);
                 return CheckBounds(_value);
             }
@@ -379,10 +379,10 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<Double> _getter;
             private Double _value;
 
-            public DoubleRowCursor(RangeFilter parent, RowCursor input, bool[] active)
+            public DoubleRowCursor(RangeFilter parent, DataViewRowCursor input, bool[] active)
                 : base(parent, input, active)
             {
-                Ch.Assert(Parent._type == NumberType.R8);
+                Ch.Assert(Parent._type == NumberDataViewType.Double);
                 _srcGetter = Input.GetGetter<Double>(Parent._index);
                 _getter =
                     (ref Double value) =>
@@ -394,13 +394,13 @@ namespace Microsoft.ML.Transforms
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type == NumberType.R8);
+                Ch.Assert(Parent._type == NumberDataViewType.Double);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type == NumberType.R8);
+                Ch.Assert(Parent._type == NumberDataViewType.Double);
                 _srcGetter(ref _value);
                 return CheckBounds(_value);
             }
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueMapper<T, ulong> _conv;
             private readonly ulong _count;
 
-            public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
+            public KeyRowCursor(RangeFilter parent, DataViewRowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type.GetKeyCount() > 0);
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Transforms
                         dst = _value;
                     };
                 bool identity;
-                _conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
+                _conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberDataViewType.UInt64, out identity);
             }
 
             protected override Delegate GetGetter()

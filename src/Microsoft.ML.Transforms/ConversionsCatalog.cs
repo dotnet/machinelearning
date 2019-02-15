@@ -14,16 +14,16 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        ///  Convert the key types back to binary verctor.
+        ///  Convert the key types back to binary vector.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="columns">The input column.</param>
         public static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.ConversionTransforms catalog,
-            params KeyToBinaryVectorMappingTransformer.ColumnInfo[] columns)
+            params (string outputColumnName, string inputColumnName)[] columns)
             => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        ///  Convert the key types back to binary verctor.
+        ///  Convert the key types back to binary vector.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>

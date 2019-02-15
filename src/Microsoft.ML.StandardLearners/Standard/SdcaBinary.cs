@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
@@ -18,16 +17,15 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(SdcaBinaryTrainer), typeof(SdcaBinaryTrainer.Options),
+[assembly: LoadableClass(typeof(LegacySdcaBinaryTrainer), typeof(LegacySdcaBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    SdcaBinaryTrainer.UserNameValue,
-    SdcaBinaryTrainer.LoadNameValue,
+    LegacySdcaBinaryTrainer.UserNameValue,
+    LegacySdcaBinaryTrainer.LoadNameValue,
     "LinearClassifier",
     "lc",
     "sasdca")]
@@ -77,7 +75,7 @@ namespace Microsoft.ML.Trainers
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
+                var linInitPred = (initPred as IWeaklyTypedCalibratedModelParameters)?.WeeklyTypedSubModel as LinearModelParameters;
                 linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
@@ -247,19 +245,19 @@ namespace Microsoft.ML.Trainers
 
         private const string RegisterName = nameof(SdcaTrainerBase<TArgs, TTransformer, TModel>);
 
-        private static TArgs ArgsInit(string featureColumn, SchemaShape.Column labelColumn)
+        private static TArgs ArgsInit(string featureColumnName, SchemaShape.Column labelColumn)
         {
             var args = new TArgs();
 
-            args.FeatureColumn = featureColumn;
+            args.FeatureColumn = featureColumnName;
             args.LabelColumn = labelColumn.Name;
             return args;
         }
 
-        internal SdcaTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
+        internal SdcaTrainerBase(IHostEnvironment env, string featureColumnName, SchemaShape.Column labelColumn,
            SchemaShape.Column weight = default, float? l2Const = null,
             float? l1Threshold = null, int? maxIterations = null)
-          : this(env, ArgsInit(featureColumn, labelColumn), labelColumn, weight, l2Const, l1Threshold, maxIterations)
+          : this(env, ArgsInit(featureColumnName, labelColumn), labelColumn, weight, l2Const, l1Threshold, maxIterations)
         {
         }
 
@@ -350,7 +348,7 @@ namespace Microsoft.ML.Trainers
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, count));
                 while (cursor.MoveNext())
                 {
-                    RowId id = cursor.Id;
+                    DataViewRowId id = cursor.Id;
                     if (id.High > 0 || id.Low >= (ulong)maxTrainingExamples)
                     {
                         needLookup = true;
@@ -531,7 +529,7 @@ namespace Microsoft.ML.Trainers
             if (invariants != null)
             {
                 Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
-                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 int invariantCoeff = weightSetCount == 1 ? 1 : 2;
                 using (var cursor = cursorFactory.Create())
                 using (var pch = Host.StartProgressChannel("SDCA invariants initialization"))
@@ -772,7 +770,7 @@ namespace Microsoft.ML.Trainers
                 if (pch != null)
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, rowCount));
 
-                Func<RowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
+                Func<DataViewRowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
@@ -934,7 +932,7 @@ namespace Microsoft.ML.Trainers
             using (var cursor = cursorFactory.Create())
             {
                 long row = 0;
-                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<DataViewRowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
@@ -1069,13 +1067,13 @@ namespace Microsoft.ML.Trainers
         /// Returns a function delegate to retrieve index from id.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<RowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
+        protected Func<DataViewRowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
-                return (RowId id) =>
+                return (DataViewRowId id) =>
                 {
                     Contracts.Assert(id.High == 0);
                     Contracts.Assert((long)id.Low < maxTrainingExamples);
@@ -1084,7 +1082,7 @@ namespace Microsoft.ML.Trainers
             }
             else
             {
-                return (RowId id) =>
+                return (DataViewRowId id) =>
                 {
                     long idx;
                     bool found = idToIdx.TryGetIndex(id, out idx);
@@ -1100,13 +1098,13 @@ namespace Microsoft.ML.Trainers
         /// Only works if the cursor is not shuffled.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<RowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
+        protected Func<DataViewRowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
-                return (RowId id, long row) =>
+                return (DataViewRowId id, long row) =>
                 {
                     Contracts.Assert(id.High == 0);
                     Contracts.Assert((long)id.Low < maxTrainingExamples);
@@ -1115,7 +1113,7 @@ namespace Microsoft.ML.Trainers
             }
             else
             {
-                return (RowId id, long row) =>
+                return (DataViewRowId id, long row) =>
                 {
 #if DEBUG
                     long idx;
@@ -1134,7 +1132,7 @@ namespace Microsoft.ML.Trainers
         // This class can also be made to accommodate generic type, as long as the type implements a
         // good 64-bit hash function.
         /// <summary>
-        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Data.RowId"/>,
+        /// A hash table data structure to store Id of type <see cref="T:Microsoft.Data.DataView.DataViewRowId"/>,
         /// and accommodates size larger than 2 billion. This class is an extension based on BCL.
         /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity.
         /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than
@@ -1148,9 +1146,9 @@ namespace Microsoft.ML.Trainers
             private readonly struct Entry
             {
                 public readonly long ItNext;
-                public readonly RowId Value;
+                public readonly DataViewRowId Value;
 
-                public Entry(long itNext, RowId value)
+                public Entry(long itNext, DataViewRowId value)
                 {
                     ItNext = itNext;
                     Value = value;
@@ -1187,7 +1185,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Make sure the given id is in this lookup table and return the index of the id.
             /// </summary>
-            public long Add(RowId id)
+            public long Add(DataViewRowId id)
             {
                 long iit = GetIit(Get64BitHashCode(id));
                 long index = GetIndexCore(id, iit);
@@ -1202,7 +1200,7 @@ namespace Microsoft.ML.Trainers
             /// Returns a bool representing if id is present.
             /// Index outputs the index that the id, -1 otherwise.
             /// </summary>
-            public bool TryGetIndex(RowId id, out long index)
+            public bool TryGetIndex(DataViewRowId id, out long index)
             {
                 AssertValid();
                 index = GetIndexCore(id, GetIit(Get64BitHashCode(id)));
@@ -1217,7 +1215,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Return the index of value, -1 if it is not present.
             /// </summary>
-            private long GetIndexCore(RowId val, long iit)
+            private long GetIndexCore(DataViewRowId val, long iit)
             {
                 Contracts.Assert(0 <= iit & iit < _rgit.Length);
                 long it = _rgit[iit];
@@ -1238,7 +1236,7 @@ namespace Microsoft.ML.Trainers
             /// Adds the value as a TItem. Does not check whether the TItem is already present.
             /// Returns the index of the added value.
             /// </summary>
-            private long AddCore(RowId val, long iit)
+            private long AddCore(DataViewRowId val, long iit)
             {
                 AssertValid();
                 Contracts.Assert(0 <= iit && iit < _rgit.Length);
@@ -1286,7 +1284,7 @@ namespace Microsoft.ML.Trainers
                 _entries.ApplyRange(0, _count,
                     (long it, ref Entry entry) =>
                     {
-                        RowId value = entry.Value;
+                        DataViewRowId value = entry.Value;
                         long iit = GetIit(Get64BitHashCode(entry.Value));
                         entry = new Entry(_rgit[iit], value);
                         _rgit[iit] = it;
@@ -1313,7 +1311,7 @@ namespace Microsoft.ML.Trainers
                 Console.WriteLine("Table: {0} out of {1}", c, _rgit.Length);
             }
 
-            private static long Get64BitHashCode(RowId value)
+            private static long Get64BitHashCode(DataViewRowId value)
             {
                 // REVIEW: Is this a good way to compute hash?
                 ulong lo = value.Low;
@@ -1395,32 +1393,18 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public sealed class SdcaBinaryTrainer : SdcaTrainerBase<SdcaBinaryTrainer.Options, BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
+    /// <summary>
+    /// SDCA is a general training algorithm for (generalized) linear models such as support vector machine, linear regression, logistic regression,
+    /// and so on. SDCA binary classification trainer family includes several sealed members:
+    /// (1) <see cref="SdcaNonCalibratedBinaryTrainer"/> supports general loss functions and returns <see cref="LinearBinaryModelParameters"/>.
+    /// (2) <see cref="SdcaBinaryTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
+    /// naturally provide probability output, this generated model's type is <see cref="CalibratedModelParametersBase{TSubModel, TCalibrator}"/>.
+    /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
+    /// </summary>
+    public abstract class SdcaBinaryTrainerBase<TModelParameters> :
+        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
+        where TModelParameters : class, IPredictorProducing<float>
     {
-        internal const string LoadNameValue = "SDCA";
-        internal const string UserNameValue = "Fast Linear (SA-SDCA)";
-
-        public sealed class Options : ArgumentsBase
-        {
-            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
-            public float PositiveInstanceWeight = 1;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
-
-            internal override void Check(IHostEnvironment env)
-            {
-                base.Check(env);
-                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Weight for positive instances must be positive");
-            }
-        }
-
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
 
@@ -1434,104 +1418,60 @@ namespace Microsoft.ML.Trainers
 
         public override TrainerInfo Info { get; }
 
+        public class BinaryArgumentBase : ArgumentsBase
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
+            public float PositiveInstanceWeight = 1;
+
+            internal override void Check(IHostEnvironment env)
+            {
+                base.Check(env);
+                env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Weight for positive instances must be positive");
+            }
+        }
+
         /// <summary>
-        /// Initializes a new instance of <see cref="SdcaBinaryTrainer"/>
+        /// Initializes a new instance of <see cref="SdcaBinaryTrainerBase{TModelParameters}"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="labelColumn">The label, or dependent variable.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="labelColumnName">The label, or dependent variable.</param>
+        /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="loss">The custom loss.</param>
-        /// <param name="weightColumn">The optional example weights.</param>
+        /// <param name="weightColumnName">The optional example weights.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        internal SdcaBinaryTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weightColumn = null,
+        protected SdcaBinaryTrainerBase(IHostEnvironment env,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
             ISupportSdcaClassificationLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null)
-             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn),
+             : base(env, featureColumnName, TrainerUtils.MakeBoolScalarLabel(labelColumnName), TrainerUtils.MakeR4ScalarWeightColumn(weightColumnName),
                    l2Const, l1Threshold, maxIterations)
         {
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? Args.LossFunction.CreateComponent(env);
+            Host.CheckNonEmpty(featureColumnName, nameof(featureColumnName));
+            Host.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
+            _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
+            Info = new TrainerInfo(calibration: false);
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
-
-            var outCols = new List<SchemaShape.Column>()
-            {
-                    new SchemaShape.Column(
-                        DefaultColumnNames.Score,
-                        SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.R4,
-                        false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
-                    ),
-                    new SchemaShape.Column(
-                        DefaultColumnNames.PredictedLabel,
-                        SchemaShape.Column.VectorKind.Scalar,
-                        BoolType.Instance,
-                        false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-
-            };
-
-            if (!Info.NeedCalibration)
-            {
-                outCols.Insert(1, new SchemaShape.Column(
-                    DefaultColumnNames.Probability,
-                    SchemaShape.Column.VectorKind.Scalar,
-                    NumberType.R4,
-                    false,
-                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
-            };
-
-            _outputColumns = outCols.ToArray();
+            _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        internal SdcaBinaryTrainer(IHostEnvironment env, Options options)
+        protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
-            _loss = options.LossFunction.CreateComponent(env);
+            _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
+            Info = new TrainerInfo(calibration: doCalibration);
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
-
-            var outCols = new List<SchemaShape.Column>()
-            {
-                    new SchemaShape.Column(
-                        DefaultColumnNames.Score,
-                        SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.R4,
-                        false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
-                    ),
-                    new SchemaShape.Column(
-                        DefaultColumnNames.PredictedLabel,
-                        SchemaShape.Column.VectorKind.Scalar,
-                        BoolType.Instance,
-                        false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-
-            };
-
-            if (!Info.NeedCalibration)
-            {
-                outCols.Insert(1, new SchemaShape.Column(
-                    DefaultColumnNames.Probability,
-                    SchemaShape.Column.VectorKind.Scalar,
-                    NumberType.R4,
-                    false,
-                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
-            };
-
-            _outputColumns = outCols.ToArray();
+            _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
+
+        protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
 
         protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
@@ -1543,11 +1483,11 @@ namespace Microsoft.ML.Trainers
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
 
-            if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4 && labelCol.ItemType != NumberType.R8 && !(labelCol.ItemType is BoolType))
+            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single && labelCol.ItemType != NumberDataViewType.Double && !(labelCol.ItemType is BooleanDataViewType))
                 error();
         }
 
-        protected override TScalarPredictor CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -1556,12 +1496,9 @@ namespace Microsoft.ML.Trainers
             VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
 
-            var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
-            if (Info.NeedCalibration)
-                return predictor;
-            return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
+            return new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
         }
 
         private protected override float GetInstanceWeight(FloatLabelCursor cursor)
@@ -1575,8 +1512,208 @@ namespace Microsoft.ML.Trainers
             weightSetCount = 1;
         }
 
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
-            => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, DataViewSchema trainSchema)
+            => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
+    }
+
+    public sealed class SdcaBinaryTrainer :
+        SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
+    {
+        /// <summary>
+        /// Configuration to training logistic regression using SDCA.
+        /// </summary>
+        public sealed class Options : BinaryArgumentBase
+        {
+        }
+
+        internal SdcaBinaryTrainer(IHostEnvironment env,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null)
+             : base(env, labelColumnName, featureColumnName, weightColumnName, new LogLoss(), l2Const, l1Threshold, maxIterations)
+        {
+        }
+
+        internal SdcaBinaryTrainer(IHostEnvironment env, Options options)
+            : base(env, options, new LogLoss())
+        {
+        }
+
+        protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        {
+            var linearModel = CreateLinearBinaryModelParameters(weights, bias);
+            var calibrator = new PlattCalibrator(Host, -1, 0);
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, linearModel, calibrator);
+        }
+
+        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        {
+            return new SchemaShape.Column[]
+            {
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberDataViewType.Single,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Probability,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberDataViewType.Single,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BooleanDataViewType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+
+            };
+        }
+    }
+
+    public sealed class SdcaNonCalibratedBinaryTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
+    {
+        /// <summary>
+        /// General Configuration to training linear model using SDCA.
+        /// </summary>
+        public sealed class Options : BinaryArgumentBase
+        {
+            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+        }
+
+        internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string weightColumnName = null,
+            ISupportSdcaClassificationLoss loss = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null)
+             : base(env, labelColumnName, featureColumnName, weightColumnName, loss, l2Const, l1Threshold, maxIterations)
+        {
+        }
+
+        internal SdcaNonCalibratedBinaryTrainer(IHostEnvironment env, Options options)
+            : base(env, options, options.LossFunction.CreateComponent(env))
+        {
+        }
+
+        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        {
+            return new SchemaShape.Column[]
+            {
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberDataViewType.Single,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                    ),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BooleanDataViewType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        /// <summary>
+        /// Comparing with <see cref="SdcaBinaryTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
+        /// <see cref="CreatePredictor"/> directly outputs a <see cref="LinearBinaryModelParameters"/> built from
+        /// the learned weights and bias without calibration.
+        /// </summary>
+        protected override LinearBinaryModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+            => CreateLinearBinaryModelParameters(weights, bias);
+    }
+
+    /// <summary>
+    /// <see cref="LegacySdcaBinaryTrainer"/> is used to support classical command line tools where model is weakly-typed to
+    /// <see cref="IPredictorWithFeatureWeights{TResult}"/>. Please do NOT use it whenever possible.
+    /// </summary>
+    internal sealed class LegacySdcaBinaryTrainer : SdcaBinaryTrainerBase<IPredictorWithFeatureWeights<float>>
+    {
+        internal const string LoadNameValue = "SDCA";
+        internal const string UserNameValue = "Fast Linear (SA-SDCA)";
+
+        /// <summary>
+        /// Legacy configuration to SDCA in legacy framework.
+        /// </summary>
+        public sealed class Options : BinaryArgumentBase
+        {
+            [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
+            public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public int MaxCalibrationExamples = 1000000;
+        }
+
+        internal LegacySdcaBinaryTrainer(IHostEnvironment env, Options options)
+            : base(env, options, options.LossFunction.CreateComponent(env), !(options.LossFunction is LogLossFactory))
+        {
+        }
+
+        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        {
+            var outCols = new List<SchemaShape.Column>()
+            {
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberDataViewType.Single,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                    ),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BooleanDataViewType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+
+            };
+
+            if (!Info.NeedCalibration)
+            {
+                outCols.Insert(1, new SchemaShape.Column(
+                    DefaultColumnNames.Probability,
+                    SchemaShape.Column.VectorKind.Scalar,
+                    NumberDataViewType.Single,
+                    false,
+                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
+            };
+
+            return outCols.ToArray();
+        }
+
+        /// <summary>
+        /// Weekly-typed function to create calibrated or uncalibrated predictors.
+        /// </summary>
+        protected override IPredictorWithFeatureWeights<float> CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        {
+            Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
+            Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
+            Host.CheckParam(weights[0].Length > 0, nameof(weights));
+
+            VBuffer<float> maybeSparseWeights = default;
+            // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
+            VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
+
+            var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
+            if (Info.NeedCalibration)
+                return predictor;
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, predictor, new PlattCalibrator(Host, -1, 0));
+        }
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :
@@ -1625,10 +1762,10 @@ namespace Microsoft.ML.Trainers
             public int? CheckFrequency;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
+            internal int MaxCalibrationExamples = 1000000;
 
             internal void Check(IHostEnvironment env)
             {
@@ -1730,13 +1867,13 @@ namespace Microsoft.ML.Trainers
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
+        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
@@ -1927,11 +2064,11 @@ namespace Microsoft.ML.Trainers
             VectorUtils.ScaleBy(ref weights, (float)weightScaling); // restore the true weights
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberDataViewType.Single));
             var pred = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;
-            return new ParameterMixingCalibratedPredictor(Host, pred, new PlattCalibrator(Host, -1, 0));
+            return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, pred, new PlattCalibrator(Host, -1, 0));
         }
 
         private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
@@ -1964,17 +2101,17 @@ namespace Microsoft.ML.Trainers
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
             Desc = "Train an SDCA binary model.",
-            UserName = SdcaBinaryTrainer.UserNameValue,
-            ShortName = SdcaBinaryTrainer.LoadNameValue)]
-        internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, SdcaBinaryTrainer.Options input)
+            UserName = LegacySdcaBinaryTrainer.UserNameValue,
+            ShortName = LegacySdcaBinaryTrainer.LoadNameValue)]
+        internal static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LegacySdcaBinaryTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSDCA");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<SdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new SdcaBinaryTrainer(host, input),
+            return LearnerEntryPointsUtils.Train<LegacySdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new LegacySdcaBinaryTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
