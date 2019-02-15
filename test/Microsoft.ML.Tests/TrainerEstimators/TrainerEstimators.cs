@@ -88,13 +88,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGD()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Weight:0),
-                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Weight=0 })};
+            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Weight: 0, maxIterations: 80),
+                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Weight = 0, MaxIterations = 80})};
 
             foreach (var trainer in trainers)
             {
-                var pipeWithTrainer = pipe.Append(trainer);
+                (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+
+                var pipeWithTrainer = pipe.AppendCacheCheckpoint(Env).Append(trainer);
                 TestEstimatorCore(pipeWithTrainer, dataView);
 
                 var transformedDataView = pipe.Fit(dataView).Transform(dataView);
@@ -103,10 +104,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TestEstimatorCore(pipe, dataView);
 
                 var result = model.Transform(transformedDataView);
-                var metrics = ML.BinaryClassification.EvaluateNonCalibrated(result);
+                var metrics = ML.BinaryClassification.Evaluate(result);
 
-                Assert.InRange(metrics.Accuracy, 0.7, 1);
-                Assert.InRange(metrics.Auc, 0.85, 1);
+                Assert.InRange(metrics.Accuracy, 0.8, 1);
+                Assert.InRange(metrics.Auc, 0.9, 1);
+                Assert.InRange(metrics.LogLoss, 0, 0.6);
             }
 
             Done();
@@ -118,13 +120,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGDNonCalibrated()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
             var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(loss : new SmoothedHingeLoss()),
                 ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(new Trainers.SgdNonCalibratedBinaryTrainer.Options() { Loss = new HingeLoss() }) };
 
             foreach (var trainer in trainers)
             {
-                var pipeWithTrainer = pipe.Append(trainer);
+                (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+                var pipeWithTrainer = pipe.AppendCacheCheckpoint(Env).Append(trainer);
                 TestEstimatorCore(pipeWithTrainer, dataView);
 
                 var transformedDataView = pipe.Fit(dataView).Transform(dataView);

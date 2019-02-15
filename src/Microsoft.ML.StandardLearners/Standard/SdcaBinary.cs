@@ -1715,9 +1715,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public abstract class SgdBinaryTrainerBase<TModelParameters> :
-        LinearTrainerBase<BinaryPredictionTransformer<TModelParameters>, TModelParameters>
-        where TModelParameters : class, IPredictorProducing<float>
+    public abstract class SgdBinaryTrainerBase<TModel> :
+        LinearTrainerBase<BinaryPredictionTransformer<TModel>, TModel>
+        where TModel : class, IPredictorProducing<float>
     {
         public class OptionsBase : LearnerInputBaseWithWeight
         {
@@ -1848,19 +1848,19 @@ namespace Microsoft.ML.Trainers
             _options = options;
         }
 
-        protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, DataViewSchema trainSchema)
-            => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<TModel> MakeTransformer(TModel model, DataViewSchema trainSchema)
+            => new BinaryPredictionTransformer<TModel>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
         /// Continues the training of a <see cref="SdcaBinaryTrainer"/> using an initial predictor and returns a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
-        public BinaryPredictionTransformer<TModelParameters> Fit(IDataView trainData, IPredictor initialPredictor = null)
+        public BinaryPredictionTransformer<TModel> Fit(IDataView trainData, IPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         //For complexity analysis, we assume that
         // - The number of features is N
         // - Average number of non-zero per instance is k
-        private protected override TModelParameters TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
+        private protected override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.AssertValue(data);
             Contracts.Assert(weightSetCount == 1);
@@ -2053,7 +2053,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="weights">Weights of linear model.</param>
         /// <param name="bias">Bias of linear model.</param>
         /// <returns>A model built upon weights and bias. It can be as simple as a <see cref="LinearBinaryModelParameters"/>.</returns>
-        protected abstract TModelParameters CreateModel(VBuffer<float> weights, float bias);
+        protected abstract TModel CreateModel(VBuffer<float> weights, float bias);
 
         /// <summary>
         /// A helper function used to create <see cref="LinearBinaryModelParameters"/> in implementations of <see cref="CreateModel(VBuffer{float}, float)"/>.
@@ -2106,7 +2106,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         internal SgdBinaryTrainer(IHostEnvironment env, Options options)
-            : base(env, options, new LogLoss())
+            : base(env, options, loss: new LogLoss(), doCalibration: false)
         {
         }
 
@@ -2169,7 +2169,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         internal SgdNonCalibratedBinaryTrainer(IHostEnvironment env, Options options)
-            : base(env, options, options.Loss)
+            : base(env, options, loss: options.Loss, doCalibration: false)
         {
         }
 
