@@ -201,13 +201,13 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, true, 2f / 255, 127.5f).Transform(cropped);
-            IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+            IDataView backToBitmaps = VectorToImageConvertingTransformer.Create(env, new VectorToImageConvertingTransformer.Options()
             {
                 InterleaveArgb = true,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Columns = new VectorToImageTransform.Column[1]{
-                        new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
+                Columns = new VectorToImageConvertingTransformer.Column[1]{
+                        new VectorToImageConvertingTransformer.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
 
@@ -268,13 +268,13 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.Rgb, true, 2f / 255, 127.5f).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+            IDataView backToBitmaps = VectorToImageConvertingTransformer.Create(env, new VectorToImageConvertingTransformer.Options()
             {
                 InterleaveArgb = true,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Columns = new VectorToImageTransform.Column[1]{
-                        new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
+                Columns = new VectorToImageConvertingTransformer.Column[1]{
+                        new VectorToImageConvertingTransformer.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
 
@@ -335,13 +335,13 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, false, 2f / 255, 127.5f).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+            IDataView backToBitmaps = VectorToImageConvertingTransformer.Create(env, new VectorToImageConvertingTransformer.Options()
             {
                 InterleaveArgb = false,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Columns = new VectorToImageTransform.Column[1]{
-                        new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
+                Columns = new VectorToImageConvertingTransformer.Column[1]{
+                        new VectorToImageConvertingTransformer.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
 
@@ -402,13 +402,13 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.Rgb, false, 2f / 255, 127.5f).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+            IDataView backToBitmaps = VectorToImageConvertingTransformer.Create(env, new VectorToImageConvertingTransformer.Options()
             {
                 InterleaveArgb = false,
                 Offset = -1f,
                 Scale = 255f / 2,
-                Columns = new VectorToImageTransform.Column[1]{
-                        new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
+                Columns = new VectorToImageConvertingTransformer.Column[1]{
+                        new VectorToImageConvertingTransformer.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
 
@@ -470,11 +470,11 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, true).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+            IDataView backToBitmaps = VectorToImageConvertingTransformer.Create(env, new VectorToImageConvertingTransformer.Options()
             {
                 InterleaveArgb = true,
-                Columns = new VectorToImageTransform.Column[1]{
-                        new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
+                Columns = new VectorToImageConvertingTransformer.Column[1]{
+                        new VectorToImageConvertingTransformer.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
 
@@ -536,11 +536,11 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.Rgb, true).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+            IDataView backToBitmaps = VectorToImageConvertingTransformer.Create(env, new VectorToImageConvertingTransformer.Options()
             {
                 InterleaveArgb = true,
-                Columns = new VectorToImageTransform.Column[1]{
-                        new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
+                Columns = new VectorToImageConvertingTransformer.Column[1]{
+                        new VectorToImageConvertingTransformer.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
 
@@ -602,11 +602,11 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+            IDataView backToBitmaps = VectorToImageConvertingTransformer.Create(env, new VectorToImageConvertingTransformer.Options()
             {
                 InterleaveArgb = false,
-                Columns = new VectorToImageTransform.Column[1]{
-                        new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
+                Columns = new VectorToImageConvertingTransformer.Column[1]{
+                        new VectorToImageConvertingTransformer.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
             }, pixels);
 
@@ -667,11 +667,11 @@ namespace Microsoft.ML.Tests
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped").Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+            IDataView backToBitmaps = VectorToImageConvertingTransformer.Create(env, new VectorToImageConvertingTransformer.Options()
             {
                 InterleaveArgb = false,
-                Columns = new VectorToImageTransform.Column[1]{
-                        new VectorToImageTransform.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
+                Columns = new VectorToImageConvertingTransformer.Column[1]{
+                        new VectorToImageConvertingTransformer.Column() {  Name = "ImageRestored" , Source= "ImagePixels", ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
                     }
             }, pixels);
 

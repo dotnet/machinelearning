@@ -63,12 +63,12 @@ namespace Microsoft.ML.ImageAnalytics.EntryPoints
             };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.VectorToImage", Desc = VectorToImageTransform.Summary,
-            UserName = VectorToImageTransform.UserName, ShortName = VectorToImageTransform.LoaderSignature)]
-        public static CommonOutputs.TransformOutput VectorToImage(IHostEnvironment env, VectorToImageTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.VectorToImage", Desc = VectorToImageConvertingTransformer.Summary,
+            UserName = VectorToImageConvertingTransformer.UserName, ShortName = VectorToImageConvertingTransformer.LoaderSignature)]
+        public static CommonOutputs.TransformOutput VectorToImage(IHostEnvironment env, VectorToImageConvertingTransformer.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "VectorToImageTransform", input);
-            var xf = new VectorToImageTransform(h, input, input.Data);
+            var xf = VectorToImageConvertingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, xf, input.Data),
