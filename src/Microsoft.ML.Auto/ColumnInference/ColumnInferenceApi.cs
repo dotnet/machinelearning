@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -16,13 +15,7 @@ namespace Microsoft.ML.Auto
         {
             var sample = TextFileSample.CreateFromFullFile(path);
             var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
-            var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader);
-
-            // If label column index > inferred # of columns, throw error
-            if (labelColumnIndex >= typeInference.Columns.Count())
-            {
-                throw new ArgumentOutOfRangeException(nameof(labelColumnIndex), $"Label column index ({labelColumnIndex}) is >= than # of inferred columns ({typeInference.Columns.Count()}).");
-            }
+            var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader, labelColumnIndex, null);
 
             // if no column is named label,
             // rename label column to default ML.NET label column name
@@ -40,7 +33,7 @@ namespace Microsoft.ML.Auto
         {
             var sample = TextFileSample.CreateFromFullFile(path);
             var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
-            var typeInference = InferColumnTypes(context, sample, splitInference, true);
+            var typeInference = InferColumnTypes(context, sample, splitInference, true, null, label);
             return InferColumns(context, path, label, true, splitInference, typeInference, trimWhitespace, groupColumns);
         }
 
@@ -49,10 +42,6 @@ namespace Microsoft.ML.Auto
             bool trimWhitespace, bool groupColumns)
         {
             var loaderColumns = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns);
-            if (!loaderColumns.Any(t => label.Equals(t.Name)))
-            {
-                throw new InferenceException(InferenceType.Label, $"Specified Label Column '{label}' was not found.");
-            }
             var typedLoaderArgs = new TextLoader.Arguments
             {
                 Column = loaderColumns,
@@ -121,7 +110,7 @@ namespace Microsoft.ML.Auto
         }
 
         private static ColumnTypeInference.InferenceResult InferColumnTypes(MLContext context, TextFileSample sample,
-            TextFileContents.ColumnSplitResult splitInference, bool hasHeader)
+            TextFileContents.ColumnSplitResult splitInference, bool hasHeader, uint? labelColumnIndex, string label)
         {
             // infer column types
             var typeInferenceResult = ColumnTypeInference.InferTextFileColumnTypes(context, sample,
@@ -131,7 +120,9 @@ namespace Microsoft.ML.Auto
                     Separator = splitInference.Separator.Value,
                     AllowSparse = splitInference.AllowSparse,
                     AllowQuote = splitInference.AllowQuote,
-                    HasHeader = hasHeader
+                    HasHeader = hasHeader,
+                    LabelColumnIndex = labelColumnIndex,
+                    Label = label
                 });
 
             if (!typeInferenceResult.IsSuccess)

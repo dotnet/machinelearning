@@ -18,4 +18,16 @@
     <ProjectReference Include="..\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestData\NameColumnIsOnlyFeatureDataset.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\BinaryDatasetWithBoolColumn.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\DatasetWithEmptyColumn.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

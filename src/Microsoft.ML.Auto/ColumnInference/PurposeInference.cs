@@ -171,7 +171,9 @@ namespace Microsoft.ML.Auto
                             Double avgSpaces = 1.0 * sumSpaces / data.Length;
                             if (cardinalityRatio < 0.7 || seen.Count < 100)
                                 column.SuggestedPurpose = ColumnPurpose.CategoricalFeature;
-                            else if (cardinalityRatio >= 0.85 && (avgLength > 30 || avgSpaces >= 1))
+                            // (note: the columns.Count() == 1 condition below, in case a dataset has only
+                            // a 'name' and a 'label' column, forces what would be a 'name' column to become a text feature)
+                            else if (cardinalityRatio >= 0.85 && (avgLength > 30 || avgSpaces >= 1 || columns.Count() == 1))
                                 column.SuggestedPurpose = ColumnPurpose.TextFeature;
                             else if (cardinalityRatio >= 0.9)
                                 column.SuggestedPurpose = ColumnPurpose.Name;

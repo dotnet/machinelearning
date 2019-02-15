@@ -34,18 +34,13 @@ namespace Microsoft.ML.Auto
             ValidatePath(path);
         }
 
-        public static void ValidateAutoReadArgs(string path, string label)
-        {
-            ValidateLabel(label);
-            ValidatePath(path);
-        }
-
         private static void ValidateTrainData(IDataView trainData)
         {
             if (trainData == null)
             {
                 throw new ArgumentNullException(nameof(trainData), "Training data cannot be null");
             }
+
             var type = trainData.Schema.GetColumnOrNull(DefaultColumnNames.Features)?.Type.GetItemType();
             if (type != null && type != NumberType.R4)
             {

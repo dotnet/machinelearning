@@ -30,6 +30,8 @@ namespace Microsoft.ML.Auto
             public int ColumnCount;
             public bool HasHeader;
             public int MaxRowsToRead;
+            public uint? LabelColumnIndex;
+            public string Label;
 
             public Arguments()
             {
@@ -68,13 +70,31 @@ namespace Microsoft.ML.Auto
             }
 
             public ReadOnlyMemory<char>[] RawData { get { return _data; } }
+
+            public string Name { get; set; }
+
+            public bool HasAllBooleanValues()
+            {
+                if (this.RawData.Skip(1)
+                    .All(x => {
+                        bool value;
+                        // (note: Conversions.TryParse parses an empty string as a Boolean)
+                        return !string.IsNullOrEmpty(x.ToString()) &&
+                            Conversions.TryParse(in x, out value);
+                    }))
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
-        public struct Column
+        public class Column
         {
             public readonly int ColumnIndex;
-            public readonly PrimitiveType ItemType;
 
+            public PrimitiveType ItemType;
             public string SuggestedName;
 
             public Column(int columnIndex, string suggestedName, PrimitiveType itemType)
@@ -131,13 +151,10 @@ namespace Microsoft.ML.Auto
                 {
                     foreach (var col in columns)
                     {
-                        if (!col.RawData.Skip(1)
-                            .All(x =>
-                            {
-                                bool value;
-                                return Conversions.TryParse(in x, out value);
-                            })
-                            )
+                        // skip columns that already have a suggested type,
+                        // or that don't have all Boolean values
+                        if (col.SuggestedType != null ||
+                            !col.HasAllBooleanValues())
                         {
                             continue;
                         }
@@ -156,12 +173,6 @@ namespace Microsoft.ML.Auto
                 {
                     foreach (var col in columns)
                     {
-                        // skip columns that already have a suggested type
-                        if(col.SuggestedType != null)
-                        {
-                            continue;
-                        }
-
                         if (!col.RawData.Skip(1)
                             .All(x =>
                             {
@@ -215,9 +226,9 @@ namespace Microsoft.ML.Auto
         private static IEnumerable<ITypeInferenceExpert> GetExperts()
         {
             // Current logic is pretty primitive: if every value (except the first) of a column
-            // parses as a boolean it's boolean, if it parses as numeric then it's numeric. Otherwise, it is text.
-            yield return new Experts.BooleanValues();
+            // parses as numeric then it's numeric. Else if it parses as a Boolean, it's Boolean. Otherwise, it is text.
             yield return new Experts.AllNumericValues();
+            yield return new Experts.BooleanValues();
             yield return new Experts.EverythingText();
         }
 
@@ -329,7 +340,6 @@ namespace Microsoft.ML.Auto
             }
 
             // suggest names
-            var names = new List<string>();
             usedNames.Clear();
             foreach (var col in cols)
             {
@@ -338,14 +348,23 @@ namespace Microsoft.ML.Auto
                 name0 = name = SuggestName(col, args.HasHeader);
                 int i = 0;
                 while (!usedNames.Add(name))
+                {
                     name = string.Format("{0}_{1:00}", name0, i++);
-                names.Add(name);
+                }
+                col.Name = name;
             }
-            var outCols =
-                cols.Select((x, i) => new Column(x.ColumnId, names[i], x.SuggestedType)).ToArray();
 
-            var numerics = outCols.Count(x => x.ItemType.IsNumber());
-            
+            // validate & retrieve label column
+            var labelColumn = GetAndValidateLabelColumn(args, cols);
+
+            // if label column has all Boolean values, set its type as Boolean
+            if(labelColumn.HasAllBooleanValues())
+            {
+                labelColumn.SuggestedType = BoolType.Instance;
+            }
+
+            var outCols = cols.Select(x => new Column(x.ColumnId, x.Name, x.SuggestedType)).ToArray();
+
             return InferenceResult.Success(outCols, args.HasHeader, cols.Select(col => col.RawData).ToArray());
         }
 
@@ -359,6 +378,31 @@ namespace Microsoft.ML.Auto
         {
             // replace all non-letters and non-digits with '_'.
             return string.Join("", header.Select(x => Char.IsLetterOrDigit(x) ? x : '_'));
+        }
+
+        private static IntermediateColumn GetAndValidateLabelColumn(Arguments args, IntermediateColumn[] cols)
+        {
+            IntermediateColumn labelColumn = null;
+            if (args.LabelColumnIndex != null)
+            {
+                // if label column index > inferred # of columns, throw error
+                if (args.LabelColumnIndex >= cols.Count())
+                {
+                    throw new ArgumentOutOfRangeException(nameof(args.LabelColumnIndex), $"Label column index ({args.LabelColumnIndex}) is >= than # of inferred columns ({cols.Count()}).");
+                }
+
+                labelColumn = cols[args.LabelColumnIndex.Value];
+            }
+            else
+            {
+                labelColumn = cols.FirstOrDefault(c => c.Name == args.Label);
+                if (labelColumn == null)
+                {
+                    throw new ArgumentException($"Specified label column '{args.Label}' was not found.");
+                }
+            }
+
+            return labelColumn;
         }
 
         public static TextLoader.Column[] GenerateLoaderColumns(Column[] columns)
