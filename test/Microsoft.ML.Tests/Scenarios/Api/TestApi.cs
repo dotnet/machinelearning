@@ -325,7 +325,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Now let's do same thing but with presence of stratificationColumn.
             // Rows with same values in this stratificationColumn should end up in same subset (train or test).
             // So let's break dataset by "Workclass" column.
-            var stratSplit = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn: "Workclass");
+            var stratSplit = mlContext.BinaryClassification.TrainTestSplit(input, samplingKeyColumn: "Workclass");
             var stratTrainWorkclass = getWorkclass(stratSplit.TrainSet);
             var stratTestWorkClass = getWorkclass(stratSplit.TestSet);
             // Let's get unique values for "Workclass" column from train subset.
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Let's do same thing, but this time we will choose different seed.
             // Stratification column should still break dataset properly without same values in both subsets.
-            var stratSeed = mlContext.BinaryClassification.TrainTestSplit(input, stratificationColumn:"Workclass", seed: 1000000);
+            var stratSeed = mlContext.BinaryClassification.TrainTestSplit(input, samplingKeyColumn:"Workclass", seed: 1000000);
             var stratTrainWithSeedWorkclass = getWorkclass(stratSeed.TrainSet);
             var stratTestWithSeedWorkClass = getWorkclass(stratSeed.TestSet);
             // Let's get unique values for "Workclass" column from train subset.
