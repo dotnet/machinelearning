@@ -52,11 +52,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastForestRegressionModelParameters).Assembly.FullName);
         }
 
-        internal override uint VerNumFeaturesSerialized => 0x00010003;
+        private protected override uint VerNumFeaturesSerialized => 0x00010003;
 
-        internal override uint VerDefaultValueSerialized => 0x00010005;
+        private protected override uint VerDefaultValueSerialized => 0x00010005;
 
-        internal override uint VerCategoricalSplitSerialized => 0x00010006;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
         internal FastForestRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        internal override void Map(in VBuffer<float> src, ref float dst)
+        private protected override void Map(in VBuffer<float> src, ref float dst)
         {
             int inputVectorSize = InputType.GetVectorSize();
             if (inputVectorSize > 0)
@@ -207,16 +207,16 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs, FastTreeTrainerOptions.QuantileSampleCount);
         }
 
-        internal override void PrepareLabels(IChannel ch)
+        private protected override void PrepareLabels(IChannel ch)
         {
         }
 
-        internal override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return ObjectiveFunctionImplBase.Create(TrainSet, FastTreeTrainerOptions);
         }
 
-        internal override Test ConstructTestForTrainingData()
+        private protected override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }

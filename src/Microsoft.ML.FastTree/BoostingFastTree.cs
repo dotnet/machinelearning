@@ -32,7 +32,7 @@ namespace Microsoft.ML.Trainers.FastTree
             FastTreeTrainerOptions.LearningRates = learningRate;
         }
 
-        internal override void CheckArgs(IChannel ch)
+        private protected override void CheckArgs(IChannel ch)
         {
             if (FastTreeTrainerOptions.OptimizationAlgorithm == BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent)
                 FastTreeTrainerOptions.UseLineSearch = true;
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return optimizationAlgorithm;
         }
 
-        internal override IGradientAdjuster MakeGradientWrapper(IChannel ch)
+        private protected override IGradientAdjuster MakeGradientWrapper(IChannel ch)
         {
             if (!FastTreeTrainerOptions.BestStepRankingRegressionTrees)
                 return base.MakeGradientWrapper(ch);
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return new BestStepRegressionGradientWrapper();
         }
 
-        internal override bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStoppingRule, ref int bestIteration)
+        private protected override bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStoppingRule, ref int bestIteration)
         {
             if (FastTreeTrainerOptions.EarlyStoppingRule == null)
                 return false;
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return shouldStop;
         }
 
-        internal override int GetBestIteration(IChannel ch)
+        private protected override int GetBestIteration(IChannel ch)
         {
             int bestIteration = Ensemble.NumTrees;
             if (!FastTreeTrainerOptions.WriteLastEnsemble && PruningTest != null)
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return -1;
         }
 
-        internal override bool ShouldRandomStartOptimizer()
+        private protected override bool ShouldRandomStartOptimizer()
         {
             return FastTreeTrainerOptions.RandomStart;
         }

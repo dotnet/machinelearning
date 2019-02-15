@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return optimizationAlgorithm;
         }
 
-        internal override void InitializeTests()
+        private protected override void InitializeTests()
         {
         }
 
