@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.Transformers
                 TestEstimatorCore(customEst, data);
                 Assert.True(false, "Cannot work without MEF injection");
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 if (!ex.IsMarked())
                     throw;
