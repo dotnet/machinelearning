@@ -8,31 +8,112 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Auto;
-using mlnet.Templates;
+using Microsoft.ML.CLI.Templates.Console;
 using static Microsoft.ML.Data.TextLoader;
 
-namespace Microsoft.ML.CLI
+namespace Microsoft.ML.CLI.CodeGenerator.Console
 {
-    internal class CodeGenerator
+    internal class ConsoleCodeGenerator : IProjectGenerator
     {
         private readonly Pipeline pipeline;
-        private readonly CodeGeneratorOptions options;
+        private readonly ConsoleCodeGeneratorOptions options;
         private readonly (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult;
 
-        internal CodeGenerator(Pipeline pipeline, (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult, CodeGeneratorOptions options)
+        internal ConsoleCodeGenerator(Pipeline pipeline, (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult, ConsoleCodeGeneratorOptions options)
         {
             this.pipeline = pipeline;
             this.columnInferenceResult = columnInferenceResult;
             this.options = options;
         }
 
-        internal void GenerateOutput()
+        public void GenerateOutput()
         {
+            // Generate Code
+            (string trainScoreCode, string projectSourceCode, string consoleHelperCode) = GenerateCode();
+
+            // Write output to file
+            WriteOutputToFiles(trainScoreCode, projectSourceCode, consoleHelperCode);
+        }
+
+        internal (string, string, string) GenerateCode()
+        {
+            // Generate usings
+            (string usings, string trainer, List<string> transforms) = GenerateUsings();
+
+            // Generate code for columns
+            var columns = this.GenerateColumns();
+
+            // Generate code for prediction Class labels
+            var classLabels = this.GenerateClassLabels();
+
+            // Get Namespace
+            var namespaceValue = Normalize(options.OutputName);
+
+            // Generate code for training and scoring
+            var trainScoreCode = GenerateTrainCode(usings, trainer, transforms, columns, classLabels, namespaceValue);
+
+            // Generate csproj
+            var projectSourceCode = GeneratProjectCode();
+
+            // Generate Helper class
+            var consoleHelperCode = GenerateConsoleHelper(namespaceValue);
+
+            return (trainScoreCode, projectSourceCode, consoleHelperCode);
+        }
+
+        internal void WriteOutputToFiles(string trainScoreCode, string projectSourceCode, string consoleHelperCode)
+        {
+            var outputFolder = Path.Combine(options.OutputBaseDir, options.OutputName);
+            if (!Directory.Exists(outputFolder))
+            {
+                Directory.CreateDirectory(outputFolder);
+            }
+            File.WriteAllText($"{outputFolder}/Train.cs", trainScoreCode);
+            File.WriteAllText($"{outputFolder}/{options.OutputName}.csproj", projectSourceCode);
+            File.WriteAllText($"{outputFolder}/ConsoleHelper.cs", consoleHelperCode);
+        }
+
+        internal static string GenerateConsoleHelper(string namespaceValue)
+        {
+            var consoleHelperCodeGen = new ConsoleHelper() { Namespace = namespaceValue };
+            return consoleHelperCodeGen.TransformText();
+        }
+
+        internal static string GeneratProjectCode()
+        {
+            var projectCodeGen = new MLProjectGen();
+            return projectCodeGen.TransformText();
+        }
+
+        internal string GenerateTrainCode(string usings, string trainer, List<string> transforms, IList<string> columns, IList<string> classLabels, string namespaceValue)
+        {
+            var trainingAndScoringCodeGen = new MLCodeGen()
+            {
+                Columns = columns,
+                Transforms = transforms,
+                HasHeader = columnInferenceResult.Item1.HasHeader,
+                Separator = columnInferenceResult.Item1.Separators.FirstOrDefault(),
+                AllowQuoting = columnInferenceResult.Item1.AllowQuoting,
+                AllowSparse = columnInferenceResult.Item1.AllowSparse,
+                TrimWhiteSpace = columnInferenceResult.Item1.TrimWhitespace,
+                Trainer = trainer,
+                ClassLabels = classLabels,
+                GeneratedUsings = usings,
+                Path = options.TrainDataset.FullName,
+                TestPath = options.TestDataset?.FullName,
+                TaskType = options.MlTask.ToString(),
+                Namespace = namespaceValue
+            };
+
+            return trainingAndScoringCodeGen.TransformText();
+        }
+
+        internal (string, string, List<string>) GenerateUsings()
+        {
+            StringBuilder usingsBuilder = new StringBuilder();
+            var usings = new List<string>();
             var trainerAndUsings = this.GenerateTrainerAndUsings();
             var transformsAndUsings = this.GenerateTransformsAndUsings();
-
-            //Capture all the usings
-            var usings = new List<string>();
 
             //Get trainer code and its associated usings.
             var trainer = trainerAndUsings.Item1;
@@ -44,49 +125,14 @@ namespace Microsoft.ML.CLI
             usings = usings.Distinct().ToList();
 
             //Combine all using statements to actual text.
-            StringBuilder usingsBuilder = new StringBuilder();
+            usingsBuilder = new StringBuilder();
             usings.ForEach(t =>
             {
                 if (t != null)
                     usingsBuilder.Append(t);
             });
 
-            //Generate code for columns
-            var columns = this.GenerateColumns();
-
-            //Generate code for prediction Class labels
-            var classLabels = this.GenerateClassLabels();
-
-            MLCodeGen codeGen = new MLCodeGen()
-            {
-                Path = options.TrainDataset.FullName,
-                TestPath = options.TestDataset?.FullName,
-                Columns = columns,
-                Transforms = transforms,
-                HasHeader = columnInferenceResult.Item1.HasHeader,
-                Separator = columnInferenceResult.Item1.Separators.FirstOrDefault(),
-                AllowQuoting = columnInferenceResult.Item1.AllowQuoting,
-                AllowSparse = columnInferenceResult.Item1.AllowSparse,
-                TrimWhiteSpace = columnInferenceResult.Item1.TrimWhitespace,
-                Trainer = trainer,
-                TaskType = options.MlTask.ToString(),
-                ClassLabels = classLabels,
-                GeneratedUsings = usingsBuilder.ToString()
-            };
-
-            MLProjectGen csProjGenerator = new MLProjectGen();
-            ConsoleHelper consoleHelper = new ConsoleHelper();
-            var trainScoreCode = codeGen.TransformText();
-            var projectSourceCode = csProjGenerator.TransformText();
-            var consoleHelperCode = consoleHelper.TransformText();
-            var outputFolder = Path.Combine(options.OutputBaseDir, options.OutputName);
-            if (!Directory.Exists(outputFolder))
-            {
-                Directory.CreateDirectory(outputFolder);
-            }
-            File.WriteAllText($"{outputFolder}/Train.cs", trainScoreCode);
-            File.WriteAllText($"{outputFolder}/{options.OutputName}.csproj", projectSourceCode);
-            File.WriteAllText($"{outputFolder}/ConsoleHelper.cs", consoleHelperCode);
+            return (usingsBuilder.ToString(), trainer, transforms);
         }
 
         internal IList<(string, string)> GenerateTransformsAndUsings()

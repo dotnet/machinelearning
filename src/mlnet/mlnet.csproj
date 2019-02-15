@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <PackAsTool>true</PackAsTool>
+    <RootNamespace>Microsoft.ML.CLI</RootNamespace>
     <ToolCommandName>mlnet</ToolCommandName>
     <PackageId>mlgen</PackageId>
     <Authors>mlgen</Authors>
@@ -41,17 +42,17 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Update="Templates\ConsoleHelper.cs">
+    <Compile Update="Templates\Console\ConsoleHelper.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ConsoleHelper.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\MLCodeGen.cs">
+    <Compile Update="Templates\Console\MLCodeGen.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>MLCodeGen.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\MLProjectGen.cs">
+    <Compile Update="Templates\Console\MLProjectGen.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>MLProjectGen.tt</DependentUpon>
@@ -69,15 +70,15 @@
     <None Update="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Templates\ConsoleHelper.tt">
+    <None Update="Templates\Console\ConsoleHelper.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ConsoleHelper.cs</LastGenOutput>
     </None>
-    <None Update="Templates\MLCodeGen.tt">
+    <None Update="Templates\Console\MLCodeGen.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>MLCodeGen.cs</LastGenOutput>
     </None>
-    <None Update="Templates\MLProjectGen.tt">
+    <None Update="Templates\Console\MLProjectGen.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>MLProjectGen.cs</LastGenOutput>
     </None>

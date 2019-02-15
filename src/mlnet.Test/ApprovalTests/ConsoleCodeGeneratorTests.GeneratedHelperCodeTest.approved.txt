@@ -1,16 +1,11 @@
-﻿<#@ template language="C#" linePragmas="false" #>
-<#@ assembly name="System.Core" #>
-<#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Text" #>
-<#@ import namespace="System.Collections.Generic" #>
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
-namespace MlnetSample
+namespace MyNamespace
 {
     public static class ConsoleHelper
     {
@@ -29,8 +24,6 @@ namespace MlnetSample
             Console.WriteLine($"-------------------------------------------------");
         }
 
-        //(CDLTLL-Pending to Fix - Results --> ?)
-        //
         public static void PrintRegressionMetrics(string name, RegressionMetrics metrics)
         {
             Console.WriteLine($"*************************************************");
@@ -68,7 +61,6 @@ namespace MlnetSample
             Console.WriteLine($"************************************************************");
         }
 
-        //(CDLTLL-Pending to Fix - Results --> ?)
 
         public static void PrintRegressionFoldsAverageMetrics(string algorithmName,
                                                               (RegressionMetrics metrics,

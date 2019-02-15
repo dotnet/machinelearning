@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Auto;
 
-namespace Microsoft.ML.CLI
+namespace Microsoft.ML.CLI.CodeGenerator.Console
 {
     /// <summary>
     /// Supports generation of code for trainers (Binary,Multi,Regression)

@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace mlnet.Templates
+namespace Microsoft.ML.CLI.Templates.Console
 {
     using System.Linq;
     using System.Text;
@@ -38,8 +38,9 @@ using Microsoft.ML.Data;
 using Microsoft.Data.DataView;
 ");
             this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
-            this.Write("\r\n\r\n\r\nnamespace MlnetSample\r\n{\r\n    class Program\r\n    {\r\n        private static " +
-                    "string TrainDataPath = @\"");
+            this.Write("\r\n\r\n\r\nnamespace ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
+            this.Write("\r\n{\r\n    class Program\r\n    {\r\n        private static string TrainDataPath = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(Path));
             this.Write("\";\r\n");
 if(!string.IsNullOrEmpty(TestPath)){ 
@@ -256,6 +257,7 @@ public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool TrimWhiteSpace {get;set;} 
 public int Kfolds {get;set;} = 5;
+public string Namespace {get;set;}
 
     }
     #region Base class

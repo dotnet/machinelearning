@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Auto;
 
-namespace Microsoft.ML.CLI
+namespace Microsoft.ML.CLI.Commands
 {
     internal static class CommandDefinitions
     {

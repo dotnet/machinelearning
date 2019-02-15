@@ -6,7 +6,7 @@ using System;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
 
-namespace mlnet.Utilities
+namespace Microsoft.ML.CLI.Utilities
 {
     internal class ProgressHandlers
     {

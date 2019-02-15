@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Auto;
 
 
-namespace Microsoft.ML.CLI
+namespace Microsoft.ML.CLI.CodeGenerator.Console
 {
     internal interface ITransformGenerator
     {

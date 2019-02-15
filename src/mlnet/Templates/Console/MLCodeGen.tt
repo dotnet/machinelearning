@@ -17,7 +17,7 @@ using Microsoft.Data.DataView;
 <#= GeneratedUsings #>
 
 
-namespace MlnetSample
+namespace <#= Namespace #>
 {
     class Program
     {
@@ -202,4 +202,5 @@ public bool AllowQuoting {get;set;}
 public bool AllowSparse {get;set;}
 public bool TrimWhiteSpace {get;set;} 
 public int Kfolds {get;set;} = 5;
+public string Namespace {get;set;}
 #>

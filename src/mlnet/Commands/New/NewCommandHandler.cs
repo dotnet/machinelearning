@@ -7,53 +7,35 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
+using Microsoft.ML.CLI.CodeGenerator.Console;
+using Microsoft.ML.CLI.Data;
+using Microsoft.ML.CLI.Utilities;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using mlnet;
-using mlnet.Utilities;
 using NLog;
 
-namespace Microsoft.ML.CLI
+namespace Microsoft.ML.CLI.Commands.New
 {
-    internal class NewCommand
+    internal class NewCommand : ICommand
     {
-        private Options options;
+        private NewCommandOptions options;
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
-        internal NewCommand(Options options)
+        internal NewCommand(NewCommandOptions options)
         {
             this.options = options;
         }
 
-        internal void Run()
+        public void Execute()
         {
-            if (options.MlTask == TaskKind.MulticlassClassification)
-            {
-                Console.WriteLine($"{Strings.UnsupportedMlTask}: {options.MlTask}");
-            }
-
             var context = new MLContext();
+            // Infer columns
+            (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) columnInference = InferColumns(context);
 
-            //Check what overload method of InferColumns needs to be called.
-            logger.Log(LogLevel.Info, Strings.InferColumns);
-            (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) columnInference = default((TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses));
-            if (options.LabelName != null)
-            {
-                columnInference = context.Data.InferColumns(options.TrainDataset.FullName, options.LabelName, groupColumns: false);
-            }
-            else
-            {
-                columnInference = context.Data.InferColumns(options.TrainDataset.FullName, options.LabelIndex, groupColumns: false);
-            }
+            // Load data
+            (IDataView trainData, IDataView validationData) = LoadData(context, columnInference.TextLoaderArgs);
 
-            logger.Log(LogLevel.Info, Strings.CreateDataLoader);
-            var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderArgs);
-
-            logger.Log(LogLevel.Info, Strings.LoadData);
-            IDataView trainData = textLoader.Read(options.TrainDataset.FullName);
-            IDataView validationData = options.ValidationDataset == null ? null : textLoader.Read(options.ValidationDataset.FullName);
-
-            //Explore the models
+            // Explore the models
             (Pipeline, ITransformer) result = default;
             Console.WriteLine($"{Strings.ExplorePipeline}: {options.MlTask}");
             try
@@ -73,18 +55,40 @@ namespace Microsoft.ML.CLI
             pipeline = result.Item1;
             var model = result.Item2;
 
-            //Save the model
+            // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
             var modelPath = Path.Combine(@options.OutputBaseDir, options.OutputName);
             SaveModel(model, modelPath, $"{options.OutputName}_model.zip", context);
 
+            // Generate the Project
+            GenerateProject(columnInference, pipeline);
+        }
 
+        internal (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) InferColumns(MLContext context)
+        {
+            //Check what overload method of InferColumns needs to be called.
+            logger.Log(LogLevel.Info, Strings.InferColumns);
+            (TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) columnInference = default((TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses));
+            if (options.LabelName != null)
+            {
+                columnInference = context.Data.InferColumns(options.TrainDataset.FullName, options.LabelName, groupColumns: false);
+            }
+            else
+            {
+                columnInference = context.Data.InferColumns(options.TrainDataset.FullName, options.LabelIndex, groupColumns: false);
+            }
+
+            return columnInference;
+        }
+
+        internal void GenerateProject((TextLoader.Arguments TextLoaderArgs, IEnumerable<(string Name, ColumnPurpose Purpose)> ColumnPurpopses) columnInference, Pipeline pipeline)
+        {
             //Generate code
             logger.Log(LogLevel.Info, Strings.GenerateProject);
-            var codeGenerator = new CodeGenerator(
+            var codeGenerator = new ConsoleCodeGenerator(
                 pipeline,
                 columnInference,
-                new CodeGeneratorOptions()
+                new ConsoleCodeGeneratorOptions()
                 {
                     TrainDataset = options.TrainDataset,
                     MlTask = options.MlTask,
@@ -95,10 +99,7 @@ namespace Microsoft.ML.CLI
             codeGenerator.GenerateOutput();
         }
 
-        private (Pipeline, ITransformer) ExploreModels(
-            MLContext context,
-            IDataView trainData,
-            IDataView validationData)
+        internal (Pipeline, ITransformer) ExploreModels(MLContext context, IDataView trainData, IDataView validationData)
         {
             ITransformer model = null;
             string label = options.LabelName ?? "Label"; // It is guaranteed training dataview to have Label column
@@ -133,7 +134,19 @@ namespace Microsoft.ML.CLI
             return (pipeline, model);
         }
 
-        private static void SaveModel(ITransformer model, string ModelPath, string modelName, MLContext mlContext)
+        internal (IDataView, IDataView) LoadData(MLContext context, TextLoader.Arguments textLoaderArgs)
+        {
+            logger.Log(LogLevel.Info, Strings.CreateDataLoader);
+            var textLoader = context.Data.CreateTextLoader(textLoaderArgs);
+
+            logger.Log(LogLevel.Info, Strings.LoadData);
+            var trainData = textLoader.Read(options.TrainDataset.FullName);
+            var validationData = options.ValidationDataset == null ? null : textLoader.Read(options.ValidationDataset.FullName);
+
+            return (trainData, validationData);
+        }
+
+        internal static void SaveModel(ITransformer model, string ModelPath, string modelName, MLContext mlContext)
         {
             if (!Directory.Exists(ModelPath))
             {
@@ -143,5 +156,6 @@ namespace Microsoft.ML.CLI
             using (var fs = File.Create(ModelPath))
                 model.SaveTo(mlContext, fs);
         }
+
     }
 }

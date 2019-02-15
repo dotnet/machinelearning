@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.IO;
 using Microsoft.ML.Auto;
+using Microsoft.ML.CLI.Commands;
+using Microsoft.ML.CLI.Commands.New;
+using Microsoft.ML.CLI.Data;
 using NLog;
-using NLog.Config;
 using NLog.Targets;
 
 namespace Microsoft.ML.CLI
@@ -20,6 +23,11 @@ namespace Microsoft.ML.CLI
             var handler = CommandHandler.Create<FileInfo, FileInfo, FileInfo, TaskKind, string, uint, uint>(
                 (trainDataset, validationDataset, testDataset, mlTask, labelColumnName, maxExplorationTime, labelColumnIndex) =>
              {
+                 if (mlTask == TaskKind.MulticlassClassification)
+                 {
+                     Console.WriteLine($"{Strings.UnsupportedMlTask}: {mlTask}");
+                     return;
+                 }
                  /* The below variables needs to be initialized via command line api. Since there is a 
                     restriction at this moment on the number of args and its bindings. .Net team is working 
                     on making this feature to make it possible to bind directly to a type till them we shall 
@@ -32,7 +40,7 @@ namespace Microsoft.ML.CLI
                  // Todo: q,m,diag needs to be mapped into LogLevel here.
                  var verbosity = LogLevel.Info;
 
-                 var command = new NewCommand(new Options()
+                 var command = new NewCommand(new NewCommandOptions()
                  {
                      TrainDataset = trainDataset,
                      ValidationDataset = validationDataset,
@@ -52,8 +60,8 @@ namespace Microsoft.ML.CLI
                  var config = LogManager.Configuration;
                  config.AddRule(verbosity, LogLevel.Fatal, logconsole);
 
-                 // Run the command
-                 command.Run();
+                 // Execute the command
+                 command.Execute();
              });
 
             var parser = new CommandLineBuilder()

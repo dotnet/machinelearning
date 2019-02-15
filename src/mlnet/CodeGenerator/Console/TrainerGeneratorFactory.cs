@@ -5,9 +5,9 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Auto;
-using static Microsoft.ML.CLI.TrainerGenerators;
+using static Microsoft.ML.CLI.CodeGenerator.Console.TrainerGenerators;
 
-namespace Microsoft.ML.CLI
+namespace Microsoft.ML.CLI.CodeGenerator.Console
 {
     internal interface ITrainerGenerator
     {

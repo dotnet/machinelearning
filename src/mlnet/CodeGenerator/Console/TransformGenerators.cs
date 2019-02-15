@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML.Auto;
 
-namespace Microsoft.ML.CLI
+namespace Microsoft.ML.CLI.CodeGenerator.Console
 {
     internal class Normalizer : TransformGeneratorBase
     {

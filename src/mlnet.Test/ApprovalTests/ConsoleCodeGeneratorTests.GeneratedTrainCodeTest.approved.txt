@@ -1,0 +1,156 @@
+﻿/* This template shows the building blocks for training a machine learning model with ML.NET (https://aka.ms/mlnet).
+ * This model predicts whether a sentence has a positive or negative sentiment. It is based on a sample that can be 
+ * found at https://aka.ms/mlnetsentimentanalysis, which provides a more detailed introduction to ML.NET and the scenario. */
+
+using System;
+using System.IO;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
+using Microsoft.ML.LightGBM;
+
+
+
+namespace MyNamespace
+{
+    class Program
+    {
+        private static string TrainDataPath = @"x:\dummypath\dummy_train.csv";
+        private static string TestDataPath = @"x:\dummypath\dummy_test.csv";
+        private static string ModelPath = @"./model.zip";
+
+        static void Main(string[] args)
+        {
+            //Create MLContext to be shared across the model creation workflow objects 
+            //Set a random seed for repeatable/deterministic results across multiple trainings.
+            var mlContext = new MLContext(seed: 1);
+
+            // Create, Train, Evaluate and Save a model
+            BuildTrainEvaluateAndSaveModel(mlContext);
+            ConsoleHelper.ConsoleWriteHeader("=============== End of training process ===============");
+
+            // Make a single test prediction loding the model from .ZIP file
+            TestSinglePrediction(mlContext);
+
+            ConsoleHelper.ConsoleWriteHeader("=============== End of process, hit any key to finish ===============");
+            Console.ReadKey();
+
+        }
+
+        private static ITransformer BuildTrainEvaluateAndSaveModel(MLContext mlContext)
+        {
+            // Data loading
+            IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+                                            path: TrainDataPath,
+                                            hasHeader : true,
+                                            separatorChar : ',',
+                                            allowQuotedStrings : true,
+                                            trimWhitespace : false ,
+                                            supportSparse : true);
+            IDataView testDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+                                            path: TestDataPath,
+                                            hasHeader : true,
+                                            separatorChar : ',',
+                                            allowQuotedStrings : true,
+                                            trimWhitespace : false ,
+                                            supportSparse : true);
+
+            // Common data process configuration with pipeline data transformations          
+
+            var dataProcessPipeline = mlContext.Transforms.Concatenate("Out",new []{"In"});
+
+            // Set the training algorithm, then create and config the modelBuilder  
+            var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options(){NumLeaves=2,Booster=new Options.TreeBooster.Arguments(){},LabelColumn="Label",FeatureColumn="Features"});
+
+            // Train the model fitting to the DataSet
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
+            var trainedModel = trainingPipeline.Fit(trainingDataView);
+            // Evaluate the model and show accuracy stats
+            Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
+            var predictions = trainedModel.Transform(testDataView);
+            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(predictions, "Label", "Score");
+            ConsoleHelper.PrintBinaryClassificationMetrics(trainer.ToString(), metrics);
+
+            // Save/persist the trained model to a .ZIP file
+            using (var fs = new FileStream(ModelPath, FileMode.Create, FileAccess.Write, FileShare.Write))
+                mlContext.Model.Save(trainedModel, fs);
+
+            Console.WriteLine("The model is saved to {0}", ModelPath);
+
+            return trainedModel;
+        }
+
+        // (OPTIONAL) Try/test a single prediction by loding the model from the file, first.
+        private static void TestSinglePrediction(MLContext mlContext)
+        {
+            //Load data to test. Could be any test data. For demonstration purpose train data is used here.
+            IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
+                                            path: TrainDataPath,
+                                            hasHeader : true,
+                                            separatorChar : ',',
+                                            allowQuotedStrings : true,
+                                            trimWhitespace : false ,
+                                            supportSparse : true);
+
+            var sample = mlContext.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
+
+            ITransformer trainedModel;
+            using (var stream = new FileStream(ModelPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                trainedModel = mlContext.Model.Load(stream);
+            }
+
+            // Create prediction engine related to the loaded trained model
+            var predEngine= trainedModel.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlContext);
+
+            //Score
+            var resultprediction = predEngine.Predict(sample);
+
+            Console.WriteLine($"=============== Single Prediction  ===============");
+            Console.WriteLine($"Input: {sample} | Prediction: {resultprediction.Prediction}");
+            Console.WriteLine($"==================================================");
+        }
+
+    }
+
+    public class SampleObservation
+    {
+       [ColumnName("Label"), LoadColumn(0)]
+       public bool Label{get; set;}
+       
+
+       [ColumnName("col1"), LoadColumn(1)]
+       public float Col1{get; set;}
+       
+
+       [ColumnName("col2"), LoadColumn(0)]
+       public float Col2{get; set;}
+       
+
+       [ColumnName("col3"), LoadColumn(0)]
+       public string Col3{get; set;}
+       
+
+       [ColumnName("col4"), LoadColumn(0)]
+       public int Col4{get; set;}
+       
+
+       [ColumnName("col5"), LoadColumn(0)]
+       public uint Col5{get; set;}
+       
+
+    }
+
+    public class SamplePrediction
+    {
+        // ColumnName attribute is used to change the column name from
+        // its default value, which is the name of the field.
+        [ColumnName("PredictedLabel")]
+        public bool Prediction { get; set; }
+
+        public float Score { get; set; }
+    }
+
+}

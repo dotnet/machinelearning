@@ -5,7 +5,7 @@
 using Microsoft.ML.Data;
 using NLog;
 
-namespace mlnet.Utilities
+namespace Microsoft.ML.CLI.Utilities
 {
     internal class ConsolePrinter
     {

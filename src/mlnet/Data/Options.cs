@@ -5,9 +5,9 @@
 using System.IO;
 using Microsoft.ML.Auto;
 
-namespace Microsoft.ML.CLI
+namespace Microsoft.ML.CLI.Data
 {
-    internal class Options
+    internal class NewCommandOptions
     {
         internal string OutputName { get; set; }
 
