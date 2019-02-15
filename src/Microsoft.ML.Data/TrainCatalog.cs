@@ -52,8 +52,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
-        /// <param name="groupPreservationColumn">Name of a column to use as an ID for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from train to the test set.
+        /// <param name="groupPreservationColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
         public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string groupPreservationColumn = null, uint? seed = null)
@@ -199,7 +199,7 @@ namespace Microsoft.ML
         /// </summary>
         private void EnsureGroupPreservationColumn(ref IDataView data, ref string groupPreservationColumn, uint? seed = null)
         {
-            // We need to handle two cases: if the ID column is provided, we use hashJoin to
+            // We need to handle two cases: if the group preservation column is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
 
             if (groupPreservationColumn == null)
@@ -215,7 +215,7 @@ namespace Microsoft.ML
                 var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(Environment, type))
                 {
-                    // Hash the ID column.
+                    // Hash the group preservation column.
                     // REVIEW: this could currently crash, since Hash only accepts a limited set
                     // of column types. It used to be HashJoin, but we should probably extend Hash
                     // instead of having two hash transformations.
@@ -223,7 +223,7 @@ namespace Microsoft.ML
                     int tmp;
                     int inc = 0;
 
-                    // Generate a new column with the hashed ID column.
+                    // Generate a new column with the hashed group preservation column.
                     while (data.Schema.TryGetColumnIndex(groupPreservationColumn, out tmp))
                         groupPreservationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
                     HashingEstimator.ColumnInfo columnInfo;
@@ -329,8 +329,8 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="groupPreservationColumn">Name of a column to use as an ID for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from train to the test set.
+        /// <param name="groupPreservationColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
@@ -353,8 +353,8 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="groupPreservationColumn">Name of a column to use as an ID for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from train to the test set.
+        /// <param name="groupPreservationColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
@@ -434,8 +434,8 @@ namespace Microsoft.ML
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">Optional label column for evaluation (clustering tasks may not always have a label).</param>
         /// <param name="featuresColumn">Optional features column for evaluation (needed for calculating Dbi metric)</param>
-        /// <param name="groupPreservationColumn">Name of a column to use as an ID for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from train to the test set.
+        /// <param name="groupPreservationColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
@@ -507,8 +507,8 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="groupPreservationColumn">Name of a column to use as an ID for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from train to the test set.
+        /// <param name="groupPreservationColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
@@ -574,8 +574,8 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="groupPreservationColumn">Name of a column to use as an ID for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
-        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from train to the test set.
+        /// <param name="groupPreservationColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="groupPreservationColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
