@@ -14,23 +14,23 @@ namespace Microsoft.ML.Data
     internal static class ColumnTypeExtensions
     {
         /// <summary>
-        /// Whether this type is a standard scalar type completely determined by its <see cref="ColumnType.RawType"/>
-        /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
+        /// Whether this type is a standard scalar type completely determined by its <see cref="DataViewType.RawType"/>
+        /// (not a <see cref="KeyType"/> or <see cref="StructuredDataViewType"/>, etc).
         /// </summary>
-        public static bool IsStandardScalar(this ColumnType columnType) =>
-            (columnType is NumberType) || (columnType is TextType) || (columnType is BoolType) ||
-            (columnType is TimeSpanType) || (columnType is DateTimeType) || (columnType is DateTimeOffsetType);
+        public static bool IsStandardScalar(this DataViewType columnType) =>
+            (columnType is NumberDataViewType) || (columnType is TextDataViewType) || (columnType is BooleanDataViewType) ||
+            (columnType is TimeSpanDataViewType) || (columnType is DateTimeDataViewType) || (columnType is DateTimeOffsetDataViewType);
 
         /// <summary>
         /// Zero return means it's not a key type.
         /// </summary>
-        public static ulong GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
+        public static ulong GetKeyCount(this DataViewType columnType) => (columnType as KeyType)?.Count ?? 0;
 
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
         /// Zero return means it's not a key type.
         /// </summary>
-        public static int GetKeyCountAsInt32(this ColumnType columnType, IExceptionContext ectx = null)
+        public static int GetKeyCountAsInt32(this DataViewType columnType, IExceptionContext ectx = null)
         {
             ulong count = columnType.GetKeyCount();
             ectx.Check(count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
@@ -41,31 +41,31 @@ namespace Microsoft.ML.Data
         /// For non-vector types, this returns the column type itself (i.e., return <paramref name="columnType"/>).
         /// For vector types, this returns the type of the items stored as values in vector.
         /// </summary>
-        public static ColumnType GetItemType(this ColumnType columnType) => (columnType as VectorType)?.ItemType ?? columnType;
+        public static DataViewType GetItemType(this DataViewType columnType) => (columnType as VectorType)?.ItemType ?? columnType;
 
         /// <summary>
         /// Zero return means either it's not a vector or the size is unknown.
         /// </summary>
-        public static int GetVectorSize(this ColumnType columnType) => (columnType as VectorType)?.Size ?? 0;
+        public static int GetVectorSize(this DataViewType columnType) => (columnType as VectorType)?.Size ?? 0;
 
         /// <summary>
         /// For non-vectors, this returns one. For unknown size vectors, it returns zero.
         /// For known sized vectors, it returns size.
         /// </summary>
-        public static int GetValueCount(this ColumnType columnType) => (columnType as VectorType)?.Size ?? 1;
+        public static int GetValueCount(this DataViewType columnType) => (columnType as VectorType)?.Size ?? 1;
 
         /// <summary>
         /// Whether this is a vector type with known size. Returns false for non-vector types.
         /// Equivalent to <c><see cref="GetVectorSize"/> &gt; 0</c>.
         /// </summary>
-        public static bool IsKnownSizeVector(this ColumnType columnType) => columnType.GetVectorSize() > 0;
+        public static bool IsKnownSizeVector(this DataViewType columnType) => columnType.GetVectorSize() > 0;
 
         /// <summary>
         /// Gets the equivalent <see cref="DataKind"/> for the <paramref name="columnType"/>'s RawType.
         /// This can return default(<see cref="DataKind"/>) if the RawType doesn't have a corresponding
         /// <see cref="DataKind"/>.
         /// </summary>
-        public static DataKind GetRawKind(this ColumnType columnType)
+        public static DataKind GetRawKind(this DataViewType columnType)
         {
             columnType.RawType.TryGetDataKind(out DataKind result);
             return result;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
         /// Equivalent to calling Equals(ColumnType) for non-vector types. For vector type,
         /// returns true if current and other vector types have the same size and item type.
         /// </summary>
-        public static bool SameSizeAndItemType(this ColumnType columnType, ColumnType other)
+        public static bool SameSizeAndItemType(this DataViewType columnType, DataViewType other)
         {
             if (other == null)
                 return false;
@@ -91,37 +91,37 @@ namespace Microsoft.ML.Data
             return vectorType.Size == otherVectorType.Size;
         }
 
-        public static PrimitiveType PrimitiveTypeFromType(Type type)
+        public static PrimitiveDataViewType PrimitiveTypeFromType(Type type)
         {
             if (type == typeof(ReadOnlyMemory<char>) || type == typeof(string))
-                return TextType.Instance;
+                return TextDataViewType.Instance;
             if (type == typeof(bool))
-                return BoolType.Instance;
+                return BooleanDataViewType.Instance;
             if (type == typeof(TimeSpan))
-                return TimeSpanType.Instance;
+                return TimeSpanDataViewType.Instance;
             if (type == typeof(DateTime))
-                return DateTimeType.Instance;
+                return DateTimeDataViewType.Instance;
             if (type == typeof(DateTimeOffset))
-                return DateTimeOffsetType.Instance;
+                return DateTimeOffsetDataViewType.Instance;
             return NumberTypeFromType(type);
         }
 
-        public static PrimitiveType PrimitiveTypeFromKind(DataKind kind)
+        public static PrimitiveDataViewType PrimitiveTypeFromKind(DataKind kind)
         {
             if (kind == DataKind.TX)
-                return TextType.Instance;
+                return TextDataViewType.Instance;
             if (kind == DataKind.BL)
-                return BoolType.Instance;
+                return BooleanDataViewType.Instance;
             if (kind == DataKind.TS)
-                return TimeSpanType.Instance;
+                return TimeSpanDataViewType.Instance;
             if (kind == DataKind.DT)
-                return DateTimeType.Instance;
+                return DateTimeDataViewType.Instance;
             if (kind == DataKind.DZ)
-                return DateTimeOffsetType.Instance;
+                return DateTimeOffsetDataViewType.Instance;
             return NumberTypeFromKind(kind);
         }
 
-        public static NumberType NumberTypeFromType(Type type)
+        public static NumberDataViewType NumberTypeFromType(Type type)
         {
             DataKind kind;
             if (type.TryGetDataKind(out kind))
@@ -131,32 +131,32 @@ namespace Microsoft.ML.Data
             throw new InvalidOperationException($"Bad type in {nameof(ColumnTypeExtensions)}.{nameof(NumberTypeFromType)}: {type}");
         }
 
-        public static NumberType NumberTypeFromKind(DataKind kind)
+        public static NumberDataViewType NumberTypeFromKind(DataKind kind)
         {
             switch (kind)
             {
                 case DataKind.I1:
-                    return NumberType.I1;
+                    return NumberDataViewType.SByte;
                 case DataKind.U1:
-                    return NumberType.U1;
+                    return NumberDataViewType.Byte;
                 case DataKind.I2:
-                    return NumberType.I2;
+                    return NumberDataViewType.Int16;
                 case DataKind.U2:
-                    return NumberType.U2;
+                    return NumberDataViewType.UInt16;
                 case DataKind.I4:
-                    return NumberType.I4;
+                    return NumberDataViewType.Int32;
                 case DataKind.U4:
-                    return NumberType.U4;
+                    return NumberDataViewType.UInt32;
                 case DataKind.I8:
-                    return NumberType.I8;
+                    return NumberDataViewType.Int64;
                 case DataKind.U8:
-                    return NumberType.U8;
+                    return NumberDataViewType.UInt64;
                 case DataKind.R4:
-                    return NumberType.R4;
+                    return NumberDataViewType.Single;
                 case DataKind.R8:
-                    return NumberType.R8;
+                    return NumberDataViewType.Double;
                 case DataKind.UG:
-                    return NumberType.UG;
+                    return NumberDataViewType.DataViewRowId;
             }
 
             Contracts.Assert(false);

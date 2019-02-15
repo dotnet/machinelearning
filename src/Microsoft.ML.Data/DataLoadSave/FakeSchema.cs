@@ -18,7 +18,7 @@ namespace Microsoft.ML.Data.DataLoadSave
         private const int AllVectorSizes = 10;
         private const int AllKeySizes = 10;
 
-        public static Schema Create(SchemaShape shape)
+        public static DataViewSchema Create(SchemaShape shape)
         {
             var builder = new SchemaBuilder();
 
@@ -41,15 +41,15 @@ namespace Microsoft.ML.Data.DataLoadSave
             return builder.GetSchema();
         }
 
-        private static ColumnType MakeColumnType(SchemaShape.Column column)
+        private static DataViewType MakeColumnType(SchemaShape.Column column)
         {
-            ColumnType curType = column.ItemType;
+            DataViewType curType = column.ItemType;
             if (column.IsKey)
-                curType = new KeyType(((PrimitiveType)curType).RawType, AllKeySizes);
+                curType = new KeyType(((PrimitiveDataViewType)curType).RawType, AllKeySizes);
             if (column.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                curType = new VectorType((PrimitiveType)curType, 0);
+                curType = new VectorType((PrimitiveDataViewType)curType, 0);
             else if (column.Kind == SchemaShape.Column.VectorKind.Vector)
-                curType = new VectorType((PrimitiveType)curType, AllVectorSizes);
+                curType = new VectorType((PrimitiveDataViewType)curType, AllVectorSizes);
             return curType;
         }
 

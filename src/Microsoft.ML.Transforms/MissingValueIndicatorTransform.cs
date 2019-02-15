@@ -141,17 +141,17 @@ namespace Microsoft.ML.Transforms
                 Host.Check(type.GetValueCount() < int.MaxValue / 2);
 
                 if (!(type is VectorType vectorType))
-                    types[iinfo] = new VectorType(NumberType.Float, 2);
+                    types[iinfo] = new VectorType(NumberDataViewType.Single, 2);
                 else
                 {
-                    types[iinfo] = new VectorType(NumberType.Float, vectorType, 2);
+                    types[iinfo] = new VectorType(NumberDataViewType.Single, vectorType, 2);
 
                     // Produce slot names metadata iff the source has (valid) slot names.
                     VectorType typeNames;
                     if (!vectorType.IsKnownSize ||
                         (typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType) == null ||
                         typeNames.Size != vectorType.Size ||
-                        !(typeNames.ItemType is TextType))
+                        !(typeNames.ItemType is TextDataViewType))
                     {
                         continue;
                     }
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Transforms
             return types;
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override DataViewType GetColumnTypeCore(int iinfo)
         {
             Host.Assert(0 <= iinfo & iinfo < Infos.Length);
             return _types[iinfo];
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms
 
                 // REVIEW: Do we need to verify that there is metadata or should we just call GetMetadata?
                 var typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
-                if (typeNames == null || typeNames.Size != srcVectorType.Size || !(typeNames.ItemType is TextType))
+                if (typeNames == null || typeNames.Size != srcVectorType.Size || !(typeNames.ItemType is TextDataViewType))
                     throw MetadataUtils.ExceptGetMetadata();
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms
             dst = editor.Commit();
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);

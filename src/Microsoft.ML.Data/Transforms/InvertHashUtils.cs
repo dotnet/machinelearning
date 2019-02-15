@@ -33,7 +33,7 @@ namespace Microsoft.ML.Data
         /// This StringBuilder representation will be a component of the composed KeyValues for the
         /// hash outputs.
         /// </summary>
-        public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(Schema schema, int col)
+        public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(DataViewSchema schema, int col)
         {
             Contracts.AssertValue(schema);
             Contracts.Assert(0 <= col && col < schema.Count);
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Data
                 ReadOnlyMemory<char> value = default;
 
                 // REVIEW: We could optimize for identity, but it's probably not worthwhile.
-                var keyMapper = conv.GetStandardConversion<T, uint>(type, NumberType.U4, out identity);
+                var keyMapper = conv.GetStandardConversion<T, uint>(type, NumberDataViewType.UInt32, out identity);
                 return
                     (in T src, ref StringBuilder dst) =>
                     {
@@ -359,7 +359,7 @@ namespace Microsoft.ML.Data
             ch.AssertValue(codec);
             if (!(codec.Type is VectorType vectorType))
                 throw ch.ExceptDecode();
-            ch.CheckDecode(vectorType.ItemType is TextType);
+            ch.CheckDecode(vectorType.ItemType is TextDataViewType);
             var textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             var bufferLen = ctx.Reader.ReadInt32();
@@ -390,11 +390,11 @@ namespace Microsoft.ML.Data
 
             // Get the codec from the factory
             IValueCodec codec;
-            var result = factory.TryGetCodec(new VectorType(TextType.Instance), out codec);
+            var result = factory.TryGetCodec(new VectorType(TextDataViewType.Instance), out codec);
             ch.Assert(result);
             VectorType vectorType = (VectorType)codec.Type;
             ch.Assert(vectorType.Size == 0);
-            ch.Assert(vectorType.ItemType == TextType.Instance);
+            ch.Assert(vectorType.ItemType == TextDataViewType.Instance);
             IValueCodec<VBuffer<ReadOnlyMemory<char>>> textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             factory.WriteCodec(ctx.Writer.BaseStream, codec);
@@ -466,7 +466,7 @@ namespace Microsoft.ML.Data
                                 factory = new CodecFactory(host);
                             }
                             Load(ch, c, factory, ref keyValuesLocal[iinfo]);
-                            kvTypesLocal[iinfo] = new VectorType(TextType.Instance, keyValuesLocal[iinfo].Length);
+                            kvTypesLocal[iinfo] = new VectorType(TextDataViewType.Instance, keyValuesLocal[iinfo].Length);
                         });
                 }
 

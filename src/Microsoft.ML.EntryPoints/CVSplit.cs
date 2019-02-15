@@ -17,7 +17,7 @@ namespace Microsoft.ML.EntryPoints
     /// The module that splits the input dataset into the specified number of cross-validation folds, and outputs the 'training'
     /// and 'testing' portion of the input for each fold.
     /// </summary>
-    public static class CVSplit
+    internal static class CVSplit
     {
         public sealed class Input
         {

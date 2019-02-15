@@ -15,15 +15,15 @@ namespace Microsoft.ML.Benchmarks
     [CIBenchmark]
     public class HashBench
     {
-        private sealed class RowImpl : Row
+        private sealed class RowImpl : DataViewRow
         {
             public long PositionValue;
 
-            public override Schema Schema { get; }
+            public override DataViewSchema Schema { get; }
             public override long Position => PositionValue;
             public override long Batch => 0;
-            public override ValueGetter<RowId> GetIdGetter()
-                => (ref RowId val) => val = new RowId((ulong)Position, 0);
+            public override ValueGetter<DataViewRowId> GetIdGetter()
+                => (ref DataViewRowId val) => val = new DataViewRowId((ulong)Position, 0);
 
             private readonly Delegate _getter;
 
@@ -43,14 +43,14 @@ namespace Microsoft.ML.Benchmarks
                 throw new Exception();
             }
 
-            public static RowImpl Create<T>(ColumnType type, ValueGetter<T> getter)
+            public static RowImpl Create<T>(DataViewType type, ValueGetter<T> getter)
             {
                 if (type.RawType != typeof(T))
                     throw new Exception();
                 return new RowImpl(type, getter);
             }
 
-            private RowImpl(ColumnType type, Delegate getter)
+            private RowImpl(DataViewType type, Delegate getter)
             {
                 var builder = new SchemaBuilder();
                 builder.AddColumn("Foo", type, null);
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Benchmarks
         private ValueGetter<uint> _getter;
         private ValueGetter<VBuffer<uint>> _vecGetter;
 
-        private void InitMap<T>(T val, ColumnType type, int hashBits = 20, ValueGetter<T> getter = null)
+        private void InitMap<T>(T val, DataViewType type, int hashBits = 20, ValueGetter<T> getter = null)
         {
             if (getter == null)
                 getter = (ref T dst) => dst = val;
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Benchmarks
             }
         }
 
-        private void InitDenseVecMap<T>(T[] vals, PrimitiveType itemType, int hashBits = 20)
+        private void InitDenseVecMap<T>(T[] vals, PrimitiveDataViewType itemType, int hashBits = 20)
         {
             var vbuf = new VBuffer<T>(vals.Length, vals);
             InitMap(vbuf, new VectorType(itemType, vals.Length), hashBits, vbuf.CopyTo);
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarString))]
         public void SetupHashScalarString()
         {
-            InitMap("Hello".AsMemory(), TextType.Instance);
+            InitMap("Hello".AsMemory(), TextDataViewType.Instance);
         }
 
         [Benchmark]
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarFloat))]
         public void SetupHashScalarFloat()
         {
-            InitMap(5.0f, NumberType.R4);
+            InitMap(5.0f, NumberDataViewType.Single);
         }
 
         [Benchmark]
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarDouble))]
         public void SetupHashScalarDouble()
         {
-            InitMap(5.0, NumberType.R8);
+            InitMap(5.0, NumberDataViewType.Double);
         }
 
         [Benchmark]
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Benchmarks
         public void SetupHashVectorString()
         {
             var tokens = "Hello my friend, stay awhile and listen! ".Split().Select(token => token.AsMemory()).ToArray();
-            InitDenseVecMap(tokens, TextType.Instance);
+            InitDenseVecMap(tokens, TextDataViewType.Instance);
         }
 
         [Benchmark]
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashVectorFloat))]
         public void SetupHashVectorFloat()
         {
-            InitDenseVecMap(new[] { 1f, 2f, 3f, 4f, 5f }, NumberType.R4);
+            InitDenseVecMap(new[] { 1f, 2f, 3f, 4f, 5f }, NumberDataViewType.Single);
         }
 
         [Benchmark]
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashVectorDouble))]
         public void SetupHashVectorDouble()
         {
-            InitDenseVecMap(new[] { 1d, 2d, 3d, 4d, 5d }, NumberType.R8);
+            InitDenseVecMap(new[] { 1d, 2d, 3d, 4d, 5d }, NumberDataViewType.Double);
         }
 
         [Benchmark]

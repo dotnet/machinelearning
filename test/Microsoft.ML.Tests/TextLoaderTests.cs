@@ -727,7 +727,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             Assert.Equal(5, previewIris.ColumnView.Length);
             Assert.Equal("SepalLength", previewIris.Schema[0].Name);
-            Assert.Equal(NumberType.R4, previewIris.Schema[0].Type);
+            Assert.Equal(NumberDataViewType.Single, previewIris.Schema[0].Type);
             int index = 0;
             foreach (var entry in irisFirstRow)
             {

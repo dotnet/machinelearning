@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms
             public readonly TauswortheHybrid.State[] States;
 
             private Bindings(bool[] useCounter, TauswortheHybrid.State[] states,
-                Schema input, bool user, string[] names)
+                DataViewSchema input, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.Assert(Utils.Size(useCounter) == InfoCount);
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms
                 States = states;
             }
 
-            public static Bindings Create(Options options, Schema input)
+            public static Bindings Create(Options options, DataViewSchema input)
             {
                 var names = new string[options.Columns.Length];
                 var useCounter = new bool[options.Columns.Length];
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(useCounter, states, input, true, names);
             }
 
-            public static Bindings Create(ModelLoadContext ctx, Schema input)
+            public static Bindings Create(ModelLoadContext ctx, DataViewSchema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -189,26 +189,26 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override ColumnType GetColumnTypeCore(int iinfo)
+            protected override DataViewType GetColumnTypeCore(int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                return UseCounter[iinfo] ? NumberType.I8 : NumberType.Float;
+                return UseCounter[iinfo] ? NumberDataViewType.Int64 : NumberDataViewType.Single;
             }
 
-            protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
+            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
                 var items = base.GetMetadataTypesCore(iinfo);
                 if (!UseCounter[iinfo])
-                    items.Prepend(BoolType.Instance.GetPair(MetadataUtils.Kinds.IsNormalized));
+                    items.Prepend(BooleanDataViewType.Instance.GetPair(MetadataUtils.Kinds.IsNormalized));
                 return items;
             }
 
-            protected override ColumnType GetMetadataTypeCore(string kind, int iinfo)
+            protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
                 if (kind == MetadataUtils.Kinds.IsNormalized && !UseCounter[iinfo])
-                    return BoolType.Instance;
+                    return BooleanDataViewType.Instance;
                 return base.GetMetadataTypeCore(kind, iinfo);
             }
 
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(ctx);
         }
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override DataViewSchema OutputSchema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return false; } }
 
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Transforms
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
 
             var active = _bindings.GetActive(predicate);
-            RowCursor input;
+            DataViewRowCursor input;
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Transforms
 
                 if (inputs.Length != 1)
                 {
-                    var cursors = new RowCursor[inputs.Length];
+                    var cursors = new DataViewRowCursor[inputs.Length];
                     for (int i = 0; i < inputs.Length; i++)
                         cursors[i] = new Cursor(Host, _bindings, inputs[i], active);
                     return cursors;
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms
             else
                 input = Source.GetRowCursor(inputCols);
 
-            return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
+            return new DataViewRowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
         private sealed class Cursor : SynchronizedCursorBase
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Transforms
             private readonly TauswortheHybrid[] _rngs;
             private readonly long[] _lastCounters;
 
-            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Bindings bindings, DataViewRowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override DataViewSchema Schema => _bindings.AsSchema;
 
             public override bool IsColumnActive(int col)
             {

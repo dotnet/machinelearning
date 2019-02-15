@@ -46,9 +46,9 @@ namespace Microsoft.ML.Data
             private ValueCreatorCache()
             {
                 _conv = Conversions.Instance;
-                _methOne = new Func<PrimitiveType, Func<RowSet, ColumnPipe>>(GetCreatorOneCore<int>)
+                _methOne = new Func<PrimitiveDataViewType, Func<RowSet, ColumnPipe>>(GetCreatorOneCore<int>)
                     .GetMethodInfo().GetGenericMethodDefinition();
-                _methVec = new Func<PrimitiveType, Func<RowSet, ColumnPipe>>(GetCreatorVecCore<int>)
+                _methVec = new Func<PrimitiveDataViewType, Func<RowSet, ColumnPipe>>(GetCreatorVecCore<int>)
                     .GetMethodInfo().GetGenericMethodDefinition();
 
                 _creatorsOne = new Func<RowSet, ColumnPipe>[DataKindExtensions.KindCount];
@@ -61,13 +61,13 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            private Func<RowSet, ColumnPipe> GetCreatorOneCore(PrimitiveType type)
+            private Func<RowSet, ColumnPipe> GetCreatorOneCore(PrimitiveDataViewType type)
             {
                 MethodInfo meth = _methOne.MakeGenericMethod(type.RawType);
                 return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { type });
             }
 
-            private Func<RowSet, ColumnPipe> GetCreatorOneCore<T>(PrimitiveType type)
+            private Func<RowSet, ColumnPipe> GetCreatorOneCore<T>(PrimitiveDataViewType type)
             {
                 Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(typeof(T) == type.RawType);
@@ -75,13 +75,13 @@ namespace Microsoft.ML.Data
                 return rows => new PrimitivePipe<T>(rows, type, fn);
             }
 
-            private Func<RowSet, ColumnPipe> GetCreatorVecCore(PrimitiveType type)
+            private Func<RowSet, ColumnPipe> GetCreatorVecCore(PrimitiveDataViewType type)
             {
                 MethodInfo meth = _methVec.MakeGenericMethod(type.RawType);
                 return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { type });
             }
 
-            private Func<RowSet, ColumnPipe> GetCreatorVecCore<T>(PrimitiveType type)
+            private Func<RowSet, ColumnPipe> GetCreatorVecCore<T>(PrimitiveDataViewType type)
             {
                 Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(typeof(T) == type.RawType);
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Data
 
             public override bool HasNA { get; }
 
-            public PrimitivePipe(RowSet rows, PrimitiveType type, TryParseMapper<TResult> conv)
+            public PrimitivePipe(RowSet rows, PrimitiveDataViewType type, TryParseMapper<TResult> conv)
                 : base(rows)
             {
                 Contracts.AssertValue(conv);
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Data
             // Has length Rows.Count, so indexed by irow.
             private VectorValue[] _values;
 
-            public VectorPipe(RowSet rows, PrimitiveType type, TryParseMapper<TItem> conv)
+            public VectorPipe(RowSet rows, PrimitiveDataViewType type, TryParseMapper<TItem> conv)
                 : base(rows)
             {
                 Contracts.AssertValue(conv);
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Data
                         continue;
                     }
 
-                    ColumnType itemType = vectorType?.ItemType ?? info.ColType;
+                    DataViewType itemType = vectorType?.ItemType ?? info.ColType;
                     Contracts.Assert(itemType is KeyType || itemType.IsStandardScalar());
                     var map = vectorType != null ? mapVec : mapOne;
                     if (!map.TryGetValue(info.Kind, out _creator[i]))

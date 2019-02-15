@@ -76,10 +76,10 @@ namespace Microsoft.ML.Trainers.Recommender
 
         public PredictionKind PredictionKind => PredictionKind.Recommendation;
 
-        private ColumnType OutputType => NumberType.Float;
+        private DataViewType OutputType => NumberDataViewType.Single;
 
-        internal ColumnType MatrixColumnIndexType { get; }
-        internal ColumnType MatrixRowIndexType { get; }
+        internal DataViewType MatrixColumnIndexType { get; }
+        internal DataViewType MatrixRowIndexType { get; }
 
         internal MatrixFactorizationModelParameters(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyType matrixColumnIndexType, KeyType matrixRowIndexType)
         {
@@ -297,12 +297,12 @@ namespace Microsoft.ML.Trainers.Recommender
             private readonly string _matrixColumnIndexColumnName;
             private readonly string _matrixRowIndexColumnName;
             private IHostEnvironment _env;
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            public Schema OutputSchema { get; }
+            public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
+            public DataViewSchema OutputSchema { get; }
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public RowMapper(IHostEnvironment env, MatrixFactorizationModelParameters parent, RoleMappedSchema schema, Schema outputSchema)
+            public RowMapper(IHostEnvironment env, MatrixFactorizationModelParameters parent, RoleMappedSchema schema, DataViewSchema outputSchema)
             {
                 Contracts.AssertValue(parent);
                 _env = env;
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 yield return RecommenderUtils.MatrixRowIndexKind.Bind(_matrixRowIndexColumnName);
             }
 
-            private void CheckInputSchema(Schema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
+            private void CheckInputSchema(DataViewSchema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
             {
                 // See if matrix-column-index role's type matches the one expected in the trained predictor
                 var type = schema[matrixColumnIndexCol].Type;
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 _env.CheckParam(type.Equals(_parent.MatrixRowIndexType), nameof(schema), msg);
             }
 
-            private Delegate[] CreateGetter(Row input, bool[] active)
+            private Delegate[] CreateGetter(DataViewRow input, bool[] active)
             {
                 _env.CheckValue(input, nameof(input));
                 _env.Assert(Utils.Size(active) == OutputSchema.Count);
@@ -368,8 +368,8 @@ namespace Microsoft.ML.Trainers.Recommender
                 {
                     // First check if expected columns are ok and then create getters to acccess those columns' values.
                     CheckInputSchema(input.Schema, _matrixColumnIndexColumnIndex, _matrixRowIndexCololumnIndex);
-                    var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, _matrixColumnIndexColumnIndex);
-                    var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, _matrixRowIndexCololumnIndex);
+                    var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, input, _matrixColumnIndexColumnIndex);
+                    var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, input, _matrixRowIndexCololumnIndex);
 
                     // Assign the getter of the prediction score. It maps a pair of matrix column index and matrix row index to a scalar.
                     getters[0] = _parent.GetGetter(matrixColumnIndexGetter, matrixRowIndexGetter);
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 return getters;
             }
 
-            public Row GetRow(Row input, Func<int, bool> active)
+            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
             {
                 var activeArray = Utils.BuildArray(OutputSchema.Count, active);
                 var getters = CreateGetter(input, activeArray);
@@ -396,8 +396,8 @@ namespace Microsoft.ML.Trainers.Recommender
         internal const string LoaderSignature = "MaFactPredXf";
         internal string MatrixColumnIndexColumnName { get; }
         internal string MatrixRowIndexColumnName { get; }
-        internal ColumnType MatrixColumnIndexColumnType { get; }
-        internal ColumnType MatrixRowIndexColumnType { get; }
+        internal DataViewType MatrixColumnIndexColumnType { get; }
+        internal DataViewType MatrixRowIndexColumnType { get; }
 
         /// <summary>
         /// Build a transformer based on matrix factorization predictor (model) and the input schema (trainSchema). The created
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>
         /// <param name="matrixRowIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixRowIndexKind"/> in matrix factorization world</param>
         /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>
-        internal MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationModelParameters model, Schema trainSchema,
+        internal MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationModelParameters model, DataViewSchema trainSchema,
             string matrixColumnIndexColumnName, string matrixRowIndexColumnName, string scoreColumnNameSuffix = "")
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
         /// </summary>
-        public override Schema GetOutputSchema(Schema inputSchema)
+        public override DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             if (!inputSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "matrixColumnIndex", MatrixColumnIndexColumnName);

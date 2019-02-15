@@ -19,7 +19,7 @@ using Microsoft.ML.Model;
 using Parquet;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
-using DataViewSchema = Microsoft.Data.DataView.Schema;
+using DataViewSchema = Microsoft.Data.DataView.DataViewSchema;
 
 [assembly: LoadableClass(ParquetLoader.Summary, typeof(ParquetLoader), typeof(ParquetLoader.Arguments), typeof(SignatureDataLoader),
     ParquetLoader.LoaderName, ParquetLoader.LoaderSignature, ParquetLoader.ShortName)]
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Data
             /// The column type of the column, translated from ParquetType.
             /// null when ParquetType is unsupported.
             /// </summary>
-            public readonly ColumnType ColType;
+            public readonly DataViewType ColType;
 
             /// <summary>
             /// The DataField representation in the Parquet DataSet.
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public readonly DataType DataType;
 
-            public Column(string name, ColumnType colType, DataField dataField, DataType dataType)
+            public Column(string name, DataViewType colType, DataField dataField, DataType dataType)
             {
                 Contracts.AssertNonEmpty(name);
                 Contracts.AssertValue(colType);
@@ -313,60 +313,60 @@ namespace Microsoft.ML.Data
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The columns.</param>
         /// <returns>The resulting schema.</returns>
-        private Microsoft.Data.DataView.Schema CreateSchema(IExceptionContext ectx, Column[] cols)
+        private Microsoft.Data.DataView.DataViewSchema CreateSchema(IExceptionContext ectx, Column[] cols)
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
             var builder = new SchemaBuilder();
-            builder.AddColumns(cols.Select(c => new Microsoft.Data.DataView.Schema.DetachedColumn(c.Name, c.ColType, null)));
+            builder.AddColumns(cols.Select(c => new Microsoft.Data.DataView.DataViewSchema.DetachedColumn(c.Name, c.ColType, null)));
             return builder.GetSchema();
         }
 
         /// <summary>
         /// Translates Parquet types to ColumnTypes.
         /// </summary>
-        private ColumnType ConvertFieldType(DataType parquetType)
+        private DataViewType ConvertFieldType(DataType parquetType)
         {
             switch (parquetType)
             {
                 case DataType.Boolean:
-                    return BoolType.Instance;
+                    return BooleanDataViewType.Instance;
                 case DataType.Byte:
-                    return NumberType.U1;
+                    return NumberDataViewType.Byte;
                 case DataType.SignedByte:
-                    return NumberType.I1;
+                    return NumberDataViewType.SByte;
                 case DataType.UnsignedByte:
-                    return NumberType.U1;
+                    return NumberDataViewType.Byte;
                 case DataType.Short:
-                    return NumberType.I2;
+                    return NumberDataViewType.Int16;
                 case DataType.UnsignedShort:
-                    return NumberType.U2;
+                    return NumberDataViewType.UInt16;
                 case DataType.Int16:
-                    return NumberType.I2;
+                    return NumberDataViewType.Int16;
                 case DataType.UnsignedInt16:
-                    return NumberType.U2;
+                    return NumberDataViewType.UInt16;
                 case DataType.Int32:
-                    return NumberType.I4;
+                    return NumberDataViewType.Int32;
                 case DataType.Int64:
-                    return NumberType.I8;
+                    return NumberDataViewType.Int64;
                 case DataType.Int96:
-                    return NumberType.UG;
+                    return NumberDataViewType.DataViewRowId;
                 case DataType.ByteArray:
-                    return new VectorType(NumberType.U1);
+                    return new VectorType(NumberDataViewType.Byte);
                 case DataType.String:
-                    return TextType.Instance;
+                    return TextDataViewType.Instance;
                 case DataType.Float:
-                    return NumberType.R4;
+                    return NumberDataViewType.Single;
                 case DataType.Double:
-                    return NumberType.R8;
+                    return NumberDataViewType.Double;
                 case DataType.Decimal:
-                    return NumberType.R8;
+                    return NumberDataViewType.Double;
                 case DataType.DateTimeOffset:
-                    return DateTimeOffsetType.Instance;
+                    return DateTimeOffsetDataViewType.Instance;
                 case DataType.Interval:
-                    return TimeSpanType.Instance;
+                    return TimeSpanDataViewType.Instance;
                 default:
-                    return TextType.Instance;
+                    return TextDataViewType.Instance;
             }
         }
 
@@ -393,17 +393,17 @@ namespace Microsoft.ML.Data
             return _rowCount;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             return new Cursor(this, predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
+            return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Data
                     case DataType.Int64:
                         return CreateGetterDelegateCore<long?, long>(col, _parquetConversions.Conv);
                     case DataType.Int96:
-                        return CreateGetterDelegateCore<BigInteger, RowId>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<BigInteger, DataViewRowId>(col, _parquetConversions.Conv);
                     case DataType.ByteArray:
                         return CreateGetterDelegateCore<byte[], VBuffer<Byte>>(col, _parquetConversions.Conv);
                     case DataType.String:
@@ -587,7 +587,7 @@ namespace Microsoft.ML.Data
                 return false;
             }
 
-            public override Microsoft.Data.DataView.Schema Schema => _loader.Schema;
+            public override Microsoft.Data.DataView.DataViewSchema Schema => _loader.Schema;
 
             public override long Batch => 0;
 
@@ -602,14 +602,14 @@ namespace Microsoft.ML.Data
                 return getter;
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                   (ref RowId val) =>
+                   (ref DataViewRowId val) =>
                    {
                        // Unique row id consists of Position of cursor (how many times MoveNext has been called), and position in file
                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                       val = new RowId((ulong)(_readerOptions.Offset + _curDataSetRow), 0);
+                       val = new DataViewRowId((ulong)(_readerOptions.Offset + _curDataSetRow), 0);
                    };
             }
 
@@ -713,7 +713,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             /// <param name="src">BigInteger value.</param>
             /// <param name="dst">RowId object.</param>
-            public void Conv(in BigInteger src, ref RowId dst)
+            public void Conv(in BigInteger src, ref DataViewRowId dst)
             {
                 try
                 {
@@ -721,7 +721,7 @@ namespace Microsoft.ML.Data
                     Array.Resize(ref arr, 16);
                     ulong lo = BitConverter.ToUInt64(arr, 0);
                     ulong hi = BitConverter.ToUInt64(arr, 8);
-                    dst = new RowId(lo, hi);
+                    dst = new DataViewRowId(lo, hi);
                 }
                 catch (Exception ex)
                 {

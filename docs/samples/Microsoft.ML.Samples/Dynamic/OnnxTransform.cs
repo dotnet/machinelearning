@@ -6,12 +6,12 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    class OnnxTransformExample
+    public static class OnnxTransformExample
     {
         /// <summary>
         /// Example use of OnnxEstimator in an ML.NET pipeline
         /// </summary>
-        public static void OnnxTransformSample()
+        public static void Example()
         {
             // Download the squeeznet image model from ONNX model zoo, version 1.2
             // https://github.com/onnx/models/tree/master/squeezenet

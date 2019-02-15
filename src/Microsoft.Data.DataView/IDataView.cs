@@ -36,7 +36,7 @@ namespace Microsoft.Data.DataView
         /// a getter for inactive columns will throw. The <paramref name="columnsNeeded"/> indicate the columns that are needed
         /// to iterate over.If set to an empty <see cref="IEnumerable"/> no column is requested.
         /// </summary>
-        RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null);
+        DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null);
 
         /// <summary>
         /// This constructs a set of parallel batch cursors. The value <paramref name="n"/> is a recommended limit on
@@ -45,32 +45,32 @@ namespace Microsoft.Data.DataView
         /// recommendation: it is entirely possible that an implementation can return a different number of cursors.
         ///
         /// The cursors should return the same data as returned through
-        /// <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/>, except partitioned: no two cursors should return the
+        /// <see cref="GetRowCursor(IEnumerable{DataViewSchema.Column}, Random)"/>, except partitioned: no two cursors should return the
         /// "same" row as would have been returned through the regular serial cursor, but all rows should be returned by
         /// exactly one of the cursors returned from this cursor. The cursors can have their values reconciled
-        /// downstream through the use of the <see cref="Row.Batch"/> property.
+        /// downstream through the use of the <see cref="DataViewRow.Batch"/> property.
         ///
         /// The typical usage pattern is that a set of cursors is requested, each of them is then given to a set of
         /// working threads that consume from them independently while, ultimately, the results are finally collated in
-        /// the end by exploiting the ordering of the <see cref="Row.Batch"/> property described above. More typical
+        /// the end by exploiting the ordering of the <see cref="DataViewRow.Batch"/> property described above. More typical
         /// scenarios will be content with pulling from the single serial cursor of
-        /// <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/>.
+        /// <see cref="GetRowCursor(IEnumerable{DataViewSchema.Column}, Random)"/>.
         /// </summary>
         /// <param name="columnsNeeded">The active columns needed. If passed an empty <see cref="IEnumerable"/> no column is requested.</param>
         /// <param name="n">The suggested degree of parallelism.</param>
         /// <param name="rand">An instance of <see cref="Random"/> to seed randomizing the access.</param>
         /// <returns></returns>
-        RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null);
+        DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null);
 
         /// <summary>
         /// Gets an instance of Schema.
         /// </summary>
-        Schema Schema { get; }
+        DataViewSchema Schema { get; }
     }
 
     /// <summary>
-    /// Delegate type to get a value. This can be used for efficient access to data in a <see cref="Row"/>
-    /// or <see cref="RowCursor"/>.
+    /// Delegate type to get a value. This can be used for efficient access to data in a <see cref="DataViewRow"/>
+    /// or <see cref="DataViewRowCursor"/>.
     /// </summary>
     public delegate void ValueGetter<TValue>(ref TValue value);
 
@@ -78,13 +78,13 @@ namespace Microsoft.Data.DataView
     /// A logical row. May be a row of an <see cref="IDataView"/> or a stand-alone row. If/when its contents
     /// change, its <see cref="Position"/> value is changed.
     /// </summary>
-    public abstract class Row : IDisposable
+    public abstract class DataViewRow : IDisposable
     {
         /// <summary>
         /// This is incremented when the underlying contents changes, giving clients a way to detect change. It should be
-        /// -1 when the object is in a state where values cannot be fetched. In particular, for an <see cref="RowCursor"/>,
-        /// this will be before <see cref="RowCursor.MoveNext"/> if ever called for the first time, or after the first time
-        /// <see cref="RowCursor.MoveNext"/> is called and returns <see langword="false"/>.
+        /// -1 when the object is in a state where values cannot be fetched. In particular, for an <see cref="DataViewRowCursor"/>,
+        /// this will be before <see cref="DataViewRowCursor.MoveNext"/> if ever called for the first time, or after the first time
+        /// <see cref="DataViewRowCursor.MoveNext"/> is called and returns <see langword="false"/>.
         ///
         /// Note that this position is not position within the underlying data, but position of this cursor only. If
         /// one, for example, opened a set of parallel streaming cursors, or a shuffled cursor, each such cursor's first
@@ -94,15 +94,15 @@ namespace Microsoft.Data.DataView
 
         /// <summary>
         /// This provides a means for reconciling multiple rows that have been produced generally from
-        /// <see cref="IDataView.GetRowCursorSet(IEnumerable{Schema.Column}, int, Random)"/>. When getting a set, there is a need
+        /// <see cref="IDataView.GetRowCursorSet(IEnumerable{DataViewSchema.Column}, int, Random)"/>. When getting a set, there is a need
         /// to, while allowing parallel processing to proceed, always have an aim that the original order should be
         /// reconverable. Note, whether or not a user cares about that original order in ones specific application is
         /// another story altogether (most callers of this as a practical matter do not, otherwise they would not call
         /// it), but at least in principle it should be possible to reconstruct the original order one would get from an
-        /// identically configured <see cref="IDataView.GetRowCursor(IEnumerable{Schema.Column}, Random)"/>. So: for any cursor
+        /// identically configured <see cref="IDataView.GetRowCursor(IEnumerable{DataViewSchema.Column}, Random)"/>. So: for any cursor
         /// implementation, batch numbers should be non-decreasing. Furthermore, any given batch number should only
         /// appear in one of the cursors as returned by
-        /// <see cref="IDataView.GetRowCursorSet(IEnumerable{Schema.Column}, int, Random)"/>. In this way, order is determined by
+        /// <see cref="IDataView.GetRowCursorSet(IEnumerable{DataViewSchema.Column}, int, Random)"/>. In this way, order is determined by
         /// batch number. An operation that reconciles these cursors to produce a consistent single cursoring, could do
         /// so by drawing from the single cursor, among all cursors in the set, that has the smallest batch number
         /// available.
@@ -117,7 +117,7 @@ namespace Microsoft.Data.DataView
         public abstract long Batch { get; }
 
         /// <summary>
-        /// A getter for a 128-bit ID value. It is common for objects to serve multiple <see cref="Row"/>
+        /// A getter for a 128-bit ID value. It is common for objects to serve multiple <see cref="DataViewRow"/>
         /// instances to iterate over what is supposed to be the same data, for example, in a <see cref="IDataView"/>
         /// a cursor set will produce the same data as a serial cursor, just partitioned, and a shuffled cursor will
         /// produce the same data as a serial cursor or any other shuffled cursor, only shuffled. The ID exists for
@@ -129,7 +129,7 @@ namespace Microsoft.Data.DataView
         /// must render consistent IDs across all cursorings, but there is no suggestion at all that if the "same" data
         /// were presented in a different data view (as by, say, being transformed, cached, saved, or whatever), that
         /// the IDs between the two different data views would have any discernable relationship.</summary>
-        public abstract ValueGetter<RowId> GetIdGetter();
+        public abstract ValueGetter<DataViewRowId> GetIdGetter();
 
         /// <summary>
         /// Returns whether the given column is active in this row.
@@ -147,7 +147,7 @@ namespace Microsoft.Data.DataView
         /// Gets a <see cref="Schema"/>, which provides name and type information for variables
         /// (i.e., columns in ML.NET's type system) stored in this row.
         /// </summary>
-        public abstract Schema Schema { get; }
+        public abstract DataViewSchema Schema { get; }
 
         /// <summary>
         /// Implementation of dispose. Calls <see cref="Dispose(bool)"/> with <see langword="true"/>.
@@ -172,12 +172,12 @@ namespace Microsoft.Data.DataView
 
     /// <summary>
     /// The basic cursor base class to cursor through rows of an <see cref="IDataView"/>. Note that
-    /// this is also an <see cref="Row"/>. The <see cref="Row.Position"/> is incremented by <see cref="MoveNext"/>.
+    /// this is also an <see cref="DataViewRow"/>. The <see cref="DataViewRow.Position"/> is incremented by <see cref="MoveNext"/>.
     /// Prior to the first call to <see cref="MoveNext"/>, or after the first call to <see cref="MoveNext"/> that
-    /// returns <see langword="false"/>, <see cref="Row.Position"/> is <c>-1</c>. Otherwise, in a situation where the
-    /// last call to <see cref="MoveNext"/> returned <see langword="true"/>, <see cref="Row.Position"/> >= 0.
+    /// returns <see langword="false"/>, <see cref="DataViewRow.Position"/> is <c>-1</c>. Otherwise, in a situation where the
+    /// last call to <see cref="MoveNext"/> returned <see langword="true"/>, <see cref="DataViewRow.Position"/> >= 0.
     /// </summary>
-    public abstract class RowCursor : Row
+    public abstract class DataViewRowCursor : DataViewRow
     {
         /// <summary>
         /// Advance to the next row. When the cursor is first created, this method should be called to

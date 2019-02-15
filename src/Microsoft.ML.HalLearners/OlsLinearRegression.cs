@@ -84,7 +84,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             _perParameterSignificance = options.PerParameterSignificance;
         }
 
-        protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, Schema trainSchema)
+        protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, DataViewSchema trainSchema)
              => new RegressionPredictionTransformer<OlsLinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         public RegressionPredictionTransformer<OlsLinearRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
@@ -119,15 +119,15 @@ namespace Microsoft.ML.Trainers.HalLearners
 
                 // The labelColumn type must be either Float or a key type based on int (if allowKeyLabels is true).
                 var typeLab = examples.Schema.Label.Value.Type;
-                if (typeLab != NumberType.Float)
-                    throw ch.Except("Incompatible labelColumn column type {0}, must be {1}", typeLab, NumberType.Float);
+                if (typeLab != NumberDataViewType.Single)
+                    throw ch.Except("Incompatible labelColumn column type {0}, must be {1}", typeLab, NumberDataViewType.Single);
 
                 // The feature type must be a vector of Float.
                 var typeFeat = examples.Schema.Feature.Value.Type as VectorType;
                 if (typeFeat == null || !typeFeat.IsKnownSize)
-                    throw ch.Except("Incompatible feature column type {0}, must be known sized vector of {1}", typeFeat, NumberType.Float);
-                if (typeFeat.ItemType != NumberType.Float)
-                    throw ch.Except("Incompatible feature column type {0}, must be vector of {1}", typeFeat, NumberType.Float);
+                    throw ch.Except("Incompatible feature column type {0}, must be known sized vector of {1}", typeFeat, NumberDataViewType.Single);
+                if (typeFeat.ItemType != NumberDataViewType.Single)
+                    throw ch.Except("Incompatible feature column type {0}, must be vector of {1}", typeFeat, NumberDataViewType.Single);
 
                 CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
                 if (examples.Schema.Weight.HasValue)

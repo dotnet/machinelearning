@@ -124,8 +124,8 @@ namespace Microsoft.ML.Sweeper
             }
 
             ArrayDataViewBuilder dvBuilder = new ArrayDataViewBuilder(_host);
-            dvBuilder.AddColumn(DefaultColumnNames.Label, NumberType.Float, targets);
-            dvBuilder.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
+            dvBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, targets);
+            dvBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, features);
 
             IDataView view = dvBuilder.GetDataView();
             _host.Assert(view.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");

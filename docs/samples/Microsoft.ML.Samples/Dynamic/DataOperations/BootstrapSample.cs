@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class BootstrapSample
+    public static class Bootstrap
     {
         public static void Example()
         {

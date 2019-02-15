@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data.Evaluators.Metrics
         ///  </remarks>
         public double DrAtK { get; }
 
-        internal AnomalyDetectionMetrics(IExceptionContext ectx, Row overallResult)
+        internal AnomalyDetectionMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
             Auc = FetchDouble(BinaryClassifierEvaluator.Auc);

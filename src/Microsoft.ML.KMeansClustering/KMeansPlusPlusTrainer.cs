@@ -260,19 +260,19 @@ namespace Microsoft.ML.Trainers.KMeans
             {
                 new SchemaShape.Column(DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Vector,
-                        NumberType.R4,
+                        NumberDataViewType.Single,
                         false,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
-                        NumberType.U4,
+                        NumberDataViewType.UInt32,
                         true,
                         new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, Schema trainSchema)
+        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, DataViewSchema trainSchema)
         => new ClusteringPredictionTransformer<KMeansModelParameters>(Host, model, trainSchema, _featureColumn);
     }
 
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Trainers.KMeans
         // each row. Instead the RowCursor provides a stable ID across multiple
         // cursorings. We map those IDs into an index to poke into the per instance
         // structures.
-        private readonly HashArray<RowId> _parallelIndexLookup;
+        private readonly HashArray<DataViewRowId> _parallelIndexLookup;
 
         public KMeansAcceleratedRowMap(FeatureFloatVectorCursor.Factory factory, IChannel ch,
             long baseMaxInstancesToAccelerate, long totalTrainingInstances, bool isParallel)
@@ -463,11 +463,11 @@ namespace Microsoft.ML.Trainers.KMeans
         /// preinitialize the HashArray so we can perform lock-free lookup operations during
         /// the primary KMeans pass.
         /// </summary>
-        private HashArray<RowId> BuildParallelIndexLookup(FeatureFloatVectorCursor.Factory factory)
+        private HashArray<DataViewRowId> BuildParallelIndexLookup(FeatureFloatVectorCursor.Factory factory)
         {
             Contracts.AssertValue(factory);
 
-            HashArray<RowId> lookup = new HashArray<RowId>();
+            HashArray<DataViewRowId> lookup = new HashArray<DataViewRowId>();
             int n = 0;
             using (var cursor = factory.Create())
             {
@@ -925,8 +925,8 @@ namespace Microsoft.ML.Trainers.KMeans
                 else
                 {
                     ArrayDataViewBuilder arrDv = new ArrayDataViewBuilder(host);
-                    arrDv.AddColumn(DefaultColumnNames.Features, NumberType.R4, clusters);
-                    arrDv.AddColumn(DefaultColumnNames.Weight, NumberType.R4, totalWeights);
+                    arrDv.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, clusters);
+                    arrDv.AddColumn(DefaultColumnNames.Weight, NumberDataViewType.Single, totalWeights);
                     var subDataViewCursorFactory = new FeatureFloatVectorCursor.Factory(
                         new RoleMappedData(arrDv.GetDataView(), null, DefaultColumnNames.Features, weight: DefaultColumnNames.Weight), CursOpt.Weight | CursOpt.Features);
                     long discard1;

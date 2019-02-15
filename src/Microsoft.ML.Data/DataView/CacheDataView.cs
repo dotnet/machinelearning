@@ -190,7 +190,7 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle { get { return true; } }
 
-        public Schema Schema => _subsetInput.Schema;
+        public DataViewSchema Schema => _subsetInput.Schema;
 
         /// <summary>
         /// Return the number of rows if available.
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Data
             return _rowCount;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
 
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
             return Utils.GetRandomPermutation(rand, (int)_rowCount);
         }
 
-        private RowCursor GetRowCursorWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, Random rand)
+        private DataViewRowCursor GetRowCursorWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, Random rand)
             where TWaiter : struct, IWaiter
         {
             _host.AssertValue(predicate);
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Data
             return CreateCursor(predicate, RandomIndex<TWaiter>.Create(waiter, perm));
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
 
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Data
             n = DataViewUtils.GetThreadCount(_host, n);
 
             if (n <= 1)
-                return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
+                return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
 
             var waiter = WaiterWaiter.Create(this, predicate);
             if (waiter.IsTrivial)
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Data
             return GetRowCursorSetWaiterCore(waiter, predicate, n, rand);
         }
 
-        private RowCursor[] GetRowCursorSetWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, int n, Random rand)
+        private DataViewRowCursor[] GetRowCursorSetWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, int n, Random rand)
             where TWaiter : struct, IWaiter
         {
             _host.AssertValue(predicate);
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Data
             _host.AssertValueOrNull(rand);
 
             var scheduler = new JobScheduler(n);
-            RowCursor[] cursors = new RowCursor[n];
+            DataViewRowCursor[] cursors = new DataViewRowCursor[n];
             int[] perm = GetPermutationOrNull(rand);
             for (int i = 0; i < n; ++i)
             {
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Data
             return cursors;
         }
 
-        private RowCursor CreateCursor<TIndex>(Func<int, bool> predicate, TIndex index)
+        private DataViewRowCursor CreateCursor<TIndex>(Func<int, bool> predicate, TIndex index)
             where TIndex : struct, IIndex
         {
             Contracts.AssertValue(predicate);
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Data
             _host.AssertValue(columns);
 
             HashSet<int> taskColumns = null;
-            RowCursor cursor;
+            DataViewRowCursor cursor;
             ColumnCache[] caches;
             OrderedWaiter waiter;
             lock (_cacheLock)
@@ -375,7 +375,7 @@ namespace Microsoft.ML.Data
         /// <param name="caches">The caches we must fill and, at the end of the cursor, freeze</param>
         /// <param name="waiter">The waiter to increment as we cache each additional row</param>
         /// </summary>
-        private void Filler(RowCursor cursor, ColumnCache[] caches, OrderedWaiter waiter)
+        private void Filler(DataViewRowCursor cursor, ColumnCache[] caches, OrderedWaiter waiter)
         {
             _host.AssertValue(cursor);
             _host.AssertValue(caches);
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Data
                 _index = index;
             }
 
-            public override ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
+            public override ValueGetter<DataViewRowId> GetIdGetter() => _index.GetIdGetter();
 
             public override bool MoveNext()
             {
@@ -507,10 +507,10 @@ namespace Microsoft.ML.Data
 
             public override long Position => _internal.Position;
             public override long Batch => _internal.Batch;
-            public override Schema Schema => _internal.Schema;
+            public override DataViewSchema Schema => _internal.Schema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _internal.GetGetter<TValue>(col);
-            public override ValueGetter<RowId> GetIdGetter() => _internal.GetIdGetter();
+            public override ValueGetter<DataViewRowId> GetIdGetter() => _internal.GetIdGetter();
             public override bool IsColumnActive(int col) => _internal.IsColumnActive(col);
             public override bool MoveTo(long rowIndex) => _internal.MoveTo(rowIndex);
         }
@@ -522,13 +522,13 @@ namespace Microsoft.ML.Data
 
             public override long Batch => 0;
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
-                        val = new RowId((ulong)Position, 0);
+                        val = new DataViewRowId((ulong)Position, 0);
                     };
             }
 
@@ -714,11 +714,11 @@ namespace Microsoft.ML.Data
             /// An ID getter, which should be based on the value that would be returned
             /// from <see cref="GetIndex"/>, if valid, and otherwise have undefined behavior.
             /// </summary>
-            ValueGetter<RowId> GetIdGetter();
+            ValueGetter<DataViewRowId> GetIdGetter();
 
             /// <summary>
             /// Moves to the next index. Once this has returned false, it should never be called again.
-            /// (This in constrast to public <see cref="RowCursor"/> objects, whose move methods are
+            /// (This in constrast to public <see cref="DataViewRowCursor"/> objects, whose move methods are
             /// robust to that usage.)
             /// </summary>
             /// <returns>Whether the next index is available.</returns>
@@ -751,13 +751,13 @@ namespace Microsoft.ML.Data
                 return _curr;
             }
 
-            public ValueGetter<RowId> GetIdGetter()
+            public ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new RowId((ulong)_curr, 0);
+                        val = new DataViewRowId((ulong)_curr, 0);
                     };
             }
 
@@ -788,7 +788,7 @@ namespace Microsoft.ML.Data
 
                 public long Batch => _index.Batch;
                 public long GetIndex() => _index.GetIndex();
-                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
+                public ValueGetter<DataViewRowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
             }
         }
@@ -816,13 +816,13 @@ namespace Microsoft.ML.Data
                 return _perm[_curr];
             }
 
-            public ValueGetter<RowId> GetIdGetter()
+            public ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new RowId((ulong)_perm[_curr], 0);
+                        val = new DataViewRowId((ulong)_perm[_curr], 0);
                     };
             }
 
@@ -859,7 +859,7 @@ namespace Microsoft.ML.Data
 
                 public long Batch => _index.Batch;
                 public long GetIndex() => _index.GetIndex();
-                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
+                public ValueGetter<DataViewRowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
             }
         }
@@ -952,13 +952,13 @@ namespace Microsoft.ML.Data
                 return _curr;
             }
 
-            public ValueGetter<RowId> GetIdGetter()
+            public ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new RowId((ulong)_curr, 0);
+                        val = new DataViewRowId((ulong)_curr, 0);
                     };
             }
 
@@ -1016,7 +1016,7 @@ namespace Microsoft.ML.Data
 
                 public long Batch => _index.Batch;
                 public long GetIndex() => _index.GetIndex();
-                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
+                public ValueGetter<DataViewRowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
             }
         }
@@ -1058,13 +1058,13 @@ namespace Microsoft.ML.Data
                 return _perm[_curr];
             }
 
-            public ValueGetter<RowId> GetIdGetter()
+            public ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new RowId((ulong)_perm[_curr], 0);
+                        val = new DataViewRowId((ulong)_perm[_curr], 0);
                     };
             }
 
@@ -1111,12 +1111,12 @@ namespace Microsoft.ML.Data
 
                 public long Batch => _index.Batch;
                 public long GetIndex() => _index.GetIndex();
-                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
+                public ValueGetter<DataViewRowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
             }
         }
 
-        private abstract class RowCursorSeekerBase : RowCursor
+        private abstract class RowCursorSeekerBase : DataViewRowCursor
         {
             protected readonly CacheDataView Parent;
             protected readonly IChannel Ch;
@@ -1127,7 +1127,7 @@ namespace Microsoft.ML.Data
 
             private bool _disposed;
 
-            public sealed override Schema Schema => Parent.Schema;
+            public sealed override DataViewSchema Schema => Parent.Schema;
 
             public sealed override long Position => PositionCore;
 
@@ -1249,7 +1249,7 @@ namespace Microsoft.ML.Data
             /// <param name="srcCol">The column of the cursor we are wrapping.</param>
             /// <param name="waiter">The waiter for the filler associated with this column</param>
             /// <returns></returns>
-            public static ColumnCache Create(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
+            public static ColumnCache Create(CacheDataView parent, DataViewRowCursor input, int srcCol, OrderedWaiter waiter)
             {
                 Contracts.AssertValue(parent);
                 var host = parent._host;
@@ -1263,13 +1263,13 @@ namespace Microsoft.ML.Data
                     pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                 else
                 {
-                    host.Assert(type is PrimitiveType);
+                    host.Assert(type is PrimitiveDataViewType);
                     pipeType = typeof(ImplOne<>).MakeGenericType(type.RawType);
                 }
                 if (_pipeConstructorTypes == null)
                 {
                     Interlocked.CompareExchange(ref _pipeConstructorTypes,
-                        new Type[] { typeof(CacheDataView), typeof(RowCursor), typeof(int), typeof(OrderedWaiter) }, null);
+                        new Type[] { typeof(CacheDataView), typeof(DataViewRowCursor), typeof(int), typeof(OrderedWaiter) }, null);
                 }
                 var constructor = pipeType.GetConstructor(_pipeConstructorTypes);
                 return (ColumnCache)constructor.Invoke(new object[] { parent, input, srcCol, waiter });
@@ -1317,7 +1317,7 @@ namespace Microsoft.ML.Data
                 // Temporary working reusable storage for caching the source data.
                 private VBuffer<T> _temp;
 
-                public ImplVec(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
+                public ImplVec(CacheDataView parent, DataViewRowCursor input, int srcCol, OrderedWaiter waiter)
                     : base(parent, input, srcCol, waiter)
                 {
                     var type = input.Schema[srcCol].Type;
@@ -1400,7 +1400,7 @@ namespace Microsoft.ML.Data
                 private T[] _values;
                 private ValueGetter<T> _getter;
 
-                public ImplOne(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
+                public ImplOne(CacheDataView parent, DataViewRowCursor input, int srcCol, OrderedWaiter waiter)
                     : base(parent, input, srcCol, waiter)
                 {
                     _getter = input.GetGetter<T>(srcCol);
@@ -1435,7 +1435,7 @@ namespace Microsoft.ML.Data
 
         private abstract class ColumnCache<T> : ColumnCache
         {
-            public ColumnCache(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
+            public ColumnCache(CacheDataView parent, DataViewRowCursor input, int srcCol, OrderedWaiter waiter)
                 : base(parent._host, waiter)
             {
                 Contracts.AssertValue(input);

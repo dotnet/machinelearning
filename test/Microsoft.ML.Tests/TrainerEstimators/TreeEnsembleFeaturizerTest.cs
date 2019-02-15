@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal("Trees", treeValuesColumn.Name);
                 VectorType treeValuesType = treeValuesColumn.Type as VectorType;
                 Assert.NotNull(treeValuesType);
-                Assert.Equal(NumberType.R4, treeValuesType.ItemType);
+                Assert.Equal(NumberDataViewType.Single, treeValuesType.ItemType);
                 Assert.Equal(10, treeValuesType.Size);
                 // Below we check the only metadata field.
                 Assert.Single(treeValuesColumn.Metadata.Schema);
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal("Leaves", treeLeafIdsColumn.Name);
                 VectorType treeLeafIdsType = treeLeafIdsColumn.Type as VectorType;
                 Assert.NotNull(treeLeafIdsType);
-                Assert.Equal(NumberType.R4, treeLeafIdsType.ItemType);
+                Assert.Equal(NumberDataViewType.Single, treeLeafIdsType.ItemType);
                 Assert.Equal(50, treeLeafIdsType.Size);
                 // Below we check the two leaf-IDs column's metadata fields.
                 Assert.Equal(2, treeLeafIdsColumn.Metadata.Schema.Count);
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal("Paths", treePathIdsColumn.Name);
                 VectorType treePathIdsType = treePathIdsColumn.Type as VectorType;
                 Assert.NotNull(treePathIdsType);
-                Assert.Equal(NumberType.R4, treePathIdsType.ItemType);
+                Assert.Equal(NumberDataViewType.Single, treePathIdsType.ItemType);
                 Assert.Equal(40, treePathIdsType.Size);
                 // Below we check the two path-IDs column's metadata fields.
                 Assert.Equal(2, treePathIdsColumn.Metadata.Schema.Count);

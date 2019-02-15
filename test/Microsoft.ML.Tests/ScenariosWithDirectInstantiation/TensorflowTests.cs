@@ -423,7 +423,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(28, type.Dimensions[1]);
             var metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
-            Assert.True(metadataType is TextType);
+            Assert.True(metadataType is TextDataViewType);
             ReadOnlyMemory<char> opType = default;
             schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowOperatorTypeKind, ref opType);
             Assert.Equal("Placeholder", opType.ToString());
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(new[] { 5, 5, 1, 32 }, type.Dimensions);
             metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
-            Assert.True(metadataType is TextType);
+            Assert.True(metadataType is TextDataViewType);
             schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowOperatorTypeKind, ref opType);
             Assert.Equal("Identity", opType.ToString());
             metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowUpstreamOperatorsKind].Type;
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(new[] { 28, 28, 32 }, type.Dimensions);
             metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
-            Assert.True(metadataType is TextType);
+            Assert.True(metadataType is TextDataViewType);
             schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowOperatorTypeKind, ref opType);
             Assert.Equal("Conv2D", opType.ToString());
             metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowUpstreamOperatorsKind].Type;
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(new[] { 10 }, type.Dimensions);
             metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
-            Assert.True(metadataType is TextType);
+            Assert.True(metadataType is TextDataViewType);
             schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowOperatorTypeKind, ref opType);
             Assert.Equal("Softmax", opType.ToString());
             metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowUpstreamOperatorsKind].Type;

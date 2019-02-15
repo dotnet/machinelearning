@@ -60,24 +60,24 @@ namespace Microsoft.ML.FactorizationMachine
 
         public RoleMappedSchema InputRoleMappedSchema { get; }
 
-        public Schema OutputSchema { get; }
+        public DataViewSchema OutputSchema { get; }
 
-        public Schema InputSchema => InputRoleMappedSchema.Schema;
+        public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
 
         public ISchemaBindableMapper Bindable => _pred;
 
-        private readonly Schema.Column[] _columns;
+        private readonly DataViewSchema.Column[] _columns;
         private readonly List<int> _inputColumnIndexes;
         private readonly IHostEnvironment _env;
 
         public FieldAwareFactorizationMachineScalarRowMapper(IHostEnvironment env, RoleMappedSchema schema,
-            Schema outputSchema, FieldAwareFactorizationMachineModelParameters pred)
+            DataViewSchema outputSchema, FieldAwareFactorizationMachineModelParameters pred)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);
             Contracts.CheckParam(outputSchema.Count == 2, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema[0].Type is NumberType, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema[1].Type is NumberType, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[0].Type is NumberDataViewType, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[1].Type is NumberDataViewType, nameof(outputSchema));
             Contracts.AssertValue(pred);
 
             _env = env;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.FactorizationMachine
             }
         }
 
-        public Row GetRow(Row input, Func<int, bool> predicate)
+        public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
         {
             var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
             var featureBuffer = new VBuffer<float>();

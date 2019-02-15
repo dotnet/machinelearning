@@ -116,7 +116,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
             var ivm = Meta as IValueMapper;
             Contracts.Check(ivm != null, "Stacking predictor doesn't implement the expected interface");
-            if (!(ivm.InputType is VectorType vectorType) || vectorType.ItemType != NumberType.Float)
+            if (!(ivm.InputType is VectorType vectorType) || vectorType.ItemType != NumberDataViewType.Single)
                 throw Contracts.Except("Stacking predictor input type is unsupported: {0}", ivm.InputType);
             if (ivm.OutputType.RawType != typeof(TOutput))
                 throw Contracts.Except("Stacking predictor output type is unsupported: {0}", ivm.OutputType);
@@ -178,8 +178,8 @@ namespace Microsoft.ML.Trainers.Ensemble
                 var bldr = new ArrayDataViewBuilder(host);
                 Array.Resize(ref labels, count);
                 Array.Resize(ref features, count);
-                bldr.AddColumn(DefaultColumnNames.Label, NumberType.Float, labels);
-                bldr.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
+                bldr.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, labels);
+                bldr.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, features);
 
                 var view = bldr.GetDataView();
                 var rmd = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);

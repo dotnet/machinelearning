@@ -124,37 +124,37 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The source <see cref="Schema"/>.
         /// </summary>
-        public Schema Schema { get; }
+        public DataViewSchema Schema { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Feature"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public Schema.Column? Feature { get; }
+        public DataViewSchema.Column? Feature { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Label"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public Schema.Column? Label { get; }
+        public DataViewSchema.Column? Label { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Group"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public Schema.Column? Group { get; }
+        public DataViewSchema.Column? Group { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Weight"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public Schema.Column? Weight { get; }
+        public DataViewSchema.Column? Weight { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Name"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public Schema.Column? Name { get; }
+        public DataViewSchema.Column? Name { get; }
 
         // Maps from role to the associated column infos.
-        private readonly Dictionary<string, IReadOnlyList<Schema.Column>> _map;
+        private readonly Dictionary<string, IReadOnlyList<DataViewSchema.Column>> _map;
 
-        private RoleMappedSchema(Schema schema, Dictionary<string, IReadOnlyList<Schema.Column>> map)
+        private RoleMappedSchema(DataViewSchema schema, Dictionary<string, IReadOnlyList<DataViewSchema.Column>> map)
         {
             Contracts.AssertValue(schema);
             Contracts.AssertValue(map);
@@ -193,30 +193,30 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private RoleMappedSchema(Schema schema, Dictionary<string, List<Schema.Column>> map)
+        private RoleMappedSchema(DataViewSchema schema, Dictionary<string, List<DataViewSchema.Column>> map)
             : this(schema, Copy(map))
         {
         }
 
-        private static void Add(Dictionary<string, List<Schema.Column>> map, ColumnRole role, Schema.Column column)
+        private static void Add(Dictionary<string, List<DataViewSchema.Column>> map, ColumnRole role, DataViewSchema.Column column)
         {
             Contracts.AssertValue(map);
             Contracts.AssertNonEmpty(role.Value);
 
             if (!map.TryGetValue(role.Value, out var list))
             {
-                list = new List<Schema.Column>();
+                list = new List<DataViewSchema.Column>();
                 map.Add(role.Value, list);
             }
             list.Add(column);
         }
 
-        private static Dictionary<string, List<Schema.Column>> MapFromNames(Schema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
+        private static Dictionary<string, List<DataViewSchema.Column>> MapFromNames(DataViewSchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
         {
             Contracts.AssertValue(schema);
             Contracts.AssertValue(roles);
 
-            var map = new Dictionary<string, List<Schema.Column>>();
+            var map = new Dictionary<string, List<DataViewSchema.Column>>();
             foreach (var kvp in roles)
             {
                 Contracts.AssertNonEmpty(kvp.Key.Value);
@@ -253,18 +253,18 @@ namespace Microsoft.ML.Data
         /// If there are columns of the given role, this returns the infos as a readonly list. Otherwise,
         /// it returns null.
         /// </summary>
-        public IReadOnlyList<Schema.Column> GetColumns(ColumnRole role)
+        public IReadOnlyList<DataViewSchema.Column> GetColumns(ColumnRole role)
             => _map.TryGetValue(role.Value, out var list) ? list : null;
 
         /// <summary>
         /// An enumerable over all role-column associations within this object.
         /// </summary>
-        public IEnumerable<KeyValuePair<ColumnRole, Schema.Column>> GetColumnRoles()
+        public IEnumerable<KeyValuePair<ColumnRole, DataViewSchema.Column>> GetColumnRoles()
         {
             foreach (var roleAndList in _map)
             {
                 foreach (var info in roleAndList.Value)
-                    yield return new KeyValuePair<ColumnRole, Schema.Column>(roleAndList.Key, info);
+                    yield return new KeyValuePair<ColumnRole, DataViewSchema.Column>(roleAndList.Key, info);
             }
         }
 
@@ -294,13 +294,13 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Returns the <see cref="Schema.Column"/> corresponding to <paramref name="role"/> if there is
+        /// Returns the <see cref="DataViewSchema.Column"/> corresponding to <paramref name="role"/> if there is
         /// exactly one such mapping, and otherwise throws an exception.
         /// </summary>
         /// <param name="role">The role to look up</param>
         /// <returns>The column corresponding to that role, assuming there was only one column
         /// mapped to that</returns>
-        public Schema.Column GetUniqueColumn(ColumnRole role)
+        public DataViewSchema.Column GetUniqueColumn(ColumnRole role)
         {
             var infos = GetColumns(role);
             if (Utils.Size(infos) != 1)
@@ -308,9 +308,9 @@ namespace Microsoft.ML.Data
             return infos[0];
         }
 
-        private static Dictionary<string, IReadOnlyList<Schema.Column>> Copy(Dictionary<string, List<Schema.Column>> map)
+        private static Dictionary<string, IReadOnlyList<DataViewSchema.Column>> Copy(Dictionary<string, List<DataViewSchema.Column>> map)
         {
-            var copy = new Dictionary<string, IReadOnlyList<Schema.Column>>(map.Count);
+            var copy = new Dictionary<string, IReadOnlyList<DataViewSchema.Column>>(map.Count);
             foreach (var kvp in map)
             {
                 Contracts.Assert(Utils.Size(kvp.Value) > 0);
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Data
         /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         /// <param name="roles">The column role to column name mappings</param>
-        public RoleMappedSchema(Schema schema, bool opt = false, params KeyValuePair<ColumnRole, string>[] roles)
+        public RoleMappedSchema(DataViewSchema schema, bool opt = false, params KeyValuePair<ColumnRole, string>[] roles)
             : this(Contracts.CheckRef(schema, nameof(schema)), Contracts.CheckRef(roles, nameof(roles)), opt)
         {
         }
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Data
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
         /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
-        public RoleMappedSchema(Schema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
+        public RoleMappedSchema(DataViewSchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
             : this(Contracts.CheckRef(schema, nameof(schema)),
                   MapFromNames(schema, Contracts.CheckRef(roles, nameof(roles)), opt))
         {
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Data
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
         /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
-        public RoleMappedSchema(Schema schema, string label, string feature,
+        public RoleMappedSchema(DataViewSchema schema, string label, string feature,
             string group = null, string weight = null, string name = null,
             IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> custom = null, bool opt = false)
             : this(Contracts.CheckRef(schema, nameof(schema)), PredefinedRolesHelper(label, feature, group, weight, name, custom), opt)

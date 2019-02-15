@@ -23,7 +23,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public double[] Dcg { get; }
 
-        private static T Fetch<T>(IExceptionContext ectx, Row row, string name)
+        private static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
             if (!row.Schema.TryGetColumnIndex(name, out int col))
                 throw ectx.Except($"Could not find column '{name}'");
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
             return val;
         }
 
-        internal RankerMetrics(IExceptionContext ectx, Row overallResult)
+        internal RankerMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
 
