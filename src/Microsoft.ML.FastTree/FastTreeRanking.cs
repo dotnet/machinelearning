@@ -132,8 +132,8 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             try
             {
-                Host.AssertValue(Args.CustomGains);
-                return Args.CustomGains.Split(',').Select(k => Convert.ToDouble(k.Trim())).ToArray();
+                Host.AssertValue(FastTreeTrainerOptions.CustomGains);
+                return FastTreeTrainerOptions.CustomGains.Split(',').Select(k => Convert.ToDouble(k.Trim())).ToArray();
             }
             catch (Exception ex)
             {
@@ -145,12 +145,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override void CheckArgs(IChannel ch)
         {
-            if (!string.IsNullOrEmpty(Args.CustomGains))
+            if (!string.IsNullOrEmpty(FastTreeTrainerOptions.CustomGains))
             {
-                var stringGain = Args.CustomGains.Split(',');
+                var stringGain = FastTreeTrainerOptions.CustomGains.Split(',');
                 if (stringGain.Length < 5)
                 {
-                    throw ch.ExceptUserArg(nameof(Args.CustomGains),
+                    throw ch.ExceptUserArg(nameof(FastTreeTrainerOptions.CustomGains),
                         "{0} an invalid number of gain levels. We require at least 5. Make certain they're comma separated.",
                         stringGain.Length);
                 }
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 {
                     if (!Double.TryParse(stringGain[i], out gain[i]))
                     {
-                        throw ch.ExceptUserArg(nameof(Args.CustomGains),
+                        throw ch.ExceptUserArg(nameof(FastTreeTrainerOptions.CustomGains),
                             "Could not parse '{0}' as a floating point number", stringGain[0]);
                     }
                 }
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 Dataset.DatasetSkeleton.LabelGainMap = gain;
             }
 
-            ch.CheckUserArg((Args.EarlyStoppingRule == null && !Args.EnablePruning) || (Args.EarlyStoppingMetrics == 1 || Args.EarlyStoppingMetrics == 3), nameof(Args.EarlyStoppingMetrics),
+            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics == 1 || FastTreeTrainerOptions.EarlyStoppingMetrics == 3), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
                 "earlyStoppingMetrics should be 1 or 3.");
 
             base.CheckArgs(ch);
@@ -176,33 +176,33 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override void Initialize(IChannel ch)
         {
             base.Initialize(ch);
-            if (Args.CompressEnsemble)
+            if (FastTreeTrainerOptions.CompressEnsemble)
             {
                 _ensembleCompressor = new LassoBasedEnsembleCompressor();
-                _ensembleCompressor.Initialize(Args.NumTrees, TrainSet, TrainSet.Ratings, Args.RngSeed);
+                _ensembleCompressor.Initialize(FastTreeTrainerOptions.NumTrees, TrainSet, TrainSet.Ratings, FastTreeTrainerOptions.RngSeed);
             }
         }
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return new LambdaRankObjectiveFunction(TrainSet, TrainSet.Ratings, Args, ParallelTraining);
+            return new LambdaRankObjectiveFunction(TrainSet, TrainSet.Ratings, FastTreeTrainerOptions, ParallelTraining);
         }
 
         private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
-            if (Args.UseLineSearch)
+            if (FastTreeTrainerOptions.UseLineSearch)
             {
-                _specialTrainSetTest = new FastNdcgTest(optimizationAlgorithm.TrainingScores, TrainSet.Ratings, Args.SortingAlgorithm, Args.EarlyStoppingMetrics);
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(_specialTrainSetTest, 0, Args.NumPostBracketSteps, Args.MinStepSize);
+                _specialTrainSetTest = new FastNdcgTest(optimizationAlgorithm.TrainingScores, TrainSet.Ratings, FastTreeTrainerOptions.SortingAlgorithm, FastTreeTrainerOptions.EarlyStoppingMetrics);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(_specialTrainSetTest, 0, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
             }
             return optimizationAlgorithm;
         }
 
         protected override BaggingProvider CreateBaggingProvider()
         {
-            Host.Assert(Args.BaggingSize > 0);
-            return new RankingBaggingProvider(TrainSet, Args.NumLeaves, Args.RngSeed, Args.BaggingTrainFraction);
+            Host.Assert(FastTreeTrainerOptions.BaggingSize > 0);
+            return new RankingBaggingProvider(TrainSet, FastTreeTrainerOptions.NumLeaves, FastTreeTrainerOptions.RngSeed, FastTreeTrainerOptions.BaggingTrainFraction);
         }
 
         protected override void PrepareLabels(IChannel ch)
@@ -211,17 +211,17 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override Test ConstructTestForTrainingData()
         {
-            return new NdcgTest(ConstructScoreTracker(TrainSet), TrainSet.Ratings, Args.SortingAlgorithm);
+            return new NdcgTest(ConstructScoreTracker(TrainSet), TrainSet.Ratings, FastTreeTrainerOptions.SortingAlgorithm);
         }
 
         protected override void InitializeTests()
         {
-            if (Args.TestFrequency != int.MaxValue)
+            if (FastTreeTrainerOptions.TestFrequency != int.MaxValue)
             {
                 AddFullTests();
             }
 
-            if (Args.PrintTestGraph)
+            if (FastTreeTrainerOptions.PrintTestGraph)
             {
                 // If FirstTestHistory is null (which means the tests were not intialized due to /tf==infinity)
                 // We need initialize first set for graph printing
@@ -238,14 +238,14 @@ namespace Microsoft.ML.Trainers.FastTree
             if (ValidSet != null)
                 ValidTest = CreateSpecialValidSetTest();
 
-            if (Args.PrintTrainValidGraph && Args.EnablePruning && _specialTrainSetTest == null)
+            if (FastTreeTrainerOptions.PrintTrainValidGraph && FastTreeTrainerOptions.EnablePruning && _specialTrainSetTest == null)
             {
                 _specialTrainSetTest = CreateSpecialTrainSetTest();
             }
 
-            if (Args.EnablePruning && ValidTest != null)
+            if (FastTreeTrainerOptions.EnablePruning && ValidTest != null)
             {
-                if (!Args.UseTolerantPruning)
+                if (!FastTreeTrainerOptions.UseTolerantPruning)
                 {
                     //use simple eraly stopping condition
                     PruningTest = new TestHistory(ValidTest, 0);
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 else
                 {
                     //use tolerant stopping condition
-                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, Args.PruningWindowSize, Args.PruningThreshold);
+                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, FastTreeTrainerOptions.PruningWindowSize, FastTreeTrainerOptions.PruningThreshold);
                 }
             }
         }
@@ -375,7 +375,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override void CustomizedTrainingIteration(InternalRegressionTree tree)
         {
             Contracts.AssertValueOrNull(tree);
-            if (tree != null && Args.CompressEnsemble)
+            if (tree != null && FastTreeTrainerOptions.CompressEnsemble)
             {
                 double[] trainOutputs = Ensemble.GetTreeAt(Ensemble.NumTrees - 1).GetOutputs(TrainSet);
                 _ensembleCompressor.SetTreeScores(Ensemble.NumTrees - 1, trainOutputs);
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new NdcgTest(
                 ConstructScoreTracker(dataset),
                 dataset.Ratings,
-                Args.SortingAlgorithm);
+                FastTreeTrainerOptions.SortingAlgorithm);
         }
 
         /// <summary>
@@ -408,8 +408,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 OptimizationAlgorithm.TrainingScores,
                 OptimizationAlgorithm.ObjectiveFunction as LambdaRankObjectiveFunction,
                 TrainSet.Ratings,
-                Args.SortingAlgorithm,
-                Args.EarlyStoppingMetrics);
+                FastTreeTrainerOptions.SortingAlgorithm,
+                FastTreeTrainerOptions.EarlyStoppingMetrics);
         }
 
         /// <summary>
@@ -421,8 +421,8 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastNdcgTest(
                 ConstructScoreTracker(ValidSet),
                 ValidSet.Ratings,
-                Args.SortingAlgorithm,
-                Args.EarlyStoppingMetrics);
+                FastTreeTrainerOptions.SortingAlgorithm,
+                FastTreeTrainerOptions.EarlyStoppingMetrics);
         }
 
         /// <summary>
@@ -442,12 +442,12 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             StringBuilder headerBuilder = new StringBuilder("Eval:\tFileName\tNDCG@1\tNDCG@2\tNDCG@3\tNDCG@4\tNDCG@5\tNDCG@6\tNDCG@7\tNDCG@8\tNDCG@9\tNDCG@10");
 
-            if (Args.PrintTrainValidGraph)
+            if (FastTreeTrainerOptions.PrintTrainValidGraph)
             {
                 headerBuilder.Append("\tNDCG@20\tNDCG@40");
                 headerBuilder.AppendFormat(
                     "\nNote: Printing train NDCG@{0} as NDCG@20 and validation NDCG@{0} as NDCG@40..\n",
-                    Args.EarlyStoppingMetrics);
+                    FastTreeTrainerOptions.EarlyStoppingMetrics);
             }
 
             return headerBuilder.ToString();

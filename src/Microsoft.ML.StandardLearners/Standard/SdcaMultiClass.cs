@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "sasdcamc";
         internal const string Summary = "The SDCA linear multi-class classification trainer.";
 
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();

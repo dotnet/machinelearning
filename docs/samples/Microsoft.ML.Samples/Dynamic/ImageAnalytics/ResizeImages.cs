@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // hotdog.jpg   hotdog
             // tomato.jpg   tomato
 
-            var data = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
+            var data = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Columns = new[]
                 {

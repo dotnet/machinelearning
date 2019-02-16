@@ -49,34 +49,32 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Split the dataset into the train set and test set according to the given fraction.
-        /// Respects the <paramref name="stratificationColumn"/> if provided.
+        /// Respects the <paramref name="samplingKeyColumn"/> if provided.
         /// </summary>
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
-        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
-        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
-        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
-        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
-        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
-        /// And if it is not provided, the default value will be used.</param>
-        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null, uint? seed = null)
+        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
+        /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
+        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumn = null, uint? seed = null)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
-            Environment.CheckValueOrNull(stratificationColumn);
+            Environment.CheckValueOrNull(samplingKeyColumn);
 
-            EnsureStratificationColumn(ref data, ref stratificationColumn, seed);
+            EnsureGroupPreservationColumn(ref data, ref samplingKeyColumn, seed);
 
             var trainFilter = new RangeFilter(Environment, new RangeFilter.Options()
             {
-                Column = stratificationColumn,
+                Column = samplingKeyColumn,
                 Min = 0,
                 Max = testFraction,
                 Complement = true
             }, data);
             var testFilter = new RangeFilter(Environment, new RangeFilter.Options()
             {
-                Column = stratificationColumn,
+                Column = samplingKeyColumn,
                 Min = 0,
                 Max = testFraction,
                 Complement = false
@@ -147,28 +145,28 @@ namespace Microsoft.ML
         /// Return each model and each scored test dataset.
         /// </summary>
         protected internal CrossValidationResult[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
-            int numFolds, string stratificationColumn, uint? seed = null)
+            int numFolds, string samplingKeyColumn, uint? seed = null)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckValue(estimator, nameof(estimator));
             Environment.CheckParam(numFolds > 1, nameof(numFolds), "Must be more than 1");
-            Environment.CheckValueOrNull(stratificationColumn);
+            Environment.CheckValueOrNull(samplingKeyColumn);
 
-            EnsureStratificationColumn(ref data, ref stratificationColumn, seed);
+            EnsureGroupPreservationColumn(ref data, ref samplingKeyColumn, seed);
 
             Func<int, CrossValidationResult> foldFunction =
                 fold =>
                 {
                     var trainFilter = new RangeFilter(Environment, new RangeFilter.Options
                     {
-                        Column = stratificationColumn,
+                        Column = samplingKeyColumn,
                         Min = (double)fold / numFolds,
                         Max = (double)(fold + 1) / numFolds,
                         Complement = true
                     }, data);
                     var testFilter = new RangeFilter(Environment, new RangeFilter.Options
                     {
-                        Column = stratificationColumn,
+                        Column = samplingKeyColumn,
                         Min = (double)fold / numFolds,
                         Max = (double)(fold + 1) / numFolds,
                         Complement = false
@@ -198,44 +196,42 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Make sure the provided <paramref name="stratificationColumn"/> is valid
-        /// for <see cref="RangeFilter"/>, hash it if needed, or introduce a new one
-        /// if needed.
+        /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing it if necessary, or creates a new column <paramref name="samplingKeyColumn"/> is null.
         /// </summary>
-        private void EnsureStratificationColumn(ref IDataView data, ref string stratificationColumn, uint? seed = null)
+        private void EnsureGroupPreservationColumn(ref IDataView data, ref string samplingKeyColumn, uint? seed = null)
         {
-            // We need to handle two cases: if the stratification column is provided, we use hashJoin to
+            // We need to handle two cases: if samplingKeyColumn is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
 
-            if (stratificationColumn == null)
+            if (samplingKeyColumn == null)
             {
-                stratificationColumn = data.Schema.GetTempColumnName("StratificationColumn");
-                data = new GenerateNumberTransform(Environment, data, stratificationColumn, seed);
+                samplingKeyColumn = data.Schema.GetTempColumnName("IdPreservationColumn");
+                data = new GenerateNumberTransform(Environment, data, samplingKeyColumn, seed);
             }
             else
             {
-                if (!data.Schema.TryGetColumnIndex(stratificationColumn, out int stratCol))
-                    throw Environment.ExceptSchemaMismatch(nameof(stratificationColumn), "stratification", stratificationColumn);
+                if (!data.Schema.TryGetColumnIndex(samplingKeyColumn, out int stratCol))
+                    throw Environment.ExceptSchemaMismatch(nameof(samplingKeyColumn), "GroupPreservationColumn", samplingKeyColumn);
 
                 var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(Environment, type))
                 {
-                    // Hash the stratification column.
+                    // Hash the samplingKeyColumn.
                     // REVIEW: this could currently crash, since Hash only accepts a limited set
                     // of column types. It used to be HashJoin, but we should probably extend Hash
                     // instead of having two hash transformations.
-                    var origStratCol = stratificationColumn;
+                    var origStratCol = samplingKeyColumn;
                     int tmp;
                     int inc = 0;
 
-                    // Generate a new column with the hashed stratification column.
-                    while (data.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
-                        stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
+                    // Generate a new column with the hashed samplingKeyColumn.
+                    while (data.Schema.TryGetColumnIndex(samplingKeyColumn, out tmp))
+                        samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
                     HashingEstimator.ColumnInfo columnInfo;
                     if (seed.HasValue)
-                        columnInfo = new HashingEstimator.ColumnInfo(stratificationColumn, origStratCol, 30, seed.Value);
+                        columnInfo = new HashingEstimator.ColumnInfo(samplingKeyColumn, origStratCol, 30, seed.Value);
                     else
-                        columnInfo = new HashingEstimator.ColumnInfo(stratificationColumn, origStratCol, 30);
+                        columnInfo = new HashingEstimator.ColumnInfo(samplingKeyColumn, origStratCol, 30);
                     data = new HashingEstimator(Environment, columnInfo).Fit(data).Transform(data);
                 }
             }
@@ -327,51 +323,48 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumn"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
-        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
-        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
-        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
-        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
-        /// And if it is not provided, the default value will be used.</param>
+        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
+        /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string stratificationColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, uint? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
+            var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<BinaryClassificationMetrics>(x.Model,
                 EvaluateNonCalibrated(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
 
         /// <summary>
         /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumn"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
-        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
+        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
+        /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<CalibratedBinaryClassificationMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string stratificationColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, uint? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
+            var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<CalibratedBinaryClassificationMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
@@ -434,7 +427,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumn"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
@@ -442,18 +435,15 @@ namespace Microsoft.ML
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">Optional label column for evaluation (clustering tasks may not always have a label).</param>
         /// <param name="featuresColumn">Optional features column for evaluation (needed for calculating Dbi metric)</param>
-        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
-        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
-        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
-        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
-        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
-        /// And if it is not provided, the default value will be used.</param>
-        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
+        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
+        /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null,
-            string stratificationColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, uint? seed = null)
         {
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
+            var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<ClusteringMetrics>(x.Model,
                 Evaluate(x.Scores, label: labelColumn, features: featuresColumn), x.Scores, x.Fold)).ToArray();
         }
@@ -511,26 +501,25 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumn"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
-        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
-        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
-        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
-        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
-        /// And if it is not provided, the default value will be used.</param>
+        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
+        /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
+        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<MultiClassClassifierMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string stratificationColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, uint? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
+            var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<MultiClassClassifierMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }
@@ -579,26 +568,24 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumn"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
-        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
-        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
-        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
-        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
-        /// And if it is not provided, the default value will be used.</param>
+        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
+        /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<RegressionMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
-            string stratificationColumn = null, uint? seed = null)
+            string samplingKeyColumn = null, uint? seed = null)
         {
             Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
+            var result = CrossValidateTrain(data, estimator, numFolds, samplingKeyColumn, seed);
             return result.Select(x => new CrossValidationResult<RegressionMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }

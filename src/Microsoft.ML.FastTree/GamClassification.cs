@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers.FastTree
         BinaryPredictionTransformer<CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>>
     {
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]

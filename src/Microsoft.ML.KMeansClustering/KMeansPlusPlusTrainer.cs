@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.KMeans
             public const int ClustersCount = 5;
         }
 
-        public class Options : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
         {
             /// <summary>
             /// The number of clusters.

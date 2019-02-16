@@ -13,11 +13,11 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Sweeper;
 
-[assembly: LoadableClass(typeof(SimpleAsyncSweeper), typeof(SweeperBase.ArgumentsBase), typeof(SignatureAsyncSweeper),
+[assembly: LoadableClass(typeof(SimpleAsyncSweeper), typeof(SweeperBase.OptionsBase), typeof(SignatureAsyncSweeper),
     "Asynchronous Uniform Random Sweeper", "UniformRandomSweeper", "UniformRandom")]
-[assembly: LoadableClass(typeof(SimpleAsyncSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureAsyncSweeper),
+[assembly: LoadableClass(typeof(SimpleAsyncSweeper), typeof(RandomGridSweeper.Options), typeof(SignatureAsyncSweeper),
     "Asynchronous Random Grid Sweeper", "RandomGridSweeper", "RandomGrid")]
-[assembly: LoadableClass(typeof(DeterministicSweeperAsync), typeof(DeterministicSweeperAsync.Arguments), typeof(SignatureAsyncSweeper),
+[assembly: LoadableClass(typeof(DeterministicSweeperAsync), typeof(DeterministicSweeperAsync.Options), typeof(SignatureAsyncSweeper),
     "Asynchronous and Deterministic Sweeper", "DeterministicSweeper", "Deterministic")]
 
 namespace Microsoft.ML.Sweeper
@@ -88,13 +88,13 @@ namespace Microsoft.ML.Sweeper
             _results = new List<IRunResult>();
         }
 
-        public SimpleAsyncSweeper(IHostEnvironment env, UniformRandomSweeper.ArgumentsBase args)
-            : this(new UniformRandomSweeper(env, args))
+        public SimpleAsyncSweeper(IHostEnvironment env, UniformRandomSweeper.OptionsBase options)
+            : this(new UniformRandomSweeper(env, options))
         {
         }
 
-        public SimpleAsyncSweeper(IHostEnvironment env, RandomGridSweeper.Arguments args)
-            : this(new UniformRandomSweeper(env, args))
+        public SimpleAsyncSweeper(IHostEnvironment env, RandomGridSweeper.Options options)
+            : this(new UniformRandomSweeper(env, options))
         {
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Sweeper
     /// </summary>
     public sealed class DeterministicSweeperAsync : IAsyncSweeper, IDisposable
     {
-        public sealed class Arguments
+        public sealed class Options
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Base sweeper", ShortName = "sweeper", SignatureType = typeof(SignatureSweeper))]
             public IComponentFactory<ISweeper> Sweeper;
@@ -190,21 +190,21 @@ namespace Microsoft.ML.Sweeper
         // The number of ParameterSets generated so far. Used for indexing.
         private int _numGenerated;
 
-        public DeterministicSweeperAsync(IHostEnvironment env, Arguments args)
+        public DeterministicSweeperAsync(IHostEnvironment env, Options options)
         {
-            _host = env.Register("DeterministicSweeperAsync", args.RandomSeed);
-            _host.CheckValue(args.Sweeper, nameof(args.Sweeper), "Please specify a sweeper");
-            _host.CheckUserArg(args.BatchSize > 0, nameof(args.BatchSize), "Batch size must be positive");
-            _host.CheckUserArg(args.Relaxation >= 0, nameof(args.Relaxation), "Synchronization relaxation must be non-negative");
-            _host.CheckUserArg(args.Relaxation <= args.BatchSize, nameof(args.Relaxation),
+            _host = env.Register("DeterministicSweeperAsync", options.RandomSeed);
+            _host.CheckValue(options.Sweeper, nameof(options.Sweeper), "Please specify a sweeper");
+            _host.CheckUserArg(options.BatchSize > 0, nameof(options.BatchSize), "Batch size must be positive");
+            _host.CheckUserArg(options.Relaxation >= 0, nameof(options.Relaxation), "Synchronization relaxation must be non-negative");
+            _host.CheckUserArg(options.Relaxation <= options.BatchSize, nameof(options.Relaxation),
                 "Synchronization relaxation cannot be larger than batch size");
-            _batchSize = args.BatchSize;
-            _baseSweeper = args.Sweeper.CreateComponent(_host);
-            _host.CheckUserArg(!(_baseSweeper is NelderMeadSweeper) || args.Relaxation == 0, nameof(args.Relaxation),
+            _batchSize = options.BatchSize;
+            _baseSweeper = options.Sweeper.CreateComponent(_host);
+            _host.CheckUserArg(!(_baseSweeper is NelderMeadSweeper) || options.Relaxation == 0, nameof(options.Relaxation),
                 "Nelder-Mead requires full synchronization (relaxation = 0)");
 
             _cts = new CancellationTokenSource();
-            _relaxation = args.Relaxation;
+            _relaxation = options.Relaxation;
             _lock = new object();
             _results = new List<IRunResult>();
             _nullRuns = new HashSet<int>();

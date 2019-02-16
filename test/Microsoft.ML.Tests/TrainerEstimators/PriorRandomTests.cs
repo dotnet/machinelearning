@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         private IDataView GetBreastCancerDataviewWithTextColumns()
         {
             return new TextLoader(Env,
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         HasHeader = true,
                         Columns = new[]

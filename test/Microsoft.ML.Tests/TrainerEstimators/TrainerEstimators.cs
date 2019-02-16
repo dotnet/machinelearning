@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             string featureColumn = "NumericFeatures";
 
-            var reader = new TextLoader(Env, new TextLoader.Arguments()
+            var reader = new TextLoader(Env, new TextLoader.Options()
             {
                 HasHeader = true,
                 Separator = "\t",
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             string featureColumn = "NumericFeatures";
             string weights = "Weights";
 
-            var reader = new TextLoader(Env, new TextLoader.Arguments
+            var reader = new TextLoader(Env, new TextLoader.Options
             {
                 HasHeader = true,
                 Separator = "\t",
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         private (IEstimator<ITransformer>, IDataView) GetBinaryClassificationPipeline()
         {
             var data = new TextLoader(Env,
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         Separator = "\t",
                         HasHeader = true,
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private (IEstimator<ITransformer>, IDataView) GetRankingPipeline()
         {
-            var data = new TextLoader(Env, new TextLoader.Arguments
+            var data = new TextLoader(Env, new TextLoader.Options
             {
                 HasHeader = true,
                 Separator = "\t",
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         private IDataView GetRegressionPipeline()
         {
             return new TextLoader(Env,
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         Separator = ";",
                         HasHeader = true,
@@ -214,9 +214,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename));
         }
 
-        private TextLoader.Arguments GetIrisLoaderArgs()
+        private TextLoader.Options GetIrisLoaderArgs()
         {
-            return new TextLoader.Arguments()
+            return new TextLoader.Options()
             {
                 Separator = "comma",
                 HasHeader = true,
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private (IEstimator<ITransformer>, IDataView) GetMultiClassPipeline()
         {
-            var data = new TextLoader(Env, new TextLoader.Arguments()
+            var data = new TextLoader(Env, new TextLoader.Options()
             {
                 Separator = "comma",
                 Columns = new[]

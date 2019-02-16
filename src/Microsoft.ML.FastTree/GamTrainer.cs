@@ -51,10 +51,10 @@ namespace Microsoft.ML.Trainers.FastTree
     /// </example>
     public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
-        where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.ArgumentsBase, new()
+        where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.OptionsBase, new()
         where TPredictor : class
     {
-        public abstract class ArgumentsBase : LearnerInputBaseWithWeight
+        public abstract class OptionsBase : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
             public double EntropyCoefficient;
