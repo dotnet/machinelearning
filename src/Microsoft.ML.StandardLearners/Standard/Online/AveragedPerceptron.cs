@@ -163,7 +163,7 @@ namespace Microsoft.ML.Trainers.Online
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        protected override bool NeedCalibration => true;
+        private protected override bool NeedCalibration => true;
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {

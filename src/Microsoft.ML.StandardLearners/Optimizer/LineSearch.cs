@@ -12,7 +12,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// Line search that does not use derivatives
     /// </summary>
-    public interface ILineSearch : IDiffLineSearch
+    internal interface ILineSearch : IDiffLineSearch
     {
         /// <summary>
         /// Finds a local minimum of the function
@@ -28,12 +28,12 @@ namespace Microsoft.ML.Numeric
     /// <param name="x">Point to evaluate</param>
     /// <param name="deriv">Derivative at that point</param>
     /// <returns></returns>
-    public delegate Float DiffFunc1D(Float x, out Float deriv);
+    internal delegate Float DiffFunc1D(Float x, out Float deriv);
 
     /// <summary>
     /// Line search that uses derivatives
     /// </summary>
-    public interface IDiffLineSearch
+    internal interface IDiffLineSearch
     {
         /// <summary>
         /// Finds a local minimum of the function
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// Cubic interpolation line search
     /// </summary>
-    public sealed class CubicInterpLineSearch : IDiffLineSearch
+    internal sealed class CubicInterpLineSearch : IDiffLineSearch
     {
         private Float _step;
         private const Float _minProgress = (Float)0.01;
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// Finds local minimum with golden section search.
     /// </summary>
-    public sealed class GoldenSectionSearch : ILineSearch
+    internal sealed class GoldenSectionSearch : ILineSearch
     {
         private Float _step;
         private static readonly Float _phi = (1 + MathUtils.Sqrt(5)) / 2;
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Numeric
     /// <summary>
     /// Backtracking line search with Armijo condition
     /// </summary>
-    public sealed class BacktrackingLineSearch : IDiffLineSearch
+    internal sealed class BacktrackingLineSearch : IDiffLineSearch
     {
         private Float _step;
         private Float _c1;

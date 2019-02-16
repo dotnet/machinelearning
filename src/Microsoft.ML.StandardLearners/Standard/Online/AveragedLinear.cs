@@ -118,8 +118,8 @@ namespace Microsoft.ML.Trainers.Online
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        protected readonly AveragedLinearOptions AveragedLinearTrainerOptions;
-        protected IScalarOutputLoss LossFunction;
+        private protected readonly AveragedLinearOptions AveragedLinearTrainerOptions;
+        private protected IScalarOutputLoss LossFunction;
 
         private protected abstract class AveragedTrainStateBase : TrainStateBase
         {
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        protected AveragedLinearTrainer(AveragedLinearOptions options, IHostEnvironment env, string name, SchemaShape.Column label)
+        private protected AveragedLinearTrainer(AveragedLinearOptions options, IHostEnvironment env, string name, SchemaShape.Column label)
             : base(options, env, name, label)
         {
             Contracts.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), UserErrorPositive);

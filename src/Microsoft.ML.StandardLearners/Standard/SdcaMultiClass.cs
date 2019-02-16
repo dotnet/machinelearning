@@ -408,7 +408,7 @@ namespace Microsoft.ML.Trainers
             return converged;
         }
 
-        protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        private protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Trainers
             examples.CheckMultiClassLabel(out weightSetCount);
         }
 
-        protected override Float[] InitializeFeatureNormSquared(int length)
+        private protected override Float[] InitializeFeatureNormSquared(int length)
         {
             Contracts.Assert(0 < length & length <= Utils.ArrayMaxSize);
             return new Float[length];
