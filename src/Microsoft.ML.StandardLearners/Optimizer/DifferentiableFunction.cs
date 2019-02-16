@@ -18,7 +18,7 @@ namespace Microsoft.ML.Numeric
     /// <param name="gradient">The gradient vector, which must be filled in (its initial contents are undefined)</param>
     /// <param name="progress">The progress channel provider that can be used to report calculation progress. Can be null.</param>
     /// <returns>The value of the function</returns>
-    public delegate Float DifferentiableFunction(in VBuffer<Float> input, ref VBuffer<Float> gradient, IProgressChannelProvider progress);
+    internal delegate Float DifferentiableFunction(in VBuffer<Float> input, ref VBuffer<Float> gradient, IProgressChannelProvider progress);
 
     /// <summary>
     /// A delegate for indexed sets of functions with gradients.
@@ -30,12 +30,12 @@ namespace Microsoft.ML.Numeric
     /// <param name="input">The point at which to evaluate the function</param>
     /// <param name="gradient">The gradient vector, which must be filled in (its initial contents are undefined)</param>
     /// <returns>The value of the function</returns>
-    public delegate Float IndexedDifferentiableFunction(int index, in VBuffer<Float> input, ref VBuffer<Float> gradient);
+    internal delegate Float IndexedDifferentiableFunction(int index, in VBuffer<Float> input, ref VBuffer<Float> gradient);
 
     /// <summary>
     /// Class to aggregate an indexed differentiable function into a single function, in parallel
     /// </summary>
-    public class DifferentiableFunctionAggregator
+    internal class DifferentiableFunctionAggregator
     {
         private readonly IndexedDifferentiableFunction _func;
         private readonly int _maxIndex;
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Numeric
     /// May have false negatives if extreme values cause the numeric gradient to be off,
     /// for example, if the norm of x is very large, or if the gradient is changing rapidly at x.
     /// </remarks>
-    public static class GradientTester
+    internal static class GradientTester
     {
         // approximately u^(1/3), where u is the unit roundoff ~ 1.1e-16.
         // the optimal value of eps for the central difference approximation, Nocedal & Wright

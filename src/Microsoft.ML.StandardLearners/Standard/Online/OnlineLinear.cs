@@ -70,8 +70,8 @@ namespace Microsoft.ML.Trainers.Online
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        protected readonly OnlineLinearOptions OnlineLinearTrainerOptions;
-        protected readonly string Name;
+        private protected readonly OnlineLinearOptions OnlineLinearTrainerOptions;
+        private protected readonly string Name;
 
         /// <summary>
         /// An object to hold the mutable updatable state for the online linear trainers. Specific algorithms should subclass
@@ -246,12 +246,12 @@ namespace Microsoft.ML.Trainers.Online
         private const float _maxWeightScale = 1 << 10; // Exponent ranges 127 to -128, tolerate 10 being cut off that.
         private const float _minWeightScale = 1 / _maxWeightScale;
 
-        protected const string UserErrorPositive = "must be positive";
-        protected const string UserErrorNonNegative = "must be non-negative";
+        private protected const string UserErrorPositive = "must be positive";
+        private protected const string UserErrorNonNegative = "must be non-negative";
 
         public override TrainerInfo Info { get; }
 
-        protected virtual bool NeedCalibration => false;
+        private protected virtual bool NeedCalibration => false;
 
         private protected OnlineLinearTrainer(OnlineLinearOptions options, IHostEnvironment env, string name, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.InitialWeights))

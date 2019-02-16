@@ -101,13 +101,13 @@ namespace Microsoft.ML.Trainers
         public RegressionPredictionTransformer<PoissonRegressionModelParameters> Fit(IDataView trainData, IPredictor initialPredictor)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionModelParameters srcPredictor)
+        private protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionModelParameters srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
             return InitializeWeights(srcPredictor.Weights, new[] { srcPredictor.Bias });
         }
 
-        protected override void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
+        private protected override void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
         {
             if (!(label >= 0))
                 throw Contracts.Except("Poisson regression must regress to a non-negative label, but label {0} encountered", label);
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // Make sure _lossnormalizer is added only once
-        protected override float DifferentiableFunction(in VBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
+        private protected override float DifferentiableFunction(in VBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
         {
             return base.DifferentiableFunction(in x, ref gradient, progress) + (float)(_lossNormalizer / NumGoodRows);
         }
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Trainers
         // Goal is to find w that maximizes
         // Note: We negate the above in ordrer to minimize
 
-        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+        private protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Trainers
             return -(y * dot - lambda) * weight;
         }
 
-        protected override PoissonRegressionModelParameters CreatePredictor()
+        private protected override PoissonRegressionModelParameters CreatePredictor()
         {
             VBuffer<float> weights = default(VBuffer<float>);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Trainers
             // No-op by design.
         }
 
-        protected override void ProcessPriorDistribution(float label, float weight)
+        private protected override void ProcessPriorDistribution(float label, float weight)
         {
             // No-op by design.
         }

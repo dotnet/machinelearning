@@ -290,12 +290,12 @@ namespace Microsoft.ML.FactorizationMachine
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        internal IReadOnlyList<string> FeatureColumns { get; }
+        private IReadOnlyList<string> FeatureColumns { get; }
 
         /// <summary>
         /// The type of the feature columns.
         /// </summary>
-        internal IReadOnlyList<DataViewType> FeatureColumnTypes { get; }
+        private IReadOnlyList<DataViewType> FeatureColumnTypes { get; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;
