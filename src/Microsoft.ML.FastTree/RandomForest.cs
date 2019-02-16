@@ -14,7 +14,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor invoked by the maml code-path.
         /// </summary>
-        internal RandomForestTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, bool quantileEnabled = false)
+        private protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, bool quantileEnabled = false)
             : base(env, args, label)
         {
             _quantileEnabled = quantileEnabled;
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor invoked by the API code-path.
         /// </summary>
-        internal RandomForestTrainerBase(IHostEnvironment env,
+        private protected RandomForestTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,

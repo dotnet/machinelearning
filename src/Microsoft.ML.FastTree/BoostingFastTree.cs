@@ -14,11 +14,11 @@ namespace Microsoft.ML.Trainers.FastTree
         where TArgs : BoostedTreeArgs, new()
         where TModel : class
     {
-        internal BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
+        private protected BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
         {
         }
 
-        internal BoostingFastTreeTrainerBase(IHostEnvironment env,
+        private protected BoostingFastTreeTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Retrieves max tree output if best regression step option is active or returns negative value otherwise.
         /// </summary>
-        internal double BsrMaxTreeOutput()
+        private protected double BsrMaxTreeOutput()
         {
             if (FastTreeTrainerOptions.BestStepRankingRegressionTrees)
                 return FastTreeTrainerOptions.MaxTreeOutput;
