@@ -17,7 +17,7 @@ namespace Microsoft.ML.Trainers.Online
     /// <summary>
     /// Arguments class for averaged linear trainers.
     /// </summary>
-    public abstract class AveragedLinearArguments : OnlineLinearArguments
+    public abstract class AveragedLinearOptions : OnlineLinearOptions
     {
         /// <summary>
         /// <a href="tmpurl_lr">Learning rate</a>.
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]
         [TlcModule.SweepableDiscreteParam("LearningRate", new object[] { 0.01, 0.1, 0.5, 1.0 })]
-        public float LearningRate = AveragedDefaultArgs.LearningRate;
+        public float LearningRate = AveragedDefault.LearningRate;
 
         /// <summary>
         /// Determine whether to decrease the <see cref="LearningRate"/> or not.
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "Decrease learning rate", ShortName = "decreaselr", SortOrder = 50)]
         [TGUI(Label = "Decrease Learning Rate", Description = "Decrease learning rate as iterations progress")]
         [TlcModule.SweepableDiscreteParam("DecreaseLearningRate", new object[] { false, true })]
-        public bool DecreaseLearningRate = AveragedDefaultArgs.DecreaseLearningRate;
+        public bool DecreaseLearningRate = AveragedDefault.DecreaseLearningRate;
 
         /// <summary>
         /// Number of examples after which weights will be reset to the current average.
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]
         [TlcModule.SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f)]
-        public float L2RegularizerWeight = AveragedDefaultArgs.L2RegularizerWeight;
+        public float L2RegularizerWeight = AveragedDefault.L2RegularizerWeight;
 
         /// <summary>
         /// Extra weight given to more recent updates.
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Trainers.Online
         internal float AveragedTolerance = (float)1e-2;
 
         [BestFriend]
-        internal class AveragedDefaultArgs : OnlineDefaultArgs
+        internal class AveragedDefault : OnlineLinearOptions.OnlineDefault
         {
             public const float LearningRate = 1;
             public const bool DecreaseLearningRate = false;
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Trainers.Online
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        protected readonly new AveragedLinearArguments Args;
+        protected readonly AveragedLinearOptions AveragedLinearTrainerOptions;
         protected IScalarOutputLoss LossFunction;
 
         private protected abstract class AveragedTrainStateBase : TrainStateBase
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Trainers.Online
 
             protected readonly bool Averaged;
             private readonly long _resetWeightsAfterXExamples;
-            private readonly AveragedLinearArguments _args;
+            private readonly AveragedLinearOptions _args;
             private readonly IScalarOutputLoss _loss;
 
             private protected AveragedTrainStateBase(IChannel ch, int numFeatures, LinearModelParameters predictor, AveragedLinearTrainer<TTransformer, TModel> parent)
@@ -148,10 +148,10 @@ namespace Microsoft.ML.Trainers.Online
             {
                 // Do the other initializations by setting the setters as if user had set them
                 // Initialize the averaged weights if needed (i.e., do what happens when Averaged is set)
-                Averaged = parent.Args.Averaged;
+                Averaged = parent.AveragedLinearTrainerOptions.Averaged;
                 if (Averaged)
                 {
-                    if (parent.Args.AveragedTolerance > 0)
+                    if (parent.AveragedLinearTrainerOptions.AveragedTolerance > 0)
                         VBufferUtils.Densify(ref Weights);
                     Weights.CopyTo(ref TotalWeights);
                 }
@@ -161,8 +161,8 @@ namespace Microsoft.ML.Trainers.Online
                     // to another vector with each update.
                     VBufferUtils.Densify(ref Weights);
                 }
-                _resetWeightsAfterXExamples = parent.Args.ResetWeightsAfterXExamples ?? 0;
-                _args = parent.Args;
+                _resetWeightsAfterXExamples = parent.AveragedLinearTrainerOptions.ResetWeightsAfterXExamples ?? 0;
+                _args = parent.AveragedLinearTrainerOptions;
                 _loss = parent.LossFunction;
 
                 Gain = 1;
@@ -295,20 +295,20 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        protected AveragedLinearTrainer(AveragedLinearArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
-            : base(args, env, name, label)
+        protected AveragedLinearTrainer(AveragedLinearOptions options, IHostEnvironment env, string name, SchemaShape.Column label)
+            : base(options, env, name, label)
         {
-            Contracts.CheckUserArg(args.LearningRate > 0, nameof(args.LearningRate), UserErrorPositive);
-            Contracts.CheckUserArg(!args.ResetWeightsAfterXExamples.HasValue || args.ResetWeightsAfterXExamples > 0, nameof(args.ResetWeightsAfterXExamples), UserErrorPositive);
+            Contracts.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), UserErrorPositive);
+            Contracts.CheckUserArg(!options.ResetWeightsAfterXExamples.HasValue || options.ResetWeightsAfterXExamples > 0, nameof(options.ResetWeightsAfterXExamples), UserErrorPositive);
 
             // Weights are scaled down by 2 * L2 regularization on each update step, so 0.5 would scale all weights to 0, which is not sensible.
-            Contracts.CheckUserArg(0 <= args.L2RegularizerWeight && args.L2RegularizerWeight < 0.5, nameof(args.L2RegularizerWeight), "must be in range [0, 0.5)");
-            Contracts.CheckUserArg(args.RecencyGain >= 0, nameof(args.RecencyGain), UserErrorNonNegative);
-            Contracts.CheckUserArg(args.AveragedTolerance >= 0, nameof(args.AveragedTolerance), UserErrorNonNegative);
+            Contracts.CheckUserArg(0 <= options.L2RegularizerWeight && options.L2RegularizerWeight < 0.5, nameof(options.L2RegularizerWeight), "must be in range [0, 0.5)");
+            Contracts.CheckUserArg(options.RecencyGain >= 0, nameof(options.RecencyGain), UserErrorNonNegative);
+            Contracts.CheckUserArg(options.AveragedTolerance >= 0, nameof(options.AveragedTolerance), UserErrorNonNegative);
             // Verify user didn't specify parameters that conflict
-            Contracts.Check(!args.DoLazyUpdates || !args.RecencyGainMulti && args.RecencyGain == 0, "Cannot have both recency gain and lazy updates.");
+            Contracts.Check(!options.DoLazyUpdates || !options.RecencyGainMulti && options.RecencyGain == 0, "Cannot have both recency gain and lazy updates.");
 
-            Args = args;
+            AveragedLinearTrainerOptions = options;
         }
     }
 }

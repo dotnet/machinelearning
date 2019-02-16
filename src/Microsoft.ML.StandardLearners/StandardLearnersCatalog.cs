@@ -304,10 +304,10 @@ namespace Microsoft.ML
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
-            float learningRate = AveragedLinearArguments.AveragedDefaultArgs.LearningRate,
-            bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations)
+            float learningRate = AveragedLinearOptions.AveragedDefault.LearningRate,
+            bool decreaseLearningRate = AveragedLinearOptions.AveragedDefault.DecreaseLearningRate,
+            float l2RegularizerWeight = AveragedLinearOptions.AveragedDefault.L2RegularizerWeight,
+            int numIterations = AveragedLinearOptions.AveragedDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
 
@@ -369,8 +369,8 @@ namespace Microsoft.ML
             IRegressionLoss lossFunction = null,
             float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations)
+            float l2RegularizerWeight = AveragedLinearOptions.AveragedDefault.L2RegularizerWeight,
+            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -648,7 +648,7 @@ namespace Microsoft.ML
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightsColumn = null,
-            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations)
+            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             return new LinearSvmTrainer(CatalogUtils.GetEnvironment(catalog), labelColumn, featureColumn, weightsColumn, numIterations);

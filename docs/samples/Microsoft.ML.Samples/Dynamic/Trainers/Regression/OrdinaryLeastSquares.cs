@@ -22,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The data is tab separated with all numeric columns.
             // The first column being the label and rest are numeric features
             // Here only seven numeric columns are used as features
-            var dataView = mlContext.Data.ReadFromTextFile(dataFile, new TextLoader.Arguments
+            var dataView = mlContext.Data.ReadFromTextFile(dataFile, new TextLoader.Options
             {
                 Separators = new[] { '\t' },
                 HasHeader = true,

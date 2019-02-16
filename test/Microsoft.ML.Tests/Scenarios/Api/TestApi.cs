@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var mlContext = new MLContext(0);
             var dataFile = GetDataPath("breast-cancer.txt");
-            var loader = TextLoader.Create(mlContext, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            var loader = TextLoader.Create(mlContext, new TextLoader.Options(), new MultiFileSource(dataFile));
             var globalCounter = 0;
             var xf = LambdaTransform.CreateFilter<object, object>(mlContext, loader,
                 (i, s) => true,

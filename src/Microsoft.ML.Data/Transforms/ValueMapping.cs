@@ -600,7 +600,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         keyColumn = new TextLoader.Column(keyColumnName, DataKind.TXT, 0);
                         valueColumn = new TextLoader.Column(valueColumnName, DataKind.TXT, 1);
-                        var txtArgs = new TextLoader.Arguments()
+                        var txtArgs = new TextLoader.Options()
                         {
                             Columns = new TextLoader.Column[]
                             {
@@ -627,7 +627,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     loader = TextLoader.Create(
                         env,
-                        new TextLoader.Arguments()
+                        new TextLoader.Options()
                         {
                             Columns = new TextLoader.Column[]
                             {

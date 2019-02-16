@@ -44,7 +44,7 @@ namespace Microsoft.ML.Transforms.Projections
             public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
-            public IComponentFactory<float, IFourierDistributionSampler> MatrixGenerator = new GaussianFourierSampler.Arguments();
+            public IComponentFactory<float, IFourierDistributionSampler> MatrixGenerator = new GaussianFourierSampler.Options();
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool UseSin = RandomFourierFeaturizingEstimator.Defaults.UseSin;
 
@@ -666,7 +666,7 @@ namespace Microsoft.ML.Transforms.Projections
                 Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
                 InputColumnName = inputColumnName ?? name;
                 Name = name;
-                Generator = generator ?? new GaussianFourierSampler.Arguments();
+                Generator = generator ?? new GaussianFourierSampler.Options();
                 NewDim = newDim;
                 UseSin = useSin;
                 Seed = seed;

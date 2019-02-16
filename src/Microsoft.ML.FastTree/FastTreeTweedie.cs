@@ -115,27 +115,27 @@ namespace Microsoft.ML.Trainers.FastTree
             // a simple integer, because the metric that we might want is parameterized by this floating point "index" parameter. For now
             // we just leave the existing regression checks, though with a warning.
 
-            if (Args.EarlyStoppingMetrics > 0)
+            if (FastTreeTrainerOptions.EarlyStoppingMetrics > 0)
                 ch.Warning("For Tweedie regression, early stopping does not yet use the Tweedie distribution.");
 
-            ch.CheckUserArg((Args.EarlyStoppingRule == null && !Args.EnablePruning) || (Args.EarlyStoppingMetrics >= 1 && Args.EarlyStoppingMetrics <= 2), nameof(Args.EarlyStoppingMetrics),
+            ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics >= 1 && FastTreeTrainerOptions.EarlyStoppingMetrics <= 2), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
                     "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");
         }
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return new ObjectiveImpl(TrainSet, Args);
+            return new ObjectiveImpl(TrainSet, FastTreeTrainerOptions);
         }
 
         private protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
-            if (Args.UseLineSearch)
+            if (FastTreeTrainerOptions.UseLineSearch)
             {
                 var lossCalculator = new RegressionTest(optimizationAlgorithm.TrainingScores);
                 // REVIEW: We should make loss indices an enum in BinaryClassificationTest.
                 // REVIEW: Nope, subcomponent.
-                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, Args.NumPostBracketSteps, Args.MinStepSize);
+                optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, 1 /*L2 error*/, FastTreeTrainerOptions.NumPostBracketSteps, FastTreeTrainerOptions.MinStepSize);
             }
 
             return optimizationAlgorithm;
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void Initialize()
         {
-            Host.CheckUserArg(1 <= Args.Index && Args.Index <= 2, nameof(Args.Index), "Must be in the range [1, 2]");
+            Host.CheckUserArg(1 <= FastTreeTrainerOptions.Index && FastTreeTrainerOptions.Index <= 2, nameof(FastTreeTrainerOptions.Index), "Must be in the range [1, 2]");
 
             _outputColumns = new[]
             {
@@ -202,10 +202,10 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override void InitializeTests()
         {
             // Initialize regression tests.
-            if (Args.TestFrequency != int.MaxValue)
+            if (FastTreeTrainerOptions.TestFrequency != int.MaxValue)
                 AddFullRegressionTests();
 
-            if (Args.PrintTestGraph)
+            if (FastTreeTrainerOptions.PrintTestGraph)
             {
                 // If FirstTestHistory is null (which means the tests were not intialized due to /tf==infinity),
                 // we need initialize first set for graph printing.
@@ -217,24 +217,24 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
-            if (Args.PrintTrainValidGraph && _trainRegressionTest == null)
+            if (FastTreeTrainerOptions.PrintTrainValidGraph && _trainRegressionTest == null)
             {
                 Test trainRegressionTest = new RegressionTest(ConstructScoreTracker(TrainSet));
                 _trainRegressionTest = trainRegressionTest;
             }
 
-            if (Args.PrintTrainValidGraph && _testRegressionTest == null && TestSets != null && TestSets.Length > 0)
+            if (FastTreeTrainerOptions.PrintTrainValidGraph && _testRegressionTest == null && TestSets != null && TestSets.Length > 0)
                 _testRegressionTest = new RegressionTest(ConstructScoreTracker(TestSets[0]));
 
             // Add early stopping if appropriate.
-            TrainTest = new RegressionTest(ConstructScoreTracker(TrainSet), Args.EarlyStoppingMetrics);
+            TrainTest = new RegressionTest(ConstructScoreTracker(TrainSet), FastTreeTrainerOptions.EarlyStoppingMetrics);
             if (ValidSet != null)
-                ValidTest = new RegressionTest(ConstructScoreTracker(ValidSet), Args.EarlyStoppingMetrics);
+                ValidTest = new RegressionTest(ConstructScoreTracker(ValidSet), FastTreeTrainerOptions.EarlyStoppingMetrics);
 
-            if (Args.EnablePruning && ValidTest != null)
+            if (FastTreeTrainerOptions.EnablePruning && ValidTest != null)
             {
-                if (Args.UseTolerantPruning) // Use simple early stopping condition.
-                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, Args.PruningWindowSize, Args.PruningThreshold);
+                if (FastTreeTrainerOptions.UseTolerantPruning) // Use simple early stopping condition.
+                    PruningTest = new TestWindowWithTolerance(ValidTest, 0, FastTreeTrainerOptions.PruningWindowSize, FastTreeTrainerOptions.PruningThreshold);
                 else
                     PruningTest = new TestHistory(ValidTest, 0);
             }
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             StringBuilder headerBuilder = new StringBuilder("Eval:\tFileName\tNDCG@1\tNDCG@2\tNDCG@3\tNDCG@4\tNDCG@5\tNDCG@6\tNDCG@7\tNDCG@8\tNDCG@9\tNDCG@10");
 
-            if (Args.PrintTrainValidGraph)
+            if (FastTreeTrainerOptions.PrintTrainValidGraph)
             {
                 headerBuilder.Append("\tNDCG@20\tNDCG@40");
                 headerBuilder.Append("\nNote: Printing train L2 error as NDCG@20 and test L2 error as NDCG@40..\n");

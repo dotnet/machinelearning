@@ -10,10 +10,10 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(GaussianFourierSampler), typeof(GaussianFourierSampler.Arguments), typeof(SignatureFourierDistributionSampler),
+[assembly: LoadableClass(typeof(GaussianFourierSampler), typeof(GaussianFourierSampler.Options), typeof(SignatureFourierDistributionSampler),
     "Gaussian Kernel", GaussianFourierSampler.LoadName, "Gaussian")]
 
-[assembly: LoadableClass(typeof(LaplacianFourierSampler), typeof(LaplacianFourierSampler.Arguments), typeof(SignatureFourierDistributionSampler),
+[assembly: LoadableClass(typeof(LaplacianFourierSampler), typeof(LaplacianFourierSampler.Options), typeof(SignatureFourierDistributionSampler),
     "Laplacian Kernel", LaplacianFourierSampler.RegistrationName, "Laplacian")]
 
 // This is for deserialization from a binary model file.
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
     {
         private readonly IHost _host;
 
-        public class Arguments : IFourierDistributionSamplerFactory
+        public sealed class Options : IFourierDistributionSamplerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "gamma in the kernel definition: exp(-gamma*||x-y||^2 / r^2). r is an estimate of the average intra-example distance", ShortName = "g")]
             public float Gamma = 1;
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly float _gamma;
 
-        public GaussianFourierSampler(IHostEnvironment env, Arguments args, float avgDist)
+        public GaussianFourierSampler(IHostEnvironment env, Options args, float avgDist)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Transforms
 
     public sealed class LaplacianFourierSampler : IFourierDistributionSampler
     {
-        public class Arguments : IFourierDistributionSamplerFactory
+        public sealed class Options : IFourierDistributionSamplerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "a in the term exp(-a|x| / r). r is an estimate of the average intra-example L1 distance")]
             public float A = 1;
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly float _a;
 
-        public LaplacianFourierSampler(IHostEnvironment env, Arguments args, float avgDist)
+        public LaplacianFourierSampler(IHostEnvironment env, Options args, float avgDist)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);

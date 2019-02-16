@@ -403,7 +403,7 @@ namespace Microsoft.ML.RunTests
                 view = new ChooseColumnsByIndexTransform(env, chooseargs, view);
             }
 
-            var args = new TextLoader.Arguments();
+            var args = new TextLoader.Options();
             if (!CmdParser.ParseArguments(Env, argsLoader, args))
             {
                 Fail("Couldn't parse the args '{0}' in '{1}'", argsLoader, pathData);

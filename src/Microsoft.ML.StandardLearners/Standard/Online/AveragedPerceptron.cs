@@ -56,13 +56,13 @@ namespace Microsoft.ML.Trainers.Online
         /// <summary>
         /// Options for the averaged perceptron trainer.
         /// </summary>
-        public sealed class Options : AveragedLinearArguments
+        public sealed class Options : AveragedLinearOptions
         {
             /// <summary>
             /// A custom <a href="tmpurl_loss">loss</a>.
             /// </summary>
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
-            public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();
+            public ISupportClassificationLossFactory LossFunction = new HingeLoss.Options();
 
             /// <summary>
             /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
@@ -132,10 +132,10 @@ namespace Microsoft.ML.Trainers.Online
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             IClassificationLoss lossFunction = null,
-            float learningRate = Options.AveragedDefaultArgs.LearningRate,
-            bool decreaseLearningRate = Options.AveragedDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = Options.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = Options.AveragedDefaultArgs.NumIterations)
+            float learningRate = Options.AveragedDefault.LearningRate,
+            bool decreaseLearningRate = Options.AveragedDefault.DecreaseLearningRate,
+            float l2RegularizerWeight = Options.AveragedDefault.L2RegularizerWeight,
+            int numIterations = Options.AveragedDefault.NumIterations)
             : this(env, new Options
             {
                 LabelColumn = labelColumn,

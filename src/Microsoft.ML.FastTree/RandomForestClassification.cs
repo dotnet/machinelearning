@@ -32,12 +32,12 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public abstract class FastForestArgumentsBase : TreeArgs
+    public abstract class FastForestOptionsBase : TreeOptions
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc")]
         public int QuantileSampleCount = 100;
 
-        public FastForestArgumentsBase()
+        public FastForestOptionsBase()
         {
             FeatureFraction = 0.7;
             BaggingSize = 1;
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastForestClassification :
         RandomForestTrainerBase<FastForestClassification.Options, BinaryPredictionTransformer<FastForestClassificationModelParameters>, FastForestClassificationModelParameters>
     {
-        public sealed class Options : FastForestArgumentsBase
+        public sealed class Options : FastForestOptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaxTreeOutput = 100;
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, Args);
+            return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, FastTreeTrainerOptions);
         }
 
         protected override void PrepareLabels(IChannel ch)

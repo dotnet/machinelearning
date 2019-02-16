@@ -151,7 +151,7 @@ namespace Microsoft.ML.Trainers
     public abstract class SdcaTrainerBase<TArgs, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
-        where TArgs : SdcaTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new()
+        where TArgs : SdcaTrainerBase<TArgs, TTransformer, TModel>.OptionsBase, new()
     {
         // REVIEW: Making it even faster and more accurate:
         // 1. Train with not-too-many threads. nt = 2 or 4 seems to be good enough. Didn't seem additional benefit over more threads.
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Trainers
         // 3. Don't "guess" the iteration to converge. It is very data-set dependent and hard to control. Always check for at least once to ensure convergence.
         // 4. Use dual variable updates to infer whether a full iteration of convergence checking is necessary. Convergence checking iteration is time-consuming.
 
-        public abstract class ArgumentsBase : LearnerInputBaseWithLabel
+        public abstract class OptionsBase : LearnerInputBaseWithLabel
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Trainers
             if (Args.NumThreads.HasValue)
             {
                 numThreads = Args.NumThreads.Value;
-                Host.CheckUserArg(numThreads > 0, nameof(ArgumentsBase.NumThreads), "The number of threads must be either null or a positive integer.");
+                Host.CheckUserArg(numThreads > 0, nameof(OptionsBase.NumThreads), "The number of threads must be either null or a positive integer.");
                 if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < numThreads)
                 {
                     numThreads = Host.ConcurrencyFactor;
@@ -1417,7 +1417,7 @@ namespace Microsoft.ML.Trainers
 
         public override TrainerInfo Info { get; }
 
-        public class BinaryArgumentBase : ArgumentsBase
+        public class BinaryArgumentBase : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;

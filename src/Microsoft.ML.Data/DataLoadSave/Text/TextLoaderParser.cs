@@ -637,7 +637,7 @@ namespace Microsoft.ML.Data
             }
 
             private readonly char[] _separators;
-            private readonly Options _flags;
+            private readonly OptionFlags _flags;
             private readonly int _inputSize;
             private readonly ColInfo[] _infos;
 
@@ -705,7 +705,7 @@ namespace Microsoft.ML.Data
                 {
                     foreach (var line in lines)
                     {
-                        var text = (parent._flags & Options.TrimWhitespace) != 0 ? ReadOnlyMemoryUtils.TrimEndWhiteSpace(line) : line;
+                        var text = (parent._flags & OptionFlags.TrimWhitespace) != 0 ? ReadOnlyMemoryUtils.TrimEndWhiteSpace(line) : line;
                         if (text.IsEmpty)
                             continue;
 
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Data
                 var impl = (HelperImpl)helper;
                 var lineSpan = text.AsMemory();
                 var span = lineSpan.Span;
-                if ((_flags & Options.TrimWhitespace) != 0)
+                if ((_flags & OptionFlags.TrimWhitespace) != 0)
                     lineSpan = TrimEndWhiteSpace(lineSpan, span);
                 try
                 {
@@ -883,7 +883,7 @@ namespace Microsoft.ML.Data
 
                 public readonly FieldSet Fields;
 
-                public HelperImpl(ParseStats stats, Options flags, char[] seps, int inputSize, int srcNeeded)
+                public HelperImpl(ParseStats stats, OptionFlags flags, char[] seps, int inputSize, int srcNeeded)
                 {
                     Contracts.AssertValue(stats);
                     // inputSize == 0 means unknown.
@@ -899,8 +899,8 @@ namespace Microsoft.ML.Data
                     _sepContainsSpace = IsSep(' ');
                     _inputSize = inputSize;
                     _srcNeeded = srcNeeded;
-                    _quoting = (flags & Options.AllowQuoting) != 0;
-                    _sparse = (flags & Options.AllowSparse) != 0;
+                    _quoting = (flags & OptionFlags.AllowQuoting) != 0;
+                    _sparse = (flags & OptionFlags.AllowSparse) != 0;
                     _sb = new StringBuilder();
                     _blank = ReadOnlyMemory<char>.Empty;
                     Fields = new FieldSet();

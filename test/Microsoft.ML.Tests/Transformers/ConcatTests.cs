@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
-            var loader = new TextLoader(ML, new TextLoader.Arguments
+            var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 9),
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
-            var loader = new TextLoader(ML, new TextLoader.Arguments
+            var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 9),

@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers.Online
 
         internal readonly Options Opts;
 
-        public sealed class Options : OnlineLinearArguments
+        public sealed class Options : OnlineLinearOptions
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Trainers.Online
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int numIterations = Options.OnlineDefaultArgs.NumIterations)
+            int numIterations = Options.OnlineDefault.NumIterations)
             : this(env, new Options
             {
                 LabelColumn = labelColumn,

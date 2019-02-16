@@ -18,9 +18,9 @@ namespace Microsoft.ML.Trainers
     public abstract class LbfgsTrainerBase<TArgs, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>
       where TModel : class
-      where TArgs : LbfgsTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new ()
+      where TArgs : LbfgsTrainerBase<TArgs, TTransformer, TModel>.OptionsBase, new ()
     {
-        public abstract class ArgumentsBase : LearnerInputBaseWithWeight
+        public abstract class OptionsBase : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]

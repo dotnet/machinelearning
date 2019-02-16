@@ -143,9 +143,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var modelWithValidation = pipeline.Fit(data, testData);
         }
 
-        private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
+        private TextLoader.Options GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
         {
-            return new TextLoader.Arguments()
+            return new TextLoader.Options()
             {
                 Separator = "\t",
                 HasHeader = true,
