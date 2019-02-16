@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView);
-            trainer.Train(transformedDataView, model.Model);
+            trainer.Fit(transformedDataView, model.Model);
             Done();
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView);
-            trainer.Train(transformedDataView, model.Model);
+            trainer.Fit(transformedDataView, model.Model);
             Done();
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(trainer, dataView);
 
             var model = trainer.Fit(dataView);
-            trainer.Train(dataView, model.Model);
+            trainer.Fit(dataView, model.Model);
             Done();
         }
 

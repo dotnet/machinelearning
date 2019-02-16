@@ -64,6 +64,11 @@ namespace Microsoft.ML.Training
             WeightColumn = weight;
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
+        /// <remarks>
+        /// Derived class can overload this function.
+        /// For example, it could take an additional dataset to train with a separate validation set.
+        /// </remarks>
         public TTransformer Fit(IDataView input) => TrainTransformer(input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)

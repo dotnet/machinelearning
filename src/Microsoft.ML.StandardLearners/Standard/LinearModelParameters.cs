@@ -383,7 +383,7 @@ namespace Microsoft.ML.Trainers
 
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator) => SaveAsIni(writer, schema, calibrator);
 
-        public virtual void GetFeatureWeights(ref VBuffer<float> weights)
+        public void GetFeatureWeights(ref VBuffer<float> weights)
         {
             Weight.CopyTo(ref weights);
         }

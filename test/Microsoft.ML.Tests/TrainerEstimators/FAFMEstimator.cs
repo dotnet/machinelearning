@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             TestEstimatorCore(est, data);
             var model = est.Fit(data);
-            var anotherModel = est.Train(data, data, model.Model);
+            var anotherModel = est.Fit(data, data, model.Model);
 
             Done();
         }

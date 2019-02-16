@@ -69,6 +69,8 @@ namespace Microsoft.ML.Transforms
             var contractName = ctx.LoadString();
 
             var composition = env.GetCompositionContainer();
+            if (composition == null)
+                throw Contracts.Except("Unable to get the MEF composition container");
             ITransformer transformer = composition.GetExportedValue<ITransformer>(contractName);
             return transformer;
         }

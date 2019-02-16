@@ -482,7 +482,11 @@ namespace Microsoft.ML.FactorizationMachine
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        public FieldAwareFactorizationMachinePredictionTransformer Train(IDataView trainData,
+        /// <summary>
+        /// Continues the training of a <see cref="FieldAwareFactorizationMachineTrainer"/> using an initial predictor and/or validation data,
+        /// and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.
+        /// </summary>
+        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView trainData,
             IDataView validationData = null, FieldAwareFactorizationMachineModelParameters initialPredictor = null)
         {
             FieldAwareFactorizationMachineModelParameters model = null;
@@ -508,7 +512,8 @@ namespace Microsoft.ML.FactorizationMachine
             return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, trainData.Schema, FeatureColumns.Select(x => x.Name).ToArray());
         }
 
-        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Train(input);
+        /// <summary> Trains and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.</summary>
+        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Fit(input, null, null);
 
         /// <summary>
         /// Schema propagation for transformers. Returns the output schema of the data, if
