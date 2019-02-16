@@ -88,14 +88,14 @@ namespace Microsoft.ML.Transforms
         }
 
         public static LabelIndicatorTransform Create(IHostEnvironment env,
-            Options args, IDataView input)
+            Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(LoaderSignature);
-            h.CheckValue(args, nameof(args));
+            h.CheckValue(options, nameof(options));
             h.CheckValue(input, nameof(input));
             return h.Apply("Loading Model",
-                ch => new LabelIndicatorTransform(h, args, input));
+                ch => new LabelIndicatorTransform(h, options, input));
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -131,16 +131,16 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public LabelIndicatorTransform(IHostEnvironment env, Options args, IDataView input)
-            : base(env, LoadName, Contracts.CheckRef(args, nameof(args)).Columns,
+        public LabelIndicatorTransform(IHostEnvironment env, Options options, IDataView input)
+            : base(env, LoadName, Contracts.CheckRef(options, nameof(options)).Columns,
                 input, TestIsMulticlassLabel)
         {
             Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Columns));
+            Host.Assert(Infos.Length == Utils.Size(options.Columns));
             _classIndex = new int[Infos.Length];
 
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
-                _classIndex[iinfo] = args.Columns[iinfo].ClassIndex ?? args.ClassIndex;
+                _classIndex[iinfo] = options.Columns[iinfo].ClassIndex ?? options.ClassIndex;
 
             Metadata.Seal();
         }

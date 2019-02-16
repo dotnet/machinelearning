@@ -819,7 +819,7 @@ namespace Microsoft.ML.RunTests
 
                 pipe =>
                 {
-                    var argsText = new TextLoader.Arguments();
+                    var argsText = new TextLoader.Options();
                     bool tmp = CmdParser.ParseArguments(Env,
                         " header=+" +
                         " col=Label:TX:0" +

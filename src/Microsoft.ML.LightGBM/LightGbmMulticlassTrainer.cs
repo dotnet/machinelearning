@@ -164,16 +164,16 @@ namespace Microsoft.ML.LightGBM
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
             int numLeaves = (int)Options["num_leaves"];
-            int minDataPerLeaf = Args.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, _numClass);
+            int minDataPerLeaf = LightGbmTrainerOptions.MinDataPerLeaf ?? DefaultMinDataPerLeaf(numRow, numLeaves, _numClass);
             Options["min_data_per_leaf"] = minDataPerLeaf;
             if (!hiddenMsg)
             {
-                if (!Args.LearningRate.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(Args.LearningRate) + " = " + Options["learning_rate"]);
-                if (!Args.NumLeaves.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(Args.NumLeaves) + " = " + numLeaves);
-                if (!Args.MinDataPerLeaf.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(Args.MinDataPerLeaf) + " = " + minDataPerLeaf);
+                if (!LightGbmTrainerOptions.LearningRate.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + Options["learning_rate"]);
+                if (!LightGbmTrainerOptions.NumLeaves.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumLeaves) + " = " + numLeaves);
+                if (!LightGbmTrainerOptions.MinDataPerLeaf.HasValue)
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.MinDataPerLeaf) + " = " + minDataPerLeaf);
             }
         }
 
@@ -185,14 +185,14 @@ namespace Microsoft.ML.LightGBM
             Options["num_class"] = _numClass;
             bool useSoftmax = false;
 
-            if (Args.UseSoftmax.HasValue)
-                useSoftmax = Args.UseSoftmax.Value;
+            if (LightGbmTrainerOptions.UseSoftmax.HasValue)
+                useSoftmax = LightGbmTrainerOptions.UseSoftmax.Value;
             else
             {
                 if (labels.Length >= _minDataToUseSoftmax)
                     useSoftmax = true;
 
-                ch.Info("Auto-tuning parameters: " + nameof(Args.UseSoftmax) + " = " + useSoftmax);
+                ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.UseSoftmax) + " = " + useSoftmax);
             }
 
             if (useSoftmax)
@@ -222,7 +222,11 @@ namespace Microsoft.ML.LightGBM
         protected override MulticlassPredictionTransformer<OvaModelParameters> MakeTransformer(OvaModelParameters model, DataViewSchema trainSchema)
             => new MulticlassPredictionTransformer<OvaModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
-        public MulticlassPredictionTransformer<OvaModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="LightGbmMulticlassTrainer"/> using both training and validation data, returns
+        /// a <see cref="MulticlassPredictionTransformer{OvaModelParameters}"/>.
+        /// </summary>
+        public MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

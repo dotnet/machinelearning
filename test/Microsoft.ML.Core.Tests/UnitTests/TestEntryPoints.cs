@@ -1276,7 +1276,7 @@ namespace Microsoft.ML.RunTests
                 Assert.True(scoreColumn.HasValue);
                 var getterSaved = cursSaved.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
 
-                var c = new MultiAverage(Env, new MultiAverage.Arguments()).GetCombiner();
+                var c = new MultiAverage(Env, new MultiAverage.Options()).GetCombiner();
                 VBuffer<Single> score = default(VBuffer<Single>);
                 VBuffer<Single>[] score0 = new VBuffer<Single>[5];
                 VBuffer<Single> scoreSaved = default(VBuffer<Single>);
@@ -2513,7 +2513,7 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            options.LossFunction = new HingeLoss.Arguments();
+            options.LossFunction = new HingeLoss.Options();
             result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 
@@ -2529,7 +2529,7 @@ namespace Microsoft.ML.RunTests
             expected = FixWhitespace(expected);
             Assert.Equal(expected, json);
 
-            options.LossFunction = new HingeLoss.Arguments() { Margin = 2 };
+            options.LossFunction = new HingeLoss.Options() { Margin = 2 };
             result = inputBuilder.GetJsonObject(options, inputBindingMap, inputMap);
             json = FixWhitespace(result.ToString(Formatting.Indented));
 

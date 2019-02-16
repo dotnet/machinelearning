@@ -57,14 +57,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             TestEstimatorCore(est, data);
             var model = est.Fit(data);
-            var anotherModel = est.Train(data, data, model.Model);
+            var anotherModel = est.Fit(data, data, model.Model);
 
             Done();
         }
 
-        private TextLoader.Arguments GetFafmBCLoaderArgs()
+        private TextLoader.Options GetFafmBCLoaderArgs()
         {
-            return new TextLoader.Arguments()
+            return new TextLoader.Options()
             {
                 Separator = "\t",
                 HasHeader = false,

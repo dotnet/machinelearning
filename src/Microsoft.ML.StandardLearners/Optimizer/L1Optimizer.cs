@@ -15,7 +15,7 @@ namespace Microsoft.ML.Numeric
     /// If you use this code for published research, please cite
     ///   Galen Andrew and Jianfeng Gao, "Scalable Training of L1-Regularized Log-Linear Models",	ICML 2007
     /// </summary>
-    public sealed class L1Optimizer : Optimizer
+    internal sealed class L1Optimizer : Optimizer
     {
         // Biases do not contribute to the L1 norm and are assumed to be at the beginning of the weights.
         private readonly int _biasCount;

@@ -74,7 +74,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Trains and returns a <see cref="ITransformer"/>.
+        /// Trains and returns a <see cref="BinaryPredictionTransformer{RandomModelParameters}"/>.
         /// </summary>
         public BinaryPredictionTransformer<RandomModelParameters> Fit(IDataView input)
         {
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Trains and returns a <see cref="ITransformer"/>.
+        /// Trains and returns a <see cref="BinaryPredictionTransformer{PriorModelParameters}"/>.
         /// </summary>
         public BinaryPredictionTransformer<PriorModelParameters> Fit(IDataView input)
         {

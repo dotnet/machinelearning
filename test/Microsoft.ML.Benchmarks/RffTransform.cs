@@ -30,7 +30,7 @@ namespace Microsoft.ML.Benchmarks
         public void CV_Multiclass_Digits_RffTransform_OVAAveragedPerceptron()
         {
             var mlContext = new MLContext();
-            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Arguments
+            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options
             {
                 Columns = new[]
                 {

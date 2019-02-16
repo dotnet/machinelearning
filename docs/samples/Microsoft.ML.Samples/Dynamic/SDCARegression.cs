@@ -29,7 +29,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // We will train a FastTreeRegression model with 1 tree on these two columns to predict Age.
             string outputColumnName = "Features";
             var pipeline = ml.Transforms.Concatenate(outputColumnName, new[] { "Parity", "Induced" })
-                .Append(ml.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Age", featureColumn: outputColumnName, maxIterations:2));
+                .Append(ml.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Age", featureColumnName: outputColumnName, maxIterations:2));
 
             var model = pipeline.Fit(trainData);
 

@@ -30,12 +30,12 @@ namespace Microsoft.ML
         /// Create a text loader <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
-        /// <param name="args">Defines the settings of the load operation.</param>
+        /// <param name="options">Defines the settings of the load operation.</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
-            TextLoader.Arguments args,
+            TextLoader.Options options,
             IMultiStreamSource dataSample = null)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), options, dataSample);
 
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
@@ -123,15 +123,15 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">Specifies a file from which to read.</param>
-        /// <param name="args">Defines the settings of the load operation.</param>
-        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path, TextLoader.Arguments args = null)
+        /// <param name="options">Defines the settings of the load operation.</param>
+        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path, TextLoader.Options options = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
             var env = catalog.GetEnvironment();
             var source = new MultiFileSource(path);
 
-            return new TextLoader(env, args, source).Read(source);
+            return new TextLoader(env, options, source).Read(source);
         }
 
         /// <summary>

@@ -257,8 +257,10 @@ namespace Microsoft.ML.Data
                     ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
                     return transformerChain;
                 }
-                catch
+                catch (FormatException ex)
                 {
+                    if (!ex.IsMarked())
+                        throw;
                     var chain = ModelFileUtils.LoadPipeline(env, stream, new MultiFileSource(null), extractInnerPipe: false);
                     TransformerChain<ITransformer> transformChain = (chain as CompositeDataLoader).GetTransformer();
                     var predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);
