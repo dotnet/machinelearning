@@ -25,12 +25,13 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class DnnImageFeaturizerInput
     {
-        public IHostEnvironment Environment { get; }
+        [BestFriend]
+        internal IHostEnvironment Environment { get; }
         public string InputColumn { get; }
         public DnnImageModelSelector ModelSelector { get; }
         public string OutputColumn { get; }
 
-        public DnnImageFeaturizerInput(string outputColumnName, string inputColumnName, IHostEnvironment env, DnnImageModelSelector modelSelector)
+        internal DnnImageFeaturizerInput(string outputColumnName, string inputColumnName, IHostEnvironment env, DnnImageModelSelector modelSelector)
         {
             Environment = env;
             InputColumn = inputColumnName;
