@@ -1440,7 +1440,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        protected SdcaBinaryTrainerBase(IHostEnvironment env,
+        private protected SdcaBinaryTrainerBase(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
@@ -1460,7 +1460,7 @@ namespace Microsoft.ML.Trainers
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
+        private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
@@ -1470,7 +1470,7 @@ namespace Microsoft.ML.Trainers
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
+        private protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
 
         protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
@@ -1486,7 +1486,7 @@ namespace Microsoft.ML.Trainers
                 error();
         }
 
-        protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
+        private protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -1541,14 +1541,14 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             var linearModel = CreateLinearBinaryModelParameters(weights, bias);
             var calibrator = new PlattCalibrator(Host, -1, 0);
             return new ParameterMixingCalibratedModelParameters<LinearBinaryModelParameters, PlattCalibrator>(Host, linearModel, calibrator);
         }
 
-        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        private protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
         {
             return new SchemaShape.Column[]
             {
@@ -1603,7 +1603,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        private protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
         {
             return new SchemaShape.Column[]
             {
@@ -1628,7 +1628,7 @@ namespace Microsoft.ML.Trainers
         /// <see cref="CreatePredictor"/> directly outputs a <see cref="LinearBinaryModelParameters"/> built from
         /// the learned weights and bias without calibration.
         /// </summary>
-        protected override LinearBinaryModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
+        private protected override LinearBinaryModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
             => CreateLinearBinaryModelParameters(weights, bias);
     }
 
@@ -1661,7 +1661,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
+        private protected override SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape()
         {
             var outCols = new List<SchemaShape.Column>()
             {
@@ -1786,7 +1786,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly OptionsBase _options;
 
-        protected IClassificationLoss Loss { get; }
+        private protected IClassificationLoss Loss { get; }
 
         private protected override bool ShuffleData => _options.Shuffle;
 
@@ -2053,12 +2053,12 @@ namespace Microsoft.ML.Trainers
         /// <param name="weights">Weights of linear model.</param>
         /// <param name="bias">Bias of linear model.</param>
         /// <returns>A model built upon weights and bias. It can be as simple as a <see cref="LinearBinaryModelParameters"/>.</returns>
-        protected abstract TModel CreateModel(VBuffer<float> weights, float bias);
+        private protected abstract TModel CreateModel(VBuffer<float> weights, float bias);
 
         /// <summary>
         /// A helper function used to create <see cref="LinearBinaryModelParameters"/> in implementations of <see cref="CreateModel(VBuffer{float}, float)"/>.
         /// </summary>
-        protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float> weights, float bias)
+        private protected LinearBinaryModelParameters CreateLinearBinaryModelParameters(VBuffer<float> weights, float bias)
         {
             Host.CheckParam(weights.Length > 0, nameof(weights));
 
@@ -2127,7 +2127,7 @@ namespace Microsoft.ML.Trainers
         /// Given weights and bias trained in <see cref="SgdBinaryTrainerBase{TModelParameters}.TrainCore(IChannel, RoleMappedData, LinearModelParameters, int)"/>,
         /// <see cref="CreateModel(VBuffer{float}, float)"/> produces the final calibrated linear model.
         /// </summary>
-        protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreateModel(VBuffer<float> weights, float bias)
+        private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreateModel(VBuffer<float> weights, float bias)
         {
             // SubModel, which is a linear function.
             var subModel = CreateLinearBinaryModelParameters(weights, bias);
@@ -2182,7 +2182,7 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        protected override LinearBinaryModelParameters CreateModel(VBuffer<float> weights, float bias)
+        private protected override LinearBinaryModelParameters CreateModel(VBuffer<float> weights, float bias)
             => CreateLinearBinaryModelParameters(weights, bias);
     }
 
@@ -2237,7 +2237,7 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        protected override IPredictorWithFeatureWeights<float> CreateModel(VBuffer<float> weights, float bias)
+        private protected override IPredictorWithFeatureWeights<float> CreateModel(VBuffer<float> weights, float bias)
         {
             if (!(Loss is LogLoss))
                 return CreateLinearBinaryModelParameters(weights, bias);

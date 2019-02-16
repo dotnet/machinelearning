@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers
         public readonly float ZScore;
         public readonly float PValue;
 
-        public CoefficientStatistics(string name, float estimate, float stdError, float zScore, float pValue)
+        internal CoefficientStatistics(string name, float estimate, float stdError, float zScore, float pValue)
         {
             Contracts.AssertNonEmpty(name);
             Name = name;
