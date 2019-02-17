@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
-using Microsoft.ML.CLI.CodeGenerator.Console;
+using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.Utilities;
 using Microsoft.ML.Core.Data;
@@ -85,10 +85,10 @@ namespace Microsoft.ML.CLI.Commands.New
         {
             //Generate code
             logger.Log(LogLevel.Info, Strings.GenerateProject);
-            var codeGenerator = new ConsoleCodeGenerator(
+            var codeGenerator = new CodeGenerator.CSharp.CodeGenerator(
                 pipeline,
                 columnInference,
-                new ConsoleCodeGeneratorOptions()
+                new CodeGeneratorOptions()
                 {
                     TrainDataset = options.TrainDataset,
                     MlTask = options.MlTask,

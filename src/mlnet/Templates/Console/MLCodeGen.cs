@@ -25,18 +25,9 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write(@"/* This template shows the building blocks for training a machine learning model with ML.NET (https://aka.ms/mlnet).
- * This model predicts whether a sentence has a positive or negative sentiment. It is based on a sample that can be 
- * found at https://aka.ms/mlnetsentimentanalysis, which provides a more detailed introduction to ML.NET and the scenario. */
-
-using System;
-using System.IO;
-using System.Linq;
-using Microsoft.ML;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.Data.DataView;
-");
+            this.Write("\r\nusing System;\r\nusing System.IO;\r\nusing System.Linq;\r\nusing Microsoft.ML;\r\nusing" +
+                    " Microsoft.ML.Core.Data;\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.Data.DataVie" +
+                    "w;\r\n");
             this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
             this.Write("\r\n\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -120,7 +111,31 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Trainers.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Trainer));
-            this.Write(";\r\n\r\n            // Train the model fitting to the DataSet\r\n");
+            this.Write(";\r\n\r\n");
+ if(string.IsNullOrEmpty(TestPath)){ 
+            this.Write(@"
+            // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
+            // in order to evaluate and get the model's accuracy metrics
+            Console.WriteLine(""=============== Cross-validating to get model's accuracy metrics ==============="");
+");
+if("BinaryClassification".Equals(TaskType)){ 
+            this.Write("            var crossValidationResults = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
+            this.Write(", labelColumn:\"Label\");\r\n            ConsoleHelper.PrintBinaryClassificationFolds" +
+                    "AverageMetrics(trainer.ToString(), crossValidationResults);\r\n");
+}
+if("Regression".Equals(TaskType)){ 
+            this.Write("            var crossValidationResults = mlContext.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
+            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numFolds: ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
+            this.Write(", labelColumn:\"Label\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMet" +
+                    "rics(trainer.ToString(), crossValidationResults);\r\n");
+}
+} 
+            this.Write("\r\n            // Train the model fitting to the DataSet\r\n");
  if(Transforms.Count >0 ) {
             this.Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n        " +
                     "    var trainedModel = trainingPipeline.Fit(trainingDataView);\r\n");
@@ -144,28 +159,6 @@ if("Regression".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Evaluate(predictions, \"Label\", \"Score\");\r\n            ConsoleHelper.PrintRegress" +
                     "ionMetrics(trainer.ToString(), metrics);\r\n");
-}
- } else{ 
-            this.Write(@"
-            // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
-            // in order to evaluate and get the model's accuracy metrics
-            Console.WriteLine(""=============== Cross-validating to get model's accuracy metrics ==============="");
-");
-if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("            var crossValidationResults = mlContext.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
-            this.Write(", labelColumn:\"Label\");\r\n            ConsoleHelper.PrintBinaryClassificationFolds" +
-                    "AverageMetrics(trainer.ToString(), crossValidationResults);\r\n");
-}
-if("Regression".Equals(TaskType)){ 
-            this.Write("            var crossValidationResults = mlContext.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numFolds: ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
-            this.Write(", labelColumn:\"Label\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMet" +
-                    "rics(trainer.ToString(), crossValidationResults);\r\n");
 }
  } 
             this.Write(@"

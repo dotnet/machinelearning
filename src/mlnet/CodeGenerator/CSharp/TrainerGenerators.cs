@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.ML.Auto;
 
-namespace Microsoft.ML.CLI.CodeGenerator.Console
+namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
     internal static class TrainerGenerators
     {

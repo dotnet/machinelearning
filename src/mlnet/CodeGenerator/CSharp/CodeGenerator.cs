@@ -11,15 +11,15 @@ using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.Templates.Console;
 using static Microsoft.ML.Data.TextLoader;
 
-namespace Microsoft.ML.CLI.CodeGenerator.Console
+namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
-    internal class ConsoleCodeGenerator : IProjectGenerator
+    internal class CodeGenerator : IProjectGenerator
     {
         private readonly Pipeline pipeline;
-        private readonly ConsoleCodeGeneratorOptions options;
+        private readonly CodeGeneratorOptions options;
         private readonly (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult;
 
-        internal ConsoleCodeGenerator(Pipeline pipeline, (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult, ConsoleCodeGeneratorOptions options)
+        internal CodeGenerator(Pipeline pipeline, (Arguments, IEnumerable<(string, ColumnPurpose)>) columnInferenceResult, CodeGeneratorOptions options)
         {
             this.pipeline = pipeline;
             this.columnInferenceResult = columnInferenceResult;

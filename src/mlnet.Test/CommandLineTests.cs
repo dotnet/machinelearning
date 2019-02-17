@@ -2,7 +2,6 @@
 using System.CommandLine.Invocation;
 using System.IO;
 using Microsoft.ML.Auto;
-using Microsoft.ML.CLI;
 using Microsoft.ML.CLI.Commands;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

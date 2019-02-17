@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using Microsoft.ML.Auto;
 
-namespace Microsoft.ML.CLI.CodeGenerator.Console
+namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
-    internal class ConsoleCodeGeneratorOptions
+    internal class CodeGeneratorOptions
     {
         internal string OutputName { get; set; }
 

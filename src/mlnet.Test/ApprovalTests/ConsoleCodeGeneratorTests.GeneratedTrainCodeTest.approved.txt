@@ -1,7 +1,4 @@
-﻿/* This template shows the building blocks for training a machine learning model with ML.NET (https://aka.ms/mlnet).
- * This model predicts whether a sentence has a positive or negative sentiment. It is based on a sample that can be 
- * found at https://aka.ms/mlnetsentimentanalysis, which provides a more detailed introduction to ML.NET and the scenario. */
-
+﻿
 using System;
 using System.IO;
 using System.Linq;
@@ -63,6 +60,7 @@ namespace MyNamespace
 
             // Set the training algorithm, then create and config the modelBuilder  
             var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options(){NumLeaves=2,Booster=new Options.TreeBooster.Arguments(){},LabelColumn="Label",FeatureColumn="Features"});
+
 
             // Train the model fitting to the DataSet
             var trainingPipeline = dataProcessPipeline.Append(trainer);

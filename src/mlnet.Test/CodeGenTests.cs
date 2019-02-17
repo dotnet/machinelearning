@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
-using Microsoft.ML.CLI.CodeGenerator.Console;
+using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -22,7 +22,7 @@ namespace mlnet.Test
             };
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             string expected = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumn:\"Label\",featureColumn:\"Features\")";
             Assert.AreEqual(expected, actual.Item1);
@@ -42,7 +42,7 @@ namespace mlnet.Test
             };
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             string expectedTrainer = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             string expectedUsing = "using Microsoft.ML.LightGBM;\r\n";
@@ -57,7 +57,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expected = "Normalize(\"Label\",\"Label\")";
             Assert.AreEqual(expected, actual[0].Item1);
@@ -71,7 +71,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("OneHotEncoding", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnInfo(\"Label\",\"Label\")})";
             var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
@@ -102,7 +102,7 @@ namespace mlnet.Test
                 TrimWhitespace = true
             }, purposes);
 
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(null, result, null);
+            CodeGenerator codeGenerator = new CodeGenerator(null, result, null);
             var actual = codeGenerator.GenerateClassLabels();
             var expected1 = "[ColumnName(\"Label\"), LoadColumn(0)]";
             var expected2 = "public bool Label{get; set;}";
@@ -140,7 +140,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, result, null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, result, null);
             var actual = codeGenerator.GenerateColumns();
             Assert.AreEqual(actual.Count, 2);
             string expectedColumn1 = "new Column(\"Label\",DataKind.BL,0),";
@@ -160,7 +160,7 @@ namespace mlnet.Test
             };
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, new string[] { "Label" }, default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             string expectedTrainer = "LightGbm(new Options(){Booster=new TreeBooster(){},LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             var expectedUsings = "using Microsoft.ML.LightGBM;\r\n";
@@ -177,7 +177,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();//categorical
             PipelineNode node = new PipelineNode("OneHotEncoding", PipelineNodeType.Transform, new string[] { "categorical_column_1" }, new string[] { "categorical_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnInfo(\"categorical_column_1\",\"categorical_column_1\")})";
             var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
@@ -192,7 +192,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "numeric_column_1" }, new string[] { "numeric_column_1_copy" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Normalize(\"numeric_column_1_copy\",\"numeric_column_1\")";
             string expectedUsings = null;
@@ -207,7 +207,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("ColumnConcatenating", PipelineNodeType.Transform, new string[] { "numeric_column_1", "numeric_column_2" }, new string[] { "Features" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Concatenate(\"Features\",new []{\"numeric_column_1\",\"numeric_column_2\"})";
             string expectedUsings = null;
@@ -222,7 +222,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();//nume to num feature 2
             PipelineNode node = new PipelineNode("ColumnCopying", PipelineNodeType.Transform, new string[] { "numeric_column_1" }, new string[] { "numeric_column_2" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "CopyColumns(\"numeric_column_2\",\"numeric_column_1\")";
             string expectedUsings = null;
@@ -237,7 +237,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();//numeric feature
             PipelineNode node = new PipelineNode("MissingValueIndicating", PipelineNodeType.Transform, new string[] { "numeric_column_1" }, new string[] { "numeric_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "IndicateMissingValues(new []{(\"numeric_column_1\",\"numeric_column_1\")})";
             string expectedUsings = null;
@@ -252,7 +252,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("OneHotHashEncoding", PipelineNodeType.Transform, new string[] { "Categorical_column_1" }, new string[] { "Categorical_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Categorical.OneHotHashEncoding(new []{new OneHotHashEncodingEstimator.ColumnInfo(\"Categorical_column_1\",\"Categorical_column_1\")})";
             var expectedUsings = "using Microsoft.ML.Transforms.Categorical;\r\n";
@@ -267,7 +267,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("TextFeaturizing", PipelineNodeType.Transform, new string[] { "Text_column_1" }, new string[] { "Text_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Text.FeaturizeText(\"Text_column_1\",\"Text_column_1\")";
             string expectedUsings = null;
@@ -282,7 +282,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("TypeConverting", PipelineNodeType.Transform, new string[] { "I4_column_1" }, new string[] { "R4_column_1" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Conversion.ConvertType(new []{new TypeConvertingTransformer.ColumnInfo(\"R4_column_1\",DataKind.R4,\"I4_column_1\")})";
             string expectedUsings = "using Microsoft.ML.Transforms.Conversions;\r\n";
@@ -297,7 +297,7 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>();
             PipelineNode node = new PipelineNode("ValueToKeyMapping", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            ConsoleCodeGenerator codeGenerator = new ConsoleCodeGenerator(pipeline, (null, null), null);
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
             var actual = codeGenerator.GenerateTransformsAndUsings();
             string expectedTransform = "Conversion.MapValueToKey(\"Label\",\"Label\")";
             var expectedUsings = "using Microsoft.ML.Transforms.Conversions;\r\n";

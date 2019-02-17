@@ -4,7 +4,7 @@ using ApprovalTests;
 using ApprovalTests.Reporters;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
-using Microsoft.ML.CLI.CodeGenerator.Console;
+using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +24,7 @@ namespace mlnet.Test
             (Pipeline pipeline,
             (TextLoader.Arguments, IEnumerable<(string Name, ColumnPurpose Purpose)>) columnInference) = GetMockedPipelineAndInference();
 
-            var consoleCodeGen = new ConsoleCodeGenerator(pipeline, columnInference, new ConsoleCodeGeneratorOptions()
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
             {
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
@@ -47,7 +47,7 @@ namespace mlnet.Test
             (Pipeline pipeline,
             (TextLoader.Arguments, IEnumerable<(string Name, ColumnPurpose Purpose)>) columnInference) = GetMockedPipelineAndInference();
 
-            var consoleCodeGen = new ConsoleCodeGenerator(pipeline, columnInference, new ConsoleCodeGeneratorOptions()
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
             {
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,
@@ -70,7 +70,7 @@ namespace mlnet.Test
             (Pipeline pipeline,
             (TextLoader.Arguments, IEnumerable<(string Name, ColumnPurpose Purpose)>) columnInference) = GetMockedPipelineAndInference();
 
-            var consoleCodeGen = new ConsoleCodeGenerator(pipeline, columnInference, new ConsoleCodeGeneratorOptions()
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorOptions()
             {
                 MlTask = TaskKind.BinaryClassification,
                 OutputBaseDir = null,

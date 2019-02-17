@@ -3,9 +3,6 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-/* This template shows the building blocks for training a machine learning model with ML.NET (https://aka.ms/mlnet).
- * This model predicts whether a sentence has a positive or negative sentiment. It is based on a sample that can be 
- * found at https://aka.ms/mlnetsentimentanalysis, which provides a more detailed introduction to ML.NET and the scenario. */
 
 using System;
 using System.IO;
@@ -83,6 +80,20 @@ namespace <#= Namespace #>
             // Set the training algorithm, then create and config the modelBuilder  
             var trainer = mlContext.<#= TaskType #>.Trainers.<#= Trainer #>;
 
+<# if(string.IsNullOrEmpty(TestPath)){ #>
+
+            // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
+            // in order to evaluate and get the model's accuracy metrics
+            Console.WriteLine("=============== Cross-validating to get model's accuracy metrics ===============");
+<#if("BinaryClassification".Equals(TaskType)){ #>
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"Label");
+            ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
+<#}#><#if("Regression".Equals(TaskType)){ #>
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"Label");
+            ConsoleHelper.PrintRegressionFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
+<#}
+} #>
+
             // Train the model fitting to the DataSet
 <# if(Transforms.Count >0 ) {#>
             var trainingPipeline = dataProcessPipeline.Append(trainer);
@@ -102,18 +113,6 @@ else{#>
 <#}#><#if("Regression".Equals(TaskType)){ #>
             var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "Label", "Score");
             ConsoleHelper.PrintRegressionMetrics(trainer.ToString(), metrics);
-<#}#>
-<# } else{ #>
-
-            // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
-            // in order to evaluate and get the model's accuracy metrics
-            Console.WriteLine("=============== Cross-validating to get model's accuracy metrics ===============");
-<#if("BinaryClassification".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"Label");
-            ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
-<#}#><#if("Regression".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"Label");
-            ConsoleHelper.PrintRegressionFoldsAverageMetrics(trainer.ToString(), crossValidationResults);
 <#}#>
 <# } #>
 

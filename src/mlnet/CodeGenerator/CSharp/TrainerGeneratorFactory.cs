@@ -5,15 +5,16 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Auto;
-using static Microsoft.ML.CLI.CodeGenerator.Console.TrainerGenerators;
+using static Microsoft.ML.CLI.CodeGenerator.CSharp.TrainerGenerators;
 
-namespace Microsoft.ML.CLI.CodeGenerator.Console
+namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
     internal interface ITrainerGenerator
     {
         string GenerateTrainer();
         string GenerateUsings();
     }
+
     internal static class TrainerGeneratorFactory
     {
         internal static ITrainerGenerator GetInstance(Pipeline pipeline)
