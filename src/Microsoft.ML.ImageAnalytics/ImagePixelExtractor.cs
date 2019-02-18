@@ -58,12 +58,12 @@ namespace Microsoft.ML.ImageAnalytics
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use blue channel", ShortName = "blue")]
             public bool? UseBlue;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Order of colors.")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Order of channels")]
             public ImagePixelExtractingEstimator.ColorsOrder? Order;
 
             // REVIEW: Consider turning this into an enum that allows for pixel, line, or planar interleaving.
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in specified order", ShortName = "interleave")]
-            public bool? InterleaveArgb;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in specified order")]
+            public bool? Interleave;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to convert to floating point", ShortName = "conv")]
             public bool? Convert;
@@ -88,7 +88,7 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 Contracts.AssertValue(sb);
                 if (UseAlpha != null || UseRed != null || UseGreen != null || UseBlue != null || Convert != null ||
-                    Offset != null || Scale != null || InterleaveArgb != null)
+                    Offset != null || Scale != null || Interleave != null)
                 {
                     return false;
                 }
@@ -115,13 +115,13 @@ namespace Microsoft.ML.ImageAnalytics
             public bool UseBlue = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Order of colors.")]
-            public ImagePixelExtractingEstimator.ColorsOrder Order = Defaults.Order;
+            public ImagePixelExtractingEstimator.ColorsOrder Order = ImagePixelExtractingEstimator.Defaults.Order;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in specified order", ShortName = "interleave")]
-            public bool InterleaveArgb = Defaults.Interleave;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in specified order")]
+            public bool Interleave = ImagePixelExtractingEstimator.Defaults.Interleave;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to convert to floating point", ShortName = "conv")]
-            public bool Convert = Defaults.Convert;
+            public bool Convert = ImagePixelExtractingEstimator.Defaults.Convert;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Offset (pre-scale)")]
             public Single? Offset;
@@ -130,21 +130,11 @@ namespace Microsoft.ML.ImageAnalytics
             public Single? Scale;
         }
 
-        internal static class Defaults
-        {
-            public const ImagePixelExtractingEstimator.ColorsOrder Order = ImagePixelExtractingEstimator.ColorsOrder.ARGB;
-            public const ImagePixelExtractingEstimator.ColorBits Colors = ImagePixelExtractingEstimator.ColorBits.Rgb;
-            public const bool Interleave = false;
-            public const bool Convert = true;
-            public const float Scale = 1f;
-            public const float Offset = 0f;
-        }
-
         internal const string Summary = "Extract color plane(s) from an image. Options include scaling, offset and conversion to floating point.";
         internal const string UserName = "Image Pixel Extractor Transform";
         internal const string LoaderSignature = "ImagePixelExtractor";
 
-        internal const uint BeforeOrderModel = 0x00010002;
+        internal const uint BeforeOrderVersion = 0x00010002;
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -174,7 +164,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="colors">What colors to extract.</param>
-        /// <param name="order">In which order extract channels from pixel.</param>
+        /// <param name="order">In which order extract colors from pixel.</param>
         /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
         /// first output one color values for all pixels, then another color and so on.</param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
@@ -183,12 +173,12 @@ namespace Microsoft.ML.ImageAnalytics
         internal ImagePixelExtractingTransformer(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
-            ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.ColorBits.Rgb,
-            ImagePixelExtractingEstimator.ColorsOrder order = Defaults.Order,
-            bool interleave = Defaults.Interleave,
-            float scale = Defaults.Scale,
-            float offset = Defaults.Offset,
-            bool asFloat = Defaults.Convert)
+            ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.Defaults.Colors,
+            ImagePixelExtractingEstimator.ColorsOrder order = ImagePixelExtractingEstimator.Defaults.Order,
+            bool interleave = ImagePixelExtractingEstimator.Defaults.Interleave,
+            float scale = ImagePixelExtractingEstimator.Defaults.Scale,
+            float offset = ImagePixelExtractingEstimator.Defaults.Offset,
+            bool asFloat = ImagePixelExtractingEstimator.Defaults.Convert)
             : this(env, new ImagePixelExtractingEstimator.ColumnInfo(outputColumnName, inputColumnName, colors, order, interleave, scale, offset, asFloat))
         {
         }
@@ -509,6 +499,16 @@ namespace Microsoft.ML.ImageAnalytics
     /// </remarks>
     public sealed class ImagePixelExtractingEstimator : TrivialEstimator<ImagePixelExtractingTransformer>
     {
+        [BestFriend]
+        internal static class Defaults
+        {
+            public const ColorsOrder Order = ColorsOrder.ARGB;
+            public const ColorBits Colors = ColorBits.Rgb;
+            public const bool Interleave = false;
+            public const bool Convert = true;
+            public const float Scale = 1f;
+            public const float Offset = 0f;
+        }
         /// <summary>
         /// Which color channels are extracted. Note that these values are serialized so should not be modified.
         /// </summary>
@@ -614,18 +614,18 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.CheckUserArg(Planes > 0, nameof(item.UseRed), "Need to use at least one color plane");
 
                 Order = item.Order ?? options.Order;
-                Interleave = item.InterleaveArgb ?? options.InterleaveArgb;
+                Interleave = item.Interleave ?? options.Interleave;
 
                 AsFloat = item.Convert ?? options.Convert;
                 if (!AsFloat)
                 {
-                    Offset = ImagePixelExtractingTransformer.Defaults.Offset;
-                    Scale = ImagePixelExtractingTransformer.Defaults.Scale;
+                    Offset = Defaults.Offset;
+                    Scale = Defaults.Scale;
                 }
                 else
                 {
-                    Offset = item.Offset ?? options.Offset ?? ImagePixelExtractingTransformer.Defaults.Offset;
-                    Scale = item.Scale ?? options.Scale ?? ImagePixelExtractingTransformer.Defaults.Scale;
+                    Offset = item.Offset ?? options.Offset ?? Defaults.Offset;
+                    Scale = item.Scale ?? options.Scale ?? Defaults.Scale;
                     Contracts.CheckUserArg(FloatUtils.IsFinite(Offset), nameof(item.Offset));
                     Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(Scale), nameof(item.Scale));
                 }
@@ -637,19 +637,19 @@ namespace Microsoft.ML.ImageAnalytics
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="colors">What colors to extract.</param>
-            /// <param name="order">In which order extract channels from pixel.</param>
+            /// <param name="order">In which order extract colors from pixel.</param>
             /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
             /// first output one color values for all pixels, then another color and so on.</param>/// <param name="scale">Scale color pixel value by this amount.</param>
             /// <param name="offset">Offset color pixel value by this amount.</param>
             /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
             public ColumnInfo(string name,
                 string inputColumnName = null,
-                ColorBits colors = ImagePixelExtractingTransformer.Defaults.Colors,
-                ColorsOrder order = ImagePixelExtractingTransformer.Defaults.Order,
-                bool interleave = ImagePixelExtractingTransformer.Defaults.Interleave,
-                float scale = ImagePixelExtractingTransformer.Defaults.Scale,
-                float offset = ImagePixelExtractingTransformer.Defaults.Offset,
-                bool asFloat = ImagePixelExtractingTransformer.Defaults.Convert)
+                ColorBits colors = Defaults.Colors,
+                ColorsOrder order = Defaults.Order,
+                bool interleave = Defaults.Interleave,
+                float scale = Defaults.Scale,
+                float offset = Defaults.Offset,
+                bool asFloat = Defaults.Convert)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
 
@@ -668,8 +668,8 @@ namespace Microsoft.ML.ImageAnalytics
                 AsFloat = asFloat;
                 if (!AsFloat)
                 {
-                    Offset = ImagePixelExtractingTransformer.Defaults.Offset;
-                    Scale = ImagePixelExtractingTransformer.Defaults.Scale;
+                    Offset = Defaults.Offset;
+                    Scale = Defaults.Scale;
                 }
                 else
                 {
@@ -699,7 +699,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Colors = (ImagePixelExtractingEstimator.ColorBits)ctx.Reader.ReadByte();
                 Contracts.CheckDecode(Colors != 0);
                 Contracts.CheckDecode((Colors & ImagePixelExtractingEstimator.ColorBits.All) == Colors);
-                if (ctx.Header.ModelVerWritten <= ImagePixelExtractingTransformer.BeforeOrderModel)
+                if (ctx.Header.ModelVerWritten <= ImagePixelExtractingTransformer.BeforeOrderVersion)
                     Order = ColorsOrder.ARGB;
                 else
                 {
@@ -762,7 +762,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>. Null means <paramref name="inputColumnName"/> is replaced.</param>
         /// <param name="inputColumnName">Name of the input column.</param>
         /// <param name="colors">What colors to extract.</param>
-        /// <param name="order">In which order extract channels from pixel.</param>
+        /// <param name="order">In which order extract colors from pixel.</param>
         /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
         /// first output one color values for all pixels, then another color and so on.</param>/// <param name="scale">Scale color pixel value by this amount.</param>
         /// <param name="offset">Offset color pixel value by this amount.</param>
@@ -771,10 +771,10 @@ namespace Microsoft.ML.ImageAnalytics
         internal ImagePixelExtractingEstimator(IHostEnvironment env,
             string outputColumnName,
             string inputColumnName = null,
-            ColorBits colors = ImagePixelExtractingTransformer.Defaults.Colors,
-            ColorsOrder order = ImagePixelExtractingTransformer.Defaults.Order,
-            bool interleave = ImagePixelExtractingTransformer.Defaults.Interleave, float scale = ImagePixelExtractingTransformer.Defaults.Scale,
-            float offset = ImagePixelExtractingTransformer.Defaults.Offset, bool asFloat = ImagePixelExtractingTransformer.Defaults.Convert)
+            ColorBits colors = Defaults.Colors,
+            ColorsOrder order = Defaults.Order,
+            bool interleave = Defaults.Interleave, float scale = Defaults.Scale,
+            float offset = Defaults.Offset, bool asFloat = Defaults.Convert)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractingTransformer(env, outputColumnName, inputColumnName, colors, order, interleave, scale, offset, asFloat))
         {
         }
