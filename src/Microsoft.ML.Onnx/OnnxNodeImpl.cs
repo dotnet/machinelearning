@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.UniversalModelFormat.Onnx;
+using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Model.Onnx
 {

@@ -5,12 +5,13 @@
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Model.Onnx;
-using Microsoft.ML.UniversalModelFormat.Onnx;
+using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML
 {
     public static class OnnxExportExtensions
     {
+
         /// <summary>
         /// Convert the specified <see cref="ITransformer"/> to ONNX format. Note that ONNX uses Google's Protobuf so the returned value is a Protobuf object.
         /// </summary>
