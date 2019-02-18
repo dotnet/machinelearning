@@ -395,7 +395,7 @@ namespace Microsoft.ML.Data
 
                 // The line reader can be referenced by multiple workers. This is the reference count.
                 private int _cref;
-                private BlockingCollection<LineBatch> _queue;
+                private BlockingQueue<LineBatch> _queue;
                 private Task _thdRead;
                 private volatile bool _abort;
 
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Data
                     _files = files;
                     _cref = cref;
 
-                    _queue = new BlockingCollection<LineBatch>(bufSize);
+                    _queue = new BlockingQueue<LineBatch>(bufSize);
                     _thdRead = Utils.RunOnBackgroundThread(ThreadProc);
                 }
 
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Data
                 private readonly OrderedWaiter _waiterPublish;
 
                 // A small capacity blocking collection that the main cursor thread consumes.
-                private readonly BlockingCollection<RowBatch> _queue;
+                private readonly BlockingQueue<RowBatch> _queue;
 
                 private readonly Task[] _threads;
 
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Data
 
                     // The size limit here ensures that worker threads are never writing to
                     // a range that is being served up by the cursor.
-                    _queue = new BlockingCollection<RowBatch>(2);
+                    _queue = new BlockingQueue<RowBatch>(2);
 
                     _threads = new Task[cthd];
                     _threadsRunning = cthd;
