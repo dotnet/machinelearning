@@ -7,7 +7,7 @@ using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public abstract class BaseAverager : IBinaryOutputCombiner, ICanSaveModel
+    internal abstract class BaseAverager : IBinaryOutputCombiner, ICanSaveModel
     {
         protected readonly IHost Host;
         public BaseAverager(IHostEnvironment env, string name)

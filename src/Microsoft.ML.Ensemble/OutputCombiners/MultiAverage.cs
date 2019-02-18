@@ -16,7 +16,7 @@ using Microsoft.ML.Trainers.Ensemble;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class MultiAverage : BaseMultiAverager
+    internal sealed class MultiAverage : BaseMultiAverager
     {
         public const string LoadName = "MultiAverage";
         public const string LoaderSignature = "MultiAverageCombiner";

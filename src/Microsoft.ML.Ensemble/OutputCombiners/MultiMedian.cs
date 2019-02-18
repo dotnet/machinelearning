@@ -19,7 +19,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public sealed class MultiMedian : BaseMultiCombiner
+    internal sealed class MultiMedian : BaseMultiCombiner
     {
         public const string LoadName = "MultiMedian";
         public const string LoaderSignature = "MultiMedianCombiner";
