@@ -99,7 +99,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Now, let's see if that column is still there, and still text!
             var schema = data.AsDynamic.Schema;
             Assert.True(schema.TryGetColumnIndex("Score", out int scoreCol), "Score column not present!");
-            Assert.Equal(TextType.Instance, schema[scoreCol].Type);
+            Assert.Equal(TextDataViewType.Instance, schema[scoreCol].Type);
 
             for (int c = 0; c < schema.Count; ++c)
                 Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
@@ -148,6 +148,41 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
+        public void SdcaBinaryClassificationSimple()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.SubModel.Weights.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.9, 1);
+            Assert.InRange(metrics.Auc, 0.9, 1);
+            Assert.InRange(metrics.Auprc, 0.9, 1);
+            Assert.InRange(metrics.LogLoss, 0, 0.2);
+            Assert.InRange(metrics.Entropy, 0.9, double.PositiveInfinity);
+        }
+
+        [Fact]
         public void SdcaBinaryClassificationNoCalibration()
         {
             var env = new MLContext(seed: 0);
@@ -164,8 +199,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null, loss,
-                new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, null, loss,
+                new SdcaNonCalibratedBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -189,6 +224,43 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int c = 0; c < schema.Count; ++c)
                 Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
+
+        [Fact]
+        public void SdcaBinaryClassificationNoCalibrationSimple()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryModelParameters pred = null;
+
+            var loss = new HingeLoss(1);
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, loss, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.95, 1);
+            Assert.InRange(metrics.Auc, 0.95, 1);
+            Assert.InRange(metrics.Auprc, 0.95, 1);
+        }
+
 
         [Fact]
         public void AveragePerceptronNoCalibration()
@@ -930,7 +1002,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
-        public void HogwildSGDBinaryClassification()
+        public void HogwildSGDLogisticRegression()
         {
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
@@ -940,11 +1012,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            IPredictorWithFeatureWeights<float> pred = null;
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
-                    new StochasticGradientDescentClassificationTrainer.Options { L2Weight = 0, NumThreads = 1 },
+                    new SgdBinaryTrainer.Options { L2Weight = 0, NumThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -954,17 +1026,122 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.NotNull(pred);
 
             // 9 input features, so we ought to have 9 weights.
-            VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
-            Assert.Equal(9, weights.Length);
+            Assert.Equal(9, pred.SubModel.Weights.Count);
 
             var data = model.Read(dataSource);
 
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
-            Assert.InRange(metrics.Accuracy, 0, 1);
-            Assert.InRange(metrics.Auc, 0, 1);
-            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.Accuracy, 0.9, 1);
+            Assert.InRange(metrics.Auc, 0.95, 1);
+            Assert.InRange(metrics.Auprc, 0.95, 1);
+            Assert.InRange(metrics.LogLoss, 0, 0.2);
+        }
+
+        [Fact]
+        public void HogwildSGDLogisticRegressionSimple()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.SubModel.Weights.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.9, 1);
+            Assert.InRange(metrics.Auc, 0.95, 1);
+            Assert.InRange(metrics.Auprc, 0.95, 1);
+            Assert.InRange(metrics.LogLoss, 0, 0.2);
+        }
+
+        [Fact]
+        public void HogwildSGDSupportVectorMachine()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryModelParameters pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
+                    new SgdNonCalibratedBinaryTrainer.Options { L2Weight = 0, NumThreads = 1, Loss = new HingeLoss()},
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.9, 1);
+            Assert.InRange(metrics.Auc, 0.95, 1);
+            Assert.InRange(metrics.Auprc, 0.95, 1);
+        }
+
+        [Fact]
+        public void HogwildSGDSupportVectorMachineSimple()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryModelParameters pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, loss: new HingeLoss(), onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.9, 1);
+            Assert.InRange(metrics.Auc, 0.95, 1);
+            Assert.InRange(metrics.Auprc, 0.95, 1);
         }
 
         [LessThanNetCore30OrNotNetCoreAndX64Fact("netcoreapp3.0 and x86 output differs from Baseline. Being tracked as part of https://github.com/dotnet/machinelearning/issues/1441")]
@@ -992,7 +1169,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var matrixFactorizationEstimator = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: mlContext.Regression.Trainers.MatrixFactorization(
                                             r.label, r.matrixRowIndex, r.matrixColumnIndex,
-                                            new MatrixFactorizationTrainer.Options { NumThreads = 1 },
+                                            new MatrixFactorizationTrainer.Options { NumberOfThreads = 1 },
                                             onFit: p => pred = p)));
 
             // Create a pipeline from the reader (the 1st step) and the matrix factorization estimator (the 2nd step).
@@ -1074,8 +1251,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = mlContext.MulticlassClassification.Evaluate(prediction, r => r.LabelIndex, r => r.Predictions);
 
             // Check if metrics are resonable.
-            Assert.Equal(0.863482146891263, metrics.AccuracyMacro, 6);
-            Assert.Equal(0.86309523809523814, metrics.AccuracyMicro, 6);
+            Assert.Equal(0.86545065082827088, metrics.AccuracyMacro, 6);
+            Assert.Equal(0.86507936507936511, metrics.AccuracyMicro, 6);
 
             // Convert prediction in ML.NET format to native C# class.
             var nativePredictions = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
@@ -1091,7 +1268,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Show prediction result for the 3rd example.
             var nativePrediction = nativePredictions[2];
-            var expectedProbabilities = new float[] { 0.922597349f, 0.07508608f, 0.00221699756f, 9.95488E-05f };
+            var expectedProbabilities = new float[] { 0.92574507f, 0.0739398f, 0.0002437812f, 7.13458649E-05f };
             // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
             for (int i = 0; i < labelBuffer.Length; ++i)
                 Assert.Equal(expectedProbabilities[i], nativePrediction.Scores[i], 6);

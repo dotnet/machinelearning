@@ -3,10 +3,10 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ConvertToGrayscaleExample
+    public static class ConvertToGrayscale
     {
         // Sample that loads images from the file system, and converts them to grayscale. 
-        public static void ConvertToGrayscale()
+        public static void Example()
         {
             var mlContext = new MLContext();
 
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // hotdog.jpg   hotdog
             // tomato.jpg   tomato
 
-            var data = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
+            var data = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Columns = new[]
                 {

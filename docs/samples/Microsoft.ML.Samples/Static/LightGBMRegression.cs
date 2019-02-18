@@ -11,8 +11,8 @@ namespace Microsoft.ML.Samples.Static
         public static void LightGbmRegression()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
-            // this will create a housing.txt file in the filsystem this code will run
-            // you can open the file to see the data. 
+            // this will create a housing.txt file in the filsystem.
+            // You can open the file to see the data. 
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 

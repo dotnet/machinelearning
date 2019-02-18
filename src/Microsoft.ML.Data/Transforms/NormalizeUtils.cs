@@ -22,7 +22,7 @@ namespace Microsoft.ML.Data
     /// Signature for a repository based loader of an <see cref="IColumnFunction"/>.
     /// </summary>
     [BestFriend]
-    internal delegate void SignatureLoadColumnFunction(ModelLoadContext ctx, IHost host, ColumnType typeSrc);
+    internal delegate void SignatureLoadColumnFunction(ModelLoadContext ctx, IHost host, DataViewType typeSrc);
 
     internal interface IColumnFunctionBuilder
     {
@@ -58,9 +58,9 @@ namespace Microsoft.ML.Data
     [BestFriend]
     internal interface IColumnFunction : ICanSaveModel
     {
-        Delegate GetGetter(Row input, int icol);
+        Delegate GetGetter(DataViewRow input, int icol);
 
-        void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
+        void AttachMetadata(MetadataDispatcher.Builder bldr, DataViewType typeSrc);
 
         JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 

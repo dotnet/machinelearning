@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -122,7 +121,7 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns.ToArray();
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!WordTokenizingEstimator.IsColumnTypeValid(type))
@@ -195,24 +194,24 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsPfa
         {
-            private readonly ColumnType _type;
+            private readonly DataViewType _type;
             private readonly WordTokenizingTransformer _parent;
             private readonly bool[] _isSourceVector;
 
             public bool CanSavePfa => true;
 
-            public Mapper(WordTokenizingTransformer parent, Schema inputSchema)
+            public Mapper(WordTokenizingTransformer parent, DataViewSchema inputSchema)
               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _type = new VectorType(TextType.Instance);
+                _type = new VectorType(TextDataViewType.Instance);
                 _isSourceVector = new bool[_parent._columns.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
                 {
@@ -222,19 +221,19 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, null);
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -242,14 +241,14 @@ namespace Microsoft.ML.Transforms.Text
 
                 input.Schema.TryGetColumnIndex(_parent._columns[iinfo].InputColumnName, out int srcCol);
                 var srcType = input.Schema[srcCol].Type;
-                Host.Assert(srcType.GetItemType() is TextType);
+                Host.Assert(srcType.GetItemType() is TextDataViewType);
 
                 if (!(srcType is VectorType))
                     return MakeGetterOne(input, iinfo);
                 return MakeGetterVec(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterOne(Row input, int iinfo)
+            private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
@@ -275,7 +274,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(Row input, int iinfo)
+            private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
 
@@ -405,7 +404,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class WordTokenizingEstimator : TrivialEstimator<WordTokenizingTransformer>
     {
-        internal static bool IsColumnTypeValid(ColumnType type) => type.GetItemType() is TextType;
+        internal static bool IsColumnTypeValid(DataViewType type) => type.GetItemType() is TextDataViewType;
 
         internal const string ExpectedColumnType = "Text";
 

@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
             var data = new TextLoader(ML,
-                   new TextLoader.Arguments()
+                   new TextLoader.Options()
                    {
                        Separator = "\t",
                        HasHeader = true,
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
             var data = new TextLoader(ML,
-                   new TextLoader.Arguments()
+                   new TextLoader.Options()
                    {
                        Separator = "\t",
                        HasHeader = true,

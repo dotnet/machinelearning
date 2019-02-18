@@ -15,7 +15,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     {
         protected readonly IHost Host;
 
-        public abstract class ArgumentsBase
+        public abstract class OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to normalize the output of base models before combining them",
                 ShortName = "norm", SortOrder = 50)]
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         protected readonly bool Normalize;
 
-        internal BaseMultiCombiner(IHostEnvironment env, string name, ArgumentsBase args)
+        internal BaseMultiCombiner(IHostEnvironment env, string name, OptionsBase args)
         {
             Contracts.AssertValue(env);
             env.AssertNonWhiteSpace(name);

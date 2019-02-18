@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
@@ -45,7 +44,7 @@ namespace Microsoft.ML.Transforms.Projections
             public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
-            public IComponentFactory<float, IFourierDistributionSampler> MatrixGenerator = new GaussianFourierSampler.Arguments();
+            public IComponentFactory<float, IFourierDistributionSampler> MatrixGenerator = new GaussianFourierSampler.Options();
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool UseSin = RandomFourierFeaturizingEstimator.Defaults.UseSin;
 
@@ -228,9 +227,9 @@ namespace Microsoft.ML.Transforms.Projections
 
         private static readonly int _cfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
 
-        private static string TestColumnType(ColumnType type)
+        private static string TestColumnType(DataViewType type)
         {
-            if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberType.Float)
+            if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single)
                 return null;
             return "Expected vector of floats with known size";
         }
@@ -241,7 +240,7 @@ namespace Microsoft.ML.Transforms.Projections
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             string reason = TestColumnType(type);
@@ -249,7 +248,7 @@ namespace Microsoft.ML.Transforms.Projections
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, reason, type.ToString());
             if (_transformInfos[col].SrcDim != type.GetVectorSize())
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName,
-                    new VectorType(NumberType.Float, _transformInfos[col].SrcDim).ToString(), type.ToString());
+                    new VectorType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
         internal RandomFourierFeaturizingTransformer(IHostEnvironment env, IDataView input, RandomFourierFeaturizingEstimator.ColumnInfo[] columns)
@@ -282,7 +281,7 @@ namespace Microsoft.ML.Transforms.Projections
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
-            var activeColumns = new List<Schema.Column>();
+            var activeColumns = new List<DataViewSchema.Column>();
             int[] srcCols = new int[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
@@ -401,7 +400,7 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private RandomFourierFeaturizingTransformer(IHost host, ModelLoadContext ctx)
@@ -477,21 +476,21 @@ namespace Microsoft.ML.Transforms.Projections
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ColumnType[] _srcTypes;
+            private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly RandomFourierFeaturizingTransformer _parent;
 
-            public Mapper(RandomFourierFeaturizingTransformer parent, Schema inputSchema)
+            public Mapper(RandomFourierFeaturizingTransformer parent, DataViewSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
+                _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
@@ -499,20 +498,20 @@ namespace Microsoft.ML.Transforms.Projections
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
                     //validate typeSrc.ValueCount and transformInfo.SrcDim
-                    _types[i] = new VectorType(NumberType.Float, _parent._transformInfos[i].RotationTerms == null ?
+                    _types[i] = new VectorType(NumberDataViewType.Single, _parent._transformInfos[i].RotationTerms == null ?
                     _parent._transformInfos[i].NewDim * 2 : _parent._transformInfos[i].NewDim);
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], null);
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -522,7 +521,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return GetterFromFloatType(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<float>> GetterFromVectorType(Row input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetterFromVectorType(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
                 var src = default(VBuffer<float>);
@@ -539,7 +538,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             }
 
-            private ValueGetter<VBuffer<float>> GetterFromFloatType(Row input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetterFromFloatType(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
                 var src = default(float);
@@ -667,7 +666,7 @@ namespace Microsoft.ML.Transforms.Projections
                 Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
                 InputColumnName = inputColumnName ?? name;
                 Name = name;
-                Generator = generator ?? new GaussianFourierSampler.Arguments();
+                Generator = generator ?? new GaussianFourierSampler.Options();
                 NewDim = newDim;
                 UseSin = useSin;
                 Seed = seed;
@@ -717,7 +716,7 @@ namespace Microsoft.ML.Transforms.Projections
                 if (col.ItemType.RawType != typeof(float) || col.Kind != SchemaShape.Column.VectorKind.Vector)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(result.Values);

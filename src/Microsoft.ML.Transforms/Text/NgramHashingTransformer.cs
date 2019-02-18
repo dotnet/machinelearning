@@ -11,7 +11,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -202,7 +201,7 @@ namespace Microsoft.ML.Transforms.Text
             // Let's validate input schema and check which columns requried invertHash.
             int[] invertHashMaxCounts = new int[_columns.Length];
             HashSet<int> columnWithInvertHash = new HashSet<int>();
-            var sourceColumnsForInvertHash = new List<Schema.Column>();
+            var sourceColumnsForInvertHash = new List<DataViewSchema.Column>();
             for (int i = 0; i < _columns.Length; i++)
             {
                 int invertHashMaxCount;
@@ -276,7 +275,7 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private NgramHashingTransformer(IHostEnvironment env, ModelLoadContext ctx, bool loadLegacy = false) :
@@ -374,28 +373,28 @@ namespace Microsoft.ML.Transforms.Text
             return new NgramHashingTransformer(host, ctx, ctx.Header.ModelVerWritten < VersionTransformer);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase
         {
             private readonly NgramHashingTransformer _parent;
             private readonly VectorType[] _types;
             private readonly int[][] _srcIndices;
-            private readonly ColumnType[][] _srcTypes;
+            private readonly DataViewType[][] _srcTypes;
             private readonly FinderDecorator _decorator;
 
-            public Mapper(NgramHashingTransformer parent, Schema inputSchema, FinderDecorator decorator = null) :
+            public Mapper(NgramHashingTransformer parent, DataViewSchema inputSchema, FinderDecorator decorator = null) :
                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
                 _decorator = decorator;
                 _types = new VectorType[_parent._columns.Length];
                 _srcIndices = new int[_parent._columns.Length][];
-                _srcTypes = new ColumnType[_parent._columns.Length][];
+                _srcTypes = new DataViewType[_parent._columns.Length][];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
                     _srcIndices[i] = new int[_parent._columns[i].InputColumnNames.Length];
-                    _srcTypes[i] = new ColumnType[_parent._columns[i].InputColumnNames.Length];
+                    _srcTypes[i] = new DataViewType[_parent._columns[i].InputColumnNames.Length];
                     for (int j = 0; j < _parent._columns[i].InputColumnNames.Length; j++)
                     {
                         var srcName = _parent._columns[i].InputColumnNames[j];
@@ -409,7 +408,7 @@ namespace Microsoft.ML.Transforms.Text
                         _srcTypes[i][j] = srcType;
                     }
 
-                    _types[i] = new VectorType(NumberType.Float, 1 << _parent._columns[i].HashBits);
+                    _types[i] = new VectorType(NumberDataViewType.Single, 1 << _parent._columns[i].HashBits);
                 }
             }
 
@@ -560,13 +559,13 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(icol >= 0);
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 int srcCount = _srcIndices[iinfo].Length;
                 ValueGetter<VBuffer<uint>>[] getSrc = new ValueGetter<VBuffer<uint>>[srcCount];
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                    getSrc[isrc] = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, _srcIndices[iinfo][isrc]);
+                    getSrc[isrc] = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, _srcIndices[iinfo][isrc]);
                 var src = default(VBuffer<uint>);
                 var ngramIdFinder = GetNgramIdFinder(iinfo);
                 if (_decorator != null)
@@ -607,14 +606,14 @@ namespace Microsoft.ML.Transforms.Text
 
             private protected override void SaveModel(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent._columns.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
                     var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
@@ -648,7 +647,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int[] _invertHashMaxCounts;
             private readonly int[][] _srcIndices;
 
-            public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, IEnumerable<Schema.Column> columnsNeeded, int[] invertHashMaxCounts)
+            public InvertHashHelper(NgramHashingTransformer parent, DataViewSchema inputSchema, string[][] friendlyNames, IEnumerable<DataViewSchema.Column> columnsNeeded, int[] invertHashMaxCounts)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(friendlyNames);
@@ -854,7 +853,7 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         var vec = values[iinfo] = _iinfoToCollector[iinfo].GetMetadata();
                         Contracts.Assert(vec.Length == 1 << _parent._columns[iinfo].HashBits);
-                        types[iinfo] = new VectorType(TextType.Instance, vec.Length);
+                        types[iinfo] = new VectorType(TextDataViewType.Instance, vec.Length);
                     }
                 }
                 return values;
@@ -1176,7 +1175,7 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns;
         }
 
-        internal static bool IsColumnTypeValid(ColumnType type)
+        internal static bool IsColumnTypeValid(DataViewType type)
         {
             if (!(type is VectorType vectorType))
                 return false;
@@ -1220,8 +1219,8 @@ namespace Microsoft.ML.Transforms.Text
                         throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, ExpectedColumnType, col.GetTypeString());
                 }
                 var metadata = new List<SchemaShape.Column>();
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(metadata));
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

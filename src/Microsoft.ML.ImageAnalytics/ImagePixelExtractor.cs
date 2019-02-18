@@ -11,7 +11,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.ImageAnalytics;
@@ -200,19 +199,19 @@ namespace Microsoft.ML.ImageAnalytics
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
+            env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Columns, nameof(args.Columns));
+            env.CheckValue(options.Columns, nameof(options.Columns));
 
-            var columns = new ImagePixelExtractingEstimator.ColumnInfo[args.Columns.Length];
+            var columns = new ImagePixelExtractingEstimator.ColumnInfo[options.Columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
-                var item = args.Columns[i];
-                columns[i] = new ImagePixelExtractingEstimator.ColumnInfo(item, args);
+                var item = options.Columns[i];
+                columns[i] = new ImagePixelExtractingEstimator.ColumnInfo(item, options);
             }
 
             var transformer = new ImagePixelExtractingTransformer(env, columns);
@@ -249,7 +248,7 @@ namespace Microsoft.ML.ImageAnalytics
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -271,9 +270,9 @@ namespace Microsoft.ML.ImageAnalytics
                 info.Save(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].InputColumnName;
             var imageType = inputSchema[srcCol].Type as ImageType;
@@ -290,17 +289,17 @@ namespace Microsoft.ML.ImageAnalytics
             private readonly ImagePixelExtractingTransformer _parent;
             private readonly VectorType[] _types;
 
-            public Mapper(ImagePixelExtractingTransformer parent, Schema inputSchema)
+            public Mapper(ImagePixelExtractingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _types = ConstructTypes();
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent._columns.Select((x, idx) => new Schema.DetachedColumn(x.Name, _types[idx], null)).ToArray();
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent._columns.Select((x, idx) => new DataViewSchema.DetachedColumn(x.Name, _types[idx], null)).ToArray();
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -311,7 +310,7 @@ namespace Microsoft.ML.ImageAnalytics
             }
 
             //REVIEW Rewrite it to where TValue : IConvertible
-            private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(Row input, int iinfo, out Action disposer)
+            private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(DataViewRow input, int iinfo, out Action disposer)
                 where TValue : struct
             {
                 var type = _types[iinfo];
@@ -481,9 +480,9 @@ namespace Microsoft.ML.ImageAnalytics
                     Contracts.Assert((long)height * width <= int.MaxValue / 4);
 
                     if (column.Interleave)
-                        types[i] = new VectorType(column.AsFloat ? NumberType.Float : NumberType.U1, height, width, column.Planes);
+                        types[i] = new VectorType(column.AsFloat ? NumberDataViewType.Single : NumberDataViewType.Byte, height, width, column.Planes);
                     else
-                        types[i] = new VectorType(column.AsFloat ? NumberType.Float : NumberType.U1, column.Planes, height, width);
+                        types[i] = new VectorType(column.AsFloat ? NumberDataViewType.Single : NumberDataViewType.Byte, column.Planes, height, width);
                 }
                 return types;
             }
@@ -550,23 +549,23 @@ namespace Microsoft.ML.ImageAnalytics
             internal bool Green => (Colors & ColorBits.Green) != 0;
             internal bool Blue => (Colors & ColorBits.Blue) != 0;
 
-            internal ColumnInfo(ImagePixelExtractingTransformer.Column item, ImagePixelExtractingTransformer.Options args)
+            internal ColumnInfo(ImagePixelExtractingTransformer.Column item, ImagePixelExtractingTransformer.Options options)
             {
                 Contracts.CheckValue(item, nameof(item));
-                Contracts.CheckValue(args, nameof(args));
+                Contracts.CheckValue(options, nameof(options));
 
                 Name = item.Name;
                 InputColumnName = item.Source ?? item.Name;
 
-                if (item.UseAlpha ?? args.UseAlpha) { Colors |= ColorBits.Alpha; Planes++; }
-                if (item.UseRed ?? args.UseRed) { Colors |= ColorBits.Red; Planes++; }
-                if (item.UseGreen ?? args.UseGreen) { Colors |= ColorBits.Green; Planes++; }
-                if (item.UseBlue ?? args.UseBlue) { Colors |= ColorBits.Blue; Planes++; }
+                if (item.UseAlpha ?? options.UseAlpha) { Colors |= ColorBits.Alpha; Planes++; }
+                if (item.UseRed ?? options.UseRed) { Colors |= ColorBits.Red; Planes++; }
+                if (item.UseGreen ?? options.UseGreen) { Colors |= ColorBits.Green; Planes++; }
+                if (item.UseBlue ?? options.UseBlue) { Colors |= ColorBits.Blue; Planes++; }
                 Contracts.CheckUserArg(Planes > 0, nameof(item.UseRed), "Need to use at least one color plane");
 
-                Interleave = item.InterleaveArgb ?? args.InterleaveArgb;
+                Interleave = item.InterleaveArgb ?? options.InterleaveArgb;
 
-                AsFloat = item.Convert ?? args.Convert;
+                AsFloat = item.Convert ?? options.Convert;
                 if (!AsFloat)
                 {
                     Offset = ImagePixelExtractingTransformer.Defaults.Offset;
@@ -574,8 +573,8 @@ namespace Microsoft.ML.ImageAnalytics
                 }
                 else
                 {
-                    Offset = item.Offset ?? args.Offset ?? ImagePixelExtractingTransformer.Defaults.Offset;
-                    Scale = item.Scale ?? args.Scale ?? ImagePixelExtractingTransformer.Defaults.Scale;
+                    Offset = item.Offset ?? options.Offset ?? ImagePixelExtractingTransformer.Defaults.Offset;
+                    Scale = item.Scale ?? options.Scale ?? ImagePixelExtractingTransformer.Defaults.Scale;
                     Contracts.CheckUserArg(FloatUtils.IsFinite(Offset), nameof(item.Offset));
                     Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(Scale), nameof(item.Scale));
                 }
@@ -743,7 +742,7 @@ namespace Microsoft.ML.ImageAnalytics
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageType().ToString(), col.GetTypeString());
 
-                var itemType = colInfo.AsFloat ? NumberType.R4 : NumberType.U1;
+                var itemType = colInfo.AsFloat ? NumberDataViewType.Single : NumberDataViewType.Byte;
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, itemType, false);
             }
 

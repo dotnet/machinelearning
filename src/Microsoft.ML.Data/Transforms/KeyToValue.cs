@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -141,7 +140,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -156,15 +155,15 @@ namespace Microsoft.ML.Transforms.Conversions
             SaveColumns(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsPfa
         {
             private readonly KeyToValueMappingTransformer _parent;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly KeyToValueMap[] _kvMaps;
 
-            public Mapper(KeyToValueMappingTransformer parent, Schema inputSchema)
+            public Mapper(KeyToValueMappingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -173,14 +172,14 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public bool CanSavePfa => true;
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var meta = new MetadataBuilder();
                     meta.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
@@ -214,7 +213,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ctx.DeclareVar(toDeclare.ToArray());
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _types.Length);
@@ -223,9 +222,9 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             // Computes the types of the columns and constructs the kvMaps.
-            private void ComputeKvMaps(Schema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
+            private void ComputeKvMaps(DataViewSchema schema, out DataViewType[] types, out KeyToValueMap[] kvMaps)
             {
-                types = new ColumnType[_parent.ColumnPairs.Length];
+                types = new DataViewType[_parent.ColumnPairs.Length];
                 kvMaps = new KeyToValueMap[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < types.Length; iinfo++)
                 {
@@ -234,29 +233,29 @@ namespace Microsoft.ML.Transforms.Conversions
                     var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
                     var typeVals = schema[ColMapNewToOld[iinfo]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
-                    ColumnType valsItemType = typeVals.GetItemType();
-                    ColumnType srcItemType = typeSrc.GetItemType();
+                    DataViewType valsItemType = typeVals.GetItemType();
+                    DataViewType srcItemType = typeSrc.GetItemType();
                     Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCountAsInt32(Host), "KeyValues metadata size does not match column type key count");
                     if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = valsItemType;
                     else
-                        types[iinfo] = new VectorType((PrimitiveType)valsItemType, vectorType);
+                        types[iinfo] = new VectorType((PrimitiveDataViewType)valsItemType, vectorType);
 
                     // MarshalInvoke with two generic params.
-                    Func<int, ColumnType, ColumnType, KeyToValueMap> func = GetKeyMetadata<int, int>;
+                    Func<int, DataViewType, DataViewType, KeyToValueMap> func = GetKeyMetadata<int, int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(
                         new Type[] { srcItemType.RawType, types[iinfo].GetItemType().RawType });
                     kvMaps[iinfo] = (KeyToValueMap)meth.Invoke(this, new object[] { iinfo, typeSrc, typeVals });
                 }
             }
 
-            private KeyToValueMap GetKeyMetadata<TKey, TValue>(int iinfo, ColumnType typeKey, ColumnType typeVal)
+            private KeyToValueMap GetKeyMetadata<TKey, TValue>(int iinfo, DataViewType typeKey, DataViewType typeVal)
             {
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 Host.AssertValue(typeKey);
                 Host.AssertValue(typeVal);
-                ColumnType keyItemType = typeKey.GetItemType();
-                ColumnType valItemType = typeVal.GetItemType();
+                DataViewType keyItemType = typeKey.GetItemType();
+                DataViewType valItemType = typeVal.GetItemType();
                 Host.Assert(keyItemType.RawType == typeof(TKey));
                 Host.Assert(valItemType.RawType == typeof(TValue));
 
@@ -265,7 +264,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Check(keyMetadata.Length == keyItemType.GetKeyCountAsInt32(Host));
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, (KeyType)keyItemType, (PrimitiveType)valItemType, keyMetadata, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, (KeyType)keyItemType, (PrimitiveDataViewType)valItemType, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output
@@ -278,7 +277,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 /// The item type of the output type, that is, either the output type or,
                 /// if a vector, the item type of that type.
                 /// </summary>
-                protected readonly PrimitiveType TypeOutput;
+                protected readonly PrimitiveDataViewType TypeOutput;
 
                 /// <summary>
                 /// The column index in Infos.
@@ -290,7 +289,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 /// </summary>
                 protected readonly Mapper Parent;
 
-                protected KeyToValueMap(Mapper mapper, PrimitiveType typeVal, int iinfo)
+                protected KeyToValueMap(Mapper mapper, PrimitiveDataViewType typeVal, int iinfo)
                 {
                     // REVIEW: Is there a better way to perform this first assert value?
                     Contracts.AssertValue(mapper);
@@ -301,7 +300,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     InfoIndex = iinfo;
                 }
 
-                public abstract Delegate GetMappingGetter(Row input);
+                public abstract Delegate GetMappingGetter(DataViewRow input);
 
                 public abstract JToken SavePfa(BoundPfaContext ctx, JToken srcToken);
             }
@@ -316,7 +315,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 private readonly ValueMapper<TKey, UInt32> _convertToUInt;
 
-                public KeyToValueMap(Mapper parent, KeyType typeKey, PrimitiveType typeVal, VBuffer<TValue> values, int iinfo)
+                public KeyToValueMap(Mapper parent, KeyType typeKey, PrimitiveDataViewType typeVal, VBuffer<TValue> values, int iinfo)
                     : base(parent, typeVal, iinfo)
                 {
                     Parent.Host.Assert(values.IsDense);
@@ -325,7 +324,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _values = values;
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
-                    ColumnType outputItemType = TypeOutput.GetItemType();
+                    DataViewType outputItemType = TypeOutput.GetItemType();
                     _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(outputItemType, out _naMapsToDefault);
 
                     if (_naMapsToDefault)
@@ -335,7 +334,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
 
                     bool identity;
-                    _convertToUInt = Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberType.U4, out identity);
+                    _convertToUInt = Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberDataViewType.UInt32, out identity);
                 }
 
                 private void MapKey(in TKey src, ref TValue dst)
@@ -354,7 +353,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         dst = _na;
                 }
 
-                public override Delegate GetMappingGetter(Row input)
+                public override Delegate GetMappingGetter(DataViewRow input)
                 {
                     // When constructing the getter, there are a few cases we have to consider:
                     // If scalar then it's just a straightforward mapping.
@@ -475,7 +474,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     // probably, which I am not prepared to do.
                     var defaultToken = PfaUtils.Type.DefaultTokenOrNull(TypeOutput);
                     JArray jsonValues;
-                    if (TypeOutput is TextType)
+                    if (TypeOutput is TextDataViewType)
                     {
                         jsonValues = new JArray();
                         var keyValues = _values.GetValues();

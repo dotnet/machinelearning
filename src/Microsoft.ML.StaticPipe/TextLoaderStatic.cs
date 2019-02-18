@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe.Runtime;
 
@@ -46,7 +45,7 @@ namespace Microsoft.ML.StaticPipe
             env.CheckValueOrNull(files);
 
             // Populate all args except the columns.
-            var args = new TextLoader.Arguments();
+            var args = new TextLoader.Options();
             args.AllowQuoting = allowQuoting;
             args.AllowSparse = allowSparse;
             args.HasHeader = hasHeader;
@@ -66,15 +65,15 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class TextReconciler : ReaderReconciler<IMultiStreamSource>
         {
-            private readonly TextLoader.Arguments _args;
+            private readonly TextLoader.Options _args;
             private readonly IMultiStreamSource _files;
 
-            public TextReconciler(TextLoader.Arguments args, IMultiStreamSource files)
+            public TextReconciler(TextLoader.Options options, IMultiStreamSource files)
             {
-                Contracts.AssertValue(args);
+                Contracts.AssertValue(options);
                 Contracts.AssertValueOrNull(files);
 
-                _args = args;
+                _args = options;
                 _files = files;
             }
 

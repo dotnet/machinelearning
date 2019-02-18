@@ -4,7 +4,6 @@
 
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Training
@@ -65,6 +64,11 @@ namespace Microsoft.ML.Training
             WeightColumn = weight;
         }
 
+        /// <summary> Trains and returns a <see cref="ITransformer"/>.</summary>
+        /// <remarks>
+        /// Derived class can overload this function.
+        /// For example, it could take an additional dataset to train with a separate validation set.
+        /// </remarks>
         public TTransformer Fit(IDataView input) => TrainTransformer(input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -143,7 +147,7 @@ namespace Microsoft.ML.Training
 
         private protected abstract TModel TrainModelCore(TrainContext trainContext);
 
-        protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
+        protected abstract TTransformer MakeTransformer(TModel model, DataViewSchema trainSchema);
 
         private protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);

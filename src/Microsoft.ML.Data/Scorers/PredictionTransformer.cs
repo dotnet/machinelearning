@@ -52,8 +52,12 @@ namespace Microsoft.ML.Data
         private protected readonly IHost Host;
         [BestFriend]
         private protected ISchemaBindableMapper BindableMapper;
-        protected Schema TrainSchema;
+        protected DataViewSchema TrainSchema;
 
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
         public bool IsRowToRowMapper => true;
 
         /// <summary>
@@ -67,7 +71,7 @@ namespace Microsoft.ML.Data
         private protected RowToRowScorerBase Scorer { get; set; }
 
         [BestFriend]
-        private protected PredictionTransformerBase(IHost host, TModel model, Schema trainSchema)
+        private protected PredictionTransformerBase(IHost host, TModel model, DataViewSchema trainSchema)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
@@ -108,9 +112,9 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Gets the output schema resulting from the <see cref="Transform(IDataView)"/>
         /// </summary>
-        /// <param name="inputSchema">The <see cref="Schema"/> of the input data.</param>
-        /// <returns>The resulting <see cref="Schema"/>.</returns>
-        public abstract Schema GetOutputSchema(Schema inputSchema);
+        /// <param name="inputSchema">The <see cref="DataViewSchema"/> of the input data.</param>
+        /// <returns>The resulting <see cref="DataViewSchema"/>.</returns>
+        public abstract DataViewSchema GetOutputSchema(DataViewSchema inputSchema);
 
         /// <summary>
         /// Transforms the input data.
@@ -128,7 +132,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="inputSchema"></param>
         /// <returns></returns>
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return (IRowToRowMapper)Scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
@@ -172,7 +176,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The type of the prediction transformer
         /// </summary>
-        public ColumnType FeatureColumnType { get; }
+        public DataViewType FeatureColumnType { get; }
 
         /// <summary>
         /// Initializes a new reference of <see cref="SingleFeaturePredictionTransformerBase{TModel}"/>.
@@ -181,7 +185,7 @@ namespace Microsoft.ML.Data
         /// <param name="model">The model used for scoring.</param>
         /// <param name="trainSchema">The schema of the training data.</param>
         /// <param name="featureColumn">The feature column name.</param>
-        private protected SingleFeaturePredictionTransformerBase(IHost host, TModel model, Schema trainSchema, string featureColumn)
+        private protected SingleFeaturePredictionTransformerBase(IHost host, TModel model, DataViewSchema trainSchema, string featureColumn)
             : base(host, model, trainSchema)
         {
             FeatureColumn = featureColumn;
@@ -215,7 +219,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="inputSchema">The input schema to attempt to map.</param>
         /// <returns>The output schema of the data, given an input schema like <paramref name="inputSchema"/>.</returns>
-        public sealed override Schema GetOutputSchema(Schema inputSchema)
+        public sealed override DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -257,11 +261,11 @@ namespace Microsoft.ML.Data
     public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        internal readonly string ThresholdColumn;
+        internal readonly float Threshold;
 
         [BestFriend]
-        internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)),model, inputSchema, featureColumn)
         {
@@ -326,11 +330,11 @@ namespace Microsoft.ML.Data
     public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class
     {
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        internal readonly string ThresholdColumn;
+        internal readonly float Threshold;
 
         [BestFriend]
-        internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        internal BinaryPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
@@ -398,7 +402,7 @@ namespace Microsoft.ML.Data
         private readonly string _trainLabelColumn;
 
         [BestFriend]
-        internal MulticlassPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn, string labelColumn)
+        internal MulticlassPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn, string labelColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MulticlassPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckValueOrNull(labelColumn);
@@ -458,7 +462,7 @@ namespace Microsoft.ML.Data
         where TModel : class
     {
         [BestFriend]
-        internal RegressionPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn)
+        internal RegressionPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Scorer = GetGenericScorer();
@@ -500,7 +504,7 @@ namespace Microsoft.ML.Data
     where TModel : class
     {
         [BestFriend]
-        internal RankingPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn)
+        internal RankingPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Scorer = GetGenericScorer();
@@ -542,7 +546,7 @@ namespace Microsoft.ML.Data
         where TModel : class
     {
         [BestFriend]
-        internal ClusteringPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
+        internal ClusteringPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ClusteringPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {

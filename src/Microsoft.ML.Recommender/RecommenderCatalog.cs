@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 
@@ -57,7 +55,7 @@ namespace Microsoft.ML
             /// <param name="labelColumn">The name of the label column.</param>
             /// <param name="approximationRank">Rank of approximation matrixes.</param>
             /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
-            /// <param name="numIterations">Number of training iterations.</param>
+            /// <param name="numberOfIterations">Number of training iterations.</param>
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
@@ -70,9 +68,9 @@ namespace Microsoft.ML
                 string labelColumn = DefaultColumnNames.Label,
                 int approximationRank = MatrixFactorizationTrainer.Defaults.ApproximationRank,
                 double learningRate = MatrixFactorizationTrainer.Defaults.LearningRate,
-                int numIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
+                int numberOfIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
                     => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn,
-                        approximationRank, learningRate, numIterations);
+                        approximationRank, learningRate, numberOfIterations);
 
             /// <summary>
             /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
@@ -104,11 +102,11 @@ namespace Microsoft.ML
         /// <returns>The evaluation results for these calibrated outputs.</returns>
         public RegressionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score)
         {
-            Host.CheckValue(data, nameof(data));
-            Host.CheckNonEmpty(label, nameof(label));
-            Host.CheckNonEmpty(score, nameof(score));
+            Environment.CheckValue(data, nameof(data));
+            Environment.CheckNonEmpty(label, nameof(label));
+            Environment.CheckNonEmpty(score, nameof(score));
 
-            var eval = new RegressionEvaluator(Host, new RegressionEvaluator.Arguments() { });
+            var eval = new RegressionEvaluator(Environment, new RegressionEvaluator.Arguments() { });
             return eval.Evaluate(data, label, score);
         }
 
@@ -132,7 +130,7 @@ namespace Microsoft.ML
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
             string stratificationColumn = null, uint? seed = null)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Environment.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => new CrossValidationResult<RegressionMetrics>(x.Model, Evaluate(x.Scores, labelColumn), x.Scores, x.Fold)).ToArray();
         }

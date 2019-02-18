@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         private IDataView GetBreastCancerDataviewWithTextColumns()
         {
             return new TextLoader(Env,
-                    new TextLoader.Arguments()
+                    new TextLoader.Options()
                     {
                         HasHeader = true,
                         Columns = new[]
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorRandom()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
-            var pipe = new RandomTrainer(Env);
+            var pipe = ML.BinaryClassification.Trainers.Random();
 
             // Test only that the schema propagation works.
             // REVIEW: the save/load is not preserving the full state of the random predictor. This is unfortunate, but we don't care too much at this point.
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
 
-            var pipe = new PriorTrainer(Contracts.CheckRef(Env, nameof(Env)).Register("PriorPredictor"), "Label");
+            var pipe = ML.BinaryClassification.Trainers.Prior("Label");
             TestEstimatorCore(pipe, dataView);
             Done();
         }

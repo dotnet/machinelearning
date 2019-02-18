@@ -198,7 +198,7 @@ namespace Microsoft.ML.Data
                 case DataKind.DZ:
                     return typeof(DateTimeOffset);
                 case DataKind.UG:
-                    return typeof(RowId);
+                    return typeof(DataViewRowId);
             }
 
             return null;
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Data
                 kind = DataKind.DT;
             else if (type == typeof(DateTimeOffset))
                 kind = DataKind.DZ;
-            else if (type == typeof(RowId))
+            else if (type == typeof(DataViewRowId))
                 kind = DataKind.UG;
             else
             {

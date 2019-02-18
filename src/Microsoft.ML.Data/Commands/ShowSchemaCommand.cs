@@ -114,7 +114,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private static void PrintSchema(TextWriter writer, Arguments args, Schema schema, ITransposeDataView transposeDataView)
+        private static void PrintSchema(TextWriter writer, Arguments args, DataViewSchema schema, ITransposeDataView transposeDataView)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValue(args);
@@ -152,10 +152,10 @@ namespace Microsoft.ML.Data
                         continue;
                     if (!type.IsKnownSizeVector())
                         continue;
-                    ColumnType typeNames;
+                    DataViewType typeNames;
                     if ((typeNames = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null)
                         continue;
-                    if (typeNames.GetVectorSize() != type.GetVectorSize() || !(typeNames.GetItemType() is TextType))
+                    if (typeNames.GetVectorSize() != type.GetVectorSize() || !(typeNames.GetItemType() is TextDataViewType))
                     {
                         Contracts.Assert(false, "Unexpected slot names type");
                         continue;
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private static void ShowMetadata(IndentedTextWriter itw, Schema schema, int col, bool showVals)
+        private static void ShowMetadata(IndentedTextWriter itw, DataViewSchema schema, int col, bool showVals)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private static void ShowMetadataValue(IndentedTextWriter itw, Schema schema, int col, string kind, ColumnType type)
+        private static void ShowMetadataValue(IndentedTextWriter itw, DataViewSchema schema, int col, string kind, DataViewType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -219,12 +219,12 @@ namespace Microsoft.ML.Data
                 return;
             }
 
-            Action<IndentedTextWriter, Schema, int, string, ColumnType> del = ShowMetadataValue<int>;
+            Action<IndentedTextWriter, DataViewSchema, int, string, DataViewType> del = ShowMetadataValue<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
             meth.Invoke(null, new object[] { itw, schema, col, kind, type });
         }
 
-        private static void ShowMetadataValue<T>(IndentedTextWriter itw, Schema schema, int col, string kind, ColumnType type)
+        private static void ShowMetadataValue<T>(IndentedTextWriter itw, DataViewSchema schema, int col, string kind, DataViewType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Data
             itw.Write(": '{0}'", sb);
         }
 
-        private static void ShowMetadataValueVec(IndentedTextWriter itw, Schema schema, int col, string kind, VectorType type)
+        private static void ShowMetadataValueVec(IndentedTextWriter itw, DataViewSchema schema, int col, string kind, VectorType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -258,12 +258,12 @@ namespace Microsoft.ML.Data
                 return;
             }
 
-            Action<IndentedTextWriter, Schema, int, string, VectorType> del = ShowMetadataValueVec<int>;
+            Action<IndentedTextWriter, DataViewSchema, int, string, VectorType> del = ShowMetadataValueVec<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
             meth.Invoke(null, new object[] { itw, schema, col, kind, type });
         }
 
-        private static void ShowMetadataValueVec<T>(IndentedTextWriter itw, Schema schema, int col, string kind, VectorType type)
+        private static void ShowMetadataValueVec<T>(IndentedTextWriter itw, DataViewSchema schema, int col, string kind, VectorType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);

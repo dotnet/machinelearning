@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
@@ -501,7 +500,7 @@ namespace Microsoft.ML.Transforms.Text
         private static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
             => new Transformer(env, ctx);
 
-        private static string GenerateColumnName(Schema schema, string srcName, string xfTag)
+        private static string GenerateColumnName(DataViewSchema schema, string srcName, string xfTag)
         {
             return schema.GetTempColumnName(string.Format("{0}_{1}", srcName, xfTag));
         }
@@ -518,21 +517,21 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(srcName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
-                if (!(col.ItemType is TextType))
+                if (!(col.ItemType is TextDataViewType))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, "scalar or vector of text", col.GetTypeString());
             }
 
             var metadata = new List<SchemaShape.Column>(2);
-            metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
+            metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
             if (OptionalSettings.VectorNormalizer != TextNormKind.None)
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
 
-            result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false,
+            result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false,
                 new SchemaShape(metadata));
             if (OptionalSettings.OutputTokens)
             {
                 string name = string.Format(TransformedTextColFormat, OutputColumn);
-                result[name] = new SchemaShape.Column(name, SchemaShape.Column.VectorKind.VariableVector, TextType.Instance, false);
+                result[name] = new SchemaShape.Column(name, SchemaShape.Column.VectorKind.VariableVector, TextDataViewType.Instance, false);
             }
 
             return new SchemaShape(result.Values);
@@ -575,7 +574,7 @@ namespace Microsoft.ML.Transforms.Text
                 _xf = ApplyTransformUtils.ApplyAllTransformsToData(_host, view, new EmptyDataView(_host, input.Schema), input);
             }
 
-            public Schema GetOutputSchema(Schema inputSchema)
+            public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 return Transform(new EmptyDataView(_host, inputSchema)).Schema;
@@ -589,7 +588,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public bool IsRowToRowMapper => true;
 
-            public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+            public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 var input = new EmptyDataView(_host, inputSchema);

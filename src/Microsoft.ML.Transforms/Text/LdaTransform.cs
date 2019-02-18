@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -534,7 +533,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly LatentDirichletAllocationTransformer _parent;
             private readonly int[] _srcCols;
 
-            public Mapper(LatentDirichletAllocationTransformer parent, Schema inputSchema)
+            public Mapper(LatentDirichletAllocationTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -547,23 +546,23 @@ namespace Microsoft.ML.Transforms.Text
 
                     var srcCol = inputSchema[_srcCols[i]];
                     var srcType = srcCol.Type as VectorType;
-                    if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberType))
+                    if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberDataViewType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName, "known-size vector of float", srcCol.Type.ToString());
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var info = _parent._columns[i];
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberType.Float, info.NumTopic), null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberDataViewType.Single, info.NumTopic), null);
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -572,9 +571,9 @@ namespace Microsoft.ML.Transforms.Text
                 return GetTopic(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<float>> GetTopic(Row input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetTopic(DataViewRow input, int iinfo)
             {
-                var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, input, _srcCols[iinfo]);
+                var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.Double, input, _srcCols[iinfo]);
                 var src = default(VBuffer<Double>);
                 var lda = _parent._ldas[iinfo];
                 int numBurninIter = lda.InfoEx.NumBurninIter;
@@ -696,7 +695,7 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
@@ -767,7 +766,7 @@ namespace Microsoft.ML.Transforms.Text
             ch.AssertValue(states);
             ch.Assert(states.Length == columns.Length);
 
-            var activeColumns = new List<Schema.Column>();
+            var activeColumns = new List<DataViewSchema.Column>();
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
 
@@ -780,7 +779,7 @@ namespace Microsoft.ML.Transforms.Text
                     throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].InputColumnName);
 
                 var srcColType = inputSchema[srcCol].Type as VectorType;
-                if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberType))
+                if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberDataViewType))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName, "known-size vector of float", srcColType.ToString());
 
                 srcCols[i] = srcCol;
@@ -808,7 +807,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     corpusSize[i] = 0;
                     numDocArray[i] = 0;
-                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
+                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.Double, cursor, srcCols[i]);
                 }
                 VBuffer<Double> src = default;
                 long rowCount = 0;
@@ -887,7 +886,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < columns.Length; i++)
                 {
                     docSizeCheck[i] = 0;
-                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
+                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.Double, cursor, srcCols[i]);
                 }
 
                 VBuffer<double> src = default;
@@ -911,7 +910,7 @@ namespace Microsoft.ML.Transforms.Text
             return columnMappings;
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
             => new Mapper(this, schema);
     }
 
@@ -1206,7 +1205,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (col.ItemType.RawType != typeof(float) || col.Kind == SchemaShape.Column.VectorKind.Scalar)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector of float", col.GetTypeString());
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(result.Values);

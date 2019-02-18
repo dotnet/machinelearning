@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -348,18 +347,18 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        internal static bool GetNewType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyCount keyCount, out PrimitiveType itemType)
+        internal static bool GetNewType(IExceptionContext ectx, DataViewType srcType, DataKind kind, KeyCount keyCount, out PrimitiveDataViewType itemType)
         {
             if (keyCount != null)
             {
                 itemType = TypeParsingUtils.ConstructKeyType(kind, keyCount);
-                ColumnType srcItemType = srcType.GetItemType();
-                if (!(srcItemType is KeyType) && !(srcItemType is TextType))
+                DataViewType srcItemType = srcType.GetItemType();
+                if (!(srcItemType is KeyType) && !(srcItemType is TextDataViewType))
                     return false;
             }
             else if (!(srcType.GetItemType() is KeyType key))
@@ -387,22 +386,22 @@ namespace Microsoft.ML.Transforms.Conversions
         private sealed class Mapper : OneToOneMapperBase, ICanSaveOnnx
         {
             private readonly TypeConvertingTransformer _parent;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly int[] _srcCols;
 
             public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
-            public Mapper(TypeConvertingTransformer parent, Schema inputSchema)
+            public Mapper(TypeConvertingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent._columns.Length];
+                _types = new DataViewType[_parent._columns.Length];
                 _srcCols = new int[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
-                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind, _parent._columns[i].OutputKeyCount, out PrimitiveType itemType, out _types[i]))
+                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind, _parent._columns[i].OutputKeyCount, out PrimitiveDataViewType itemType, out _types[i]))
                     {
                         throw Host.ExceptParam(nameof(inputSchema),
                         "source column '{0}' with item type '{1}' is not compatible with destination type '{2}'",
@@ -411,8 +410,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            private static bool CanConvertToType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyCount keyCount,
-                out PrimitiveType itemType, out ColumnType typeDst)
+            private static bool CanConvertToType(IExceptionContext ectx, DataViewType srcType, DataKind kind, KeyCount keyCount,
+                out PrimitiveDataViewType itemType, out DataViewType typeDst)
             {
                 ectx.AssertValue(srcType);
                 ectx.Assert(Enum.IsDefined(typeof(DataKind), kind));
@@ -433,9 +432,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 return true;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent._columns.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
                     var builder = new MetadataBuilder();
@@ -443,8 +442,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (_types[i].IsKnownSizeVector())
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
 
-                    ColumnType srcItemType = srcType.GetItemType();
-                    ColumnType currentItemType = _types[i].GetItemType();
+                    DataViewType srcItemType = srcType.GetItemType();
+                    DataViewType currentItemType = _types[i].GetItemType();
 
                     KeyType srcItemKeyType = srcItemType as KeyType;
                     KeyType currentItemKeyType = currentItemType as KeyType;
@@ -454,19 +453,19 @@ namespace Microsoft.ML.Transforms.Conversions
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.KeyValues);
                     }
 
-                    if (srcItemType is NumberType && currentItemType is NumberType)
+                    if (srcItemType is NumberDataViewType && currentItemType is NumberDataViewType)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.IsNormalized);
-                    if (srcType is BoolType && currentItemType is NumberType)
+                    if (srcType is BooleanDataViewType && currentItemType is NumberDataViewType)
                     {
                         ValueGetter<bool> getter = (ref bool dst) => dst = true;
-                        builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
+                        builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
                     }
-                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -612,13 +611,13 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind, colInfo.OutputKeyCount, out PrimitiveType newType))
+                if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind, colInfo.OutputKeyCount, out PrimitiveDataViewType newType))
                     throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.InputColumnName} into {newType.ToString()}");
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.InputColumnName} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
-                if (col.ItemType is BoolType && newType is NumberType)
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                if (col.ItemType is BooleanDataViewType && newType is NumberDataViewType)
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     if (col.Kind == SchemaShape.Column.VectorKind.Vector)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
@@ -626,7 +625,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (col.ItemType is KeyType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
-                    if (col.ItemType is NumberType && newType is NumberType)
+                    if (col.ItemType is NumberDataViewType && newType is NumberDataViewType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, normMeta.ItemType, false));
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, newType, false, col.Metadata);
             }

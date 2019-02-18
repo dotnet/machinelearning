@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -56,7 +55,7 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!(col.Type is VectorType vecType && vecType.Size > 0 && vecType.ItemType == NumberType.Float))
+            if (!(col.Type is VectorType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -74,7 +73,7 @@ namespace Microsoft.ML.Training
             Contracts.Assert(!col.IsHidden);
             var colType = col.Type as VectorType;
             Contracts.Assert(colType != null && colType.IsKnownSize);
-            Contracts.Assert(colType.ItemType == NumberType.Float);
+            Contracts.Assert(colType.ItemType == NumberDataViewType.Single);
             length = colType.Size;
         }
 
@@ -89,7 +88,7 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type != BoolType.Instance && col.Type != NumberType.R4 && col.Type != NumberType.R8 && !(col.Type is KeyType keyType && keyType.Count == 2))
+            if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double && !(col.Type is KeyType keyType && keyType.Count == 2))
             {
                 KeyType colKeyType = col.Type as KeyType;
                 if (colKeyType != null)
@@ -124,7 +123,7 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
-            if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
+            if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
             {
                 throw Contracts.ExceptParam(nameof(data),
                     "Training label column '{0}' type isn't suitable for regression: {1}. Type must be R4 or R8.", col.Name, col.Type);
@@ -153,7 +152,7 @@ namespace Microsoft.ML.Training
             }
 
             // REVIEW: Support other numeric types.
-            if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
+            if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' type is not valid for multi-class: {1}. Type must be R4 or R8.", col.Name, col.Type);
 
             int max = -1;
@@ -194,7 +193,7 @@ namespace Microsoft.ML.Training
             Contracts.Assert(!col.IsHidden);
             if (!(col.Type is VectorType vectorType
                 && vectorType.IsKnownSize
-                && vectorType.ItemType == NumberType.Float))
+                && vectorType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -206,7 +205,7 @@ namespace Microsoft.ML.Training
                 return;
             var col = data.Schema.Weight.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
+            if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
                 throw Contracts.ExceptParam(nameof(data), "Training weight column '{0}' must be of floating point numeric type, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -223,13 +222,13 @@ namespace Microsoft.ML.Training
             throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);
         }
 
-        private static IEnumerable<Schema.Column> CreatePredicate(RoleMappedData data, CursOpt opt, IEnumerable<int> extraCols)
+        private static IEnumerable<DataViewSchema.Column> CreatePredicate(RoleMappedData data, CursOpt opt, IEnumerable<int> extraCols)
         {
             Contracts.AssertValue(data);
             Contracts.AssertValueOrNull(extraCols);
 
             var columns = extraCols == null ?
-                Enumerable.Empty<Schema.Column>() :
+                Enumerable.Empty<DataViewSchema.Column>() :
                 data.Data.Schema.Where(c => extraCols.Contains(c.Index));
 
             if ((opt & CursOpt.Label) != 0 && data.Schema.Label.HasValue)
@@ -247,21 +246,21 @@ namespace Microsoft.ML.Training
         /// Create a row cursor for the RoleMappedData with the indicated standard columns active.
         /// This does not verify that the columns exist, but merely activates the ones that do exist.
         /// </summary>
-        public static RowCursor CreateRowCursor(this RoleMappedData data, CursOpt opt, Random rand, IEnumerable<int> extraCols = null)
+        public static DataViewRowCursor CreateRowCursor(this RoleMappedData data, CursOpt opt, Random rand, IEnumerable<int> extraCols = null)
             => data.Data.GetRowCursor(CreatePredicate(data, opt, extraCols), rand);
 
         /// <summary>
         /// Create a row cursor set for the <see cref="RoleMappedData"/> with the indicated standard columns active.
         /// This does not verify that the columns exist, but merely activates the ones that do exist.
         /// </summary>
-        public static RowCursor[] CreateRowCursorSet(this RoleMappedData data,
+        public static DataViewRowCursor[] CreateRowCursorSet(this RoleMappedData data,
             CursOpt opt, int n, Random rand, IEnumerable<int> extraCols = null)
             => data.Data.GetRowCursorSet(CreatePredicate(data, opt, extraCols), n, rand);
 
         /// <summary>
         /// Get the getter for the feature column, assuming it is a vector of float.
         /// </summary>
-        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this Row row, RoleMappedSchema schema)
+        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this DataViewRow row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -274,7 +273,7 @@ namespace Microsoft.ML.Training
         /// <summary>
         /// Get the getter for the feature column, assuming it is a vector of float.
         /// </summary>
-        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this Row row, RoleMappedData data)
+        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this DataViewRow row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetFeatureFloatVectorGetter(row, data.Schema);
@@ -284,7 +283,7 @@ namespace Microsoft.ML.Training
         /// Get a getter for the label as a float. This assumes that the label column type
         /// has already been validated as appropriate for the kind of training being done.
         /// </summary>
-        public static ValueGetter<float> GetLabelFloatGetter(this Row row, RoleMappedSchema schema)
+        public static ValueGetter<float> GetLabelFloatGetter(this DataViewRow row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -298,7 +297,7 @@ namespace Microsoft.ML.Training
         /// Get a getter for the label as a float. This assumes that the label column type
         /// has already been validated as appropriate for the kind of training being done.
         /// </summary>
-        public static ValueGetter<float> GetLabelFloatGetter(this Row row, RoleMappedData data)
+        public static ValueGetter<float> GetLabelFloatGetter(this DataViewRow row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetLabelFloatGetter(row, data.Schema);
@@ -307,7 +306,7 @@ namespace Microsoft.ML.Training
         /// <summary>
         /// Get the getter for the weight column, or null if there is no weight column.
         /// </summary>
-        public static ValueGetter<float> GetOptWeightFloatGetter(this Row row, RoleMappedSchema schema)
+        public static ValueGetter<float> GetOptWeightFloatGetter(this DataViewRow row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -316,10 +315,10 @@ namespace Microsoft.ML.Training
             var col = schema.Weight;
             if (!col.HasValue)
                 return null;
-            return RowCursorUtils.GetGetterAs<float>(NumberType.Float, row, col.Value.Index);
+            return RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, row, col.Value.Index);
         }
 
-        public static ValueGetter<float> GetOptWeightFloatGetter(this Row row, RoleMappedData data)
+        public static ValueGetter<float> GetOptWeightFloatGetter(this DataViewRow row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptWeightFloatGetter(row, data.Schema);
@@ -328,7 +327,7 @@ namespace Microsoft.ML.Training
         /// <summary>
         /// Get the getter for the group column, or null if there is no group column.
         /// </summary>
-        public static ValueGetter<ulong> GetOptGroupGetter(this Row row, RoleMappedSchema schema)
+        public static ValueGetter<ulong> GetOptGroupGetter(this DataViewRow row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -337,10 +336,10 @@ namespace Microsoft.ML.Training
             var col = schema.Group;
             if (!col.HasValue)
                 return null;
-            return RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col.Value.Index);
+            return RowCursorUtils.GetGetterAs<ulong>(NumberDataViewType.UInt64, row, col.Value.Index);
         }
 
-        public static ValueGetter<ulong> GetOptGroupGetter(this Row row, RoleMappedData data)
+        public static ValueGetter<ulong> GetOptGroupGetter(this DataViewRow row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptGroupGetter(row, data.Schema);
@@ -351,14 +350,14 @@ namespace Microsoft.ML.Training
         /// </summary>
         /// <param name="labelColumn">name of the label column</param>
         public static SchemaShape.Column MakeBoolScalarLabel(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the float type columns.
         /// </summary>
         /// <param name="columnName">name of the column</param>
         public static SchemaShape.Column MakeR4ScalarColumn(string columnName)
-            => new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            => new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
@@ -369,7 +368,7 @@ namespace Microsoft.ML.Training
             if (columnName == null)
                 return default;
 
-            return new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+            return new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
         }
 
         /// <summary>
@@ -377,7 +376,7 @@ namespace Microsoft.ML.Training
         /// </summary>
         /// <param name="featureColumn">name of the feature column</param>
         public static SchemaShape.Column MakeR4VecFeature(string featureColumn)
-            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the weight column.
@@ -387,7 +386,7 @@ namespace Microsoft.ML.Training
         {
             if (weightColumn == null)
                 return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
         /// <summary>
@@ -398,7 +397,7 @@ namespace Microsoft.ML.Training
         {
             if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
         /// <summary>
@@ -491,7 +490,7 @@ namespace Microsoft.ML.Training
 
     /// <summary>
     /// This is the base class for a data cursor. Data cursors are specially typed
-    /// "convenience" cursor-like objects, less general than a <see cref="RowCursor"/> but
+    /// "convenience" cursor-like objects, less general than a <see cref="DataViewRowCursor"/> but
     /// more convenient for common access patterns that occur in machine learning. For
     /// example, the common idiom of iterating over features/labels/weights while skipping
     /// "bad" features, labels, and weights. There will be two typical access patterns for
@@ -503,9 +502,9 @@ namespace Microsoft.ML.Training
     [BestFriend]
     internal abstract class TrainingCursorBase : IDisposable
     {
-        public Row Row => _cursor;
+        public DataViewRow Row => _cursor;
 
-        private readonly RowCursor _cursor;
+        private readonly DataViewRowCursor _cursor;
         private readonly Action<CursOpt> _signal;
 
         public long SkippedRowCount { get; private set; }
@@ -516,7 +515,7 @@ namespace Microsoft.ML.Training
         /// </summary>
         /// <param name="input"></param>
         /// <param name="signal">This method is called </param>
-        protected TrainingCursorBase(RowCursor input, Action<CursOpt> signal)
+        protected TrainingCursorBase(DataViewRowCursor input, Action<CursOpt> signal)
         {
             Contracts.AssertValue(input);
             Contracts.AssertValueOrNull(signal);
@@ -524,7 +523,7 @@ namespace Microsoft.ML.Training
             _signal = signal;
         }
 
-        protected static RowCursor CreateCursor(RoleMappedData data, CursOpt opt, Random rand, params int[] extraCols)
+        protected static DataViewRowCursor CreateCursor(RoleMappedData data, CursOpt opt, Random rand, params int[] extraCols)
         {
             Contracts.AssertValue(data);
             Contracts.AssertValueOrNull(rand);
@@ -627,7 +626,7 @@ namespace Microsoft.ML.Training
             }
 
             /// <summary>
-            /// The typed analog to <see cref="IDataView.GetRowCursor(IEnumerable{Schema.Column},Random)"/>.
+            /// The typed analog to <see cref="IDataView.GetRowCursor(IEnumerable{DataViewSchema.Column},Random)"/>.
             /// </summary>
             /// <param name="rand">Non-null if we are requesting a shuffled cursor.</param>
             /// <param name="extraCols">The extra columns to activate on the row cursor
@@ -690,7 +689,7 @@ namespace Microsoft.ML.Training
             /// <see cref="TrainingCursorBase.CursoringCompleteFlags"/>, whose return value is used to call
             /// this action.</param>
             /// <returns></returns>
-            protected abstract TCurs CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal);
+            protected abstract TCurs CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal);
 
             /// <summary>
             /// Accumulates signals from cursors, anding them together. Once it has
@@ -735,7 +734,7 @@ namespace Microsoft.ML.Training
     {
         private readonly ValueGetter<float> _getWeight;
         private readonly ValueGetter<ulong> _getGroup;
-        private readonly ValueGetter<RowId> _getId;
+        private readonly ValueGetter<DataViewRowId> _getId;
         private readonly bool _keepBadWeight;
         private readonly bool _keepBadGroup;
 
@@ -744,14 +743,14 @@ namespace Microsoft.ML.Training
 
         public float Weight;
         public ulong Group;
-        public RowId Id;
+        public DataViewRowId Id;
 
         public StandardScalarCursor(RoleMappedData data, CursOpt opt, Random rand = null, params int[] extraCols)
             : this(CreateCursor(data, opt, rand, extraCols), data, opt)
         {
         }
 
-        protected StandardScalarCursor(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected StandardScalarCursor(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, signal)
         {
             Contracts.AssertValue(data);
@@ -816,7 +815,7 @@ namespace Microsoft.ML.Training
             {
             }
 
-            protected override StandardScalarCursor CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override StandardScalarCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
                 => new StandardScalarCursor(input, data, opt, signal);
         }
     }
@@ -841,7 +840,7 @@ namespace Microsoft.ML.Training
         {
         }
 
-        protected FeatureFloatVectorCursor(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected FeatureFloatVectorCursor(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             if ((opt & CursOpt.Features) != 0 && data.Schema.Feature != null)
@@ -882,7 +881,7 @@ namespace Microsoft.ML.Training
             {
             }
 
-            protected override FeatureFloatVectorCursor CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override FeatureFloatVectorCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
                 return new FeatureFloatVectorCursor(input, data, opt, signal);
             }
@@ -908,7 +907,7 @@ namespace Microsoft.ML.Training
         {
         }
 
-        protected FloatLabelCursor(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected FloatLabelCursor(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             if ((opt & CursOpt.Label) != 0 && data.Schema.Label != null)
@@ -948,7 +947,7 @@ namespace Microsoft.ML.Training
             {
             }
 
-            protected override FloatLabelCursor CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override FloatLabelCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
                 return new FloatLabelCursor(input, data, opt, signal);
             }
@@ -977,7 +976,7 @@ namespace Microsoft.ML.Training
         {
         }
 
-        protected MultiClassLabelCursor(int classCount, RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected MultiClassLabelCursor(int classCount, DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             Contracts.Assert(classCount >= 0);
@@ -1026,7 +1025,7 @@ namespace Microsoft.ML.Training
                 _classCount = classCount;
             }
 
-            protected override MultiClassLabelCursor CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override MultiClassLabelCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
                 return new MultiClassLabelCursor(_classCount, input, data, opt, signal);
             }

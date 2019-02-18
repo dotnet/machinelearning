@@ -11,7 +11,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -198,7 +197,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!NgramExtractingEstimator.IsColumnTypeValid(type))
@@ -229,8 +228,8 @@ namespace Microsoft.ML.Transforms.Text
             // i in _counts counts how many (i+1)-grams are in the pool for column iinfo.
             var counts = new int[columns.Length][];
             var ngramMaps = new SequencePool[columns.Length];
-            var activeCols = new List<Schema.Column>();
-            var srcTypes = new ColumnType[columns.Length];
+            var activeCols = new List<DataViewSchema.Column>();
+            var srcTypes = new DataViewType[columns.Length];
             var srcCols = new int[columns.Length];
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
@@ -247,7 +246,7 @@ namespace Microsoft.ML.Transforms.Text
                     var ngramLength = columns[iinfo].NgramLength;
                     var skipLength = columns[iinfo].SkipLength;
 
-                    getters[iinfo] = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, cursor, srcCols[iinfo]);
+                    getters[iinfo] = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, cursor, srcCols[iinfo]);
                     src[iinfo] = default;
                     counts[iinfo] = new int[ngramLength];
                     ngramMaps[iinfo] = new SequencePool();
@@ -374,7 +373,7 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private NgramExtractingTransformer(IHost host, ModelLoadContext ctx) :
@@ -471,39 +470,39 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ColumnType[] _srcTypes;
+            private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly NgramExtractingTransformer _parent;
 
-            public Mapper(NgramExtractingTransformer parent, Schema inputSchema)
+            public Mapper(NgramExtractingTransformer parent, DataViewSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
+                _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    _types[i] = new VectorType(NumberType.Float, _parent._ngramMaps[i].Count);
+                    _types[i] = new VectorType(NumberDataViewType.Single, _parent._ngramMaps[i].Count);
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     _srcTypes[i] = inputSchema[_srcCols[i]].Type;
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
 
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
@@ -517,7 +516,7 @@ namespace Microsoft.ML.Transforms.Text
                         GetSlotNames(iinfo, _parent._ngramMaps[iinfo].Count, ref dst);
                     };
 
-                    var slotNamesType = new VectorType(TextType.Instance, _parent._ngramMaps[iinfo].Count);
+                    var slotNamesType = new VectorType(TextDataViewType.Instance, _parent._ngramMaps[iinfo].Count);
                     builder.AddSlotNames(_parent._ngramMaps[iinfo].Count, getter);
                 }
             }
@@ -596,13 +595,13 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, _srcCols[iinfo]);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberDataViewType.UInt32, input, _srcCols[iinfo]);
                 var src = default(VBuffer<uint>);
                 var bldr = new NgramBufferBuilder(_parent._transformInfos[iinfo].NgramLength, _parent._transformInfos[iinfo].SkipLength,
                     _parent._ngramMaps[iinfo].Count, GetNgramIdFinder(iinfo));
@@ -767,7 +766,7 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         public NgramExtractingTransformer Fit(IDataView input) => new NgramExtractingTransformer(_host, input, _columns);
 
-        internal static bool IsColumnTypeValid(ColumnType type)
+        internal static bool IsColumnTypeValid(DataViewType type)
         {
             if (!(type is VectorType vectorType))
                 return false;
@@ -884,8 +883,8 @@ namespace Microsoft.ML.Transforms.Text
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, ExpectedColumnType, col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.HasKeyValues())
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(metadata));
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

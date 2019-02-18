@@ -132,30 +132,30 @@ namespace Microsoft.ML.Transforms
         }
 
         /// Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("Categorical");
-            h.CheckValue(args, nameof(args));
+            h.CheckValue(options, nameof(options));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
+            h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
 
             var replaceCols = new List<MissingValueReplacingEstimator.ColumnInfo>();
             var naIndicatorCols = new List<MissingValueIndicatorTransformer.Column>();
             var naConvCols = new List<TypeConvertingEstimator.ColumnInfo>();
             var concatCols = new List<ColumnConcatenatingTransformer.TaggedColumn>();
             var dropCols = new List<string>();
-            var tmpIsMissingColNames = input.Schema.GetTempColumnNames(args.Columns.Length, "IsMissing");
-            var tmpReplaceColNames = input.Schema.GetTempColumnNames(args.Columns.Length, "Replace");
-            for (int i = 0; i < args.Columns.Length; i++)
+            var tmpIsMissingColNames = input.Schema.GetTempColumnNames(options.Columns.Length, "IsMissing");
+            var tmpReplaceColNames = input.Schema.GetTempColumnNames(options.Columns.Length, "Replace");
+            for (int i = 0; i < options.Columns.Length; i++)
             {
-                var column = args.Columns[i];
+                var column = options.Columns[i];
 
-                var addInd = column.ConcatIndicator ?? args.Concat;
+                var addInd = column.ConcatIndicator ?? options.Concat;
                 if (!addInd)
                 {
                     replaceCols.Add(new MissingValueReplacingEstimator.ColumnInfo(column.Name, column.Source,
-                        (MissingValueReplacingEstimator.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
+                        (MissingValueReplacingEstimator.ColumnInfo.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
                     continue;
                 }
 
@@ -165,10 +165,10 @@ namespace Microsoft.ML.Transforms
                     throw h.Except("Column '{0}' does not exist", column.Source);
                 var replaceType = input.Schema[inputCol].Type;
                 var replaceItemType = replaceType.GetItemType();
-                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceItemType, out Delegate conv, out bool identity))
+                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BooleanDataViewType.Instance, replaceItemType, out Delegate conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
-                        BoolType.Instance, replaceItemType);
+                        BooleanDataViewType.Instance, replaceItemType);
                 }
 
                 // Find a temporary name for the NAReplaceTransform and NAIndicatorTransform output columns.
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Transforms
 
                 // Add the NAReplaceTransform column.
                 replaceCols.Add(new MissingValueReplacingEstimator.ColumnInfo(tmpReplacementColName, column.Source,
-                    (MissingValueReplacingEstimator.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
+                    (MissingValueReplacingEstimator.ColumnInfo.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
 
                 // Add the ConcatTransform column.
                 if (replaceType is VectorType)

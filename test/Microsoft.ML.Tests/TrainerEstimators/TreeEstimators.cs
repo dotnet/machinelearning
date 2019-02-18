@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Train(transformedDataView, transformedDataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new FastTreeRegressionTrainer.Options { NumTrees = 10, NumThreads = 1, NumLeaves = 5 });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 });
 
             TestEstimatorCore(trainer, dataView);
-            var model = trainer.Train(dataView, dataView);
+            var model = trainer.Fit(dataView, dataView);
             Done();
         }
 
@@ -388,6 +388,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 for (int j = 0; j < _classNumber; ++j)
                 {
                     Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    if (float.IsNaN((float)nativeResult1[j + i * _classNumber]))
+                        continue;
                     sum += MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
                 }
                 for (int j = 0; j < _classNumber; ++j)

@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataLoadSave;
 using Microsoft.ML.Data.IO;
@@ -20,7 +19,7 @@ namespace Microsoft.ML.Data
     // It needs to become internal.
     public sealed class TransformWrapper : ITransformer
     {
-        public const string LoaderSignature = "TransformWrapper";
+        internal const string LoaderSignature = "TransformWrapper";
         private const string TransformDirTemplate = "Step_{0:000}";
 
         private readonly IHost _host;
@@ -37,7 +36,7 @@ namespace Microsoft.ML.Data
             IsRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -126,7 +125,7 @@ namespace Microsoft.ML.Data
 
         public bool IsRowToRowMapper { get; }
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var input = new EmptyDataView(_host, inputSchema);

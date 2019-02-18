@@ -4,7 +4,7 @@ using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class FeatureContributionCalculationTransform
+    public static class FeatureContributionCalculationTransform
     {
         public static void Example()
         {
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling", "PercentPre40s",
                 "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio");
             var learner = mlContext.Regression.Trainers.OrdinaryLeastSquares(
-                        labelColumn: "MedianHomeValue", featureColumn: "Features");
+                        labelColumnName: "MedianHomeValue", featureColumnName: "Features");
 
             var transformedData = transformPipeline.Fit(data).Transform(data);
 
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // FeatureContributionCalculatingEstimator can be use as an intermediary step in a pipeline. 
             // The features retained by FeatureContributionCalculatingEstimator will be in the FeatureContribution column.
             var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, numPositiveContributions: 11)
-                .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(featureColumn: "FeatureContributions"));
+                .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(featureColumnName: "FeatureContributions"));
             var outData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
             // Let's extract the weights from the linear model to use as a comparison

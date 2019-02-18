@@ -13,7 +13,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
@@ -47,13 +46,13 @@ namespace Microsoft.ML.Trainers.FastTree
         public static readonly object TrainLock = new object();
     }
 
-    public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
+    public abstract class FastTreeTrainerBase<TOptions, TTransformer, TModel> :
         TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TArgs : TreeArgs, new()
+        where TOptions : TreeOptions, new()
         where TModel : class
     {
-        protected readonly TArgs Args;
+        protected readonly TOptions FastTreeTrainerOptions;
         protected readonly bool AllowGC;
         protected int FeatureCount;
         private protected InternalTreeEnsemble TrainedEnsemble;
@@ -96,7 +95,7 @@ namespace Microsoft.ML.Trainers.FastTree
         // random for active features selection
         private Random _featureSelectionRandom;
 
-        protected string InnerArgs => CmdParser.GetSettings(Host, Args, new TArgs());
+        protected string InnerArgs => CmdParser.GetSettings(Host, FastTreeTrainerOptions, new TOptions());
 
         public override TrainerInfo Info { get; }
 
@@ -117,22 +116,22 @@ namespace Microsoft.ML.Trainers.FastTree
             int minDatapointsInLeaves)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
-            Args = new TArgs();
+            FastTreeTrainerOptions = new TOptions();
 
             // set up the directly provided values
             // override with the directly provided values.
-            Args.NumLeaves = numLeaves;
-            Args.NumTrees = numTrees;
-            Args.MinDocumentsInLeafs = minDatapointsInLeaves;
+            FastTreeTrainerOptions.NumLeaves = numLeaves;
+            FastTreeTrainerOptions.NumTrees = numTrees;
+            FastTreeTrainerOptions.MinDocumentsInLeafs = minDatapointsInLeaves;
 
-            Args.LabelColumn = label.Name;
-            Args.FeatureColumn = featureColumn;
+            FastTreeTrainerOptions.LabelColumn = label.Name;
+            FastTreeTrainerOptions.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
+                FastTreeTrainerOptions.WeightColumn = Optional<string>.Explicit(weightColumn);
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
+                FastTreeTrainerOptions.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
@@ -150,11 +149,11 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
-        private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+        private protected FastTreeTrainerBase(IHostEnvironment env, TOptions options, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {
-            Host.CheckValue(args, nameof(args));
-            Args = args;
+            Host.CheckValue(options, nameof(options));
+            FastTreeTrainerOptions = options;
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
@@ -187,7 +186,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void Initialize(IHostEnvironment env)
         {
-            int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
+            int numThreads = FastTreeTrainerOptions.NumThreads ?? Environment.ProcessorCount;
             if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
             {
                 using (var ch = Host.Start("FastTreeTrainerBase"))
@@ -197,7 +196,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         + "setting of the environment. Using {0} training threads instead.", numThreads);
                 }
             }
-            ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
+            ParallelTraining = FastTreeTrainerOptions.ParallelTrainer != null ? FastTreeTrainerOptions.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
             ParallelTraining.InitEnvironment();
 
             Tests = new List<Test>();
@@ -208,15 +207,15 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected void ConvertData(RoleMappedData trainData)
         {
             MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Value.Index, out CategoricalFeatures);
-            var useTranspose = UseTranspose(Args.DiskTranspose, trainData) && (ValidData == null || UseTranspose(Args.DiskTranspose, ValidData));
-            var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocumentsInLeafs, GetMaxLabel());
+            var useTranspose = UseTranspose(FastTreeTrainerOptions.DiskTranspose, trainData) && (ValidData == null || UseTranspose(FastTreeTrainerOptions.DiskTranspose, ValidData));
+            var instanceConverter = new ExamplesToFastTreeBins(Host, FastTreeTrainerOptions.MaxBins, useTranspose, !FastTreeTrainerOptions.FeatureFlocks, FastTreeTrainerOptions.MinDocumentsInLeafs, GetMaxLabel());
 
-            TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, CategoricalFeatures, Args.CategoricalSplit);
+            TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, CategoricalFeatures, FastTreeTrainerOptions.CategoricalSplit);
             FeatureMap = instanceConverter.FeatureMap;
             if (ValidData != null)
-                ValidSet = instanceConverter.GetCompatibleDataset(ValidData, PredictionKind, CategoricalFeatures, Args.CategoricalSplit);
+                ValidSet = instanceConverter.GetCompatibleDataset(ValidData, PredictionKind, CategoricalFeatures, FastTreeTrainerOptions.CategoricalSplit);
             if (TestData != null)
-                TestSets = new[] { instanceConverter.GetCompatibleDataset(TestData, PredictionKind, CategoricalFeatures, Args.CategoricalSplit) };
+                TestSets = new[] { instanceConverter.GetCompatibleDataset(TestData, PredictionKind, CategoricalFeatures, FastTreeTrainerOptions.CategoricalSplit) };
         }
 
         private bool UseTranspose(bool? useTranspose, RoleMappedData data)
@@ -247,7 +246,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
                 using (Timer.Time(TimerEvent.TotalTrain))
                     Train(ch);
-                if (Args.ExecutionTimes)
+                if (FastTreeTrainerOptions.ExecutionTimes)
                     PrintExecutionTimes(ch);
                 TrainedEnsemble = Ensemble;
                 if (FeatureMap != null)
@@ -275,24 +274,24 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected virtual void CheckArgs(IChannel ch)
         {
-            Args.Check(ch);
+            FastTreeTrainerOptions.Check(ch);
 
-            IntArray.CompatibilityLevel = Args.FeatureCompressionLevel;
+            IntArray.CompatibilityLevel = FastTreeTrainerOptions.FeatureCompressionLevel;
 
             // change arguments
-            if (Args.HistogramPoolSize < 2)
-                Args.HistogramPoolSize = Args.NumLeaves * 2 / 3;
-            if (Args.HistogramPoolSize > Args.NumLeaves - 1)
-                Args.HistogramPoolSize = Args.NumLeaves - 1;
+            if (FastTreeTrainerOptions.HistogramPoolSize < 2)
+                FastTreeTrainerOptions.HistogramPoolSize = FastTreeTrainerOptions.NumLeaves * 2 / 3;
+            if (FastTreeTrainerOptions.HistogramPoolSize > FastTreeTrainerOptions.NumLeaves - 1)
+                FastTreeTrainerOptions.HistogramPoolSize = FastTreeTrainerOptions.NumLeaves - 1;
 
-            if (Args.BaggingSize > 0)
+            if (FastTreeTrainerOptions.BaggingSize > 0)
             {
-                int bagCount = Args.NumTrees / Args.BaggingSize;
-                if (bagCount * Args.BaggingSize != Args.NumTrees)
+                int bagCount = FastTreeTrainerOptions.NumTrees / FastTreeTrainerOptions.BaggingSize;
+                if (bagCount * FastTreeTrainerOptions.BaggingSize != FastTreeTrainerOptions.NumTrees)
                     throw ch.Except("Number of trees should be a multiple of number bag size");
             }
 
-            if (!(0 <= Args.GainConfidenceLevel && Args.GainConfidenceLevel < 1))
+            if (!(0 <= FastTreeTrainerOptions.GainConfidenceLevel && FastTreeTrainerOptions.GainConfidenceLevel < 1))
                 throw ch.Except("Gain confidence level must be in the range [0,1)");
 
 #if OLD_DATALOAD
@@ -343,7 +342,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // we call Tests computing no matter whether we require to print test graph
             ComputeTests();
 
-            if (!Args.PrintTestGraph)
+            if (!FastTreeTrainerOptions.PrintTestGraph)
                 return;
 
             if (Ensemble.NumTrees == 0)
@@ -431,15 +430,15 @@ namespace Microsoft.ML.Trainers.FastTree
         protected bool[] GetActiveFeatures()
         {
             var activeFeatures = Utils.CreateArray(TrainSet.NumFeatures, true);
-            if (Args.FeatureFraction < 1.0)
+            if (FastTreeTrainerOptions.FeatureFraction < 1.0)
             {
                 if (_featureSelectionRandom == null)
-                    _featureSelectionRandom = new Random(Args.FeatureSelectSeed);
+                    _featureSelectionRandom = new Random(FastTreeTrainerOptions.FeatureSelectSeed);
 
                 for (int i = 0; i < TrainSet.NumFeatures; ++i)
                 {
                     if (activeFeatures[i])
-                        activeFeatures[i] = _featureSelectionRandom.NextDouble() <= Args.FeatureFraction;
+                        activeFeatures[i] = _featureSelectionRandom.NextDouble() <= FastTreeTrainerOptions.FeatureFraction;
                 }
             }
 
@@ -603,8 +602,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected virtual BaggingProvider CreateBaggingProvider()
         {
-            Contracts.Assert(Args.BaggingSize > 0);
-            return new BaggingProvider(TrainSet, Args.NumLeaves, Args.RngSeed, Args.BaggingTrainFraction);
+            Contracts.Assert(FastTreeTrainerOptions.BaggingSize > 0);
+            return new BaggingProvider(TrainSet, FastTreeTrainerOptions.NumLeaves, FastTreeTrainerOptions.RngSeed, FastTreeTrainerOptions.BaggingTrainFraction);
         }
 
         protected virtual bool ShouldRandomStartOptimizer()
@@ -615,7 +614,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected virtual void Train(IChannel ch)
         {
             Contracts.AssertValue(ch);
-            int numTotalTrees = Args.NumTrees;
+            int numTotalTrees = FastTreeTrainerOptions.NumTrees;
 
             ch.Info(
                 "Reserved memory for tree learner: {0} bytes",
@@ -635,13 +634,13 @@ namespace Microsoft.ML.Trainers.FastTree
             if (Ensemble.NumTrees < numTotalTrees && ShouldRandomStartOptimizer())
             {
                 ch.Info("Randomizing start point");
-                OptimizationAlgorithm.TrainingScores.RandomizeScores(Args.RngSeed, false);
+                OptimizationAlgorithm.TrainingScores.RandomizeScores(FastTreeTrainerOptions.RngSeed, false);
                 revertRandomStart = true;
             }
 
             ch.Info("Starting to train ...");
 
-            BaggingProvider baggingProvider = Args.BaggingSize > 0 ? CreateBaggingProvider() : null;
+            BaggingProvider baggingProvider = FastTreeTrainerOptions.BaggingSize > 0 ? CreateBaggingProvider() : null;
 
 #if OLD_DATALOAD
 #if !NO_STORE
@@ -677,7 +676,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         bool[] activeFeatures = _activeFeatureSetQueue.Dequeue();
 #endif
 
-                        if (Args.BaggingSize > 0 && Ensemble.NumTrees % Args.BaggingSize == 0)
+                        if (FastTreeTrainerOptions.BaggingSize > 0 && Ensemble.NumTrees % FastTreeTrainerOptions.BaggingSize == 0)
                         {
                             baggingProvider.GenerateNewBag();
                             OptimizationAlgorithm.TreeLearner.Partitioning =
@@ -700,7 +699,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             emptyTrees++;
                             numTotalTrees--;
                         }
-                        else if (Args.BaggingSize > 0 && Ensemble.Trees.Count() > 0)
+                        else if (FastTreeTrainerOptions.BaggingSize > 0 && Ensemble.Trees.Count() > 0)
                         {
                             ch.Assert(Ensemble.Trees.Last() == tree);
                             Ensemble.Trees.Last()
@@ -722,7 +721,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         {
                             revertRandomStart = false;
                             ch.Info("Reverting random score assignment");
-                            OptimizationAlgorithm.TrainingScores.RandomizeScores(Args.RngSeed, true);
+                            OptimizationAlgorithm.TrainingScores.RandomizeScores(FastTreeTrainerOptions.RngSeed, true);
                         }
 
 #if !NO_STORE
@@ -807,7 +806,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected virtual void PrintTestResults(IChannel ch)
         {
-            if (Args.TestFrequency != int.MaxValue && (Ensemble.NumTrees % Args.TestFrequency == 0 || Ensemble.NumTrees == Args.NumTrees))
+            if (FastTreeTrainerOptions.TestFrequency != int.MaxValue && (Ensemble.NumTrees % FastTreeTrainerOptions.TestFrequency == 0 || Ensemble.NumTrees == FastTreeTrainerOptions.NumTrees))
             {
                 var sb = new StringBuilder();
                 using (var sw = new StringWriter(sb))
@@ -827,9 +826,9 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Contracts.AssertValue(ch);
             ch.Trace("Host = {0}", Environment.MachineName);
-            ch.Trace("CommandLine = {0}", CmdParser.GetSettings(Host, Args, new TArgs()));
+            ch.Trace("CommandLine = {0}", CmdParser.GetSettings(Host, FastTreeTrainerOptions, new TOptions()));
             ch.Trace("GCSettings.IsServerGC = {0}", System.Runtime.GCSettings.IsServerGC);
-            ch.Trace("{0}", Args);
+            ch.Trace("{0}", FastTreeTrainerOptions);
         }
 
         protected ScoreTracker ConstructScoreTracker(Dataset set)
@@ -857,7 +856,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private double[] ComputeScoresSmart(IChannel ch, Dataset set)
         {
-            if (!Args.CompressEnsemble)
+            if (!FastTreeTrainerOptions.CompressEnsemble)
             {
                 foreach (var st in OptimizationAlgorithm.TrackedScores)
                     if (st.Dataset == set)
@@ -1315,7 +1314,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return _dataset;
             }
 
-            private static int AddColumnIfNeeded(Schema.Column? info, List<int> toTranspose)
+            private static int AddColumnIfNeeded(DataViewSchema.Column? info, List<int> toTranspose)
             {
                 if (!info.HasValue)
                     return -1;
@@ -1326,7 +1325,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return idx;
             }
 
-            private ValueMapper<VBuffer<T1>, VBuffer<T2>> GetCopier<T1, T2>(ColumnType itemType1, ColumnType itemType2)
+            private ValueMapper<VBuffer<T1>, VBuffer<T2>> GetCopier<T1, T2>(DataViewType itemType1, DataViewType itemType2)
             {
                 var conv = Conversions.Instance.GetStandardConversion<T1, T2>(itemType1, itemType2, out bool identity);
                 if (identity)
@@ -1430,7 +1429,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                                     // Perhaps we should change the binning to just work over singles.
                                     VBuffer<double> doubleTemp = default(VBuffer<double>);
-                                    var copier = GetCopier<Float, Double>(NumberType.Float, NumberType.R8);
+                                    var copier = GetCopier<Float, Double>(NumberDataViewType.Single, NumberDataViewType.Double);
                                     int iFeature = 0;
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
                                     while (cursor.MoveNext())
@@ -1499,7 +1498,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                 VBuffer<double> doubleTemp = default(VBuffer<double>);
 
                                 int[] binnedValues = new int[numExamples];
-                                var copier = GetCopier<Float, Double>(NumberType.Float, NumberType.R8);
+                                var copier = GetCopier<Float, Double>(NumberDataViewType.Single, NumberDataViewType.Double);
                                 int iFeature = 0;
                                 if (CategoricalSplit && CategoricalFeatureIndices != null)
                                 {
@@ -2832,11 +2831,11 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract uint VerCategoricalSplitSerialized { get; }
 
-        protected internal readonly ColumnType InputType;
-        ColumnType IValueMapper.InputType => InputType;
+        protected internal readonly DataViewType InputType;
+        DataViewType IValueMapper.InputType => InputType;
 
-        protected readonly ColumnType OutputType;
-        ColumnType IValueMapper.OutputType => OutputType;
+        protected readonly DataViewType OutputType;
+        DataViewType IValueMapper.OutputType => OutputType;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -2874,8 +2873,8 @@ namespace Microsoft.ML.Trainers.FastTree
             MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
-            InputType = new VectorType(NumberType.Float, NumFeatures);
-            OutputType = NumberType.Float;
+            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            OutputType = NumberDataViewType.Single;
         }
 
         protected TreeEnsembleModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
@@ -2912,8 +2911,8 @@ namespace Microsoft.ML.Trainers.FastTree
             // TLC >= 3.0 supposed to be independent of any predictor specific
             // tricks.
 
-            InputType = new VectorType(NumberType.Float, NumFeatures);
-            OutputType = NumberType.Float;
+            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            OutputType = NumberDataViewType.Single;
         }
 
         [BestFriend]
@@ -3282,7 +3281,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(in features, ref path);
         }
 
-        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
+        DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
@@ -3292,12 +3291,12 @@ namespace Microsoft.ML.Trainers.FastTree
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
             var builder = new MetadataBuilder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberType.R4, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
 
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
+        DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }

@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers
         public readonly float ZScore;
         public readonly float PValue;
 
-        public CoefficientStatistics(string name, float estimate, float stdError, float zScore, float pValue)
+        internal CoefficientStatistics(string name, float estimate, float stdError, float zScore, float pValue)
         {
             Contracts.AssertNonEmpty(name);
             Name = name;
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public sealed class LinearModelStatistics : ICanSaveModel
     {
-        public const string LoaderSignature = "LinearModelStats";
+        internal const string LoaderSignature = "LinearModelStats";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Trainers
                 };
         }
 
-        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryModelParameters parent, Schema.Column featureColumn)
+        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryModelParameters parent, DataViewSchema.Column featureColumn)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, Schema.Column featureColumn, int paramCountCap)
+        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, DataViewSchema.Column featureColumn, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Trainers
             return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
         }
 
-        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, Schema.Column featureColumn, int paramCountCap)
+        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, DataViewSchema.Column featureColumn, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(writer, nameof(writer));
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Trainers
         /// Support method for linear models and <see cref="ICanGetSummaryInKeyValuePairs"/>.
         /// </summary>
         internal void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
-            Schema.Column featureColumn, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
+            DataViewSchema.Column featureColumn, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
         {
             Contracts.AssertValue(_env);
             _env.AssertValue(resultCollection);
@@ -413,17 +413,17 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        internal Schema.Metadata MakeStatisticsMetadata(LinearBinaryModelParameters parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
+        internal DataViewSchema.Metadata MakeStatisticsMetadata(LinearBinaryModelParameters parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
         {
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);
 
             var builder = new MetadataBuilder();
 
-            builder.AddPrimitiveValue("Count of training examples", NumberType.I8, _trainingExampleCount);
-            builder.AddPrimitiveValue("Residual Deviance", NumberType.R4, _deviance);
-            builder.AddPrimitiveValue("Null Deviance", NumberType.R4, _nullDeviance);
-            builder.AddPrimitiveValue("AIC", NumberType.R4, 2 * _paramCount + _deviance);
+            builder.AddPrimitiveValue("Count of training examples", NumberDataViewType.Int64, _trainingExampleCount);
+            builder.AddPrimitiveValue("Residual Deviance", NumberDataViewType.Single, _deviance);
+            builder.AddPrimitiveValue("Null Deviance", NumberDataViewType.Single, _nullDeviance);
+            builder.AddPrimitiveValue("AIC", NumberDataViewType.Single, 2 * _paramCount + _deviance);
 
             if (parent == null)
                 return builder.GetMetadata();
@@ -432,10 +432,10 @@ namespace Microsoft.ML.Trainers
                 return builder.GetMetadata();
 
             var biasEstimate = parent.Bias;
-            builder.AddPrimitiveValue("BiasEstimate", NumberType.R4, biasEstimate);
-            builder.AddPrimitiveValue("BiasStandardError", NumberType.R4, biasStdErr);
-            builder.AddPrimitiveValue("BiasZScore", NumberType.R4, biasZScore);
-            builder.AddPrimitiveValue("BiasPValue", NumberType.R4, biasPValue);
+            builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.Single, biasEstimate);
+            builder.AddPrimitiveValue("BiasStandardError", NumberDataViewType.Single, biasStdErr);
+            builder.AddPrimitiveValue("BiasZScore", NumberDataViewType.Single, biasZScore);
+            builder.AddPrimitiveValue("BiasPValue", NumberDataViewType.Single, biasPValue);
 
             var weights = default(VBuffer<float>);
             parent.GetFeatureWeights(ref weights);
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Trainers
             var subMetaBuilder = new MetadataBuilder();
             subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
             var subMeta = subMetaBuilder.GetMetadata();
-            var colType = new VectorType(NumberType.R4, stdErr.Length);
+            var colType = new VectorType(NumberDataViewType.Single, stdErr.Length);
 
             builder.Add("Estimate", colType, (ref VBuffer<float> dst) => estimate.CopyTo(ref dst), subMeta);
             builder.Add("StandardError", colType, (ref VBuffer<float> dst) => stdErr.CopyTo(ref dst), subMeta);

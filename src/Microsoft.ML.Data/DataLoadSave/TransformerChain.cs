@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -119,7 +118,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -217,13 +216,13 @@ namespace Microsoft.ML.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.Check(IsRowToRowMapper, nameof(GetRowToRowMapper) + " method called despite " + nameof(IsRowToRowMapper) + " being false.");
 
             IRowToRowMapper[] mappers = new IRowToRowMapper[_transformers.Length];
-            Schema schema = inputSchema;
+            DataViewSchema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)
             {
                 mappers[i] = _transformers[i].GetRowToRowMapper(schema);
@@ -258,8 +257,10 @@ namespace Microsoft.ML.Data
                     ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
                     return transformerChain;
                 }
-                catch
+                catch (FormatException ex)
                 {
+                    if (!ex.IsMarked())
+                        throw;
                     var chain = ModelFileUtils.LoadPipeline(env, stream, new MultiFileSource(null), extractInnerPipe: false);
                     TransformerChain<ITransformer> transformChain = (chain as CompositeDataLoader).GetTransformer();
                     var predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);

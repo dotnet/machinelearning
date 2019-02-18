@@ -121,7 +121,7 @@ namespace Microsoft.ML.EntryPoints
             if (!col.HasValue)
                 return null;
             var type = col.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
-            if (type == null || !type.IsKnownSize || !(type.ItemType is TextType))
+            if (type == null || !type.IsKnownSize || !(type.ItemType is TextDataViewType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
             col.Value.GetKeyValues(ref metadata);
@@ -149,7 +149,7 @@ namespace Microsoft.ML.EntryPoints
             return viewTrain;
         }
 
-        private static List<KeyToVectorMappingEstimator.ColumnInfo> ConvertFeatures(IEnumerable<Schema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+        private static List<KeyToVectorMappingEstimator.ColumnInfo> ConvertFeatures(IEnumerable<DataViewSchema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
             out List<TypeConvertingEstimator.ColumnInfo> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
@@ -178,7 +178,7 @@ namespace Microsoft.ML.EntryPoints
                             continue;
                         }
                     }
-                    if (type is NumberType || type is BoolType)
+                    if (type is NumberDataViewType || type is BooleanDataViewType)
                     {
                         // Even if the column is R4 in training, we still want to add it to the conversion.
                         // The reason is that at scoring time, the column might have a slightly different type (R8 for example).
@@ -237,7 +237,7 @@ namespace Microsoft.ML.EntryPoints
                 throw host.ExceptSchemaMismatch(nameof(input), "predicted label", input.LabelColumn);
 
             var labelType = labelCol.Value.Type;
-            if (labelType is KeyType || labelType is BoolType)
+            if (labelType is KeyType || labelType is BooleanDataViewType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
@@ -272,7 +272,7 @@ namespace Microsoft.ML.EntryPoints
             if (!predictedLabelCol.HasValue)
                 throw host.ExceptSchemaMismatch(nameof(input), "label", input.PredictedLabelColumn);
             var predictedLabelType = predictedLabelCol.Value.Type;
-            if (predictedLabelType is NumberType || predictedLabelType is BoolType)
+            if (predictedLabelType is NumberDataViewType || predictedLabelType is BooleanDataViewType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
@@ -294,7 +294,7 @@ namespace Microsoft.ML.EntryPoints
             if (!labelCol.HasValue)
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
             var labelType = labelCol.Value.Type;
-            if (labelType == NumberType.R4 || !(labelType is NumberType))
+            if (labelType == NumberDataViewType.Single || !(labelType is NumberDataViewType))
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };

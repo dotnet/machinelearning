@@ -22,7 +22,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
+[assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     Ova.UserNameValue,
     Ova.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
@@ -47,13 +47,16 @@ namespace Microsoft.ML.Trainers
             + "which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers, "
             + "and choosing the prediction with the highest confidence score.";
 
-        private readonly Arguments _args;
+        private readonly Options _options;
 
         /// <summary>
-        /// Arguments passed to OVA.
+        /// Options passed to OVA.
         /// </summary>
-        public sealed class Arguments : ArgumentsBase
+        internal sealed class Options : ArgumentsBase
         {
+            /// <summary>
+            /// Whether to use probabilities (vs. raw outputs) to identify top-score category.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use probability or margins to determine max", ShortName = "useprob")]
             [TGUI(Label = "Use Probability", Description = "Use probabilities (vs. raw outputs) to identify top-score category")]
             public bool UseProbabilities = true;
@@ -61,16 +64,16 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Legacy constructor that builds the <see cref="Ova"/> trainer supplying the base trainer to use, for the classification task
-        /// through the <see cref="Arguments"/>arguments.
+        /// through the <see cref="Options"/>.
         /// Developers should instantiate OVA by supplying the trainer argument directly to the OVA constructor
         /// using the other public constructor.
         /// </summary>
         /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
-        /// <param name="args">The legacy <see cref="Arguments"/></param>
-        internal Ova(IHostEnvironment env, Arguments args)
-            : base(env, args, LoadNameValue)
+        /// <param name="options">The legacy <see cref="Options"/></param>
+        internal Ova(IHostEnvironment env, Options options)
+            : base(env, options, LoadNameValue)
         {
-            _args = args;
+            _options = options;
         }
 
         /// <summary>
@@ -91,7 +94,7 @@ namespace Microsoft.ML.Trainers
             int maxCalibrationExamples = 1000000000,
             bool useProbabilities = true)
          : base(env,
-               new Arguments
+               new Options
                {
                    ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
                    MaxCalibrationExamples = maxCalibrationExamples,
@@ -99,8 +102,8 @@ namespace Microsoft.ML.Trainers
                LoadNameValue, labelColumn, binaryEstimator, calibrator)
         {
             Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
-            _args = (Arguments)Args;
-            _args.UseProbabilities = useProbabilities;
+            _options = (Options)Args;
+            _options.UseProbabilities = useProbabilities;
         }
 
         private protected override OvaModelParameters TrainCore(IChannel ch, RoleMappedData data, int count)
@@ -112,7 +115,7 @@ namespace Microsoft.ML.Trainers
                 ch.Info($"Training learner {i}");
                 predictors[i] = TrainOne(ch, Trainer, data, i).Model;
             }
-            return OvaModelParameters.Create(Host, _args.UseProbabilities, predictors);
+            return OvaModelParameters.Create(Host, _options.UseProbabilities, predictors);
         }
 
         private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
@@ -125,7 +128,7 @@ namespace Microsoft.ML.Trainers
             // this is currently unsupported.
             var transformer = trainer.Fit(view);
 
-            if (_args.UseProbabilities)
+            if (_options.UseProbabilities)
             {
                 var calibratedModel = transformer.Model as TDistPredictor;
 
@@ -147,28 +150,29 @@ namespace Microsoft.ML.Trainers
         {
             var lab = data.Schema.Label.Value;
             Host.Assert(!lab.IsHidden);
-            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
+            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberDataViewType.Single || lab.Type == NumberDataViewType.Double);
 
             if (lab.Type.GetKeyCount() > 0)
             {
                 // Key values are 1-based.
                 uint key = (uint)(cls + 1);
-                return MapLabelsCore(NumberType.U4, (in uint val) => key == val, data);
+                return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => key == val, data);
             }
-            if (lab.Type == NumberType.R4)
+            if (lab.Type == NumberDataViewType.Single)
             {
                 float key = cls;
-                return MapLabelsCore(NumberType.R4, (in float val) => key == val, data);
+                return MapLabelsCore(NumberDataViewType.Single, (in float val) => key == val, data);
             }
-            if (lab.Type == NumberType.R8)
+            if (lab.Type == NumberDataViewType.Double)
             {
                 double key = cls;
-                return MapLabelsCore(NumberType.R8, (in double val) => key == val, data);
+                return MapLabelsCore(NumberDataViewType.Double, (in double val) => key == val, data);
             }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
         }
 
+        /// <summary> Trains and returns a <see cref="MulticlassPredictionTransformer{OvaModelParameters}"/>.</summary>
         public override MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView input)
         {
             var roles = new KeyValuePair<CR, string>[1];
@@ -196,7 +200,7 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new MulticlassPredictionTransformer<OvaModelParameters>(Host, OvaModelParameters.Create(Host, _args.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<OvaModelParameters>(Host, OvaModelParameters.Create(Host, _options.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
         }
     }
 
@@ -227,6 +231,7 @@ namespace Microsoft.ML.Trainers
 
         public ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         /// <summary>
@@ -240,8 +245,8 @@ namespace Microsoft.ML.Trainers
         /// </para>
         /// </summary>
         public enum OutputFormula { Raw = 0, ProbabilityNormalization = 1, Softmax = 2 };
-        private readonly ColumnType _outputType;
-        private ColumnType DistType => _outputType;
+        private readonly DataViewType _outputType;
+        private DataViewType DistType => _outputType;
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
         [BestFriend]
@@ -262,10 +267,10 @@ namespace Microsoft.ML.Trainers
                 IValueMapperDist ivmd = null;
                 if (outputFormula == OutputFormula.ProbabilityNormalization &&
                     ((ivmd = predictors[0] as IValueMapperDist) == null ||
-                        ivmd.OutputType != NumberType.Float ||
-                        ivmd.DistType != NumberType.Float))
+                        ivmd.OutputType != NumberDataViewType.Single ||
+                        ivmd.DistType != NumberDataViewType.Single))
                 {
-                    ch.Warning($"{nameof(Ova.Arguments.UseProbabilities)} specified with {nameof(Ova.Arguments.PredictorType)} that can't produce probabilities.");
+                    ch.Warning($"{nameof(Ova.Options.UseProbabilities)} specified with {nameof(Ova.Options.PredictorType)} that can't produce probabilities.");
                     ivmd = null;
                 }
 
@@ -310,7 +315,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(Utils.Size(impl.Predictors) > 0);
 
             _impl = impl;
-            _outputType = new VectorType(NumberType.Float, _impl.Predictors.Length);
+            _outputType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private OvaModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -336,7 +341,7 @@ namespace Microsoft.ML.Trainers
                 _impl = new ImplRaw(predictors);
             }
 
-            _outputType = new VectorType(NumberType.Float, _impl.Predictors.Length);
+            _outputType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private static OvaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -379,12 +384,12 @@ namespace Microsoft.ML.Trainers
             return _impl.SaveAsPfa(ctx, input);
         }
 
-        ColumnType IValueMapper.InputType
+        DataViewType IValueMapper.InputType
         {
             get { return _impl.InputType; }
         }
 
-        ColumnType IValueMapper.OutputType
+        DataViewType IValueMapper.OutputType
         {
             get { return _outputType; }
         }
@@ -438,7 +443,7 @@ namespace Microsoft.ML.Trainers
 
         private abstract class ImplBase : ISingleCanSavePfa
         {
-            public abstract ColumnType InputType { get; }
+            public abstract DataViewType InputType { get; }
             public abstract IValueMapper[] Predictors { get; }
             public abstract bool CanSavePfa { get; }
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
@@ -451,9 +456,9 @@ namespace Microsoft.ML.Trainers
 
                 if (mapper == null)
                     return false;
-                if (mapper.OutputType != NumberType.Float)
+                if (mapper.OutputType != NumberDataViewType.Single)
                     return false;
-                if (!(mapper.InputType is VectorType mapperVectorType)|| mapperVectorType.ItemType != NumberType.Float)
+                if (!(mapper.InputType is VectorType mapperVectorType)|| mapperVectorType.ItemType != NumberDataViewType.Single)
                     return false;
                 if (inputType == null)
                     inputType = mapperVectorType;
@@ -470,7 +475,7 @@ namespace Microsoft.ML.Trainers
 
         private sealed class ImplRaw : ImplBase
         {
-            public override ColumnType InputType { get; }
+            public override DataViewType InputType { get; }
             public override IValueMapper[] Predictors { get; }
             public override bool CanSavePfa { get; }
 
@@ -535,7 +540,7 @@ namespace Microsoft.ML.Trainers
         private sealed class ImplDist : ImplBase
         {
             private readonly IValueMapperDist[] _mappers;
-            public override ColumnType InputType { get; }
+            public override DataViewType InputType { get; }
             public override IValueMapper[] Predictors => _mappers;
             public override bool CanSavePfa { get; }
 
@@ -558,7 +563,7 @@ namespace Microsoft.ML.Trainers
 
             private bool IsValid(IValueMapperDist mapper, ref VectorType inputType)
             {
-                return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberType.Float;
+                return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberDataViewType.Single;
             }
 
             /// <summary>
@@ -606,6 +611,9 @@ namespace Microsoft.ML.Trainers
                 for (int i = 0; i < count; i++)
                 {
                     var value = output[i];
+                    if (float.IsNaN(value))
+                        continue;
+
                     if (value >= 0)
                         sum += value;
                     else
@@ -643,7 +651,7 @@ namespace Microsoft.ML.Trainers
 
         private sealed class ImplSoftmax : ImplBase
         {
-            public override ColumnType InputType { get; }
+            public override DataViewType InputType { get; }
             public override IValueMapper[] Predictors { get; }
             public override bool CanSavePfa { get; }
 

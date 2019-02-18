@@ -4306,11 +4306,12 @@
           }
         },
         {
-          "Name": "NumIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
-            "iter"
+            "iter",
+            "numIterations"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -4325,11 +4326,12 @@
           }
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "initWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -4467,18 +4469,6 @@
               true
             ]
           }
-        },
-        {
-          "Name": "StreamingCacheSize",
-          "Type": "Int",
-          "Desc": "Size of cache when trained in Scope",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
         }
       ],
       "Outputs": [
@@ -11607,6 +11597,15 @@
           }
         },
         {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -12100,6 +12099,15 @@
               10
             ]
           }
+        },
+        {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
         },
         {
           "Name": "ParallelTrainer",
@@ -12597,6 +12605,15 @@
           }
         },
         {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -13092,6 +13109,15 @@
           }
         },
         {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "Sets the random seed for LightGBM to use.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "ParallelTrainer",
           "Type": {
             "Kind": "Component",
@@ -13167,6 +13193,18 @@
           "SortOrder": 3.0,
           "IsNullable": false,
           "Default": "Label"
+        },
+        {
+          "Name": "WeightColumn",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": "Weight"
         },
         {
           "Name": "NormalizeFeatures",
@@ -13247,11 +13285,12 @@
           }
         },
         {
-          "Name": "NumIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
-            "iter"
+            "iter",
+            "numIterations"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -13266,11 +13305,12 @@
           }
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "initWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -13352,18 +13392,6 @@
               true
             ]
           }
-        },
-        {
-          "Name": "StreamingCacheSize",
-          "Type": "Int",
-          "Desc": "Size of cache when trained in Scope",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
         },
         {
           "Name": "BatchSize",
@@ -14272,11 +14300,12 @@
           }
         },
         {
-          "Name": "NumIterations",
+          "Name": "NumberOfIterations",
           "Type": "Int",
           "Desc": "Number of iterations",
           "Aliases": [
-            "iter"
+            "iter",
+            "numIterations"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -14291,11 +14320,12 @@
           }
         },
         {
-          "Name": "InitWtsDiameter",
+          "Name": "InitialWeightsDiameter",
           "Type": "Float",
           "Desc": "Init weights diameter",
           "Aliases": [
-            "initwts"
+            "initwts",
+            "initWtsDiameter"
           ],
           "Required": false,
           "SortOrder": 140.0,
@@ -14410,18 +14440,6 @@
               true
             ]
           }
-        },
-        {
-          "Name": "StreamingCacheSize",
-          "Type": "Int",
-          "Desc": "Size of cache when trained in Scope",
-          "Aliases": [
-            "cache"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
         }
       ],
       "Outputs": [
@@ -15210,18 +15228,6 @@
           "Default": null
         },
         {
-          "Name": "PositiveInstanceWeight",
-          "Type": "Float",
-          "Desc": "Apply weight to the positive class, for imbalanced data",
-          "Aliases": [
-            "piw"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1.0
-        },
-        {
           "Name": "Calibrator",
           "Type": {
             "Kind": "Component",
@@ -15243,6 +15249,18 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 1000000
+        },
+        {
+          "Name": "PositiveInstanceWeight",
+          "Type": "Float",
+          "Desc": "Apply weight to the positive class, for imbalanced data",
+          "Aliases": [
+            "piw"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
         },
         {
           "Name": "ConvergenceTolerance",
@@ -16042,6 +16060,29 @@
           "Default": null
         },
         {
+          "Name": "Calibrator",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "CalibratorTrainer"
+          },
+          "Desc": "The calibrator kind to apply to the predictor. Specify null for no calibration",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": {
+            "Name": "PlattCalibrator"
+          }
+        },
+        {
+          "Name": "MaxCalibrationExamples",
+          "Type": "Int",
+          "Desc": "The maximum number of examples to use when training the calibrator",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1000000
+        },
+        {
           "Name": "ConvergenceTolerance",
           "Type": "Float",
           "Desc": "Exponential moving averaged improvement tolerance for convergence",
@@ -16138,29 +16179,6 @@
           "SortOrder": 150.0,
           "IsNullable": true,
           "Default": null
-        },
-        {
-          "Name": "Calibrator",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "CalibratorTrainer"
-          },
-          "Desc": "The calibrator kind to apply to the predictor. Specify null for no calibration",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "PlattCalibrator"
-          }
-        },
-        {
-          "Name": "MaxCalibrationExamples",
-          "Type": "Int",
-          "Desc": "The maximum number of examples to use when training the calibrator",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
         }
       ],
       "Outputs": [

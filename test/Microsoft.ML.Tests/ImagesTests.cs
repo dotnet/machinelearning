@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests
             var env = new MLContext();
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
                         new TextLoader.Column("Name", DataKind.TX, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var invalidData = TextLoader.Create(env, new TextLoader.Arguments()
+            var invalidData = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests
             IHostEnvironment env = new MLContext();
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests
                 .Append(new ImagePixelExtractingEstimator(env, "ImagePixels", "ImageReal"))
                 .Append(new ImageGrayscalingEstimator(env, ("ImageGray", "ImageReal")));
 
-            pipe.GetOutputSchema(Core.Data.SchemaShape.Create(data.Schema));
+            pipe.GetOutputSchema(SchemaShape.Create(data.Schema));
             var model = pipe.Fit(data);
 
             var tempPath = Path.GetTempFileName();
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Tests
             var env = new MLContext();
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Tests
             var imageWidth = 100;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Tests
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Tests
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Tests
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Tests
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -457,7 +457,7 @@ namespace Microsoft.ML.Tests
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Tests
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -589,7 +589,7 @@ namespace Microsoft.ML.Tests
             var imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -655,7 +655,7 @@ namespace Microsoft.ML.Tests
             const int imageWidth = 130;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Tests
             var env = new MLContext();
             var dataFile = GetDataPath("images/fillmode.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {

@@ -13,7 +13,7 @@ namespace Microsoft.ML.Data
     /// Dispose is virtual with the default implementation delegating to the input cursor.
     /// </summary>
     [BestFriend]
-    internal abstract class SynchronizedCursorBase : RowCursor
+    internal abstract class SynchronizedCursorBase : DataViewRowCursor
     {
         protected readonly IChannel Ch;
 
@@ -24,10 +24,10 @@ namespace Microsoft.ML.Data
         /// implementors) to get this root cursor. But, this can only be done by exposing this root cursor, as we do here.
         /// Internal code should be quite careful in using this as the potential for misuse is quite high.
         /// </summary>
-        internal readonly RowCursor Root;
+        internal readonly DataViewRowCursor Root;
         private bool _disposed;
 
-        protected RowCursor Input { get; }
+        protected DataViewRowCursor Input { get; }
 
         public sealed override long Position => Root.Position;
 
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         protected bool IsGood => Position >= 0;
 
-        protected SynchronizedCursorBase(IChannelProvider provider, RowCursor input)
+        protected SynchronizedCursorBase(IChannelProvider provider, DataViewRowCursor input)
         {
             Contracts.AssertValue(provider);
             Ch = provider.Start("Cursor");
@@ -67,6 +67,6 @@ namespace Microsoft.ML.Data
 
         public sealed override bool MoveNext() => Root.MoveNext();
 
-        public sealed override ValueGetter<RowId> GetIdGetter() => Input.GetIdGetter();
+        public sealed override ValueGetter<DataViewRowId> GetIdGetter() => Input.GetIdGetter();
     }
 }

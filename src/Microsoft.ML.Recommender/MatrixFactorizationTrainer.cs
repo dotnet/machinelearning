@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -173,10 +172,10 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of training iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Training iterations; that is, the times that the training algorithm iterates through the whole training data once.", ShortName = "iter")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Training iterations; that is, the times that the training algorithm iterates through the whole training data once.", ShortName = "iter,numiterations")]
             [TGUI(SuggestedSweeps = "10,20,40")]
             [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 10, 20, 40 })]
-            public int NumIterations = Defaults.NumIterations;
+            public int NumberOfIterations = Defaults.NumIterations;
 
             ///<summary>
             /// Initial learning rate. It specifies the speed of the training algorithm.
@@ -226,8 +225,8 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of threads will be used during training. If unspecified all aviable threads will be use.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t")]
-            public int? NumThreads;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t,numthreads")]
+            public int? NumberOfThreads;
 
             /// <summary>
             /// Suppress writing additional information to output.
@@ -316,8 +315,8 @@ namespace Microsoft.ML.Trainers
             const string posError = "Parameter must be positive";
             Host.CheckValue(options, nameof(options));
             Host.CheckUserArg(options.ApproximationRank > 0, nameof(options.ApproximationRank), posError);
-            Host.CheckUserArg(!options.NumThreads.HasValue || options.NumThreads > 0, nameof(options.NumThreads), posError);
-            Host.CheckUserArg(options.NumIterations > 0, nameof(options.NumIterations), posError);
+            Host.CheckUserArg(!options.NumberOfThreads.HasValue || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), posError);
+            Host.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), posError);
             Host.CheckUserArg(options.Lambda > 0, nameof(options.Lambda), posError);
             Host.CheckUserArg(options.LearningRate > 0, nameof(options.LearningRate), posError);
             Host.CheckUserArg(options.Alpha > 0, nameof(options.Alpha), posError);
@@ -325,11 +324,11 @@ namespace Microsoft.ML.Trainers
             _fun = (int)options.LossFunction;
             _lambda = options.Lambda;
             _k = options.ApproximationRank;
-            _iter = options.NumIterations;
+            _iter = options.NumberOfIterations;
             _eta = options.LearningRate;
             _alpha = options.Alpha;
             _c = options.C;
-            _threads = options.NumThreads ?? Environment.ProcessorCount;
+            _threads = options.NumberOfThreads ?? Environment.ProcessorCount;
             _quiet = options.Quiet;
             _doNmf = options.NonNegative;
 
@@ -369,7 +368,7 @@ namespace Microsoft.ML.Trainers
             _alpha = args.Alpha;
             _lambda = args.Lambda;
             _c = args.C;
-            _threads = args.NumThreads ?? Environment.ProcessorCount;
+            _threads = args.NumberOfThreads ?? Environment.ProcessorCount;
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
 
@@ -402,7 +401,7 @@ namespace Microsoft.ML.Trainers
             ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Input data did not have a unique label");
             RecommenderUtils.CheckAndGetMatrixIndexColumns(data, out var matrixColumnIndexColInfo, out var matrixRowIndexColInfo, isDecode: false);
             var labelCol = data.Schema.Label.Value;
-            if (labelCol.Type != NumberType.R4 && labelCol.Type != NumberType.R8)
+            if (labelCol.Type != NumberDataViewType.Single && labelCol.Type != NumberDataViewType.Double)
                 throw ch.Except("Column '{0}' for label should be floating point, but is instead {1}", labelCol.Name, labelCol.Type);
             MatrixFactorizationModelParameters predictor;
             if (validData != null)
@@ -411,7 +410,7 @@ namespace Microsoft.ML.Trainers
                 ch.CheckParam(validData.Schema.Label.HasValue, nameof(validData), "Input validation data did not have a unique label");
                 RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
                 var validLabelCol = validData.Schema.Label.Value;
-                if (validLabelCol.Type != NumberType.R4 && validLabelCol.Type != NumberType.R8)
+                if (validLabelCol.Type != NumberDataViewType.Single && validLabelCol.Type != NumberDataViewType.Double)
                     throw ch.Except("Column '{0}' for validation label should be floating point, but is instead {1}", validLabelCol.Name, validLabelCol.Type);
 
                 if (!matrixColumnIndexColInfo.Type.Equals(validMatrixColumnIndexColInfo.Type))
@@ -435,9 +434,9 @@ namespace Microsoft.ML.Trainers
             using (var cursor = data.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.Value))
             {
                 // LibMF works only over single precision floats, but we want to be able to consume either.
-                var labGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, data.Schema.Label.Value.Index);
-                var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, cursor, matrixColumnIndexColInfo.Index);
-                var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, cursor, matrixRowIndexColInfo.Index);
+                var labGetter = RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, cursor, data.Schema.Label.Value.Index);
+                var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, cursor, matrixColumnIndexColInfo.Index);
+                var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, cursor, matrixRowIndexColInfo.Index);
 
                 if (validData == null)
                 {
@@ -453,9 +452,9 @@ namespace Microsoft.ML.Trainers
                     RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
                     using (var validCursor = validData.Data.GetRowCursor(matrixColumnIndexColInfo, matrixRowIndexColInfo, data.Schema.Label.Value))
                     {
-                        ValueGetter<float> validLabelGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, validCursor, validData.Schema.Label.Value.Index);
-                        var validMatrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, validCursor, validMatrixColumnIndexColInfo.Index);
-                        var validMatrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, validCursor, validMatrixRowIndexColInfo.Index);
+                        ValueGetter<float> validLabelGetter = RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, validCursor, validData.Schema.Label.Value.Index);
+                        var validMatrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, validCursor, validMatrixColumnIndexColInfo.Index);
+                        var validMatrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberDataViewType.UInt32, validCursor, validMatrixRowIndexColInfo.Index);
 
                         // Have the trainer do its work.
                         using (var buffer = PrepareBuffer())
@@ -479,12 +478,11 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
-        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
+        /// Trains a <see cref="MatrixFactorizationTrainer"/> using both training and validation data, returns a <see cref="MatrixFactorizationPredictionTransformer"/>.
         /// </summary>
         /// <param name="trainData">The training data set.</param>
         /// <param name="validationData">The validation data set.</param>
-        public MatrixFactorizationPredictionTransformer Train(IDataView trainData, IDataView validationData = null)
+        public MatrixFactorizationPredictionTransformer Fit(IDataView trainData, IDataView validationData)
         {
             MatrixFactorizationModelParameters model = null;
 
@@ -504,11 +502,10 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
-        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
+        /// <summary> Trains and returns a <see cref="MatrixFactorizationPredictionTransformer"/>.</summary>
         /// </summary>
         /// <param name="input">The training data set.</param>
-        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Train(input);
+        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Fit(input, null);
 
         /// <summary>
         /// Schema propagation for transformers. Returns the output schema of the data, if
@@ -529,12 +526,12 @@ namespace Microsoft.ML.Trainers
             }
 
             // Check if label column is good.
-            var labelColumn = new SchemaShape.Column(LabelName, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            var labelColumn = new SchemaShape.Column(LabelName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
             CheckColumnsCompatible(labelColumn, "label");
 
             // Check if columns of matrix's row and column indexes are good. Note that column of IDataView and column of matrix are two different things.
-            var matrixColumnIndexColumn = new SchemaShape.Column(MatrixColumnIndexName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
-            var matrixRowIndexColumn = new SchemaShape.Column(MatrixRowIndexName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+            var matrixColumnIndexColumn = new SchemaShape.Column(MatrixColumnIndexName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
+            var matrixRowIndexColumn = new SchemaShape.Column(MatrixRowIndexName, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true);
             CheckColumnsCompatible(matrixColumnIndexColumn, "matrixColumnIndex");
             CheckColumnsCompatible(matrixRowIndexColumn, "matrixRowIndex");
 
@@ -555,7 +552,7 @@ namespace Microsoft.ML.Trainers
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
             };
         }
     }

@@ -47,7 +47,7 @@ namespace Microsoft.ML.Model.Onnx
         /// </summary>
         /// <param name="colName">Column name to stop tracking</param>
         /// <param name="removeVariable">Remove associated ONNX variable. This is useful in the event where an output
-        /// variable is created through <see cref="AddIntermediateVariable(ColumnType, string, bool)"/>before realizing
+        /// variable is created through <see cref="AddIntermediateVariable(DataViewType, string, bool)"/>before realizing
         /// the transform cannot actually save as ONNX.</param>
         public abstract void RemoveColumn(string colName, bool removeVariable = false);
 
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Model.Onnx
         /// <param name="skip">Whether we should skip the process of establishing the mapping from data view column to
         /// ONNX variable name.</param>
         /// <returns>The returned value is the name of the variable corresponding </returns>
-        public abstract string AddIntermediateVariable(ColumnType type, string colName, bool skip = false);
+        public abstract string AddIntermediateVariable(DataViewType type, string colName, bool skip = false);
 
         /// <summary>
         /// Creates an ONNX node
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Model.Onnx
         /// <param name="opType">The name of the ONNX operator to apply</param>
         /// <param name="inputs">The names of the variables as inputs</param>
         /// <param name="outputs">The names of the variables to create as outputs,
-        /// which ought to have been something returned from <see cref="AddIntermediateVariable(ColumnType, string, bool)"/></param>
+        /// which ought to have been something returned from <see cref="AddIntermediateVariable(DataViewType, string, bool)"/></param>
         /// <param name="name">The name of the operator, which ought to be something returned from <see cref="GetNodeName(string)"/></param>
         /// <param name="domain">The domain of the ONNX operator, if non-default</param>
         /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Model.Onnx
         /// <param name="opType">The name of the ONNX operator to apply</param>
         /// <param name="input">The name of the variable as input</param>
         /// <param name="output">The name of the variable as output,
-        /// which ought to have been something returned from <see cref="OnnxContext.AddIntermediateVariable(ColumnType, string, bool)"/></param>
+        /// which ought to have been something returned from <see cref="OnnxContext.AddIntermediateVariable(DataViewType, string, bool)"/></param>
         /// <param name="name">The name of the operator, which ought to be something returned from <see cref="OnnxContext.GetNodeName(string)"/></param>
         /// <param name="domain">The domain of the ONNX operator, if non-default</param>
         /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>

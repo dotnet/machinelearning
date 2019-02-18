@@ -53,10 +53,10 @@ namespace Microsoft.ML.Trainers.KMeans
         // REVIEW: Leaving this public for now until we figure out the correct way to remove it.
         public override PredictionKind PredictionKind => PredictionKind.Clustering;
 
-        private readonly ColumnType _inputType;
-        private readonly ColumnType _outputType;
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => _outputType;
+        private readonly DataViewType _inputType;
+        private readonly DataViewType _outputType;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => _outputType;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers.KMeans
         /// a deep copy, if false then this constructor will take ownership of the passed in centroid vectors.
         /// If false then the caller must take care to not use or modify the input vectors once this object
         /// is constructed, and should probably remove all references.</param>
-        public KMeansModelParameters(IHostEnvironment env, int k, VBuffer<float>[] centroids, bool copyIn)
+        internal KMeansModelParameters(IHostEnvironment env, int k, VBuffer<float>[] centroids, bool copyIn)
             : base(env, LoaderSignature)
         {
             Host.CheckParam(k > 0, nameof(k), "Need at least one cluster");
@@ -101,8 +101,8 @@ namespace Microsoft.ML.Trainers.KMeans
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberType.Float, _dimensionality);
-            _outputType = new VectorType(NumberType.Float, _k);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorType(NumberDataViewType.Single, _k);
         }
 
         /// <summary>
@@ -143,8 +143,8 @@ namespace Microsoft.ML.Trainers.KMeans
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberType.Float, _dimensionality);
-            _outputType = new VectorType(NumberType.Float, _k);
+            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorType(NumberDataViewType.Single, _k);
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()

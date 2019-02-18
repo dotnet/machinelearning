@@ -8,7 +8,6 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
@@ -33,12 +32,12 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public abstract class FastForestArgumentsBase : TreeArgs
+    public abstract class FastForestOptionsBase : TreeOptions
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of labels to be sampled from each leaf to make the distribtuion", ShortName = "qsc")]
         public int QuantileSampleCount = 100;
 
-        public FastForestArgumentsBase()
+        public FastForestOptionsBase()
         {
             FeatureFraction = 0.7;
             BaggingSize = 1;
@@ -112,16 +111,16 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastForestClassification :
         RandomForestTrainerBase<FastForestClassification.Options, BinaryPredictionTransformer<FastForestClassificationModelParameters>, FastForestClassificationModelParameters>
     {
-        public sealed class Options : FastForestArgumentsBase
+        public sealed class Options : FastForestOptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaxTreeOutput = 100;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
+            internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
+            internal int MaxCalibrationExamples = 1000000;
         }
 
         internal const string LoadNameValue = "FastForestClassification";
@@ -197,7 +196,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, Args);
+            return new ObjectiveFunctionImpl(TrainSet, _trainSetLabels, FastTreeTrainerOptions);
         }
 
         protected override void PrepareLabels(IChannel ch)
@@ -212,18 +211,22 @@ namespace Microsoft.ML.Trainers.FastTree
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, 1);
         }
 
-        protected override BinaryPredictionTransformer<FastForestClassificationModelParameters> MakeTransformer(FastForestClassificationModelParameters model, Schema trainSchema)
+        protected override BinaryPredictionTransformer<FastForestClassificationModelParameters> MakeTransformer(FastForestClassificationModelParameters model, DataViewSchema trainSchema)
          => new BinaryPredictionTransformer<FastForestClassificationModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<FastForestClassificationModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastForestClassification"/> using both training and validation data, returns
+        /// a <see cref="BinaryPredictionTransformer{FastForestClassificationModelParameters}"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<FastForestClassificationModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 

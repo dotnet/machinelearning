@@ -4,7 +4,6 @@
 
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.LightGBM;
@@ -125,7 +124,7 @@ namespace Microsoft.ML.LightGBM
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
             var labelType = data.Schema.Label.Value.Type;
-            if (!(labelType is BoolType || labelType is KeyType || labelType == NumberType.R4))
+            if (!(labelType is BooleanDataViewType || labelType is KeyType || labelType == NumberDataViewType.Single))
             {
                 throw ch.ExceptParam(nameof(data),
                     $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType}', but must be key, boolean or R4.");
@@ -144,14 +143,18 @@ namespace Microsoft.ML.LightGBM
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
-        protected override RegressionPredictionTransformer<LightGbmRegressionModelParameters> MakeTransformer(LightGbmRegressionModelParameters model, Schema trainSchema)
+        protected override RegressionPredictionTransformer<LightGbmRegressionModelParameters> MakeTransformer(LightGbmRegressionModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<LightGbmRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<LightGbmRegressionModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="LightGbmRegressorTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{LightGbmRegressionModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<LightGbmRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

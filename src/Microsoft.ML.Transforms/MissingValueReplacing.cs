@@ -12,7 +12,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
@@ -148,15 +147,15 @@ namespace Microsoft.ML.Transforms
         internal const string FriendlyName = "NA Replace Transform";
         internal const string ShortName = "NARep";
 
-        internal static string TestType(ColumnType type)
+        internal static string TestType(DataViewType type)
         {
             // Item type must have an NA value that exists and is not equal to its default value.
-            Func<ColumnType, string> func = TestType<int>;
+            Func<DataViewType, string> func = TestType<int>;
             var itemType = type.GetItemType();
             return Utils.MarshalInvoke(func, itemType.RawType, itemType);
         }
 
-        private static string TestType<T>(ColumnType type)
+        private static string TestType<T>(DataViewType type)
         {
             Contracts.Assert(type.GetItemType().RawType == typeof(T));
             if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.GetItemType(), out InPredicate<T> isNA))
@@ -181,7 +180,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // The output column types, parallel to Infos.
-        private readonly ColumnType[] _replaceTypes;
+        private readonly DataViewType[] _replaceTypes;
 
         // The replacementValues for the columns, parallel to Infos.
         // The elements of this array can be either primitive values or arrays of primitive values. When replacing a scalar valued column in Infos,
@@ -195,7 +194,7 @@ namespace Microsoft.ML.Transforms
         // REVIEW: Currently these arrays are constructed on load but could be changed to being constructed lazily.
         private readonly BitArray[] _repIsDefault;
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             string reason = TestType(type);
@@ -222,11 +221,11 @@ namespace Microsoft.ML.Transforms
             var columnsLength = ColumnPairs.Length;
             _repValues = new object[columnsLength];
             _repIsDefault = new BitArray[columnsLength];
-            _replaceTypes = new ColumnType[columnsLength];
+            _replaceTypes = new DataViewType[columnsLength];
             var saver = new BinarySaver(Host, new BinarySaver.Arguments());
             for (int i = 0; i < columnsLength; i++)
             {
-                if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out ColumnType savedType, out object repValue))
+                if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out DataViewType savedType, out object repValue))
                     throw Host.ExceptDecode();
                 _replaceTypes[i] = savedType;
                 if (savedType is VectorType savedVectorType)
@@ -270,18 +269,18 @@ namespace Microsoft.ML.Transforms
         /// Vectors default to by-slot imputation unless otherwise specified, except for unknown sized vectors
         /// which force across-slot imputation.
         /// </summary>
-        private void GetReplacementValues(IDataView input, MissingValueReplacingEstimator.ColumnInfo[] columns, out object[] repValues, out BitArray[] slotIsDefault, out ColumnType[] types)
+        private void GetReplacementValues(IDataView input, MissingValueReplacingEstimator.ColumnInfo[] columns, out object[] repValues, out BitArray[] slotIsDefault, out DataViewType[] types)
         {
             repValues = new object[columns.Length];
             slotIsDefault = new BitArray[columns.Length];
-            types = new ColumnType[columns.Length];
+            types = new DataViewType[columns.Length];
             var sources = new int[columns.Length];
             ReplacementKind[] imputationModes = new ReplacementKind[columns.Length];
 
             List<int> columnsToImpute = null;
             // REVIEW: Would like to get rid of the sourceColumns list but seems to be the best way to provide
             // the cursor with what columns to cursor through.
-           var sourceColumns = new List<Schema.Column>();
+           var sourceColumns = new List<DataViewSchema.Column>();
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 input.Schema.TryGetColumnIndex(columns[iinfo].InputColumnName, out int colSrc);
@@ -303,7 +302,7 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Mean:
                     case ReplacementKind.Minimum:
                     case ReplacementKind.Maximum:
-                        if (!(type.GetItemType() is NumberType))
+                        if (!(type.GetItemType() is NumberDataViewType))
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.GetItemType());
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);
@@ -354,14 +353,14 @@ namespace Microsoft.ML.Transforms
                 int slot = columnsToImpute[ii];
                 if (repValues[slot] is Array)
                 {
-                    Func<ColumnType, int[], BitArray> func = ComputeDefaultSlots<int>;
+                    Func<DataViewType, int[], BitArray> func = ComputeDefaultSlots<int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(types[slot].GetItemType().RawType);
                     slotIsDefault[slot] = (BitArray)meth.Invoke(this, new object[] { types[slot], repValues[slot] });
                 }
             }
         }
 
-        private BitArray ComputeDefaultSlots<T>(ColumnType type, T[] values)
+        private BitArray ComputeDefaultSlots<T>(DataViewType type, T[] values)
         {
             Host.Assert(values.Length == type.GetVectorSize());
             BitArray defaultSlots = new BitArray(values.Length);
@@ -374,7 +373,7 @@ namespace Microsoft.ML.Transforms
             return defaultSlots;
         }
 
-        private object GetDefault(ColumnType type)
+        private object GetDefault(DataViewType type)
         {
             Func<object> func = GetDefault<int>;
             var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.GetItemType().RawType);
@@ -389,33 +388,33 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Returns the isNA predicate for the respective type.
         /// </summary>
-        private Delegate GetIsNADelegate(ColumnType type)
+        private Delegate GetIsNADelegate(DataViewType type)
         {
-            Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
+            Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
             return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
         }
 
-        private Delegate GetIsNADelegate<T>(ColumnType type)
+        private Delegate GetIsNADelegate<T>(DataViewType type)
             => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
 
         /// <summary>
         /// Converts a string to its respective value in the corresponding type.
         /// </summary>
-        private object GetSpecifiedValue(string srcStr, ColumnType dstType, Delegate isNA)
+        private object GetSpecifiedValue(string srcStr, DataViewType dstType, Delegate isNA)
         {
-            Func<string, ColumnType, InPredicate<int>, object> func = GetSpecifiedValue<int>;
+            Func<string, DataViewType, InPredicate<int>, object> func = GetSpecifiedValue<int>;
             var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstType.GetItemType().RawType);
             return meth.Invoke(this, new object[] { srcStr, dstType, isNA });
         }
 
-        private object GetSpecifiedValue<T>(string srcStr, ColumnType dstType, InPredicate<T> isNA)
+        private object GetSpecifiedValue<T>(string srcStr, DataViewType dstType, InPredicate<T> isNA)
         {
             var val = default(T);
             if (!string.IsNullOrEmpty(srcStr))
             {
                 // Handles converting input strings to correct types.
                 var srcTxt = srcStr.AsMemory();
-                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.GetItemType(), out bool identity);
+                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextDataViewType.Instance, dstType.GetItemType(), out bool identity);
                 strToT(in srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(in val))
@@ -473,7 +472,7 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private VBuffer<T> CreateVBuffer<T>(T[] array)
@@ -482,7 +481,7 @@ namespace Microsoft.ML.Transforms
             return new VBuffer<T>(array.Length, array);
         }
 
-        private void WriteTypeAndValue<T>(Stream stream, BinarySaver saver, ColumnType type, T rep)
+        private void WriteTypeAndValue<T>(Stream stream, BinarySaver saver, DataViewType type, T rep)
         {
             Host.AssertValue(stream);
             Host.AssertValue(saver);
@@ -515,14 +514,14 @@ namespace Microsoft.ML.Transforms
                 }
                 Host.Assert(!(repValue is Array));
                 object[] args = new object[] { ctx.Writer.BaseStream, saver, repType, repValue };
-                Action<Stream, BinarySaver, ColumnType, int> func = WriteTypeAndValue<int>;
+                Action<Stream, BinarySaver, DataViewType, int> func = WriteTypeAndValue<int>;
                 Host.Assert(repValue.GetType() == _replaceTypes[iinfo].RawType || repValue.GetType() == _replaceTypes[iinfo].GetItemType().RawType);
                 var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repValue.GetType());
                 meth.Invoke(this, args);
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
@@ -530,9 +529,9 @@ namespace Microsoft.ML.Transforms
             {
                 public readonly string Name;
                 public readonly string InputColumnName;
-                public readonly ColumnType TypeSrc;
+                public readonly DataViewType TypeSrc;
 
-                public ColInfo(string outputColumnName, string inputColumnName, ColumnType type)
+                public ColInfo(string outputColumnName, string inputColumnName, DataViewType type)
                 {
                     Name = outputColumnName;
                     InputColumnName = inputColumnName;
@@ -542,17 +541,17 @@ namespace Microsoft.ML.Transforms
 
             private readonly MissingValueReplacingTransformer _parent;
             private readonly ColInfo[] _infos;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             // The isNA delegates, parallel to Infos.
             private readonly Delegate[] _isNAs;
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-            public Mapper(MissingValueReplacingTransformer parent, Schema inputSchema)
+            public Mapper(MissingValueReplacingTransformer parent, DataViewSchema inputSchema)
              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _infos = CreateInfos(inputSchema);
-                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
                 _isNAs = new Delegate[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
@@ -584,7 +583,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private ColInfo[] CreateInfos(Schema inputSchema)
+            private ColInfo[] CreateInfos(DataViewSchema inputSchema)
             {
                 Host.AssertValue(inputSchema);
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
@@ -599,21 +598,21 @@ namespace Microsoft.ML.Transforms
                 return infos;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var builder = new MetadataBuilder();
                     builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -627,13 +626,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for single valued inputs.
             /// </summary>
-            private Delegate ComposeGetterOne(Row input, int iinfo)
+            private Delegate ComposeGetterOne(DataViewRow input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].TypeSrc.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for scalars.
             /// </summary>
-            private Delegate ComposeGetterOne<T>(Row input, int iinfo)
+            private Delegate ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
@@ -653,13 +652,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for vector valued inputs.
             /// </summary>
-            private Delegate ComposeGetterVec(Row input, int iinfo)
+            private Delegate ComposeGetterVec(DataViewRow input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for vectors.
             /// </summary>
-            private Delegate ComposeGetterVec<T>(Row input, int iinfo)
+            private Delegate ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];

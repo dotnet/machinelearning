@@ -751,7 +751,7 @@ namespace Microsoft.ML.Internal.Utilities
             return result;
         }
 
-        public static bool[] BuildArray(int length, IEnumerable<Schema.Column> columnsNeeded)
+        public static bool[] BuildArray(int length, IEnumerable<DataViewSchema.Column> columnsNeeded)
         {
             Contracts.CheckParam(length >= 0, nameof(length));
 
@@ -825,7 +825,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// so that <c><paramref name="invMap"/>[<paramref name="map"/>[i]] == i</c>,
         /// and for other entries not appearing in <paramref name="map"/>,
         /// <c><paramref name="invMap"/>[i] == -1</c></param>
-        public static void BuildSubsetMaps(int lim, IEnumerable<Schema.Column> columnsNeeded, out int[] map, out int[] invMap)
+        public static void BuildSubsetMaps(int lim, IEnumerable<DataViewSchema.Column> columnsNeeded, out int[] map, out int[] invMap)
         {
             Contracts.CheckParam(lim >= 0, nameof(lim));
             Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));

@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var factory = new PredefinedStopWordsRemoverFactory();
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoader.Create(ML, new TextLoader.Arguments()
+            var data = TextLoader.Create(ML, new TextLoader.Options()
             {
                 Columns = new[]
                 {
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new[] {  (float)0.0,  (float)1.0,  (float)0.0 },
                 new[] {  (float)0.0,  (float)0.0,  (float)1.0 },
             };
-            builder.AddColumn("F1V", NumberType.Float, data);
+            builder.AddColumn("F1V", NumberDataViewType.Single, data);
             var srcView = builder.GetDataView();
 
             var est = ml.Transforms.Text.LatentDirichletAllocation("F1V");

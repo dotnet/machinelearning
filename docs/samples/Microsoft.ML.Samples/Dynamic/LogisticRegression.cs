@@ -4,9 +4,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class LogisticRegressionExample
+    public static class LogisticRegressionExample
     {
-        public static void LogisticRegression()
+        public static void Example()
         {
             var ml = new MLContext();
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 14. Column: native-country (text/categorical)
             // 15. Column: Column [Label]: IsOver50K (boolean)
 
-            var reader = ml.Data.CreateTextLoader(new TextLoader.Arguments
+            var reader = ml.Data.CreateTextLoader(new TextLoader.Options
             {
                 Separators = new[] { ',' },
                 HasHeader = true,

@@ -46,10 +46,10 @@ namespace Microsoft.ML.StaticPipe
                 Vector<float> features,
                 Scalar<float> weights = null,
                 IClassificationLoss lossFunction = null,
-                float learningRate = AveragedLinearArguments.AveragedDefaultArgs.LearningRate,
-                bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
-                float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
-                int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
+                float learningRate = AveragedLinearOptions.AveragedDefault.LearningRate,
+                bool decreaseLearningRate = AveragedLinearOptions.AveragedDefault.DecreaseLearningRate,
+                float l2RegularizerWeight = AveragedLinearOptions.AveragedDefault.L2RegularizerWeight,
+                int numIterations = AveragedLinearOptions.AveragedDefault.NumIterations,
                 Action<LinearBinaryModelParameters> onFit = null
             )
         {
@@ -61,7 +61,7 @@ namespace Microsoft.ML.StaticPipe
                 (env, labelName, featuresName, weightsName) =>
                 {
 
-                    var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, weightsName, lossFunction,
+                    var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, lossFunction,
                         learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
 
                     if (onFit != null)
@@ -69,7 +69,7 @@ namespace Microsoft.ML.StaticPipe
                     else
                         return trainer;
 
-                }, label, features, weights, hasProbs);
+                }, label, features, weights);
 
             return rec.Output;
         }
@@ -120,7 +120,6 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.InitialWeights = weightsName;
 
                     var trainer = new AveragedPerceptronTrainer(env, options);
 
@@ -129,7 +128,7 @@ namespace Microsoft.ML.StaticPipe
                     else
                         return trainer;
 
-                }, label, features, weights, hasProbs);
+                }, label, features, weights);
 
             return rec.Output;
         }
@@ -169,7 +168,7 @@ namespace Microsoft.ML.StaticPipe
             float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.L2RegularizerWeight,
-            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
+            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations,
             Action<LinearRegressionModelParameters> onFit = null)
         {
             OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
@@ -179,7 +178,7 @@ namespace Microsoft.ML.StaticPipe
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new OnlineGradientDescentTrainer(env, labelName, featuresName, learningRate,
-                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction);
+                        decreaseLearningRate, l2RegularizerWeight, numIterations, lossFunction);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -225,7 +224,6 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.InitialWeights = weightsName;
 
                     var trainer = new OnlineGradientDescentTrainer(env, options);
 
@@ -239,7 +237,8 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    internal static class OnlineLinearStaticUtils{
+    internal static class OnlineLinearStaticUtils
+    {
 
         internal static void CheckUserParams(PipelineColumn label,
             PipelineColumn features,

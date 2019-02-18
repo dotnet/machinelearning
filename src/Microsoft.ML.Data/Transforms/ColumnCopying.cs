@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -163,7 +162,7 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -172,30 +171,30 @@ namespace Microsoft.ML.Transforms
             SaveColumns(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema inputSchema)
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema)
             => new Mapper(this, inputSchema, ColumnPairs);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
-            private readonly Schema _schema;
+            private readonly DataViewSchema _schema;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
 
             public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
-            internal Mapper(ColumnCopyingTransformer parent, Schema inputSchema, (string outputColumnName, string inputColumnName)[] columns)
+            internal Mapper(ColumnCopyingTransformer parent, DataViewSchema inputSchema, (string outputColumnName, string inputColumnName)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _schema = inputSchema;
                 _columns = columns;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _columns.Length);
                 disposer = null;
 
-                Delegate MakeGetter<T>(Row row, int index)
+                Delegate MakeGetter<T>(DataViewRow row, int index)
                     => input.GetGetter<T>(index);
 
                 input.Schema.TryGetColumnIndex(_columns[iinfo].inputColumnName, out int colIndex);
@@ -203,13 +202,13 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_columns.Length];
+                var result = new DataViewSchema.DetachedColumn[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     var srcCol = _schema[_columns[i].inputColumnName];
-                    result[i] = new Schema.DetachedColumn(_columns[i].outputColumnName, srcCol.Type, srcCol.Metadata);
+                    result[i] = new DataViewSchema.DetachedColumn(_columns[i].outputColumnName, srcCol.Type, srcCol.Metadata);
                 }
                 return result;
             }

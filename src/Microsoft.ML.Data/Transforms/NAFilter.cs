@@ -48,9 +48,9 @@ namespace Microsoft.ML.Transforms
         private sealed class ColInfo
         {
             public readonly int Index;
-            public readonly ColumnType Type;
+            public readonly DataViewType Type;
 
-            public ColInfo(int index, ColumnType type)
+            public ColInfo(int index, DataViewType type)
             {
                 Index = index;
                 Type = type;
@@ -186,14 +186,14 @@ namespace Microsoft.ML.Transforms
                 ctx.SaveNonEmptyString(Source.Schema[info.Index].Name);
         }
 
-        private static bool TestType(ColumnType type)
+        private static bool TestType(DataViewType type)
         {
             Contracts.AssertValue(type);
 
             var itemType = (type as VectorType)?.ItemType ?? type;
-            if (itemType == NumberType.R4)
+            if (itemType == NumberDataViewType.Single)
                 return true;
-            if (itemType == NumberType.R8)
+            if (itemType == NumberDataViewType.Double)
                 return true;
             if (itemType is KeyType)
                 return true;
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(this, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Transforms
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new RowCursor[inputs.Length];
+            var cursors = new DataViewRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(this, inputs[i], active);
             return cursors;
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms
             private readonly NAFilter _parent;
             private readonly Value[] _values;
 
-            public Cursor(NAFilter parent, RowCursor input, bool[] active)
+            public Cursor(NAFilter parent, DataViewRowCursor input, bool[] active)
                 : base(parent.Host, input, parent.OutputSchema, active)
             {
                 _parent = parent;

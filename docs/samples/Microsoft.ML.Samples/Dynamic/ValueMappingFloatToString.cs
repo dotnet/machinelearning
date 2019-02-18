@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ValueMappingFloatToStringExample
+    public static class ValueMappingFloatToString
     {
         /// <summary>
         /// Helper class for retrieving the resulting data
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Samples.Dynamic
         /// This example demonstrates the use of ValueMappingEstimator by mapping float-to-string values. This is useful if the key
         /// data are floating point and need to be grouped into string values. In this example, the Induction value is mapped to 
         /// "T1", "T2", "T3", and "T4" groups.
-        public static void Run()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

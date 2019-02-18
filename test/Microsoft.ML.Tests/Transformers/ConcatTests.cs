@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
-            var loader = new TextLoader(ML, new TextLoader.Arguments
+            var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 9),
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
             var data = loader.Read(source);
 
-            ColumnType GetType(Schema schema, string name)
+            DataViewType GetType(DataViewSchema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
                 return schema[cIdx].Type;
@@ -53,15 +53,15 @@ namespace Microsoft.ML.Tests.Transformers
             data = ML.Data.TakeRows(data, 10);
             data = pipe.Fit(data).Transform(data);
 
-            ColumnType t;
+            DataViewType t;
             t = GetType(data.Schema, "f1");
-            Assert.True(t is VectorType vt1 && vt1.ItemType == NumberType.R4 && vt1.Size == 1);
+            Assert.True(t is VectorType vt1 && vt1.ItemType == NumberDataViewType.Single && vt1.Size == 1);
             t = GetType(data.Schema, "f2");
-            Assert.True(t is VectorType vt2 && vt2.ItemType == NumberType.R4 && vt2.Size == 2);
+            Assert.True(t is VectorType vt2 && vt2.ItemType == NumberDataViewType.Single && vt2.Size == 2);
             t = GetType(data.Schema, "f3");
-            Assert.True(t is VectorType vt3 && vt3.ItemType == NumberType.R4 && vt3.Size == 5);
+            Assert.True(t is VectorType vt3 && vt3.ItemType == NumberDataViewType.Single && vt3.Size == 5);
             t = GetType(data.Schema, "f4");
-            Assert.True(t is VectorType vt4 && vt4.ItemType == NumberType.R4 && vt4.Size == 0);
+            Assert.True(t is VectorType vt4 && vt4.ItemType == NumberDataViewType.Single && vt4.Size == 0);
 
             data = ML.Transforms.SelectColumns("f1", "f2", "f3", "f4").Fit(data).Transform(data);
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
-            var loader = new TextLoader(ML, new TextLoader.Arguments
+            var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 9),
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
             var data = loader.Read(source);
 
-            ColumnType GetType(Schema schema, string name)
+            DataViewType GetType(DataViewSchema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
                 return schema[cIdx].Type;
@@ -121,11 +121,11 @@ namespace Microsoft.ML.Tests.Transformers
                 colEnumerator.Current.inputColumnNames[0] == "float4" &&
                 colEnumerator.Current.inputColumnNames[1] == "float1");
 
-            ColumnType t;
+            DataViewType t;
             t = GetType(data.Schema, "f2");
-            Assert.True(t is VectorType vt2 && vt2.ItemType == NumberType.R4 && vt2.Size == 2);
+            Assert.True(t is VectorType vt2 && vt2.ItemType == NumberDataViewType.Single && vt2.Size == 2);
             t = GetType(data.Schema, "f3");
-            Assert.True(t is VectorType vt3 && vt3.ItemType == NumberType.R4 && vt3.Size == 5);
+            Assert.True(t is VectorType vt3 && vt3.ItemType == NumberDataViewType.Single && vt3.Size == 5);
 
             data = ML.Transforms.SelectColumns("f2", "f3" ).Fit(data).Transform(data);
 

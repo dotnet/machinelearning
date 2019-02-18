@@ -15,7 +15,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(Pkpd.Summary, typeof(Pkpd), typeof(Pkpd.Arguments),
+[assembly: LoadableClass(Pkpd.Summary, typeof(Pkpd), typeof(Pkpd.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     Pkpd.UserNameValue, Pkpd.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
@@ -62,19 +62,19 @@ namespace Microsoft.ML.Trainers
             + "classifiers predicted it. The prediction is the class with the highest score.";
 
         /// <summary>
-        /// Arguments passed to PKPD.
+        /// Options passed to PKPD.
         /// </summary>
-        public sealed class Arguments : ArgumentsBase
+        internal sealed class Options : ArgumentsBase
         {
         }
         /// <summary>
         /// Legacy constructor that builds the <see cref="Pkpd"/> trainer supplying the base trainer to use, for the classification task
-        /// through the <see cref="Arguments"/>arguments.
+        /// through the <see cref="Options"/>Options.
         /// Developers should instantiate <see cref="Pkpd"/> by supplying the trainer argument directly to the <see cref="Pkpd"/> constructor
         /// using the other public constructor.
         /// </summary>
-        internal Pkpd(IHostEnvironment env, Arguments args)
-            : base(env, args, LoadNameValue)
+        internal Pkpd(IHostEnvironment env, Options options)
+            : base(env, options, LoadNameValue)
         {
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers
             ICalibratorTrainer calibrator = null,
             int maxCalibrationExamples = 1000000000)
            : base(env,
-               new Arguments
+               new Options
                {
                    ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
                    MaxCalibrationExamples = maxCalibrationExamples,
@@ -146,26 +146,26 @@ namespace Microsoft.ML.Trainers
         {
             var lab = data.Schema.Label.Value;
             Host.Assert(!lab.IsHidden);
-            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
+            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberDataViewType.Single || lab.Type == NumberDataViewType.Double);
 
             if (lab.Type.GetKeyCount() > 0)
             {
                 // Key values are 1-based.
                 uint key1 = (uint)(cls1 + 1);
                 uint key2 = (uint)(cls2 + 1);
-                return MapLabelsCore(NumberType.U4, (in uint val) => val == key1 || val == key2, data);
+                return MapLabelsCore(NumberDataViewType.UInt32, (in uint val) => val == key1 || val == key2, data);
             }
-            if (lab.Type == NumberType.R4)
+            if (lab.Type == NumberDataViewType.Single)
             {
                 float key1 = cls1;
                 float key2 = cls2;
-                return MapLabelsCore(NumberType.R4, (in float val) => val == key1 || val == key2, data);
+                return MapLabelsCore(NumberDataViewType.Single, (in float val) => val == key1 || val == key2, data);
             }
-            if (lab.Type == NumberType.R8)
+            if (lab.Type == NumberDataViewType.Double)
             {
                 double key1 = cls1;
                 double key2 = cls2;
-                return MapLabelsCore(NumberType.R8, (in double val) => val == key1 || val == key2, data);
+                return MapLabelsCore(NumberDataViewType.Double, (in double val) => val == key1 || val == key2, data);
             }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by PKPD: {lab.Type}");
@@ -242,11 +242,12 @@ namespace Microsoft.ML.Trainers
         private readonly TDistPredictor[] _predictors;
         private readonly IValueMapperDist[] _mappers;
 
+        /// <summary> Return the type of prediction task.</summary>
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         private readonly VectorType _inputType;
-        private readonly ColumnType _outputType;
-        ColumnType IValueMapper.InputType => _inputType;
-        ColumnType IValueMapper.OutputType => _outputType;
+        private readonly DataViewType _outputType;
+        DataViewType IValueMapper.InputType => _inputType;
+        DataViewType IValueMapper.OutputType => _outputType;
 
         internal PkpdModelParameters(IHostEnvironment env, TDistPredictor[][] predictors) :
             base(env, RegistrationName)
@@ -269,7 +270,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(index == _predictors.Length);
 
             _inputType = InitializeMappers(out _mappers);
-            _outputType = new VectorType(NumberType.Float, _numClasses);
+            _outputType = new VectorType(NumberDataViewType.Single, _numClasses);
         }
 
         private PkpdModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -297,7 +298,7 @@ namespace Microsoft.ML.Trainers
                 ctx.LoadModel<TDistPredictor, SignatureLoadModel>(Host, out _predictors[index++], string.Format(SubPredictorFmt, i));
             }
             _inputType = InitializeMappers(out _mappers);
-            _outputType = new VectorType(NumberType.Float, _numClasses);
+            _outputType = new VectorType(NumberDataViewType.Single, _numClasses);
         }
 
         private VectorType InitializeMappers(out IValueMapperDist[] mappers)
@@ -318,15 +319,15 @@ namespace Microsoft.ML.Trainers
             if (mapper == null)
                 return false;
             VectorType vectorType = mapper.InputType as VectorType;
-            if (vectorType == null || !vectorType.IsKnownSize || vectorType.ItemType != NumberType.Float)
+            if (vectorType == null || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
                 return false;
             if (inputType == null)
                 inputType = vectorType;
             else if (inputType.Size != vectorType.Size)
                 return false;
-            if (mapper.OutputType != NumberType.Float)
+            if (mapper.OutputType != NumberDataViewType.Single)
                 return false;
-            if (mapper.DistType != NumberType.Float)
+            if (mapper.DistType != NumberDataViewType.Single)
                 return false;
             return true;
         }

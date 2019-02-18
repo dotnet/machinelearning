@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
@@ -203,7 +202,7 @@ namespace Microsoft.ML.Transforms.Projections
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema[srcCol].Type;
             if (!LpNormalizingEstimatorBase.IsColumnTypeValid(inType))
@@ -290,7 +289,7 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private LpNormalizingTransformer(IHost host, ModelLoadContext ctx)
@@ -323,21 +322,21 @@ namespace Microsoft.ML.Transforms.Projections
                 col.Save(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ColumnType[] _srcTypes;
+            private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly LpNormalizingTransformer _parent;
 
-            public Mapper(LpNormalizingTransformer parent, Schema inputSchema)
+            public Mapper(LpNormalizingTransformer parent, DataViewSchema inputSchema)
                  : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
+                _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
@@ -348,21 +347,21 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var builder = new MetadataBuilder();
                     builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                     ValueGetter<bool> getter = (ref bool dst) => dst = true;
-                    builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -754,18 +753,18 @@ namespace Microsoft.ML.Transforms.Projections
         {
         }
 
-        internal static bool IsColumnTypeValid(ColumnType type)
+        internal static bool IsColumnTypeValid(DataViewType type)
         {
             if (!(type is VectorType vectorType && vectorType.IsKnownSize))
                 return false;
-            return vectorType.ItemType == NumberType.R4;
+            return vectorType.ItemType == NumberDataViewType.Single;
         }
 
         internal static bool IsSchemaColumnValid(SchemaShape.Column col)
         {
             if (col.Kind != SchemaShape.Column.VectorKind.Vector)
                 return false;
-            return col.ItemType == NumberType.R4;
+            return col.ItemType == NumberDataViewType.Single;
         }
 
         internal const string ExpectedColumnType = "Expected float or float vector of known size";
@@ -787,7 +786,7 @@ namespace Microsoft.ML.Transforms.Projections
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
                 result[colPair.Name] = new SchemaShape.Column(colPair.Name, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

@@ -6,7 +6,6 @@ using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -139,7 +138,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastForestRegression
         : RandomForestTrainerBase<FastForestRegression.Options, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
     {
-        public sealed class Options : FastForestArgumentsBase
+        public sealed class Options : FastForestOptionsBase
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Shuffle the labels on every iteration. " +
                 "Useful probably only if using this tree as a tree leaf featurizer for multiclass.")]
@@ -205,7 +204,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs, Args.QuantileSampleCount);
+            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs, FastTreeTrainerOptions.QuantileSampleCount);
         }
 
         protected override void PrepareLabels(IChannel ch)
@@ -214,7 +213,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return ObjectiveFunctionImplBase.Create(TrainSet, Args);
+            return ObjectiveFunctionImplBase.Create(TrainSet, FastTreeTrainerOptions);
         }
 
         protected override Test ConstructTestForTrainingData()
@@ -222,17 +221,21 @@ namespace Microsoft.ML.Trainers.FastTree
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }
 
-        protected override RegressionPredictionTransformer<FastForestRegressionModelParameters> MakeTransformer(FastForestRegressionModelParameters model, Schema trainSchema)
+        protected override RegressionPredictionTransformer<FastForestRegressionModelParameters> MakeTransformer(FastForestRegressionModelParameters model, DataViewSchema trainSchema)
          => new RegressionPredictionTransformer<FastForestRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<FastForestRegressionModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="FastForestRegression"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{FastForestRegressionModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<FastForestRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 

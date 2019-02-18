@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -104,7 +103,7 @@ namespace Microsoft.ML.Transforms
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(Column[] columns)
             => columns.Select(c => (c.Name, c.Source ?? c.Name)).ToArray();
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema[srcCol].Type;
             if (!(inType is VectorType))
@@ -129,7 +128,7 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
@@ -143,23 +142,23 @@ namespace Microsoft.ML.Transforms
             SaveColumns(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly MissingValueDroppingTransformer _parent;
 
-            private readonly ColumnType[] _srcTypes;
+            private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly Delegate[] _isNAs;
 
-            public Mapper(MissingValueDroppingTransformer parent, Schema inputSchema) :
+            public Mapper(MissingValueDroppingTransformer parent, DataViewSchema inputSchema) :
                 base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
+                _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 _isNAs = new Delegate[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -167,7 +166,7 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
-                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.GetItemType());
+                    _types[i] = new VectorType((PrimitiveDataViewType)srcCol.Type.GetItemType());
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
                 }
             }
@@ -175,37 +174,37 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns the isNA predicate for the respective type.
             /// </summary>
-            private Delegate GetIsNADelegate(ColumnType type)
+            private Delegate GetIsNADelegate(DataViewType type)
             {
-                Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
+                Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
                 return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
             }
 
-            private Delegate GetIsNADelegate<T>(ColumnType type) => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
+            private Delegate GetIsNADelegate<T>(DataViewType type) => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var builder = new MetadataBuilder();
                     builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
+                Func<DataViewRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].GetItemType().RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 
-            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(Row input, int iinfo)
+            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(DataViewRow input, int iinfo)
             {
                 var srcGetter = input.GetGetter<VBuffer<TDst>>(_srcCols[iinfo]);
                 var buffer = default(VBuffer<TDst>);

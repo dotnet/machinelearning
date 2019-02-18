@@ -4,9 +4,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class SDCARegressionExample
+    public static class SDCARegression
     {
-        public static void SDCARegression()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // We will train a FastTreeRegression model with 1 tree on these two columns to predict Age.
             string outputColumnName = "Features";
             var pipeline = ml.Transforms.Concatenate(outputColumnName, new[] { "Parity", "Induced" })
-                .Append(ml.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Age", featureColumn: outputColumnName, maxIterations:2));
+                .Append(ml.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Age", featureColumnName: outputColumnName, maxIterations:2));
 
             var model = pipeline.Fit(trainData);
 

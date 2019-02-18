@@ -42,7 +42,7 @@ namespace Microsoft.ML.Model.Pfa
         private readonly bool _allowSet;
         private readonly IHost _host;
 
-        public BoundPfaContext(IHostEnvironment env, Schema inputSchema, HashSet<string> toDrop, bool allowSet)
+        public BoundPfaContext(IHostEnvironment env, DataViewSchema inputSchema, HashSet<string> toDrop, bool allowSet)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(BoundPfaContext));
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Model.Pfa
             SetInput(inputSchema, toDrop);
         }
 
-        private void SetInput(Schema schema, HashSet<string> toDrop)
+        private void SetInput(DataViewSchema schema, HashSet<string> toDrop)
         {
             var recordType = new JObject();
             recordType["type"] = "record";
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Model.Pfa
         /// <param name="toOutput">The columns to output</param>
         /// <returns>Returns a complete PFA program, where the output will correspond to the subset
         /// of columns from <paramref name="schema"/>.</returns>
-        public JObject Finalize(Schema schema, params string[] toOutput)
+        public JObject Finalize(DataViewSchema schema, params string[] toOutput)
         {
             _host.CheckValue(schema, nameof(schema));
             _host.CheckValue(toOutput, nameof(toOutput));
@@ -162,12 +162,12 @@ namespace Microsoft.ML.Model.Pfa
             return Pfa.Finalize();
         }
 
-        private JToken PfaTypeOrNullForColumn(Schema schema, int col)
+        private JToken PfaTypeOrNullForColumn(DataViewSchema schema, int col)
         {
             _host.AssertValue(schema);
             _host.Assert(0 <= col && col < schema.Count);
 
-            ColumnType type = schema[col].Type;
+            DataViewType type = schema[col].Type;
             return T.PfaTypeOrNullForColumnType(type);
         }
 

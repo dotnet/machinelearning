@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositiveRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativePrecision.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativePrecision.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(0, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.F1Score.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.F1Score.Mean));
@@ -411,13 +411,13 @@ namespace Microsoft.ML.Tests
 
             // Create data view.
             var bldr = new ArrayDataViewBuilder(Env);
-            bldr.AddColumn("X1", NumberType.Float, x1Array);
-            bldr.AddColumn("X2Important", NumberType.Float, x2Array);
-            bldr.AddColumn("X3", NumberType.Float, x3Array);
-            bldr.AddColumn("X4Rand", NumberType.Float, x4RandArray);
-            bldr.AddColumn("Label", NumberType.Float, yArray);
+            bldr.AddColumn("X1", NumberDataViewType.Single, x1Array);
+            bldr.AddColumn("X2Important", NumberDataViewType.Single, x2Array);
+            bldr.AddColumn("X3", NumberDataViewType.Single, x3Array);
+            bldr.AddColumn("X4Rand", NumberDataViewType.Single, x4RandArray);
+            bldr.AddColumn("Label", NumberDataViewType.Single, yArray);
             if (task == TaskType.Ranking)
-                bldr.AddColumn("GroupId", NumberType.U4, CreateGroupIds(yArray.Length));
+                bldr.AddColumn("GroupId", NumberDataViewType.UInt32, CreateGroupIds(yArray.Length));
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2Important", "X3", "X4Rand")
@@ -488,12 +488,12 @@ namespace Microsoft.ML.Tests
 
             // Create data view.
             var bldr = new ArrayDataViewBuilder(Env);
-            bldr.AddColumn("X1", NumberType.Float, x1Array);
-            bldr.AddColumn("X2VBuffer", NumberType.Float, vbArray);
-            bldr.AddColumn("X3Important", NumberType.Float, x3Array);
-            bldr.AddColumn("Label", NumberType.Float, yArray);
+            bldr.AddColumn("X1", NumberDataViewType.Single, x1Array);
+            bldr.AddColumn("X2VBuffer", NumberDataViewType.Single, vbArray);
+            bldr.AddColumn("X3Important", NumberDataViewType.Single, x3Array);
+            bldr.AddColumn("Label", NumberDataViewType.Single, yArray);
             if (task == TaskType.Ranking)
-                bldr.AddColumn("GroupId", NumberType.U4, CreateGroupIds(yArray.Length));
+                bldr.AddColumn("GroupId", NumberDataViewType.UInt32, CreateGroupIds(yArray.Length));
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")

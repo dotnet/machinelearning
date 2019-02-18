@@ -9,12 +9,12 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Core.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// A set of 'requirements' to the incoming schema, as well as a set of 'promises' of the outgoing schema.
-    /// This is more relaxed than the proper <see cref="Schema"/>, since it's only a subset of the columns,
-    /// and also since it doesn't specify exact <see cref="ColumnType"/>'s for vectors and keys.
+    /// This is more relaxed than the proper <see cref="DataViewSchema"/>, since it's only a subset of the columns,
+    /// and also since it doesn't specify exact <see cref="DataViewType"/>'s for vectors and keys.
     /// </summary>
     public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
     {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Core.Data
             /// <summary>
             /// The 'raw' type of column item: must be a primitive type or a structured type.
             /// </summary>
-            public readonly ColumnType ItemType;
+            public readonly DataViewType ItemType;
             /// <summary>
             /// The flag whether the column is actually a key. If yes, <see cref="ItemType"/> is representing
             /// the underlying primitive type.
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Core.Data
             public readonly SchemaShape Metadata;
 
             [BestFriend]
-            internal Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, SchemaShape metadata = null)
+            internal Column(string name, VectorKind vecKind, DataViewType itemType, bool isKey, SchemaShape metadata = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(metadata);
@@ -143,9 +143,9 @@ namespace Microsoft.ML.Core.Data
         /// <param name="itemType">The item type of <paramref name="type"/>.</param>
         /// <param name="isKey">Whether <paramref name="type"/> (or its item type) is a key.</param>
         [BestFriend]
-        internal static void GetColumnTypeShape(ColumnType type,
+        internal static void GetColumnTypeShape(DataViewType type,
             out Column.VectorKind vecKind,
-            out ColumnType itemType,
+            out DataViewType itemType,
             out bool isKey)
         {
             if (type is VectorType vectorType)
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Core.Data
         /// Create a schema shape out of the fully defined schema.
         /// </summary>
         [BestFriend]
-        internal static SchemaShape Create(Schema schema)
+        internal static SchemaShape Create(DataViewSchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
             var cols = new List<Column>();
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// The output schema of the reader.
         /// </summary>
-        Schema GetOutputSchema();
+        DataViewSchema GetOutputSchema();
     }
 
     /// <summary>
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Core.Data
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
         /// </summary>
-        Schema GetOutputSchema(Schema inputSchema);
+        DataViewSchema GetOutputSchema(DataViewSchema inputSchema);
 
         /// <summary>
         /// Take the data in, make transformations, output the data.
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Core.Data
         IDataView Transform(IDataView input);
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
+        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
         /// appropriate schema.
         /// </summary>
         bool IsRowToRowMapper { get; }
@@ -291,13 +291,13 @@ namespace Microsoft.ML.Core.Data
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
         /// <returns>The row to row mapper.</returns>
-        IRowToRowMapper GetRowToRowMapper(Schema inputSchema);
+        IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema);
     }
 
     /// <summary>
     /// The estimator (in Spark terminology) is an 'untrained transformer'. It needs to 'fit' on the data to manufacture
     /// a transformer.
-    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="Schema"/>.
+    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="DataViewSchema"/>.
     /// </summary>
     public interface IEstimator<out TTransformer>
         where TTransformer : ITransformer

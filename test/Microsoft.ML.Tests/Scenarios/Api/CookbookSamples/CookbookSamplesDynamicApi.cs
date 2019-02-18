@@ -9,7 +9,6 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -109,7 +108,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // once so adding a caching step before it is not helpful.
                 .AppendCacheCheckpoint(mlContext)
                 // Add the SDCA regression trainer.
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Target", featureColumn: "FeatureVector"));
+                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
 
             // Step three. Fit the pipeline to the training data.
             var model = pipeline.Fit(trainData);

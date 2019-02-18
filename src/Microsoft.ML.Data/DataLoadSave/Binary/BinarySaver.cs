@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data.IO
             /// <summary>
             /// Returns an appropriate generic <c>WritePipe{T}</c> for the given column.
             /// </summary>
-            public static WritePipe Create(BinarySaver parent, RowCursor cursor, ColumnCodec col)
+            public static WritePipe Create(BinarySaver parent, DataViewRowCursor cursor, ColumnCodec col)
             {
                 Type writePipeType = typeof(WritePipe<>).MakeGenericType(col.Codec.Type.RawType);
                 return (WritePipe)Activator.CreateInstance(writePipeType, parent, cursor, col);
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Data.IO
             private MemoryStream _currentStream;
             private T _value;
 
-            public WritePipe(BinarySaver parent, RowCursor cursor, ColumnCodec col)
+            public WritePipe(BinarySaver parent, DataViewRowCursor cursor, ColumnCodec col)
                 : base(parent)
             {
                 var codec = col.Codec as IValueCodec<T>;
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Data.IO
         /// <param name="ch">The channel to which we write any diagnostic information</param>
         /// <returns>The offset of the metadata table of contents, or 0 if there was
         /// no metadata</returns>
-        private long WriteMetadata(BinaryWriter writer, Schema schema, int col, IChannel ch)
+        private long WriteMetadata(BinaryWriter writer, DataViewSchema schema, int col, IChannel ch)
         {
             _host.AssertValue(writer);
             _host.AssertValue(schema);
@@ -342,9 +342,9 @@ namespace Microsoft.ML.Data.IO
             return offsets[metadataInfos.Count];
         }
 
-        private delegate IValueCodec WriteMetadataCoreDelegate(Stream stream, Schema schema, int col, string kind, ColumnType type, out CompressionKind compression);
+        private delegate IValueCodec WriteMetadataCoreDelegate(Stream stream, DataViewSchema schema, int col, string kind, DataViewType type, out CompressionKind compression);
 
-        private IValueCodec WriteMetadataCore<T>(Stream stream, Schema schema, int col, string kind, ColumnType type, out CompressionKind compressionKind)
+        private IValueCodec WriteMetadataCore<T>(Stream stream, DataViewSchema schema, int col, string kind, DataViewType type, out CompressionKind compressionKind)
         {
             _host.Assert(typeof(T) == type.RawType);
             IValueCodec generalCodec;
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Data.IO
         }
 
         private void WriteWorker(Stream stream, BlockingCollection<Block> toWrite, ColumnCodec[] activeColumns,
-            Schema sourceSchema, int rowsPerBlock, IChannelProvider cp, ExceptionMarshaller exMarshaller)
+            DataViewSchema sourceSchema, int rowsPerBlock, IChannelProvider cp, ExceptionMarshaller exMarshaller)
         {
             _host.AssertValue(exMarshaller);
             try
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Data.IO
                 HashSet<int> activeSet = new HashSet<int>(activeColumns.Select(col => col.SourceIndex));
                 long blockIndex = 0;
                 int remainingInBlock = rowsPerBlock;
-                using (RowCursor cursor = data.GetRowCursor(data.Schema.Where(c => activeSet.Contains(c.Index))))
+                using (DataViewRowCursor cursor = data.GetRowCursor(data.Schema.Where(c => activeSet.Contains(c.Index))))
                 {
                     WritePipe[] pipes = new WritePipe[activeColumns.Length];
                     for (int c = 0; c < activeColumns.Length; ++c)
@@ -632,7 +632,7 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        public bool IsColumnSavable(ColumnType type)
+        public bool IsColumnSavable(DataViewType type)
         {
             IValueCodec codec;
             return _factory.TryGetCodec(type, out codec);
@@ -702,7 +702,7 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        private ColumnCodec[] GetActiveColumns(Schema schema, int[] colIndices)
+        private ColumnCodec[] GetActiveColumns(DataViewSchema schema, int[] colIndices)
         {
             _host.AssertValue(schema);
             _host.AssertValueOrNull(colIndices);
@@ -713,7 +713,7 @@ namespace Microsoft.ML.Data.IO
 
             for (int c = 0; c < colIndices.Length; ++c)
             {
-                ColumnType type = schema[colIndices[c]].Type;
+                DataViewType type = schema[colIndices[c]].Type;
                 IValueCodec codec;
                 if (!_factory.TryGetCodec(type, out codec))
                     throw _host.Except("Could not get codec for requested column {0} of type {1}", schema[c].Name, type);
@@ -740,7 +740,7 @@ namespace Microsoft.ML.Data.IO
             EstimatorDelegate del = EstimatorCore<int>;
             MethodInfo methInfo = del.GetMethodInfo().GetGenericMethodDefinition();
 
-            using (RowCursor cursor = data.GetRowCursor(data.Schema.Where(x => active.Contains(x.Index)), rand))
+            using (DataViewRowCursor cursor = data.GetRowCursor(data.Schema.Where(x => active.Contains(x.Index)), rand))
             {
                 object[] args = new object[] { cursor, null, null, null };
                 var writers = new IValueWriter[actives.Length];
@@ -770,10 +770,10 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        private delegate void EstimatorDelegate(RowCursor cursor, ColumnCodec col,
+        private delegate void EstimatorDelegate(DataViewRowCursor cursor, ColumnCodec col,
             out Func<long> fetchWriteEstimator, out IValueWriter writer);
 
-        private void EstimatorCore<T>(RowCursor cursor, ColumnCodec col,
+        private void EstimatorCore<T>(DataViewRowCursor cursor, ColumnCodec col,
             out Func<long> fetchWriteEstimator, out IValueWriter writer)
         {
             ValueGetter<T> getter = cursor.GetGetter<T>(col.SourceIndex);
@@ -800,7 +800,7 @@ namespace Microsoft.ML.Data.IO
         /// <returns>Returns if have the ability to save this column type. If we do, we write
         /// the description to the stream. If we do not, nothing is written to the stream and
         /// the stream is not advanced.</returns>
-        public bool TryWriteTypeDescription(Stream stream, ColumnType type, out int bytesWritten)
+        public bool TryWriteTypeDescription(Stream stream, DataViewType type, out int bytesWritten)
         {
             _host.CheckValue(stream, nameof(stream));
             _host.CheckValue(type, nameof(type));
@@ -824,7 +824,7 @@ namespace Microsoft.ML.Data.IO
         /// <param name="stream">The stream to load the type description from</param>
         /// <returns>A non-null value if the type descriptor was recognized, or null if
         /// it was not</returns>
-        public ColumnType LoadTypeDescriptionOrNull(Stream stream)
+        public DataViewType LoadTypeDescriptionOrNull(Stream stream)
         {
             _host.CheckValue(stream, nameof(stream));
 
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Data.IO
         /// <param name="value">The value to encode and write</param>
         /// <param name="bytesWritten">The number of bytes written</param>
         /// <returns>Whether the write was successful or not</returns>
-        public bool TryWriteTypeAndValue<T>(Stream stream, ColumnType type, ref T value, out int bytesWritten)
+        public bool TryWriteTypeAndValue<T>(Stream stream, DataViewType type, ref T value, out int bytesWritten)
         {
             _host.CheckValue(stream, nameof(stream));
             _host.CheckValue(type, nameof(type));
@@ -877,7 +877,7 @@ namespace Microsoft.ML.Data.IO
         /// <param name="value">A non-null value if the type descriptor was recognized and a value
         /// read, or null if the type descriptor was not recognized</param>
         /// <returns>Whether the load of a type description and value was successful</returns>
-        public bool TryLoadTypeAndValue(Stream stream, out ColumnType type, out object value)
+        public bool TryLoadTypeAndValue(Stream stream, out DataViewType type, out object value)
         {
             _host.CheckValue(stream, nameof(stream));
 

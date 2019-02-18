@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
@@ -35,13 +34,13 @@ namespace Microsoft.ML.Trainers
         BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
-        public const string LoadNameValue = "LogisticRegression";
+        internal const string LoadNameValue = "LogisticRegression";
         internal const string UserNameValue = "Logistic Regression";
         internal const string ShortName = "lr";
         internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can "
             + "be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
 
-        public sealed class Options : ArgumentsBase
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// If set to <value>true</value>training statistics will be generated at the end of training.
@@ -118,20 +117,24 @@ namespace Microsoft.ML.Trainers
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
         protected override BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
-            MakeTransformer(CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> model, Schema trainSchema)
+            MakeTransformer(CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> Train(IDataView trainData, IPredictor initialPredictor = null)
-            => TrainTransformer(trainData, initPredictor: initialPredictor);
+        /// <summary>
+        /// Continues the training of a <see cref="LogisticRegression"/> using an already trained <paramref name="modelParameters"/> and returns
+        /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
+        /// </summary>
+        public BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, LinearModelParameters modelParameters)
+            => TrainTransformer(trainData, initPredictor: modelParameters);
 
-        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+        private protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
@@ -361,7 +364,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        protected override void ProcessPriorDistribution(float label, float weight)
+        private protected override void ProcessPriorDistribution(float label, float weight)
         {
             if (label > 0)
                 _posWeight += weight;
@@ -381,16 +384,16 @@ namespace Microsoft.ML.Trainers
             return opt;
         }
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> srcPredictor)
+        private protected override VBuffer<float> InitializeWeightsFromPredictor(IPredictor srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
 
-            var pred = srcPredictor.SubModel as LinearBinaryModelParameters;
+            var pred = srcPredictor as LinearModelParameters;
             Contracts.AssertValue(pred);
             return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
-        protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor()
+        private protected override CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> CreatePredictor()
         {
             // Logistic regression is naturally calibrated to
             // output probabilities when transformed using

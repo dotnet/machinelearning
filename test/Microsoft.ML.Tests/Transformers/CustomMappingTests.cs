@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
@@ -70,9 +69,10 @@ namespace Microsoft.ML.Tests.Transformers
                 TestEstimatorCore(customEst, data);
                 Assert.True(false, "Cannot work without MEF injection");
             }
-            catch (Exception)
+            catch (InvalidOperationException ex)
             {
-                // REVIEW: we should have a common mechanism that will make sure this is 'our' exception thrown.
+                if (!ex.IsMarked())
+                    throw;
             }
             ML.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(MyLambda)));
             TestEstimatorCore(customEst, data);

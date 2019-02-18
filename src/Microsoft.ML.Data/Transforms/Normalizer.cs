@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
@@ -82,7 +81,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 MaxTrainingExamples = maxTrainingExamples;
             }
 
-            internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor);
+            internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor);
 
             internal static ColumnBase Create(string outputColumnName, string inputColumnName, NormalizerMode mode)
             {
@@ -122,7 +121,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
                 => NormalizeTransform.MinMaxUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
@@ -137,7 +136,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 UseCdf = useCdf;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
                 => NormalizeTransform.MeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
@@ -152,7 +151,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 UseCdf = useCdf;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
                 => NormalizeTransform.LogMeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
@@ -167,7 +166,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 NumBins = numBins;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
                 => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
@@ -190,7 +189,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 MinBinSize = minBinSize;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
                 => NormalizeTransform.SupervisedBinUtils.CreateBuilder(this, host, LabelColumn, srcIndex, srcType, cursor);
         }
 
@@ -263,11 +262,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                 if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector or scalar", col.GetTypeString());
 
-                if (!col.ItemType.Equals(NumberType.R4) && !col.ItemType.Equals(NumberType.R8))
+                if (!col.ItemType.Equals(NumberDataViewType.Single) && !col.ItemType.Equals(NumberDataViewType.Double))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of float or double", col.GetTypeString());
 
                 var isNormalizedMeta = new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
-                    BoolType.Instance, false);
+                    BooleanDataViewType.Instance, false);
                 var newMetadataKinds = new List<SchemaShape.Column> { isNormalizedMeta };
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     newMetadataKinds.Add(slotMeta);
@@ -315,10 +314,10 @@ namespace Microsoft.ML.Transforms.Normalizers
             public readonly string Name;
             public readonly string InputColumnName;
             public readonly NormalizerModelParametersBase ModelParameters;
-            internal readonly ColumnType InputType;
+            internal readonly DataViewType InputType;
             internal readonly IColumnFunction ColumnFunction;
 
-            internal ColumnInfo(string name, string inputColumnName, ColumnType inputType, IColumnFunction columnFunction)
+            internal ColumnInfo(string name, string inputColumnName, DataViewType inputType, IColumnFunction columnFunction)
             {
                 Name = name;
                 InputColumnName = inputColumnName;
@@ -327,7 +326,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 ModelParameters = columnFunction.GetNormalizerModelParams();
             }
 
-            internal static ColumnType LoadType(ModelLoadContext ctx)
+            internal static DataViewType LoadType(ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ctx);
                 // *** Binary format ***
@@ -343,10 +342,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.CheckDecode(itemKind == DataKind.R4 || itemKind == DataKind.R8);
 
                 var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
-                return isVector ? (ColumnType)(new VectorType(itemType, vectorSize)) : itemType;
+                return isVector ? (DataViewType)(new VectorType(itemType, vectorSize)) : itemType;
             }
 
-            internal static void SaveType(ModelSaveContext ctx, ColumnType type)
+            internal static void SaveType(ModelSaveContext ctx, DataViewType type)
             {
                 Contracts.AssertValue(ctx);
                 // *** Binary format ***
@@ -359,7 +358,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
                 ctx.Writer.Write(vectorType?.Size ?? 0);
 
-                ColumnType itemType = vectorType?.ItemType ?? type;
+                DataViewType itemType = vectorType?.ItemType ?? type;
                 itemType.RawType.TryGetDataKind(out DataKind itemKind);
                 Contracts.Assert(itemKind == DataKind.R4 || itemKind == DataKind.R8);
                 ctx.Writer.Write((byte)itemKind);
@@ -399,10 +398,10 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(data, nameof(data));
             env.CheckValue(columns, nameof(columns));
 
-            var activeCols = new List<Schema.Column>();
+            var activeCols = new List<DataViewSchema.Column>();
 
             var srcCols = new int[columns.Length];
-            var srcTypes = new ColumnType[columns.Length];
+            var srcTypes = new DataViewType[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 var info = columns[i];
@@ -537,7 +536,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -562,7 +561,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             const string expectedType = "scalar or known-size vector of R4";
 
@@ -570,8 +569,8 @@ namespace Microsoft.ML.Transforms.Normalizers
             VectorType vectorType = colType as VectorType;
             if (vectorType != null && !vectorType.IsKnownSize)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, "variable-size vector");
-            ColumnType itemType = vectorType?.ItemType ?? colType;
-            if (!itemType.Equals(NumberType.R4) && !itemType.Equals(NumberType.R8))
+            DataViewType itemType = vectorType?.ItemType ?? colType;
+            if (!itemType.Equals(NumberDataViewType.Single) && !itemType.Equals(NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, colType.ToString());
         }
 
@@ -579,7 +578,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal new IDataTransform MakeDataTransform(IDataView input)
             => base.MakeDataTransform(input);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -588,26 +587,26 @@ namespace Microsoft.ML.Transforms.Normalizers
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(NormalizingTransformer parent, Schema schema)
+            public Mapper(NormalizingTransformer parent, DataViewSchema schema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, schema)
             {
                 _parent = parent;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.Columns.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.Columns.Length];
                 for (int i = 0; i < _parent.Columns.Length; i++)
-                    result[i] = new Schema.DetachedColumn(_parent.Columns[i].Name, _parent.Columns[i].InputType, MakeMetadata(i));
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.Columns[i].Name, _parent.Columns[i].InputType, MakeMetadata(i));
                 return result;
             }
 
-            private Schema.Metadata MakeMetadata(int iinfo)
+            private DataViewSchema.Metadata MakeMetadata(int iinfo)
             {
                 var colInfo = _parent.Columns[iinfo];
                 var builder = new MetadataBuilder();
 
-                builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ValueGetter<bool>)IsNormalizedGetter);
+                builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ValueGetter<bool>)IsNormalizedGetter);
                 builder.Add(InputSchema[ColMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                 return builder.GetMetadata();
             }
@@ -617,7 +616,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 dst = true;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 return _parent.Columns[iinfo].ColumnFunction.GetGetter(input, ColMapNewToOld[iinfo]);

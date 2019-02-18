@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -137,7 +136,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorType[] _kvTypes;
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!HashingEstimator.IsColumnTypeValid(type))
@@ -150,7 +149,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        private ColumnType GetOutputType(Schema inputSchema, HashingEstimator.ColumnInfo column)
+        private DataViewType GetOutputType(DataViewSchema inputSchema, HashingEstimator.ColumnInfo column)
         {
             var keyCount = (ulong)1 << column.HashBits;
             inputSchema.TryGetColumnIndex(column.InputColumnName, out int srcCol);
@@ -182,13 +181,13 @@ namespace Microsoft.ML.Transforms.Conversions
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
-            var types = new ColumnType[_columns.Length];
+            var types = new DataViewType[_columns.Length];
             List<int> invertIinfos = null;
             List<int> invertHashMaxCounts = null;
-            var sourceColumnsForInvertHash = new List<Schema.Column>();
+            var sourceColumnsForInvertHash = new List<DataViewSchema.Column>();
             for (int i = 0; i < _columns.Length; i++)
             {
-                Schema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].inputColumnName);
+                DataViewSchema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].inputColumnName);
                 if (srcCol == null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].inputColumnName);
                 CheckInputColumn(input.Schema, i, srcCol.Value.Index);
@@ -208,7 +207,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
             if (Utils.Size(sourceColumnsForInvertHash) > 0)
             {
-                using (RowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash))
+                using (DataViewRowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash))
                 {
                     using (var ch = Host.Start("Invert hash building"))
                     {
@@ -235,14 +234,14 @@ namespace Microsoft.ML.Transforms.Conversions
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
                             Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCountAsInt32(Host));
-                            _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
+                            _kvTypes[invertIinfos[i]] = new VectorType(TextDataViewType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }
                 }
             }
         }
 
-        private Delegate GetGetterCore(Row input, int iinfo, out Action disposer)
+        private Delegate GetGetterCore(DataViewRow input, int iinfo, out Action disposer)
         {
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < _columns.Length);
@@ -254,7 +253,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return ComposeGetterVec(input, iinfo, srcCol, vectorType);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         // Factory method for SignatureLoadModel.
         private static HashingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -302,7 +301,7 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
@@ -330,7 +329,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         #region Getters
-        private ValueGetter<uint> ComposeGetterOne(Row input, int iinfo, int srcCol, ColumnType srcType)
+        private ValueGetter<uint> ComposeGetterOne(DataViewRow input, int iinfo, int srcCol, DataViewType srcType)
         {
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType));
 
@@ -375,14 +374,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 return MakeScalarHashGetter<uint, HashU4>(input, srcCol, seed, mask);
             else if (srcType.RawType == typeof(ulong))
                 return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(RowId))
-                return MakeScalarHashGetter<RowId, HashU16>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(DataViewRowId))
+                return MakeScalarHashGetter<DataViewRowId, HashU16>(input, srcCol, seed, mask);
 
             Host.Assert(srcType.RawType == typeof(bool));
             return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVec(Row input, int iinfo, int srcCol, VectorType srcType)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVec(DataViewRow input, int iinfo, int srcCol, VectorType srcType)
         {
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
 
@@ -408,8 +407,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 return ComposeGetterVecCore<uint, HashU4>(input, iinfo, srcCol, srcType);
             else if (rawType == typeof(ulong))
                 return ComposeGetterVecCore<ulong, HashU8>(input, iinfo, srcCol, srcType);
-            else if (rawType == typeof(RowId))
-                return ComposeGetterVecCore<RowId, HashU16>(input, iinfo, srcCol, srcType);
+            else if (rawType == typeof(DataViewRowId))
+                return ComposeGetterVecCore<DataViewRowId, HashU16>(input, iinfo, srcCol, srcType);
             else if (rawType == typeof(sbyte))
                 return ComposeGetterVecCore<sbyte, HashI1>(input, iinfo, srcCol, srcType);
             else if (rawType == typeof(short))
@@ -425,11 +424,11 @@ namespace Microsoft.ML.Transforms.Conversions
             else if (rawType == typeof(bool))
                 return ComposeGetterVecCore<bool, HashBool>(input, iinfo, srcCol, srcType);
 
-            Host.Assert(srcType.ItemType == TextType.Instance);
+            Host.Assert(srcType.ItemType == TextDataViewType.Instance);
             return ComposeGetterVecCore<ReadOnlyMemory<char>, HashText>(input, iinfo, srcCol, srcType);
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(Row input, int iinfo, int srcCol, VectorType srcType)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(DataViewRow input, int iinfo, int srcCol, VectorType srcType)
             where THash : struct, IHasher<T>
         {
             Host.Assert(srcType.ItemType.RawType == typeof(T));
@@ -571,10 +570,10 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private readonly struct HashU16 : IHasher<RowId>
+        private readonly struct HashU16 : IHasher<DataViewRowId>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public uint HashCore(uint seed, uint mask, in RowId value)
+            public uint HashCore(uint seed, uint mask, in DataViewRowId value)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Low));
                 var hi = Utils.GetHi(value.Low);
@@ -632,7 +631,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private static ValueGetter<uint> MakeScalarHashGetter<T, THash>(Row input, int srcCol, uint seed, uint mask)
+        private static ValueGetter<uint> MakeScalarHashGetter<T, THash>(DataViewRow input, int srcCol, uint seed, uint mask)
             where THash : struct, IHasher<T>
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
@@ -790,9 +789,9 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 public readonly string Name;
                 public readonly string InputColumnName;
-                public readonly ColumnType TypeSrc;
+                public readonly DataViewType TypeSrc;
 
-                public ColInfo(string outputColumnName, string inputColumnName, ColumnType type)
+                public ColInfo(string outputColumnName, string inputColumnName, DataViewType type)
                 {
                     Name = outputColumnName;
                     InputColumnName = inputColumnName;
@@ -800,21 +799,21 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly HashingTransformer _parent;
 
-            public Mapper(HashingTransformer parent, Schema inputSchema)
+            public Mapper(HashingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent._columns.Length];
+                _types = new DataViewType[_parent._columns.Length];
                 for (int i = 0; i < _types.Length; i++)
                     _types[i] = _parent.GetOutputType(inputSchema, _parent._columns[i]);
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
@@ -824,7 +823,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     if (_parent._kvTypes != null && _parent._kvTypes[i] != null)
                         AddMetaKeyValues(i, meta);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
@@ -834,21 +833,21 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _parent._keyValues[i].CopyTo(ref dst);
                 };
-                builder.AddKeyValues(_parent._kvTypes[i].Size, (PrimitiveType)_parent._kvTypes[i].ItemType, getter);
+                builder.AddKeyValues(_parent._kvTypes[i].Size, (PrimitiveDataViewType)_parent._kvTypes[i].ItemType, getter);
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
         }
 
         private abstract class InvertHashHelper
         {
-            protected readonly Row Row;
+            protected readonly DataViewRow Row;
             private readonly bool _includeSlot;
             private readonly HashingEstimator.ColumnInfo _ex;
-            private readonly ColumnType _srcType;
+            private readonly DataViewType _srcType;
             private readonly int _srcCol;
 
-            private InvertHashHelper(Row row, HashingEstimator.ColumnInfo ex)
+            private InvertHashHelper(DataViewRow row, HashingEstimator.ColumnInfo ex)
             {
                 Contracts.AssertValue(row);
                 Row = row;
@@ -869,18 +868,18 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="ex">The extra column info</param>
             /// <param name="invertHashMaxCount">The number of input hashed valuPres to accumulate per output hash value</param>
             /// <param name="dstGetter">A hash getter, built on top of <paramref name="row"/>.</param>
-            public static InvertHashHelper Create(Row row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+            public static InvertHashHelper Create(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
             {
                 row.Schema.TryGetColumnIndex(ex.InputColumnName, out int srcCol);
-                ColumnType typeSrc = row.Schema[srcCol].Type;
+                DataViewType typeSrc = row.Schema[srcCol].Type;
                 VectorType vectorTypeSrc = typeSrc as VectorType;
 
                 Type t = vectorTypeSrc != null ? (ex.Ordered ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
-                ColumnType itemType = vectorTypeSrc?.ItemType ?? typeSrc;
+                DataViewType itemType = vectorTypeSrc?.ItemType ?? typeSrc;
 
                 t = t.MakeGenericType(itemType.RawType);
 
-                var consTypes = new Type[] { typeof(Row), typeof(HashingEstimator.ColumnInfo), typeof(int), typeof(Delegate) };
+                var consTypes = new Type[] { typeof(DataViewRow), typeof(HashingEstimator.ColumnInfo), typeof(int), typeof(Delegate) };
                 var constructorInfo = t.GetConstructor(consTypes);
                 return (InvertHashHelper)constructorInfo.Invoke(new object[] { row, ex, invertHashMaxCount, dstGetter });
             }
@@ -957,7 +956,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 protected readonly InvertHashCollector<T> Collector;
 
-                protected Impl(Row row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount)
+                protected Impl(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount)
                     : base(row, ex)
                 {
                     Contracts.AssertValue(row);
@@ -990,7 +989,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 private T _value;
                 private uint _hash;
 
-                public ImplOne(Row row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplOne(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
                     _srcGetter = Row.GetGetter<T>(_srcCol);
@@ -1024,7 +1023,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 private VBuffer<T> _value;
                 private VBuffer<uint> _hash;
 
-                public ImplVec(Row row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplVec(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
                     _srcGetter = Row.GetGetter<VBuffer<T>>(_srcCol);
@@ -1058,7 +1057,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 private VBuffer<T> _value;
                 private VBuffer<uint> _hash;
 
-                public ImplVecOrdered(Row row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplVecOrdered(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
                     _srcGetter = Row.GetGetter<VBuffer<T>>(_srcCol);
@@ -1211,10 +1210,10 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly IHost _host;
         private readonly ColumnInfo[] _columns;
 
-        internal static bool IsColumnTypeValid(ColumnType type)
+        internal static bool IsColumnTypeValid(DataViewType type)
         {
             var itemType = type.GetItemType();
-            return itemType is TextType || itemType is KeyType || itemType is NumberType || itemType is BoolType;
+            return itemType is TextDataViewType || itemType is KeyType || itemType is NumberDataViewType || itemType is BooleanDataViewType;
         }
 
         internal const string ExpectedColumnType = "Expected Text, Key, numeric or Boolean item type";
@@ -1273,8 +1272,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
                 if (colInfo.InvertHash != 0)
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata));
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

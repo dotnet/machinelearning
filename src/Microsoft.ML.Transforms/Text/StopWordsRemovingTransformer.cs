@@ -12,7 +12,6 @@ using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
@@ -185,7 +184,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!StopWordsRemovingEstimator.IsColumnTypeValid(type))
@@ -277,10 +276,10 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private void CheckResources()
         {
@@ -347,17 +346,17 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Mapper : MapperBase
         {
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly StopWordsRemovingTransformer _parent;
             private readonly int[] _languageColumns;
             private readonly bool?[] _resourcesExist;
             private readonly Dictionary<int, int> _colMapNewToOld;
 
-            public Mapper(StopWordsRemovingTransformer parent, Schema inputSchema)
+            public Mapper(StopWordsRemovingTransformer parent, DataViewSchema inputSchema)
              : base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
                 _languageColumns = new int[_parent.ColumnPairs.Length];
                 _resourcesExist = new bool?[StopWords.Length];
                 _colMapNewToOld = new Dictionary<int, int>();
@@ -373,7 +372,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (!StopWordsRemovingEstimator.IsColumnTypeValid(srcType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent._columns[i].InputColumnName, StopWordsRemovingEstimator.ExpectedColumnType, srcType.ToString());
 
-                    _types[i] = new VectorType(TextType.Instance);
+                    _types[i] = new VectorType(TextDataViewType.Instance);
                     if (!string.IsNullOrEmpty(_parent._columns[i].LanguageColumn))
                     {
                         if (!inputSchema.TryGetColumnIndex(_parent._columns[i].LanguageColumn, out int langCol))
@@ -386,19 +385,19 @@ namespace Microsoft.ML.Transforms.Text
                 _parent.CheckResources();
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i]);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i]);
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -548,8 +547,8 @@ namespace Microsoft.ML.Transforms.Text
             public const Language DefaultLanguage = Language.English;
         }
 
-        internal static bool IsColumnTypeValid(ColumnType type) =>
-            type is VectorType vectorType && vectorType.ItemType is TextType;
+        internal static bool IsColumnTypeValid(DataViewType type) =>
+            type is VectorType vectorType && vectorType.ItemType is TextDataViewType;
 
         internal const string ExpectedColumnType = "vector of Text type";
 
@@ -595,9 +594,9 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (col.Kind == SchemaShape.Column.VectorKind.Scalar || !(col.ItemType is TextType))
+                if (col.Kind == SchemaShape.Column.VectorKind.Scalar || !(col.ItemType is TextDataViewType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, ExpectedColumnType, col.ItemType.ToString());
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.VariableVector, TextType.Instance, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.VariableVector, TextDataViewType.Instance, false);
             }
             return new SchemaShape(result.Values);
         }
@@ -693,7 +692,7 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(CustomStopWordsRemovingTransformer).Assembly.FullName);
         }
 
-        private static readonly ColumnType _outputType = new VectorType(TextType.Instance);
+        private static readonly DataViewType _outputType = new VectorType(TextDataViewType.Instance);
 
         private readonly NormStr.Pool _stopWordsMap;
         private const string RegistrationName = "CustomStopWordsRemover";
@@ -785,7 +784,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!loader.Schema.TryGetColumnIndex(srcCol, out int colSrcIndex))
                     throw ch.ExceptUserArg(nameof(Options.StopwordsColumn), "Unknown column '{0}'", srcCol);
                 var typeSrc = loader.Schema[colSrcIndex].Type;
-                ch.CheckUserArg(typeSrc is TextType, nameof(Options.StopwordsColumn), "Must be a scalar text column");
+                ch.CheckUserArg(typeSrc is TextDataViewType, nameof(Options.StopwordsColumn), "Must be a scalar text column");
 
                 // Accumulate the stopwords.
                 using (var cursor = loader.GetRowCursor(loader.Schema[srcCol]))
@@ -970,21 +969,21 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
            => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ColumnType[] _types;
+            private readonly DataViewType[] _types;
             private readonly CustomStopWordsRemovingTransformer _parent;
 
-            public Mapper(CustomStopWordsRemovingTransformer parent, Schema inputSchema)
+            public Mapper(CustomStopWordsRemovingTransformer parent, DataViewSchema inputSchema)
              : base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _types = new DataViewType[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int srcCol);
@@ -992,23 +991,23 @@ namespace Microsoft.ML.Transforms.Text
                     if (!StopWordsRemovingEstimator.IsColumnTypeValid(srcType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.ColumnPairs[i].inputColumnName, StopWordsRemovingEstimator.ExpectedColumnType, srcType.ToString());
 
-                    _types[i] = new VectorType(TextType.Instance);
+                    _types[i] = new VectorType(TextDataViewType.Instance);
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i]);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i]);
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -1092,9 +1091,9 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
-                if (col.Kind == SchemaShape.Column.VectorKind.Scalar || !(col.ItemType is TextType))
+                if (col.Kind == SchemaShape.Column.VectorKind.Scalar || !(col.ItemType is TextDataViewType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, ExpectedColumnType, col.ItemType.ToString());
-                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, TextType.Instance, false);
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, TextDataViewType.Instance, false);
             }
             return new SchemaShape(result.Values);
         }

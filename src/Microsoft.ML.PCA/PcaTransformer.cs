@@ -8,7 +8,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
@@ -32,7 +31,7 @@ using Microsoft.ML.Transforms.Projections;
 [assembly: LoadableClass(typeof(void), typeof(PrincipalComponentAnalysisTransformer), null, typeof(SignatureEntryPointModule), PrincipalComponentAnalysisTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Projections
-{
+    {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PrincipalComponentAnalysisTransformer : OneToOneTransformerBase
     {
@@ -104,7 +103,7 @@ namespace Microsoft.ML.Transforms.Projections
             public float[][] Eigenvectors;
             public float[] MeanProjected;
 
-            public ColumnType OutputType => new VectorType(NumberType.Float, Rank);
+            public DataViewType OutputType => new VectorType(NumberDataViewType.Single, Rank);
 
             public TransformInfo(int rank, int dim)
             {
@@ -242,7 +241,7 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
@@ -498,18 +497,18 @@ namespace Microsoft.ML.Transforms.Projections
             return y;
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             ValidatePcaInput(Host, inputSchema[srcCol].Name, inputSchema[srcCol].Type);
         }
 
-        internal static void ValidatePcaInput(IExceptionContext ectx, string name, ColumnType type)
+        internal static void ValidatePcaInput(IExceptionContext ectx, string name, DataViewType type)
         {
             string inputSchema; // just used for the excpections
 
-            if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberType.R4)))
+            if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberDataViewType.Single)))
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "known-size vector of float of two or more items", type.ToString());
         }
 
@@ -517,11 +516,11 @@ namespace Microsoft.ML.Transforms.Projections
         {
             public sealed class ColumnSchemaInfo
             {
-                public ColumnType InputType { get; }
+                public DataViewType InputType { get; }
                 public int InputIndex { get; }
                 public int WeightColumnIndex { get; }
 
-                public ColumnSchemaInfo((string outputColumnName, string inputColumnName) columnPair, Schema schema, string weightColumn = null)
+                public ColumnSchemaInfo((string outputColumnName, string inputColumnName) columnPair, DataViewSchema schema, string weightColumn = null)
                 {
                     schema.TryGetColumnIndex(columnPair.inputColumnName, out int inputIndex);
                     InputIndex = inputIndex;
@@ -532,7 +531,7 @@ namespace Microsoft.ML.Transforms.Projections
                     {
                         if (!schema.TryGetColumnIndex(weightColumn, out weightIndex))
                             throw Contracts.Except("Weight column '{0}' does not exist.", weightColumn);
-                        Contracts.CheckParam(schema[weightIndex].Type == NumberType.Float, nameof(weightColumn));
+                        Contracts.CheckParam(schema[weightIndex].Type == NumberDataViewType.Single, nameof(weightColumn));
                     }
                     WeightColumnIndex = weightIndex;
                 }
@@ -541,7 +540,7 @@ namespace Microsoft.ML.Transforms.Projections
             private readonly PrincipalComponentAnalysisTransformer _parent;
             private readonly int _numColumns;
 
-            public Mapper(PrincipalComponentAnalysisTransformer parent, Schema inputSchema)
+            public Mapper(PrincipalComponentAnalysisTransformer parent, DataViewSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -554,20 +553,20 @@ namespace Microsoft.ML.Transforms.Projections
                     if (colSchemaInfo.InputType.GetVectorSize() != _parent._transformInfos[i].Dimension)
                     {
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName,
-                            new VectorType(NumberType.R4, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
+                            new VectorType(NumberDataViewType.Single, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
                     }
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_numColumns];
+                var result = new DataViewSchema.DetachedColumn[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _parent._transformInfos[i].OutputType, null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _parent._transformInfos[i].OutputType, null);
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
@@ -745,11 +744,11 @@ namespace Microsoft.ML.Transforms.Projections
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
-                if (col.Kind != SchemaShape.Column.VectorKind.Vector || !col.ItemType.Equals(NumberType.R4))
+                if (col.Kind != SchemaShape.Column.VectorKind.Vector || !col.ItemType.Equals(NumberDataViewType.Single))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name,
-                    SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+                    SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(result.Values);

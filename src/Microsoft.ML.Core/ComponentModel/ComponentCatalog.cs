@@ -185,16 +185,25 @@ namespace Microsoft.ML
             internal object CreateInstanceCore(object[] ctorArgs)
             {
                 Contracts.Assert(Utils.Size(ctorArgs) == CtorTypes.Length + ((RequireEnvironment) ? 1 : 0));
-
-                if (InstanceGetter != null)
+                try
                 {
-                    Contracts.Assert(Utils.Size(ctorArgs) == 0);
-                    return InstanceGetter.Invoke(null, null);
+                    if (InstanceGetter != null)
+                    {
+                        Contracts.Assert(Utils.Size(ctorArgs) == 0);
+                        return InstanceGetter.Invoke(null, null);
+                    }
+                    if (Constructor != null)
+                        return Constructor.Invoke(ctorArgs);
+                    if (CreateMethod != null)
+                        return CreateMethod.Invoke(null, ctorArgs);
                 }
-                if (Constructor != null)
-                    return Constructor.Invoke(ctorArgs);
-                if (CreateMethod != null)
-                    return CreateMethod.Invoke(null, ctorArgs);
+                catch (TargetInvocationException ex)
+                {
+                    if (ex.InnerException != null && ex.InnerException.IsMarked())
+                        throw Contracts.Except(ex, "Error during class instantiation");
+                    else
+                        throw;
+                }
                 throw Contracts.Except("Can't instantiate class '{0}'", Type.Name);
             }
 

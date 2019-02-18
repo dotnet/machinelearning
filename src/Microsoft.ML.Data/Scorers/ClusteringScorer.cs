@@ -92,7 +92,7 @@ namespace Microsoft.ML.Data
             return new ClusteringScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(DataViewRow output, out Delegate scoreGetter)
         {
             Contracts.AssertValue(output);
             Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
@@ -134,16 +134,16 @@ namespace Microsoft.ML.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
+        private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper)
         {
             return new KeyType(typeof(uint), scoreType.GetVectorSize());
         }
 
-        private static bool OutputTypeMatches(ColumnType scoreType)
+        private static bool OutputTypeMatches(DataViewType scoreType)
         {
             return scoreType is VectorType vectorType
                 && vectorType.IsKnownSize
-                && vectorType.ItemType == NumberType.Float;
+                && vectorType.ItemType == NumberDataViewType.Single;
         }
     }
 }

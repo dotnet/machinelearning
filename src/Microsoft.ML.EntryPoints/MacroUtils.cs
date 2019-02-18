@@ -12,7 +12,7 @@ using Microsoft.ML.EntryPoints;
 
 namespace Microsoft.ML.EntryPoints
 {
-    public static class MacroUtils
+    internal static class MacroUtils
     {
         /// <summary>
         /// Lists the types of trainer signatures. Used by entry points and autoML system
@@ -163,4 +163,3 @@ namespace Microsoft.ML.EntryPoints
         }
     }
 }
-#pragma warning restore 612

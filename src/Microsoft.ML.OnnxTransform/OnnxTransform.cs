@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -90,7 +89,7 @@ namespace Microsoft.ML.Transforms
 
         internal readonly string[] Inputs;
         internal readonly string[] Outputs;
-        internal readonly ColumnType[] OutputTypes;
+        internal readonly DataViewType[] OutputTypes;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -148,7 +147,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private OnnxTransformer(IHostEnvironment env, Options options, byte[] modelBytes = null) :
@@ -180,7 +179,7 @@ namespace Microsoft.ML.Transforms
             var modelInfo = Model.ModelInfo;
             Inputs = (options.InputColumns.Count() == 0) ? Model.InputNames.ToArray() : options.InputColumns;
             Outputs = (options.OutputColumns.Count() == 0) ? Model.OutputNames.ToArray() : options.OutputColumns;
-            OutputTypes = new ColumnType[Outputs.Length];
+            OutputTypes = new DataViewType[Outputs.Length];
             var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
             for (int i = 0; i < Outputs.Length; i++)
             {
@@ -280,7 +279,7 @@ namespace Microsoft.ML.Transforms
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
         }
-        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema inputSchema) => new Mapper(this, inputSchema);
 
         private static IEnumerable<int> AdjustDimensions(OnnxShape shape)
         {
@@ -302,7 +301,7 @@ namespace Microsoft.ML.Transforms
             private readonly OnnxShape[] _inputTensorShapes;
             private readonly System.Type[] _inputOnnxTypes;
 
-            public Mapper(OnnxTransformer parent, Schema inputSchema) :
+            public Mapper(OnnxTransformer parent, DataViewSchema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
 
@@ -355,11 +354,11 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var info = new Schema.DetachedColumn[_parent.Outputs.Length];
+                var info = new DataViewSchema.DetachedColumn[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new Schema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                    info[i] = new DataViewSchema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
 
@@ -407,7 +406,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 Host.AssertValue(input);
@@ -421,7 +420,7 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(Row input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
@@ -438,7 +437,7 @@ namespace Microsoft.ML.Transforms
                 return valuegetter;
             }
 
-            private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(Row input,
+            private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(DataViewRow input,
                 string[] inputColNames,
                 int[] inputColIndices,
                 bool[] isInputVector,
@@ -454,14 +453,14 @@ namespace Microsoft.ML.Transforms
                 return srcNamedOnnxValueGetters;
             }
 
-            private static INamedOnnxValueGetter CreateNamedOnnxValueGetter(Row input, System.Type onnxType, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNamedOnnxValueGetter(DataViewRow input, System.Type onnxType, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 var type = OnnxUtils.OnnxToMlNetType(onnxType).RawType;
                 Contracts.AssertValue(type);
                 return Utils.MarshalInvoke(CreateNameOnnxValueGetter<int>, type, input, isVector, colName, colIndex, onnxShape);
             }
 
-            private static INamedOnnxValueGetter CreateNameOnnxValueGetter<T>(Row input, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNameOnnxValueGetter<T>(DataViewRow input, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 if (isVector)
                     return new NamedOnnxValueGetterVec<T>(input, colName, colIndex, onnxShape);
@@ -473,7 +472,7 @@ namespace Microsoft.ML.Transforms
                 private readonly ValueGetter<T> _srcgetter;
                 private readonly string _colName;
 
-                public NameOnnxValueGetter(Row input, string colName, int colIndex)
+                public NameOnnxValueGetter(DataViewRow input, string colName, int colIndex)
                 {
                     _colName = colName;
                     _srcgetter = input.GetGetter<T>(colIndex);
@@ -493,7 +492,7 @@ namespace Microsoft.ML.Transforms
                 private readonly string _colName;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
-                public NamedOnnxValueGetterVec(Row input, string colName, int colIndex, OnnxShape tensorShape)
+                public NamedOnnxValueGetterVec(DataViewRow input, string colName, int colIndex, OnnxShape tensorShape)
                 {
                     _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                     _tensorShape = tensorShape;

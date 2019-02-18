@@ -8,9 +8,9 @@ namespace Microsoft.ML.Samples.Dynamic
     /// <summary>
     /// This example first trains a StochasticDualCoordinateAscentBinary Classifier and then convert its output to probability via training a calibrator.  
     /// </summary>
-    public class CalibratorExample
+    public static class Calibrator
     {
-        public static void Calibration()
+        public static void Example()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a text loader.
-            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
+            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Options()
             {
                 Separators = new[] { '\t' },
                 HasHeader = true,
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Then append the StochasticDualCoordinateAscentBinary binary classifier, setting the "Label" column as the label of the dataset, and 
             // the "Features" column produced by FeaturizeText as the features column. 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
-                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
                         labelColumn: "Sentiment", 
                         featureColumn: "Features", 
                         l2Const: 0.001f, 
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's train a calibrator estimator on this scored dataset. The trained calibrator estimator produces a transformer
             // that can transform the scored data by adding a new column names "Probability". 
-            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, model, "Sentiment", "Features");
+            var calibratorEstimator = new PlattCalibratorEstimator(mlContext, "Sentiment", "Score");
             var calibratorTransformer = calibratorEstimator.Fit(scoredData);
 
             // Transform the scored data with a calibrator transfomer by adding a new column names "Probability". 

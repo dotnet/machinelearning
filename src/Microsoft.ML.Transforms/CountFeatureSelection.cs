@@ -9,7 +9,6 @@ using System.Reflection;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -130,7 +129,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     metadata.Add(slotMeta);
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var categoricalSlotMeta))
                     metadata.Add(categoricalSlotMeta);
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
                 result[colPair.Name] = new SchemaShape.Column(colPair.Name, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
@@ -249,9 +248,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeCols = new List<Schema.Column>();
+            var activeCols = new List<DataViewSchema.Column>();
             var colSrcs = new int[size];
-            var colTypes = new ColumnType[size];
+            var colTypes = new DataViewType[size];
             colSizes = new int[size];
             for (int i = 0; i < size; i++)
             {
@@ -297,29 +296,29 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return aggregators.Select(a => a.Count).ToArray();
         }
 
-        public static bool IsValidColumnType(ColumnType type)
-            => type == NumberType.R4 || type == NumberType.R8 || type is TextType;
+        public static bool IsValidColumnType(DataViewType type)
+            => type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is TextDataViewType;
 
-        private static CountAggregator GetOneAggregator(Row row, ColumnType colType, int colSrc)
+        private static CountAggregator GetOneAggregator(DataViewRow row, DataViewType colType, int colSrc)
         {
-            Func<Row, ColumnType, int, CountAggregator> del = GetOneAggregator<int>;
+            Func<DataViewRow, DataViewType, int, CountAggregator> del = GetOneAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetOneAggregator<T>(Row row, ColumnType colType, int colSrc)
+        private static CountAggregator GetOneAggregator<T>(DataViewRow row, DataViewType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
         }
 
-        private static CountAggregator GetVecAggregator(Row row, VectorType colType, int colSrc)
+        private static CountAggregator GetVecAggregator(DataViewRow row, VectorType colType, int colSrc)
         {
-            Func<Row, VectorType, int, CountAggregator> del = GetVecAggregator<int>;
+            Func<DataViewRow, VectorType, int, CountAggregator> del = GetVecAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetVecAggregator<T>(Row row, VectorType colType, int colSrc)
+        private static CountAggregator GetVecAggregator<T>(DataViewRow row, VectorType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
         }
@@ -338,9 +337,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             private readonly InPredicate<T> _isMissing;
             private VBuffer<T> _buffer;
 
-            public CountAggregator(ColumnType type, ValueGetter<T> getter)
+            public CountAggregator(DataViewType type, ValueGetter<T> getter)
             {
-                Contracts.Assert(type is PrimitiveType);
+                Contracts.Assert(type is PrimitiveDataViewType);
                 _count = new long[1];
                 _buffer = new VBuffer<T>(1, new T[1]);
                 var t = default(T);

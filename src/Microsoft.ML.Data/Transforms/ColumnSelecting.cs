@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -446,7 +445,7 @@ namespace Microsoft.ML.Transforms
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
         /// </summary>
-        public Schema GetOutputSchema(Schema inputSchema)
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             if (!IgnoreMissing && !IsSchemaValid(inputSchema.Select(x => x.Name),
@@ -465,7 +464,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
         /// <returns>The row to row mapper.</returns>
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             if (!IgnoreMissing && !IsSchemaValid(inputSchema.Select(x => x.Name),
@@ -498,14 +497,14 @@ namespace Microsoft.ML.Transforms
         private sealed class Mapper
         {
             private readonly IHost _host;
-            private readonly Schema _inputSchema;
+            private readonly DataViewSchema _inputSchema;
             private readonly int[] _outputToInputMap;
 
-            public Schema InputSchema => _inputSchema;
+            public DataViewSchema InputSchema => _inputSchema;
 
-            public Schema OutputSchema { get; }
+            public DataViewSchema OutputSchema { get; }
 
-            public Mapper(ColumnSelectingTransformer transform, Schema inputSchema)
+            public Mapper(ColumnSelectingTransformer transform, DataViewSchema inputSchema)
             {
                 _host = transform._host.Register(nameof(Mapper));
                 _inputSchema = inputSchema;
@@ -526,7 +525,7 @@ namespace Microsoft.ML.Transforms
             private static int[] BuildOutputToInputMap(IEnumerable<string> selectedColumns,
                 bool keepColumns,
                 bool keepHidden,
-                Schema inputSchema)
+                DataViewSchema inputSchema)
             {
                 var outputToInputMapping = new List<int>();
                 var columnCount = inputSchema.Count;
@@ -589,10 +588,10 @@ namespace Microsoft.ML.Transforms
                 return outputToInputMapping.ToArray();
             }
 
-            private static Schema GenerateOutputSchema(IEnumerable<int> map,
-                                                        Schema inputSchema)
+            private static DataViewSchema GenerateOutputSchema(IEnumerable<int> map,
+                                                        DataViewSchema inputSchema)
             {
-                var outputColumns = map.Select(x => new Schema.DetachedColumn(inputSchema[x]));
+                var outputColumns = map.Select(x => new DataViewSchema.DetachedColumn(inputSchema[x]));
                 return SchemaExtensions.MakeSchema(outputColumns);
             }
         }
@@ -600,13 +599,13 @@ namespace Microsoft.ML.Transforms
         private sealed class RowImpl : WrappingRow
         {
             private readonly Mapper _mapper;
-            public RowImpl(Row input, Mapper mapper)
+            public RowImpl(DataViewRow input, Mapper mapper)
                 : base(input)
             {
                 _mapper = mapper;
             }
 
-            public override Schema Schema => _mapper.OutputSchema;
+            public override DataViewSchema Schema => _mapper.OutputSchema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
@@ -635,15 +634,15 @@ namespace Microsoft.ML.Transforms
 
             public IDataView Source { get; }
 
-            public Schema InputSchema => Source.Schema;
+            public DataViewSchema InputSchema => Source.Schema;
 
-            Schema IDataView.Schema => OutputSchema;
+            DataViewSchema IDataView.Schema => OutputSchema;
 
-            public Schema OutputSchema => _mapper.OutputSchema;
+            public DataViewSchema OutputSchema => _mapper.OutputSchema;
 
             public long? GetRowCount() => Source.GetRowCount();
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.AssertValueOrNull(rand);
@@ -659,7 +658,7 @@ namespace Microsoft.ML.Transforms
                 return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.CheckValueOrNull(rand);
@@ -674,7 +673,7 @@ namespace Microsoft.ML.Transforms
                 _host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
-                var cursors = new RowCursor[inputs.Length];
+                var cursors = new DataViewRowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
                     cursors[i] = new Cursor(_host, _mapper, inputs[i], active);
                 return cursors;
@@ -695,7 +694,7 @@ namespace Microsoft.ML.Transforms
                 return col => active[col];
             }
 
-            public Row GetRow(Row input, Func<int, bool> active)
+            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
             {
                 return new RowImpl(input, _mapper);
             }
@@ -707,9 +706,9 @@ namespace Microsoft.ML.Transforms
         private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Mapper _mapper;
-            private readonly RowCursor _inputCursor;
+            private readonly DataViewRowCursor _inputCursor;
             private readonly bool[] _active;
-            public Cursor(IChannelProvider provider, Mapper mapper, RowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Mapper mapper, DataViewRowCursor input, bool[] active)
                 : base(provider, input)
             {
                 _mapper = mapper;
@@ -717,7 +716,7 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            public override Schema Schema => _mapper.OutputSchema;
+            public override DataViewSchema Schema => _mapper.OutputSchema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {

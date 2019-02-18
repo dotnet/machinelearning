@@ -5,7 +5,6 @@
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Model;
@@ -27,7 +26,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
     {
-        public partial class Options : ArgumentsBase
+        public partial class Options : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
             [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
@@ -88,17 +87,21 @@ namespace Microsoft.ML.Trainers.FastTree
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 
-        protected override RegressionPredictionTransformer<RegressionGamModelParameters> MakeTransformer(RegressionGamModelParameters model, Schema trainSchema)
+        protected override RegressionPredictionTransformer<RegressionGamModelParameters> MakeTransformer(RegressionGamModelParameters model, DataViewSchema trainSchema)
             => new RegressionPredictionTransformer<RegressionGamModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<RegressionGamModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="RegressionGamTrainer"/> using both training and validation data, returns
+        /// a <see cref="RegressionPredictionTransformer{RegressionGamModelParameters}"/>.
+        /// </summary>
+        public RegressionPredictionTransformer<RegressionGamModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
     }

@@ -11,7 +11,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.ImageAnalytics;
@@ -98,9 +97,9 @@ namespace Microsoft.ML.ImageAnalytics
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView data)
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView data)
         {
-            return new ImageLoadingTransformer(env, args.ImageFolder, args.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
+            return new ImageLoadingTransformer(env, options.ImageFolder, options.Columns.Select(x => (x.Name, x.Source ?? x.Name)).ToArray())
                 .MakeDataTransform(data);
         }
 
@@ -129,13 +128,13 @@ namespace Microsoft.ML.ImageAnalytics
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
-            if (!(inputSchema[srcCol].Type is TextType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, TextType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
+            if (!(inputSchema[srcCol].Type is TextDataViewType))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, TextDataViewType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -165,21 +164,21 @@ namespace Microsoft.ML.ImageAnalytics
                 loaderAssemblyName: typeof(ImageLoadingTransformer).Assembly.FullName);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImageLoadingTransformer _parent;
             private readonly ImageType _imageType;
 
-            public Mapper(ImageLoadingTransformer parent, Schema inputSchema)
+            public Mapper(ImageLoadingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _imageType = new ImageType();
                 _parent = parent;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -225,8 +224,8 @@ namespace Microsoft.ML.ImageAnalytics
                 return del;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent.ColumnPairs.Select(x => new Schema.DetachedColumn(x.outputColumnName, _imageType, null)).ToArray();
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent.ColumnPairs.Select(x => new DataViewSchema.DetachedColumn(x.outputColumnName, _imageType, null)).ToArray();
         }
     }
 
@@ -274,8 +273,8 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 if (!inputSchema.TryFindColumn(inputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName);
-                if (!(col.ItemType is TextType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName, TextType.Instance.ToString(), col.GetTypeString());
+                if (!(col.ItemType is TextDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName, TextDataViewType.Instance.ToString(), col.GetTypeString());
 
                 result[outputColumnName] = new SchemaShape.Column(outputColumnName, SchemaShape.Column.VectorKind.Scalar, _imageType, false);
             }

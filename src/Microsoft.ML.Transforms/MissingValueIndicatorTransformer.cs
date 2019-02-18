@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -125,7 +124,7 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
@@ -139,7 +138,7 @@ namespace Microsoft.ML.Transforms
             SaveColumns(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -150,11 +149,11 @@ namespace Microsoft.ML.Transforms
             {
                 public readonly string Name;
                 public readonly string InputColumnName;
-                public readonly ColumnType OutputType;
-                public readonly ColumnType InputType;
+                public readonly DataViewType OutputType;
+                public readonly DataViewType InputType;
                 public readonly Delegate InputIsNA;
 
-                public ColInfo(string name, string inputColumnName, ColumnType inType, ColumnType outType)
+                public ColInfo(string name, string inputColumnName, DataViewType inType, DataViewType outType)
                 {
                     Name = name;
                     InputColumnName = inputColumnName;
@@ -164,14 +163,14 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public Mapper(MissingValueIndicatorTransformer parent, Schema inputSchema)
+            public Mapper(MissingValueIndicatorTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _infos = CreateInfos(inputSchema);
             }
 
-            private ColInfo[] CreateInfos(Schema inputSchema)
+            private ColInfo[] CreateInfos(DataViewSchema inputSchema)
             {
                 Host.AssertValue(inputSchema);
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
@@ -181,19 +180,19 @@ namespace Microsoft.ML.Transforms
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
                     var inType = inputSchema[colSrc].Type;
-                    ColumnType outType;
+                    DataViewType outType;
                     if (!(inType is VectorType vectorType))
-                        outType = BoolType.Instance;
+                        outType = BooleanDataViewType.Instance;
                     else
-                        outType = new VectorType(BoolType.Instance, vectorType);
+                        outType = new VectorType(BooleanDataViewType.Instance, vectorType);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].inputColumnName, inType, outType);
                 }
                 return infos;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _infos.Length; iinfo++)
                 {
                     InputSchema.TryGetColumnIndex(_infos[iinfo].InputColumnName, out int colIndex);
@@ -204,8 +203,8 @@ namespace Microsoft.ML.Transforms
                     {
                         dst = true;
                     };
-                    builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
-                    result[iinfo] = new Schema.DetachedColumn(_infos[iinfo].Name, _infos[iinfo].OutputType, builder.GetMetadata());
+                    builder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, getter);
+                    result[iinfo] = new DataViewSchema.DetachedColumn(_infos[iinfo].Name, _infos[iinfo].OutputType, builder.GetMetadata());
                 }
                 return result;
             }
@@ -213,18 +212,18 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Returns the isNA predicate for the respective type.
             /// </summary>
-            private static Delegate GetIsNADelegate(ColumnType type)
+            private static Delegate GetIsNADelegate(DataViewType type)
             {
-                Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
+                Func<DataViewType, Delegate> func = GetIsNADelegate<int>;
                 return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
             }
 
-            private static Delegate GetIsNADelegate<T>(ColumnType type)
+            private static Delegate GetIsNADelegate<T>(DataViewType type)
             {
                 return Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -238,10 +237,10 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for single valued inputs.
             /// </summary>
-            private ValueGetter<bool> ComposeGetterOne(Row input, int iinfo)
+            private ValueGetter<bool> ComposeGetterOne(DataViewRow input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].InputType.RawType, input, iinfo);
 
-            private ValueGetter<bool> ComposeGetterOne<T>(Row input, int iinfo)
+            private ValueGetter<bool> ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
@@ -260,10 +259,10 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for vector valued inputs.
             /// </summary>
-            private ValueGetter<VBuffer<bool>> ComposeGetterVec(Row input, int iinfo)
+            private ValueGetter<VBuffer<bool>> ComposeGetterVec(DataViewRow input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].InputType.GetItemType().RawType, input, iinfo);
 
-            private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(Row input, int iinfo)
+            private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
@@ -469,10 +468,10 @@ namespace Microsoft.ML.Transforms
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
-                ColumnType type = !(col.ItemType is VectorType vectorType) ?
-                    (ColumnType)BoolType.Instance :
-                    new VectorType(BoolType.Instance, vectorType);
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
+                DataViewType type = !(col.ItemType is VectorType vectorType) ?
+                    (DataViewType)BooleanDataViewType.Instance :
+                    new VectorType(BooleanDataViewType.Instance, vectorType);
                 result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

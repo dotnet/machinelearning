@@ -84,8 +84,8 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = reader.Read(_sentimentDataPath);
 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                    new SdcaNonCalibratedBinaryTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
@@ -113,8 +113,8 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(_breastCancerDataPath);
 
-            var pipeline = env.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                new SdcaBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f, });
+            var pipeline = env.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f, });
 
             var model = pipeline.Fit(data);
 

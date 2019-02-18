@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -281,7 +280,7 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -298,12 +297,12 @@ namespace Microsoft.ML.Transforms.Text
                 ctx.Writer.Write((uint)_modelKind);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var colType = inputSchema[srcCol].Type;
-            if (!(colType is VectorType vectorType && vectorType.ItemType is TextType))
+            if (!(colType is VectorType vectorType && vectorType.ItemType is TextDataViewType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "Text", inputSchema[srcCol].Type.ToString());
         }
 
@@ -312,7 +311,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly WordEmbeddingsExtractingTransformer _parent;
             private readonly VectorType _outputType;
 
-            public Mapper(WordEmbeddingsExtractingTransformer parent, Schema inputSchema)
+            public Mapper(WordEmbeddingsExtractingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -323,13 +322,13 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     _parent.CheckInputColumn(inputSchema, i, ColMapNewToOld[i]);
                 }
-                _outputType = new VectorType(NumberType.R4, 3 * _parent._currentVocab.Dimension);
+                _outputType = new VectorType(NumberDataViewType.Single, 3 * _parent._currentVocab.Dimension);
             }
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent.ColumnPairs.Select(x => new Schema.DetachedColumn(x.outputColumnName, _outputType, null)).ToArray();
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent.ColumnPairs.Select(x => new DataViewSchema.DetachedColumn(x.outputColumnName, _outputType, null)).ToArray();
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
@@ -539,7 +538,7 @@ namespace Microsoft.ML.Transforms.Text
                 nodeP.AddAttribute("axis", 1);
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -547,14 +546,14 @@ namespace Microsoft.ML.Transforms.Text
                 return GetGetterVec(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<float>> GetGetterVec(Row input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetGetterVec(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var colType = input.Schema[ColMapNewToOld[iinfo]].Type;
                 Host.Assert(colType is VectorType);
-                Host.Assert(colType.GetItemType() is TextType);
+                Host.Assert(colType.GetItemType() is TextDataViewType);
 
                 var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
@@ -873,10 +872,10 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (!(col.ItemType is TextType) || (col.Kind != SchemaShape.Column.VectorKind.VariableVector && col.Kind != SchemaShape.Column.VectorKind.Vector))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new VectorType(TextType.Instance).ToString(), col.GetTypeString());
+                if (!(col.ItemType is TextDataViewType) || (col.Kind != SchemaShape.Column.VectorKind.VariableVector && col.Kind != SchemaShape.Column.VectorKind.Vector))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new VectorType(TextDataViewType.Instance).ToString(), col.GetTypeString());
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(result.Values);

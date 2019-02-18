@@ -74,11 +74,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         // extern size_t TF_StringEncode (const char *src, size_t src_len, char *dst, size_t dst_len, TF_Status *status);
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe size_t TF_StringEncode(byte* src, size_t src_len, sbyte* dst, size_t dst_len, TF_Status status);
+        private static extern unsafe size_t TF_StringEncode(byte* src, size_t src_len, byte* dst, size_t dst_len, TF_Status status);
 
         // extern size_t TF_StringDecode (const char *src, size_t src_len, const char **dst, size_t *dst_len, TF_Status *status);
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe size_t TF_StringDecode(sbyte* src, size_t src_len, sbyte** dst, size_t* dst_len, TF_Status status);
+        private static extern unsafe size_t TF_StringDecode(byte* src, size_t src_len, byte** dst, size_t* dst_len, TF_Status status);
 
         // extern size_t TF_StringEncodedSize (size_t len);
         [DllImport(NativeBinding.TensorFlowLibrary)]
@@ -422,10 +422,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static unsafe TFTensor CreateString(byte[] buffer)
         {
             if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
+                throw Contracts.ExceptEmpty(nameof(buffer));
             //
-            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
-            // TF_StringEncode-encoded bytes.
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
+            // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
             //
             var size = TF_StringEncodedSize((UIntPtr)buffer.Length);
             IntPtr handle = TF_AllocateTensor(TFDataType.String, IntPtr.Zero, 0, (UIntPtr)((ulong)size + 8));
@@ -437,13 +437,111 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 fixed (byte* src = &buffer[0])
                 {
-                    TF_StringEncode(src, (UIntPtr)buffer.Length, (sbyte*)(dst + 8), size, status.handle);
+                    TF_StringEncode(src, (UIntPtr)buffer.Length, (byte*)(dst + 8), size, status.handle);
                     var ok = status.StatusCode == TFCode.Ok;
                     if (!ok)
                         return null;
                 }
             }
             return new TFTensor(handle);
+        }
+
+        internal static unsafe byte[] DecodeString(TFTensor tensor)
+        {
+            if (tensor == null)
+                throw Contracts.ExceptEmpty(nameof(tensor));
+            //
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
+            // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
+            //
+            var src = TF_TensorData(tensor.handle);
+            using (var status = new TFStatus())
+            {
+                IntPtr dst = IntPtr.Zero;
+                UIntPtr dst_len = UIntPtr.Zero;
+                TF_StringDecode((byte*)(src + 8), tensor.TensorByteSize - 8, (byte**)&dst, &dst_len, status.handle);
+                var ok = status.StatusCode == TFCode.Ok;
+                if (!ok)
+                    return null;
+                var buffer = new byte[(int)dst_len];
+                Marshal.Copy(dst, buffer, 0, buffer.Length);
+                return buffer;
+            }
+        }
+
+        internal static unsafe TFTensor CreateStringTensor(byte[][] buffer, TFShape shape)
+        {
+            if (buffer == null)
+                throw Contracts.ExceptEmpty(nameof(buffer));
+            //
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
+            // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
+            //
+            int size = 0;
+            foreach(var b in buffer)
+            {
+                size += (int)TF_StringEncodedSize((UIntPtr)b.Length);
+            }
+            int totalSize = size + buffer.Length * 8;
+            ulong offset = 0;
+            IntPtr handle = TF_AllocateTensor(TFDataType.String, shape.dims, shape.dims.Length, (UIntPtr)totalSize);
+
+            // Clear offset table
+            IntPtr pOffset = TF_TensorData(handle);
+            IntPtr dst = pOffset + buffer.Length * 8;
+            IntPtr dstLimit = pOffset + totalSize;
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                Marshal.WriteInt64(pOffset, (long)offset);
+                using (var status = new TFStatus())
+                {
+                    fixed (byte* src = &buffer[i][0])
+                    {
+                        var written = TF_StringEncode(src, (UIntPtr)buffer[i].Length, (byte*)dst, (size_t)(dstLimit.ToInt64() - dst.ToInt64()), status.handle);
+                        var ok = status.StatusCode == TFCode.Ok;
+                        if (!ok)
+                            return null;
+                        pOffset += 8;
+                        dst += (int)written;
+                        offset += written.ToUInt64();
+                    }
+                }
+            }
+            return new TFTensor(handle);
+        }
+
+        internal static unsafe byte[][] DecodeStringTensor(TFTensor tensor)
+        {
+            if (tensor == null)
+                throw Contracts.ExceptEmpty(nameof(tensor));
+            //
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by TF_StringEncode-encoded bytes.
+            // [offset1, offset2,...,offsetn, s1size, s1bytes, s2size, s2bytes,...,snsize,snbytes]
+            //
+            long size = 1;
+            foreach (var s in tensor.Shape)
+                size *= s;
+
+            var buffer = new byte[size][];
+            var src = TF_TensorData(tensor.handle);
+            var srcLen = (IntPtr)(src.ToInt64() + (long)tensor.TensorByteSize);
+            src += (int)(size * 8);
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                using (var status = new TFStatus())
+                {
+                    IntPtr dst = IntPtr.Zero;
+                    UIntPtr dstLen = UIntPtr.Zero;
+                    var read = TF_StringDecode((byte*)src, (size_t)(srcLen.ToInt64() - src.ToInt64()), (byte**)&dst, &dstLen, status.handle);
+                    var ok = status.StatusCode == TFCode.Ok;
+                    if (!ok)
+                        return null;
+                    buffer[i] = new byte[(int)dstLen];
+                    Marshal.Copy(dst, buffer[i], 0, buffer[i].Length);
+                    src += (int)read;
+                }
+            }
+            return buffer;
         }
 
         // Convenience function to factor out the setup of a new tensor from an array
@@ -466,7 +564,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static IntPtr SetupTensor(TFDataType dt, TFShape shape, Array data, int start, int count, int size)
         {
             if (shape == null)
-                throw new ArgumentNullException(nameof(shape));
+                throw Contracts.ExceptEmpty(nameof(shape));
             return SetupTensor(dt, shape.dims, data, start, count, size);
         }
 
@@ -474,7 +572,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         internal static IntPtr SetupTensor(TFDataType dt, long[] dims, Array data, int start, int count, int size)
         {
             if (start < 0 || start > data.Length - count)
-                throw new ArgumentException("start + count > Array size");
+                throw Contracts.ExceptParam(nameof(start), "start + count > Array size");
 
             var dataHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
 
@@ -498,7 +596,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public TFTensor(TFDataType dataType, long[] dims, IntPtr data, size_t dataSize, Deallocator deallocator, IntPtr deallocatorData) : base(IntPtr.Zero)
         {
             if (dims == null)
-                throw new ArgumentNullException("dims");
+                throw Contracts.ExceptEmpty(nameof(dims));
 
             handle = TF_NewTensor(dataType, dims, dims.Length, data, dataSize, deallocator, deallocatorData);
 
@@ -528,7 +626,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public TFTensor(TFDataType dataType, long[] dims, int size) : base(IntPtr.Zero)
         {
             if (dims == null)
-                throw new ArgumentNullException("dims");
+                throw Contracts.ExceptEmpty(nameof(dims));
             handle = TF_AllocateTensor(dataType, dims, dims.Length, (size_t)size);
         }
 
@@ -649,7 +747,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.UInt64:
                     return typeof(ulong);
                 case TFDataType.String:
-                    throw new NotSupportedException();
+                    return typeof(ReadOnlyMemory<char>);
                 case TFDataType.Bool:
                     return typeof(bool);
                 case TFDataType.Complex128:
@@ -660,11 +758,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         /// <summary>
-		/// Converts a system type to a <see cref="TFDataType"/>.
-		/// </summary>
-		/// <param name="type">The system type to be converted.</param>
-		/// <returns>The <see cref="TFDataType"/> corresponding to the given type.</returns>
-		public static TFDataType TensorTypeFromType(Type type)
+        /// Converts a system type to a <see cref="TFDataType"/>.
+        /// </summary>
+        /// <param name="type">The system type to be converted.</param>
+        /// <returns>The <see cref="TFDataType"/> corresponding to the given type.</returns>
+        public static TFDataType TensorTypeFromType(Type type)
         {
             if (type == typeof(float))
                 return TFDataType.Float;
@@ -693,7 +791,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             if (type == typeof(Complex))
                 return TFDataType.Complex128;
 
-            throw new ArgumentOutOfRangeException(nameof(type), $"The given type could not be mapped to an existing {nameof(TFDataType)}.");
+            throw Contracts.ExceptParam(nameof(type), $"The given type could not be mapped to an existing {nameof(TFDataType)}.");
         }
 
         private static unsafe object FetchSimple(TFDataType dt, IntPtr data)
@@ -721,7 +819,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.UInt64:
                     return *(ulong*)data;
                 case TFDataType.String:
-                    throw new NotImplementedException();
+                    throw Contracts.ExceptNotImpl("String decoding is not implemented.");
                 case TFDataType.Bool:
                     return *(bool*)data;
                 case TFDataType.Complex128:
@@ -793,9 +891,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return;
                 case TFDataType.String:
                     // need to return an array of TFStrings []
-                    throw new NotImplementedException();
+                    throw Contracts.ExceptNotImpl("String decoding is not implemented.");
                 default:
-                    throw new NotImplementedException();
+                    throw Contracts.ExceptNotImpl("{0} decoding not implemented.", dt);
             }
         }
 
@@ -848,9 +946,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                             data += sizeof(Complex);
                             break;
                         case TFDataType.String:
-                            throw new NotImplementedException("String decoding not implemented for tensor vecotrs yet");
+                            throw Contracts.ExceptNotImpl("String decoding not implemented for tensor vectors yet");
                         default:
-                            throw new NotImplementedException();
+                            throw Contracts.ExceptNotImpl("{0} decoding not implemented for tensor vectors yet", dt);
                     }
             }
             else
@@ -895,7 +993,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             for (int i = 0; i < shape.Length; i++)
             {
                 if (shape[i] > Int32.MaxValue)
-                    throw new ArgumentOutOfRangeException("Shape can not be longer than 32 bits");
+                    throw Contracts.ExceptNotSupp("Shape can not be longer than 32 bits");
             }
             Copy(target, dt, shape, idx, 0, ref data);
         }
@@ -950,9 +1048,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                             data += sizeof(Complex);
                             break;
                         case TFDataType.String:
-                            throw new NotImplementedException("String decoding not implemented for tensor vecotrs yet");
+                            throw Contracts.ExceptNotImpl("String decoding not implemented for tensor vectors yet");
                         default:
-                            throw new NotImplementedException();
+                            throw Contracts.ExceptNotImpl("{0} decoding not implemented for tensor vectors yet", dt);
                     }
                 }
             }

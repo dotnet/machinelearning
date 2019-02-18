@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -582,9 +581,9 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle => View.CanShuffle;
 
-        public Schema Schema => View.Schema;
+        public DataViewSchema Schema => View.Schema;
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             _host.AssertValue(columnsNeeded);
@@ -592,7 +591,7 @@ namespace Microsoft.ML.Data
             return View.GetRowCursor(columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
             _host.AssertValue(columnsNeeded);

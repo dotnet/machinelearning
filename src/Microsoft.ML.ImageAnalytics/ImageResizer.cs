@@ -10,7 +10,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.ImageAnalytics;
@@ -38,8 +37,8 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="ITransformer.Transform(IDataView)"/> resizes the images to a new height and width.
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, string, int, int, string, ImageResizingEstimator.ResizingKind, ImageResizingEstimator.Anchor)" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ImageResizingEstimator.ResizingKind, ImageResizingEstimator.Anchor)" />
     /// <seealso cref = "ImageEstimatorsCatalog" />
     /// </remarks >
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
@@ -232,7 +231,7 @@ namespace Microsoft.ML.ImageAnalytics
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -264,9 +263,9 @@ namespace Microsoft.ML.ImageAnalytics
             }
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             if (!(inputSchema[srcCol].Type is ImageType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].InputColumnName, "image", inputSchema[srcCol].Type.ToString());
@@ -276,16 +275,16 @@ namespace Microsoft.ML.ImageAnalytics
         {
             private readonly ImageResizingTransformer _parent;
 
-            public Mapper(ImageResizingTransformer parent, Schema inputSchema)
+            public Mapper(ImageResizingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-                => _parent._columns.Select(x => new Schema.DetachedColumn(x.Name, x.Type, null)).ToArray();
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent._columns.Select(x => new DataViewSchema.DetachedColumn(x.Name, x.Type, null)).ToArray();
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -416,8 +415,8 @@ namespace Microsoft.ML.ImageAnalytics
     /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageResizingTransformer"/>.
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
-    /// <seealso cref = "ImageEstimatorsCatalog.Resize(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnInfo[])" />
+    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)" />
     /// <seealso cref = "ImageEstimatorsCatalog" />
     /// </remarks >
     public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizingTransformer>
@@ -482,8 +481,8 @@ namespace Microsoft.ML.ImageAnalytics
             /// <summary>If <see cref="Resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</summary>
             public readonly Anchor Anchor;
 
-            /// <summary>The type of column, <see cref="ColumnType"/>.</summary>
-            public readonly ColumnType Type;
+            /// <summary>The type of column, <see cref="DataViewType"/>.</summary>
+            public readonly DataViewType Type;
 
             /// <summary>
             /// Describes how the transformer handles one image resize column pair.

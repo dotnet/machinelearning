@@ -19,7 +19,7 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                         {
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                         {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Scenarios
 
             // Pipeline
             var ap = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
-                    new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null });
+                    new AveragedPerceptronTrainer.Options { Shuffle = true });
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(ap, useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                         {
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Scenarios
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1);
-            var reader = new TextLoader(mlContext, new TextLoader.Arguments()
+            var reader = new TextLoader(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                         {
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Scenarios
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumIterations = 100 }),
+                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumberOfIterations = 100 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

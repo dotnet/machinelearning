@@ -361,11 +361,11 @@ namespace Microsoft.ML.Data
             public readonly struct FoldResult
             {
                 public readonly Dictionary<string, IDataView> Metrics;
-                public readonly Schema ScoreSchema;
+                public readonly DataViewSchema ScoreSchema;
                 public readonly RoleMappedData PerInstanceResults;
                 public readonly RoleMappedSchema TrainSchema;
 
-                public FoldResult(Dictionary<string, IDataView> metrics, Schema scoreSchema, RoleMappedData perInstance, RoleMappedSchema trainSchema)
+                public FoldResult(Dictionary<string, IDataView> metrics, DataViewSchema scoreSchema, RoleMappedData perInstance, RoleMappedSchema trainSchema)
                 {
                     Metrics = metrics;
                     ScoreSchema = scoreSchema;

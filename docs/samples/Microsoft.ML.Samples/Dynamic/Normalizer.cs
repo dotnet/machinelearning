@@ -6,9 +6,9 @@ using Microsoft.ML.Transforms.Normalizers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class NormalizerExample
+    public static class NormalizerTransform
     {
-        public static void Normalizer()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

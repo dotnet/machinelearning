@@ -170,9 +170,9 @@ namespace Microsoft.ML.Data
                             {
                                 var nameOfMetric = "TLC_" + cursor.Schema[currentIndex].Name;
                                 var type = cursor.Schema[currentIndex].Type;
-                                if (type is NumberType)
+                                if (type is NumberDataViewType)
                                 {
-                                    var getter = RowCursorUtils.GetGetterAs<double>(NumberType.R8, cursor, currentIndex);
+                                    var getter = RowCursorUtils.GetGetterAs<double>(NumberDataViewType.Double, cursor, currentIndex);
                                     double metricValue = 0;
                                     getter(ref metricValue);
                                     if (averageMetric.ContainsKey(nameOfMetric))
@@ -364,11 +364,11 @@ namespace Microsoft.ML.Data
                         var isBinary = string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase);
                         var isTranspose = string.Equals(ext, ".tdv", StringComparison.OrdinalIgnoreCase);
 
-                        return isText ? TextLoader.Create(Host, new TextLoader.Arguments(), fileSource) :
+                        return isText ? TextLoader.Create(Host, new TextLoader.Options(), fileSource) :
                                isBinary ? new BinaryLoader(Host, new BinaryLoader.Arguments(), fileSource) :
                                isTranspose ? new TransposeLoader(Host, new TransposeLoader.Arguments(), fileSource) :
                                defaultLoaderFactory != null ? defaultLoaderFactory(Host, fileSource) :
-                               TextLoader.Create(Host, new TextLoader.Arguments(), fileSource);
+                               TextLoader.Create(Host, new TextLoader.Options(), fileSource);
                     }
                     else
                     {

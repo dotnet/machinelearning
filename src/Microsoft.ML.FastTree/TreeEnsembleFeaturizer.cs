@@ -74,9 +74,9 @@ namespace Microsoft.ML.Data
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public Schema InputSchema => InputRoleMappedSchema.Schema;
-            public Schema OutputSchema { get; }
-            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
+            public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
+            public DataViewSchema OutputSchema { get; }
+            private DataViewSchema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
             public ISchemaBindableMapper Bindable => _owner;
 
@@ -94,10 +94,10 @@ namespace Microsoft.ML.Data
                 InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
-                var treeValueType = new VectorType(NumberType.Float, owner._ensemble.TrainedEnsemble.NumTrees);
+                var treeValueType = new VectorType(NumberDataViewType.Single, owner._ensemble.TrainedEnsemble.NumTrees);
                 // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example
                 // ends up in all the trees in the ensemble.
-                var leafIdType = new VectorType(NumberType.Float, owner._totalLeafCount);
+                var leafIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount);
                 // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on
                 // the paths of the example in all the trees in the ensemble.
                 // The total number of nodes in a binary tree is equal to the number of internal nodes + the number of leaf nodes,
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Data
                 // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1,
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
-                var pathIdType = new VectorType(NumberType.Float, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
+                var pathIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
 
                 // Start creating output schema with types derived above.
                 var schemaBuilder = new SchemaBuilder();
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Data
                 var leafIdMetadataBuilder = new MetadataBuilder();
                 leafIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetLeafSlotNames);
-                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => value = true);
+                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
                 // Add the column of leaves' IDs where the input example reaches.
                 schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.GetMetadata());
 
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Data
                 var pathIdMetadataBuilder = new MetadataBuilder();
                 pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetPathSlotNames);
-                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => value = true);
+                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
                 // Add the column of encoded paths which the input example passes.
                 schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.GetMetadata());
 
@@ -143,14 +143,14 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(OutputSchema[OutputColumnNames.Paths].Index == PathIdsColumnId);
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate)
+            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
             {
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
                 return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
             }
 
-            private Delegate[] CreateGetters(Row input, Func<int, bool> predicate)
+            private Delegate[] CreateGetters(DataViewRow input, Func<int, bool> predicate)
             {
                 _ectx.AssertValue(input);
                 _ectx.AssertValue(predicate);
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Data
             private sealed class State
             {
                 private readonly IExceptionContext _ectx;
-                private readonly Row _input;
+                private readonly DataViewRow _input;
                 private readonly TreeEnsembleModelParameters _ensemble;
                 private readonly int _numTrees;
                 private readonly int _numLeaves;
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Data
                 private long _cachedLeafBuilderPosition;
                 private long _cachedPathBuilderPosition;
 
-                public State(IExceptionContext ectx, Row input, TreeEnsembleModelParameters ensemble, int numLeaves, int featureIndex)
+                public State(IExceptionContext ectx, DataViewRow input, TreeEnsembleModelParameters ensemble, int numLeaves, int featureIndex)
                 {
                     Contracts.AssertValue(ectx);
                     _ectx = ectx;
@@ -714,7 +714,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            return LambdaColumnMapper.Create(env, "Key to Float Mapper", input, col, col, type, NumberType.Float, mapper);
+            return LambdaColumnMapper.Create(env, "Key to Float Mapper", input, col, col, type, NumberDataViewType.Single, mapper);
         }
 
         private static IDataView AppendLabelTransform(IHostEnvironment env, IChannel ch, IDataView input, string labelName, int labelPermutationSeed)
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Data
             if (!col.HasValue)
                 throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
 
-            ColumnType labelType = col.Value.Type;
+            DataViewType labelType = col.Value.Type;
             if (!(labelType is KeyType))
             {
                 if (labelPermutationSeed != 0)

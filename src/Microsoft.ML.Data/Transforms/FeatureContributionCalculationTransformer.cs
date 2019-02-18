@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
@@ -202,10 +201,10 @@ namespace Microsoft.ML.Data
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
             => new Mapper(this, schema);
 
         private class Mapper : OneToOneMapperBase
@@ -215,7 +214,7 @@ namespace Microsoft.ML.Data
             private readonly int _featureColumnIndex;
             private readonly VectorType _featureColumnType;
 
-            public Mapper(FeatureContributionCalculatingTransformer parent, Schema schema)
+            public Mapper(FeatureContributionCalculatingTransformer parent, DataViewSchema schema)
                 : base(parent.Host, parent, schema)
             {
                 _parent = parent;
@@ -224,7 +223,7 @@ namespace Microsoft.ML.Data
                 if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].inputColumnName, out _featureColumnIndex))
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
                 _featureColumnType = schema[_featureColumnIndex].Type as VectorType;
-                if (_featureColumnType == null || _featureColumnType.ItemType != NumberType.R4)
+                if (_featureColumnType == null || _featureColumnType.ItemType != NumberDataViewType.Single)
                     throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of float.", _featureColumnType.ItemType.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
@@ -235,15 +234,15 @@ namespace Microsoft.ML.Data
 
             // The FeatureContributionCalculatingTransformer produces two sets of columns: the columns obtained from scoring and the FeatureContribution column.
             // If the argument stringify is true, the type of the FeatureContribution column is string, otherwise it is a vector of float.
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
                 // Add FeatureContributions column.
                 var builder = new MetadataBuilder();
                 builder.Add(InputSchema[_featureColumnIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
-                return new[] { new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _featureColumnType.Size), builder.GetMetadata()) };
+                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberDataViewType.Single, _featureColumnType.Size), builder.GetMetadata()) };
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> active, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> active, out Action disposer)
             {
                 disposer = null;
                 Contracts.CheckValue(input, nameof(input));
@@ -253,7 +252,7 @@ namespace Microsoft.ML.Data
                 return Utils.MarshalInvoke(GetValueGetter<int>, _featureColumnType.RawType, input, ColMapNewToOld[iinfo]);
             }
 
-            private Delegate GetValueGetter<TSrc>(Row input, int colSrc)
+            private Delegate GetValueGetter<TSrc>(DataViewRow input, int colSrc)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(_parent._predictor);
@@ -323,7 +322,7 @@ namespace Microsoft.ML.Data
             if (!inputSchema.TryFindColumn(_featureColumn, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
             // Check that the feature column is of the correct type: a vector of float.
-            if (col.ItemType != NumberType.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
+            if (col.ItemType != NumberDataViewType.Single || col.Kind != SchemaShape.Column.VectorKind.Vector)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "column", _featureColumn, "vector of float.", col.GetTypeString());
 
             // Build output schemaShape.

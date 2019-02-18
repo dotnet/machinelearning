@@ -4,8 +4,8 @@
 
 using System;
 using System.Globalization;
+using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
@@ -16,32 +16,51 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.Online
 {
-
-    public abstract class OnlineLinearArguments : LearnerInputBaseWithLabel
+    /// <summary>
+    /// Arguments class for online linear trainers.
+    /// </summary>
+    public abstract class OnlineLinearOptions : LearnerInputBaseWithLabel
     {
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter", SortOrder = 50)]
+        /// <summary>
+        /// Number of passes through the training dataset.
+        /// </summary>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter, numIterations", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
         [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
-        public int NumIterations = OnlineDefaultArgs.NumIterations;
+        public int NumberOfIterations = OnlineDefault.NumIterations;
 
+        /// <summary>
+        /// Initial weights and bias, comma-separated.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Initial Weights and bias, comma-separated", ShortName = "initweights")]
         [TGUI(NoSweep = true)]
-        public string InitialWeights;
+        internal string InitialWeights;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts", SortOrder = 140)]
+        /// <summary>
+        /// Initial weights and bias scale.
+        /// </summary>
+        /// <value>
+        /// This property is only used if the provided value is positive and <see cref="InitialWeights"/> is not specified.
+        /// The weights and bias will be randomly selected from InitialWeights * [-0.5,0.5] interval with uniform distribution.
+        /// </value>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts, initWtsDiameter", SortOrder = 140)]
         [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
         [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
-        public float InitWtsDiameter = 0;
+        public float InitialWeightsDiameter = 0;
 
+        /// <summary>
+        /// Determines whether to shuffle data for each training iteration.
+        /// </summary>
+        /// <value>
+        /// <see langword="true" /> to shuffle data for each training iteration; otherwise, <see langword="false" />.
+        /// Default is <see langword="true" />.
+        /// </value>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf")]
         [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
         public bool Shuffle = true;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Size of cache when trained in Scope", ShortName = "cache")]
-        public int StreamingCacheSize = 1000000;
-
         [BestFriend]
-        internal class OnlineDefaultArgs
+        internal class OnlineDefault
         {
             public const int NumIterations = 1;
         }
@@ -51,8 +70,8 @@ namespace Microsoft.ML.Trainers.Online
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class
     {
-        protected readonly OnlineLinearArguments Args;
-        protected readonly string Name;
+        private protected readonly OnlineLinearOptions OnlineLinearTrainerOptions;
+        private protected readonly string Name;
 
         /// <summary>
         /// An object to hold the mutable updatable state for the online linear trainers. Specific algorithms should subclass
@@ -117,10 +136,10 @@ namespace Microsoft.ML.Trainers.Online
                     VBufferUtils.Densify(ref Weights);
                     Bias = predictor.Bias;
                 }
-                else if (!string.IsNullOrWhiteSpace(parent.Args.InitialWeights))
+                else if (!string.IsNullOrWhiteSpace(parent.OnlineLinearTrainerOptions.InitialWeights))
                 {
-                    ch.Info("Initializing weights and bias to " + parent.Args.InitialWeights);
-                    string[] weightStr = parent.Args.InitialWeights.Split(',');
+                    ch.Info("Initializing weights and bias to " + parent.OnlineLinearTrainerOptions.InitialWeights);
+                    string[] weightStr = parent.OnlineLinearTrainerOptions.InitialWeights.Split(',');
                     if (weightStr.Length != numFeatures + 1)
                     {
                         throw ch.Except(
@@ -134,13 +153,13 @@ namespace Microsoft.ML.Trainers.Online
                     Weights = new VBuffer<float>(numFeatures, weightValues);
                     Bias = float.Parse(weightStr[numFeatures], CultureInfo.InvariantCulture);
                 }
-                else if (parent.Args.InitWtsDiameter > 0)
+                else if (parent.OnlineLinearTrainerOptions.InitialWeightsDiameter > 0)
                 {
                     var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        weightValues[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
+                        weightValues[i] = parent.OnlineLinearTrainerOptions.InitialWeightsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
                     Weights = new VBuffer<float>(numFeatures, weightValues);
-                    Bias = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
+                    Bias = parent.OnlineLinearTrainerOptions.InitialWeightsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
                 }
                 else if (numFeatures <= 1000)
                     Weights = VBufferUtils.CreateDense<float>(numFeatures);
@@ -227,22 +246,21 @@ namespace Microsoft.ML.Trainers.Online
         private const float _maxWeightScale = 1 << 10; // Exponent ranges 127 to -128, tolerate 10 being cut off that.
         private const float _minWeightScale = 1 / _maxWeightScale;
 
-        protected const string UserErrorPositive = "must be positive";
-        protected const string UserErrorNonNegative = "must be non-negative";
+        private protected const string UserErrorPositive = "must be positive";
+        private protected const string UserErrorNonNegative = "must be non-negative";
 
         public override TrainerInfo Info { get; }
 
-        protected virtual bool NeedCalibration => false;
+        private protected virtual bool NeedCalibration => false;
 
-        private protected OnlineLinearTrainer(OnlineLinearArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.InitialWeights))
+        private protected OnlineLinearTrainer(OnlineLinearOptions options, IHostEnvironment env, string name, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(options.InitialWeights))
         {
-            Contracts.CheckValue(args, nameof(args));
-            Contracts.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), UserErrorPositive);
-            Contracts.CheckUserArg(args.InitWtsDiameter >= 0, nameof(args.InitWtsDiameter), UserErrorNonNegative);
-            Contracts.CheckUserArg(args.StreamingCacheSize > 0, nameof(args.StreamingCacheSize), UserErrorPositive);
+            Contracts.CheckValue(options, nameof(options));
+            Contracts.CheckUserArg(options.NumberOfIterations > 0, nameof(options.NumberOfIterations), UserErrorPositive);
+            Contracts.CheckUserArg(options.InitialWeightsDiameter >= 0, nameof(options.InitialWeightsDiameter), UserErrorNonNegative);
 
-            Args = args;
+            OnlineLinearTrainerOptions = options;
             Name = name;
             // REVIEW: Caching could be false for one iteration, if we got around the whole shuffling issue.
             Info = new TrainerInfo(calibration: NeedCalibration, supportIncrementalTrain: true);
@@ -255,8 +273,6 @@ namespace Microsoft.ML.Trainers.Online
 
             if (initPredictor is LinearModelParameters initLinearPred)
                 initLinearPred = (LinearModelParameters)initPredictor;
-            else if (initPredictor is CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> calibrated)
-                initLinearPred = calibrated.SubModel;
             else
             {
                 initLinearPred = null;
@@ -281,11 +297,17 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
+        /// <summary>
+        /// Continues the training of a <see cref="OnlineLinearTrainer{TTransformer, TModel}"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="ITransformer"/>.
+        /// </summary>
+        public TTransformer Fit(IDataView trainData, LinearModelParameters modelParameters)
+            => TrainTransformer(trainData, initPredictor: modelParameters);
+
         private protected abstract void CheckLabels(RoleMappedData data);
 
         private void TrainCore(IChannel ch, RoleMappedData data, TrainStateBase state)
         {
-            bool shuffle = Args.Shuffle;
+            bool shuffle = OnlineLinearTrainerOptions.Shuffle;
             if (shuffle && !data.Data.CanShuffle)
             {
                 ch.Warning("Training data does not support shuffling, so ignoring request to shuffle");
@@ -299,7 +321,7 @@ namespace Microsoft.ML.Trainers.Online
 
             var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             long numBad = 0;
-            while (state.Iteration < Args.NumIterations)
+            while (state.Iteration < OnlineLinearTrainerOptions.NumberOfIterations)
             {
                 state.BeginIteration(ch);
 
@@ -317,7 +339,7 @@ namespace Microsoft.ML.Trainers.Online
             {
                 ch.Warning(
                     "Skipped {0} instances with missing features during training (over {1} iterations; {2} inst/iter)",
-                    numBad, Args.NumIterations, numBad / Args.NumIterations);
+                    numBad, OnlineLinearTrainerOptions.NumberOfIterations, numBad / OnlineLinearTrainerOptions.NumberOfIterations);
             }
         }
 

@@ -14,7 +14,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// The standard vector type.
     /// </summary>
-    public sealed class VectorType : StructuredType
+    public sealed class VectorType : StructuredDataViewType
     {
         /// <summary>
         /// The dimensions. This will always have at least one item. All values will be non-negative.
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="itemType">The type of the items contained in the vector.</param>
         /// <param name="size">The size of the single dimension.</param>
-        public VectorType(PrimitiveType itemType, int size = 0)
+        public VectorType(PrimitiveDataViewType itemType, int size = 0)
             : base(GetRawType(itemType))
         {
             Contracts.CheckParam(size >= 0, nameof(size));
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Data
         /// <param name="dimensions">The dimensions. Note that, like <see cref="Dimensions"/>, must be non-empty, with all
         /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
         /// multiplying all these values together must not overflow <see cref="int"/>.</param>
-        public VectorType(PrimitiveType itemType, params int[] dimensions)
+        public VectorType(PrimitiveDataViewType itemType, params int[] dimensions)
             : base(GetRawType(itemType))
         {
             Contracts.CheckParam(Utils.Size(dimensions) > 0, nameof(dimensions));
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Data
         /// Creates a <see cref="VectorType"/> whose dimensionality information is the given <paramref name="template"/>'s information.
         /// </summary>
         [BestFriend]
-        internal VectorType(PrimitiveType itemType, VectorType template)
+        internal VectorType(PrimitiveDataViewType itemType, VectorType template)
             : base(GetRawType(itemType))
         {
             Contracts.CheckValue(template, nameof(template));
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
         /// concatenated with the specified <paramref name="dims"/>.
         /// </summary>
         [BestFriend]
-        internal VectorType(PrimitiveType itemType, VectorType template, params int[] dims)
+        internal VectorType(PrimitiveDataViewType itemType, VectorType template, params int[] dims)
             : base(GetRawType(itemType))
         {
             Contracts.CheckValue(template, nameof(template));
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             Size = ComputeSize(Dimensions);
         }
 
-        private static Type GetRawType(PrimitiveType itemType)
+        private static Type GetRawType(PrimitiveDataViewType itemType)
         {
             Contracts.CheckValue(itemType, nameof(itemType));
             return typeof(VBuffer<>).MakeGenericType(itemType.RawType);
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The type of the items stored as values in vectors of this type.
         /// </summary>
-        public PrimitiveType ItemType { get; }
+        public PrimitiveDataViewType ItemType { get; }
 
         /// <summary>
         /// The size of the vector. A value of zero means it is a vector whose size is unknown.
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public int Size { get; }
 
-        public override bool Equals(ColumnType other)
+        public override bool Equals(DataViewType other)
         {
             if (other == this)
                 return true;
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Data
 
         public override bool Equals(object other)
         {
-            return other is ColumnType tmp && Equals(tmp);
+            return other is DataViewType tmp && Equals(tmp);
         }
 
         public override int GetHashCode()

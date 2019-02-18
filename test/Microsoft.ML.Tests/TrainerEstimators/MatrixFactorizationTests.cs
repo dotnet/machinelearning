@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
@@ -39,8 +38,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = matrixColumnIndexColumnName,
                 MatrixRowIndexColumnName = matrixRowIndexColumnName,
                 LabelColumnName = labelColumnName,
-                NumIterations = 3,
-                NumThreads = 1,
+                NumberOfIterations = 3,
+                NumberOfThreads = 1,
                 ApproximationRank = 4,
             };
 
@@ -74,8 +73,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = userColumnName,
                 MatrixRowIndexColumnName = itemColumnName,
                 LabelColumnName = labelColumnName,
-                NumIterations = 3,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 3,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 7,
             };
 
@@ -141,12 +140,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.InRange(metrices.L2, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
 
-            var modelWithValidation = pipeline.Train(data, testData);
+            var modelWithValidation = pipeline.Fit(data, testData);
         }
 
-        private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
+        private TextLoader.Options GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
         {
-            return new TextLoader.Arguments()
+            return new TextLoader.Options()
             {
                 Separator = "\t",
                 HasHeader = true,
@@ -211,8 +210,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
-                NumIterations = 10,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 10,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 32,
             };
 
@@ -301,8 +300,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 ApproximationRank = 32,
                 LearningRate = 0.5,
             };
@@ -422,8 +421,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
                 LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
-                NumIterations = 100,
-                NumThreads = 1, // To eliminate randomness, # of threads must be 1.
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
                 ApproximationRank = 16,
                 Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
@@ -527,6 +526,78 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
             // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
             CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
+        }
+
+        [MatrixFactorizationFact]
+        public void OneClassMatrixFactorizationWithUnseenColumnAndRow()
+        {
+            // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
+            // factorization problem, unspecified matrix elements are all a constant provided by user. If that constant is 0.15,
+            // the following list means a 3-by-2 training matrix with elements:
+            //   (0, 0, 1), (0, 1, 1), (1, 0, 0.15), (1, 1, 0.15), (0, 2, 0.15), (1, 2, 0.15).
+            // because matrix elements at (1, 0), (1, 1), (0, 2), and (1, 2) are not specified. Below is a visualization of the training matrix.
+            //   [1, ?]
+            //   |1, ?| where ? will be set to 0.15 by user when creating the trainer.
+            //   [?, ?]
+            // Note that the second column and the third row are called unseen because they contain no training element (i.e., all its values are "?"s).
+            var dataMatrix = new List<OneClassMatrixElementZeroBased>();
+            dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 1 });
+            dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 1, Value = 1 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = ML.Data.ReadFromEnumerable(dataMatrix);
+
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
+                Lambda = 0.025, // Let's test non-default regularization coefficient.
+                ApproximationRank = 16,
+                Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
+                C = 0.15, // Desired value for matrix elements not specified in the input matrix.
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
+
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
+
+            // Apply the trained model to the training set.
+            var prediction = model.Transform(dataView);
+
+            // Calculate regression matrices for the prediction result.
+            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+
+            // Make sure the prediction error is not too large.
+            Assert.InRange(metrics.L2, 0, 0.0016);
+
+            // Create data for testing.
+            var testDataMatrix = new List<OneClassMatrixElementZeroBasedForScore>();
+            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 0, Score = 0 });
+            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 0, Value = 0, Score = 0 });
+            testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var testDataView = ML.Data.ReadFromEnumerable(testDataMatrix);
+
+            // Apply the trained model to the test data.
+            var testPrediction = model.Transform(testDataView);
+
+            var testResults = mlContext.CreateEnumerable<OneClassMatrixElementZeroBasedForScore>(testPrediction, false).ToList();
+            // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
+            CompareNumbersWithTolerance(0.9823623, testResults[0].Score, digitsOfPrecision: 5);
+            // Negative examples' scores (i.e., examples can not be found in dataMatrix) are closer
+            // to 0.15 (specified by s.C = 0.15 in the trainer) than positive example's score.
+            CompareNumbersWithTolerance(0.05511549, testResults[1].Score, digitsOfPrecision: 5);
+            CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
     }
 }

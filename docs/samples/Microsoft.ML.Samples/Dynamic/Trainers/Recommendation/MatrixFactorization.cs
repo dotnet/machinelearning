@@ -5,10 +5,13 @@ using static Microsoft.ML.SamplesUtils.DatasetUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class MatrixFactorizationExample
+    public static class MatrixFactorization
     {
-        // This example first creates in-memory data and then use it to train a matrix factorization mode with default parameters. Afterward, quality metrics are reported.
-        public static void MatrixFactorization()
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.Recommender/">Microsoft.ML.Recommender</a>.
+        // In this example we will create in-memory data and then use it to train 
+        // a matrix factorization model with default parameters. Afterward, quality metrics are reported.
+
+        public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
@@ -35,13 +38,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // Calculate regression matrices for the prediction result.
             var metrics = mlContext.Recommendation().Evaluate(prediction,
                 label: nameof(MatrixElement.Value), score: nameof(MatrixElementForScore.Score));
-
             // Print out some metrics for checking the model's quality.
-            Console.WriteLine($"L1 - {metrics.L1}"); // 0.17208
-            Console.WriteLine($"L2 - {metrics.L2}"); // 0.04766
-            Console.WriteLine($"LossFunction - {metrics.LossFn}"); // 0.04766
-            Console.WriteLine($"RMS - {metrics.Rms}"); //0.21831
-            Console.WriteLine($"RSquared - {metrics.RSquared}"); // 0.97616
+            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            // L1: 0.17
+            // L2: 0.05
+            // LossFunction: 0.05
+            // RMS: 0.22
+            // RSquared: 0.98
 
             // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it can be anything
             // (here we use Score=0 and it will be overwritten by the true prediction). If any of row and column indexes are out-of-range

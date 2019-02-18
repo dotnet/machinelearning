@@ -7,27 +7,27 @@ using Microsoft.Data.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Base class for a cursor has an input cursor, but still needs to do work on <see cref="RowCursor.MoveNext"/>.
+    /// Base class for a cursor has an input cursor, but still needs to do work on <see cref="DataViewRowCursor.MoveNext"/>.
     /// </summary>
     [BestFriend]
     internal abstract class LinkedRootCursorBase : RootCursorBase
     {
 
         /// <summary>Gets the input cursor.</summary>
-        protected RowCursor Input { get; }
+        protected DataViewRowCursor Input { get; }
 
         /// <summary>
-        /// Returns the root cursor of the input. It should be used to perform <see cref="RowCursor.MoveNext"/>
+        /// Returns the root cursor of the input. It should be used to perform <see cref="DataViewRowCursor.MoveNext"/>
         /// operations, but with the distinction, as compared to <see cref="SynchronizedCursorBase"/>, that this is not
         /// a simple passthrough, but rather very implementation specific. For example, a common usage of this class is
         /// on filter cursor implemetnations, where how that input cursor is consumed is very implementation specific.
         /// That is why this is <see langword="protected"/>, not <see langword="private"/>.
         /// </summary>
-        protected RowCursor Root { get; }
+        protected DataViewRowCursor Root { get; }
 
         private bool _disposed;
 
-        protected LinkedRootCursorBase(IChannelProvider provider, RowCursor input)
+        protected LinkedRootCursorBase(IChannelProvider provider, DataViewRowCursor input)
             : base(provider)
         {
             Ch.AssertValue(input, nameof(input));

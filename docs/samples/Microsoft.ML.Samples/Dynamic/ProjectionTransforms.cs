@@ -5,9 +5,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ProjectionTransformsExample
+    public static class ProjectionTransforms
     {
-        public static void ProjectionTransforms()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -53,24 +53,6 @@ namespace Microsoft.ML.Samples.Dynamic
             //0.473 0.331 -0.400 -0.699
             //0.181 0.361 -0.335 -0.157
             //0.165 0.117 -0.547  0.014
-
-            // A pipeline to project Features column into white noise vector.
-            var whiteningPipeline = ml.Transforms.Projection.VectorWhiten(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features),  kind: Transforms.Projections.WhiteningKind.Zca);
-            // The transformed (projected) data.
-            transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);
-            // Getting the data of the newly created column, so we can preview it.
-            var whitening = transformedData.GetColumn<VBuffer<float>>(ml, nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features));
-
-            printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), whitening);
-
-            // Features column obtained post-transformation.
-            //
-            //-0.394 -0.318 -0.243 -0.168  0.209  0.358  0.433  0.589  0.873  2.047
-            //-0.034  0.030  0.094  0.159  0.298  0.427  0.492  0.760  1.855 -1.197
-            // 0.099  0.161  0.223  0.286  0.412  0.603  0.665  1.797 -1.265 -0.172
-            // 0.211  0.277  0.344  0.410  0.606  1.267  1.333 -1.340 -0.205  0.065
-            // 0.454  0.523  0.593  0.664  1.886 -0.757 -0.687 -0.022  0.176  0.310
-            // 0.863  0.938  1.016  1.093 -1.326 -0.096 -0.019  0.189  0.330  0.483
 
             // A pipeline to project Features column into L-p normalized vector.
             var lpNormalizePipeline = ml.Transforms.Projection.LpNormalize(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), normKind: Transforms.Projections.LpNormalizingEstimatorBase.NormalizerKind.L1Norm);

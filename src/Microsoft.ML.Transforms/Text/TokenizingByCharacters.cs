@@ -10,7 +10,6 @@ using System.Threading;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
 
         public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema[srcCol].Type;
             if (!TokenizingByCharactersEstimator.IsColumnTypeValid(type))
@@ -178,21 +177,21 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ColumnType _type;
+            private readonly DataViewType _type;
             private readonly TokenizingByCharactersTransformer _parent;
             private readonly bool[] _isSourceVector;
             // Constructed and cached the first time it is needed.
             private volatile string _keyValuesStr;
             private volatile int[] _keyValuesBoundaries;
 
-            public Mapper(TokenizingByCharactersTransformer parent, Schema inputSchema)
+            public Mapper(TokenizingByCharactersTransformer parent, DataViewSchema inputSchema)
              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -203,14 +202,14 @@ namespace Microsoft.ML.Transforms.Text
                     _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type is VectorType;
             }
 
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.GetMetadata());
                 }
                 return result;
             }
@@ -223,7 +222,7 @@ namespace Microsoft.ML.Transforms.Text
                        {
                            GetKeyValues(iinfo, ref dst);
                        };
-                builder.AddKeyValues(CharsCount, TextType.Instance, getter);
+                builder.AddKeyValues(CharsCount, TextDataViewType.Instance, getter);
             }
 
             /// <summary>
@@ -396,7 +395,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -407,7 +406,7 @@ namespace Microsoft.ML.Transforms.Text
                 return MakeGetterVec(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<ushort>> MakeGetterOne(Row input, int iinfo)
+            private ValueGetter<VBuffer<ushort>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
@@ -436,7 +435,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private ValueGetter<VBuffer<ushort>> MakeGetterVec(Row input, int iinfo)
+            private ValueGetter<VBuffer<ushort>> MakeGetterVec(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
 
@@ -554,7 +553,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public const bool UseMarkerCharacters = true;
         }
-        internal static bool IsColumnTypeValid(ColumnType type) => type.GetItemType() is TextType;
+        internal static bool IsColumnTypeValid(DataViewType type) => type.GetItemType() is TextDataViewType;
 
         internal const string ExpectedColumnType = "Text";
 
@@ -601,8 +600,8 @@ namespace Microsoft.ML.Transforms.Text
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, NumberType.U2, true, new SchemaShape(metadata.ToArray()));
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, NumberDataViewType.UInt16, true, new SchemaShape(metadata.ToArray()));
             }
 
             return new SchemaShape(result.Values);

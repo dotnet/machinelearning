@@ -10,7 +10,6 @@ using System.Reflection;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
@@ -185,7 +184,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     metadata.Add(slotMeta);
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var categoricalSlotMeta))
                     metadata.Add(categoricalSlotMeta);
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
                 result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
@@ -337,13 +336,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return impl.GetScores(input, labelColumnName, columns, numBins, colSizes);
         }
 
-        internal static bool IsValidColumnType(ColumnType type)
+        internal static bool IsValidColumnType(DataViewType type)
         {
             // REVIEW: Consider supporting all integer and unsigned types.
             ulong keyCount = type.GetKeyCount();
             return
-                (0 < keyCount && keyCount < Utils.ArrayMaxSize) || type is BoolType ||
-                type == NumberType.R4 || type == NumberType.R8 || type == NumberType.I4;
+                (0 < keyCount && keyCount < Utils.ArrayMaxSize) || type is BooleanDataViewType ||
+                type == NumberDataViewType.Single || type == NumberDataViewType.Double || type == NumberDataViewType.Int32;
         }
 
         private sealed class Impl
@@ -448,34 +447,34 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return scores;
             }
 
-            private void GetLabels(Transposer trans, ColumnType labelType, int labelCol)
+            private void GetLabels(Transposer trans, DataViewType labelType, int labelCol)
             {
                 int min;
                 int lim;
                 var labels = default(VBuffer<int>);
                 // Note: NAs have their own separate bin.
-                if (labelType == NumberType.I4)
+                if (labelType == NumberDataViewType.Int32)
                 {
                     var tmp = default(VBuffer<int>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinInts(in tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
-                else if (labelType == NumberType.R4)
+                else if (labelType == NumberDataViewType.Single)
                 {
                     var tmp = default(VBuffer<Single>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinSingles(in tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
-                else if (labelType == NumberType.R8)
+                else if (labelType == NumberDataViewType.Double)
                 {
                     var tmp = default(VBuffer<Double>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinDoubles(in tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
-                else if (labelType is BoolType)
+                else if (labelType is BooleanDataViewType)
                 {
                     var tmp = default(VBuffer<bool>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
@@ -510,9 +509,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 _labels = labelsEditor.Commit();
             }
 
-            private delegate VBuffer<int> KeyLabelGetter<T>(Transposer trans, int labelCol, ColumnType labeColumnType);
+            private delegate VBuffer<int> KeyLabelGetter<T>(Transposer trans, int labelCol, DataViewType labeColumnType);
 
-            private VBuffer<int> GetKeyLabels<T>(Transposer trans, int labelCol, ColumnType labelColumnType)
+            private VBuffer<int> GetKeyLabels<T>(Transposer trans, int labelCol, DataViewType labelColumnType)
             {
                 var tmp = default(VBuffer<T>);
                 var labels = default(VBuffer<int>);
@@ -530,7 +529,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 // Note: NAs have their own separate bin.
                 var type = trans.Schema[col].Type;
                 var itemType = type.GetItemType();
-                if (itemType == NumberType.I4)
+                if (itemType == NumberDataViewType.Int32)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<int> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -538,7 +537,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinInts(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (itemType == NumberType.R4)
+                if (itemType == NumberDataViewType.Single)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Single> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -546,7 +545,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinSingles(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (itemType == NumberType.R8)
+                if (itemType == NumberDataViewType.Double)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Double> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -554,7 +553,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinDoubles(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (itemType is BoolType)
+                if (itemType is BooleanDataViewType)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<bool> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -566,7 +565,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 }
                 ulong keyCount = itemType.GetKeyCount();
                 Contracts.Assert(keyCount < Utils.ArrayMaxSize);
-                Func<ColumnType, Mapper<int>> del = MakeKeyMapper<int>;
+                Func<DataViewType, Mapper<int>> del = MakeKeyMapper<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
                 ComputeMutualInformationDelegate<int> cmiDel = ComputeMutualInformation;
                 var cmiMethodInfo = cmiDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
@@ -577,7 +576,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             private delegate void Mapper<T>(ref VBuffer<T> src, ref VBuffer<int> dst, out int min, out int lim);
 
-            private static Mapper<T> MakeKeyMapper<T>(ColumnType type)
+            private static Mapper<T> MakeKeyMapper<T>(DataViewType type)
             {
                 ulong keyCount = type.GetKeyCount();
                 Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
@@ -701,9 +700,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// <summary>
             /// Maps from keys to ints.
             /// </summary>
-            private static ValueMapper<VBuffer<T>, VBuffer<int>> BinKeys<T>(ColumnType colType)
+            private static ValueMapper<VBuffer<T>, VBuffer<int>> BinKeys<T>(DataViewType colType)
             {
-                var conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberType.U4, out bool identity);
+                var conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberDataViewType.UInt32, out bool identity);
                 ValueMapper<T, int> mapper;
                 if (identity)
                 {

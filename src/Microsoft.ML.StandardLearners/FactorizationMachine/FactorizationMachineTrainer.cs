@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.FactorizationMachine;
@@ -137,14 +136,14 @@ namespace Microsoft.ML.FactorizationMachine
             FeatureColumns = new SchemaShape.Column[1 + extraColumnLength];
 
             // Treat the default feature column as the 1st field.
-            FeatureColumns[0] = new SchemaShape.Column(options.FeatureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+            FeatureColumns[0] = new SchemaShape.Column(options.FeatureColumn, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             // Add 2nd, 3rd, and other fields from a FFM-specific argument, args.ExtraFeatureColumns.
             for (int i = 0; i < extraColumnLength; i++)
-                FeatureColumns[i + 1] = new SchemaShape.Column(options.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+                FeatureColumns[i + 1] = new SchemaShape.Column(options.ExtraFeatureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            LabelColumn = new SchemaShape.Column(options.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-            WeightColumn = options.WeightColumn.IsExplicit ? new SchemaShape.Column(options.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : default;
+            LabelColumn = new SchemaShape.Column(options.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
+            WeightColumn = options.WeightColumn.IsExplicit ? new SchemaShape.Column(options.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
         }
 
         /// <summary>
@@ -169,10 +168,10 @@ namespace Microsoft.ML.FactorizationMachine
             FeatureColumns = new SchemaShape.Column[featureColumns.Length];
 
             for (int i = 0; i < featureColumns.Length; i++)
-                FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+                FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : default;
+            LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false);
+            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false) : default;
         }
 
         /// <summary>
@@ -327,7 +326,7 @@ namespace Microsoft.ML.FactorizationMachine
                 Host.Assert(!col.IsHidden);
                 if (!(col.Type is VectorType vectorType) ||
                     !vectorType.IsKnownSize ||
-                    vectorType.ItemType != NumberType.Float)
+                    vectorType.ItemType != NumberDataViewType.Single)
                     throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
                 Host.Assert(vectorType.Size > 0);
                 fieldColumnIndexes[f] = col.Index;
@@ -394,7 +393,7 @@ namespace Microsoft.ML.FactorizationMachine
                 using (var cursor = data.Data.GetRowCursor(columns, rng))
                 {
                     var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
-                    var weightGetter = data.Schema.Weight?.Index is int weightIdx ? RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, weightIdx) : null;
+                    var weightGetter = data.Schema.Weight?.Index is int weightIdx ? RowCursorUtils.GetGetterAs<float>(NumberDataViewType.Single, cursor, weightIdx) : null;
                     for (int i = 0; i < fieldCount; i++)
                         featureGetters[i] = cursor.GetGetter<VBuffer<float>>(fieldColumnIndexes[i]);
                     loss = 0;
@@ -483,8 +482,12 @@ namespace Microsoft.ML.FactorizationMachine
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        public FieldAwareFactorizationMachinePredictionTransformer Train(IDataView trainData,
-            IDataView validationData = null, FieldAwareFactorizationMachineModelParameters initialPredictor = null)
+        /// <summary>
+        /// Continues the training of a <see cref="FieldAwareFactorizationMachineTrainer"/> using an already trained <paramref name="modelParameters"/> and/or validation data,
+        /// and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.
+        /// </summary>
+        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView trainData,
+            IDataView validationData = null, FieldAwareFactorizationMachineModelParameters modelParameters = null)
         {
             FieldAwareFactorizationMachineModelParameters model = null;
 
@@ -503,13 +506,14 @@ namespace Microsoft.ML.FactorizationMachine
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                model = TrainCore(ch, pch, trainingData, validData, initialPredictor as FieldAwareFactorizationMachineModelParameters);
+                model = TrainCore(ch, pch, trainingData, validData, modelParameters);
             }
 
             return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, trainData.Schema, FeatureColumns.Select(x => x.Name).ToArray());
         }
 
-        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Train(input);
+        /// <summary> Trains and returns a <see cref="FieldAwareFactorizationMachinePredictionTransformer"/>.</summary>
+        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Fit(input, null, null);
 
         /// <summary>
         /// Schema propagation for transformers. Returns the output schema of the data, if
@@ -555,9 +559,9 @@ namespace Microsoft.ML.FactorizationMachine
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
     }

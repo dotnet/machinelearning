@@ -5,9 +5,9 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class TextTransformExample
+    public static class TextTransform
     {
-        public static void TextTransform()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

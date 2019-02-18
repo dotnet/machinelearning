@@ -285,22 +285,22 @@ namespace Microsoft.ML.FactorizationMachine
 
     public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters>
     {
-        public const string LoaderSignature = "FAFMPredXfer";
+        internal const string LoaderSignature = "FAFMPredXfer";
 
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        public IReadOnlyList<string> FeatureColumns { get; }
+        private IReadOnlyList<string> FeatureColumns { get; }
 
         /// <summary>
         /// The type of the feature columns.
         /// </summary>
-        public IReadOnlyList<ColumnType> FeatureColumnTypes { get; }
+        private IReadOnlyList<DataViewType> FeatureColumnTypes { get; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;
 
-        internal FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachineModelParameters model, Schema trainSchema,
+        internal FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachineModelParameters model, DataViewSchema trainSchema,
             string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
         {
@@ -310,7 +310,7 @@ namespace Microsoft.ML.FactorizationMachine
             _threshold = threshold;
             _thresholdColumn = thresholdColumn;
             FeatureColumns = featureColumns;
-            var featureColumnTypes = new ColumnType[featureColumns.Length];
+            var featureColumnTypes = new DataViewType[featureColumns.Length];
 
             int i = 0;
             foreach (var feat in featureColumns)
@@ -341,7 +341,7 @@ namespace Microsoft.ML.FactorizationMachine
             int featCount = Model.FieldCount;
 
             var featureColumns = new string[featCount];
-            var featureColumnTypes = new ColumnType[featCount];
+            var featureColumnTypes = new DataViewType[featCount];
 
             for (int i = 0; i < featCount; i++)
             {
@@ -364,11 +364,11 @@ namespace Microsoft.ML.FactorizationMachine
         }
 
         /// <summary>
-        /// Gets the <see cref="Schema"/> result after transformation.
+        /// Gets the <see cref="DataViewSchema"/> result after transformation.
         /// </summary>
-        /// <param name="inputSchema">The <see cref="Schema"/> of the input data.</param>
-        /// <returns>The post transformation <see cref="Schema"/>.</returns>
-        public override Schema GetOutputSchema(Schema inputSchema)
+        /// <param name="inputSchema">The <see cref="DataViewSchema"/> of the input data.</param>
+        /// <returns>The post transformation <see cref="DataViewSchema"/>.</returns>
+        public override DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             for (int i = 0; i < FeatureColumns.Count; i++)
             {

@@ -52,7 +52,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
         }
 
-        private void CheckSchemaHasColumn(Schema schema, string name, out int idx)
+        private void CheckSchemaHasColumn(DataViewSchema schema, string name, out int idx)
             => Assert.True(schema.TryGetColumnIndex(name, out idx), "Could not find column '" + name + "'");
 
         [Fact]
@@ -81,9 +81,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             CheckSchemaHasColumn(schema, "text", out int textIdx);
             CheckSchemaHasColumn(schema, "numericFeatures", out int numericFeaturesIdx);
             // Next verify they have the expected types.
-            Assert.Equal(BoolType.Instance, schema[labelIdx].Type);
-            Assert.Equal(TextType.Instance, schema[textIdx].Type);
-            Assert.Equal(new VectorType(NumberType.R4, 3), schema[numericFeaturesIdx].Type);
+            Assert.Equal(BooleanDataViewType.Instance, schema[labelIdx].Type);
+            Assert.Equal(TextDataViewType.Instance, schema[textIdx].Type);
+            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema[numericFeaturesIdx].Type);
             // Next actually inspect the data.
             using (var cursor = textData.GetRowCursorForAllColumns())
             {
@@ -126,8 +126,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             CheckSchemaHasColumn(schema, "label", out labelIdx);
             CheckSchemaHasColumn(schema, "text", out textIdx);
             // Next verify they have the expected types.
-            Assert.Equal(BoolType.Instance, schema[textIdx].Type);
-            Assert.Equal(new VectorType(NumberType.R4, 3), schema[labelIdx].Type);
+            Assert.Equal(BooleanDataViewType.Instance, schema[textIdx].Type);
+            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), schema[labelIdx].Type);
         }
 
         private sealed class Obnoxious1
@@ -167,7 +167,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Ahhh. No one would ever, ever do this, of course, but just having fun with it.
 
-            void Helper(Schema thisSchema, string name, ColumnType expected)
+            void Helper(DataViewSchema thisSchema, string name, DataViewType expected)
             {
                 Assert.True(thisSchema.TryGetColumnIndex(name, out int thisCol), $"Could not find column '{name}'");
                 Assert.Equal(expected, thisSchema[thisCol].Type);
@@ -180,16 +180,16 @@ namespace Microsoft.ML.StaticPipelineTesting
                     new Obnoxious2() { Biz = ctx.LoadText(5), Blam = ctx.LoadDouble(1, 10) })));
 
             var schema = text.AsDynamic.GetOutputSchema();
-            Helper(schema, "yo.Foo", TextType.Instance);
-            Helper(schema, "yo.Bar", new VectorType(NumberType.Float, 5));
-            Helper(schema, "dawg.Biz", TextType.Instance);
-            Helper(schema, "dawg.Blam", new VectorType(NumberType.R8, 2));
+            Helper(schema, "yo.Foo", TextDataViewType.Instance);
+            Helper(schema, "yo.Bar", new VectorType(NumberDataViewType.Single, 5));
+            Helper(schema, "dawg.Biz", TextDataViewType.Instance);
+            Helper(schema, "dawg.Blam", new VectorType(NumberDataViewType.Double, 2));
 
-            Helper(schema, "how.Donut.hi", BoolType.Instance);
-            Helper(schema, "how.Donut.my.Foo", TextType.Instance);
-            Helper(schema, "how.Donut.my.Bar", new VectorType(NumberType.Float, 4));
-            Helper(schema, "how.Donut.friend.Biz", TextType.Instance);
-            Helper(schema, "how.Donut.friend.Blam", new VectorType(NumberType.R8, 10));
+            Helper(schema, "how.Donut.hi", BooleanDataViewType.Instance);
+            Helper(schema, "how.Donut.my.Foo", TextDataViewType.Instance);
+            Helper(schema, "how.Donut.my.Bar", new VectorType(NumberDataViewType.Single, 4));
+            Helper(schema, "how.Donut.friend.Biz", TextDataViewType.Instance);
+            Helper(schema, "how.Donut.friend.Blam", new VectorType(NumberDataViewType.Double, 10));
 
             var textData = text.Read(null);
 
@@ -197,19 +197,19 @@ namespace Microsoft.ML.StaticPipelineTesting
             var outData = est.Fit(textData).Transform(textData);
 
             var xfSchema = outData.AsDynamic.Schema;
-            Helper(xfSchema, "Data", new VectorType(NumberType.R8, 12));
+            Helper(xfSchema, "Data", new VectorType(NumberDataViewType.Double, 12));
         }
 
-        private static KeyValuePair<string, ColumnType> P(string name, ColumnType type)
-            => new KeyValuePair<string, ColumnType>(name, type);
+        private static KeyValuePair<string, DataViewType> P(string name, DataViewType type)
+            => new KeyValuePair<string, DataViewType>(name, type);
 
         [Fact]
         public void AssertStaticSimple()
         {
             var env = new MLContext(0);
             var schema = SimpleSchemaUtils.Create(env,
-                P("hello", TextType.Instance),
-                P("my", new VectorType(NumberType.I8, 5)),
+                P("hello", TextDataViewType.Instance),
+                P("my", new VectorType(NumberDataViewType.Int64, 5)),
                 P("friend", new KeyType(typeof(uint), 3)));
             var view = new EmptyDataView(env, schema);
 
@@ -232,8 +232,8 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var schema = SimpleSchemaUtils.Create(env,
-                P("hello", TextType.Instance),
-                P("my", new VectorType(NumberType.I8, 5)),
+                P("hello", TextDataViewType.Instance),
+                P("my", new VectorType(NumberDataViewType.Int64, 5)),
                 P("friend", new KeyType(typeof(uint), 3)));
             var view = new EmptyDataView(env, schema);
 
@@ -260,7 +260,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // We'll test a few things here. First, the case where the key-value metadata is text.
             var metaValues1 = new VBuffer<ReadOnlyMemory<char>>(3, new[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() });
             var metaBuilder = new MetadataBuilder();
-            metaBuilder.AddKeyValues<ReadOnlyMemory<char>>(3, TextType.Instance, metaValues1.CopyTo);
+            metaBuilder.AddKeyValues<ReadOnlyMemory<char>>(3, TextDataViewType.Instance, metaValues1.CopyTo);
 
             var builder = new MetadataBuilder();
             builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 3), 2u, metaBuilder.GetMetadata());
@@ -268,13 +268,13 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Next the case where those values are ints.
             var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
             metaBuilder = new MetadataBuilder();
-            metaBuilder.AddKeyValues<int>(3, NumberType.I4, metaValues2.CopyTo);
+            metaBuilder.AddKeyValues<int>(3, NumberDataViewType.Int32, metaValues2.CopyTo);
             var value2 = new VBuffer<byte>(2, 0, null, null);
             builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 3), 2), value2.CopyTo, metaBuilder.GetMetadata());
 
             // Then the case where a value of that kind exists, but is of not of the right kind, in which case it should not be identified as containing that metadata.
             metaBuilder = new MetadataBuilder();
-            metaBuilder.AddPrimitiveValue(MetadataUtils.Kinds.KeyValues, NumberType.R4, 2f);
+            metaBuilder.AddPrimitiveValue(MetadataUtils.Kinds.KeyValues, NumberDataViewType.Single, 2f);
             builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 2), (ushort)1, metaBuilder.GetMetadata());
 
             // Then a final case where metadata of that kind is actaully simply altogether absent.
@@ -459,9 +459,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.NotNull(labelKeyType);
             Assert.NotNull(valuesKeyType);
             Assert.NotNull(valuesKeyKeyType);
-            Assert.True(labelKeyType is VectorType labelVecType && labelVecType.ItemType == TextType.Instance);
-            Assert.True(valuesKeyType is VectorType valuesVecType2 && valuesVecType2.ItemType == NumberType.Float);
-            Assert.True(valuesKeyKeyType is VectorType valuesKeyVecType2 && valuesKeyVecType2.ItemType == NumberType.Float);
+            Assert.True(labelKeyType is VectorType labelVecType && labelVecType.ItemType == TextDataViewType.Instance);
+            Assert.True(valuesKeyType is VectorType valuesVecType2 && valuesVecType2.ItemType == NumberDataViewType.Single);
+            Assert.True(valuesKeyKeyType is VectorType valuesKeyVecType2 && valuesKeyVecType2.ItemType == NumberDataViewType.Single);
             // Because they're over exactly the same data, they ought to have the same cardinality and everything.
             Assert.True(valuesKeyKeyType.Equals(valuesKeyType));
         }
@@ -498,10 +498,10 @@ namespace Microsoft.ML.StaticPipelineTesting
                 Assert.True(types[i]?.Size > 0, $"Col c{i} had unexpected type {type}");
                 Assert.Equal(expectedLen[i], types[i].Size);
             }
-            Assert.Equal(TextType.Instance, types[0].ItemType);
-            Assert.Equal(TextType.Instance, types[1].ItemType);
-            Assert.Equal(NumberType.Float, types[2].ItemType);
-            Assert.Equal(NumberType.Float, types[3].ItemType);
+            Assert.Equal(TextDataViewType.Instance, types[0].ItemType);
+            Assert.Equal(TextDataViewType.Instance, types[1].ItemType);
+            Assert.Equal(NumberDataViewType.Single, types[2].ItemType);
+            Assert.Equal(NumberDataViewType.Single, types[3].ItemType);
         }
 
         [Fact]
@@ -525,7 +525,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = tdata.AsDynamic.Schema;
 
             var type = schema["tokens"].Type;
-            Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextType.Instance);
+            Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextDataViewType.Instance);
             type = schema["chars"].Type;
             Assert.True(type is VectorType vecType2 && vecType2.Size == 0 && vecType2.ItemType is KeyType
                     && vecType2.ItemType.RawType == typeof(ushort));
@@ -553,11 +553,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("words_without_stopwords", out int stopwordsCol));
             var type = schema[stopwordsCol].Type;
-            Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextType.Instance);
+            Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextDataViewType.Instance);
 
             Assert.True(schema.TryGetColumnIndex("normalized_text", out int normTextCol));
             type = schema[normTextCol].Type;
-            Assert.Equal(TextType.Instance, type);
+            Assert.Equal(TextDataViewType.Instance, type);
         }
 
         [Fact]
@@ -582,11 +582,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("bagofword", out int bagofwordCol));
             var type = schema[bagofwordCol].Type;
-            Assert.True(type is VectorType vecType && vecType.Size > 0&& vecType.ItemType is NumberType);
+            Assert.True(type is VectorType vecType && vecType.Size > 0&& vecType.ItemType is NumberDataViewType);
 
             Assert.True(schema.TryGetColumnIndex("bagofhashedword", out int bagofhashedwordCol));
             type = schema[bagofhashedwordCol].Type;
-            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
+            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberDataViewType);
         }
 
         [Fact]
@@ -611,11 +611,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("ngrams", out int ngramsCol));
             var type = schema[ngramsCol].Type;
-            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberDataViewType);
 
             Assert.True(schema.TryGetColumnIndex("ngramshash", out int ngramshashCol));
             type = schema[ngramshashCol].Type;
-            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
+            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberDataViewType);
         }
 
 
@@ -642,19 +642,19 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("lpnorm", out int lpnormCol));
             var type = schema[lpnormCol].Type;
-            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberDataViewType);
 
             Assert.True(schema.TryGetColumnIndex("gcnorm", out int gcnormCol));
             type = schema[gcnormCol].Type;
-            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
+            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberDataViewType);
 
             Assert.True(schema.TryGetColumnIndex("zcawhitened", out int zcawhitenedCol));
             type = schema[zcawhitenedCol].Type;
-            Assert.True(type is VectorType vecType3 && vecType3.Size > 0 && vecType3.ItemType is NumberType);
+            Assert.True(type is VectorType vecType3 && vecType3.Size > 0 && vecType3.ItemType is NumberDataViewType);
 
             Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
             type = schema[pcswhitenedCol].Type;
-            Assert.True(type is VectorType vecType4 && vecType4.Size > 0 && vecType4.ItemType is NumberType);
+            Assert.True(type is VectorType vecType4 && vecType4.Size > 0 && vecType4.ItemType is NumberDataViewType);
         }
 
         [Fact]
@@ -682,7 +682,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = tdata.AsDynamic.Schema;
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
             var type = schema[topicsCol].Type;
-            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberDataViewType);
         }
 
         [Fact]
@@ -707,11 +707,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("bag_of_words_count", out int bagofwordCountCol));
             var type = schema[bagofwordCountCol].Type;
-            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberDataViewType);
 
             Assert.True(schema.TryGetColumnIndex("bag_of_words_mi", out int bagofwordMiCol));
             type = schema[bagofwordMiCol].Type;
-            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
+            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberDataViewType);
         }
 
         [Fact]
@@ -764,7 +764,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("pca", out int pcaCol));
             var type = schema[pcaCol].Type;
-            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberDataViewType);
         }
 
         [Fact]
@@ -833,11 +833,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 
-            Assert.True(schema["norm"].Type is TextType);
-            Assert.True(schema["norm_Upper"].Type is TextType);
-            Assert.True(schema["norm_KeepDiacritics"].Type is TextType);
-            Assert.True(schema["norm_NoPuctuations"].Type is TextType);
-            Assert.True(schema["norm_NoNumbers"].Type is TextType);
+            Assert.True(schema["norm"].Type is TextDataViewType);
+            Assert.True(schema["norm_Upper"].Type is TextDataViewType);
+            Assert.True(schema["norm_KeepDiacritics"].Type is TextDataViewType);
+            Assert.True(schema["norm_NoPuctuations"].Type is TextDataViewType);
+            Assert.True(schema["norm_NoNumbers"].Type is TextDataViewType);
         }
 
         [Fact]
@@ -856,7 +856,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("pca", out int pca));
             var type = schema[pca].Type;
-            Assert.Equal(new VectorType(NumberType.R4, 5), type);
+            Assert.Equal(new VectorType(NumberDataViewType.Single, 5), type);
         }
 
         [Fact]
@@ -879,13 +879,13 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("floatLabel", out int floatLabel));
             var type = schema[floatLabel].Type;
-            Assert.Equal(NumberType.R4, type);
+            Assert.Equal(NumberDataViewType.Single, type);
             Assert.True(schema.TryGetColumnIndex("txtFloat", out int txtFloat));
             type = schema[txtFloat].Type;
-            Assert.Equal(NumberType.R4, type);
+            Assert.Equal(NumberDataViewType.Single, type);
             Assert.True(schema.TryGetColumnIndex("num", out int num));
             type = schema[num].Type;
-            Assert.Equal(new VectorType(NumberType.R4, 3), type);
+            Assert.Equal(new VectorType(NumberDataViewType.Single, 3), type);
         }
     }
 }

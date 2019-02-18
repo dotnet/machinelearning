@@ -107,21 +107,21 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public RowShufflingTransformer(IHostEnvironment env, Options args, IDataView input)
+        public RowShufflingTransformer(IHostEnvironment env, Options options, IDataView input)
             : base(env, RegistrationName, input)
         {
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            Host.CheckUserArg(args.PoolRows > 0, nameof(args.PoolRows), "pool size must be positive");
-            _poolRows = args.PoolRows;
-            _poolOnly = args.PoolOnly;
-            _forceShuffle = args.ForceShuffle;
-            _forceShuffleSource = args.ForceShuffleSource ?? (!_poolOnly && _forceShuffle);
+            Host.CheckUserArg(options.PoolRows > 0, nameof(options.PoolRows), "pool size must be positive");
+            _poolRows = options.PoolRows;
+            _poolOnly = options.PoolOnly;
+            _forceShuffle = options.ForceShuffle;
+            _forceShuffleSource = options.ForceShuffleSource ?? (!_poolOnly && _forceShuffle);
             Host.CheckUserArg(!(_poolOnly && _forceShuffleSource),
-                nameof(args.ForceShuffleSource), "Cannot set both poolOnly and forceShuffleSource");
+                nameof(options.ForceShuffleSource), "Cannot set both poolOnly and forceShuffleSource");
 
             if (_forceShuffle || _forceShuffleSource)
-                _forceShuffleSeed = args.ForceShuffleSeed ?? Host.Rand.NextSigned();
+                _forceShuffleSeed = options.ForceShuffleSeed ?? Host.Rand.NextSigned();
 
             _subsetInput = SelectCachableColumns(input, env);
         }
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to check whether all types in an input schema are shufflable.
         /// </summary>
-        internal static bool CanShuffleAll(Schema schema)
+        internal static bool CanShuffleAll(DataViewSchema schema)
         {
             for (int c = 0; c < schema.Count; ++c)
             {
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to take a cursor, and get a shuffled version of this cursor.
         /// </summary>
-        public static RowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, RowCursor cursor, Random rand)
+        public static DataViewRowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, DataViewRowCursor cursor, Random rand)
         {
             Contracts.CheckValue(provider, nameof(provider));
 
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return true; } }
 
-        public override Schema OutputSchema { get { return _subsetInput.Schema; } }
+        public override DataViewSchema OutputSchema { get { return _subsetInput.Schema; } }
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -287,10 +287,10 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _poolRows, input, rand);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public override DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
+            return new DataViewRowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace Microsoft.ML.Transforms
                 /// <param name="getter">A getter that should be a value getter corresponding to the
                 /// column type</param>
                 /// <returns>An appropriate <see cref="ShufflePipe{T}"/></returns>
-                public static ShufflePipe Create(int bufferSize, ColumnType type, Delegate getter)
+                public static ShufflePipe Create(int bufferSize, DataViewType type, Delegate getter)
                 {
                     Contracts.Assert(bufferSize > 0);
                     Contracts.AssertValue(type);
@@ -380,7 +380,7 @@ namespace Microsoft.ML.Transforms
                         pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                     else
                     {
-                        Contracts.Assert(type is PrimitiveType);
+                        Contracts.Assert(type is PrimitiveDataViewType);
                         pipeType = typeof(ImplOne<>).MakeGenericType(type.RawType);
                     }
                     if (_pipeConstructorTypes == null)
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Transforms
             private const int _bufferDepth = 3;
 
             private readonly int _poolRows;
-            private readonly RowCursor _input;
+            private readonly DataViewRowCursor _input;
             private readonly Random _rand;
 
             // This acts as mapping from the "circular" index to the actual index within the pipe.
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Transforms
             // Each delegate here corresponds to a pipe holding column data.
             private readonly Delegate[] _getters;
             // This delegate corresponds to the pipe holding ID data.
-            private readonly ValueGetter<RowId> _idGetter;
+            private readonly ValueGetter<DataViewRowId> _idGetter;
 
             // The current position of the output cursor in circular "space".
             private int _circularIndex;
@@ -492,12 +492,12 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _colToActivesIndex;
             private bool _disposed;
 
-            public override Schema Schema => _input.Schema;
+            public override DataViewSchema Schema => _input.Schema;
 
             // REVIEW: Implement cursor set support.
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, int poolRows, RowCursor input, Random rand)
+            public Cursor(IChannelProvider provider, int poolRows, DataViewRowCursor input, Random rand)
                 : base(provider)
             {
                 Ch.AssertValue(input);
@@ -529,8 +529,8 @@ namespace Microsoft.ML.Transforms
                         input.Schema[c].Type, RowCursorUtils.GetGetterAsDelegate(input, c));
                     _getters[ia] = CreateGetterDelegate(c);
                 }
-                var idPipe = _pipes[numActive + (int)ExtraIndex.Id] = ShufflePipe.Create(_pipeIndices.Length, NumberType.UG, input.GetIdGetter());
-                _idGetter = CreateGetterDelegate<RowId>(idPipe);
+                var idPipe = _pipes[numActive + (int)ExtraIndex.Id] = ShufflePipe.Create(_pipeIndices.Length, NumberDataViewType.DataViewRowId, input.GetIdGetter());
+                _idGetter = CreateGetterDelegate<DataViewRowId>(idPipe);
                 // Initially, after the preamble to MoveNextCore, we want:
                 // liveCount=0, deadCount=0, circularIndex=0. So we set these
                 // funky values accordingly.
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(retval);
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return _idGetter;
             }

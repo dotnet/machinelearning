@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 loaderAssemblyName: typeof(MultiVoting).Assembly.FullName);
         }
 
-        private sealed class Arguments : ArgumentsBase
+        private sealed class Arguments : OptionsBase
         {
         }
 

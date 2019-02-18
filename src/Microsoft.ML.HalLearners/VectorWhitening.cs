@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -11,7 +10,6 @@ using System.Text;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
@@ -205,13 +203,13 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(VectorWhiteningEstimator.ColumnInfo[] columns)
             => columns.Select(c => (c.Name, c.InputColumnName ?? c.Name)).ToArray();
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema[srcCol].Type;
             var reason = TestColumn(inType);
@@ -220,12 +218,12 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         // Check if the input column's type is supported. Note that only float vector with a known shape is allowed.
-        internal static string TestColumn(ColumnType type)
+        internal static string TestColumn(DataViewType type)
         {
             VectorType vectorType = type as VectorType;
-            ColumnType itemType = vectorType?.ItemType ?? type;
+            DataViewType itemType = vectorType?.ItemType ?? type;
             if ((vectorType != null && !vectorType.IsKnownSize && vectorType.Dimensions.Length > 1)
-                || itemType != NumberType.R4)
+                || itemType != NumberDataViewType.Single)
                 return "Expected float or float vector of known size";
 
             long valueCount = type.GetValueCount();
@@ -235,7 +233,7 @@ namespace Microsoft.ML.Transforms.Projections
             return null;
         }
 
-        private static void ValidateModel(IExceptionContext ectx, float[] model, ColumnType col)
+        private static void ValidateModel(IExceptionContext ectx, float[] model, DataViewType col)
         {
             long valueCount = col.GetValueCount();
             ectx.CheckDecode(Utils.Size(model) == valueCount * valueCount, "Invalid model size.");
@@ -270,7 +268,7 @@ namespace Microsoft.ML.Transforms.Projections
             // for each resulting column separately.
             using (var ch = env.Start("Training"))
             {
-                GetColTypesAndIndex(env, inputData, columns, out ColumnType[] srcTypes, out int[] cols);
+                GetColTypesAndIndex(env, inputData, columns, out DataViewType[] srcTypes, out int[] cols);
                 var columnData = LoadDataAsDense(env, ch, inputData, out int[] rowCounts, srcTypes, cols, columns);
                 TrainModels(env, ch, columnData, rowCounts, ref models, ref invModels, srcTypes, columns);
             }
@@ -278,10 +276,10 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         // Extracts the indices and types of the input columns to the whitening transform.
-        private static void GetColTypesAndIndex(IHostEnvironment env, IDataView inputData, VectorWhiteningEstimator.ColumnInfo[] columns, out ColumnType[] srcTypes, out int[] cols)
+        private static void GetColTypesAndIndex(IHostEnvironment env, IDataView inputData, VectorWhiteningEstimator.ColumnInfo[] columns, out DataViewType[] srcTypes, out int[] cols)
         {
             cols = new int[columns.Length];
-            srcTypes = new ColumnType[columns.Length];
+            srcTypes = new DataViewType[columns.Length];
             var inputSchema = inputData.Schema;
 
             for (int i = 0; i < columns.Length; i++)
@@ -300,7 +298,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Loads all relevant data for whitening training into memory.
         private static float[][] LoadDataAsDense(IHostEnvironment env, IChannel ch, IDataView inputData, out int[] actualRowCounts,
-            ColumnType[] srcTypes, int[] cols, params VectorWhiteningEstimator.ColumnInfo[] columns)
+            DataViewType[] srcTypes, int[] cols, params VectorWhiteningEstimator.ColumnInfo[] columns)
         {
             long crowData = GetRowCount(inputData, columns);
 
@@ -367,7 +365,7 @@ namespace Microsoft.ML.Transforms.Projections
         // will have dimension input_vec_size x input_vec_size. In the getter, the matrix will be truncated to only keep
         // PcaNum columns, and thus produce the desired output size.
         private static void TrainModels(IHostEnvironment env, IChannel ch, float[][] columnData, int[] rowCounts,
-            ref float[][] models, ref float[][] invModels, ColumnType[] srcTypes, params VectorWhiteningEstimator.ColumnInfo[] columns)
+            ref float[][] models, ref float[][] invModels, DataViewType[] srcTypes, params VectorWhiteningEstimator.ColumnInfo[] columns)
         {
             ch.Assert(columnData.Length == rowCounts.Length);
 
@@ -547,21 +545,21 @@ namespace Microsoft.ML.Transforms.Projections
                 int m, int n, float[] a, int lda, float[] s, float[] u, int ldu, float[] vt, int ldvt, float[] superb);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
             => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly VectorWhiteningTransformer _parent;
             private readonly int[] _cols;
-            private readonly ColumnType[] _srcTypes;
+            private readonly DataViewType[] _srcTypes;
 
-            public Mapper(VectorWhiteningTransformer parent, Schema inputSchema)
+            public Mapper(VectorWhiteningTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _cols = new int[_parent.ColumnPairs.Length];
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _srcTypes = new DataViewType[_parent.ColumnPairs.Length];
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
@@ -583,21 +581,21 @@ namespace Microsoft.ML.Transforms.Projections
             /// to ensure unit variance, and finally we rotate the scaled result back to the original space using U (note that UU^T is identity matrix so U is
             /// the inverse rotation of U^T).
             /// </summary>
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
+                var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; iinfo++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var info = _parent._columns[iinfo];
-                    ColumnType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberType.Float, info.PcaNum) : _srcTypes[iinfo];
-                    result[iinfo] = new Schema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, outType, null);
+                    DataViewType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberDataViewType.Single, info.PcaNum) : _srcTypes[iinfo];
+                    result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, outType, null);
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -622,7 +620,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return del;
             }
 
-            private ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
+            private ValueGetter<T> GetSrcGetter<T>(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);

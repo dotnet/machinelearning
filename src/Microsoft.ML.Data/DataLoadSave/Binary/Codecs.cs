@@ -113,12 +113,12 @@ namespace Microsoft.ML.Data.IO
         {
             protected readonly CodecFactory Factory;
 
-            public ColumnType Type { get; }
+            public DataViewType Type { get; }
 
             // For these basic types, the class name will do perfectly well.
             public virtual string LoadName => typeof(T).Name;
 
-            public SimpleCodec(CodecFactory factory, ColumnType type)
+            public SimpleCodec(CodecFactory factory, DataViewType type)
             {
                 Contracts.AssertValue(factory);
                 Contracts.AssertValue(type);
@@ -157,9 +157,9 @@ namespace Microsoft.ML.Data.IO
 
             // Gatekeeper to ensure T is a type that is supported by UnsafeTypeCodec.
             // Throws an exception if T is neither a TimeSpan nor a NumberType.
-            private static ColumnType UnsafeColumnType(Type type)
+            private static DataViewType UnsafeColumnType(Type type)
             {
-                return type == typeof(TimeSpan) ? (ColumnType)TimeSpanType.Instance : ColumnTypeExtensions.NumberTypeFromType(type);
+                return type == typeof(TimeSpan) ? (DataViewType)TimeSpanDataViewType.Instance : ColumnTypeExtensions.NumberTypeFromType(type);
             }
 
             public UnsafeTypeCodec(CodecFactory factory)
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Data.IO
             // string: The UTF-8 encoded string, with the standard LEB128 byte-length preceeding it.
 
             public TextCodec(CodecFactory factory)
-                : base(factory, TextType.Instance)
+                : base(factory, TextDataViewType.Instance)
             {
             }
 
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Data.IO
             // Packed bits.
 
             public BoolCodec(CodecFactory factory)
-                : base(factory, BoolType.Instance)
+                : base(factory, BooleanDataViewType.Instance)
             {
             }
 
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Data.IO
             // Pack 16 values into 32 bits, with 00 for false, 01 for true and 10 for NA.
 
             public OldBoolCodec(CodecFactory factory)
-                : base(factory, BoolType.Instance)
+                : base(factory, BooleanDataViewType.Instance)
             {
             }
 
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Data.IO
         private sealed class DateTimeCodec : SimpleCodec<DateTime>
         {
             public DateTimeCodec(CodecFactory factory)
-                : base(factory, DateTimeType.Instance)
+                : base(factory, DateTimeDataViewType.Instance)
             {
             }
 
@@ -644,7 +644,7 @@ namespace Microsoft.ML.Data.IO
             private readonly MadeObjectPool<short[]> _shortBufferPool;
 
             public DateTimeOffsetCodec(CodecFactory factory)
-                : base(factory, DateTimeOffsetType.Instance)
+                : base(factory, DateTimeOffsetDataViewType.Instance)
             {
                 _longBufferPool = new MadeObjectPool<long[]>(() => null);
                 _shortBufferPool = new MadeObjectPool<short[]>(() => null);
@@ -779,7 +779,7 @@ namespace Microsoft.ML.Data.IO
 
             public string LoadName { get { return "VBuffer"; } }
 
-            public ColumnType Type { get { return _type; } }
+            public DataViewType Type { get { return _type; } }
 
             public VBufferCodec(CodecFactory factory, VectorType type, IValueCodec<T> innerCodec)
             {
@@ -1123,7 +1123,7 @@ namespace Microsoft.ML.Data.IO
                 return false;
             }
             // From this internal codec, get the VBuffer type of the codec we will return.
-            var itemType = innerCodec.Type as PrimitiveType;
+            var itemType = innerCodec.Type as PrimitiveDataViewType;
             Contracts.CheckDecode(itemType != null);
             // Following the internal type definition is the dimensions.
             VectorType type;
@@ -1153,7 +1153,7 @@ namespace Microsoft.ML.Data.IO
 
         private bool GetVBufferCodec(VectorType type, out IValueCodec codec)
         {
-            ColumnType itemType = type.ItemType;
+            DataViewType itemType = type.ItemType;
             // First create the element codec.
             IValueCodec innerCodec;
             if (!TryGetCodec(itemType, out innerCodec))
@@ -1179,7 +1179,7 @@ namespace Microsoft.ML.Data.IO
 
             public string LoadName { get { return "Key"; } }
 
-            public ColumnType Type { get { return _type; } }
+            public DataViewType Type { get { return _type; } }
 
             public KeyCodecOld(CodecFactory factory, KeyType type, IValueCodec<T> innerCodec)
             {
@@ -1236,7 +1236,7 @@ namespace Microsoft.ML.Data.IO
                 return false;
             }
             // Construct the key type.
-            var itemType = innerCodec.Type as PrimitiveType;
+            var itemType = innerCodec.Type as PrimitiveDataViewType;
             Contracts.CheckDecode(itemType != null);
             Contracts.CheckDecode(KeyType.IsValidDataType(itemType.RawType));
             KeyType type;
@@ -1276,7 +1276,7 @@ namespace Microsoft.ML.Data.IO
 
             public string LoadName { get { return "Key2"; } }
 
-            public ColumnType Type { get { return _type; } }
+            public DataViewType Type { get { return _type; } }
 
             public KeyCodec(CodecFactory factory, KeyType type, IValueCodec<T> innerCodec)
             {
@@ -1333,7 +1333,7 @@ namespace Microsoft.ML.Data.IO
                 return false;
             }
             // Construct the key type.
-            var itemType = innerCodec.Type as PrimitiveType;
+            var itemType = innerCodec.Type as PrimitiveDataViewType;
             Contracts.CheckDecode(itemType != null);
             Contracts.CheckDecode(KeyType.IsValidDataType(itemType.RawType));
             KeyType type;
@@ -1352,7 +1352,7 @@ namespace Microsoft.ML.Data.IO
             return true;
         }
 
-        private bool GetKeyCodec(ColumnType type, out IValueCodec codec)
+        private bool GetKeyCodec(DataViewType type, out IValueCodec codec)
         {
             if (!(type is KeyType))
                 throw Contracts.ExceptParam(nameof(type), "type must be a key type");

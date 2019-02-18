@@ -10,14 +10,14 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Sweeper;
 using ResultProcessor = Microsoft.ML.ResultProcessor;
 
-[assembly: LoadableClass(typeof(InternalSweepResultEvaluator), typeof(InternalSweepResultEvaluator.Arguments), typeof(SignatureSweepResultEvaluator),
+[assembly: LoadableClass(typeof(InternalSweepResultEvaluator), typeof(InternalSweepResultEvaluator.Options), typeof(SignatureSweepResultEvaluator),
     "TLC Sweep Result Evaluator", "TlcEvaluator", "Tlc")]
 
 namespace Microsoft.ML.Sweeper
 {
     public class InternalSweepResultEvaluator : ISweepResultEvaluator<string>
     {
-        public class Arguments
+        public sealed class Options
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "m")]
             public string Metric = "AUC";
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Sweeper
 
         private readonly IHost _host;
 
-        public InternalSweepResultEvaluator(IHostEnvironment env, Arguments args)
+        public InternalSweepResultEvaluator(IHostEnvironment env, Options args)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("InternalSweepResultEvaluator");

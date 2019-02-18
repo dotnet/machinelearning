@@ -5,7 +5,6 @@
 using System;
 using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.LightGBM;
@@ -75,9 +74,9 @@ namespace Microsoft.ML.LightGBM
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, RankingPredictionTransformer<LightGbmRankingModelParameters>, LightGbmRankingModelParameters>
     {
-        public const string UserName = "LightGBM Ranking";
-        public const string LoadNameValue = "LightGBMRanking";
-        public const string ShortName = "LightGBMRank";
+        internal const string UserName = "LightGBM Ranking";
+        internal const string LoadNameValue = "LightGBMRanking";
+        internal const string ShortName = "LightGBMRank";
 
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
@@ -119,7 +118,7 @@ namespace Microsoft.ML.LightGBM
             // Check label types.
             var labelCol = data.Schema.Label.Value;
             var labelType = labelCol.Type;
-            if (!(labelType is KeyType || labelType == NumberType.R4))
+            if (!(labelType is KeyType || labelType == NumberDataViewType.Single))
             {
                 throw ch.ExceptParam(nameof(data),
                     $"Label column '{labelCol.Name}' is of type '{labelType}', but must be key or R4.");
@@ -128,7 +127,7 @@ namespace Microsoft.ML.LightGBM
             ch.CheckParam(data.Schema.Group.HasValue, nameof(data), "Need a group column.");
             var groupCol = data.Schema.Group.Value;
             var groupType = groupCol.Type;
-            if (!(groupType == NumberType.U4 || groupType is KeyType))
+            if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyType))
             {
                 throw ch.ExceptParam(nameof(data),
                    $"Group column '{groupCol.Name}' is of type '{groupType}', but must be U4 or a Key.");
@@ -144,7 +143,7 @@ namespace Microsoft.ML.LightGBM
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();
-            if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4)
+            if (!labelCol.IsKey && labelCol.ItemType != NumberDataViewType.Single)
                 error();
         }
 
@@ -171,14 +170,18 @@ namespace Microsoft.ML.LightGBM
         {
             return new[]
            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
-        protected override RankingPredictionTransformer<LightGbmRankingModelParameters> MakeTransformer(LightGbmRankingModelParameters model, Schema trainSchema)
+        protected override RankingPredictionTransformer<LightGbmRankingModelParameters> MakeTransformer(LightGbmRankingModelParameters model, DataViewSchema trainSchema)
          => new RankingPredictionTransformer<LightGbmRankingModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RankingPredictionTransformer<LightGbmRankingModelParameters> Train(IDataView trainData, IDataView validationData = null)
+        /// <summary>
+        /// Trains a <see cref="LightGbmRankingTrainer"/> using both training and validation data, returns
+        /// a <see cref="RankingPredictionTransformer{LightGbmRankingModelParameters}"/>.
+        /// </summary>
+        public RankingPredictionTransformer<LightGbmRankingModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

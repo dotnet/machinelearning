@@ -375,7 +375,7 @@ namespace Microsoft.ML.Data.IO
         // inspect the schema. We also want to ensure that the useful property that
         // a cursor and view's schemas are the same, is preserved, which allows us
         // to use the cursors from the schema view if convenient to do so.
-        public Schema Schema => _schemaEntry.GetView().Schema;
+        public DataViewSchema Schema => _schemaEntry.GetView().Schema;
 
         public bool CanShuffle
         {
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Data.IO
         /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the tranpsose loader is instantiated with no input streams.
         /// </summary>
-        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, Schema schema)
+        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, DataViewSchema schema)
         {
             Contracts.AssertValue(env);
 
@@ -617,7 +617,7 @@ namespace Microsoft.ML.Data.IO
             return _header.RowCount;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+        public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, _schemaEntry.GetView().Schema);
 
@@ -627,11 +627,11 @@ namespace Microsoft.ML.Data.IO
             return new Cursor(this, predicate);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+        public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
         {
             if (HasRowData)
                 return _schemaEntry.GetView().GetRowCursorSet(columnsNeeded, n, rand);
-            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
+            return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         SlotCursor ITransposeDataView.GetSlotCursor(int col)
@@ -646,8 +646,8 @@ namespace Microsoft.ML.Data.IO
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
-            ColumnType cursorType = ((ITransposeDataView)this).GetSlotType(col).ItemType;
-            RowCursor inputCursor = view.GetRowCursorForAllColumns();
+            DataViewType cursorType = ((ITransposeDataView)this).GetSlotType(col).ItemType;
+            DataViewRowCursor inputCursor = view.GetRowCursorForAllColumns();
             try
             {
                 return Utils.MarshalInvoke(GetSlotCursorCore<int>, cursorType.RawType, inputCursor);
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        private SlotCursor GetSlotCursorCore<T>(RowCursor inputCursor)
+        private SlotCursor GetSlotCursorCore<T>(DataViewRowCursor inputCursor)
         {
             return new SlotCursor<T>(this, inputCursor);
         }
@@ -671,9 +671,9 @@ namespace Microsoft.ML.Data.IO
         {
             private readonly TransposeLoader _parent;
             private readonly ValueGetter<VBuffer<T>> _getter;
-            private readonly RowCursor _rowCursor;
+            private readonly DataViewRowCursor _rowCursor;
 
-            public SlotCursor(TransposeLoader parent, RowCursor cursor)
+            public SlotCursor(TransposeLoader parent, DataViewRowCursor cursor)
                 : base(parent._host)
             {
                 _parent = parent;
@@ -751,7 +751,7 @@ namespace Microsoft.ML.Data.IO
             private readonly Delegate[] _getters;
             private bool _disposed;
 
-            public override Schema Schema => _parent.Schema;
+            public override DataViewSchema Schema => _parent.Schema;
 
             public override long Batch { get { return 0; } }
 
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Data.IO
                 var type = Schema[col].Type;
                 Ch.Assert(((ITransposeDataView)_parent).GetSlotType(col).Size == _parent._header.RowCount);
                 Action<int> func = InitOne<int>;
-                ColumnType itemType = type;
+                DataViewType itemType = type;
                 if (type is VectorType vectorType)
                 {
                     func = InitVec<int>;
@@ -840,13 +840,13 @@ namespace Microsoft.ML.Data.IO
                 _transCursors[i] = cursor;
             }
 
-            public override ValueGetter<RowId> GetIdGetter()
+            public override ValueGetter<DataViewRowId> GetIdGetter()
             {
                 return
-                    (ref RowId val) =>
+                    (ref DataViewRowId val) =>
                     {
                         Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                        val = new RowId((ulong)Position, 0);
+                        val = new DataViewRowId((ulong)Position, 0);
                     };
             }
 
