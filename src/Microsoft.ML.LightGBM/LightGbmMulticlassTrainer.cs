@@ -205,7 +205,7 @@ namespace Microsoft.ML.LightGBM
                 Options["metric"] = "multi_error";
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
@@ -219,7 +219,7 @@ namespace Microsoft.ML.LightGBM
             };
         }
 
-        protected override MulticlassPredictionTransformer<OvaModelParameters> MakeTransformer(OvaModelParameters model, DataViewSchema trainSchema)
+        private protected override MulticlassPredictionTransformer<OvaModelParameters> MakeTransformer(OvaModelParameters model, DataViewSchema trainSchema)
             => new MulticlassPredictionTransformer<OvaModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
