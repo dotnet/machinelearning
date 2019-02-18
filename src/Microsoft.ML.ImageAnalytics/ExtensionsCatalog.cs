@@ -48,9 +48,10 @@ namespace Microsoft.ML
         /// <param name="catalog"> The transform's catalog.</param>
         /// <param name="outputColumnName"> Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName"> Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="colors"> Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> to extract from the image. The order of colors is: Alpha, Red, Green Blue.</param>
-        /// <param name="interleave">Wheather to interleave the pixels, meaning keep them in the `ARGB ARGB` order, or leave them separated in the planar form, where the colors are outputed one by one
-        /// alpha, red, green, blue for all the pixels of the image. </param>
+        /// <param name="colors">What colors to extract.</param>
+        /// <param name="order">In which order extract channels from pixel.</param>
+        /// <param name="interleave">Whether to interleave the pixels, meaning keep them in the <paramref name="order"/> order, or leave them in the plannar form:
+        /// first output one color values for all pixels, then another color and so on.</param>
         /// <param name="scale">Scale color pixel value by this amount.</param>
         /// <param name="offset">Offset color pixel value by this amount.</param>
         /// <param name="asFloat">Output the array as float array. If false, output as byte array.</param>
@@ -64,11 +65,12 @@ namespace Microsoft.ML
             string outputColumnName,
             string inputColumnName = null,
             ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.ColorBits.Rgb,
+            ImagePixelExtractingEstimator.ColorsOrder order = ImagePixelExtractingTransformer.Defaults.Order,
             bool interleave = false,
             float scale = ImagePixelExtractingTransformer.Defaults.Scale,
             float offset = ImagePixelExtractingTransformer.Defaults.Offset,
             bool asFloat = ImagePixelExtractingTransformer.Defaults.Convert)
-            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colors, interleave, scale, offset, asFloat);
+            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colors, order, interleave, scale, offset, asFloat);
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
