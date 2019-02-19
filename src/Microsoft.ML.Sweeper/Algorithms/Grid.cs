@@ -52,15 +52,15 @@ namespace Microsoft.ML.Sweeper
             SweepParameters = options.SweptParameters.Select(p => p.CreateComponent(Host)).ToArray();
         }
 
-        protected SweeperBase(OptionsBase args, IHostEnvironment env, IValueGenerator[] sweepParameters, string name)
+        protected SweeperBase(OptionsBase options, IHostEnvironment env, IValueGenerator[] sweepParameters, string name)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
             Host = env.Register(name);
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
             Host.CheckValue(sweepParameters, nameof(sweepParameters));
 
-            _options = args;
+            _options = options;
             SweepParameters = sweepParameters;
         }
 

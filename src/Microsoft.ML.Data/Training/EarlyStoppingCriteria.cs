@@ -101,10 +101,10 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        public TolerantEarlyStoppingCriterion(Options args, bool lowerIsBetter)
-            : base(args, lowerIsBetter)
+        public TolerantEarlyStoppingCriterion(Options options, bool lowerIsBetter)
+            : base(options, lowerIsBetter)
         {
-            Contracts.CheckUserArg(EarlyStoppingCriterionOptions.Threshold >= 0, nameof(args.Threshold), "Must be non-negative.");
+            Contracts.CheckUserArg(EarlyStoppingCriterionOptions.Threshold >= 0, nameof(options.Threshold), "Must be non-negative.");
         }
 
         public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
@@ -253,8 +253,8 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        public LPEarlyStoppingCriterion(Options args, bool lowerIsBetter)
-            : base(args, lowerIsBetter) { }
+        public LPEarlyStoppingCriterion(Options options, bool lowerIsBetter)
+            : base(options, lowerIsBetter) { }
 
         public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
         {
@@ -291,8 +291,8 @@ namespace Microsoft.ML.Internal.Internallearn
             }
         }
 
-        public PQEarlyStoppingCriterion(Options args, bool lowerIsBetter)
-            : base(args, lowerIsBetter) { }
+        public PQEarlyStoppingCriterion(Options options, bool lowerIsBetter)
+            : base(options, lowerIsBetter) { }
 
         public override bool CheckScore(Float validationScore, Float trainingScore, out bool isBestCandidate)
         {
