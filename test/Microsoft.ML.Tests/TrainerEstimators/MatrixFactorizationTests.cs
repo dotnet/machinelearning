@@ -171,10 +171,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElement
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount + _synthesizedMatrixRowCount.
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -182,9 +182,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementForScore
         {
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -256,10 +256,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElementZeroBased
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
-            [KeyType(Count = _synthesizedMatrixColumnCount)]
+            [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
-            [KeyType(Count = _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -269,11 +269,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
-            [KeyType(Count = _synthesizedMatrixColumnCount)]
+            [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
-            [KeyType(Count = _synthesizedMatrixRowCount)]
+            [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -375,18 +375,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private class OneClassMatrixElementZeroBased
         {
-            [KeyType(Count = _oneClassMatrixColumnCount)]
+            [KeyType(_oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _oneClassMatrixRowCount)]
+            [KeyType(_oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
         }
 
         private class OneClassMatrixElementZeroBasedForScore
         {
-            [KeyType(Count = _oneClassMatrixColumnCount)]
+            [KeyType(_oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _oneClassMatrixRowCount)]
+            [KeyType(_oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
             public float Score;

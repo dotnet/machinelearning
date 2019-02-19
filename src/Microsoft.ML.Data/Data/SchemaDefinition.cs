@@ -17,12 +17,19 @@ namespace Microsoft.ML.Data
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class KeyTypeAttribute : Attribute
     {
-        // REVIEW: Property based, but should I just have a constructor?
+        /// <summary>
+        /// Specifies expected size of key type.
+        /// </summary>
+        /// <param name="count">Size of key type.</param>
+        public KeyTypeAttribute(ulong count)
+        {
+            Count = count;
+        }
 
         /// <summary>
         /// The key count.
         /// </summary>
-        public ulong Count { get; set; }
+        internal ulong Count { get; }
     }
 
     /// <summary>
@@ -32,35 +39,37 @@ namespace Microsoft.ML.Data
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class VectorTypeAttribute : Attribute
     {
-        private readonly int[] _dims;
-
         /// <summary>
         /// The length of the vectors from this vector valued field.
         /// </summary>
-        public int[] Dims { get { return _dims; } }
+        internal int[] Dims { get; }
+
+        /// <summary>
+        /// Mark member with expected size of array.
+        /// </summary>
+        /// <param name="size">Expected size of array.</param>
+        public VectorTypeAttribute(int size)
+        {
+            Contracts.CheckParam(size > 0, nameof(size), "Should be positive number, if you want to specify variable size please use " + nameof(VariableVectorTypeAttribute));
+            Dims = new int[1] { size };
+        }
 
         public VectorTypeAttribute(params int[] dims)
         {
-            _dims = dims;
+            foreach (var size in dims)
+            {
+                Contracts.CheckParam(size > 0, nameof(dims), "Should contain only positive numbers, if you want to specify variable size please use " + nameof(VariableVectorTypeAttribute));
+            }
+            Dims = dims;
         }
     }
 
     /// <summary>
-    /// Describes column information such as name and the source columns indicies that this
-    /// column encapsulates.
+    /// Marks member as variable vector.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class ColumnAttribute : Attribute
+    public sealed class VariableVectorTypeAttribute : Attribute
     {
-        public ColumnAttribute(string ordinal, string name = null)
-        {
-            Name = name;
-        }
 
-        /// <summary>
-        /// Column name.
-        /// </summary>
-        public string Name { get; }
     }
 
     /// <summary>
@@ -74,7 +83,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Column name.
         /// </summary>
-        public string Name { get { return _name; } }
+        internal string Name => _name;
 
         /// <summary>
         /// Allows one to specify a name to expose this column as, as opposed to simply
@@ -362,9 +371,8 @@ namespace Microsoft.ML.Data
                 if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
                     continue;
 
-                var mappingAttr = memberInfo.GetCustomAttribute<ColumnAttribute>();
                 var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
-                string name = mappingAttr?.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
+                string name = mappingNameAttr?.Name ?? memberInfo.Name;
                 // Disallow duplicate names, because the field enumeration order is not actually
                 // well defined, so we are not gauranteed to have consistent "hiding" from run to
                 // run, across different .NET versions.
@@ -389,9 +397,14 @@ namespace Microsoft.ML.Data
                 var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
                 if (vectorAttr != null && !isVector)
                     throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", memberInfo.Name);
+                var varVectorAttr = memberInfo.GetCustomAttribute<VariableVectorTypeAttribute>();
+                if (varVectorAttr != null && !isVector)
+                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VariableVectorType attribute, but does not appear to be a vector type", memberInfo.Name);
+                if (vectorAttr != null && varVectorAttr != null)
+                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with both VariableVectorType and VectorType attribute", memberInfo.Name);
                 if (isVector)
                 {
-                    int[] dims = vectorAttr?.Dims;
+                    int[] dims = varVectorAttr != null ? new int[0] : vectorAttr?.Dims;
                     if (dims != null && dims.Any(d => d < 0))
                         throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
                     if (Utils.Size(dims) == 0)

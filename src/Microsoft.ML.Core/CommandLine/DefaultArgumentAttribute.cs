@@ -15,7 +15,7 @@ namespace Microsoft.ML.CommandLine
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     [BestFriend]
-    internal class DefaultArgumentAttribute : ArgumentAttribute
+    internal sealed class DefaultArgumentAttribute : ArgumentAttribute
     {
         /// <summary>
         /// Indicates that this argument is the default argument.

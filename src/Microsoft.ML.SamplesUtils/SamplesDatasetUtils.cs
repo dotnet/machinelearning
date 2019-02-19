@@ -653,10 +653,10 @@ namespace Microsoft.ML.SamplesUtils
         public class MatrixElement
         {
             // Matrix column index is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
             // Matrix row index is at most _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex.
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             // The value at the column MatrixColumnIndex and row MatrixRowIndex.
             public float Value;
@@ -666,9 +666,9 @@ namespace Microsoft.ML.SamplesUtils
         // renamed to Score because Score is the default name of matrix factorization's output.
         public class MatrixElementForScore
         {
-            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(_synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
+            [KeyType(_synthesizedMatrixRowCount + _synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             public float Score;
         }

@@ -700,7 +700,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class IrisColumnIndices
         {
-            [LoadColumn(columnIndexes: new[] { 0, 2 })]
+            [LoadColumn( new []{0, 2})]
             public float Features;
 
             [LoadColumn(4), ColumnName("Label")]

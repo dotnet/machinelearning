@@ -8,14 +8,14 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Describes column information such as name and the source columns indices that this
-    /// column encapsulates.
+    /// Allow member to specify mapping to column(s) in text file.
+    /// To override name of column use <see cref="ColumnNameAttribute"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class LoadColumnAttribute : Attribute
     {
         /// <summary>
-        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// Maps member to specific column in text file.
         /// </summary>
         /// <param name="columnIndex">The index of the column in the text file.</param>
         public LoadColumnAttribute(int columnIndex)
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// Maps member to range of columns in text file.
         /// </summary>
         /// <param name="start">The starting column index, for the range.</param>
         /// <param name="end">The ending column index, for the range.</param>
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// Maps member to set of columns in text file.
         /// </summary>
         /// <param name="columnIndexes">Distinct text file column indices to load as part of this column.</param>
         public LoadColumnAttribute(int[] columnIndexes)
