@@ -63,9 +63,6 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
-            public bool? CacheData;
-
             [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
             public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
@@ -185,7 +182,7 @@ namespace Microsoft.ML.Data
             }
 
             var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
-                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor, testDataUsedInTrainer);
+                Args.Calibrator, Args.MaxCalibrationExamples, inputPredictor, testDataUsedInTrainer);
 
             IDataLoader testPipe;
             bool hasOutfile = !string.IsNullOrEmpty(Args.OutputModelFile);

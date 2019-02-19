@@ -188,18 +188,41 @@ namespace Microsoft.ML.EntryPoints
                 var roleMappedData = new RoleMappedData(view, label, feature, group, weight, name, custom);
 
                 RoleMappedData cachedRoleMappedData = roleMappedData;
-                Cache.CachingType? cachingType = null;
                 IFileHandle fileHandle = null;
+
+                const string registrationName = "CreateCache";
+                var createCacheHost = host.Register(registrationName);
+
+                IDataView outputData = null;
+
                 switch (input.Caching)
                 {
                     case CachingOptions.Memory:
                         {
-                            cachingType = Cache.CachingType.Memory;
+                            outputData = new CacheDataView(host, roleMappedData.Data, null);
                             break;
                         }
                     case CachingOptions.Disk:
                         {
-                            cachingType = Cache.CachingType.Disk;
+                            var args = new BinarySaver.Arguments();
+                            args.Compression = CompressionKind.Default;
+                            args.Silent = true;
+
+                            var saver = new BinarySaver(createCacheHost, args);
+                            var roleMappedDataSchema = roleMappedData.Data.Schema;
+
+                            var cols = new List<int>();
+                            for (int i = 0; i < roleMappedDataSchema.Count; i++)
+                            {
+                                var type = roleMappedDataSchema[i].Type;
+                                if (saver.IsColumnSavable(type))
+                                    cols.Add(i);
+                            }
+
+                            fileHandle = createCacheHost.CreateTempFile();
+                            using (var stream = fileHandle.CreateWriteStream())
+                                saver.SaveData(stream, roleMappedData.Data, cols.ToArray());
+                            outputData = new BinaryLoader(createCacheHost, new BinaryLoader.Arguments(), fileHandle.OpenReadStream());
                             break;
                         }
                     case CachingOptions.Auto:
@@ -207,7 +230,7 @@ namespace Microsoft.ML.EntryPoints
                             // REVIEW: we should switch to hybrid caching in future.
                             if (!(input.TrainingData is BinaryLoader) && trainer.Info.WantCaching)
                                 // default to Memory so mml is on par with maml
-                                cachingType = Cache.CachingType.Memory;
+                                outputData = new CacheDataView(host, roleMappedData.Data, null);
                             break;
                         }
                     case CachingOptions.None:
@@ -216,16 +239,9 @@ namespace Microsoft.ML.EntryPoints
                         throw ch.ExceptParam(nameof(input.Caching), "Unknown option for caching: '{0}'", input.Caching);
                 }
 
-                if (cachingType.HasValue)
+                if (outputData != null)
                 {
-                    var cached = Cache.CacheData(host, new Cache.CacheInput()
-                    {
-                        Data = roleMappedData.Data,
-                        Caching = cachingType.Value
-                    });
-                    var cacheView = cached.OutputData;
-                    fileHandle = cached.FileHandle;
-                    cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
+                    cachedRoleMappedData = new RoleMappedData(outputData, roleMappedData.Schema.GetColumnRoleNames());
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);

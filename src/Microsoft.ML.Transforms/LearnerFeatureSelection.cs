@@ -66,9 +66,6 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
             public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
-            public bool? CacheData;
-
             internal void Check(IExceptionContext ectx)
             {
                 if (Threshold.HasValue == NumSlotsToKeep.HasValue)
@@ -293,7 +290,7 @@ namespace Microsoft.ML.Transforms
                 var data = new RoleMappedData(view, label, feature, group, weight, name, customCols);
 
                 var predictor = TrainUtils.Train(host, ch, data, trainer, null,
-                    null, 0, options.CacheData);
+                    null, 0);
 
                 var rfs = predictor as IPredictorWithFeatureWeights<Single>;
                 Contracts.AssertValue(rfs);

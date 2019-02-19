@@ -71,9 +71,6 @@ namespace Microsoft.ML.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
             public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
-            public bool? CacheData;
-
             [Argument(ArgumentType.Multiple, HelpText = "Transforms to apply prior to splitting the data into folds",
                 Name = "PreTransform", ShortName = "prexf", SignatureType = typeof(SignatureDataTransform))]
             public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] PreTransforms;
@@ -385,7 +382,6 @@ namespace Microsoft.ML.Data
             private readonly IComponentFactory<ICalibratorTrainer> _calibrator;
             private readonly int _maxCalibrationExamples;
             private readonly bool _useThreads;
-            private readonly bool? _cacheData;
             private readonly IPredictor _inputPredictor;
             private readonly string _cmd;
             private readonly string _outputModelFile;
@@ -459,7 +455,6 @@ namespace Microsoft.ML.Data
                 _calibrator = args.Calibrator;
                 _maxCalibrationExamples = args.MaxCalibrationExamples;
                 _useThreads = args.UseThreads;
-                _cacheData = args.CacheData;
                 _getValidationDataView = getValidationDataView;
                 _applyTransformsToValidationData = applyTransformsToValidationData;
                 _inputPredictor = inputPredictor;
@@ -552,7 +547,7 @@ namespace Microsoft.ML.Data
 
                     // Train.
                     var predictor = TrainUtils.Train(host, ch, trainData, trainer, validData,
-                        _calibrator, _maxCalibrationExamples, _cacheData, _inputPredictor);
+                        _calibrator, _maxCalibrationExamples, _inputPredictor);
 
                     // Score.
                     ch.Trace("Scoring and evaluating");
