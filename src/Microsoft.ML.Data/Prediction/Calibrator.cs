@@ -1150,8 +1150,8 @@ namespace Microsoft.ML.Internal.Calibration
             _host.CheckDecode(FloatUtils.IsFinite(Min));
 
             _binProbs = ctx.Reader.ReadFloatArray();
-            _host.CheckDecode(Utils.Size(BinProbs) > 0);
-            _host.CheckDecode(BinProbs.All(x => (0 <= x && x <= 1)));
+            _host.CheckDecode(Utils.Size(_binProbs) > 0);
+            _host.CheckDecode(_binProbs.All(x => (0 <= x && x <= 1)));
         }
 
         private static NaiveCalibrator Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -1192,8 +1192,8 @@ namespace Microsoft.ML.Internal.Calibration
         {
             if (float.IsNaN(output))
                 return output;
-            int binIdx = GetBinIdx(output, Min, BinSize, BinProbs.Count);
-            return BinProbs[binIdx];
+            int binIdx = GetBinIdx(output, Min, BinSize, _binProbs.Length);
+            return _binProbs[binIdx];
         }
 
         // get the bin for a given output
