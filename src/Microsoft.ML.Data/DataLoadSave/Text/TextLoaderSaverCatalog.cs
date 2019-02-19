@@ -148,20 +148,22 @@ namespace Microsoft.ML
         /// <param name="headerRow">Whether to write the header row.</param>
         /// <param name="schema">Whether to write the header comment with the schema.</param>
         /// <param name="keepHidden">Whether to keep hidden columns in the dataset.</param>
+        /// <param name="forceDense">Whether to save columns in dense format even if they are sparse vectors.</param>
         public static void SaveAsText(this DataOperationsCatalog catalog,
             IDataView data,
             Stream stream,
             char separatorChar = TextLoader.Defaults.Separator,
-            bool headerRow = TextLoader.Defaults.HasHeader,
-            bool schema = true,
-            bool keepHidden = false)
+            bool headerRow = TextSaver.Defaults.OutputHeader,
+            bool schema = TextSaver.Defaults.OutputSchema,
+            bool keepHidden = false,
+            bool forceDense = TextSaver.Defaults.ForceDense)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(data, nameof(data));
             Contracts.CheckValue(stream, nameof(stream));
 
             var env = catalog.GetEnvironment();
-            var saver = new TextSaver(env, new TextSaver.Arguments { Separator = separatorChar.ToString(), OutputHeader = headerRow, OutputSchema = schema });
+            var saver = new TextSaver(env, new TextSaver.Arguments { Dense = forceDense, Separator = separatorChar.ToString(), OutputHeader = headerRow, OutputSchema = schema });
 
             using (var ch = env.Start("Saving data"))
                 DataSaverUtils.SaveDataView(ch, saver, data, stream, keepHidden);
