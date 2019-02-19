@@ -233,6 +233,7 @@ namespace Microsoft.ML.RunTests
                 removeArgs.Add("xf=");
                 removeArgs.Add("cache-");
                 removeArgs.Add("sf=");
+                removeArgs.Add("loader=");
 
                 for (int i = 0; i < args.Count; ++i)
                 {

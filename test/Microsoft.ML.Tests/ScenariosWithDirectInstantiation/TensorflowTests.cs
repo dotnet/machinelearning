@@ -497,7 +497,8 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
 
                     },
-                    hasHeader: true
+                    hasHeader: true,
+                    allowSparse: true
                 );
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
@@ -537,7 +538,8 @@ namespace Microsoft.ML.Scenarios
                         {
                             new TextLoader.Column("Label", DataKind.I8, 0),
                             new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
-                        }
+                        },
+                        allowSparse: true
                     );
 
                 var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
@@ -631,7 +633,8 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Label", DataKind.U4, new []{ new TextLoader.Range(0) }, new KeyCount(10)),
                         new TextLoader.Column("TfLabel", DataKind.I8, 0),
                         new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
-                    }
+                    },
+                    allowSparse: true
                 );
 
                 var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
@@ -725,7 +728,8 @@ namespace Microsoft.ML.Scenarios
                     new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyCount(10)),
                     new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
                 },
-                hasHeader: true
+                hasHeader: true,
+                allowSparse: true
             );
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
