@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers.FastTree
         IQuantileValueMapper,
         IQuantileRegressionPredictor
     {
-        internal sealed class QuantileStatistics : IDistribution<float>, ISampleableDistribution<float>
+        private sealed class QuantileStatistics
         {
             private readonly float[] _data;
             private readonly float[] _weights;
@@ -39,34 +39,6 @@ namespace Microsoft.ML.Trainers.FastTree
             //This holds the cumulative sum of _weights to search the rank easily by binary search.
             private float[] _weightedSums;
             private SummaryStatistics _summaryStatistics;
-
-            float IDistribution<float>.Minimum
-            {
-                get
-                {
-                    if (_data.Length == 0)
-                        return float.NaN;
-
-                    return _data[0];
-                }
-            }
-
-            float IDistribution<float>.Maximum
-            {
-                get
-                {
-                    if (_data.Length == 0)
-                        return float.NaN;
-
-                    return _data[_data.Length - 1];
-                }
-            }
-
-            public float Median { get { return GetQuantile(0.5F); } }
-
-            float IDistribution<float>.Mean { get { return (float)SummaryStatistics.Mean; } }
-
-            float IDistribution<float>.StandardDeviation { get { return (float)SummaryStatistics.SampleStdDev; } }
 
             /// <summary>
             /// data array will be modified because of sorting if it is not already sorted yet and this class owns the data.
@@ -112,23 +84,6 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 var hf = (int)h;
                 return (float)(_data[hf - 1] + (h - hf) * (_data[hf] - _data[hf - 1]));
-            }
-
-            float[] ISampleableDistribution<float>.GetSupportSample(out float[] weights)
-            {
-                var result = new float[_data.Length];
-                Array.Copy(_data, result, _data.Length);
-                if (_weights == null)
-                {
-                    weights = null;
-                }
-                else
-                {
-                    weights = new float[_data.Length];
-                    Array.Copy(_weights, weights, _weights.Length);
-                }
-
-                return result;
             }
 
             private float GetRank(float p)
