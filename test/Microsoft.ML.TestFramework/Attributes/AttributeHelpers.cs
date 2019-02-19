@@ -3,17 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.TestFramework.Attributes
 {
     internal static class AttributeHelpers
     {
-        internal static bool CheckLibcVersionGreaterThanMinimum(double minVersion)
+        internal static bool CheckLibcVersionGreaterThanMinimum(Version minVersion)
         {
 #if !NETFRAMEWORK
-            string version;
+            Version version;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return false;
@@ -21,15 +20,18 @@ namespace Microsoft.ML.TestFramework.Attributes
 
             try
             {
-                version = Marshal.PtrToStringUTF8(gnu_get_libc_version());
+                version = Version.Parse(Marshal.PtrToStringUTF8(gnu_get_libc_version()));
             }
-            catch (Exception e)
+            catch (DllNotFoundException)
             {
-                Debug.Assert(e is DllNotFoundException || e is EntryPointNotFoundException);
+                return false;
+            }
+            catch (EntryPointNotFoundException)
+            {
                 return false;
             }
 
-            return double.Parse(version) >= minVersion;
+            return version >= minVersion;
 #else
             return false;
 #endif
