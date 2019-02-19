@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
 
-    public sealed class EnsembleDistributionModelParameters : EnsembleModelParametersBase<Single>,
+    internal sealed class EnsembleDistributionModelParameters : EnsembleModelParametersBase<Single>,
          TDistPredictor, IValueMapperDist
     {
         internal const string UserName = "Ensemble Distribution Executor";

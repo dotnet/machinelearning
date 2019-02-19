@@ -619,7 +619,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public double MaxOutput => _maxOutput;
 
         /// <summary>
-        /// Weight of this tree in an <see cref="Ensemble"/>.
+        /// Weight of this tree in an <see cref="InternalTreeEnsemble"/>.
         /// </summary>
         public double Weight { get; set; }
 

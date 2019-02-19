@@ -13,7 +13,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         Subset SelectFeatures(RoleMappedData data, Random rand);
     }
 
-    public delegate void SignatureEnsembleFeatureSelector();
+    internal delegate void SignatureEnsembleFeatureSelector();
 
     [TlcModule.ComponentKind("EnsembleFeatureSelector")]
     internal interface ISupportFeatureSelectorFactory : IComponentFactory<IFeatureSelector>

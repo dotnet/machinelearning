@@ -4,14 +4,16 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Trainers.Ensemble
+namespace Microsoft.ML.Data
 {
-    public delegate void SignatureModelCombiner(PredictionKind kind);
+    [BestFriend]
+    internal delegate void SignatureModelCombiner(PredictionKind kind);
 
     /// <summary>
     /// An interface that combines multiple predictors into a single predictor.
     /// </summary>
-    public interface IModelCombiner
+    [BestFriend]
+    internal interface IModelCombiner
     {
         IPredictor CombineModels(IEnumerable<IPredictor> models);
     }
