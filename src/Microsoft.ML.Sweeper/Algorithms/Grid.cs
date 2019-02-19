@@ -35,21 +35,21 @@ namespace Microsoft.ML.Sweeper
             public int Retries = 10;
         }
 
-        private readonly OptionsBase _args;
+        private readonly OptionsBase _options;
         protected readonly IValueGenerator[] SweepParameters;
         protected readonly IHost Host;
 
-        protected SweeperBase(OptionsBase args, IHostEnvironment env, string name)
+        protected SweeperBase(OptionsBase options, IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
             Host = env.Register(name);
-            Host.CheckValue(args, nameof(args));
-            Host.CheckNonEmpty(args.SweptParameters, nameof(args.SweptParameters));
+            Host.CheckValue(options, nameof(options));
+            Host.CheckNonEmpty(options.SweptParameters, nameof(options.SweptParameters));
 
-            _args = args;
+            _options = options;
 
-            SweepParameters = args.SweptParameters.Select(p => p.CreateComponent(Host)).ToArray();
+            SweepParameters = options.SweptParameters.Select(p => p.CreateComponent(Host)).ToArray();
         }
 
         protected SweeperBase(OptionsBase args, IHostEnvironment env, IValueGenerator[] sweepParameters, string name)
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Sweeper
             Host.CheckValue(args, nameof(args));
             Host.CheckValue(sweepParameters, nameof(sweepParameters));
 
-            _args = args;
+            _options = args;
             SweepParameters = sweepParameters;
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Sweeper
                 {
                     paramSet = CreateParamSet();
                     ++retries;
-                } while (paramSet != null && retries < _args.Retries &&
+                } while (paramSet != null && retries < _options.Retries &&
                     (AlreadyGenerated(paramSet, prevParamSets) || AlreadyGenerated(paramSet, result)));
 
                 Contracts.Assert(paramSet != null);

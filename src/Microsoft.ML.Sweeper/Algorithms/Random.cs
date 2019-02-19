@@ -18,13 +18,13 @@ namespace Microsoft.ML.Sweeper
     /// </summary>
     public sealed class UniformRandomSweeper : SweeperBase
     {
-        public UniformRandomSweeper(IHostEnvironment env, OptionsBase args)
-            : base(args, env, "UniformRandom")
+        public UniformRandomSweeper(IHostEnvironment env, OptionsBase options)
+            : base(options, env, "UniformRandom")
         {
         }
 
-        public UniformRandomSweeper(IHostEnvironment env, OptionsBase args, IValueGenerator[] sweepParameters)
-            : base(args, env, sweepParameters, "UniformRandom")
+        public UniformRandomSweeper(IHostEnvironment env, OptionsBase options, IValueGenerator[] sweepParameters)
+            : base(options, env, sweepParameters, "UniformRandom")
         {
         }
 

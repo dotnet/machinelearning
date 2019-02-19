@@ -1403,7 +1403,7 @@ namespace Microsoft.ML.Trainers
     /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
     /// </summary>
     public abstract class SdcaBinaryTrainerBase<TModelParameters> :
-        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
+        SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryOptionsBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
         where TModelParameters : class
     {
         private readonly ISupportSdcaClassificationLoss _loss;
@@ -1419,7 +1419,7 @@ namespace Microsoft.ML.Trainers
 
         public override TrainerInfo Info { get; }
 
-        public class BinaryArgumentBase : OptionsBase
+        public class BinaryOptionsBase : OptionsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
@@ -1462,7 +1462,7 @@ namespace Microsoft.ML.Trainers
             _outputColumns = ComputeSdcaBinaryClassifierSchemaShape();
         }
 
-        private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryArgumentBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
+        private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryOptionsBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
@@ -1523,7 +1523,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Configuration to training logistic regression using SDCA.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
         }
 
@@ -1582,7 +1582,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// General Configuration to training linear model using SDCA.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1646,7 +1646,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Legacy configuration to SDCA in legacy framework.
         /// </summary>
-        public sealed class Options : BinaryArgumentBase
+        public sealed class Options : BinaryOptionsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();

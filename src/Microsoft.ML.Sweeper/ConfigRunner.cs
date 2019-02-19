@@ -63,17 +63,17 @@ namespace Microsoft.ML.Sweeper
 
         private readonly bool _calledFromUnitTestSuite;
 
-        protected ExeConfigRunnerBase(OptionsBase args, IHostEnvironment env, string registrationName)
+        protected ExeConfigRunnerBase(OptionsBase options, IHostEnvironment env, string registrationName)
         {
             Contracts.AssertValue(env);
             Host = env.Register(registrationName);
-            Host.CheckUserArg(!string.IsNullOrEmpty(args.ArgsPattern), nameof(args.ArgsPattern), "The command pattern is missing");
-            Host.CheckUserArg(!string.IsNullOrEmpty(args.OutputFolderName), nameof(args.OutputFolderName), "Please specify an output folder");
-            ArgsPattern = args.ArgsPattern;
-            OutputFolder = GetOutputFolderPath(args.OutputFolderName);
-            Prefix = string.IsNullOrEmpty(args.Prefix) ? "" : args.Prefix;
-            ResultProcessor = args.ResultProcessor.CreateComponent(Host);
-            _calledFromUnitTestSuite = args.CalledFromUnitTestSuite;
+            Host.CheckUserArg(!string.IsNullOrEmpty(options.ArgsPattern), nameof(options.ArgsPattern), "The command pattern is missing");
+            Host.CheckUserArg(!string.IsNullOrEmpty(options.OutputFolderName), nameof(options.OutputFolderName), "Please specify an output folder");
+            ArgsPattern = options.ArgsPattern;
+            OutputFolder = GetOutputFolderPath(options.OutputFolderName);
+            Prefix = string.IsNullOrEmpty(options.Prefix) ? "" : options.Prefix;
+            ResultProcessor = options.ResultProcessor.CreateComponent(Host);
+            _calledFromUnitTestSuite = options.CalledFromUnitTestSuite;
             RunNums = new List<int>();
         }
 
