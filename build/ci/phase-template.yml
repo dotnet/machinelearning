@@ -33,7 +33,7 @@ phases:
       ${{ insert }}: ${{ parameters.queue }}
     steps:
     - ${{ if eq(parameters.name, 'Mono') }}:
-      - script: curl -O  https://xamjenkinsartifact.azureedge.net/build-package-win-mono/2018-12/48/85498a4b789f00ba3ea85ba1640bebb1cfc87215/mono-5.22.0.67-x64-0.msi && msiexec /a mono-5.22.0.67-x64-0.msi /qn /norestart /L*V "bin/install.log" && SLEEP 100 && Mono --help
+      - script: curl -O  https://xamjenkinsartifact.azureedge.net/build-package-win-mono/2018-12/48/85498a4b789f00ba3ea85ba1640bebb1cfc87215/mono-5.22.0.67-x64-0.msi && msiexec /a mono-5.22.0.67-x64-0.msi /qn /norestart /L*V "$(System.DefaultWorkingDirectory)/bin/install.log" && SLEEP 100 && Mono --help
         displayName: Install Mono
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build
