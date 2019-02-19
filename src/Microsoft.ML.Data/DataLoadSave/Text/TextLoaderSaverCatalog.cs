@@ -20,13 +20,15 @@ namespace Microsoft.ML
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
+        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Column[] columns,
             bool hasHeader = TextLoader.Defaults.HasHeader,
             char separatorChar = TextLoader.Defaults.Separator,
             IMultiStreamSource dataSample = null,
-            bool allowSparse = TextLoader.Defaults.AllowSparse)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChar, dataSample, allowSparse);
+            bool allowSparse = TextLoader.Defaults.AllowSparse,
+            bool allowQuoting = TextLoader.Defaults.AllowQuoting)
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChar, dataSample, allowSparse, allowQuoting);
 
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/>.

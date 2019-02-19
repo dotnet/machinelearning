@@ -488,7 +488,7 @@ namespace Microsoft.ML.Data
 
         internal static class Defaults
         {
-            internal const bool AllowQuoting = true;
+            internal const bool AllowQuoting = false;
             internal const bool AllowSparse = false;
             internal const char Separator = '\t';
             internal const bool HasHeader = false;
@@ -1070,15 +1070,16 @@ namespace Microsoft.ML.Data
         /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
-        internal TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null, bool allowSparse = false)
-            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse), dataSample)
+        /// <param name="allowQuoting">Whether the file can contain numerical vectors in sparse format.</param>
+        internal TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null, bool allowSparse = false, bool allowQuoting = false)
+            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }, allowSparse, allowQuoting), dataSample)
         {
         }
 
-        private static Options MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, bool allowSparse)
+        private static Options MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, bool allowSparse, bool allowQuoting)
         {
             Contracts.AssertValue(separatorChars);
-            var result = new Options { Columns = columns, HasHeader = hasHeader, Separators = separatorChars, AllowSparse = allowSparse };
+            var result = new Options { Columns = columns, HasHeader = hasHeader, Separators = separatorChars, AllowSparse = allowSparse, AllowQuoting = allowQuoting };
             return result;
         }
 
@@ -1257,7 +1258,7 @@ namespace Microsoft.ML.Data
                 HeaderFile = options.HeaderFile,
                 MaxRows = options.MaxRows
             });
-            tmp = Regex.Replace(tmp, @"[(sparse=\+)]", "");
+            tmp = Regex.Replace(tmp, @"[(sparse=\+)|(quote\+)]", "");
 
             // Try to get the schema information from the file.
             string str = Cursor.GetEmbeddedArgs(files);

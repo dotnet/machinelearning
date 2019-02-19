@@ -274,7 +274,7 @@ namespace Microsoft.ML.RunTests
         {
             TestCore(null, true,
                 new[] {
-                    "loader=Text{sparse+ col=Label:Num:0 col=Text:TX:1-9}",
+                    "loader=Text{quote+ sparse+ col=Label:Num:0 col=Text:TX:1-9}",
                     "xf=Cat{max=5 col={name=Key src=Text kind=key}}",
                     "xf=Ngram{ngram=3 skips=1 col={name=Ngrams1 src=Key max=10}}",
                     "xf=Ngram{skips=2 col={name=Ngrams2 src=Key ngram=4 max=10:20:30} col={name=Ngrams3 src=Key ngram=3 max=10:15}}",
@@ -301,7 +301,7 @@ namespace Microsoft.ML.RunTests
 
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{sparse+ col=Text:TX:0-20}",
+                    "loader=Text{quote+ sparse+ col=Text:TX:0-20}",
                     "xf=Cat{col={name=Key src=Text kind=key}}",
                     "xf=Ngram{ngram=3 skips=2 col={name=Ngrams src=Key max=100}}",
                 });
@@ -412,7 +412,7 @@ namespace Microsoft.ML.RunTests
         {
             TestCore(null, false,
                 new[] {
-                    "loader=Text{sparse+ col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "loader=Text{quote+ sparse+ col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
                     "xf=Cat{max=5 col={name=Bag src=Text kind=bag} col=One:ind:OneText}",
                     "xf=Cat{max=7 col=Hot:Text}",
                     "xf=Cat{max=8 col=Key:kEY:Text col=KeyOne:KeY:OneText}",
@@ -455,7 +455,7 @@ namespace Microsoft.ML.RunTests
         {
             TestCore(null, false,
                 new[] {
-                    "loader=Text{sparse+ col=One:TX:1 col=Num:R4:2-* col=Key:U1[0-10]:1}",
+                    "loader=Text{quote+ sparse+ col=One:TX:1 col=Num:R4:2-* col=Key:U1[0-10]:1}",
                     // Create a lot of unused slots.
                     "xf=CatHash{col=OneInd:One bits=10}",
                     // One is for the non-vector case and OneInd is reduced to a small size.
@@ -661,7 +661,7 @@ namespace Microsoft.ML.RunTests
                     "an angry ant\t3\t3\t\tbob bowled badly",
                     "\t10\t\t\t\"\""
                 });
-            const string loader = "loader=Text{sparse+ col=A:TX:0 col=K:U4[11]:1-2 col=KS:U4[11]:2 col=B:TX:4 col=E:TX:3}";
+            const string loader = "loader=Text{quote+ sparse+ col=A:TX:0 col=K:U4[11]:1-2 col=KS:U4[11]:2 col=B:TX:4 col=E:TX:3}";
             TestCore(pathData, true,
                 new[] {
                     loader,

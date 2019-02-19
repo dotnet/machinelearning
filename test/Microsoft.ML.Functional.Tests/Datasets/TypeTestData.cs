@@ -101,7 +101,8 @@ namespace Microsoft.ML.Functional.Tests.Datasets
                         new TextLoader.Column("Features", DataKind.R4, 16, 16 + _numFeatures-1),
                     },
                     hasHeader: true,
-                    separatorChar: separator);
+                    separatorChar: separator,
+                    allowQuoting: true);
         }
 
         /// <summary>

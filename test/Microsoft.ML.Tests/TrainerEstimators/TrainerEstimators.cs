@@ -163,6 +163,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env,
                     new TextLoader.Options()
                     {
+                        AllowQuoting = true,
                         Separator = "\t",
                         HasHeader = true,
                         Columns = new[]
