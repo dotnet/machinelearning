@@ -98,19 +98,19 @@ namespace Microsoft.ML.ImageAnalytics
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use alpha channel", ShortName = "alpha")]
-            public bool ContainsAlpha = false;
+            public bool ContainsAlpha = (Defaults.Colors & ImagePixelExtractingEstimator.ColorBits.Alpha) > 0;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use red channel", ShortName = "red")]
-            public bool ContainsRed = true;
+            public bool ContainsRed = (Defaults.Colors & ImagePixelExtractingEstimator.ColorBits.Red) > 0;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use green channel", ShortName = "green")]
-            public bool ContainsGreen = true;
+            public bool ContainsGreen = (Defaults.Colors & ImagePixelExtractingEstimator.ColorBits.Green) > 0;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to use blue channel", ShortName = "blue")]
-            public bool ContainsBlue = true;
+            public bool ContainsBlue = (Defaults.Colors & ImagePixelExtractingEstimator.ColorBits.Blue) > 0;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in ARGB order", ShortName = "interleave")]
-            public bool InterleaveArgb = false;
+            public bool InterleaveArgb = Defaults.InterleaveArgb;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Width of the image", ShortName = "width")]
             public int ImageWidth;
@@ -119,10 +119,18 @@ namespace Microsoft.ML.ImageAnalytics
             public int ImageHeight;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Offset (pre-scale)")]
-            public Single? Offset;
+            public Single Offset = Defaults.Offset;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scale factor")]
-            public Single? Scale;
+            public Single Scale = Defaults.Scale;
+        }
+
+        internal static class Defaults
+        {
+            public const ImagePixelExtractingEstimator.ColorBits Colors = ImagePixelExtractingEstimator.ColorBits.Rgb;
+            public const bool InterleaveArgb = false;
+            public const Single Offset = 0;
+            public const Single Scale = 1;
         }
 
         internal const string Summary = "Converts vector array into image type.";
@@ -163,7 +171,7 @@ namespace Microsoft.ML.ImageAnalytics
         {
         }
 
-        // Public constructor corresponding to SignatureDataTransform.
+        // Constructor corresponding to SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Options args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -252,7 +260,7 @@ namespace Microsoft.ML.ImageAnalytics
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema[srcCol].Type.ToString());
 
             if (vectorType.GetValueCount() != _columns[col].Height * _columns[col].Width * _columns[col].Planes)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "known-size image", "unknown-size image");
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, new VectorType(vectorType.ItemType, _columns[col].Height, _columns[col].Width, _columns[col].Planes).ToString(), vectorType.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase
@@ -282,18 +290,19 @@ namespace Microsoft.ML.ImageAnalytics
                 var sourceType = InputSchema[ColMapNewToOld[iinfo]].Type;
                 var sourceItemType = sourceType.GetItemType();
                 if (sourceItemType == NumberDataViewType.Single || sourceItemType == NumberDataViewType.Double)
-                    return GetterFromType<float>(input, iinfo, ex, needScale);
+                    return GetterFromType<float>(NumberDataViewType.Single, input, iinfo, ex, needScale);
                 else
                     if (sourceItemType == NumberDataViewType.Byte)
-                    return GetterFromType<byte>(input, iinfo, ex, false);
+                    return GetterFromType<byte>(NumberDataViewType.Byte, input, iinfo, ex, false);
                 else
-                    throw Contracts.Except("We only support float or byte arrays");
+                    throw Contracts.Except("We only support float, double or byte arrays");
             }
 
-            private ValueGetter<Bitmap> GetterFromType<TValue>(DataViewRow input, int iinfo,
+            private ValueGetter<Bitmap> GetterFromType<TValue>(PrimitiveDataViewType srcType, DataViewRow input, int iinfo,
                 VectorToImageConvertingEstimator.ColumnInfo ex, bool needScale) where TValue : IConvertible
             {
-                var getSrc = input.GetGetter<VBuffer<TValue>>(ColMapNewToOld[iinfo]);
+                Contracts.Assert(typeof(TValue) == srcType.RawType);
+                var getSrc = RowCursorUtils.GetVecGetterAs<TValue>(srcType, input, ColMapNewToOld[iinfo]);
                 var src = default(VBuffer<TValue>);
                 int width = ex.Width;
                 int height = ex.Height;
@@ -428,8 +437,8 @@ namespace Microsoft.ML.ImageAnalytics
 
                 Width = item.ImageWidth ?? args.ImageWidth;
                 Height = item.ImageHeight ?? args.ImageHeight;
-                Offset = item.Offset ?? args.Offset ?? 0;
-                Scale = item.Scale ?? args.Scale ?? 1;
+                Offset = item.Offset ?? args.Offset;
+                Scale = item.Scale ?? args.Scale;
                 Contracts.CheckUserArg(FloatUtils.IsFinite(Offset), nameof(item.Offset));
                 Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(Scale), nameof(item.Scale));
             }
@@ -480,13 +489,13 @@ namespace Microsoft.ML.ImageAnalytics
                 Name = outputColumnName;
                 InputColumnName = inputColumnName ?? outputColumnName;
                 Colors = colors;
-                if ((byte)(Colors | ImagePixelExtractingEstimator.ColorBits.Alpha) > 0)
+                if ((byte)(Colors & ImagePixelExtractingEstimator.ColorBits.Alpha) > 0)
                     Planes++;
-                if ((byte)(Colors | ImagePixelExtractingEstimator.ColorBits.Red) > 0)
+                if ((byte)(Colors & ImagePixelExtractingEstimator.ColorBits.Red) > 0)
                     Planes++;
-                if ((byte)(Colors | ImagePixelExtractingEstimator.ColorBits.Green) > 0)
+                if ((byte)(Colors & ImagePixelExtractingEstimator.ColorBits.Green) > 0)
                     Planes++;
-                if ((byte)(Colors | ImagePixelExtractingEstimator.ColorBits.Blue) > 0)
+                if ((byte)(Colors & ImagePixelExtractingEstimator.ColorBits.Blue) > 0)
                     Planes++;
                 Contracts.CheckParam(Planes > 0, nameof(colors), "Need to use at least one color plane");
 
@@ -494,8 +503,8 @@ namespace Microsoft.ML.ImageAnalytics
 
                 Contracts.CheckParam(imageWidth > 0, nameof(imageWidth), "Image width must be greater than zero");
                 Contracts.CheckParam(imageHeight > 0, nameof(imageHeight), "Image height must be greater than zero");
-                Contracts.CheckParam(FloatUtils.IsFinite(Offset), nameof(offset));
-                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(scale));
+                Contracts.CheckParam(FloatUtils.IsFinite(offset), nameof(offset));
+                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(scale), nameof(scale));
                 Width = imageWidth;
                 Height = imageHeight;
                 Offset = offset;

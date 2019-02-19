@@ -156,7 +156,10 @@ namespace Microsoft.ML
         /// <param name="scale">The values are scaled by this value before being converted to pixels.</param>
         /// <param name="offset">The offset is subtracted (before scaling) before converting the values to pixels.</param>
         public static VectorToImageConvertingEstimator ConvertToImage(this TransformsCatalog catalog, int height, int width, string outputColumnName, string inputColumnName = null,
-            ImagePixelExtractingEstimator.ColorBits colors = ImagePixelExtractingEstimator.ColorBits.Rgb, bool interleave = false, float scale = 1, float offset = 0)
+            ImagePixelExtractingEstimator.ColorBits colors = VectorToImageConvertingTransformer.Defaults.Colors,
+            bool interleave = VectorToImageConvertingTransformer.Defaults.InterleaveArgb,
+            float scale = VectorToImageConvertingTransformer.Defaults.Scale,
+            float offset = VectorToImageConvertingTransformer.Defaults.Offset)
             => new VectorToImageConvertingEstimator(CatalogUtils.GetEnvironment(catalog), height, width, outputColumnName, inputColumnName, colors, interleave, scale, offset);
     }
 }
