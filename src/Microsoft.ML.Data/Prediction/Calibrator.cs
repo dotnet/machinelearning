@@ -1110,7 +1110,9 @@ namespace Microsoft.ML.Internal.Calibration
         public readonly float Min;
 
         /// <summary> The value of probability in each bin.</summary>
-        public readonly IReadOnlyList<float> BinProbs;
+        public IReadOnlyList<float> BinProbs => _binProbs;
+
+        private readonly float[] _binProbs;
 
         /// <summary> Initializes a new instance of <see cref="NaiveCalibrator"/>.</summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> to use.</param>
@@ -1123,7 +1125,7 @@ namespace Microsoft.ML.Internal.Calibration
             _host = env.Register(RegistrationName);
             Min = min;
             BinSize = binSize;
-            BinProbs = binProbs;
+            _binProbs = binProbs;
         }
 
         private NaiveCalibrator(IHostEnvironment env, ModelLoadContext ctx)
@@ -1147,7 +1149,7 @@ namespace Microsoft.ML.Internal.Calibration
             Min = ctx.Reader.ReadFloat();
             _host.CheckDecode(FloatUtils.IsFinite(Min));
 
-            BinProbs = ctx.Reader.ReadFloatArray();
+            _binProbs = ctx.Reader.ReadFloatArray();
             _host.CheckDecode(Utils.Size(BinProbs) > 0);
             _host.CheckDecode(BinProbs.All(x => (0 <= x && x <= 1)));
         }
@@ -1180,7 +1182,7 @@ namespace Microsoft.ML.Internal.Calibration
             ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(BinSize);
             ctx.Writer.Write(Min);
-            ctx.Writer.WriteSingleArray(BinProbs as float[]);
+            ctx.Writer.WriteSingleArray(_binProbs);
         }
 
         /// <summary>

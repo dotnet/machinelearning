@@ -556,19 +556,25 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// and all subsequent correspond to each weight in turn. This is <c>null</c> if and
         /// only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public readonly IReadOnlyList<double> StandardErrors;
+        public IReadOnlyList<double> StandardErrors => _standardErrors;
+
+        private readonly double[] _standardErrors;
 
         /// <summary>
         /// t-Statistic values corresponding to each of the model standard errors. This is
         /// <c>null</c> if and only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public readonly IReadOnlyList<double> TValues;
+        public IReadOnlyList<double> TValues => _tValues;
+
+        private readonly double[] _tValues;
 
         /// <summary>
         /// p-values corresponding to each of the model standard errors. This is <c>null</c>
         /// if and only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public readonly IReadOnlyList<double> PValues;
+        public IReadOnlyList<double> PValues => _pValues;
+
+        private readonly double[] _pValues;
 
         /// <summary>
         /// Constructs a new OLS regression model parameters from trained model.
@@ -612,9 +618,9 @@ namespace Microsoft.ML.Trainers.HalLearners
 #endif
             }
 
-            StandardErrors = standardErrors;
-            TValues = tValues;
-            PValues = pValues;
+            _standardErrors = standardErrors;
+            _tValues = tValues;
+            _pValues = pValues;
             RSquared = rSquared;
             RSquaredAdjusted = rSquaredAdjusted;
         }
@@ -643,19 +649,19 @@ namespace Microsoft.ML.Trainers.HalLearners
             if (!hasStats)
                 return;
 
-            StandardErrors = ctx.Reader.ReadDoubleArray(m);
+            _standardErrors = ctx.Reader.ReadDoubleArray(m);
             for (int i = 0; i < m; ++i)
-                Host.CheckDecode(FloatUtils.IsFinite(StandardErrors[i]) && StandardErrors[i] >= 0);
+                Host.CheckDecode(FloatUtils.IsFinite(_standardErrors[i]) && _standardErrors[i] >= 0);
 
-            TValues = ctx.Reader.ReadDoubleArray(m);
-            TValueCheckDecode(Bias, TValues[0]);
+            _tValues = ctx.Reader.ReadDoubleArray(m);
+            TValueCheckDecode(Bias, _tValues[0]);
             var weightValues = Weight.GetValues();
             for (int i = 1; i < m; ++i)
-                TValueCheckDecode(weightValues[i - 1], TValues[i]);
+                TValueCheckDecode(weightValues[i - 1], _tValues[i]);
 
-            PValues = ctx.Reader.ReadDoubleArray(m);
+            _pValues = ctx.Reader.ReadDoubleArray(m);
             for (int i = 0; i < m; ++i)
-                ProbCheckDecode(PValues[i]);
+                ProbCheckDecode(_pValues[i]);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -682,15 +688,15 @@ namespace Microsoft.ML.Trainers.HalLearners
             ctx.Writer.WriteBoolByte(HasStatistics);
             if (!HasStatistics)
             {
-                Contracts.Assert(StandardErrors == null & TValues == null & PValues == null);
+                Contracts.Assert(_standardErrors == null & _tValues == null & _pValues == null);
                 return;
             }
-            Contracts.Assert(Weight.Length + 1 == StandardErrors.Count);
-            Contracts.Assert(Weight.Length + 1 == TValues.Count);
-            Contracts.Assert(Weight.Length + 1 == PValues.Count);
-            ctx.Writer.WriteDoublesNoCount(StandardErrors as double[]);
-            ctx.Writer.WriteDoublesNoCount(TValues as double[]);
-            ctx.Writer.WriteDoublesNoCount(PValues as double[]);
+            Contracts.Assert(Weight.Length + 1 == _standardErrors.Length);
+            Contracts.Assert(Weight.Length + 1 == _tValues.Length);
+            Contracts.Assert(Weight.Length + 1 == _pValues.Length);
+            ctx.Writer.WriteDoublesNoCount(_standardErrors);
+            ctx.Writer.WriteDoublesNoCount(_tValues);
+            ctx.Writer.WriteDoublesNoCount(_pValues);
         }
 
         private static void TValueCheckDecode(Double param, Double tvalue)
@@ -725,14 +731,14 @@ namespace Microsoft.ML.Trainers.HalLearners
                 writer.WriteLine();
                 writer.WriteLine("Index\tName\tWeight\tStdErr\tt-Value\tp-Value");
                 const string format = "{0}\t{1}\t{2}\t{3:g4}\t{4:g4}\t{5:e4}";
-                writer.WriteLine(format, "", "Bias", Bias, StandardErrors[0], TValues[0], PValues[0]);
+                writer.WriteLine(format, "", "Bias", Bias, _standardErrors[0], _tValues[0], _pValues[0]);
                 Contracts.Assert(Weight.IsDense);
                 var coeffs = Weight.GetValues();
                 for (int i = 0; i < coeffs.Length; i++)
                 {
                     var name = names.GetItemOrDefault(i);
                     writer.WriteLine(format, i, name.IsEmpty ? $"f{i}" : name.ToString(),
-                        coeffs[i], StandardErrors[i + 1], TValues[i + 1], PValues[i + 1]);
+                        coeffs[i], _standardErrors[i + 1], _tValues[i + 1], _pValues[i + 1]);
                 }
             }
             else
