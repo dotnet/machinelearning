@@ -47,7 +47,10 @@ namespace Microsoft.ML.Training
         /// </summary>
         public abstract TrainerInfo Info { get; }
 
-        public abstract PredictionKind PredictionKind { get; }
+        PredictionKind ITrainer.PredictionKind => PredictionKind;
+
+        [BestFriend]
+        private protected abstract PredictionKind PredictionKind { get; }
 
         [BestFriend]
         private protected TrainerEstimatorBase(IHost host,

@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.CheckParam(predictionKind == PredictionKind.BinaryClassification, nameof(PredictionKind));
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {

@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The prediction kind for this trainer.
         /// </summary>
-        public override PredictionKind PredictionKind => PredictionKind.Ranking;
+        private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/>
@@ -1154,7 +1154,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeRankingModelParameters(env, ctx);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Ranking;
+        private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
     }
 
     internal static partial class FastTree

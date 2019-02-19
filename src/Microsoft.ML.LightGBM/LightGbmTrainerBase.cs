@@ -365,7 +365,7 @@ namespace Microsoft.ML.LightGBM
             Host.AssertValue(dtrain);
             Host.AssertValueOrNull(dvalid);
             // For multi class, the number of labels is required.
-            ch.Assert(PredictionKind != PredictionKind.MultiClassClassification || Options.ContainsKey("num_class"),
+            ch.Assert(((ITrainer)this).PredictionKind != PredictionKind.MultiClassClassification || Options.ContainsKey("num_class"),
                 "LightGBM requires the number of classes to be specified in the parameters.");
 
             // Only enable one trainer to run at one time.

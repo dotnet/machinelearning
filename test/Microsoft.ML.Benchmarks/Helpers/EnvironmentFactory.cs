@@ -10,10 +10,11 @@ namespace Microsoft.ML.Benchmarks
 {
     internal static class EnvironmentFactory
     {
-        internal static MLContext CreateClassificationEnvironment<TLoader, TTransformer, TTrainer>()
+        internal static MLContext CreateClassificationEnvironment<TLoader, TTransformer, TTrainer, TModel>()
            where TLoader : IDataReader<IMultiStreamSource>
            where TTransformer : ITransformer
-           where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>
+           where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel>
+           where TModel : class
         {
             var ctx = new MLContext();
             IHostEnvironment environment = ctx;
@@ -25,10 +26,11 @@ namespace Microsoft.ML.Benchmarks
             return ctx;
         }
 
-        internal static MLContext CreateRankingEnvironment<TEvaluator, TLoader, TTransformer, TTrainer>()
+        internal static MLContext CreateRankingEnvironment<TEvaluator, TLoader, TTransformer, TTrainer, TModel>()
             where TLoader : IDataReader<IMultiStreamSource>
             where TTransformer : ITransformer
-            where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>
+            where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel>
+           where TModel : class
         {
             var ctx = new MLContext();
             IHostEnvironment environment = ctx;

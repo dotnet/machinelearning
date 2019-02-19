@@ -753,7 +753,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             return list;
         }
 
-        public string[] GetLabelNamesOrNull(out DataViewType labelType)
+        string[] ICanGetTrainingLabelNames.GetLabelNamesOrNull(out DataViewType labelType)
         {
             Host.AssertNonEmpty(PredictorModels);
             return PredictorModels[0].GetLabelInfo(Host, out labelType);

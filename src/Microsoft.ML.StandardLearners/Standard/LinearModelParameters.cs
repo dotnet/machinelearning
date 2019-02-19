@@ -105,7 +105,7 @@ namespace Microsoft.ML.Trainers
         /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
         /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight.
         /// </summary>
-        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
+        FeatureContributionCalculator ICalculateFeatureContribution.FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         /// <summary>
         /// Constructs a new linear predictor.
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Trainers
                 ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
@@ -557,10 +557,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.Regression; }
-        }
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Output the INI model to a given writer

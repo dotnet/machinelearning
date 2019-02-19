@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private Test _trainRegressionTest;
         private Test _testRegressionTest;
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         private SchemaShape.Column[] _outputColumns;
 
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Trainers.FastTree
             dst = MathUtils.ExpSlow(dst);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 
     internal static partial class FastTree

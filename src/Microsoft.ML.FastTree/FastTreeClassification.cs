@@ -97,7 +97,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new SchemaBindableCalibratedModelParameters<FastTreeBinaryModelParameters, ICalibrator>(env, predictor, calibrator);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
     }
 
     /// <include file = 'doc.xml' path='doc/members/member[@name="FastTree"]/*' />
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _sigmoidParameter = 2.0 * FastTreeTrainerOptions.LearningRates;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private protected override CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator> TrainModelCore(TrainContext context)
         {

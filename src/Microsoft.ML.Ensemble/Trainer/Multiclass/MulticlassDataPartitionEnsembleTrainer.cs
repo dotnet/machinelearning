@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.CheckParam(predictionKind == PredictionKind.MultiClassClassification, nameof(PredictionKind));
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private protected override EnsembleMultiClassModelParameters CreatePredictor(List<FeatureSubsetModel<VBuffer<float>>> models)
         {

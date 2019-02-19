@@ -5,9 +5,15 @@
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Type of prediction task
+    /// Type of prediction task. Note that this is a legacy structure and usage of this should generally be
+    /// discouraged in future projects. Its presence suggests that there are priviledged and supported
+    /// tasks, and anything outside of this is unsupported. This runs rather contrary to the idea of this
+    /// being an expandable framework, and it is inappropriately limiting. For legacy pipelines based on
+    /// <see cref="ITrainer"/> and <see cref="IPredictor"/> it is still useful, but for things based on
+    /// the <see cref="IEstimator{TTransformer}"/> idiom, it is inappropriate.
     /// </summary>
-    public enum PredictionKind
+    [BestFriend]
+    internal enum PredictionKind
     {
         Unknown = 0,
         Custom = 1,
@@ -28,7 +34,8 @@ namespace Microsoft.ML
     /// <summary>
     /// Weakly typed version of IPredictor.
     /// </summary>
-    public interface IPredictor
+    [BestFriend]
+    internal interface IPredictor
     {
         /// <summary>
         /// Return the type of prediction task.
@@ -40,7 +47,8 @@ namespace Microsoft.ML
     /// A predictor the produces values of the indicated type.
     /// REVIEW: Determine whether this is just a temporary shim or long term solution.
     /// </summary>
-    public interface IPredictorProducing<out TResult> : IPredictor
+    [BestFriend]
+    internal interface IPredictorProducing<out TResult> : IPredictor
     {
     }
 

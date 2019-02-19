@@ -170,7 +170,7 @@ namespace Microsoft.ML.Internal.Calibration
         ICanSaveSummary,
         ICanGetSummaryInKeyValuePairs,
         IWeaklyTypedCalibratedModelParameters
-        where TSubModel : class, IPredictorProducing<float>
+        where TSubModel : class
         where TCalibrator : class, ICalibrator
     {
         protected readonly IHost Host;
@@ -186,10 +186,10 @@ namespace Microsoft.ML.Internal.Calibration
         public TCalibrator Calibrator { get; }
 
         // Type-unsafed accessors of strongly-typed members.
-        IPredictorProducing<float> IWeaklyTypedCalibratedModelParameters.WeeklyTypedSubModel => SubModel;
+        IPredictorProducing<float> IWeaklyTypedCalibratedModelParameters.WeeklyTypedSubModel => (IPredictorProducing<float>)SubModel;
         ICalibrator IWeaklyTypedCalibratedModelParameters.WeeklyTypedCalibrator => Calibrator;
 
-        public PredictionKind PredictionKind => SubModel.PredictionKind;
+        PredictionKind IPredictor.PredictionKind => ((IPredictorProducing<float>)SubModel).PredictionKind;
 
         private protected CalibratedModelParametersBase(IHostEnvironment env, string name, TSubModel predictor, TCalibrator calibrator)
         {
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Internal.Calibration
         DataViewType IValueMapperDist.DistType => NumberDataViewType.Single;
         bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
 
-        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
+        FeatureContributionCalculator ICalculateFeatureContribution.FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
