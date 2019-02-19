@@ -47,6 +47,16 @@ phases:
     - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecoverage.proj /p:CodeCovToken=$(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io
       condition: and(succeeded(), eq(variables._codeCoverage, 'true'))
+    - ${{ if eq(parameters.name, 'Mono') }}:
+      - task: PublishTestResults@2
+        displayName: Publish Test Results Mono
+        condition: succeededOrFailed()
+        inputs:
+          testRunner: 'vSTest'
+          searchFolder: '$(System.DefaultWorkingDirectory)'
+          testResultsFiles: '**/install.log'
+          testRunTitle: Machinelearning_Tests_$(_phaseName)_$(_configuration)_$(Build.BuildNumber)
+          configuration: $(_configuration)
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()
