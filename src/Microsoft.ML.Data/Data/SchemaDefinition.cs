@@ -99,7 +99,8 @@ namespace Microsoft.ML.Data
     /// channel information from an external channel.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class CursorChannelAttribute : Attribute
+    [BestFriend]
+    internal sealed class CursorChannelAttribute : Attribute
     {
         /// <summary>
         /// When passed some object, and a channel, it attempts to pass the channel to the object. It

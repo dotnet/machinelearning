@@ -14,7 +14,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This is a class for composing an in memory IDataView.
     /// </summary>
-    public sealed class ArrayDataViewBuilder
+    [BestFriend]
+    internal sealed class ArrayDataViewBuilder
     {
         private readonly IHost _host;
         private readonly List<Column> _columns;
