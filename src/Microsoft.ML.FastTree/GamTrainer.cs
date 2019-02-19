@@ -110,22 +110,22 @@ namespace Microsoft.ML.Trainers.FastTree
         private const string RegisterName = "GamTraining";
 
         //Parameters of training
-        protected readonly TArgs Args;
+        private protected readonly TArgs Args;
         private readonly double _gainConfidenceInSquaredStandardDeviations;
         private readonly double _entropyCoefficient;
 
         //Dataset information
-        protected Dataset TrainSet;
-        protected Dataset ValidSet;
+        private protected Dataset TrainSet;
+        private protected Dataset ValidSet;
         /// <summary>
         /// Whether a validation set was passed in
         /// </summary>
-        protected bool HasValidSet => ValidSet != null;
-        protected ScoreTracker TrainSetScore;
-        protected ScoreTracker ValidSetScore;
-        protected TestHistory PruningTest;
-        protected int PruningLossIndex;
-        protected int InputLength;
+        private protected bool HasValidSet => ValidSet != null;
+        private protected ScoreTracker TrainSetScore;
+        private protected ScoreTracker ValidSetScore;
+        private protected TestHistory PruningTest;
+        private protected int PruningLossIndex;
+        private protected int InputLength;
         private LeastSquaresRegressionTreeLearner.LeafSplitCandidates _leafSplitCandidates;
         private SufficientStatsBase[] _histogram;
         private ILeafSplitStatisticsCalculator _leafSplitHelper;
@@ -136,10 +136,10 @@ namespace Microsoft.ML.Trainers.FastTree
         private SubGraph _subGraph;
 
         //Results of training
-        protected double MeanEffect;
-        protected double[][] BinEffects;
-        protected double[][] BinUpperBounds;
-        protected int[] FeatureMap;
+        private protected double MeanEffect;
+        private protected double[][] BinEffects;
+        private protected double[][] BinUpperBounds;
+        private protected int[] FeatureMap;
 
         public override TrainerInfo Info { get; }
         private protected virtual bool NeedCalibration => false;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ValidSetScore = new ScoreTracker("valid", ValidSet, null);
         }
 
-        protected abstract void DefinePruningTest();
+        private protected abstract void DefinePruningTest();
 
         private protected abstract void CheckLabel(RoleMappedData data);
 
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Process bins such that only bin upper bounds and bin effects remain where
         /// the effect changes.
         /// </summary>
-        protected void CreateEfficientBinning()
+        private protected void CreateEfficientBinning()
         {
             BinUpperBounds = new double[TrainSet.NumFeatures][];
             var newBinEffects = new List<double>();
@@ -595,7 +595,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ThreadTaskManager.Initialize(numThreads);
         }
 
-        protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
+        private protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
 
         private class LeafSplitHelper : ILeafSplitStatisticsCalculator
         {

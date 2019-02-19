@@ -35,7 +35,8 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public delegate void SignatureTreeEnsembleTrainer();
+    [BestFriend]
+    internal delegate void SignatureTreeEnsembleTrainer();
 
     /// <summary>
     /// FastTreeTrainerBase is generic class and can't have shared object among classes.
@@ -52,9 +53,9 @@ namespace Microsoft.ML.Trainers.FastTree
         where TOptions : TreeOptions, new()
         where TModel : class
     {
-        protected readonly TOptions FastTreeTrainerOptions;
-        protected readonly bool AllowGC;
-        protected int FeatureCount;
+        private protected readonly TOptions FastTreeTrainerOptions;
+        private protected readonly bool AllowGC;
+        private protected int FeatureCount;
         private protected InternalTreeEnsemble TrainedEnsemble;
         private protected RoleMappedData ValidData;
         /// <summary>
@@ -64,42 +65,39 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected RoleMappedData TestData;
         private protected IParallelTraining ParallelTraining;
         private protected OptimizationAlgorithm OptimizationAlgorithm;
-        protected Dataset TrainSet;
-        protected Dataset ValidSet;
+        private protected Dataset TrainSet;
+        private protected Dataset ValidSet;
         /// <summary>
         /// Data sets used to evaluate the prediction scores produced the trained model during the triaining process.
         /// </summary>
-        protected Dataset[] TestSets;
-        protected int[] FeatureMap;
+        private protected Dataset[] TestSets;
+        private protected int[] FeatureMap;
         /// <summary>
         /// In the training process, <see cref="TrainSet"/>, <see cref="ValidSet"/>, <see cref="TestSets"/> would be
         /// converted into <see cref="Tests"/> for efficient model evaluation.
         /// </summary>
-        protected List<Test> Tests;
-        protected TestHistory PruningTest;
-        protected int[] CategoricalFeatures;
+        private protected List<Test> Tests;
+        private protected TestHistory PruningTest;
+        private protected int[] CategoricalFeatures;
 
         // Test for early stopping.
-        protected Test TrainTest;
-        protected Test ValidTest;
+        private protected Test TrainTest;
+        private protected Test ValidTest;
 
-        protected double[] InitTrainScores;
-        protected double[] InitValidScores;
-        protected double[][] InitTestScores;
-        //protected int Iteration;
+        private protected double[] InitTrainScores;
+        private protected double[] InitValidScores;
+        private protected double[][] InitTestScores;
         private protected InternalTreeEnsemble Ensemble;
 
-        protected bool HasValidSet => ValidSet != null;
+        private protected bool HasValidSet => ValidSet != null;
 
         private const string RegisterName = "FastTreeTraining";
         // random for active features selection
         private Random _featureSelectionRandom;
 
-        protected string InnerArgs => CmdParser.GetSettings(Host, FastTreeTrainerOptions, new TOptions());
+        private protected string InnerArgs => CmdParser.GetSettings(Host, FastTreeTrainerOptions, new TOptions());
 
         public override TrainerInfo Info { get; }
-
-        public bool HasCategoricalFeatures => Utils.Size(CategoricalFeatures) > 0;
 
         private protected virtual bool NeedCalibration => false;
 
@@ -167,19 +165,19 @@ namespace Microsoft.ML.Trainers.FastTree
             Initialize(env);
         }
 
-        protected abstract void PrepareLabels(IChannel ch);
+        private protected abstract void PrepareLabels(IChannel ch);
 
-        protected abstract void InitializeTests();
+        private protected abstract void InitializeTests();
 
-        protected abstract Test ConstructTestForTrainingData();
+        private protected abstract Test ConstructTestForTrainingData();
 
         private protected abstract OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch);
 
         private protected abstract TreeLearner ConstructTreeLearner(IChannel ch);
 
-        protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
+        private protected abstract ObjectiveFunctionBase ConstructObjFunc(IChannel ch);
 
-        protected virtual Float GetMaxLabel()
+        private protected virtual Float GetMaxLabel()
         {
             return Float.PositiveInfinity;
         }
@@ -230,7 +228,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return itdv?.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
-        protected void TrainCore(IChannel ch)
+        private protected void TrainCore(IChannel ch)
         {
             Contracts.CheckValue(ch, nameof(ch));
             // REVIEW:Get rid of this lock then we completly remove all static classes from FastTree such as BlockingThreadPool.
@@ -255,24 +253,24 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected virtual bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStopping, ref int bestIteration)
+        private protected virtual bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStopping, ref int bestIteration)
         {
             bestIteration = Ensemble.NumTrees;
             return false;
         }
-        protected virtual int GetBestIteration(IChannel ch) => Ensemble.NumTrees;
+        private protected virtual int GetBestIteration(IChannel ch) => Ensemble.NumTrees;
 
-        protected virtual void InitializeThreads(int numThreads)
+        private protected virtual void InitializeThreads(int numThreads)
         {
             ThreadTaskManager.Initialize(numThreads);
         }
 
-        protected virtual void PrintExecutionTimes(IChannel ch)
+        private protected virtual void PrintExecutionTimes(IChannel ch)
         {
             ch.Info("Execution time breakdown:\n{0}", Timer.GetString());
         }
 
-        protected virtual void CheckArgs(IChannel ch)
+        private protected virtual void CheckArgs(IChannel ch)
         {
             FastTreeTrainerOptions.Check(ch);
 
@@ -320,7 +318,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// it to print specific test graph header.
         /// </summary>
         /// <returns> string representation of test graph header </returns>
-        protected virtual string GetTestGraphHeader() => string.Empty;
+        private protected virtual string GetTestGraphHeader() => string.Empty;
 
         /// <summary>
         /// A virtual method that is used to print a single line of test graph.
@@ -328,16 +326,16 @@ namespace Microsoft.ML.Trainers.FastTree
         /// it to print a specific line of test graph after a new iteration is finished.
         /// </summary>
         /// <returns> string representation of a line of test graph </returns>
-        protected virtual string GetTestGraphLine() => string.Empty;
+        private protected virtual string GetTestGraphLine() => string.Empty;
 
         /// <summary>
         /// A virtual method that is used to compute test results after each iteration is finished.
         /// </summary>
-        protected virtual void ComputeTests()
+        private protected virtual void ComputeTests()
         {
         }
 
-        protected void PrintTestGraph(IChannel ch)
+        private protected void PrintTestGraph(IChannel ch)
         {
             // we call Tests computing no matter whether we require to print test graph
             ComputeTests();
@@ -353,7 +351,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return;
         }
 
-        protected virtual void Initialize(IChannel ch)
+        private protected virtual void Initialize(IChannel ch)
         {
             #region Load/Initialize State
 
@@ -427,7 +425,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 #endif
 
-        protected bool[] GetActiveFeatures()
+        private protected bool[] GetActiveFeatures()
         {
             var activeFeatures = Utils.CreateArray(TrainSet.NumFeatures, true);
             if (FastTreeTrainerOptions.FeatureFraction < 1.0)
@@ -453,7 +451,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 set.NumDocs, set.NumQueries, set.NumFeatures, datasetSize / 1024 / 1024, (datasetSize - skeletonSize) / 1024 / 1024);
         }
 
-        protected virtual void PrintMemoryStats(IChannel ch)
+        private protected virtual void PrintMemoryStats(IChannel ch)
         {
             Contracts.AssertValue(ch);
             ch.Trace("Training {0}", GetDatasetStatistics(TrainSet));
@@ -480,7 +478,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 currentProcess.PeakVirtualMemorySize64 / 1024 / 1024);
         }
 
-        protected bool AreSamplesWeighted(IChannel ch)
+        private protected bool AreSamplesWeighted(IChannel ch)
         {
             return TrainSet.SampleWeights != null;
         }
@@ -493,7 +491,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Creates weights wrapping (possibly, trivial) for gradient target values.
         /// </summary>
-        protected virtual IGradientAdjuster MakeGradientWrapper(IChannel ch)
+        private protected virtual IGradientAdjuster MakeGradientWrapper(IChannel ch)
         {
             if (AreSamplesWeighted(ch))
                 return new QueryWeightsGradientWrapper();
@@ -600,18 +598,18 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 #endif
 
-        protected virtual BaggingProvider CreateBaggingProvider()
+        private protected virtual BaggingProvider CreateBaggingProvider()
         {
             Contracts.Assert(FastTreeTrainerOptions.BaggingSize > 0);
             return new BaggingProvider(TrainSet, FastTreeTrainerOptions.NumLeaves, FastTreeTrainerOptions.RngSeed, FastTreeTrainerOptions.BaggingTrainFraction);
         }
 
-        protected virtual bool ShouldRandomStartOptimizer()
+        private protected virtual bool ShouldRandomStartOptimizer()
         {
             return false;
         }
 
-        protected virtual void Train(IChannel ch)
+        private protected virtual void Train(IChannel ch)
         {
             Contracts.AssertValue(ch);
             int numTotalTrees = FastTreeTrainerOptions.NumTrees;
@@ -796,7 +794,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected virtual void PrintIterationMessage(IChannel ch, IProgressChannel pch)
+        private protected virtual void PrintIterationMessage(IChannel ch, IProgressChannel pch)
         {
             // REVIEW: report some metrics, not just number of trees?
             int iteration = Ensemble.NumTrees;
@@ -804,7 +802,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 pch.Checkpoint(iteration + 1);
         }
 
-        protected virtual void PrintTestResults(IChannel ch)
+        private protected virtual void PrintTestResults(IChannel ch)
         {
             if (FastTreeTrainerOptions.TestFrequency != int.MaxValue && (Ensemble.NumTrees % FastTreeTrainerOptions.TestFrequency == 0 || Ensemble.NumTrees == FastTreeTrainerOptions.NumTrees))
             {
@@ -822,7 +820,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     ch.Info(sb.ToString());
             }
         }
-        protected virtual void PrintPrologInfo(IChannel ch)
+        private protected virtual void PrintPrologInfo(IChannel ch)
         {
             Contracts.AssertValue(ch);
             ch.Trace("Host = {0}", Environment.MachineName);
@@ -831,7 +829,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ch.Trace("{0}", FastTreeTrainerOptions);
         }
 
-        protected ScoreTracker ConstructScoreTracker(Dataset set)
+        private protected ScoreTracker ConstructScoreTracker(Dataset set)
         {
             // If not found contruct one
             ScoreTracker st = null;
@@ -900,12 +898,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
     internal abstract class DataConverter
     {
-        protected readonly int NumFeatures;
+        private protected readonly int NumFeatures;
         public abstract int NumExamples { get; }
 
-        protected readonly Float MaxLabel;
+        private protected readonly Float MaxLabel;
 
-        protected readonly PredictionKind PredictionKind;
+        private protected readonly PredictionKind PredictionKind;
 
         /// <summary>
         /// The per-feature bin upper bounds. Implementations may differ on when all of the items
@@ -926,13 +924,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <seealso cref="InternalTreeEnsemble.RemapFeatures"/>
         public int[] FeatureMap;
 
-        protected readonly IHost Host;
+        private protected readonly IHost Host;
 
-        protected readonly int[] CategoricalFeatureIndices;
+        private protected readonly int[] CategoricalFeatureIndices;
 
-        protected readonly bool CategoricalSplit;
+        private protected readonly bool CategoricalSplit;
 
-        protected bool UsingMaxLabel
+        private protected bool UsingMaxLabel
         {
             get { return MaxLabel != Float.PositiveInfinity; }
         }
@@ -999,7 +997,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
 #if !CORECLR
-        protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> content)
+        private protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> content)
         {
             // The existing implementations will have verified this by the time this utility
             // function is called.
@@ -1029,7 +1027,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="upperBounds">The bin upper bounds, maximum length will be <paramref name="maxBins"/></param>
         /// <returns>Whether finding the bins was successful or not. It will be unsuccessful iff <paramref name="values"/>
         /// has any missing values. In that event, the out parameters will be left as null.</returns>
-        protected static bool CalculateBins(BinFinder binFinder, in VBuffer<double> values, int maxBins, int minDocsPerLeaf,
+        private protected static bool CalculateBins(BinFinder binFinder, in VBuffer<double> values, int maxBins, int minDocsPerLeaf,
             out double[] upperBounds)
         {
             return binFinder.FindBins(in values, maxBins, minDocsPerLeaf, out upperBounds);
@@ -1216,7 +1214,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="binnedValues">A working array of length equal to the length of the input feature vector</param>
         /// <param name="binUpperBounds">The upper bounds of the binning of this feature.</param>
         /// <returns>A derived binned derived feature vector.</returns>
-        protected static SingletonFeatureFlock CreateSingletonFlock(IChannel ch, in VBuffer<double> values, int[] binnedValues,
+        private protected static SingletonFeatureFlock CreateSingletonFlock(IChannel ch, in VBuffer<double> values, int[] binnedValues,
             Double[] binUpperBounds)
         {
             Contracts.AssertValue(ch);
@@ -2816,20 +2814,20 @@ namespace Microsoft.ML.Trainers.FastTree
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
-        protected readonly string InnerArgs;
+        private protected readonly string InnerArgs;
 
         // The total number of features used in training (takes the value of zero if the
         // written version of the loaded model is less than VerNumFeaturesSerialized)
-        protected readonly int NumFeatures;
+        private protected readonly int NumFeatures;
 
         // Maximum index of the split features of trainedEnsemble trees
-        protected readonly int MaxSplitFeatIdx;
+        private protected readonly int MaxSplitFeatIdx;
 
-        protected abstract uint VerNumFeaturesSerialized { get; }
+        private protected abstract uint VerNumFeaturesSerialized { get; }
 
-        protected abstract uint VerDefaultValueSerialized { get; }
+        private protected abstract uint VerDefaultValueSerialized { get; }
 
-        protected abstract uint VerCategoricalSplitSerialized { get; }
+        private protected abstract uint VerCategoricalSplitSerialized { get; }
 
         protected internal readonly DataViewType InputType;
         DataViewType IValueMapper.InputType => InputType;
@@ -2856,7 +2854,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// The following function is used in both FastTree and LightGBM so <see cref="BestFriendAttribute"/> is required.
         [BestFriend]
-        internal TreeEnsembleModelParameters(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+        private protected TreeEnsembleModelParameters(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));
@@ -2877,7 +2875,7 @@ namespace Microsoft.ML.Trainers.FastTree
             OutputType = NumberDataViewType.Single;
         }
 
-        protected TreeEnsembleModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+        private protected TreeEnsembleModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
             : base(env, name, ctx)
         {
             // *** Binary format ***
@@ -2940,7 +2938,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        protected virtual void Map(in VBuffer<Float> src, ref Float dst)
+        private protected virtual void Map(in VBuffer<Float> src, ref Float dst)
         {
             int inputVectorSize = InputType.GetVectorSize();
             if (inputVectorSize > 0)
@@ -3395,13 +3393,14 @@ namespace Microsoft.ML.Trainers.FastTree
         public RegressionTreeEnsemble TrainedTreeEnsemble { get; }
 
         [BestFriend]
-        internal TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+        private protected TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name, trainedEnsemble, numFeatures, innerArgs)
         {
             TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
         }
 
-        protected TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+        [BestFriend]
+        private protected TreeEnsembleModelParametersBasedOnRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
             : base(env, name, ctx, ver)
         {
             TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
@@ -3434,13 +3433,13 @@ namespace Microsoft.ML.Trainers.FastTree
         public QuantileRegressionTreeEnsemble TrainedTreeEnsemble { get; }
 
         [BestFriend]
-        internal TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+        private protected TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, InternalTreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name, trainedEnsemble, numFeatures, innerArgs)
         {
             TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();
         }
 
-        protected TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+        private protected TreeEnsembleModelParametersBasedOnQuantileRegressionTree(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
             : base(env, name, ctx, ver)
         {
             TrainedTreeEnsemble = CreateTreeEnsembleFromInternalDataStructure();

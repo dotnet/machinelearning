@@ -14,7 +14,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor invoked by the maml code-path.
         /// </summary>
-        protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, bool quantileEnabled = false)
+        private protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, bool quantileEnabled = false)
             : base(env, args, label)
         {
             _quantileEnabled = quantileEnabled;
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor invoked by the API code-path.
         /// </summary>
-        protected RandomForestTrainerBase(IHostEnvironment env,
+        private protected RandomForestTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return optimizationAlgorithm;
         }
 
-        protected override void InitializeTests()
+        private protected override void InitializeTests()
         {
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.FastTree
                        FastTreeTrainerOptions.MinDocsPercentageForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinDocsForCategoricalSplit, FastTreeTrainerOptions.Bias);
         }
 
-        public abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase
+        internal abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase
         {
             protected RandomForestObjectiveFunction(Dataset trainData, TArgs args, double maxStepSize)
                 : base(trainData,

@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public static class LinqExtensions
+    internal static class LinqExtensions
     {
         public static int ArgMin<T>(this T[] arr) where T : IComparable<T>
         {

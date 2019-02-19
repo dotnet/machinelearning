@@ -101,7 +101,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
-        protected override void CheckArgs(IChannel ch)
+        private protected override void CheckArgs(IChannel ch)
         {
             Contracts.AssertValue(ch);
 
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
 
-        protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
+        private protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
             return new ObjectiveImpl(TrainSet, FastTreeTrainerOptions);
         }
@@ -152,11 +152,11 @@ namespace Microsoft.ML.Trainers.FastTree
             return dlabels.Select(x => (float)x).ToArray(dlabels.Length);
         }
 
-        protected override void PrepareLabels(IChannel ch)
+        private protected override void PrepareLabels(IChannel ch)
         {
         }
 
-        protected override Test ConstructTestForTrainingData()
+        private protected override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 #endif
 
-        protected override void InitializeTests()
+        private protected override void InitializeTests()
         {
             // Initialize regression tests.
             if (FastTreeTrainerOptions.TestFrequency != int.MaxValue)
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected override void PrintIterationMessage(IChannel ch, IProgressChannel pch)
+        private protected override void PrintIterationMessage(IChannel ch, IProgressChannel pch)
         {
             // REVIEW: Shift this to use progress channels.
 #if OLD_TRACING
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
         }
 
-        protected override string GetTestGraphHeader()
+        private protected override string GetTestGraphHeader()
         {
             StringBuilder headerBuilder = new StringBuilder("Eval:\tFileName\tNDCG@1\tNDCG@2\tNDCG@3\tNDCG@4\tNDCG@5\tNDCG@6\tNDCG@7\tNDCG@8\tNDCG@9\tNDCG@10");
 
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return headerBuilder.ToString();
         }
 
-        protected override void ComputeTests()
+        private protected override void ComputeTests()
         {
             if (_firstTestSetHistory != null)
             {
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected override string GetTestGraphLine()
+        private protected override string GetTestGraphLine()
         {
             StringBuilder lineBuilder = new StringBuilder();
 
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return lineBuilder.ToString();
         }
 
-        protected override void Train(IChannel ch)
+        private protected override void Train(IChannel ch)
         {
             base.Train(ch);
             // Print final last iteration.
@@ -462,11 +462,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 loaderAssemblyName: typeof(FastTreeRegressionModelParameters).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized => 0x00010002;
+        private protected override uint VerNumFeaturesSerialized => 0x00010002;
 
-        protected override uint VerDefaultValueSerialized => 0x00010004;
+        private protected override uint VerDefaultValueSerialized => 0x00010004;
 
-        protected override uint VerCategoricalSplitSerialized => 0x00010005;
+        private protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
         internal FastTreeRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)

@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new ValueMapperCalibratedModelParameters<BinaryClassificationGamModelParameters, PlattCalibrator>(Host, predictor, calibrator);
         }
 
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
+        private protected override ObjectiveFunctionBase CreateObjectiveFunction()
         {
             return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(
                 TrainSet,
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.FastTree
             );
         }
 
-        protected override void DefinePruningTest()
+        private protected override void DefinePruningTest()
         {
             var validTest = new BinaryClassificationTest(ValidSetScore,
                 ConvertTargetsToBool(ValidSet.Targets), _sigmoidParameter);

@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _outputType = NumberDataViewType.Single;
         }
 
-        protected GamModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        private protected GamModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name)
         {
             Host.CheckValue(ctx, nameof(ctx));

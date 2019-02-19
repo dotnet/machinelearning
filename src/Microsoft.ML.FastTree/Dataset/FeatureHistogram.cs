@@ -16,7 +16,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// Class to represent statistics of the feature used by LeastSquaresRegressionTreeLearner
     /// </summary>
-    public sealed class FeatureHistogram
+    internal sealed class FeatureHistogram
     {
         public readonly FloatType[] SumTargetsByBin;
         public readonly double[] SumWeightsByBin;
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class SumupInputData
+    internal sealed class SumupInputData
     {
         public int TotalCount;
         public double SumTargets;

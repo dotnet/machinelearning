@@ -15,7 +15,7 @@ namespace Microsoft.ML.Trainers.FastTree
     using FloatType = System.Double;
 #endif
 
-    public sealed class DocumentPartitioning
+    internal sealed class DocumentPartitioning
     {
         private readonly int[] _leafBegin;
         private readonly int[] _leafCount;

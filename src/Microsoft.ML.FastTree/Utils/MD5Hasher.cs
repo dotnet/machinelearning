@@ -9,7 +9,7 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public struct MD5Hash
+    internal struct MD5Hash
     {
         public UInt64 Prefix;
         public UInt64 Suffix;
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public static class MD5Hasher
+    internal static class MD5Hasher
     {
         public static MD5Hash Hash(byte[] array)
         {
