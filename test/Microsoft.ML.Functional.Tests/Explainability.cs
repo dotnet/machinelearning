@@ -45,7 +45,7 @@ namespace Microsoft.ML.Functional.Tests
             // Compute the permutation feature importance to look at global feature importance.
             var permutationMetrics = mlContext.Regression.PermutationFeatureImportance(model.LastTransformer, transformedData);
 
-            // Make sure the correct number of features came back
+            // Make sure the correct number of features came back.
             Assert.Equal(HousingRegression.Features.Length, permutationMetrics.Length);
             foreach (var metricsStatistics in permutationMetrics)
                 Common.AssertMetricsStatistics(metricsStatistics);
@@ -74,8 +74,8 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
             var linearModel = model.LastTransformer.Model;
 
+            // Make sure the number of model weights returned matches the length of the input feature vector.
             var weights = linearModel.Weights;
-
             Assert.Equal(HousingRegression.Features.Length, weights.Count);
         }
 
@@ -98,10 +98,11 @@ namespace Microsoft.ML.Functional.Tests
             var model = pipeline.Fit(data);
             var treeModel = model.LastTransformer.Model;
 
-            // Get the feature gain
+            // Get the feature gain.
             var weights = new VBuffer<float>();
             treeModel.GetFeatureWeights(ref weights);
 
+            // Make sure the number of feature gains returned matches the length of the input feature vector.
             Assert.Equal(HousingRegression.Features.Length, weights.Length);
         }
 
@@ -128,6 +129,7 @@ namespace Microsoft.ML.Functional.Tests
             var weights = new VBuffer<float>();
             treeModel.GetFeatureWeights(ref weights);
 
+            // Make sure the number of feature gains returned matches the length of the input feature vector.
             Assert.Equal(HousingRegression.Features.Length, weights.Length);
         }
 
@@ -161,6 +163,7 @@ namespace Microsoft.ML.Functional.Tests
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
             var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
+            // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
             {
                 Assert.Equal(HousingRegression.Features.Length, row.FeatureContributions.Length);
@@ -197,6 +200,7 @@ namespace Microsoft.ML.Functional.Tests
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
             var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
+            // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
             {
                 Assert.Equal(HousingRegression.Features.Length, row.FeatureContributions.Length);
@@ -233,6 +237,7 @@ namespace Microsoft.ML.Functional.Tests
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
             var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
+            // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
             {
                 Assert.Equal(HousingRegression.Features.Length, row.FeatureContributions.Length);
@@ -269,6 +274,7 @@ namespace Microsoft.ML.Functional.Tests
             var shuffledSubset = mlContext.Data.TakeRows(mlContext.Data.ShuffleRows(outputData), 10);
             var scoringEnumerator = mlContext.CreateEnumerable<FeatureContributionOutput>(shuffledSubset, true);
 
+            // Make sure the number of feature contributions returned matches the length of the input feature vector.
             foreach (var row in scoringEnumerator)
             {
                 Assert.Equal(HousingRegression.Features.Length, row.FeatureContributions.Length);
