@@ -68,22 +68,6 @@ namespace Microsoft.ML.Internal.Internallearn
         ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles);
     }
 
-    /// <summary>
-    /// Interface for quantile distribution
-    /// </summary>
-    /// <typeparam name="TResult">Type of statistics result</typeparam>
-    [BestFriend]
-    internal interface IQuantileDistribution<TResult> : IDistribution<TResult>, ISampleableDistribution<TResult>
-    {
-        TResult Median { get; }
-
-        /// <summary>
-        /// Returns an estimate of the p-th quantile, the data value where proportionately p of the data has value
-        /// less than or equal to the returned value.
-        /// </summary>
-        TResult GetQuantile(float p);
-    }
-
     [BestFriend]
     internal interface ISampleableDistribution<TResult> : IDistribution<TResult>
     {

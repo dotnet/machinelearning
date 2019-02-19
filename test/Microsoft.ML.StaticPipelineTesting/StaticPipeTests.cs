@@ -207,11 +207,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimple()
         {
             var env = new MLContext(0);
-            var schema = SimpleSchemaUtils.Create(env,
-                P("hello", TextDataViewType.Instance),
-                P("my", new VectorType(NumberDataViewType.Int64, 5)),
-                P("friend", new KeyType(typeof(uint), 3)));
-            var view = new EmptyDataView(env, schema);
+            var schemaBuilder = new SchemaBuilder();
+            schemaBuilder.AddColumn("hello", TextDataViewType.Instance);
+            schemaBuilder.AddColumn("my", new VectorType(NumberDataViewType.Int64, 5));
+            schemaBuilder.AddColumn("friend", new KeyType(typeof(uint), 3));
+            var view = new EmptyDataView(env, schemaBuilder.GetSchema());
 
             view.AssertStatic(env, c => new
             {
@@ -231,11 +231,12 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimpleFailure()
         {
             var env = new MLContext(0);
-            var schema = SimpleSchemaUtils.Create(env,
-                P("hello", TextDataViewType.Instance),
-                P("my", new VectorType(NumberDataViewType.Int64, 5)),
-                P("friend", new KeyType(typeof(uint), 3)));
-            var view = new EmptyDataView(env, schema);
+            var schemaBuilder = new SchemaBuilder();
+            schemaBuilder.AddColumn("hello", TextDataViewType.Instance);
+            schemaBuilder.AddColumn("my", new VectorType(NumberDataViewType.Int64, 5));
+            schemaBuilder.AddColumn("friend", new KeyType(typeof(uint), 3));
+
+            var view = new EmptyDataView(env, schemaBuilder.GetSchema());
 
             Assert.ThrowsAny<Exception>(() =>
                 view.AssertStatic(env, c => new
