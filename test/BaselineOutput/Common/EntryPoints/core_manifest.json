@@ -18936,12 +18936,28 @@
                   "Default": null
                 },
                 {
-                  "Name": "InterleaveArgb",
+                  "Name": "Order",
+                  "Type": {
+                    "Kind": "Enum",
+                    "Values": [
+                      "ARGB",
+                      "ARBG",
+                      "ABRG",
+                      "ABGR",
+                      "AGRB",
+                      "AGBR"
+                    ]
+                  },
+                  "Desc": "Order of channels",
+                  "Required": false,
+                  "SortOrder": 150.0,
+                  "IsNullable": true,
+                  "Default": null
+                },
+                {
+                  "Name": "Interleave",
                   "Type": "Bool",
-                  "Desc": "Whether to separate each channel or interleave in ARGB order",
-                  "Aliases": [
-                    "interleave"
-                  ],
+                  "Desc": "Whether to separate each channel or interleave in specified order",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -19069,12 +19085,28 @@
           "Default": true
         },
         {
-          "Name": "InterleaveArgb",
+          "Name": "Order",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "ARGB",
+              "ARBG",
+              "ABRG",
+              "ABGR",
+              "AGRB",
+              "AGBR"
+            ]
+          },
+          "Desc": "Order of colors.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "ARGB"
+        },
+        {
+          "Name": "Interleave",
           "Type": "Bool",
-          "Desc": "Whether to separate each channel or interleave in ARGB order",
-          "Aliases": [
-            "interleave"
-          ],
+          "Desc": "Whether to separate each channel or interleave in specified order",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
