@@ -178,7 +178,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // output probabilities when transformed using a scaled logistic function,
             // so transform the scores using that.
 
-            var pred = new FastTreeBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            var pred = new FastTreeBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
             // FastTree's binary classification boosting framework's natural probabilistic interpretation
             // is explained in "From RankNet to LambdaRank to LambdaMART: An Overview" by Chris Burges.
             // The correctness of this scaling depends upon the gradient calculation in

@@ -125,7 +125,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 TrainCore(ch);
                 FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
             }
-            return new FastTreeRankingModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            return new FastTreeRankingModelParameters(Host, TrainedEnsemble, FeatureCount, InnerOptions);
         }
 
         private Double[] GetLabelGains()
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected override void CheckArgs(IChannel ch)
+        protected override void CheckOptions(IChannel ch)
         {
             if (!string.IsNullOrEmpty(FastTreeTrainerOptions.CustomGains))
             {
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ch.CheckUserArg((FastTreeTrainerOptions.EarlyStoppingRule == null && !FastTreeTrainerOptions.EnablePruning) || (FastTreeTrainerOptions.EarlyStoppingMetrics == 1 || FastTreeTrainerOptions.EarlyStoppingMetrics == 3), nameof(FastTreeTrainerOptions.EarlyStoppingMetrics),
                 "earlyStoppingMetrics should be 1 or 3.");
 
-            base.CheckArgs(ch);
+            base.CheckOptions(ch);
         }
 
         protected override void Initialize(IChannel ch)

@@ -888,9 +888,9 @@ namespace Microsoft.ML.Trainers.FastTree
                     calibrated = rawPred as CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>;
                 }
                 var pred = rawPred as GamModelParametersBase;
-                ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));
+                ch.CheckUserArg(pred != null, nameof(ImplOptions.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));
                 var data = new RoleMappedData(loader, schema.GetColumnRoleNames(), opt: true);
-                if (hadCalibrator && !string.IsNullOrWhiteSpace(Args.OutputModelFile))
+                if (hadCalibrator && !string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
                     ch.Warning("If you save the GAM model, only the GAM model, not the wrapping calibrator, will be saved.");
 
                 return new Context(ch, pred, data, InitEvaluator(pred));
@@ -936,11 +936,11 @@ namespace Microsoft.ML.Trainers.FastTree
                     sch?.Register<int, int, double, long>("setEffect", context.SetEffect);
                     // Getting the metrics.
                     sch?.Register("metrics", context.GetMetrics);
-                    sch?.Register("canSave", () => !string.IsNullOrEmpty(Args.OutputModelFile));
-                    sch?.Register("save", () => context.SaveIfNeeded(Host, ch, Args.OutputModelFile));
+                    sch?.Register("canSave", () => !string.IsNullOrEmpty(ImplOptions.OutputModelFile));
+                    sch?.Register("save", () => context.SaveIfNeeded(Host, ch, ImplOptions.OutputModelFile));
                     sch?.Register("quit", () =>
                     {
-                        var retVal = context.SaveIfNeeded(Host, ch, Args.OutputModelFile);
+                        var retVal = context.SaveIfNeeded(Host, ch, ImplOptions.OutputModelFile);
                         ev.Set();
                         return retVal;
                     });

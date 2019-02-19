@@ -49,9 +49,9 @@ namespace Microsoft.ML.Trainers.FastTree
     /// ]]>
     /// </format>
     /// </example>
-    public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
+    public abstract partial class GamTrainerBase<TOptions, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
-        where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.OptionsBase, new()
+        where TOptions : GamTrainerBase<TOptions, TTransformer, TPredictor>.OptionsBase, new()
         where TPredictor : class
     {
         public abstract class OptionsBase : LearnerInputBaseWithWeight
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private const string RegisterName = "GamTraining";
 
         //Parameters of training
-        protected readonly TArgs Args;
+        protected readonly TOptions Args;
         private readonly double _gainConfidenceInSquaredStandardDeviations;
         private readonly double _entropyCoefficient;
 
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Trainers.FastTree
             int maxBins)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
-            Args = new TArgs();
+            Args = new TOptions();
             Args.NumIterations = numIterations;
             Args.LearningRates = learningRate;
             Args.MaxBins = maxBins;
@@ -174,22 +174,22 @@ namespace Microsoft.ML.Trainers.FastTree
             InitializeThreads();
         }
 
-        private protected GamTrainerBase(IHostEnvironment env, TArgs args, string name, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+        private protected GamTrainerBase(IHostEnvironment env, TOptions options, string name, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
+                  label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {
             Contracts.CheckValue(env, nameof(env));
-            Host.CheckValue(args, nameof(args));
+            Host.CheckValue(options, nameof(options));
 
-            Host.CheckParam(args.LearningRates > 0, nameof(args.LearningRates), "Must be positive.");
-            Host.CheckParam(args.NumThreads == null || args.NumThreads > 0, nameof(args.NumThreads), "Must be positive.");
-            Host.CheckParam(0 <= args.EntropyCoefficient && args.EntropyCoefficient <= 1, nameof(args.EntropyCoefficient), "Must be in [0, 1].");
-            Host.CheckParam(0 <= args.GainConfidenceLevel && args.GainConfidenceLevel < 1, nameof(args.GainConfidenceLevel), "Must be in [0, 1).");
-            Host.CheckParam(0 < args.MaxBins, nameof(args.MaxBins), "Must be posittive.");
-            Host.CheckParam(0 < args.NumIterations, nameof(args.NumIterations), "Must be positive.");
-            Host.CheckParam(0 < args.MinDocuments, nameof(args.MinDocuments), "Must be positive.");
+            Host.CheckParam(options.LearningRates > 0, nameof(options.LearningRates), "Must be positive.");
+            Host.CheckParam(options.NumThreads == null || options.NumThreads > 0, nameof(options.NumThreads), "Must be positive.");
+            Host.CheckParam(0 <= options.EntropyCoefficient && options.EntropyCoefficient <= 1, nameof(options.EntropyCoefficient), "Must be in [0, 1].");
+            Host.CheckParam(0 <= options.GainConfidenceLevel && options.GainConfidenceLevel < 1, nameof(options.GainConfidenceLevel), "Must be in [0, 1).");
+            Host.CheckParam(0 < options.MaxBins, nameof(options.MaxBins), "Must be posittive.");
+            Host.CheckParam(0 < options.NumIterations, nameof(options.NumIterations), "Must be positive.");
+            Host.CheckParam(0 < options.MinDocuments, nameof(options.MinDocuments), "Must be positive.");
 
-            Args = args;
+            Args = options;
 
             Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
