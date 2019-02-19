@@ -13,7 +13,6 @@ using Microsoft.ML.Data;
 using Microsoft.Data.DataView;
 <#= GeneratedUsings #>
 
-
 namespace <#= Namespace #>
 {
     class Program
@@ -63,8 +62,7 @@ namespace <#= Namespace #>
 <# } #>
 
 <# if(Transforms.Count >0 ) {#>
-            // Common data process configuration with pipeline data transformations          
-
+            // Common data process configuration with pipeline data transformations
             var dataProcessPipeline = <# for(int i=0;i<Transforms.Count;i++) 
                                          { 
                                              if(i>0)
@@ -79,7 +77,12 @@ namespace <#= Namespace #>
 
             // Set the training algorithm, then create and config the modelBuilder  
             var trainer = mlContext.<#= TaskType #>.Trainers.<#= Trainer #>;
-
+<# if(Transforms.Count >0 ) {#>
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
+<# }
+else{#>
+            var trainingPipeline = trainer;
+<#}#>
 <# if(string.IsNullOrEmpty(TestPath)){ #>
 
             // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
@@ -95,14 +98,8 @@ namespace <#= Namespace #>
 } #>
 
             // Train the model fitting to the DataSet
-<# if(Transforms.Count >0 ) {#>
-            var trainingPipeline = dataProcessPipeline.Append(trainer);
             var trainedModel = trainingPipeline.Fit(trainingDataView);
-<# }
-else{#>
-            var trainingPipeline = trainer;
-            var trainedModel = trainingPipeline.Fit(trainingDataView);
-<#}#>
+
 <# if(!string.IsNullOrEmpty(TestPath)){ #>
             // Evaluate the model and show accuracy stats
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");

@@ -162,6 +162,42 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         }
     }
 
+    internal class MissingValueReplacer : TransformGeneratorBase
+    {
+        public MissingValueReplacer(PipelineNode node) : base(node)
+        {
+        }
+
+        internal override string MethodName => "ReplaceMissingValues";
+
+        private string ArgumentsName = "MissingValueReplacingTransformer.ColumnInfo";
+        internal override string Usings => "using Microsoft.ML.Transforms;\r\n";
+
+        public override string GenerateTransformer()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(MethodName);
+            sb.Append("(");
+            sb.Append("new []{");
+            for (int i = 0; i < inputColumns.Length; i++)
+            {
+                sb.Append("new ");
+                sb.Append(ArgumentsName);
+                sb.Append("(");
+                sb.Append(outputColumns[i]);
+                sb.Append(",");
+                sb.Append(inputColumns[i]);
+                sb.Append(")");
+                sb.Append(",");
+            }
+            sb.Remove(sb.Length - 1, 1); // remove extra ,
+
+            sb.Append("}");
+            sb.Append(")");
+            return sb.ToString();
+        }
+    }
+
     internal class OneHotHashEncoding : TransformGeneratorBase
     {
         public OneHotHashEncoding(PipelineNode node) : base(node)

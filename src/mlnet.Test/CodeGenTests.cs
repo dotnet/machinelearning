@@ -171,6 +171,21 @@ namespace mlnet.Test
 
         #region Transform Tests
         [TestMethod]
+        public void MissingValueReplacingTest()
+        {
+            var context = new MLContext();
+            var elementProperties = new Dictionary<string, object>();//categorical
+            PipelineNode node = new PipelineNode("MissingValueReplacing", PipelineNodeType.Transform, new string[] { "categorical_column_1" }, new string[] { "categorical_column_1" }, elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, (null, null), null);
+            var actual = codeGenerator.GenerateTransformsAndUsings();
+            var expectedTransform = "ReplaceMissingValues(new []{new MissingValueReplacingTransformer.ColumnInfo(\"categorical_column_1\",\"categorical_column_1\")})";
+            string expectedUsings = "using Microsoft.ML.Transforms;\r\n";
+            Assert.AreEqual(expectedTransform, actual[0].Item1);
+            Assert.AreEqual(expectedUsings, actual[0].Item2);
+        }
+
+        [TestMethod]
         public void OneHotEncodingTest()
         {
             var context = new MLContext();

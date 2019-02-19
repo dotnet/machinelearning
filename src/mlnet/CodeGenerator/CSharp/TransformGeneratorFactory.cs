@@ -39,7 +39,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     case EstimatorName.MissingValueIndicating:
                         result = new MissingValueIndicator(node);
                         break;
-                    //todo : add missing value replacing too.
+                    case EstimatorName.MissingValueReplacing:
+                        result = new MissingValueReplacer(node);
+                        break;
                     case EstimatorName.OneHotHashEncoding:
                         result = new OneHotHashEncoding(node);
                         break;

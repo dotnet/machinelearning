@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.Templates.Console;
 using static Microsoft.ML.Data.TextLoader;
@@ -50,15 +53,18 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var namespaceValue = Normalize(options.OutputName);
 
             // Generate code for training and scoring
-            var trainScoreCode = GenerateTrainCode(usings, trainer, transforms, columns, classLabels, namespaceValue);
+            var trainFileContent = GenerateTrainCode(usings, trainer, transforms, columns, classLabels, namespaceValue);
+            var tree = CSharpSyntaxTree.ParseText(trainFileContent);
+            var syntaxNode = tree.GetRoot();
+            trainFileContent = Formatter.Format(syntaxNode, new AdhocWorkspace()).ToFullString();
 
             // Generate csproj
-            var projectSourceCode = GeneratProjectCode();
+            var projectFileContent = GeneratProjectCode();
 
             // Generate Helper class
-            var consoleHelperCode = GenerateConsoleHelper(namespaceValue);
+            var consoleHelperFileContent = GenerateConsoleHelper(namespaceValue);
 
-            return (trainScoreCode, projectSourceCode, consoleHelperCode);
+            return (trainFileContent, projectFileContent, consoleHelperFileContent);
         }
 
         internal void WriteOutputToFiles(string trainScoreCode, string projectSourceCode, string consoleHelperCode)

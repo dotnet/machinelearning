@@ -29,7 +29,7 @@ namespace Microsoft.ML.CLI.Templates.Console
                     " Microsoft.ML.Core.Data;\r\nusing Microsoft.ML.Data;\r\nusing Microsoft.Data.DataVie" +
                     "w;\r\n");
             this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
-            this.Write("\r\n\r\n\r\nnamespace ");
+            this.Write("\r\n\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write("\r\n{\r\n    class Program\r\n    {\r\n        private static string TrainDataPath = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(Path));
@@ -93,7 +93,7 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write("\r\n");
  if(Transforms.Count >0 ) {
             this.Write("            // Common data process configuration with pipeline data transformatio" +
-                    "ns          \r\n\r\n            var dataProcessPipeline = ");
+                    "ns\r\n            var dataProcessPipeline = ");
  for(int i=0;i<Transforms.Count;i++) 
                                          { 
                                              if(i>0)
@@ -111,7 +111,13 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Trainers.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Trainer));
-            this.Write(";\r\n\r\n");
+            this.Write(";\r\n");
+ if (Transforms.Count > 0) {
+            this.Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n");
+ }
+else{
+            this.Write("            var trainingPipeline = trainer;\r\n");
+}
  if(string.IsNullOrEmpty(TestPath)){ 
             this.Write(@"
             // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
@@ -135,15 +141,8 @@ if("Regression".Equals(TaskType)){
                     "rics(trainer.ToString(), crossValidationResults);\r\n");
 }
 } 
-            this.Write("\r\n            // Train the model fitting to the DataSet\r\n");
- if(Transforms.Count >0 ) {
-            this.Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n        " +
-                    "    var trainedModel = trainingPipeline.Fit(trainingDataView);\r\n");
- }
-else{
-            this.Write("            var trainingPipeline = trainer;\r\n            var trainedModel = train" +
-                    "ingPipeline.Fit(trainingDataView);\r\n");
-}
+            this.Write("\r\n            // Train the model fitting to the DataSet\r\n            var trainedM" +
+                    "odel = trainingPipeline.Fit(trainingDataView);\r\n\r\n");
  if(!string.IsNullOrEmpty(TestPath)){ 
             this.Write("            // Evaluate the model and show accuracy stats\r\n            Console.Wr" +
                     "iteLine(\"===== Evaluating Model\'s accuracy with Test data =====\");\r\n            " +

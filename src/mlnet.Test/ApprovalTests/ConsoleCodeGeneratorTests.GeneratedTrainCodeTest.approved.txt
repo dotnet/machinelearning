@@ -9,7 +9,6 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.LightGBM;
 
 
-
 namespace MyNamespace
 {
     class Program
@@ -41,30 +40,29 @@ namespace MyNamespace
             // Data loading
             IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
                                             path: TrainDataPath,
-                                            hasHeader : true,
-                                            separatorChar : ',',
-                                            allowQuotedStrings : true,
-                                            trimWhitespace : false ,
-                                            supportSparse : true);
+                                            hasHeader: true,
+                                            separatorChar: ',',
+                                            allowQuotedStrings: true,
+                                            trimWhitespace: false,
+                                            supportSparse: true);
             IDataView testDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
                                             path: TestDataPath,
-                                            hasHeader : true,
-                                            separatorChar : ',',
-                                            allowQuotedStrings : true,
-                                            trimWhitespace : false ,
-                                            supportSparse : true);
+                                            hasHeader: true,
+                                            separatorChar: ',',
+                                            allowQuotedStrings: true,
+                                            trimWhitespace: false,
+                                            supportSparse: true);
 
-            // Common data process configuration with pipeline data transformations          
-
-            var dataProcessPipeline = mlContext.Transforms.Concatenate("Out",new []{"In"});
+            // Common data process configuration with pipeline data transformations
+            var dataProcessPipeline = mlContext.Transforms.Concatenate("Out", new[] { "In" });
 
             // Set the training algorithm, then create and config the modelBuilder  
-            var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options(){NumLeaves=2,Booster=new Options.TreeBooster.Arguments(){},LabelColumn="Label",FeatureColumn="Features"});
-
+            var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options() { NumLeaves = 2, Booster = new Options.TreeBooster.Arguments() { }, LabelColumn = "Label", FeatureColumn = "Features" });
+            var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             // Train the model fitting to the DataSet
-            var trainingPipeline = dataProcessPipeline.Append(trainer);
             var trainedModel = trainingPipeline.Fit(trainingDataView);
+
             // Evaluate the model and show accuracy stats
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
             var predictions = trainedModel.Transform(testDataView);
@@ -86,11 +84,11 @@ namespace MyNamespace
             //Load data to test. Could be any test data. For demonstration purpose train data is used here.
             IDataView trainingDataView = mlContext.Data.ReadFromTextFile<SampleObservation>(
                                             path: TrainDataPath,
-                                            hasHeader : true,
-                                            separatorChar : ',',
-                                            allowQuotedStrings : true,
-                                            trimWhitespace : false ,
-                                            supportSparse : true);
+                                            hasHeader: true,
+                                            separatorChar: ',',
+                                            allowQuotedStrings: true,
+                                            trimWhitespace: false,
+                                            supportSparse: true);
 
             var sample = mlContext.CreateEnumerable<SampleObservation>(trainingDataView, false).First();
 
@@ -101,7 +99,7 @@ namespace MyNamespace
             }
 
             // Create prediction engine related to the loaded trained model
-            var predEngine= trainedModel.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlContext);
+            var predEngine = trainedModel.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlContext);
 
             //Score
             var resultprediction = predEngine.Predict(sample);
@@ -115,29 +113,29 @@ namespace MyNamespace
 
     public class SampleObservation
     {
-       [ColumnName("Label"), LoadColumn(0)]
-       public bool Label{get; set;}
-       
+        [ColumnName("Label"), LoadColumn(0)]
+        public bool Label { get; set; }
 
-       [ColumnName("col1"), LoadColumn(1)]
-       public float Col1{get; set;}
-       
 
-       [ColumnName("col2"), LoadColumn(0)]
-       public float Col2{get; set;}
-       
+        [ColumnName("col1"), LoadColumn(1)]
+        public float Col1 { get; set; }
 
-       [ColumnName("col3"), LoadColumn(0)]
-       public string Col3{get; set;}
-       
 
-       [ColumnName("col4"), LoadColumn(0)]
-       public int Col4{get; set;}
-       
+        [ColumnName("col2"), LoadColumn(0)]
+        public float Col2 { get; set; }
 
-       [ColumnName("col5"), LoadColumn(0)]
-       public uint Col5{get; set;}
-       
+
+        [ColumnName("col3"), LoadColumn(0)]
+        public string Col3 { get; set; }
+
+
+        [ColumnName("col4"), LoadColumn(0)]
+        public int Col4 { get; set; }
+
+
+        [ColumnName("col5"), LoadColumn(0)]
+        public uint Col5 { get; set; }
+
 
     }
 
