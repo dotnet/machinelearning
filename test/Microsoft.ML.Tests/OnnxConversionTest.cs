@@ -17,10 +17,10 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.UniversalModelFormat.Onnx;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Tests
 {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
-        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="UniversalModelFormat.Onnx.ModelProto"/> file and then
+        /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper.ModelProto"/> file and then
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
         /// ML.NET model's outputs.
         /// </summary>
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Tests
             var transformedData = model.Transform(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobufModel(model, data);
             var onnxFileName = "model.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobufModel(model, data);
 
             // Compare results produced by ML.NET and ONNX's runtime.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Tests
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
 
             var model = pipeline.Fit(data);
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobufModel(model, data);
 
             // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
             // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Tests
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobufModel(model, data);
 
             // Step 3: Save ONNX model as binary and text files.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Tests
             var model = dynamicPipeline.Fit(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobufModel(model, data);
 
             // Step 3: Save ONNX model as binary and text files.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
@@ -380,7 +380,7 @@ namespace Microsoft.ML.Tests
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobufModel(model, data);
 
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "MultiClassClassification", "BreastCancer");
             var onnxFileName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.onnx";
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Tests
             var onnxFileName = "SmallWordEmbed.onnx";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
             var onnxFilePath = GetOutputPath(subDir, onnxFileName);
-            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnxProtobufModel(model, data);
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
             CheckEquality(subDir, onnxTextName);
