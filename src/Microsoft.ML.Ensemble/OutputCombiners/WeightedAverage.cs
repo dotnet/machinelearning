@@ -19,7 +19,7 @@ using Microsoft.ML.Trainers.Ensemble;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public sealed class WeightedAverage : BaseAverager, IWeightedAverager
+    internal sealed class WeightedAverage : BaseAverager, IWeightedAverager
     {
         public const string UserName = "Weighted Average";
         public const string LoadName = "WeightedAverage";
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     }
 
     // These values are serialized, so should not be changed.
-    public enum WeightageKind
+    internal enum WeightageKind
     {
         [TGUI(Label = BinaryClassifierEvaluator.Accuracy)]
         Accuracy = 0,

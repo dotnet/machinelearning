@@ -107,7 +107,7 @@ namespace Microsoft.ML.Trainers
             ShowTrainingStats = Args.ShowTrainingStats;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private protected override void CheckLabel(RoleMappedData data)
         {
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Trainers
             _prior[iLabel] += weight;
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
+        private protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, DataViewSchema trainSchema)
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Trainers
         // at which point it is initialized.
         private volatile VBuffer<float>[] _weightsDense;
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         internal readonly DataViewType InputType;
         internal readonly DataViewType OutputType;
         DataViewType IValueMapper.InputType => InputType;

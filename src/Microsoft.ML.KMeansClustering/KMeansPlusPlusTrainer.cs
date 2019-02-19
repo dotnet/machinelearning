@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.KMeans
         private readonly string _featureColumn;
 
         public override TrainerInfo Info { get; }
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
+        private protected override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         /// <summary>
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Trainers.KMeans
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, DataViewSchema trainSchema)
+        private protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, DataViewSchema trainSchema)
         => new ClusteringPredictionTransformer<KMeansModelParameters>(Host, model, trainSchema, _featureColumn);
     }
 

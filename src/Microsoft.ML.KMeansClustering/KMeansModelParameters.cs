@@ -50,8 +50,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 loaderAssemblyName: typeof(KMeansModelParameters).Assembly.FullName);
         }
 
-        // REVIEW: Leaving this public for now until we figure out the correct way to remove it.
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
+        private protected override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         private readonly DataViewType _inputType;
         private readonly DataViewType _outputType;

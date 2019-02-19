@@ -6,14 +6,13 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(typeof(TreeEnsembleCombiner), null, typeof(SignatureModelCombiner), "Fast Tree Model Combiner", "FastTreeCombiner")]
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class TreeEnsembleCombiner : IModelCombiner
+    internal sealed class TreeEnsembleCombiner : IModelCombiner
     {
         private readonly IHost _host;
         private readonly PredictionKind _kind;
@@ -34,7 +33,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public IPredictor CombineModels(IEnumerable<IPredictor> models)
+        IPredictor IModelCombiner.CombineModels(IEnumerable<IPredictor> models)
         {
             _host.CheckValue(models, nameof(models));
 

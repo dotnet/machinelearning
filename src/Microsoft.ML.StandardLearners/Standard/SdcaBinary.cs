@@ -50,8 +50,6 @@ namespace Microsoft.ML.Trainers
     {
         private const string RegisterName = nameof(LinearTrainerBase<TTransformer, TModel>);
 
-        private protected bool NeedShuffle;
-
         private static readonly TrainerInfo _info = new TrainerInfo();
         public override TrainerInfo Info => _info;
 
@@ -216,6 +214,10 @@ namespace Microsoft.ML.Trainers
                         L2Const = L2LowerBound;
                     }
                 }
+            }
+
+            private protected OptionsBase()
+            {
             }
         }
 
@@ -1402,7 +1404,7 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     public abstract class SdcaBinaryTrainerBase<TModelParameters> :
         SdcaTrainerBase<SdcaBinaryTrainerBase<TModelParameters>.BinaryArgumentBase, BinaryPredictionTransformer<TModelParameters>, TModelParameters>
-        where TModelParameters : class, IPredictorProducing<float>
+        where TModelParameters : class
     {
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly float _positiveInstanceWeight;
@@ -1411,9 +1413,9 @@ namespace Microsoft.ML.Trainers
 
         private readonly SchemaShape.Column[] _outputColumns;
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public override TrainerInfo Info { get; }
 
@@ -1472,7 +1474,7 @@ namespace Microsoft.ML.Trainers
 
         private protected abstract SchemaShape.Column[] ComputeSdcaBinaryClassifierSchemaShape();
 
-        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
             Contracts.Assert(labelCol.IsValid);
 
@@ -1511,7 +1513,7 @@ namespace Microsoft.ML.Trainers
             weightSetCount = 1;
         }
 
-        protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, DataViewSchema trainSchema)
+        private protected override BinaryPredictionTransformer<TModelParameters> MakeTransformer(TModelParameters model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<TModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
@@ -1717,7 +1719,7 @@ namespace Microsoft.ML.Trainers
 
     public abstract class SgdBinaryTrainerBase<TModel> :
         LinearTrainerBase<BinaryPredictionTransformer<TModel>, TModel>
-        where TModel : class, IPredictorProducing<float>
+        where TModel : class
     {
         public class OptionsBase : LearnerInputBaseWithWeight
         {
@@ -1790,7 +1792,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override bool ShuffleData => _options.Shuffle;
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public override TrainerInfo Info { get; }
 
@@ -1828,7 +1830,6 @@ namespace Microsoft.ML.Trainers
             _options.WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight);
             Loss = loss ?? new LogLoss();
             Info = new TrainerInfo(calibration: false, supportIncrementalTrain: true);
-            NeedShuffle = _options.Shuffle;
         }
 
         /// <summary>
@@ -1844,11 +1845,10 @@ namespace Microsoft.ML.Trainers
             options.Check(env);
             Loss = loss;
             Info = new TrainerInfo(calibration: doCalibration, supportIncrementalTrain: true);
-            NeedShuffle = options.Shuffle;
             _options = options;
         }
 
-        protected override BinaryPredictionTransformer<TModel> MakeTransformer(TModel model, DataViewSchema trainSchema)
+        private protected override BinaryPredictionTransformer<TModel> MakeTransformer(TModel model, DataViewSchema trainSchema)
             => new BinaryPredictionTransformer<TModel>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
@@ -2113,7 +2113,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Logistic regression's output can naturally be interpreted as probability, so this model has three output columns.
         /// </summary>
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
@@ -2173,7 +2173,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
@@ -2227,7 +2227,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="inputSchema"></param>
         /// <returns></returns>
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {

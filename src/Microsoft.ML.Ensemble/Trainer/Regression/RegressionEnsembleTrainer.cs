@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.Ensemble;
 using Microsoft.ML.Trainers.Online;
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.CheckParam(predictionKind == PredictionKind.Regression, nameof(PredictionKind));
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<float>> models)
         {

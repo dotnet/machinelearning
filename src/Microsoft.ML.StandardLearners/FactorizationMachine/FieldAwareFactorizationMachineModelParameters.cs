@@ -24,7 +24,7 @@ namespace Microsoft.ML.FactorizationMachine
     public sealed class FieldAwareFactorizationMachineModelParameters : ModelParametersBase<float>, ISchemaBindableMapper
     {
         internal const string LoaderSignature = "FieldAwareFactMacPredict";
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private bool _norm;
         internal int FieldCount { get; }
         internal int FeatureCount { get; }

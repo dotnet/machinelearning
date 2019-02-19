@@ -182,7 +182,8 @@ namespace Microsoft.ML.Internal.Internallearn
     /// <summary>
     /// Interface implemented by predictors that can score features.
     /// </summary>
-    public interface IPredictorWithFeatureWeights<out TResult> : IHaveFeatureWeights, IPredictorProducing<TResult>
+    [BestFriend]
+    internal interface IPredictorWithFeatureWeights<out TResult> : IHaveFeatureWeights, IPredictorProducing<TResult>
     {
     }
 
@@ -205,9 +206,9 @@ namespace Microsoft.ML.Internal.Internallearn
     }
 
     /// <summary>
-    /// Allows support for feature contribution calculation.
+    /// Allows support for feature contribution calculation by model parameters.
     /// </summary>
-    public interface ICalculateFeatureContribution : IPredictor
+    public interface ICalculateFeatureContribution
     {
         FeatureContributionCalculator FeatureContributionCalculator { get; }
     }
@@ -226,7 +227,8 @@ namespace Microsoft.ML.Internal.Internallearn
     /// If the training label is a key with text key value metadata, it should return this metadata. The order of the labels should be consistent
     /// with the key values. Otherwise, it returns null.
     /// </summary>
-    public interface ICanGetTrainingLabelNames : IPredictor
+    [BestFriend]
+    internal interface ICanGetTrainingLabelNames : IPredictor
     {
         string[] GetLabelNamesOrNull(out DataViewType labelType);
     }

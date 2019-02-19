@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The prediction kind for this trainer.
         /// </summary>
-        public override PredictionKind PredictionKind => PredictionKind.Ranking;
+        private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/>
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        private protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
             Contracts.Assert(labelCol.IsValid);
 
@@ -453,7 +453,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return headerBuilder.ToString();
         }
 
-        protected override RankingPredictionTransformer<FastTreeRankingModelParameters> MakeTransformer(FastTreeRankingModelParameters model, DataViewSchema trainSchema)
+        private protected override RankingPredictionTransformer<FastTreeRankingModelParameters> MakeTransformer(FastTreeRankingModelParameters model, DataViewSchema trainSchema)
         => new RankingPredictionTransformer<FastTreeRankingModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public RankingPredictionTransformer<FastTreeRankingModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
            {
@@ -1154,7 +1154,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeRankingModelParameters(env, ctx);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Ranking;
+        private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
     }
 
     internal static partial class FastTree

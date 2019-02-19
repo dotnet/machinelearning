@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public sealed class MultiWeightedAverage : BaseMultiAverager, IWeightedAverager
+    internal sealed class MultiWeightedAverage : BaseMultiAverager, IWeightedAverager
     {
         public const string UserName = "Multi Weighted Average";
         public const string LoadName = "MultiWeightedAverage";
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     }
 
     // These values are serialized, so should not be changed.
-    public enum MultiWeightageKind
+    internal enum MultiWeightageKind
     {
         [TGUI(Label = MultiClassClassifierEvaluator.AccuracyMicro)]
         AccuracyMicroAvg = 0,

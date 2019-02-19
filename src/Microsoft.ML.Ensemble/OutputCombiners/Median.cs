@@ -16,7 +16,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// <summary>
     /// Generic interface for combining outputs of multiple models
     /// </summary>
-    public sealed class Median : IRegressionOutputCombiner, IBinaryOutputCombiner, ICanSaveModel
+    internal sealed class Median : IRegressionOutputCombiner, IBinaryOutputCombiner, ICanSaveModel
     {
         private readonly IHost _host;
         public const string UserName = "Median";

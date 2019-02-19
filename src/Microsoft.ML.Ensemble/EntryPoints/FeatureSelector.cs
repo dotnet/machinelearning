@@ -12,7 +12,7 @@ using Microsoft.ML.Trainers.Ensemble.FeatureSelector;
 namespace Microsoft.ML.Trainers.Ensemble
 {
     [TlcModule.Component(Name = AllFeatureSelector.LoadName, FriendlyName = AllFeatureSelector.UserName)]
-    public sealed class AllFeatureSelectorFactory : ISupportFeatureSelectorFactory
+    internal sealed class AllFeatureSelectorFactory : ISupportFeatureSelectorFactory
     {
         IFeatureSelector IComponentFactory<IFeatureSelector>.CreateComponent(IHostEnvironment env) => new AllFeatureSelector(env);
     }

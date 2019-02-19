@@ -10,14 +10,14 @@ using Microsoft.ML.Numeric;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    public abstract class BaseMultiAverager : BaseMultiCombiner
+    internal abstract class BaseMultiAverager : BaseMultiCombiner
     {
-        internal BaseMultiAverager(IHostEnvironment env, string name, OptionsBase args)
+        private protected BaseMultiAverager(IHostEnvironment env, string name, OptionsBase args)
             : base(env, name, args)
         {
         }
 
-        internal BaseMultiAverager(IHostEnvironment env, string name, ModelLoadContext ctx)
+        protected BaseMultiAverager(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
         }

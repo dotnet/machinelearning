@@ -27,7 +27,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     /// useful for the distributed training scenario, where the featurization includes trainable transforms (for example,
     /// categorical transform, or normalization).
     /// </summary>
-    public abstract class SchemaBindablePipelineEnsembleBase : ICanGetTrainingLabelNames, ICanSaveModel,
+    internal abstract class SchemaBindablePipelineEnsembleBase : ICanGetTrainingLabelNames, ICanSaveModel,
         ISchemaBindableMapper, ICanSaveSummary, ICanGetSummaryInKeyValuePairs
     {
         private abstract class BoundBase : ISchemaBoundRowMapper
@@ -753,7 +753,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             return list;
         }
 
-        public string[] GetLabelNamesOrNull(out DataViewType labelType)
+        string[] ICanGetTrainingLabelNames.GetLabelNamesOrNull(out DataViewType labelType)
         {
             Host.AssertNonEmpty(PredictorModels);
             return PredictorModels[0].GetLabelInfo(Host, out labelType);

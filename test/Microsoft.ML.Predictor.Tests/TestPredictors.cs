@@ -647,9 +647,9 @@ namespace Microsoft.ML.RunTests
 
         private void CombineAndTestTreeEnsembles(IDataView idv, PredictorModel[] fastTrees)
         {
-            var combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
+            IModelCombiner combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
 
-            var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
+            var fastTree = combiner.CombineModels(fastTrees.Select(pm => (IPredictorProducing<float>)pm.Predictor));
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
             var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, fastTree) }).ScoredData;

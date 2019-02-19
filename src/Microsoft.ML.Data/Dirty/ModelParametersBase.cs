@@ -64,7 +64,10 @@ namespace Microsoft.ML.Internal.Internallearn
             ctx.Writer.Write(sizeof(float));
         }
 
-        public abstract PredictionKind PredictionKind { get; }
+        PredictionKind IPredictor.PredictionKind => PredictionKind;
+
+        [BestFriend]
+        private protected abstract PredictionKind PredictionKind { get; }
 
         /// <summary>
         /// This emits a warning if there is Normalizer sub-model.

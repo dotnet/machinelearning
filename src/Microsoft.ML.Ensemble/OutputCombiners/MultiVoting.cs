@@ -17,7 +17,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 {
     // REVIEW: Why is MultiVoting based on BaseMultiCombiner? Normalizing the model outputs
     // is senseless, so the base adds no real functionality.
-    public sealed class MultiVoting : BaseMultiCombiner
+    internal sealed class MultiVoting : BaseMultiCombiner
     {
         public const string LoadName = "MultiVoting";
         public const string LoaderSignature = "MultiVotingCombiner";
