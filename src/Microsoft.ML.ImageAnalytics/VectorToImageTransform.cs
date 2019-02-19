@@ -401,10 +401,10 @@ namespace Microsoft.ML.ImageAnalytics
             public readonly Single Scale;
             public readonly bool Interleave;
 
-            public bool Alpha { get { return (Colors & ImagePixelExtractingEstimator.ColorBits.Alpha) != 0; } }
-            public bool Red { get { return (Colors & ImagePixelExtractingEstimator.ColorBits.Red) != 0; } }
-            public bool Green { get { return (Colors & ImagePixelExtractingEstimator.ColorBits.Green) != 0; } }
-            public bool Blue { get { return (Colors & ImagePixelExtractingEstimator.ColorBits.Blue) != 0; } }
+            public bool Alpha => (Colors & ImagePixelExtractingEstimator.ColorBits.Alpha) != 0;
+            public bool Red => (Colors & ImagePixelExtractingEstimator.ColorBits.Red) != 0;
+            public bool Green => (Colors & ImagePixelExtractingEstimator.ColorBits.Green) != 0;
+            public bool Blue => (Colors & ImagePixelExtractingEstimator.ColorBits.Blue) != 0;
 
             internal ColumnInfo(VectorToImageConvertingTransformer.Column item, VectorToImageConvertingTransformer.Options args)
             {
@@ -583,7 +583,7 @@ namespace Microsoft.ML.ImageAnalytics
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.Kind != SchemaShape.Column.VectorKind.Vector || (col.ItemType != NumberDataViewType.Single && col.ItemType != NumberDataViewType.Double && col.ItemType != NumberDataViewType.Byte))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageType().ToString(), col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector of type float, double or byte", col.GetTypeString());
 
                 var itemType = new ImageType(colInfo.Height, colInfo.Width);
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Scalar, itemType, false);
