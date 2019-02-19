@@ -4,8 +4,11 @@
 
 resources:
   containers:
-  - container: LinuxContainer
+  - container: CentosContainer
     image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
+  
+  - container: UbuntuContainer
+    image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-10fcdcf-20190208200917
 
 phases:
 - template: /build/ci/phase-template.yml
@@ -26,11 +29,19 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Linux
+    name: Centos
     buildScript: ./build.sh
     queue:
       name: Hosted Ubuntu 1604
-      container: LinuxContainer
+      container: CentosContainer
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Ubuntu
+    buildScript: ./build.sh
+    queue:
+      name: Hosted Ubuntu 1604
+      container: UbuntuContainer
 
 - template: /build/ci/phase-template.yml
   parameters:
