@@ -17,7 +17,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// It supports different types of buffers and returns buffers of the requested size or larger.
     /// This class was implemented to reduce frequent allocation/deallocation of large buffers which caused fragmentation of the large object heap.
     /// </summary>
-    public static class BufferPoolManager
+    internal static class BufferPoolManager
     {
         /// <summary>
         /// The minimum size in bytes for a buffer to be stored in the pool

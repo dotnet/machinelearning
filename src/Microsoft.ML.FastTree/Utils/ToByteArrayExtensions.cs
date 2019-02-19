@@ -18,7 +18,7 @@ namespace Microsoft.ML.Trainers.FastTree
     ///   the representation
     /// byte[].ToXXX(ref position) - converts the binary representation back into the original type
     /// </summary>
-    public static class ToByteArrayExtensions
+    internal static class ToByteArrayExtensions
     {
         // byte
 

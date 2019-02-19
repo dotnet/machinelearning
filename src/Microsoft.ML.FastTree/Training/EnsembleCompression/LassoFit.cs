@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class LassoFit
+    internal sealed class LassoFit
     {
         // Number of lambda values
         public int NumberOfLambdas;

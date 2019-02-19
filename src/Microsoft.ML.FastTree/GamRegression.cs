@@ -74,12 +74,12 @@ namespace Microsoft.ML.Trainers.FastTree
             return new RegressionGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, InputLength, FeatureMap);
         }
 
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
+        private protected override ObjectiveFunctionBase CreateObjectiveFunction()
         {
             return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
         }
 
-        protected override void DefinePruningTest()
+        private protected override void DefinePruningTest()
         {
             var validTest = new RegressionTest(ValidSetScore, Args.PruningMetrics);
             // Because we specify pruning metrics as L2 by default, the results array will have 1 value
