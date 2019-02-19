@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Google.Protobuf;
 using Microsoft.Data.DataView;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML

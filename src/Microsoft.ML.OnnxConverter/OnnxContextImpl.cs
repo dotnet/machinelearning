@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.UniversalModelFormat.Onnx;
 
-namespace Microsoft.ML.Model.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     /// <summary>
     /// A context for defining a ONNX output.

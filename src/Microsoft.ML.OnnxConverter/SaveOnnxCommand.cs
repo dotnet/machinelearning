@@ -12,7 +12,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Newtonsoft.Json;
 using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
 
@@ -21,7 +21,7 @@ using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
 
 [assembly: LoadableClass(typeof(void), typeof(SaveOnnxCommand), null, typeof(SignatureEntryPointModule), "SaveOnnx")]
 
-namespace Microsoft.ML.Model.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     internal sealed class SaveOnnxCommand : DataCommand.ImplBase<SaveOnnxCommand.Arguments>
     {

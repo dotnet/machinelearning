@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Tests
         {
             var env = new MLContext();
             // Create the actual implementation
-            var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Model.Onnx.OnnxVersion.Stable);
+            var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Model.OnnxConverter.OnnxVersion.Stable);
 
             // Use implementation as in the actual conversion code
             var ctx = ctxImpl as OnnxContext;

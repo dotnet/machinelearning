@@ -11,7 +11,7 @@ using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
 
-namespace Microsoft.ML.Model.Onnx
+namespace Microsoft.ML.Model.OnnxConverter
 {
     /// <summary>
     /// Contains methods to create ONNX models in protocol buffer.
