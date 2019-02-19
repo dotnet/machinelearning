@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.CpuMath", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Data", "src\Microsoft.ML.Data\Microsoft.ML.Data.csproj", "{AD92D96B-0E96-4F22-8DCE-892E13B1F282}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Onnx", "src\Microsoft.ML.Onnx\Microsoft.ML.Onnx.csproj", "{65D0603E-B96C-4DFC-BDD1-705891B88C18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.OnnxConverter", "src\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.csproj", "{65D0603E-B96C-4DFC-BDD1-705891B88C18}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StandardLearners", "src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj", "{707BB22C-7E5F-497A-8C2F-74578F675705}"
 EndProject
@@ -173,10 +173,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Mkl.Redist", "
 		pkg\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.nupkgproj = pkg\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.nupkgproj
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Onnx", "Microsoft.ML.Onnx", "{19AC192B-75FE-45D5-B219-898E401D5904}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxConverter", "Microsoft.ML.OnnxConverter", "{19AC192B-75FE-45D5-B219-898E401D5904}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.nupkgproj = pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.nupkgproj
-		pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.symbols.nupkgproj = pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.symbols.nupkgproj
+		pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.nupkgproj = pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.nupkgproj
+		pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.symbols.nupkgproj = pkg\Microsoft.ML.OnnxConverter\Microsoft.ML.OnnxConverter.symbols.nupkgproj
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxTransformer", "Microsoft.ML.OnnxTransformer", "{93FF16AA-635E-421D-96C1-008818C143A2}"
