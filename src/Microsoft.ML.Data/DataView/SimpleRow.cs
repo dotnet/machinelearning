@@ -70,7 +70,8 @@ namespace Microsoft.ML.Data
         }
     }
 
-    public static class SimpleSchemaUtils
+    [BestFriend]
+    internal static class SimpleSchemaUtils
     {
         public static DataViewSchema Create(IExceptionContext ectx, params KeyValuePair<string, DataViewType>[] columns)
         {

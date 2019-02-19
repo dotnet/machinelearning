@@ -14,7 +14,8 @@ namespace Microsoft.ML.Data
     /// This is a data view that is a 'zip' of several data views.
     /// The length of the zipped data view is equal to the shortest of the lengths of the components.
     /// </summary>
-    public sealed class ZipDataView : IDataView
+    [BestFriend]
+    internal sealed class ZipDataView : IDataView
     {
         // REVIEW: there are other potential 'zip modes' that can be implemented:
         // * 'zip longest', iterate until all sources finish, and return the 'sensible missing values' for sources that ended
