@@ -76,7 +76,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The type of prediction for this trainer.
         /// </summary>
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         internal FastForestClassificationModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private bool[] _trainSetLabels;
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private protected override bool NeedCalibration => true;
 
         /// <summary>

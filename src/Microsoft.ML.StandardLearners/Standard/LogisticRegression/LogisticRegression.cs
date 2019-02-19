@@ -105,7 +105,7 @@ namespace Microsoft.ML.Trainers
             ShowTrainingStats = Args.ShowTrainingStats;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private protected override void CheckLabel(RoleMappedData data)
         {

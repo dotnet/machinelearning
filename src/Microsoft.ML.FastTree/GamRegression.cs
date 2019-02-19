@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers.FastTree
         internal const string UserNameValue = "Generalized Additive Model for Regression";
         internal const string ShortName = "gamr";
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal RegressionGamTrainer(IHostEnvironment env, Options options)
              : base(env, options, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn)) { }
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed class RegressionGamModelParameters : GamModelParametersBase
     {
         internal const string LoaderSignature = "RegressionGamPredictor";
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Construct a new Regression GAM with the defined properties.

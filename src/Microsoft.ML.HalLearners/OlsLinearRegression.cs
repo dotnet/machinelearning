@@ -66,7 +66,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         private readonly float _l2Weight;
         private readonly bool _perParameterSignificance;
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         // The training performs two passes, only. Probably not worth caching.
         private static readonly TrainerInfo _info = new TrainerInfo(caching: false);

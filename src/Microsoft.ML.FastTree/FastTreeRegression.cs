@@ -47,7 +47,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The type of prediction for the trainer.
         /// </summary>
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/>
@@ -492,7 +492,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeRegressionModelParameters(env, ctx);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
     }
 
     internal static partial class FastTree

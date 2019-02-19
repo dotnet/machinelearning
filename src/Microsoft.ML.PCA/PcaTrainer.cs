@@ -81,7 +81,7 @@ namespace Microsoft.ML.Trainers.PCA
         private readonly int _seed;
         private readonly string _featureColumn;
 
-        public override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
+        private protected override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
 
         // The training performs two passes, only. Probably not worth caching.
         private static readonly TrainerInfo _info = new TrainerInfo(caching: false);
@@ -402,10 +402,7 @@ namespace Microsoft.ML.Trainers.PCA
 
         private readonly DataViewType _inputType;
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.AnomalyDetection; }
-        }
+        private protected override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
 
         /// <summary>
         /// Instantiate new model parameters from trained model.

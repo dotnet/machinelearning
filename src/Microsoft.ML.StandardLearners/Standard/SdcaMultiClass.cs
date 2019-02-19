@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly ISupportSdcaClassificationLoss _loss;
 
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SdcaMultiClassTrainer"/>

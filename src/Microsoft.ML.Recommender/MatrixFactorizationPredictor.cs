@@ -74,7 +74,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// </remarks>
         public readonly IReadOnlyList<float> RightFactorMatrix;
 
-        public PredictionKind PredictionKind => PredictionKind.Recommendation;
+        PredictionKind IPredictor.PredictionKind => PredictionKind.Recommendation;
 
         private DataViewType OutputType => NumberDataViewType.Single;
 

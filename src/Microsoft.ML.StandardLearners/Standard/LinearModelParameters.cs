@@ -486,7 +486,7 @@ namespace Microsoft.ML.Trainers
                 ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
@@ -557,10 +557,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        public override PredictionKind PredictionKind
-        {
-            get { return PredictionKind.Regression; }
-        }
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Output the INI model to a given writer

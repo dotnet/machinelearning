@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
 
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Trainers
         private readonly VectorType _outputType;
 
         /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         DataViewType IValueMapper.InputType => _inputType;
 

@@ -46,7 +46,7 @@ namespace Microsoft.ML.LightGBM
         protected override uint VerNumFeaturesSerialized => 0x00010002;
         protected override uint VerDefaultValueSerialized => 0x00010004;
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal LightGbmRegressionModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
@@ -81,7 +81,7 @@ namespace Microsoft.ML.LightGBM
         internal const string ShortName = "LightGBMR";
         internal const string UserNameValue = "LightGBM Regressor";
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LightGbmRegressorTrainer"/>

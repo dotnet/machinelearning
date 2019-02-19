@@ -192,7 +192,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             }
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>

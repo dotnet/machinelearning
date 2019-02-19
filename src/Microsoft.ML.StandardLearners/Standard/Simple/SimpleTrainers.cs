@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers
         private readonly IHost _host;
 
         /// <summary> Return the type of prediction task.</summary>
-        public PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        PredictionKind ITrainer.PredictionKind => PredictionKind.BinaryClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
 
@@ -145,8 +145,8 @@ namespace Microsoft.ML.Trainers
         private readonly object _instanceLock;
         private readonly Random _random;
 
-        /// <summary> Return the type of prediction task.</summary>
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        /// <summary>Return the type of prediction task.</summary>
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private readonly DataViewType _inputType;
         DataViewType IValueMapper.InputType => _inputType;
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Trainers
         private readonly IHost _host;
 
         /// <summary> Return the type of prediction task.</summary>
-        public PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        PredictionKind ITrainer.PredictionKind => PredictionKind.BinaryClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
 
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Trainers
             ctx.Writer.Write(_prob);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private readonly DataViewType _inputType;
         DataViewType IValueMapper.InputType => _inputType;

@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers.Online
             IClassificationLoss IComponentFactory<IClassificationLoss>.CreateComponent(IHostEnvironment env) => _loss;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private protected override bool NeedCalibration => true;
 

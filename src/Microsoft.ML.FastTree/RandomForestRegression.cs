@@ -97,7 +97,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastForestRegressionModelParameters(env, ctx);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         protected override void Map(in VBuffer<float> src, ref float dst)
         {
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public bool ShuffleLabels;
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+        private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
         internal const string Summary = "Trains a random forest to fit target values using least-squares.";
         internal const string LoadNameValue = "FastForestRegression";

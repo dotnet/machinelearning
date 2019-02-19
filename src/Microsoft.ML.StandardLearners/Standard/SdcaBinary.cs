@@ -1415,7 +1415,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public override TrainerInfo Info { get; }
 
@@ -1792,7 +1792,7 @@ namespace Microsoft.ML.Trainers
 
         private protected override bool ShuffleData => _options.Shuffle;
 
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+        private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         public override TrainerInfo Info { get; }
 

@@ -47,7 +47,8 @@ namespace Microsoft.ML.Trainers
         private protected readonly ICalibratorTrainer Calibrator;
         private protected readonly TScalarTrainer Trainer;
 
-        public PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+        PredictionKind ITrainer.PredictionKind => PredictionKind;
+        private protected PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private protected SchemaShape.Column[] OutputColumns;
 
