@@ -87,7 +87,6 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected double[] InitTrainScores;
         private protected double[] InitValidScores;
         private protected double[][] InitTestScores;
-        //internal int Iteration;
         private protected InternalTreeEnsemble Ensemble;
 
         private protected bool HasValidSet => ValidSet != null;

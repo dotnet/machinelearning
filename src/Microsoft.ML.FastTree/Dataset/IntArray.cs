@@ -199,7 +199,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <returns>An indexer into the array</returns>
         public abstract IIntArrayForwardIndexer GetIndexer();
 
-        internal virtual void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public virtual void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             Contracts.Assert((input.Weights == null) == (histogram.SumWeightsByBin == null));
             if (histogram.SumWeightsByBin != null)

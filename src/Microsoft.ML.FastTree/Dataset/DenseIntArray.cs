@@ -195,7 +195,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        internal override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             histogram.SumTargetsByBin[0] = input.SumTargets;
             if (histogram.SumWeightsByBin != null)
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        internal override unsafe void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public override unsafe void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             using (Timer.Time(TimerEvent.SumupDense10))
             {
@@ -457,7 +457,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
 #if USE_FASTTREENATIVE
-        internal override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
 #if USE_FASTTREENATIVE
-        internal override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 #if USE_FASTTREENATIVE
-        internal override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {
@@ -760,7 +760,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
 #if USE_FASTTREENATIVE
-        internal override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             unsafe
             {

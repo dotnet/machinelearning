@@ -459,7 +459,7 @@ namespace Microsoft.ML.Trainers.FastTree
             histogram.CountByBin[0] += input.TotalCount - totalCount;
         }
 
-        internal override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             using (Timer.Time(TimerEvent.SumupSparse))
             {

@@ -206,7 +206,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }).ToArray();
         }
 
-        internal override void Sumup(SumupInputData input, FeatureHistogram histogram)
+        public override void Sumup(SumupInputData input, FeatureHistogram histogram)
         {
             using (Timer.Time(TimerEvent.SumupRepeat))
             {
