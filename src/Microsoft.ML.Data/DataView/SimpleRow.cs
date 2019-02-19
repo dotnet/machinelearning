@@ -69,17 +69,4 @@ namespace Microsoft.ML.Data
             return _getters[col] != null;
         }
     }
-
-    public static class SimpleSchemaUtils
-    {
-        public static DataViewSchema Create(IExceptionContext ectx, params KeyValuePair<string, DataViewType>[] columns)
-        {
-            Contracts.CheckValueOrNull(ectx);
-            ectx.CheckValue(columns, nameof(columns));
-
-            var builder = new SchemaBuilder();
-            builder.AddColumns(columns.Select(kvp => new DataViewSchema.DetachedColumn(kvp.Key, kvp.Value)));
-            return builder.GetSchema();
-        }
-    }
 }
