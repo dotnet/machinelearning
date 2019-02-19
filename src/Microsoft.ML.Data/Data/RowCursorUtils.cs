@@ -13,7 +13,8 @@ using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
-    public static class RowCursorUtils
+    [BestFriend]
+    internal static class RowCursorUtils
     {
         /// <summary>
         /// Returns an appropriate <see cref="ValueGetter{T}"/> for a row given an active column
