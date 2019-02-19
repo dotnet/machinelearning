@@ -77,6 +77,7 @@ namespace Microsoft.ML.Transforms.Projections
             public float Scale = LpNormalizingEstimatorBase.Defaults.Scale;
         }
 
+        [BestFriend]
         internal abstract class ColumnBase : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Subtract mean from each value before normalizing")]
