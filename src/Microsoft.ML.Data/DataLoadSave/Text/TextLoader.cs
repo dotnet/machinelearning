@@ -1317,21 +1317,6 @@ namespace Microsoft.ML.Data
             return found && !error && options.IsValid();
         }
 
-        /// <summary>
-        /// Checks whether the source contains the valid TextLoader.Arguments depiction.
-        /// </summary>
-        public static bool FileContainsValidSchema(IHostEnvironment env, IMultiStreamSource files, out Options options)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(files, nameof(files));
-            options = new Options();
-            Column[] cols;
-            bool error;
-            bool found = TryParseSchema(h, files, ref options, out cols, out error);
-            return found && !error && options.IsValid();
-        }
-
         private TextLoader(IHost host, ModelLoadContext ctx)
         {
             Contracts.AssertValue(host, "host");
