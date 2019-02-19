@@ -36,6 +36,9 @@ namespace Microsoft.ML.Data
     /// Allows a member to be marked as a vector valued field, primarily allowing one to set
     /// the dimensionality of the resulting array.
     /// </summary>
+    /// <remarks>
+    /// For vector with variable size use <see cref="VariableVectorTypeAttribute"/>.
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class VectorTypeAttribute : Attribute
     {
@@ -67,6 +70,9 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Marks member as variable vector.
     /// </summary>
+    /// <remarks>
+    /// For vector with permanent size use <see cref="VectorTypeAttribute"/>.
+    /// </remarks>
     public sealed class VariableVectorTypeAttribute : Attribute
     {
 
@@ -79,11 +85,10 @@ namespace Microsoft.ML.Data
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ColumnNameAttribute : Attribute
     {
-        private readonly string _name;
         /// <summary>
         /// Column name.
         /// </summary>
-        internal string Name => _name;
+        internal string Name { get; }
 
         /// <summary>
         /// Allows one to specify a name to expose this column as, as opposed to simply
@@ -91,7 +96,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public ColumnNameAttribute(string name)
         {
-            _name = name;
+            Name = name;
         }
     }
 
