@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
@@ -46,6 +47,16 @@ namespace Microsoft.ML.SamplesUtils
             Console.WriteLine($"LossFunction: {metrics.LossFn:F2}");
             Console.WriteLine($"RMS: {metrics.Rms:F2}");
             Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
+        }
+
+        /// <summary>
+        /// Pretty-print RankerMetrics objects.
+        /// </summary>
+        /// <param name="metrics">Ranker metrics.</param>
+        public static void PrintMetrics(RankerMetrics metrics)
+        {
+            Console.WriteLine($"DCG@N: {string.Join(", ", metrics.Dcg.Select(d => Math.Round(d, 2)).ToArray())}");
+            Console.WriteLine($"NDCG@N: {string.Join(", ", metrics.Ndcg.Select(d => Math.Round(d, 2)).ToArray())}");
         }
     }
 }

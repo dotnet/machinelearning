@@ -145,6 +145,57 @@ namespace Microsoft.ML.SamplesUtils
             return featurizedData;
         }
 
+        public static string DownloadMslrWeb10kTrain()
+        {
+            var fileName = "MSLRWeb10KTrain720kRows.tsv";
+            if (!File.Exists(fileName))
+                Download("https://tlcresources.blob.core.windows.net/datasets/MSLR-WEB10K/MSLR-WEB10K_Fold1.TRAIN.500MB_720k-rows.tsv", fileName);
+            return fileName;
+        }
+
+        public static string DownloadMslrWeb10kValidate()
+        {
+            var fileName = "MSLRWeb10KValidate240kRows.tsv";
+            if (!File.Exists(fileName))
+                Download("https://tlcresources.blob.core.windows.net/datasets/MSLR-WEB10K/MSLR-WEB10K_Fold1.VALIDATE.160MB_240k-rows.tsv", fileName);
+            return fileName;
+        }
+
+        public static (IDataView, IDataView) LoadFeaturizedMslrWeb10kTrainAndValidate(MLContext mlContext)
+        {
+            // Download the training and validation files.
+            string trainDataFile = DownloadMslrWeb10kTrain();
+            string validationDataFile = DownloadMslrWeb10kValidate();
+
+            // Create the reader to read the data.
+            var reader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                {
+                    new TextLoader.Column("Label", DataKind.R4, 0),
+                    new TextLoader.Column("GroupId", DataKind.TX, 1),
+                    new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(2, 138) })
+                }
+            );
+
+            // Load the raw training and validation datasets.
+            var trainData = reader.Read(trainDataFile);
+            var validationData = reader.Read(validationDataFile);
+
+            // Create the featurization pipeline. First, hash the GroupId column.
+            var pipeline = mlContext.Transforms.Conversion.Hash("GroupId")
+                // Replace missing values in Features column with the default replacement value for its type.
+                .Append(mlContext.Transforms.ReplaceMissingValues("Features"));
+
+            // Fit the pipeline on the training data.
+            var fittedPipeline = pipeline.Fit(trainData);
+
+            // Use the fitted pipeline to transform the training and validation datasets.
+            var transformedTrainData = fittedPipeline.Transform(trainData);
+            var transformedValidationData = fittedPipeline.Transform(validationData);
+
+            return (transformedTrainData, transformedValidationData);
+        }
+
         /// <summary>
         /// Downloads the breast cancer dataset from the ML.NET repo.
         /// </summary>
